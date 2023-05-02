@@ -3,9 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -47,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Options
             StorageMapping = storageMapping;
             IsEditorConfigOption = isEditorConfigOption;
             DefaultValue = defaultValue;
+
+            Debug.Assert(IsSupportedOptionType(Type));
         }
 
         /// <summary>
@@ -75,6 +78,23 @@ namespace Microsoft.CodeAnalysis.Options
 
         public static bool operator !=(OptionDefinition? left, OptionDefinition? right)
             => !(left == right);
+
+        public static bool IsSupportedOptionType(Type type)
+            => type == typeof(bool) ||
+               type == typeof(string) ||
+               type == typeof(int) ||
+               type == typeof(long) ||
+               type == typeof(bool?) ||
+               type == typeof(int?) ||
+               type == typeof(long?) ||
+               type.IsEnum ||
+               Nullable.GetUnderlyingType(type)?.IsEnum == true ||
+               typeof(ICodeStyleOption).IsAssignableFrom(type) ||
+               type == typeof(NamingStylePreferences) ||
+               type == typeof(ImmutableArray<bool>) ||
+               type == typeof(ImmutableArray<string>) ||
+               type == typeof(ImmutableArray<int>) ||
+               type == typeof(ImmutableArray<long>);
     }
 
     internal sealed class OptionDefinition<T> : OptionDefinition

@@ -10,8 +10,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     {
         protected override string ItemToCommit => "propi";
 
-        protected override string GetDefaultPropertyText(string propertyName)
-            => $"public int {propertyName} {{ get; init; }}";
+        protected override string GetDefaultPropertyBlockText()
+            => "{ get; init; }";
+
+        public override async Task InsertSnippetInReadonlyStruct()
+        {
+            await VerifyDefaultPropertyAsync("""
+                readonly struct MyStruct
+                {
+                    $$
+                }
+                """);
+        }
 
         public override async Task InsertSnippetInInterface()
         {

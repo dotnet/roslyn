@@ -3516,6 +3516,81 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
                 itemSeparator: "\r\n");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47310")]
+        public void DiagnosticFormatting_UrlFormat_ObsoleteAttribute()
+        {
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile("a.cs");
+            file.WriteAllText("""
+                #pragma warning disable CS0436 // System.Obsolete conflict
+                #nullable enable
+                using System;
+
+                var c1 = new C1();
+                var c2 = new C2();
+                var c3 = new C3();
+                var c4 = new C4();
+
+                [Obsolete("Do not use C1", UrlFormat = "https://example.org/{0}")]
+                public class C1 { }
+                [Obsolete("Do not use C2", error: true, UrlFormat = "https://example.org/2/{0}")]
+                public class C2 { }
+                [Obsolete("Do not use C3", error: true, DiagnosticId = "OBSOLETEC3", UrlFormat = "https://example.org/3/{0}")]
+                public class C3 { }
+                [Obsolete("Do not use C4", DiagnosticId = "OBSOLETEC4", UrlFormat = "https://example.org/4")]
+                public class C4 { }
+
+                namespace System
+                {
+                    public class ObsoleteAttribute : Attribute
+                    {
+                        public ObsoleteAttribute() { }
+                        public ObsoleteAttribute(string? message) { }
+                        public ObsoleteAttribute(string? message, bool error) { }
+
+                        public string? DiagnosticId { get; set; }
+                        public string? UrlFormat { get; set; }
+                    }
+                }
+                """);
+
+            var output = VerifyOutput(dir, file,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: 2,
+                expectedErrorCount: 2,
+                additionalFlags: new[] { "/t:exe" });
+
+            AssertEx.Equal("""
+                a.cs(5,14): warning CS0618: 'C1' is obsolete: 'Do not use C1' (https://example.org/CS0618)
+                a.cs(6,14): error CS0619: 'C2' is obsolete: 'Do not use C2' (https://example.org/2/CS0619)
+                a.cs(7,14): error OBSOLETEC3: 'C3' is obsolete: 'Do not use C3' (https://example.org/3/OBSOLETEC3)
+                a.cs(8,14): warning OBSOLETEC4: 'C4' is obsolete: 'Do not use C4' (https://example.org/4)
+                """,
+                output.Trim());
+
+            CleanupAllGeneratedFiles(file.Path);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47310")]
+        public void DiagnosticFormatting_DiagnosticAnalyzer()
+        {
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile("a.cs");
+            file.WriteAllText("class C { }");
+
+            var output = VerifyOutput(dir, file,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: 1,
+                analyzers: new[] { new WarningWithUrlDiagnosticAnalyzer() });
+
+            AssertEx.Equal("""
+                a.cs(1,7): warning Warning02: Throwing a diagnostic for types declared (https://example.org/analyzer)
+                """,
+                output.Trim());
+
+            CleanupAllGeneratedFiles(file.Path);
+        }
+
         [WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ParseOut()
@@ -8635,7 +8710,7 @@ class Program3
             fsDll.Dispose();
             fsPdb.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Roslyn.Utilities.EnumerableExtensions.Order(Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p))));
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
         }
 
         /// <summary>
@@ -8692,7 +8767,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             peDll.Dispose();
             pePdb.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Roslyn.Utilities.EnumerableExtensions.Order(Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p))));
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
 
             // files can be deleted now:
             File.Delete(libSrc.Path);
@@ -8733,7 +8808,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             fsDll.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll" }, Roslyn.Utilities.EnumerableExtensions.Order(Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p))));
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
         }
 
         [Fact]
@@ -11792,8 +11867,8 @@ class C
                 $@"warning AD0001: Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.
 System.NotImplementedException: 28
    at TestAnalyzer.get_SupportedDiagnostics()
-   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass20_0.<ComputeDiagnosticDescriptors_NoLock>b__0(Object _)
-   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info)
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass21_0.<ComputeDiagnosticDescriptors_NoLock>b__0(Object _)
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info, CancellationToken cancellationToken)
 -----
 Analyzer 'TestAnalyzer' threw the following exception:
 'System.NotImplementedException: 28
@@ -14582,6 +14657,46 @@ public class Generator : ISourceGenerator
         [InlineData("abc/a.txt", "./../ABC/a.txt", 2)]
         public void TestDuplicateAdditionalFiles_Linux(string additionalFilePath1, string additionalFilePath2, int expectedCount) => TestDuplicateAdditionalFiles(additionalFilePath1, additionalFilePath2, expectedCount);
 
+        [Fact, WorkItem(1434159, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1434159")]
+        public void CanSuppressAnalyzerLoadWarning()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C {} 
+");
+            var notAnalyzer = dir.CreateFile("random.txt");
+
+            // not suppresssed
+            var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("warning CS8034", output, StringComparison.Ordinal);
+
+            // supressed
+            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/nowarn:CS8034" }, expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false);
+
+            // elevated
+            output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/warnAsError:CS8034" }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("error CS8034", output, StringComparison.Ordinal);
+        }
+
+        [Fact, WorkItem(1434159, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1434159")]
+        public void GlobalAnalyzerConfigCanSuppressAnalyzerLoadWarning()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C {} 
+");
+            var globalconfig = dir.CreateFile(".globalconfig").WriteAllText(@"
+dotnet_diagnostic.CS8034.severity = none
+");
+            var notAnalyzer = dir.CreateFile("random.txt");
+
+            // not suppresssed
+            var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("warning CS8034", output, StringComparison.Ordinal);
+
+            // suppresssed via global analyzer config
+            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/analyzerConfig:" + globalconfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false);
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
@@ -14667,6 +14782,23 @@ public class Generator : ISourceGenerator
                 (symbolContext) =>
                 {
                     symbolContext.ReportDiagnostic(Diagnostic.Create(Warning01, symbolContext.Symbol.Locations.First()));
+                },
+                SymbolKind.NamedType);
+        }
+    }
+
+    internal class WarningWithUrlDiagnosticAnalyzer : CompilationStartedAnalyzer
+    {
+        internal static readonly DiagnosticDescriptor Warning02 = new DiagnosticDescriptor("Warning02", "", "Throwing a diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://example.org/analyzer");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Warning02);
+
+        public override void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
+        {
+            context.RegisterSymbolAction(
+                static (symbolContext) =>
+                {
+                    symbolContext.ReportDiagnostic(Diagnostic.Create(Warning02, symbolContext.Symbol.Locations.First()));
                 },
                 SymbolKind.NamedType);
         }

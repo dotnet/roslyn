@@ -578,7 +578,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <Fact, WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49941")>
         Public Async Function TestReorderParameters_DoNotAddUnnecessaryParensToInvocation() As Task
 
             Dim markup = <Text><![CDATA[

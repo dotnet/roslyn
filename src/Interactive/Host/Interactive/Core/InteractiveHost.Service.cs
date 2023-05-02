@@ -160,13 +160,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _serviceState = null;
             }
 
-            public Task<InteractiveHostPlatformInfo.Data> InitializeAsync(string replServiceProviderTypeName, string cultureName)
+            public Task<InteractiveHostPlatformInfo.Data> InitializeAsync(string replServiceProviderTypeName)
             {
                 // TODO (tomat): we should share the copied files with the host
                 var metadataFileProvider = new MetadataShadowCopyProvider(
                     Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
                     noShadowCopyDirectories: s_systemNoShadowCopyDirectories,
-                    documentationCommentsCulture: new CultureInfo(cultureName));
+                    documentationCommentsCulture: CultureInfo.CurrentUICulture);
 
                 var assemblyLoader = new InteractiveAssemblyLoader(metadataFileProvider);
                 var replServiceProviderType = Type.GetType(replServiceProviderTypeName);
@@ -213,16 +213,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                 s_clientExited.Set();
             }
 
-            internal static Task RunServerAsync(string[] args, Func<Func<object>, object> invokeOnMainThread)
-            {
-                Contract.ThrowIfFalse(args.Length == 2, "Expecting arguments: <pipe name> <client process id>");
-                return RunServerAsync(args[0], int.Parse(args[1], CultureInfo.InvariantCulture), invokeOnMainThread);
-            }
-
             /// <summary>
             /// Implements remote server.
             /// </summary>
-            private static async Task RunServerAsync(string pipeName, int clientProcessId, Func<Func<object>, object> invokeOnMainThread)
+            public static async Task RunServerAsync(string pipeName, int clientProcessId, Func<Func<object>, object> invokeOnMainThread)
             {
                 if (!AttachToClientProcess(clientProcessId))
                 {
@@ -538,7 +532,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         foreach (var error in args.Errors)
                         {
                             var writer = (error.Severity == DiagnosticSeverity.Error) ? Console.Error : Console.Out;
-                            writer.WriteLine(error.GetMessage(CultureInfo.CurrentCulture));
+                            writer.WriteLine(error.GetMessage(CultureInfo.CurrentUICulture));
                         }
 
                         if (args.Errors.Length == 0)

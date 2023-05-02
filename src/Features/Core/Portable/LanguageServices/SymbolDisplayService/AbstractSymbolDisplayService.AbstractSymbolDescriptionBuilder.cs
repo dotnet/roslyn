@@ -534,6 +534,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
                         symbol.OriginalDefinition.ToDisplayParts(s_descriptionStyle));
                 }
+
+                if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
+                    AddToGroup(SymbolDescriptionGroups.MainDescription, new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "?"));
             }
 
             private static bool TypeArgumentsAndParametersAreSame(INamedTypeSymbol symbol)

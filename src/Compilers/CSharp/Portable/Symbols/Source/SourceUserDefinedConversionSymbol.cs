@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (name == WellKnownMemberNames.CheckedExplicitConversionName)
             {
-                MessageID.IDS_FeatureCheckedUserDefinedOperators.CheckFeatureAvailability(diagnostics, syntax, syntax.CheckedKeyword.GetLocation());
+                MessageID.IDS_FeatureCheckedUserDefinedOperators.CheckFeatureAvailability(diagnostics, syntax.CheckedKeyword);
             }
             else if (syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword))
             {
@@ -94,6 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(syntaxReferenceOpt != null);
             return (ConversionOperatorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+        }
+
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
+        {
+            return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
         protected override int GetParameterCountFromSyntax()

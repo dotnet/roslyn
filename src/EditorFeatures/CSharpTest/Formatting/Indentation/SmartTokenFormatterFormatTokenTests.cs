@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         {
         }
 
-        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         public async Task EmptyFile1()
         {
             var code = @"{";
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 indentationLine: 6);
         }
 
-        [Fact, WorkItem(537827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
         public async Task ArrayInitializer3()
         {
             var code = @"namespace NS
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 12);
         }
 
-        [Fact, WorkItem(543142, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543142")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543142")]
         public async Task EnterWithTrailingWhitespace()
         {
             var code = @"class Class
@@ -445,7 +445,7 @@ $$}
             await AssertSmartTokenFormatterCloseBraceWithBaseIndentation(markup, baseIndentation: 7, expectedIndentation: 11);
         }
 
-        [Fact, WorkItem(766159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
         public async Task TestPreprocessor()
         {
             var code = @"
@@ -464,7 +464,7 @@ class C
             Assert.Equal(0, actualIndentation);
         }
 
-        [Fact, WorkItem(766159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
         public async Task TestRegion()
         {
             var code = @"
@@ -483,7 +483,7 @@ class C
             Assert.Equal(8, actualIndentation);
         }
 
-        [Fact, WorkItem(766159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
         public async Task TestEndRegion()
         {
             var code = @"
@@ -503,7 +503,7 @@ class C
             Assert.Equal(8, actualIndentation);
         }
 
-        [Fact, WorkItem(777467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/777467")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/777467")]
         public async Task TestSelect()
         {
             var code = @"
@@ -527,7 +527,7 @@ class Program
             Assert.Equal(15, actualIndentation);
         }
 
-        [Fact, WorkItem(777467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/777467")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/777467")]
         public async Task TestWhere()
         {
             var code = @"

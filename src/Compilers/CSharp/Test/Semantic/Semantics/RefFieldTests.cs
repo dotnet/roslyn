@@ -2172,6 +2172,7 @@ class Program
                 //         return ref r.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r").WithArguments("r").WithLocation(10, 20));
             Assert.False(comp.Assembly.RuntimeSupportsByRefFields);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefFields));
 
             comp = CreateEmptyCompilation(source, references: new[] { refAB }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
@@ -2179,6 +2180,7 @@ class Program
                 //     public ref T F;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12));
             Assert.True(comp.Assembly.RuntimeSupportsByRefFields);
+            Assert.True(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefFields));
 
             comp = CreateEmptyCompilation(source, references: new[] { refA });
             comp.VerifyDiagnostics(
@@ -2186,10 +2188,12 @@ class Program
                 //     public ref T F;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "F").WithLocation(3, 18));
             Assert.False(comp.Assembly.RuntimeSupportsByRefFields);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefFields));
 
             comp = CreateEmptyCompilation(source, references: new[] { refAB });
             comp.VerifyDiagnostics();
             Assert.True(comp.Assembly.RuntimeSupportsByRefFields);
+            Assert.True(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefFields));
         }
 
         [ConditionalTheory(typeof(CoreClrOnly))]
@@ -11317,15 +11321,9 @@ readonly scoped record struct C();
                 // (3,24): error CS1002: ; expected
                 // readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
-                // (3,32): error CS1514: { expected
+                // (3,32): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(3, 32),
-                // (3,32): error CS1513: } expected
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(3, 32),
-                // (3,33): error CS1525: Invalid expression term ')'
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(3, 33)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 32)
                 );
         }
 

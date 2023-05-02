@@ -9,9 +9,8 @@ using Microsoft.CodeAnalysis.AddImport;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeCleanup;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
@@ -110,6 +109,20 @@ internal static class CodeGenerationOptionsProviders
 #if !CODE_STYLE
     public static CodeGenerationOptions GetCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, CodeGenerationOptions? fallbackOptions)
         => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options, fallbackOptions);
+
+    public static CodeAndImportGenerationOptions GetCodeAndImportGenerationOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions, CodeAndImportGenerationOptions? fallbackOptions)
+        => new()
+        {
+            GenerationOptions = options.GetCodeGenerationOptions(languageServices, fallbackOptions?.GenerationOptions),
+            AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions, fallbackOptions?.AddImportOptions)
+        };
+
+    public static CleanCodeGenerationOptions GetCleanCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions, CleanCodeGenerationOptions? fallbackOptions)
+        => new()
+        {
+            GenerationOptions = options.GetCodeGenerationOptions(languageServices, fallbackOptions?.GenerationOptions),
+            CleanupOptions = options.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions, fallbackOptions?.CleanupOptions)
+        };
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptions? fallbackOptions, CancellationToken cancellationToken)
     {

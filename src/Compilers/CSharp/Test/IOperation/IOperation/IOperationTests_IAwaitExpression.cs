@@ -510,5 +510,35 @@ Block[B5] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67616")]
+        public void TestAwaitExpression_InStatement()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M()
+    {
+        /*<bind>*/await M2()/*</bind>*/;
+    }
+
+    static Task<string> M2() => throw null;
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: System.String) (Syntax: 'await M2()')
+  Expression:
+    IInvocationOperation (System.Threading.Tasks.Task<System.String> C.M2()) (OperationKind.Invocation, Type: System.Threading.Tasks.Task<System.String>) (Syntax: 'M2()')
+      Instance Receiver:
+        null
+      Arguments(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

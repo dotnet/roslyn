@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         public IFileChangeWatcher FileChangeWatcher { get; }
         public FileWatchedPortableExecutableReferenceFactory FileWatchedReferenceFactory { get; }
 
-        private readonly Action<ImmutableArray<string>> _onDocumentsAdded;
+        private readonly Func<bool, ImmutableArray<string>, Task> _onDocumentsAddedMaybeAsync;
         private readonly Action<Project> _onProjectRemoved;
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         public string? SolutionPath { get; set; }
         public Guid SolutionTelemetryId { get; set; }
 
-        public ProjectSystemProjectFactory(Workspace workspace, IFileChangeWatcher fileChangeWatcher, Action<ImmutableArray<string>> onDocumentsAdded, Action<Project> onProjectRemoved)
+        public ProjectSystemProjectFactory(Workspace workspace, IFileChangeWatcher fileChangeWatcher, Func<bool, ImmutableArray<string>, Task> onDocumentsAddedMaybeAsync, Action<Project> onProjectRemoved)
         {
             Workspace = workspace;
             WorkspaceListener = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             FileWatchedReferenceFactory = new FileWatchedPortableExecutableReferenceFactory(workspace.Services.SolutionServices, fileChangeWatcher);
             FileWatchedReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
 
-            _onDocumentsAdded = onDocumentsAdded;
+            _onDocumentsAddedMaybeAsync = onDocumentsAddedMaybeAsync;
             _onProjectRemoved = onProjectRemoved;
         }
 
@@ -226,10 +226,34 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         {
             using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
             {
-                var solutionChanges = new SolutionChangeAccumulator(Workspace.CurrentSolution);
-                mutation(solutionChanges);
+                // We need the data from the accumulator across the lambda callbacks to SetCurrentSolutionAsync, so declare
+                // it here. It will be assigned in `transformation:` below (which may happen multiple times if the
+                // transformation needs to rerun).  Once the transformation succeeds and is applied, the
+                // 'onBeforeUpdate/onAfterUpdate' callbacks will be called, and can use the last assigned value in
+                // `transformation`.
+                SolutionChangeAccumulator solutionChanges = null!;
 
-                ApplyBatchChangeToWorkspace_NoLock(solutionChanges);
+                await Workspace.SetCurrentSolutionAsync(
+                    useAsync,
+                    transformation: oldSolution =>
+                    {
+                        solutionChanges = new SolutionChangeAccumulator(oldSolution);
+                        mutation(solutionChanges);
+
+                        // Note: If the accumulator showed no changes it will return oldSolution.  This ensures that
+                        // SetCurrentSolutionAsync bails out immediately and no further work is done.
+                        return solutionChanges.Solution;
+                    },
+                    changeKind: (_, _) => (solutionChanges.WorkspaceChangeKind, solutionChanges.WorkspaceChangeProjectId, solutionChanges.WorkspaceChangeDocumentId),
+                    onBeforeUpdate: (_, _) =>
+                    {
+                        // Clear out mutable state not associated with the solution snapshot (for example, which documents are
+                        // currently open).
+                        foreach (var documentId in solutionChanges.DocumentIdsRemoved)
+                            Workspace.ClearDocumentData(documentId);
+                    },
+                    onAfterUpdate: null,
+                    CancellationToken.None).ConfigureAwait(false);
             }
         }
 
@@ -305,9 +329,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             Contract.ThrowIfFalse(_projectToMaxSupportedLangVersionMap.Count == 0);
             Contract.ThrowIfFalse(_projectToDependencyNodeTargetIdentifier.Count == 0);
 
-            // Create a new empty solution and set this; we will reuse the same SolutionId and path since components still may have persistence information they still need
-            // to look up by that location; we also keep the existing analyzer references around since those are host-level analyzers that were loaded asynchronously.
-            Workspace.ClearOpenDocuments();
+            // Create a new empty solution and set this; we will reuse the same SolutionId and path since components
+            // still may have persistence information they still need to look up by that location; we also keep the
+            // existing analyzer references around since those are host-level analyzers that were loaded asynchronously.
 
             Workspace.SetCurrentSolution(
                 solution => Workspace.CreateSolution(
@@ -315,7 +339,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                         SolutionId.CreateNewId(),
                         VersionStamp.Create(),
                         analyzerReferences: solution.AnalyzerReferences)),
-                WorkspaceChangeKind.SolutionRemoved);
+                WorkspaceChangeKind.SolutionRemoved,
+                onBeforeUpdate: (_, _) =>
+                {
+                    Workspace.ClearOpenDocuments();
+                });
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/54137", AllowLocks = false)]
@@ -649,9 +677,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             }).ConfigureAwait(false);
         }
 
-        internal void RaiseOnDocumentsAdded(ImmutableArray<string> filePaths)
+        internal Task RaiseOnDocumentsAddedMaybeAsync(bool useAsync, ImmutableArray<string> filePaths)
         {
-            _onDocumentsAdded(filePaths);
+            return _onDocumentsAddedMaybeAsync(useAsync, filePaths);
         }
     }
 }

@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeExpression(
                 "[A]B()=>{ }", """
                 [A]
-                B() =>
+                B () =>
                 {
                 }
                 """);
@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeExpression("int( x )=>x", "int (x) => x");
             TestNormalizeExpression(
                 "A( B b )=>{}", """
-                A(B b) =>
+                A (B b) =>
                 {
                 }
                 """);
@@ -853,7 +853,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 async
                 A<int>()=>x
                 """,
-                "static async A<int>() => x");
+                "static async A<int> () => x");
+            TestNormalizeExpression("(A,B)()=>(new A(),new B())", "(A, B) () => (new A(), new B())");
+            TestNormalizeExpression("A.B()=>null", "A.B () => null");
+            TestNormalizeExpression("A.B.C()=>null", "A.B.C () => null");
+            TestNormalizeExpression("int[]()=>null", "int[] () => null");
+            TestNormalizeExpression("A.B[]()=>null", "A.B[] () => null");
+            TestNormalizeExpression("A.B.C[]()=>null", "A.B.C[] () => null");
+            TestNormalizeExpression("int*()=>null", "int* () => null");
+            TestNormalizeExpression("A.B*()=>null", "A.B* () => null");
+            TestNormalizeExpression("A.B.C*()=>null", "A.B.C* () => null");
         }
 
         [Fact]
@@ -3081,6 +3090,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestNormalizeDeclaration("record  class  C(int I, int J);", "record class C(int I, int J);");
             TestNormalizeDeclaration("record  struct  S(int I, int J);", "record struct S(int I, int J);");
+        }
+
+        [Fact]
+        public void TestSpacingOnPrimaryConstructor()
+        {
+            TestNormalizeDeclaration("class  C     (   int    I   ,    int    J   )   ;    ", "class C(int I, int J);");
+            TestNormalizeDeclaration("struct  S     (   int    I   ,    int    J   )   ;    ", "struct S(int I, int J);");
+            TestNormalizeDeclaration("interface  S     (   int    I   ,    int    J   )   ;    ", "interface S(int I, int J);");
+            TestNormalizeDeclaration("class  C     (   )   ;    ", "class C();");
+            TestNormalizeDeclaration("struct   S  (  )  ;    ", "struct S();");
+            TestNormalizeDeclaration("interface   S  (  )  ;    ", "interface S();");
+        }
+
+        [Fact]
+        public void TestSemicolonBody()
+        {
+            TestNormalizeDeclaration("class      C       ;    ", "class C;");
+            TestNormalizeDeclaration("struct      C       ;    ", "struct C;");
+            TestNormalizeDeclaration("interface      C       ;    ", "interface C;");
+            TestNormalizeDeclaration("enum      C       ;    ", "enum C;");
         }
 
         [Fact, WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
@@ -5871,6 +5900,22 @@ $"  ///  </summary>{Environment.NewLine}" +
                   }
                 }
                 """);
+        }
+
+        [Theory]
+        [InlineData("using X=int ;", "using X = int;")]
+        [InlineData("global   using X=int ;", "global using X = int;")]
+        [InlineData("using X=nint;", "using X = nint;")]
+        [InlineData("using X=dynamic;", "using X = dynamic;")]
+        [InlineData("using X=int [] ;", "using X = int[];")]
+        [InlineData("using X=(int,int) ;", "using X = (int, int);")]
+        [InlineData("using  unsafe  X=int * ;", "using unsafe X = int*;")]
+        [InlineData("global   using  unsafe  X=int * ;", "global using unsafe X = int*;")]
+        [InlineData("using X=int ?;", "using X = int?;")]
+        [InlineData("using X=delegate * <int,int> ;", "using X = delegate*<int, int>;")]
+        public void TestNormalizeUsingAlias(string text, string expected)
+        {
+            TestNormalizeDeclaration(text, expected);
         }
 
         private static void VerifySingleLineInitializer(string text, string expected)

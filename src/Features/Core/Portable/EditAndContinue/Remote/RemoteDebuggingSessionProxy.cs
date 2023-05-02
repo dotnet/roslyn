@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _connection?.Dispose();
         }
 
-        private IEditAndContinueWorkspaceService GetLocalService()
-            => _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        private IEditAndContinueService GetLocalService()
+            => _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         public async ValueTask BreakStateOrCapabilitiesChangedAsync(IDiagnosticAnalyzerService diagnosticService, EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource, bool? inBreakState, CancellationToken cancellationToken)
         {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // clear all reported rude edits:
-            diagnosticService.Reanalyze(_workspace, documentIds: documentsToReanalyze);
+            diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: documentsToReanalyze, highPriority: false);
 
             // clear emit/apply diagnostics reported previously:
             diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: false);
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 compileTimeSolution, documentsToReanalyze, designTimeSolution: _workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
 
             // clear all reported rude edits:
-            diagnosticService.Reanalyze(_workspace, documentIds: designTimeDocumentsToReanalyze);
+            diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: designTimeDocumentsToReanalyze, highPriority: false);
 
             // clear emit/apply diagnostics reported previously:
             diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: true);
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     var results = await GetLocalService().EmitSolutionUpdateAsync(_sessionId, solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                     moduleUpdates = results.ModuleUpdates;
-                    diagnosticData = results.GetDiagnosticData(solution);
+                    diagnosticData = results.Diagnostics.ToDiagnosticData(solution);
                     rudeEdits = results.RudeEdits;
                     syntaxError = results.GetSyntaxErrorData(solution);
                 }
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                     else
                     {
-                        moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ModuleUpdate>.Empty);
+                        moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedHotReloadUpdate>.Empty);
                         diagnosticData = ImmutableArray<DiagnosticData>.Empty;
                         rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
                         syntaxError = null;
@@ -146,16 +146,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
-
-                var diagnostic = Diagnostic.Create(
-                    descriptor,
-                    Location.None,
-                    string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
-
-                diagnosticData = ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
+                diagnosticData = GetInternalErrorDiagnosticData(solution, e);
                 rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
-                moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ModuleUpdate>.Empty);
+                moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedHotReloadUpdate>.Empty);
                 syntaxError = null;
             }
 
@@ -163,12 +156,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: false);
 
             // clear all reported rude edits:
-            diagnosticService.Reanalyze(_workspace, documentIds: rudeEdits.Select(d => d.DocumentId));
+            diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: rudeEdits.Select(d => d.DocumentId), highPriority: false);
 
             // report emit/apply diagnostics:
             diagnosticUpdateSource.ReportDiagnostics(_workspace, solution, diagnosticData, rudeEdits);
 
             return (moduleUpdates, diagnosticData, rudeEdits, syntaxError);
+        }
+
+        private static ImmutableArray<DiagnosticData> GetInternalErrorDiagnosticData(Solution solution, Exception e)
+        {
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
+
+            var diagnostic = Diagnostic.Create(
+                descriptor,
+                Location.None,
+                string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
+
+            return ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
         }
 
         public async ValueTask CommitSolutionUpdateAsync(IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
@@ -190,7 +195,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // clear all reported rude edits:
-            diagnosticService.Reanalyze(_workspace, documentIds: documentsToReanalyze);
+            diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: documentsToReanalyze, highPriority: false);
         }
 
         public async ValueTask DiscardSolutionUpdateAsync(CancellationToken cancellationToken)

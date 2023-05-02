@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class IntellisenseQuickInfoBuilderTests
         Inherits AbstractIntellisenseQuickInfoBuilderTests
 
-        <WpfFact, WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33001")>
         Public Async Function BuildQuickInfoItem() As Task
 
             Dim codeAnalysisQuickInfoItem =
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33001")>
         Public Async Function BuildQuickInfoItemWithoutDocumentation() As Task
 
             Dim codeAnalysisQuickInfoItem =
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33001")>
         Public Async Function BuildQuickInfoItemWithMultiLineDocumentation() As Task
 
             Dim codeAnalysisQuickInfoItem =
@@ -310,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33001")>
         Public Async Function BuildQuickInfoFromSymbol() As Task
             Dim workspace =
                 <Workspace>
@@ -390,7 +390,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31618")>
         Public Async Function QuickInfoShowsMethodRemarks() As Task
             Dim workspace =
                 <Workspace>
@@ -437,7 +437,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31618")>
         Public Async Function QuickInfoShowsMethodReturns() As Task
             Dim workspace =
                 <Workspace>
@@ -494,7 +494,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31618")>
         Public Async Function QuickInfoShowsDelegateReturns() As Task
             Dim workspace =
                 <Workspace>
@@ -553,7 +553,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31618")>
         Public Async Function QuickInfoShowsPropertyValue() As Task
             Dim workspace =
                 <Workspace>
@@ -625,7 +625,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <InlineData("<para/>text1<br/><br/>text2<para/>")>
         <InlineData("<para/><para/>text1<br/><br/>text2<para/><para/>")>
         <InlineData("<para>text1</para><br/><para>text2</para>")>
-        <WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/33001")>
         Public Async Function EquivalentParagraphForms(summary As String) As Task
             Dim workspace =
                 <Workspace>
@@ -772,7 +772,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33546")>
         Public Async Function QuickInfoForParameterReference() As Task
             Dim workspace =
                 <Workspace>
@@ -823,7 +823,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33546")>
         Public Async Function QuickInfoForReadOnlyMethodReference() As Task
             Dim workspace =
                 <Workspace>
@@ -862,7 +862,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33546")>
         Public Async Function QuickInfoForReadOnlyPropertyReference() As Task
             Dim workspace =
                 <Workspace>
@@ -904,7 +904,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33546")>
         Public Async Function QuickInfoForReadOnlyEventReference() As Task
             Dim workspace =
                 <Workspace>
@@ -941,7 +941,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33546")>
         Public Async Function QuickInfoForTypeParameterReference() As Task
             Dim workspace =
                 <Workspace>
@@ -992,7 +992,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33546")>
         Public Async Function QuickInfoForTypeParameterReferenceClosedGeneric() As Task
             Dim workspace =
                 <Workspace>
@@ -1043,7 +1043,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33546")>
         Public Async Function QuickInfoForTypeParameterReferenceBoundGeneric() As Task
             Dim workspace =
                 <Workspace>
@@ -1097,7 +1097,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/46985")>
         Public Async Function QuickInfoForRecords() As Task
             Dim workspace =
                 <Workspace>
@@ -1144,7 +1144,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/52490")>
         Public Async Function QuickInfoForUnderlyingEnumTypes() As Task
             Dim workspace =
                 <Workspace>
@@ -1278,7 +1278,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, WorkItem(16353, "https://github.com/dotnet/roslyn/issues/16353")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16353")>
         Public Async Function QuickInfoForAlias1() As Task
             Dim workspace =
                 <Workspace>

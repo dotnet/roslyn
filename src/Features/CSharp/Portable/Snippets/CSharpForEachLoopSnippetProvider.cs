@@ -9,12 +9,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -31,26 +33,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
-        /// <summary>
-        /// Creates the foreach statement syntax.
-        /// Must be done in language specific file since there is no generic way to generate the syntax.
-        /// </summary>
-        protected override async Task<SyntaxNode> CreateForEachLoopStatementSyntaxAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, SyntaxNode? inlineExpression)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = syntaxContext.SemanticModel;
+            var position = syntaxContext.Position;
+
             var varIdentifier = SyntaxFactory.IdentifierName("var");
-            var enumerationSymbol = semanticModel.LookupSymbols(position).FirstOrDefault(symbol => symbol.GetSymbolType() != null &&
-                symbol.GetSymbolType()!.AllInterfaces.Any(
-                    namedSymbol => namedSymbol.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable) &&
+            var collectionIdentifier = (ExpressionSyntax?)inlineExpression;
+
+            if (collectionIdentifier is null)
+            {
+                var enumerationSymbol = semanticModel.LookupSymbols(position).FirstOrDefault(symbol => symbol.GetSymbolType() is { } symbolType &&
+                    symbolType.CanBeEnumerated() &&
                     symbol.Kind is SymbolKind.Local or SymbolKind.Field or SymbolKind.Parameter or SymbolKind.Property);
-            var collectionIdentifier = enumerationSymbol is null
-                ? SyntaxFactory.IdentifierName("collection")
-                : SyntaxFactory.IdentifierName(enumerationSymbol.Name);
+                collectionIdentifier = enumerationSymbol is null
+                    ? SyntaxFactory.IdentifierName("collection")
+                    : SyntaxFactory.IdentifierName(enumerationSymbol.Name);
+            }
+
             var itemString = NameGenerator.GenerateUniqueName(
                 "item", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
-            var foreachLoopSyntax = SyntaxFactory.ForEachStatement(varIdentifier, itemString, collectionIdentifier, SyntaxFactory.Block());
 
-            return foreachLoopSyntax;
+            return SyntaxFactory.ForEachStatement(varIdentifier, itemString, collectionIdentifier, SyntaxFactory.Block()).NormalizeWhitespace();
         }
 
         /// <summary>
@@ -62,16 +66,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
             GetPartsOfForEachStatement(node, out var identifier, out var expression, out var _1);
             arrayBuilder.Add(new SnippetPlaceholder(identifier.ToString(), ImmutableArray.Create(identifier.SpanStart)));
-            arrayBuilder.Add(new SnippetPlaceholder(expression.ToString(), ImmutableArray.Create(expression.SpanStart)));
+
+            if (!ConstructedFromInlineExpression)
+                arrayBuilder.Add(new SnippetPlaceholder(expression.ToString(), ImmutableArray.Create(expression.SpanStart)));
 
             return arrayBuilder.ToImmutableArray();
 
         }
 
-        private static string GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
+        private static string GetIndentation(Document document, ForEachStatementSyntax foreachStatement, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var foreachStatement = (ForEachStatementSyntax)node;
             var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(foreachStatement.Statement.SpanStart).LineNumber;
 
             var indentationOptions = new IndentationOptions(syntaxFormattingOptions);
@@ -90,10 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
 
-            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = GetIndentation(document, snippet, syntaxFormattingOptions, cancellationToken);
+            if (snippet is not ForEachStatementSyntax foreachStatement)
+                return document;
 
-            var foreachStatement = (ForEachStatementSyntax)snippet;
+            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var indentationString = GetIndentation(document, foreachStatement, syntaxFormattingOptions, cancellationToken);
+
             var blockStatement = (BlockSyntax)foreachStatement.Statement;
             blockStatement = blockStatement.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
             var newForEachStatement = foreachStatement.ReplaceNode(foreachStatement.Statement, blockStatement);

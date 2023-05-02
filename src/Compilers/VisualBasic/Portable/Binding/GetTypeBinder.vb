@@ -21,19 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits Binder
 
         Private ReadOnly _allowedMap As Dictionary(Of GenericNameSyntax, Boolean)
-        Private ReadOnly _isTypeExpressionOpen As Boolean
 
         Friend Sub New(typeExpression As ExpressionSyntax, containingBinder As Binder)
             MyBase.New(containingBinder)
 
-            OpenTypeVisitor.Visit(typeExpression, _allowedMap, _isTypeExpressionOpen)
+            OpenTypeVisitor.Visit(typeExpression, _allowedMap)
         End Sub
-
-        Friend ReadOnly Property IsTypeExpressionOpen As Boolean
-            Get
-                Return _isTypeExpressionOpen
-            End Get
-        End Property
 
         Public Overrides Function IsUnboundTypeAllowed(Syntax As GenericNameSyntax) As Boolean
             Dim allowed As Boolean
@@ -52,24 +45,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private _allowedMap As Dictionary(Of GenericNameSyntax, Boolean) = Nothing
             Private _seenConstructed As Boolean = False
-            Private _seenGeneric As Boolean = False
 
             ''' <param name="typeSyntax">The argument to typeof.</param>
             ''' <param name="allowedMap">
             ''' Keys are GenericNameSyntax nodes representing unbound generic types.
             ''' Values are false if the node should result in an error and true otherwise.
             ''' </param>
-            ''' <param name="isOpenType">True if no constructed generic type was encountered.</param>
-            Public Overloads Shared Sub Visit(typeSyntax As ExpressionSyntax, <Out()> ByRef allowedMap As Dictionary(Of GenericNameSyntax, Boolean), <Out()> isOpenType As Boolean)
+            Public Overloads Shared Sub Visit(typeSyntax As ExpressionSyntax, <Out()> ByRef allowedMap As Dictionary(Of GenericNameSyntax, Boolean))
                 Dim visitor = New OpenTypeVisitor()
                 visitor.Visit(typeSyntax)
                 allowedMap = visitor._allowedMap
-                isOpenType = visitor._seenGeneric AndAlso Not visitor._seenConstructed
             End Sub
 
             Public Overrides Sub VisitGenericName(node As GenericNameSyntax)
-                _seenGeneric = True
-
                 Dim typeArguments As SeparatedSyntaxList(Of TypeSyntax) = node.TypeArgumentList.Arguments
                 ' Missing type arguments are represented as missing name syntax
                 Dim isOpenType = typeArguments.AllAreMissingIdentifierName

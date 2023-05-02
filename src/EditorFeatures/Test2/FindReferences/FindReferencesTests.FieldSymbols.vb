@@ -296,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(539598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539598")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539598")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestField_EnumMember1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -319,7 +319,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(539598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539598")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539598")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestField_EnumMember2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -342,7 +342,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(540515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540515")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540515")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestField_AcrossSubmission(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -357,7 +357,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(4952, "https://github.com/dotnet/roslyn/pull/4952")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/4952")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestField_AcrossSubmission_Command(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -514,7 +514,7 @@ class Definition:Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestFieldReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
             Dim input =

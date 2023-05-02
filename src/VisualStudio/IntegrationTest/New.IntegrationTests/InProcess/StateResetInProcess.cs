@@ -7,12 +7,19 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Options;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -43,13 +50,27 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             configurationService.Clear();
 
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
+            ResetOption(globalOptions, CSharpCodeStyleOptions.NamespaceDeclarations);
+            ResetOption(globalOptions, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin);
+            ResetOption(globalOptions, InlineRenameSessionOptionsStorage.PreviewChanges);
+            ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameFile);
+            ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameInComments);
+            ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameInStrings);
+            ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameOverloads);
+            ResetOption(globalOptions, InlineRenameUIOptionsStorage.UseInlineAdornment);
             ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
             ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
+            ResetPerLanguageOption(globalOptions, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened);
+            ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.TriggerInArgumentLists);
+            ResetPerLanguageOption(globalOptions, InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports);
+            ResetPerLanguageOption(globalOptions, InheritanceMarginOptionsStorage.ShowInheritanceMargin);
             ResetPerLanguageOption(globalOptions, NavigationBarViewOptionsStorage.ShowNavigationBar);
-            ResetPerLanguageOption(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
-            ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);
-            ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.PrettyListing);
-            ResetPerLanguageOption(globalOptions, CompletionViewOptions.EnableArgumentCompletionSnippets);
+            ResetPerLanguageOption(globalOptions, SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption);
+            ResetPerLanguageOption(globalOptions, SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption);
+            ResetPerLanguageOption(globalOptions, VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser);
+            ResetPerLanguageOption(globalOptions, AddImportOnPasteOptionsStorage.AddImportsOnPaste);
+            ResetPerLanguageOption(globalOptions, LineCommitOptionsStorage.PrettyListing);
+            ResetPerLanguageOption(globalOptions, CompletionViewOptionsStorage.EnableArgumentCompletionSnippets);
 
             static void ResetOption<T>(IGlobalOptionService globalOptions, Option2<T> option)
             {

@@ -14,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class MetadataToProjectReferenceConversionTests
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(32554, "https://github.com/dotnet/roslyn/issues/32554")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/32554")>
         Public Async Function ProjectReferenceConvertedToMetadataReferenceCanBeRemoved(convertReferenceBackFirst As Boolean, removeInBatch As Boolean) As Task
             Using environment = New TestEnvironment()
                 Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
@@ -85,7 +85,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact, WorkItem(857595, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/857595")>
+        <WpfFact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/857595")>
         Public Async Function TwoProjectsProducingSameOutputPathBehavesCorrectly() As Task
             Using environment = New TestEnvironment()
                 Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
@@ -286,8 +286,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact, WorkItem(39032, "https://github.com/dotnet/roslyn/issues/39032")>
-        <WorkItem(43632, "https://github.com/dotnet/roslyn/issues/43632")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39032")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/43632")>
         Public Async Function RemoveAndReAddReferenceInSingleBatchWhileChangingCase() As Task
             Using environment = New TestEnvironment()
                 Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, CancellationToken.None)
@@ -313,7 +313,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact, WorkItem(39904, "https://github.com/dotnet/roslyn/issues/39904")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39904")>
         Public Async Function MetadataReferenceCycleDoesNotCreateProjectReferenceCycleWhenAddingReferencesFirst() As Task
             Using environment = New TestEnvironment()
                 Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project1", LanguageNames.CSharp, CancellationToken.None)
@@ -334,7 +334,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact, WorkItem(39904, "https://github.com/dotnet/roslyn/issues/39904")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39904")>
         Public Async Function MetadataReferenceCycleDoesNotCreateProjectReferenceCycleWhenSettingOutputPathsFirst() As Task
             Using environment = New TestEnvironment()
                 Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project1", LanguageNames.CSharp, CancellationToken.None)

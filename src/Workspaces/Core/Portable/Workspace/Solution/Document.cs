@@ -430,8 +430,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<DocumentId> GetLinkedDocumentIds()
         {
-            var documentIdsWithPath = this.Project.Solution.GetDocumentIdsWithFilePath(this.FilePath);
-            var filteredDocumentIds = this.Project.Solution.FilterDocumentIdsByLanguage(documentIdsWithPath, this.Project.Language);
+            var filteredDocumentIds = this.Project.Solution.GetRelatedDocumentIds(this.Id);
             return filteredDocumentIds.Remove(this.Id);
         }
 
@@ -489,11 +488,11 @@ namespace Microsoft.CodeAnalysis
 
         private void InitializeCachedOptions(OptionSet solutionOptions)
         {
-            var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async cancellationToken =>
+            var newAsyncLazy = AsyncLazy.Create(async cancellationToken =>
             {
                 var options = await GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
                 return new DocumentOptionSet(options, solutionOptions, Project.Language);
-            }, cacheResult: true);
+            });
 
             Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
         }
