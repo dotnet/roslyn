@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             /// <summary>
             /// The document the user was editing when they invoked the navigate-to operation.
             /// </summary>
-            private readonly Document? _activeDocument;
+            private readonly (DocumentId id, IReadOnlyList<string> folders)? _activeDocument;
 
             private readonly string _additionalInformation;
             private readonly Lazy<string> _secondarySort;
@@ -124,7 +125,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 _item = item;
                 _itemDocument = itemDocument;
-                _activeDocument = activeDocument;
+                if (activeDocument is not null)
+                    _activeDocument = (activeDocument.Id, activeDocument.Folders);
+
                 _additionalInformation = ComputeAdditionalInformation();
                 _secondarySort = new Lazy<string>(ComputeSecondarySort);
             }
@@ -243,14 +246,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 int ComputeFolderDistance()
                 {
                     // No need to compute anything if there is no active document.  Consider all documents equal.
-                    if (_activeDocument == null)
+                    if (_activeDocument is not { } activeDocument)
                         return 0;
 
                     // The result was in the active document, this get highest priority.
-                    if (_activeDocument == _itemDocument)
+                    if (activeDocument.id == _itemDocument.Id)
                         return 0;
 
-                    var activeFolders = _activeDocument.Folders;
+                    var activeFolders = activeDocument.folders;
                     var itemFolders = _itemDocument.Folders;
 
                     // see how many folder they have in common.
@@ -263,21 +266,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // Add one more to the result.  This way if they share all the same folders that we still return
                     // '1', indicating that this close to, but not as good a match as an exact file match.
                     return activeDiff + itemDiff + 1;
-                }
 
-                int GetCommonFolderCount()
-                {
-                    var activeFolders = _activeDocument.Folders;
-                    var itemFolders = _itemDocument.Folders;
-
-                    var maxCommon = Math.Min(activeFolders.Count, itemFolders.Count);
-                    for (var i = 0; i < maxCommon; i++)
+                    int GetCommonFolderCount()
                     {
-                        if (activeFolders[i] != itemFolders[i])
-                            return i;
-                    }
+                        var activeFolders = activeDocument.folders;
+                        var itemFolders = _itemDocument.Folders;
 
-                    return maxCommon;
+                        var maxCommon = Math.Min(activeFolders.Count, itemFolders.Count);
+                        for (var i = 0; i < maxCommon; i++)
+                        {
+                            if (activeFolders[i] != itemFolders[i])
+                                return i;
+                        }
+
+                        return maxCommon;
+                    }
                 }
             }
 
