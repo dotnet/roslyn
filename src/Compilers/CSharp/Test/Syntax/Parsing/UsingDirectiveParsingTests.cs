@@ -5397,4 +5397,127 @@ using X = __makeref;
         }
         EOF();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67989")]
+    public void AliasToTupleReferencedInExpression()
+    {
+        var text = """
+            using Alias = (int, int);
+
+            internal class C
+            {
+                void M()
+                {
+                    Alias.Equals(null, null);
+                }
+            }
+            """;
+
+        UsingTree(text);
+        CreateCompilation(text).VerifyDiagnostics();
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Alias");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.TupleType);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.TupleElement);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.TupleElement);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.InternalKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Alias");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Equals");
+                                    }
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.NullLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NullKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.NullLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NullKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
 }
