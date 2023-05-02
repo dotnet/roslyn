@@ -898,7 +898,7 @@ class C
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67989")]
         public void AliasToPointerReferencedInExpression()
-        {;
+        {
             CreateCompilation("""
                 using unsafe Alias = int*;
 
