@@ -4,12 +4,12 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net7.0</TargetFramework>
-    <RootNamespace>Microsoft.CodeAnalysis.LanguageServer.Internal.UnitTests</RootNamespace>
+    <RootNamespace>Microsoft.VisualStudio.LanguageServices.DevKit.UnitTests</RootNamespace>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Features\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" />
-    <ProjectReference Include="..\Impl\Microsoft.CodeAnalysis.LanguageServer.Internal.csproj" />
+    <ProjectReference Include="..\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj" />
   <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />

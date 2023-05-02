@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Telemetry;
 using Xunit;
 using TelemetryService = Microsoft.CodeAnalysis.LanguageServer.Services.Telemetry.TelemetryService;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Internal.UnitTests;
+namespace Microsoft.VisualStudio.LanguageServices.DevKit.UnitTests;
 
 public class VSCodeTelemetryLoggerTests
 {

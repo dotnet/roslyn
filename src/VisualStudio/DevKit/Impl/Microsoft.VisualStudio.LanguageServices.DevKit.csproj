@@ -14,11 +14,20 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.NpmPack" PrivateAssets="all" Version="$(MicrosoftVisualStudioInternalMicroBuildNpmPackVersion)" Condition="'$(IsNpmPackable)' == 'true'" />
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
+    
+    <!-- 
+    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgMicrosoft_VisualStudio_Telemetry 
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" GeneratePathProperty="True" />
+
+    <!--
+    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgMicrosoft_VisualStudio_RemoteControl
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" GeneratePathProperty="True" />
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Internal.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.DevKit.UnitTests" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -35,6 +44,8 @@
     <Message Text="Package version is $(PackageVersion)" Importance="high" />
     <Message Text="Version is $(Version)" Importance="high" />
     <ItemGroup>
+      <NpmContent Include="$(PkgMicrosoft_VisualStudio_Telemetry)\lib\netstandard2.0\Microsoft.VisualStudio.Telemetry.dll" />
+      <NpmContent Include="$(PkgMicrosoft_VisualStudio_RemoteControl)\lib\netstandard2.0\Microsoft.VisualStudio.Remotecontrol.dll" />
       <NpmContent Include="$(TargetPath)" />
       <NpmContent Include="@(AppConfigWithTargetPath->'$(OutDir)%(TargetPath)')" />
       <NpmContent Include="$(ProjectDepsFilePath)" />
