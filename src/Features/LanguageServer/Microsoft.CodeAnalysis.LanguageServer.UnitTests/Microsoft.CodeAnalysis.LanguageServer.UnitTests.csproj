@@ -17,7 +17,7 @@
     <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj"/>
 
-    <ProjectReference Include="..\..\..\VisualStudio\LanguageServer\Impl\Microsoft.CodeAnalysis.LanguageServer.Internal.csproj"
+    <ProjectReference Include="..\..\..\VisualStudio\DevKit\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj"
                       ReferenceOutputAssembly="false"
                       Private="false" />
   </ItemGroup>
@@ -26,7 +26,7 @@
     Copy files contained in the NPM package to a DevKit subdirectory to emulate deployment of the DevKit extension in VS Code.
   -->
   <Target Name="_CopyDevKitExtensionFiles" AfterTargets="ResolveProjectReferences">
-    <MSBuild Projects="..\..\..\VisualStudio\LanguageServer\Impl\Microsoft.CodeAnalysis.LanguageServer.Internal.csproj"
+    <MSBuild Projects="..\..\..\VisualStudio\DevKit\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj"
              Targets="CollectNpmInputs">
       <Output TaskParameter="TargetOutputs" ItemName="_DevKitExtensionFile"/>
     </MSBuild>

@@ -31,7 +31,7 @@ static async Task RunAsync(
     string? starredCompletionPath,
     string? projectRazorJsonFileName,
     string? telemetryLevel,
-    string? addonsDirectory,
+    string? devKitDirectory,
     CancellationToken cancellationToken)
 {
     // Before we initialize the LSP server we can't send LSP log messages.
@@ -72,7 +72,7 @@ static async Task RunAsync(
         }
     }
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(addonsDirectory);
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(devKitDirectory);
 
     // Immediately set the logger factory, so that way it'll be available for the rest of the composition
     exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
@@ -172,7 +172,7 @@ static Parser CreateCommandLineParser()
         Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
         IsRequired = false,
     };
-    var addonsDirectoryOption = new Option<string?>("--telemetryComponentPath")
+    var devKitDirectoryOption = new Option<string?>("--telemetryComponentPath")
     {
         Description = "The directory containing additional Roslyn components (optional).",
         IsRequired = false
@@ -196,9 +196,9 @@ static Parser CreateCommandLineParser()
         var starredCompletionsPath = context.ParseResult.GetValueForOption(starredCompletionsPathOption);
         var projectRazorJsonFileName = context.ParseResult.GetValueForOption(projectRazorJsonFileNameOption);
         var telemetryLevel = context.ParseResult.GetValueForOption(telemetryLevelOption);
-        var addonsDirectory = context.ParseResult.GetValueForOption(addonsDirectoryOption);
+        var devKitDirectory = context.ParseResult.GetValueForOption(devKitDirectoryOption);
 
-        return RunAsync(launchDebugger, brokeredServicePipeName, logLevel, starredCompletionsPath, projectRazorJsonFileName, telemetryLevel, addonsDirectory, cancellationToken);
+        return RunAsync(launchDebugger, brokeredServicePipeName, logLevel, starredCompletionsPath, projectRazorJsonFileName, telemetryLevel, devKitDirectory, cancellationToken);
     });
 
     return new CommandLineBuilder(rootCommand).UseDefaults().Build();

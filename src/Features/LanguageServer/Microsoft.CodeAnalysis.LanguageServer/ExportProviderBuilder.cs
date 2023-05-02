@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    private const string AddonsAssemblyFileName = "Microsoft.CodeAnalysis.LanguageServer.Internal.dll";
+    private const string DevKitAssemblyFileName = "Microsoft.VisualStudio.LanguageServices.DevKit.dll";
 
-    public static async Task<ExportProvider> CreateExportProviderAsync(string? addonsDirectory)
+    public static async Task<ExportProvider> CreateExportProviderAsync(string? devKitDirectory)
     {
         var baseDirectory = AppContext.BaseDirectory;
 
@@ -47,12 +47,12 @@ internal sealed class ExportProviderBuilder
         };
 
         // Additional Roslyn services:
-        if (addonsDirectory != null)
+        if (devKitDirectory != null)
         {
-            var loadContext = AssemblyLoadContextWrapper.TryCreate(name: "CodeAnalysisAddons", addonsDirectory, logger: null);
+            var loadContext = AssemblyLoadContextWrapper.TryCreate(name: "CodeAnalysisAddons", devKitDirectory, logger: null);
             if (loadContext != null)
             {
-                assemblies.Add(loadContext.GetAssembly(AddonsAssemblyFileName));
+                assemblies.Add(loadContext.GetAssembly(DevKitAssemblyFileName));
             }
         }
 
