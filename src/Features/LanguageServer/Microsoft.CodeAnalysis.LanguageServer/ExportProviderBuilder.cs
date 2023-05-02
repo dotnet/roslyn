@@ -49,7 +49,7 @@ internal sealed class ExportProviderBuilder
         // Additional Roslyn services:
         if (devKitDirectory != null)
         {
-            var loadContext = AssemblyLoadContextWrapper.TryCreate(name: "CodeAnalysisAddons", devKitDirectory, logger: null);
+            var loadContext = AssemblyLoadContextWrapper.TryCreate(name: "C# DevKit", devKitDirectory, logger: null);
             if (loadContext != null)
             {
                 assemblies.Add(loadContext.GetAssembly(DevKitAssemblyFileName));
