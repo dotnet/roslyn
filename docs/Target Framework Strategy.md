@@ -41,7 +41,15 @@ When creating a polyfill for a type use the `#if !NET...` to declare the type an
 Example: 
 
 ```csharp
-#if !NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER
+
+using System.Runtime.CompilerServices;
+
+#pragma warning disable RS0016 // Add public types and members to the declared API (this is a supporting forwarder for an internal polyfill API)
+[assembly: TypeForwardedTo(typeof(IsExternalInit))]
+#pragma warning restore RS0016 // Add public types and members to the declared API
+
+#else
 
 using System.ComponentModel;
 
@@ -51,14 +59,6 @@ namespace System.Runtime.CompilerServices
     {
     }
 }
-
-#else
-
-using System.Runtime.CompilerServices;
-
-#pragma warning disable RS0016 // Add public types and members to the declared API (this is a supporting forwarder for an internal polyfill API)
-[assembly: TypeForwardedTo(typeof(IsExternalInit))]
-#pragma warning restore RS0016 // Add public types and members to the declared API
 
 #endif
 ```
