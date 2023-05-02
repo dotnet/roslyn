@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             if (!context.IsTracking(document.GetURI()))
             {
-                context.TraceWarning($"Ignoring diagnostics request for untracked document: {document.GetURI()}");
+                context.TraceWarning($"Ignoring diagnostics request for untracked document");
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
