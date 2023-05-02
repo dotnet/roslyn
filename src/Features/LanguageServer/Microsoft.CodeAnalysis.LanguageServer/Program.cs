@@ -172,9 +172,9 @@ static Parser CreateCommandLineParser()
         Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
         IsRequired = false,
     };
-    var devKitDirectoryOption = new Option<string?>("--telemetryComponentPath")
+    var devKitDirectoryOption = new Option<string?>("--devKitDirectory")
     {
-        Description = "The directory containing additional Roslyn components (optional).",
+        Description = "The directory containing C# DevKit extension (optional).",
         IsRequired = false
     };
 
