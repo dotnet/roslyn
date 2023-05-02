@@ -83,13 +83,13 @@ Push-Location $PSScriptRoot
 try {
     $HeaderColor = 'Green'
 
-    if (!$NoRestore -and $PSCmdlet.ShouldProcess("NuGet packages", "Restore")) {
-        $RestoreArguments = @()
-        if ($Interactive)
-        {
-            $RestoreArguments += '--interactive'
-        }
+    $RestoreArguments = @()
+    if ($Interactive)
+    {
+        $RestoreArguments += '--interactive'
+    }
 
+    if (!$NoRestore -and $PSCmdlet.ShouldProcess("NuGet packages", "Restore")) {
         Write-Host "Restoring NuGet packages" -ForegroundColor $HeaderColor
         dotnet restore @RestoreArguments
         if ($lastexitcode -ne 0) {
