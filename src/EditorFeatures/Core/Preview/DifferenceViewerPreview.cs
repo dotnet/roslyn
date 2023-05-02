@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
             Contract.ThrowIfNull(viewer);
             _viewer = viewer;
-            LeftWorkspace = leftWorkspace?.TryAddReference();
-            RightWorkspace = rightWorkspace?.TryAddReference();
+            LeftWorkspace = leftWorkspace?.AddReference();
+            RightWorkspace = rightWorkspace?.AddReference();
         }
 
         public static ReferenceCountedDisposable<DifferenceViewerPreview> Create(

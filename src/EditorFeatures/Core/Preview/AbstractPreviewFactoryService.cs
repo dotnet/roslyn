@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 rightWorkspace?.Target.EnableSolutionCrawler();
             }
 
-            return differenceViewer.TryAddReference()!;
+            return differenceViewer.AddReference();
         }
 
         private static List<LineSpan> CreateLineSpans(ITextSnapshot textSnapshot, NormalizedSpanCollection allSpans, CancellationToken cancellationToken)

@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                     Debug.Assert(_disposableToolTip == null);
 
                     // We don't expect _disposableToolTip to be non-null here, but we still make sure it's not leaking
-                    _disposableToolTip?.Dispose();
+                    if (_disposableToolTip is not null)
+                        return;
 
                     _disposableToolTip = _createToolTip();
                     _element.ToolTip = _disposableToolTip.Target.ToolTip;

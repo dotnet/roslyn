@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
         private PreviewWrapper(IReferenceCountedDisposable<IDisposable> preview)
         {
-            _preview = preview.TryAddReference()!;
+            _preview = preview.AddReference();
         }
 
         private PreviewWrapper(object preview)

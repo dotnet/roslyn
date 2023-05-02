@@ -87,9 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             RoslynDebug.AssertNotNull(_previewWorkspace);
 
-            using var previewWorkspace2 = _previewWorkspace.TryAddReference();
-            RoslynDebug.AssertNotNull(previewWorkspace2);
-
+            using var previewWorkspace2 = _previewWorkspace.AddReference();
             _currentDocumentId = document.Id;
             ApplyDocumentToBuffer(document, out var container);
             previewWorkspace2.Target.OpenDocument(document.Id, container);

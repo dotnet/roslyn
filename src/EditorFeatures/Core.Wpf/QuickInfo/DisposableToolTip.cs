@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         private DisposableToolTip(ToolTip toolTip, ReferenceCountedDisposable<PreviewWorkspace>? workspace)
         {
             ToolTip = toolTip;
-            _workspace = workspace?.TryAddReference();
+            _workspace = workspace?.AddReference();
         }
 
         public static ReferenceCountedDisposable<DisposableToolTip> Create(ToolTip toolTip, ReferenceCountedDisposable<PreviewWorkspace>? workspace)
