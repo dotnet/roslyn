@@ -330,10 +330,10 @@ stages:
     - task: npmAuthenticate@0
       displayName: Authenticate NPM Feed
       inputs:
-        workingFile: $(Build.SourcesDirectory)/src/VisualStudio/LanguageServer/Impl/.npmrc
+        workingFile: $(Build.SourcesDirectory)/src/VisualStudio/DevKit/Impl/.npmrc
         customEndpoint: devdiv-vs-green-npm-package-feed
 
-    - script: npm publish --userconfig $(Build.SourcesDirectory)\src\VisualStudio\LanguageServer\Impl\.npmrc $(NPMFileName)
+    - script: npm publish --userconfig $(Build.SourcesDirectory)\src\VisualStudio\DevKit\Impl\.npmrc $(NPMFileName)
       displayName: Publish Language Server NPM Package
 
     # Publish Asset Manifests for Build Asset Registry job
