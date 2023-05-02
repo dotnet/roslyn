@@ -7,9 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -271,9 +269,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     foreach (var named in namespaceOrTypeMembers)
                     {
-                        if (emittedTypeName.InferredArity == named.Arity && named.MangleName)
+                        if (emittedTypeName.InferredArity == named.Arity &&
+                            named.MangleName &&
+                            named.MetadataName == emittedTypeName.TypeName)
                         {
-                            if ((object?)namedType != null)
+                            if (namedType is not null)
                             {
                                 namedType = null;
                                 break;
@@ -317,9 +317,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var named in namespaceOrTypeMembers)
             {
-                if (!named.MangleName && (forcedArity == -1 || forcedArity == named.Arity))
+                if (!named.MangleName &&
+                    (forcedArity == -1 || forcedArity == named.Arity) &&
+                    named.MetadataName == emittedTypeName.TypeName)
                 {
-                    if ((object?)namedType != null)
+                    if (namedType is not null)
                     {
                         namedType = null;
                         break;

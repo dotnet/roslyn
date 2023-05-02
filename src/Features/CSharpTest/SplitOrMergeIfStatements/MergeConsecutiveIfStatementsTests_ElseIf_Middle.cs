@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
                     {
                         if (a)
                             System.Console.WriteLine(null);
-                        [||]else if (b)
+                        [||]else {|applicableSpan:if (b)
                             System.Console.WriteLine();
                         else if (c)
-                            System.Console.WriteLine();
+                            System.Console.WriteLine();|}
                     }
                 }
                 """;
@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
 
             await TestActionCountAsync(Initial, 1);
             await TestInRegularAndScriptAsync(Initial, Expected);
+            await TestCodeRefactoringApplicableTextSpan(Initial, "applicableSpan");
         }
 
         [Fact]

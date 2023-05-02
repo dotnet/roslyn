@@ -205,13 +205,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             try
             {
-                return text.Lines.GetTextSpan(linePositionSpan);
+                try
+                {
+                    return text.Lines.GetTextSpan(linePositionSpan);
+                }
+                catch (ArgumentException)
+                {
+                    // Create a custom error for this so we can examine the data we're getting.
+                    throw new ArgumentException($"Range={RangeToString(range)}. text.Length={text.Length}. text.Lines.Count={text.Lines.Count}");
+                }
             }
             // Temporary exception reporting to investigate https://github.com/dotnet/roslyn/issues/66258.
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw;
             }
+
+            static string RangeToString(LSP.Range range)
+                => $"{{ Start={PositionToString(range.Start)}, End={PositionToString(range.End)} }}";
+
+            static string PositionToString(LSP.Position position)
+                => $"{{ Line={position.Line}, Character={position.Character} }}";
         }
 
         public static LSP.TextEdit TextChangeToTextEdit(TextChange textChange, SourceText oldText)

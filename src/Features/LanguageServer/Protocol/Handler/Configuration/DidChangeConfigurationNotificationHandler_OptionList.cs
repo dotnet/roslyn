@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
             // Completion
             CompletionOptionsStorage.ShowNameSuggestions,
+            CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             CompletionOptionsStorage.ProvideRegexCompletions,
             QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
             // Go to definition

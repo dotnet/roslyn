@@ -64,6 +64,11 @@
         <target state="translated">Funkce Upravit a pokračovat nemůže obnovit pozastavený iterátor, protože odpovídající příkaz yield return byl odstraněn.</target>
         <note />
       </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="new">'end' must not be less than 'start'. start='{0}' end='{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
         <target state="translated">Generátor</target>
@@ -502,11 +507,6 @@
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
         <target state="translated">'Začátek musí být záporný.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'Konec musí být míň než začátek.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">
