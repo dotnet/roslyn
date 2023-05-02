@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -18,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
         private DifferenceViewerPreview(
             IDifferenceViewer viewer,
-            ReferenceCountedDisposable<PreviewWorkspace> leftWorkspace,
-            ReferenceCountedDisposable<PreviewWorkspace> rightWorkspace)
+            ReferenceCountedDisposable<PreviewWorkspace>? leftWorkspace,
+            ReferenceCountedDisposable<PreviewWorkspace>? rightWorkspace)
         {
             Contract.ThrowIfNull(viewer);
             _viewer = viewer;
@@ -29,14 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
         public static ReferenceCountedDisposable<DifferenceViewerPreview> Create(
             IDifferenceViewer viewer,
-            ReferenceCountedDisposable<PreviewWorkspace> leftWorkspace,
-            ReferenceCountedDisposable<PreviewWorkspace> rightWorkspace)
+            ReferenceCountedDisposable<PreviewWorkspace>? leftWorkspace,
+            ReferenceCountedDisposable<PreviewWorkspace>? rightWorkspace)
             => new(new DifferenceViewerPreview(viewer, leftWorkspace, rightWorkspace));
 
         public IDifferenceViewer Viewer => _viewer;
 
-        public ReferenceCountedDisposable<PreviewWorkspace> LeftWorkspace { get; }
-        public ReferenceCountedDisposable<PreviewWorkspace> RightWorkspace { get; }
+        private ReferenceCountedDisposable<PreviewWorkspace>? LeftWorkspace { get; }
+        private ReferenceCountedDisposable<PreviewWorkspace>? RightWorkspace { get; }
 
         public void Dispose()
         {
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 _viewer.Close();
             }
 
-            _viewer = null;
+            _viewer = null!;
 
             LeftWorkspace?.Dispose();
             RightWorkspace?.Dispose();
