@@ -5144,8 +5144,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PointerElementAccess:
                     return CheckValue(boundMember, valueKind, diagnostics);
 
-                // PROTOTYPE(InlineArrays): case BoundKind.InlineArrayAccess:
-
                 default:
                     return BadObjectInitializerMemberAccess(boundMember, implicitReceiver, leftSyntax, diagnostics, valueKind, hasErrors);
             }
