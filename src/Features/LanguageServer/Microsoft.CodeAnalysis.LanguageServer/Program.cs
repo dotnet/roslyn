@@ -186,6 +186,7 @@ static Parser CreateCommandLineParser()
         starredCompletionsPathOption,
         projectRazorJsonFileNameOption,
         telemetryLevelOption,
+        extensionAssemblyPathsOption,
     };
     rootCommand.SetHandler(context =>
     {

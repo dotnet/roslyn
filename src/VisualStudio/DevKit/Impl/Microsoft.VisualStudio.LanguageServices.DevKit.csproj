@@ -58,7 +58,7 @@
     <Message Text="Version is $(Version)" />
     <ItemGroup>
       <NpmContent Include="$(PkgMicrosoft_VisualStudio_Telemetry)\lib\netstandard2.0\Microsoft.VisualStudio.Telemetry.dll" />
-      <NpmContent Include="$(PkgMicrosoft_VisualStudio_RemoteControl)\lib\netstandard2.0\Microsoft.VisualStudio.Remotecontrol.dll" />
+      <NpmContent Include="$(PkgMicrosoft_VisualStudio_RemoteControl)\lib\netstandard2.0\Microsoft.VisualStudio.RemoteControl.dll" />
       <NpmContent Include="$(TargetPath)" />
       <NpmContent Include="@(AppConfigWithTargetPath->'$(OutDir)%(TargetPath)')" />
       <NpmContent Include="$(ProjectDepsFilePath)" />
