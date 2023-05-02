@@ -251,12 +251,26 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        // for testing
-        public void ClearCachedValues()
+        internal TestAccessor GetTestAccessor()
         {
-            lock (_gate)
+            return new TestAccessor(this);
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly GlobalOptionService _instance;
+
+            internal TestAccessor(GlobalOptionService instance)
             {
-                _currentValues = ImmutableDictionary.Create<OptionKey2, object?>();
+                _instance = instance;
+            }
+
+            public void ClearCachedValues()
+            {
+                lock (_instance._gate)
+                {
+                    _instance._currentValues = ImmutableDictionary.Create<OptionKey2, object?>();
+                }
             }
         }
     }
