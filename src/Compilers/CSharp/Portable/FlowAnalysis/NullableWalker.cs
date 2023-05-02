@@ -7307,10 +7307,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        private static Conversion GenerateConversion(Conversions conversions, BoundExpression? sourceExpression, TypeSymbol? sourceType, TypeSymbol destinationType, bool fromExplicitCast, bool extensionMethodThisArgument, bool isChecked, bool? fromExpression = null)
+        private static Conversion GenerateConversion(Conversions conversions, BoundExpression? sourceExpression, TypeSymbol? sourceType, TypeSymbol destinationType, bool fromExplicitCast, bool extensionMethodThisArgument, bool isChecked)
         {
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            bool useExpression = fromExpression ?? (sourceType is null || UseExpressionForConversion(sourceExpression));
+            bool useExpression = sourceType is null || UseExpressionForConversion(sourceExpression);
             if (extensionMethodThisArgument)
             {
                 return conversions.ClassifyImplicitExtensionMethodThisArgConversion(
@@ -7350,6 +7350,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.InterpolatedString:
                     return true;
                 default:
+                    if (value.Type.HasInlineArrayAttribute(out _) == true &&
+                        value.Type.TryGetInlineArrayElementType() is { HasType: true })
+                    {
+                        return true;
+                    }
+
                     return false;
             }
         }
@@ -8256,7 +8262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.InlineArray:
                     if (checkConversion)
                     {
-                        conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false, fromExpression: true);
+                        conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false);
                         canConvertNestedNullability = conversion.Exists;
                     }
                     break;
