@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
+using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit.Abstractions;
 
@@ -33,7 +34,8 @@ public abstract class AbstractLanguageServerHostTests
 
         public static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, ILogger logger)
         {
-            var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync();
+            var loggerFactory = new LoggerFactory(SpecializedCollections.SingletonEnumerable(new TestLoggerProvider(logger)));
+            var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(loggerFactory);
             var testLspServer = new TestLspServer(exportProvider, logger);
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);
@@ -89,6 +91,24 @@ public abstract class AbstractLanguageServerHostTests
 #pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
 
             _clientRpc.Dispose();
+        }
+    }
+
+    private class TestLoggerProvider : ILoggerProvider
+    {
+        private readonly ILogger _testLogger;
+        public TestLoggerProvider(ILogger testLogger)
+        {
+            _testLogger = testLogger;
+        }
+
+        public ILogger CreateLogger(string categoryName)
+        {
+            return _testLogger;
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

@@ -13,8 +13,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    public static async Task<ExportProvider> CreateExportProviderAsync()
+    public static async Task<ExportProvider> CreateExportProviderAsync(ILoggerFactory loggerFactory)
     {
+        var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
+
         var baseDirectory = AppContext.BaseDirectory;
 
         var resolver = new Resolver(new CustomExportAssemblyLoader(baseDirectory));
@@ -48,7 +50,7 @@ internal sealed class ExportProviderBuilder
         var config = CompositionConfiguration.Create(catalog);
 
         // Verify we only have expected errors.
-        ThrowOnUnexpectedErrors(config);
+        ThrowOnUnexpectedErrors(config, logger);
 
         // Prepare an ExportProvider factory based on this graph.
         var exportProviderFactory = config.CreateExportProviderFactory();
@@ -60,7 +62,7 @@ internal sealed class ExportProviderBuilder
         return exportProvider;
     }
 
-    private static void ThrowOnUnexpectedErrors(CompositionConfiguration configuration)
+    private static void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ILogger logger)
     {
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
         // Currently we are expecting the following:
@@ -74,7 +76,16 @@ internal sealed class ExportProviderBuilder
         var expectedErroredParts = new string[] { "PythiaSignatureHelpProvider" };
         if (erroredParts.Count() != expectedErroredParts.Length || !erroredParts.All(part => expectedErroredParts.Contains(part)))
         {
-            configuration.ThrowOnErrors();
+            try
+            {
+                configuration.ThrowOnErrors();
+            }
+            catch (CompositionFailedException ex)
+            {
+                // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately here.
+                logger.LogError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
+                throw;
+            }
         }
     }
 }

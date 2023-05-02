@@ -14,8 +14,9 @@ public class WorkspaceProjectFactoryServiceTests
     [Fact]
     public async Task CreateProjectAndBatch()
     {
-        using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync();
-        exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(new LoggerFactory());
+        var loggerFactory = new LoggerFactory();
+        using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(loggerFactory);
+        exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
 
         var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
         var workspaceProjectFactoryServiceInstance = (WorkspaceProjectFactoryService)exportProvider

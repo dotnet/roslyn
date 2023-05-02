@@ -63,7 +63,7 @@ static async Task RunAsync(bool launchDebugger, string? brokeredServicePipeName,
         }
     }
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync();
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(loggerFactory);
 
     // Immediately set the logger factory, so that way it'll be available for the rest of the composition
     exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
