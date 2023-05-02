@@ -21,6 +21,7 @@ efforts behind them.
 | [Roles/Extensions](https://github.com/dotnet/csharplang/issues/5497) | [roles](https://github.com/dotnet/roslyn/tree/features/roles) | [In Progress](https://github.com/dotnet/roslyn/issues/66722) | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs), [jjonescz](https://github.com/jjonescz) | [MadsTorgersen](https://github.com/MadsTorgersen) |
 | [Interceptors](https://github.com/dotnet/csharplang/issues/7009) | [interceptors](https://github.com/dotnet/roslyn/tree/features/interceptors) | [In Progress](https://github.com/dotnet/roslyn/issues/67421) | [RikkiGibson](https://github.com/RikkiGibson) | [cston](https://github.com/cston), [jcouv](https://github.com/jcouv) | [RikkiGibson](https://github.com/RikkiGibson) |
 | [Inline Arrays](https://github.com/dotnet/csharplang/blob/main/proposals/inline-arrays.md) | [InlineArrays](https://github.com/dotnet/roslyn/tree/features/InlineArrays) | [In Progress](https://github.com/dotnet/roslyn/issues/67826) | [AlekseyTs](https://github.com/AlekseyTs) | [cston](https://github.com/cston), [jjonescz](https://github.com/jjonescz) |  |
+| [ref readonly parameters](https://github.com/dotnet/csharplang/issues/6010) | | [In Progress](https://github.com/dotnet/roslyn/issues/68056) | [jjonescz](https://github.com/jjonescz) | [jcouv](https://github.com/jcouv), [AlekseyTs](https://github.com/AlekseyTs) | [jaredpar](https://github.com/jaredpar)
 
 # C# 11.0
 
