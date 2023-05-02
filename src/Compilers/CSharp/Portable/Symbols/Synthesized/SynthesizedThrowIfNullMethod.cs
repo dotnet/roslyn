@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(paramNameParamType), ordinal: 1, RefKind.None, "paramName")));
         }
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
             F.CurrentFunction = this;

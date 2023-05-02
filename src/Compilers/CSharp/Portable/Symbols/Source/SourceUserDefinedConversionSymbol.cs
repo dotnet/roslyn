@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder bodyBinder,
             ConversionOperatorDeclarationSyntax syntax,
             bool isNullableAnalysisEnabled,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             // Dev11 includes the explicit/implicit keyword, but we don't have a good way to include
             // Narrowing/Widening in VB and we want the languages to be consistent.
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             ConversionOperatorDeclarationSyntax syntax,
             bool isNullableAnalysisEnabled,
-            BindingDiagnosticBag diagnostics) :
+            in BindingDiagnosticBag diagnostics) :
             base(
                 methodKind,
                 explicitInterfaceType,
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OneOrMany.Create(this.GetSyntax().AttributeLists);
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(in BindingDiagnosticBag diagnostics)
         {
             ConversionOperatorDeclarationSyntax declarationSyntax = GetSyntax();
             return MakeParametersAndBindReturnType(declarationSyntax, declarationSyntax.Type, diagnostics);

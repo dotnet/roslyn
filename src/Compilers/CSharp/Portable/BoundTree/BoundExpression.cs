@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression TypeExpression { get; }
         public BindingDiagnosticBag TypeDiagnostics { get; }
 
-        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, BindingDiagnosticBag valueDiagnostics, BoundExpression typeExpression, BindingDiagnosticBag typeDiagnostics)
+        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, in BindingDiagnosticBag valueDiagnostics, BoundExpression typeExpression, in BindingDiagnosticBag typeDiagnostics)
         {
             Debug.Assert(valueSymbol != null, "Field 'valueSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(valueExpression != null, "Field 'valueExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");

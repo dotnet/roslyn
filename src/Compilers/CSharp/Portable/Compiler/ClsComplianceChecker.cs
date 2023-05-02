@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             SyntaxTree filterTree,
             TextSpan? filterSpanWithinTree,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
             Debug.Assert(diagnostics.DependenciesBag is null || diagnostics.DependenciesBag is ConcurrentSet<AssemblySymbol>);
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">To stop traversing the symbol table early.</param>
         /// <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         /// <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and <paramref name="filterSpanWithinTree"/> is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
-        public static void CheckCompliance(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
+        public static void CheckCompliance(CSharpCompilation compilation, in BindingDiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
         {
             var queue = BindingDiagnosticBagFactory.New(diagnostics.DiagnosticBag, diagnostics.AccumulatesDependencies ? new ConcurrentSet<AssemblySymbol>() : null);
             var checker = new ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken);

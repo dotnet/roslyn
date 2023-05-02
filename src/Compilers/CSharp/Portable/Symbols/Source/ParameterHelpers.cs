@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol owner,
             BaseParameterListSyntax syntax,
             out SyntaxToken arglistToken,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             bool allowRefOrOut,
             bool allowThis,
             bool addRefReadOnlyModifier)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             FunctionPointerMethodSymbol owner,
             SeparatedSyntaxList<FunctionPointerParameterSyntax> parametersList,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             bool suppressUseSiteDiagnostics)
         {
             return MakeParameters<FunctionPointerParameterSyntax, FunctionPointerParameterSymbol, FunctionPointerMethodSymbol>(
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TOwningSymbol owner,
             SeparatedSyntaxList<TParameterSyntax> parametersList,
             out SyntaxToken arglistToken,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             bool allowRefOrOut,
             bool allowThis,
             bool addRefReadOnlyModifier,
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EnsureIsReadOnlyAttributeExists(moduleBuilder.Compilation, parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
         }
 
-        internal static void EnsureIsReadOnlyAttributeExists(CSharpCompilation? compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
+        internal static void EnsureIsReadOnlyAttributeExists(CSharpCompilation? compilation, ImmutableArray<ParameterSymbol> parameters, in BindingDiagnosticBag diagnostics, bool modifyCompilation)
         {
             // These parameters might not come from a compilation (example: lambdas evaluated in EE).
             // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EnsureNativeIntegerAttributeExists(moduleBuilder.Compilation, parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
         }
 
-        internal static void EnsureNativeIntegerAttributeExists(CSharpCompilation? compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
+        internal static void EnsureNativeIntegerAttributeExists(CSharpCompilation? compilation, ImmutableArray<ParameterSymbol> parameters, in BindingDiagnosticBag diagnostics, bool modifyCompilation)
         {
             // These parameters might not come from a compilation (example: lambdas evaluated in EE).
             // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EnsureScopedRefAttributeExists(moduleBuilder.Compilation, parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
         }
 
-        internal static void EnsureScopedRefAttributeExists(CSharpCompilation? compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
+        internal static void EnsureScopedRefAttributeExists(CSharpCompilation? compilation, ImmutableArray<ParameterSymbol> parameters, in BindingDiagnosticBag diagnostics, bool modifyCompilation)
         {
             // These parameters might not come from a compilation (example: lambdas evaluated in EE).
             // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void CheckParameterModifiers(
             BaseParameterSyntax parameter,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             bool parsingFunctionPointerParams,
             bool parsingLambdaParams,
             bool parsingAnonymousMethodParams)
@@ -589,17 +589,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static void addERR_DupParamMod(BindingDiagnosticBag diagnostics, SyntaxToken modifier)
+            static void addERR_DupParamMod(in BindingDiagnosticBag diagnostics, SyntaxToken modifier)
             {
                 diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()));
             }
 
-            static void addERR_BadParameterModifiers(BindingDiagnosticBag diagnostics, SyntaxToken modifier, SyntaxKind otherModifierKind)
+            static void addERR_BadParameterModifiers(in BindingDiagnosticBag diagnostics, SyntaxToken modifier, SyntaxKind otherModifierKind)
             {
                 diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()), SyntaxFacts.GetText(otherModifierKind));
             }
 
-            static void addERR_ParamsCantBeWithModifier(BindingDiagnosticBag diagnostics, SyntaxToken modifier, SyntaxKind otherModifierKind)
+            static void addERR_ParamsCantBeWithModifier(in BindingDiagnosticBag diagnostics, SyntaxToken modifier, SyntaxKind otherModifierKind)
             {
                 diagnostics.Add(ErrorCode.ERR_ParamsCantBeWithModifier, modifier.GetLocation(), SyntaxFacts.GetText(otherModifierKind));
             }
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken thisKeyword,
             SyntaxToken paramsKeyword,
             int firstDefault,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             int parameterIndex = ordinal;
             bool isDefault = syntax is ParameterSyntax { Default: { } };
@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceParameterSymbol parameter,
             BoundExpression defaultExpression,
             BoundExpression convertedExpression,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             bool hasErrors = false;
 
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return refKind;
         }
 
-        internal static ImmutableArray<CustomModifier> ConditionallyCreateInModifiers(RefKind refKind, bool addRefReadOnlyModifier, Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static ImmutableArray<CustomModifier> ConditionallyCreateInModifiers(RefKind refKind, bool addRefReadOnlyModifier, Binder binder, in BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             if (addRefReadOnlyModifier && refKind == RefKind.In)
             {
@@ -956,17 +956,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static ImmutableArray<CustomModifier> CreateInModifiers(Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static ImmutableArray<CustomModifier> CreateInModifiers(Binder binder, in BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             return CreateModifiers(WellKnownType.System_Runtime_InteropServices_InAttribute, binder, diagnostics, syntax);
         }
 
-        internal static ImmutableArray<CustomModifier> CreateOutModifiers(Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static ImmutableArray<CustomModifier> CreateOutModifiers(Binder binder, in BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             return CreateModifiers(WellKnownType.System_Runtime_InteropServices_OutAttribute, binder, diagnostics, syntax);
         }
 
-        private static ImmutableArray<CustomModifier> CreateModifiers(WellKnownType modifier, Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        private static ImmutableArray<CustomModifier> CreateModifiers(WellKnownType modifier, Binder binder, in BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             var modifierType = binder.GetWellKnownType(modifier, diagnostics, syntax);
             return ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));

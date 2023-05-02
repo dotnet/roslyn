@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceNamespaceSymbol(
             SourceModuleSymbol module, Symbol container,
             MergedNamespaceDeclaration mergedDeclaration,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(mergedDeclaration != null);
             _module = module;
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _nameToTypeMembersMap;
         }
 
-        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(BindingDiagnosticBag diagnostics)
+        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(in BindingDiagnosticBag diagnostics)
         {
             // NOTE: Even though the resulting map stores ImmutableArray<NamespaceOrTypeSymbol> as
             // NOTE: values if the name is mapped into an array of named types, which is frequently
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> result, BindingDiagnosticBag diagnostics)
+        private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> result, in BindingDiagnosticBag diagnostics)
         {
             var memberOfArity = new Symbol[10];
             MergedNamespaceSymbol mergedAssemblyNamespace = null;
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private NamespaceOrTypeSymbol BuildSymbol(MergedNamespaceOrTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
+        private NamespaceOrTypeSymbol BuildSymbol(MergedNamespaceOrTypeDeclaration declaration, in BindingDiagnosticBag diagnostics)
         {
             switch (declaration.Kind)
             {

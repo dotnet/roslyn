@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private DocumentationCommentWalker(
                 CSharpCompilation compilation,
-                BindingDiagnosticBag diagnostics,
+                in BindingDiagnosticBag diagnostics,
                 Symbol memberSymbol,
                 StringWriter writer,
                 ArrayBuilder<CSharpSyntaxNode> includeElementNodes,
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </remarks>
             public static string GetSubstitutedText(
                 CSharpCompilation compilation,
-                BindingDiagnosticBag diagnostics,
+                in BindingDiagnosticBag diagnostics,
                 Symbol symbol,
                 DocumentationCommentTriviaSyntax trivia,
                 ArrayBuilder<CSharpSyntaxNode> includeElementNodes,

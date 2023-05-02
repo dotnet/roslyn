@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private DeclarativeSecurityAction DecodeSecurityAttributeAction(Symbol targetSymbol, CSharpCompilation compilation, AttributeSyntax? nodeOpt, out bool hasErrors, BindingDiagnosticBag diagnostics)
+        private DeclarativeSecurityAction DecodeSecurityAttributeAction(Symbol targetSymbol, CSharpCompilation compilation, AttributeSyntax? nodeOpt, out bool hasErrors, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((object)targetSymbol != null);
             Debug.Assert(targetSymbol.Kind == SymbolKind.Assembly || targetSymbol.Kind == SymbolKind.NamedType || targetSymbol.Kind == SymbolKind.Method);
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return DeclarativeSecurityAction.None;
         }
 
-        private DeclarativeSecurityAction DecodeSecurityAction(TypedConstant typedValue, Symbol targetSymbol, AttributeSyntax? nodeOpt, BindingDiagnosticBag diagnostics, out bool hasErrors)
+        private DeclarativeSecurityAction DecodeSecurityAction(TypedConstant typedValue, Symbol targetSymbol, AttributeSyntax? nodeOpt, in BindingDiagnosticBag diagnostics, out bool hasErrors)
         {
             Debug.Assert((object)targetSymbol != null);
             Debug.Assert(targetSymbol.Kind == SymbolKind.Assembly || targetSymbol.Kind == SymbolKind.NamedType || targetSymbol.Kind == SymbolKind.Method);
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// See <see cref="Microsoft.CodeAnalysis.CodeGen.PermissionSetAttributeWithFileReference"/> for remaining fixup steps.
         /// </remarks>
         /// <returns>String containing the resolved file path if PermissionSetAttribute needs fixup during codegen, null otherwise.</returns>
-        private string? DecodePermissionSetAttribute(CSharpCompilation compilation, AttributeSyntax? nodeOpt, BindingDiagnosticBag diagnostics)
+        private string? DecodePermissionSetAttribute(CSharpCompilation compilation, AttributeSyntax? nodeOpt, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!this.HasErrors);
 
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal void DecodeClassInterfaceAttribute(AttributeSyntax? nodeOpt, BindingDiagnosticBag diagnostics)
+        internal void DecodeClassInterfaceAttribute(AttributeSyntax? nodeOpt, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!this.HasErrors);
 
@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void DecodeInterfaceTypeAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
+        internal void DecodeInterfaceTypeAttribute(AttributeSyntax node, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!this.HasErrors);
 
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal string DecodeGuidAttribute(AttributeSyntax? nodeOpt, BindingDiagnosticBag diagnostics)
+        internal string DecodeGuidAttribute(AttributeSyntax? nodeOpt, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!this.HasErrors);
 

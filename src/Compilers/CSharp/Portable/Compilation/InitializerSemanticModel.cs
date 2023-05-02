@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetUpperBoundNode(GetBindableSyntaxNode(rootSyntax));
         }
 
-        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
+        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, in BindingDiagnosticBag diagnostics)
         {
             EqualsValueClauseSyntax equalsValue = null;
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.Bind(binder, node, diagnostics);
         }
 
-        private BoundEqualsValue BindEqualsValue(Binder binder, EqualsValueClauseSyntax equalsValue, BindingDiagnosticBag diagnostics)
+        private BoundEqualsValue BindEqualsValue(Binder binder, EqualsValueClauseSyntax equalsValue, in BindingDiagnosticBag diagnostics)
         {
             switch (this.MemberSymbol.Kind)
             {

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SynthesizedEventAccessorSymbol _addMethod;
         private readonly SynthesizedEventAccessorSymbol _removeMethod;
 
-        internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, BindingDiagnosticBag diagnostics)
+        internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, in BindingDiagnosticBag diagnostics)
             : base(containingType, declaratorSyntax, modifiers, isFieldLike: true, interfaceSpecifierSyntaxOpt: null,
                    nameTokenSyntax: declaratorSyntax.Identifier, diagnostics: diagnostics)
         {

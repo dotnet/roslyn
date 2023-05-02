@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt,
             string name,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             out TypeSymbol explicitInterfaceTypeOpt,
             out string aliasQualifierOpt)
         {
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol explicitInterfaceType,
             string interfaceMethodName,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierSyntax,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             return (MethodSymbol)FindExplicitlyImplementedMember(implementingMethod, isOperator, explicitInterfaceType, interfaceMethodName, explicitInterfaceSpecifierSyntax, diagnostics);
         }
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol explicitInterfaceType,
             string interfacePropertyName,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierSyntax,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             return (PropertySymbol)FindExplicitlyImplementedMember(implementingProperty, isOperator: false, explicitInterfaceType, interfacePropertyName, explicitInterfaceSpecifierSyntax, diagnostics);
         }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol explicitInterfaceType,
             string interfaceEventName,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierSyntax,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             return (EventSymbol)FindExplicitlyImplementedMember(implementingEvent, isOperator: false, explicitInterfaceType, interfaceEventName, explicitInterfaceSpecifierSyntax, diagnostics);
         }
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static void FindExplicitlyImplementedMemberVerification(
             this Symbol implementingMember,
             Symbol implementedMember,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             if ((object)implementedMember == null)
             {
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Given a member, look for other members contained in the same type with signatures that will
         /// not be distinguishable by the runtime.
         /// </summary>
-        private static void FindExplicitImplementationCollisions(Symbol implementingMember, Symbol implementedMember, BindingDiagnosticBag diagnostics)
+        private static void FindExplicitImplementationCollisions(Symbol implementingMember, Symbol implementedMember, in BindingDiagnosticBag diagnostics)
         {
             if ((object)implementedMember == null)
             {

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
+        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, in BindingDiagnosticBag diagnostics)
         {
             return _parentSemanticModel.Bind(binder, node, diagnostics);
         }

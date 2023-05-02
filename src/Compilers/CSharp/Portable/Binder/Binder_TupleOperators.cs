@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The element-wise binary operators are collected and stored as a tree for lowering.
         /// </summary>
         private BoundTupleBinaryOperator BindTupleBinaryOperator(BinaryExpressionSyntax node, BinaryOperatorKind kind,
-            BoundExpression left, BoundExpression right, BindingDiagnosticBag diagnostics)
+            BoundExpression left, BoundExpression right, in BindingDiagnosticBag diagnostics)
         {
             TupleBinaryOperatorInfo.Multiple operators = BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundTupleBinaryOperator(node, convertedLeft, convertedRight, kind, operators, resultType);
         }
 
-        private BoundExpression ApplyConvertedTypes(BoundExpression expr, TupleBinaryOperatorInfo @operator, bool isRight, BindingDiagnosticBag diagnostics)
+        private BoundExpression ApplyConvertedTypes(BoundExpression expr, TupleBinaryOperatorInfo @operator, bool isRight, in BindingDiagnosticBag diagnostics)
         {
             TypeSymbol convertedType = isRight ? @operator.RightConvertedTypeOpt : @operator.LeftConvertedTypeOpt;
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 3. as regular binary operator otherwise
         /// </summary>
         private TupleBinaryOperatorInfo BindTupleBinaryOperatorInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
-            BoundExpression left, BoundExpression right, BindingDiagnosticBag diagnostics)
+            BoundExpression left, BoundExpression right, in BindingDiagnosticBag diagnostics)
         {
             TypeSymbol leftType = left.Type;
             TypeSymbol rightType = right.Type;
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - prepare a truth operator: op_false in the case of an equality (<c>a == b</c> will be lowered to <c>!((a == b).op_false)</c>) or op_true in the case of inequality,
         ///     with the conversion being used for its input.
         /// </summary>
-        private void PrepareBoolConversionAndTruthOperator(TypeSymbol type, BinaryExpressionSyntax node, BinaryOperatorKind binaryOperator, BindingDiagnosticBag diagnostics,
+        private void PrepareBoolConversionAndTruthOperator(TypeSymbol type, BinaryExpressionSyntax node, BinaryOperatorKind binaryOperator, in BindingDiagnosticBag diagnostics,
             out BoundExpression conversionForBool, out BoundValuePlaceholder conversionForBoolPlaceholder, out UnaryOperatorSignature boolOperator)
         {
             // Is the operand implicitly convertible to bool?
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private TupleBinaryOperatorInfo BindTupleDynamicBinaryOperatorSingleInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
-            BoundExpression left, BoundExpression right, BindingDiagnosticBag diagnostics)
+            BoundExpression left, BoundExpression right, in BindingDiagnosticBag diagnostics)
         {
             // This method binds binary == and != operators where one or both of the operands are dynamic.
             Debug.Assert((object)left.Type != null && left.Type.IsDynamic() || (object)right.Type != null && right.Type.IsDynamic());
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private TupleBinaryOperatorInfo.Multiple BindTupleBinaryOperatorNestedInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
-            BoundExpression left, BoundExpression right, BindingDiagnosticBag diagnostics)
+            BoundExpression left, BoundExpression right, in BindingDiagnosticBag diagnostics)
         {
             left = GiveTupleTypeToDefaultLiteralIfNeeded(left, right.Type);
             right = GiveTupleTypeToDefaultLiteralIfNeeded(right, left.Type);
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// In an expression of tuple type, each element can have a name or not.
         /// </summary>
         private static void ReportNamesMismatchesIfAny(BoundExpression left, BoundExpression right,
-            ImmutableArray<string> leftNames, ImmutableArray<string> rightNames, BindingDiagnosticBag diagnostics)
+            ImmutableArray<string> leftNames, ImmutableArray<string> rightNames, in BindingDiagnosticBag diagnostics)
         {
             bool leftIsTupleLiteral = left is BoundTupleExpression;
             bool rightIsTupleLiteral = right is BoundTupleExpression;
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private TypeSymbol MakeConvertedType(ImmutableArray<TypeSymbol> convertedTypes, CSharpSyntaxNode syntax,
             ImmutableArray<BoundExpression> elements, ImmutableArray<string> names,
-            bool isNullable, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
+            bool isNullable, CSharpCompilation compilation, in BindingDiagnosticBag diagnostics)
         {
             foreach (var convertedType in convertedTypes)
             {

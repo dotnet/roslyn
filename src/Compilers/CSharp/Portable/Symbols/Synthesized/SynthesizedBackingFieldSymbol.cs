@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override NamedTypeSymbol ContainingType
             => _property.ContainingType;
 
-        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, in BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckForFieldTargetedAttribute(BindingDiagnosticBag diagnostics)
+        private void CheckForFieldTargetedAttribute(in BindingDiagnosticBag diagnostics)
         {
             var languageVersion = this.DeclaringCompilation.LanguageVersion;
             if (languageVersion.AllowAttributesOnBackingFields())

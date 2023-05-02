@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of an interface.
         /// </summary>
-        internal static void CheckInterfaceVarianceSafety(this NamedTypeSymbol interfaceType, BindingDiagnosticBag diagnostics)
+        internal static void CheckInterfaceVarianceSafety(this NamedTypeSymbol interfaceType, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((object)interfaceType != null && interfaceType.IsInterface);
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Check for illegal nesting into a variant interface.
         /// </summary>
-        private static void CheckNestedTypeVarianceSafety(NamedTypeSymbol member, BindingDiagnosticBag diagnostics)
+        private static void CheckNestedTypeVarianceSafety(NamedTypeSymbol member, in BindingDiagnosticBag diagnostics)
         {
             switch (member.TypeKind)
             {
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of a delegate.
         /// </summary>
-        internal static void CheckDelegateVarianceSafety(this SourceDelegateMethodSymbol method, BindingDiagnosticBag diagnostics)
+        internal static void CheckDelegateVarianceSafety(this SourceDelegateMethodSymbol method, in BindingDiagnosticBag diagnostics)
         {
             method.CheckMethodVarianceSafety(
                 returnTypeLocationProvider: m =>
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of an interface method.
         /// </summary>
-        private static void CheckMethodVarianceSafety(this MethodSymbol method, BindingDiagnosticBag diagnostics)
+        private static void CheckMethodVarianceSafety(this MethodSymbol method, in BindingDiagnosticBag diagnostics)
         {
             method.CheckMethodVarianceSafety(
                 returnTypeLocationProvider: m =>
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics: diagnostics);
         }
 
-        private static void CheckMethodVarianceSafety(this MethodSymbol method, LocationProvider<MethodSymbol> returnTypeLocationProvider, BindingDiagnosticBag diagnostics)
+        private static void CheckMethodVarianceSafety(this MethodSymbol method, LocationProvider<MethodSymbol> returnTypeLocationProvider, in BindingDiagnosticBag diagnostics)
         {
             if (SkipVarianceSafetyChecks(method))
             {
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of an interface property.
         /// </summary>
-        private static void CheckPropertyVarianceSafety(PropertySymbol property, BindingDiagnosticBag diagnostics)
+        private static void CheckPropertyVarianceSafety(PropertySymbol property, in BindingDiagnosticBag diagnostics)
         {
             if (SkipVarianceSafetyChecks(property))
             {
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of an interface event.
         /// </summary>
-        private static void CheckEventVarianceSafety(EventSymbol @event, BindingDiagnosticBag diagnostics)
+        private static void CheckEventVarianceSafety(EventSymbol @event, in BindingDiagnosticBag diagnostics)
         {
             if (SkipVarianceSafetyChecks(@event))
             {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of an interface method/property parameter.
         /// </summary>
-        private static void CheckParametersVarianceSafety(ImmutableArray<ParameterSymbol> parameters, Symbol context, BindingDiagnosticBag diagnostics)
+        private static void CheckParametersVarianceSafety(ImmutableArray<ParameterSymbol> parameters, Symbol context, in BindingDiagnosticBag diagnostics)
         {
             foreach (ParameterSymbol param in parameters)
             {
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of an interface method type parameters.
         /// </summary>
-        private static void CheckTypeParametersVarianceSafety(ImmutableArray<TypeParameterSymbol> typeParameters, MethodSymbol context, BindingDiagnosticBag diagnostics)
+        private static void CheckTypeParametersVarianceSafety(ImmutableArray<TypeParameterSymbol> typeParameters, MethodSymbol context, in BindingDiagnosticBag diagnostics)
         {
             foreach (TypeParameterSymbol typeParameter in typeParameters)
             {
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol context,
             LocationProvider<T> locationProvider,
             T locationArg,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
             where T : Symbol
         {
             Debug.Assert(requireOutputSafety || requireInputSafety);
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol context,
             LocationProvider<T> locationProvider,
             T locationArg,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
             where T : Symbol
         {
             Debug.Assert(requireOutputSafety || requireInputSafety);

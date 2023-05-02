@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default;
         }
 
-        internal void GetDeclarationDiagnostics(BindingDiagnosticBag addTo)
+        internal void GetDeclarationDiagnostics(in BindingDiagnosticBag addTo)
         {
             foreach (var parameter in _parameters)
             {
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addTo.AddRange(_declarationDiagnostics, allowMismatchInDependencyAccumulation: true);
         }
 
-        internal override void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)
+        internal override void AddDeclarationDiagnostics(in BindingDiagnosticBag diagnostics)
             => _declarationDiagnostics.AddRange(diagnostics);
 
         private ImmutableArray<ParameterSymbol> MakeParameters(

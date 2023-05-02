@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, BindingDiagnosticBag diagnostics)
+        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.IsConditional);
 
@@ -962,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 checkAndReportManagedTypes(param.Type, param.RefKind, param.GetNonNullSyntaxNode(), isParam: true, diagnostics);
             }
 
-            static void checkAndReportManagedTypes(TypeSymbol type, RefKind refKind, SyntaxNode syntax, bool isParam, BindingDiagnosticBag diagnostics)
+            static void checkAndReportManagedTypes(TypeSymbol type, RefKind refKind, SyntaxNode syntax, bool isParam, in BindingDiagnosticBag diagnostics)
             {
                 if (refKind != RefKind.None)
                 {
@@ -990,7 +990,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(SourceMethodSymbolWithAttributes @this, CSharpAttributeData attribute, Location location, BindingDiagnosticBag diagnostics)
+            static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(SourceMethodSymbolWithAttributes @this, CSharpAttributeData attribute, Location location, in BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert(attribute.AttributeClass is not null);
                 ImmutableHashSet<CodeAnalysis.Symbols.INamedTypeSymbolInternal>? callingConventionTypes = null;
@@ -1020,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, in BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
@@ -1074,12 +1074,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 
-        protected void AsyncMethodChecks(BindingDiagnosticBag diagnostics)
+        protected void AsyncMethodChecks(in BindingDiagnosticBag diagnostics)
         {
             AsyncMethodChecks(verifyReturnType: true, this.GetFirstLocation(), diagnostics);
         }
 
-        protected void AsyncMethodChecks(bool verifyReturnType, Location errorLocation, BindingDiagnosticBag diagnostics)
+        protected void AsyncMethodChecks(bool verifyReturnType, Location errorLocation, in BindingDiagnosticBag diagnostics)
         {
             if (IsAsync)
             {

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override BoundStatement BindUsingStatementParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundStatement BindUsingStatementParts(in BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
             ExpressionSyntax expressionSyntax = TargetExpressionSyntax;
             VariableDeclarationSyntax declarationSyntax = _syntax.Declaration;

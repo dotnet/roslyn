@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckAbstractClassImplementations(BindingDiagnosticBag diagnostics)
+        private void CheckAbstractClassImplementations(in BindingDiagnosticBag diagnostics)
         {
             NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
 
@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckNewModifier(Symbol symbol, bool isNew, BindingDiagnosticBag diagnostics)
+        private void CheckNewModifier(Symbol symbol, bool isNew, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.NamedType);
 
@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckOverrideMember(
             Symbol overridingMember,
             OverriddenOrHiddenMembersResult overriddenOrHiddenMembers,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             out bool suppressAccessors)
         {
             Debug.Assert((object)overridingMember != null);
@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return;
 
-            void checkSingleOverriddenMember(Symbol overridingMember, Symbol overriddenMember, BindingDiagnosticBag diagnostics, ref bool suppressAccessors)
+            void checkSingleOverriddenMember(Symbol overridingMember, Symbol overriddenMember, in BindingDiagnosticBag diagnostics, ref bool suppressAccessors)
             {
                 var overridingMemberLocation = overridingMember.GetFirstLocation();
                 var overridingMemberIsMethod = overridingMember.Kind == SymbolKind.Method;
@@ -1043,7 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                void checkOverriddenProperty(PropertySymbol overridingProperty, PropertySymbol overriddenProperty, BindingDiagnosticBag diagnostics, ref bool suppressAccessors)
+                void checkOverriddenProperty(PropertySymbol overridingProperty, PropertySymbol overriddenProperty, in BindingDiagnosticBag diagnostics, ref bool suppressAccessors)
                 {
                     var overridingMemberLocation = overridingProperty.GetFirstLocation();
                     var overridingType = overridingProperty.ContainingType;
@@ -1157,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Location overridingMemberLocation,
                 MethodSymbol overriddenMethod,
                 MethodSymbol overridingMethod,
-                BindingDiagnosticBag diagnostics,
+                in BindingDiagnosticBag diagnostics,
                 bool checkReturnType,
                 bool checkParameters)
             {
@@ -1196,7 +1196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Return true if <paramref name="overridingReturnType"/> is valid for the return type of an override method when the overridden method's return type is <paramref name="overriddenReturnType"/>.
         /// </summary>
-        private bool IsValidOverrideReturnType(Symbol overridingSymbol, TypeWithAnnotations overridingReturnType, TypeWithAnnotations overriddenReturnType, BindingDiagnosticBag diagnostics)
+        private bool IsValidOverrideReturnType(Symbol overridingSymbol, TypeWithAnnotations overridingReturnType, TypeWithAnnotations overriddenReturnType, in BindingDiagnosticBag diagnostics)
         {
             if (overridingSymbol.ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses &&
                 DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureCovariantReturnsForOverrides.RequiredVersion())
@@ -1235,7 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             MethodSymbol baseMethod,
             MethodSymbol overrideMethod,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             ReportMismatchInReturnType<TArg> reportMismatchInReturnType,
             ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
             TArg extraArgument,
@@ -1433,7 +1433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool CheckValidScopedOverride<TArg>(
             MethodSymbol? baseMethod,
             MethodSymbol? overrideMethod,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
             TArg extraArgument,
             bool allowVariance,
@@ -1501,7 +1501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             EventSymbol overriddenEvent,
             EventSymbol overridingEvent,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             Action<BindingDiagnosticBag, EventSymbol, EventSymbol, TArg> reportMismatch,
             TArg extraArgument)
         {
@@ -1521,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol hidingMember,
             bool hidingMemberIsNew,
             OverriddenOrHiddenMembersResult overriddenOrHiddenMembers,
-            BindingDiagnosticBag diagnostics, out bool suppressAccessors)
+            in BindingDiagnosticBag diagnostics, out bool suppressAccessors)
         {
             suppressAccessors = false;
 
@@ -1592,7 +1592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If necessary, report a diagnostic for a hidden abstract member.
         /// </summary>
         /// <returns>True if a diagnostic was reported.</returns>
-        private static bool AddHidingAbstractDiagnostic(Symbol hidingMember, Location hidingMemberLocation, Symbol hiddenMember, BindingDiagnosticBag diagnostics, ref bool suppressAccessors)
+        private static bool AddHidingAbstractDiagnostic(Symbol hidingMember, Location hidingMemberLocation, Symbol hiddenMember, in BindingDiagnosticBag diagnostics, ref bool suppressAccessors)
         {
             switch (hiddenMember.Kind)
             {
@@ -1682,7 +1682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// CONSIDER: check this while building up InterfacesAndTheirBaseInterfaces (only in the SourceNamedTypeSymbol case).
         /// </remarks>
-        private void CheckInterfaceUnification(BindingDiagnosticBag diagnostics)
+        private void CheckInterfaceUnification(in BindingDiagnosticBag diagnostics)
         {
             if (!this.IsGenericType)
             {

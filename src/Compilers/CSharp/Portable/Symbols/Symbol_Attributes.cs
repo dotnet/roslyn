@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="diagnostics">Diagnostic bag.</param>
         /// <param name="symbolPart">Specific part of the symbol to which the attributes apply, or <see cref="AttributeLocation.None"/> if the attributes apply to the symbol itself.</param>
         /// <param name="decodedData">Decoded well-known attribute data, could be null.</param>
-        internal virtual void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal virtual void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, in BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
         }
 
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<AttributeSyntax> GetAttributesToBind(
             OneOrMany<SyntaxList<AttributeListSyntax>> attributeDeclarationSyntaxLists,
             AttributeLocation symbolPart,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             CSharpCompilation compilation,
             Func<AttributeSyntax, bool> attributeMatchesOpt,
             Binder rootBinderOpt,
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected virtual bool ShouldBindAttributes(AttributeListSyntax attributeDeclarationSyntax, BindingDiagnosticBag diagnostics)
+        protected virtual bool ShouldBindAttributes(AttributeListSyntax attributeDeclarationSyntax, in BindingDiagnosticBag diagnostics)
         {
             return true;
         }
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
-        private static bool MatchAttributeTarget(IAttributeTargetSymbol attributeTarget, AttributeLocation symbolPart, AttributeTargetSpecifierSyntax targetOpt, BindingDiagnosticBag diagnostics)
+        private static bool MatchAttributeTarget(IAttributeTargetSymbol attributeTarget, AttributeLocation symbolPart, AttributeTargetSpecifierSyntax targetOpt, in BindingDiagnosticBag diagnostics)
         {
             IAttributeTargetSymbol attributesOwner = attributeTarget.AttributesOwner;
 
@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Binder> binders,
             ImmutableArray<AttributeSyntax> attributeSyntaxList,
             ImmutableArray<CSharpAttributeData> boundAttributes,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             AttributeLocation symbolPart)
         {
             Debug.Assert(binders.Any());
@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeSyntax node,
             CSharpCompilation compilation,
             AttributeLocation symbolPart,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             HashSet<NamedTypeSymbol> uniqueAttributeTypes)
         {
             Debug.Assert(!attribute.HasErrors);

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<ParameterSymbol> documentedParameters,
                 HashSet<TypeParameterSymbol> documentedTypeParameters,
                 DocumentationCommentIncludeCache includedFileCache,
-                BindingDiagnosticBag diagnostics,
+                in BindingDiagnosticBag diagnostics,
                 CancellationToken cancellationToken)
             {
                 _memberSymbol = memberSymbol;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref HashSet<TypeParameterSymbol> documentedTypeParameters,
                 ref DocumentationCommentIncludeCache includedFileCache,
                 TextWriter writer,
-                BindingDiagnosticBag diagnostics,
+                in BindingDiagnosticBag diagnostics,
                 CancellationToken cancellationToken)
             {
                 // If there are no include elements, then there's nothing to expand.
@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <remarks>
             /// Respects the DocumentationMode at the source location.
             /// </remarks>
-            private void RecordBindingDiagnostics(BindingDiagnosticBag bindingDiagnostics, Location sourceLocation)
+            private void RecordBindingDiagnostics(in BindingDiagnosticBag bindingDiagnostics, Location sourceLocation)
             {
                 if (((SyntaxTree)sourceLocation.SourceTree).ReportDocumentationCommentDiagnostics())
                 {

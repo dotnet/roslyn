@@ -11,19 +11,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SynthesizedRecordObjectMethod : SynthesizedRecordOrdinaryMethod
     {
-        protected SynthesizedRecordObjectMethod(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, bool isReadOnly, BindingDiagnosticBag diagnostics)
+        protected SynthesizedRecordObjectMethod(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, bool isReadOnly, in BindingDiagnosticBag diagnostics)
             : base(containingType, name, isReadOnly: isReadOnly, hasBody: true, memberOffset, diagnostics)
         {
         }
 
-        protected sealed override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
+        protected sealed override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, in BindingDiagnosticBag diagnostics)
         {
             const DeclarationModifiers result = DeclarationModifiers.Public | DeclarationModifiers.Override;
             Debug.Assert((result & ~allowedModifiers) == 0);
             return result;
         }
 
-        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
+        protected sealed override void MethodChecks(in BindingDiagnosticBag diagnostics)
         {
             base.MethodChecks(diagnostics);
             VerifyOverridesMethodFromObject(this, OverriddenSpecialMember, diagnostics);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if reported an error
         /// </summary>
-        internal static bool VerifyOverridesMethodFromObject(MethodSymbol overriding, SpecialMember overriddenSpecialMember, BindingDiagnosticBag diagnostics)
+        internal static bool VerifyOverridesMethodFromObject(MethodSymbol overriding, SpecialMember overriddenSpecialMember, in BindingDiagnosticBag diagnostics)
         {
             bool reportAnError = false;
 

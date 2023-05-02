@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // This method *must not* depend on attributes on the parameter symbol.
         // Otherwise we will have cycles when binding usage of attributes whose constructors have optional parameters
-        private ConstantValue MakeDefaultExpression(BindingDiagnosticBag diagnostics, out Binder? binder, out BoundParameterEqualsValue? parameterEqualsValue)
+        private ConstantValue MakeDefaultExpression(in BindingDiagnosticBag diagnostics, out Binder? binder, out BoundParameterEqualsValue? parameterEqualsValue)
         {
             binder = null;
             parameterEqualsValue = null;
@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// (DefaultParameterValueAttribute, DateTimeConstantAttribute or DecimalConstantAttribute).
         /// If not, report ERR_ParamDefaultValueDiffersFromAttribute.
         /// </summary>
-        private void VerifyParamDefaultValueMatchesAttributeIfAny(ConstantValue value, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        private void VerifyParamDefaultValueMatchesAttributeIfAny(ConstantValue value, SyntaxNode syntax, in BindingDiagnosticBag diagnostics)
         {
             var data = GetEarlyDecodedWellKnownAttributeData();
             if (data != null)
@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private void ValidateCallerLineNumberAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
+        private void ValidateCallerLineNumberAttribute(AttributeSyntax node, in BindingDiagnosticBag diagnostics)
         {
             CSharpCompilation compilation = this.DeclaringCompilation;
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(node.Name, useSiteInfo);
         }
 
-        private void ValidateCallerFilePathAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
+        private void ValidateCallerFilePathAttribute(AttributeSyntax node, in BindingDiagnosticBag diagnostics)
         {
             CSharpCompilation compilation = this.DeclaringCompilation;
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
@@ -1106,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(node.Name, useSiteInfo);
         }
 
-        private void ValidateCallerMemberNameAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
+        private void ValidateCallerMemberNameAttribute(AttributeSyntax node, in BindingDiagnosticBag diagnostics)
         {
             CSharpCompilation compilation = this.DeclaringCompilation;
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
@@ -1144,7 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(node.Name, useSiteInfo);
         }
 
-        private void ValidateCallerArgumentExpressionAttribute(AttributeSyntax node, CSharpAttributeData attribute, BindingDiagnosticBag diagnostics)
+        private void ValidateCallerArgumentExpressionAttribute(AttributeSyntax node, CSharpAttributeData attribute, in BindingDiagnosticBag diagnostics)
         {
             // We intentionally don't report an error for earlier language versions here. The attribute already existed
             // before the feature was developed. The error is only reported when the binder supplies a value
@@ -1201,7 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(node.Name, useSiteInfo);
         }
 
-        private void ValidateCancellationTokenAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
+        private void ValidateCancellationTokenAttribute(AttributeSyntax node, in BindingDiagnosticBag diagnostics)
         {
             if (needsReporting())
             {
@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
-        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, in BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             SynthesizedInteractiveInitializerMethod? scriptInitializerOpt,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> fieldInitializers,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             ref ProcessedFieldInitializers processedInitializers)
         {
             var diagsForInstanceInitializers = BindingDiagnosticBagFactory.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             SynthesizedInteractiveInitializerMethod? scriptInitializerOpt,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             out ImportChain? firstImportChain)
         {
             if (initializers.IsEmpty)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
             ArrayBuilder<BoundInitializer> boundInitializers,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             out ImportChain? firstDebugImports)
         {
             firstDebugImports = null;
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedInteractiveInitializerMethod scriptInitializer,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
             ArrayBuilder<BoundInitializer> boundInitializers,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             out ImportChain? firstDebugImports)
         {
             firstDebugImports = null;
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             SynthesizedInteractiveInitializerMethod scriptInitializer,
             StatementSyntax statementNode,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             bool isLast)
         {
             var statement = binder.BindStatement(statementNode, diagnostics);
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static BoundFieldEqualsValue BindFieldInitializer(Binder binder, FieldSymbol fieldSymbol, EqualsValueClauseSyntax equalsValueClauseNode,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!fieldSymbol.IsMetadataConstant);
 

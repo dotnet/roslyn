@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method, SyntaxNode syntaxNode, TypeCompilationState compilationState,
             PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution,
             PooledDictionary<LocalSymbol, BoundComplexConditionalReceiver> receiverSubstitution,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             _F = new SyntheticBoundNodeFactory(method, syntaxNode, compilationState, diagnostics);
             _F.CurrentFunction = method;
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static BoundStatement Rewrite(BoundStatement body, MethodSymbol method, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        internal static BoundStatement Rewrite(BoundStatement body, MethodSymbol method, TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             var tempSubstitution = PooledDictionary<LocalSymbol, LocalSymbol>.GetInstance();
             var receiverSubstitution = PooledDictionary<LocalSymbol, BoundComplexConditionalReceiver>.GetInstance();

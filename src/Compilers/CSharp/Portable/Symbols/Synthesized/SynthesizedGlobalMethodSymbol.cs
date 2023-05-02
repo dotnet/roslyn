@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics);
+        internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics);
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

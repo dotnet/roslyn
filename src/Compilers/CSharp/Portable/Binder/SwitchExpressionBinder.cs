@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SwitchExpressionSyntax = switchExpressionSyntax;
         }
 
-        internal override BoundExpression BindSwitchExpressionCore(SwitchExpressionSyntax node, Binder originalBinder, BindingDiagnosticBag diagnostics)
+        internal override BoundExpression BindSwitchExpressionCore(SwitchExpressionSyntax node, Binder originalBinder, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node == SwitchExpressionSyntax);
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             out BoundDecisionDag decisionDag,
             [NotNullWhen(true)] out LabelSymbol? defaultLabel,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             defaultLabel = new GeneratedLabelSymbol("default");
             decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Infer the result type of the switch expression by looking for a common type
         /// to which every arm's expression can be converted.
         /// </summary>
-        private TypeSymbol? InferResultType(ImmutableArray<BoundSwitchExpressionArm> switchCases, BindingDiagnosticBag diagnostics)
+        private TypeSymbol? InferResultType(ImmutableArray<BoundSwitchExpressionArm> switchCases, in BindingDiagnosticBag diagnostics)
         {
             var seenTypes = Symbols.SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
             var typesInOrder = ArrayBuilder<TypeSymbol>.GetInstance();
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return commonType;
         }
 
-        private ImmutableArray<BoundSwitchExpressionArm> BindSwitchExpressionArms(SwitchExpressionSyntax node, Binder originalBinder, BoundExpression inputExpression, BindingDiagnosticBag diagnostics)
+        private ImmutableArray<BoundSwitchExpressionArm> BindSwitchExpressionArms(SwitchExpressionSyntax node, Binder originalBinder, BoundExpression inputExpression, in BindingDiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance();
             TypeSymbol inputType = GetInputType(inputExpression);
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return inputExpression.Type;
         }
 
-        private BoundExpression BindSwitchGoverningExpression(BindingDiagnosticBag diagnostics)
+        private BoundExpression BindSwitchGoverningExpression(in BindingDiagnosticBag diagnostics)
         {
             var switchGoverningExpression = BindRValueWithoutTargetType(SwitchExpressionSyntax.GoverningExpression, diagnostics);
             if (switchGoverningExpression.Type == (object?)null || switchGoverningExpression.Type.IsVoidType())

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
-        internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory F, ArrayBuilder<BoundStatement> statements, BindingDiagnosticBag diagnostics)
+        internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory F, ArrayBuilder<BoundStatement> statements, in BindingDiagnosticBag diagnostics)
         {
             // Tracking issue for copy constructor in inheritance scenario: https://github.com/dotnet/roslyn/issues/44902
             // Write assignments to fields

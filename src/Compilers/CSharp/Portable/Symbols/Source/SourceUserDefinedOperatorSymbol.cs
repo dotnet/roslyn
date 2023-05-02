@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder bodyBinder,
             OperatorDeclarationSyntax syntax,
             bool isNullableAnalysisEnabled,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             var location = syntax.OperatorToken.GetLocation();
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             OperatorDeclarationSyntax syntax,
             bool isNullableAnalysisEnabled,
-            BindingDiagnosticBag diagnostics) :
+            in BindingDiagnosticBag diagnostics) :
             base(
                 methodKind,
                 explicitInterfaceType,
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OneOrMany.Create(this.GetSyntax().AttributeLists);
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(in BindingDiagnosticBag diagnostics)
         {
             OperatorDeclarationSyntax declarationSyntax = GetSyntax();
             return MakeParametersAndBindReturnType(declarationSyntax, declarationSyntax.ReturnType, diagnostics);

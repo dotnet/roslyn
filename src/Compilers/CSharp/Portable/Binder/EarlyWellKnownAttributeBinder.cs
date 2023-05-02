@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeSyntax node, NamedTypeSymbol boundAttributeType,
             Action<AttributeSyntax> beforeAttributePartBound,
             Action<AttributeSyntax> afterAttributePartBound,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(false, "Don't call this overload.");
             diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);

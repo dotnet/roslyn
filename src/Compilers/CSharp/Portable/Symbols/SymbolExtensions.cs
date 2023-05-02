@@ -287,12 +287,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbol.DeclaringCompilation.Options.AllowUnsafe;
         }
 
-        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, BindingDiagnosticBag diagnostics)
+        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, in BindingDiagnosticBag diagnostics)
         {
             symbol.CheckUnsafeModifier(modifiers, symbol.Locations[0], diagnostics);
         }
 
-        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, Location errorLocation, BindingDiagnosticBag diagnostics)
+        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, Location errorLocation, in BindingDiagnosticBag diagnostics)
             => CheckUnsafeModifier(symbol, modifiers, errorLocation, diagnostics.DiagnosticBag);
 
         internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, Location errorLocation, DiagnosticBag? diagnostics)

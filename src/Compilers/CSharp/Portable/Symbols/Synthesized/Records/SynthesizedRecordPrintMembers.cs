@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             IEnumerable<Symbol> userDefinedMembers,
             int memberOffset,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
             : base(
                   containingType,
                   WellKnownMemberNames.PrintMembersMethodName,
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
+        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, in BindingDiagnosticBag diagnostics)
         {
             var result = (ContainingType.IsRecordStruct || (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType() && ContainingType.IsSealed)) ?
                 DeclarationModifiers.Private :
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(in BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override int GetParameterCountFromSyntax() => 1;
 
-        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
+        protected override void MethodChecks(in BindingDiagnosticBag diagnostics)
         {
             base.MethodChecks(diagnostics);
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
             try
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void VerifyOverridesPrintMembersFromBase(MethodSymbol overriding, BindingDiagnosticBag diagnostics)
+        internal static void VerifyOverridesPrintMembersFromBase(MethodSymbol overriding, in BindingDiagnosticBag diagnostics)
         {
             NamedTypeSymbol baseType = overriding.ContainingType.BaseTypeNoUseSiteDiagnostics;
             if (baseType.IsObjectType())

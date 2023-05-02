@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
         }
 
-        public void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics) =>
+        public void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, in BindingDiagnosticBag diagnostics) =>
             _extensions.ReportDiagnosticsIfObsolete(this, binder, syntax, diagnostics);
 
         private bool TypeSymbolEqualsCore(TypeWithAnnotations other, TypeCompareKind comparison)
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Type.Equals(other.Type, comparison);
         }
 
-        private void ReportDiagnosticsIfObsoleteCore(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        private void ReportDiagnosticsIfObsoleteCore(Binder binder, SyntaxNode syntax, in BindingDiagnosticBag diagnostics)
         {
             binder.ReportDiagnosticsIfObsolete(diagnostics, Type, syntax, hasBaseReceiver: false);
         }
@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal abstract bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison);
             internal abstract TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap);
-            internal abstract void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics);
+            internal abstract void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, in BindingDiagnosticBag diagnostics);
 
             internal abstract void TryForceResolve(bool asValueType);
         }
@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return type.SubstituteTypeCore(typeMap);
             }
 
-            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, in BindingDiagnosticBag diagnostics)
             {
                 type.ReportDiagnosticsIfObsoleteCore(binder, syntax, diagnostics);
             }
@@ -1038,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, in BindingDiagnosticBag diagnostics)
             {
                 if ((object)_resolved != null)
                 {

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator? slotAllocatorOpt,
             TypeCompilationState compilationState,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
             : base(body, method, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
         {
             _constructedSuccessfully = AsyncMethodBuilderMemberCollection.TryCreate(F, method, this.stateMachineType.TypeMap, out _asyncMethodBuilderMemberCollection);
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator? slotAllocatorOpt,
             TypeCompilationState compilationState,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             out AsyncStateMachine? stateMachineType)
         {
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
@@ -121,13 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !hasErrors && _constructedSuccessfully;
         }
 
-        protected virtual void VerifyPresenceOfRequiredAPIs(BindingDiagnosticBag bag)
+        protected virtual void VerifyPresenceOfRequiredAPIs(in BindingDiagnosticBag bag)
         {
             EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, bag);
             EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, bag);
         }
 
-        private Symbol EnsureWellKnownMember(WellKnownMember member, BindingDiagnosticBag bag)
+        private Symbol EnsureWellKnownMember(WellKnownMember member, in BindingDiagnosticBag bag)
         {
             return Binder.GetWellKnownTypeMember(F.Compilation, member, bag, body.Syntax.Location);
         }

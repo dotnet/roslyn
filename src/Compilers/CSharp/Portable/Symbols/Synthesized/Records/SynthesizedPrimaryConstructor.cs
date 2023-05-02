@@ -136,13 +136,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             arguments.SymbolPart = AttributeLocation.Method;
         }
 
-        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, in BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(symbolPart is AttributeLocation.Method or AttributeLocation.Return);
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart is AttributeLocation.Method ? AttributeLocation.None : symbolPart, decodedData);
         }
 
-        protected override bool ShouldBindAttributes(AttributeListSyntax attributeDeclarationSyntax, BindingDiagnosticBag diagnostics)
+        protected override bool ShouldBindAttributes(AttributeListSyntax attributeDeclarationSyntax, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(attributeDeclarationSyntax.Target is object);
 

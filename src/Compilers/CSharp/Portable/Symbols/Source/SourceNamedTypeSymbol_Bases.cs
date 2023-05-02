@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyInterfaces;
         }
 
-        protected override void CheckBase(BindingDiagnosticBag diagnostics)
+        protected override void CheckBase(in BindingDiagnosticBag diagnostics)
         {
             var localBase = this.BaseTypeNoUseSiteDiagnostics;
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override void CheckInterfaces(BindingDiagnosticBag diagnostics)
+        protected override void CheckInterfaces(in BindingDiagnosticBag diagnostics)
         {
             // Check declared interfaces and all base interfaces. This is necessary
             // since references to all interfaces will be emitted to metadata
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private ImmutableArray<NamedTypeSymbol> MakeAcyclicInterfaces(ConsList<TypeSymbol> basesBeingResolved, BindingDiagnosticBag diagnostics)
+        private ImmutableArray<NamedTypeSymbol> MakeAcyclicInterfaces(ConsList<TypeSymbol> basesBeingResolved, in BindingDiagnosticBag diagnostics)
         {
             var typeKind = this.TypeKind;
 
@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return isInterface ? result.ToImmutableAndFree() : declaredInterfaces;
         }
 
-        private NamedTypeSymbol MakeAcyclicBaseType(BindingDiagnosticBag diagnostics)
+        private NamedTypeSymbol MakeAcyclicBaseType(in BindingDiagnosticBag diagnostics)
         {
             var typeKind = this.TypeKind;
             var compilation = this.DeclaringCompilation;

@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedRecordEqualityOperator : SynthesizedRecordEqualityOperatorBase
     {
-        public SynthesizedRecordEqualityOperator(SourceMemberContainerTypeSymbol containingType, int memberOffset, BindingDiagnosticBag diagnostics)
+        public SynthesizedRecordEqualityOperator(SourceMemberContainerTypeSymbol containingType, int memberOffset, in BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.EqualityOperatorName, memberOffset, diagnostics)
         {
         }
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
 

@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return backupLocation;
         }
 
-        internal SourceNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics, TupleExtraData tupleData = null)
+        internal SourceNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, in BindingDiagnosticBag diagnostics, TupleExtraData tupleData = null)
             : base(containingSymbol, declaration, diagnostics, tupleData)
         {
             switch (declaration.Kind)
@@ -315,7 +315,7 @@ next:;
             return constraintKinds;
         }
 
-        private ImmutableArray<ImmutableArray<TypeWithAnnotations>> MakeTypeParameterConstraintTypes(BindingDiagnosticBag diagnostics)
+        private ImmutableArray<ImmutableArray<TypeWithAnnotations>> MakeTypeParameterConstraintTypes(in BindingDiagnosticBag diagnostics)
         {
             var typeParameters = this.TypeParameters;
             var results = ImmutableArray<TypeParameterConstraintClause>.Empty;
@@ -492,7 +492,7 @@ next:;
         /// </summary>
         private ImmutableArray<TypeParameterConstraintClause> MergeConstraintTypesForPartialDeclarations(ImmutableArray<TypeParameterConstraintClause> constraintClauses,
                                                                                                          ArrayBuilder<ImmutableArray<TypeParameterConstraintClause>> otherPartialClauses,
-                                                                                                         BindingDiagnosticBag diagnostics)
+                                                                                                         in BindingDiagnosticBag diagnostics)
         {
             if (otherPartialClauses == null)
             {
@@ -1283,7 +1283,7 @@ next:;
             }
         }
 
-        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, BindingDiagnosticBag diagnostics)
+        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.IsConditional);
             Debug.Assert(!attribute.HasErrors);
@@ -1460,7 +1460,7 @@ next:;
             return data != null ? data.ConditionalSymbols : ImmutableArray<string>.Empty;
         }
 
-        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, in BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
@@ -1668,7 +1668,7 @@ next:;
             }
         }
 
-        protected override void AfterMembersCompletedChecks(BindingDiagnosticBag diagnostics)
+        protected override void AfterMembersCompletedChecks(in BindingDiagnosticBag diagnostics)
         {
             base.AfterMembersCompletedChecks(diagnostics);
 

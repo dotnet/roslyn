@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _location = location;
         }
 
-        protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
+        protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, in BindingDiagnosticBag diagnostics)
         {
             if (this.DeclaredAccessibility <= Accessibility.Private || MethodKind == MethodKind.ExplicitInterfaceImplementation)
             {
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(GetFirstLocation(), useSiteInfo);
         }
 
-        protected void CheckFileTypeUsage(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
+        protected void CheckFileTypeUsage(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, in BindingDiagnosticBag diagnostics)
         {
             if (ContainingType.HasFileLocalTypes())
             {
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// In particular, it should not (generally) be necessary to use CompareExchange to
         /// protect assignments to fields.
         /// </remarks>
-        protected abstract void MethodChecks(BindingDiagnosticBag diagnostics);
+        protected abstract void MethodChecks(in BindingDiagnosticBag diagnostics);
 
         /// <summary>
         /// We can usually lock on the syntax reference of this method, but it turns
@@ -828,7 +828,7 @@ done:
             state.NotePartComplete(part);
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, in BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
@@ -958,7 +958,7 @@ done:
         /// Checks to see if a body is legal given the current modifiers.
         /// If it is not, a diagnostic is added with the current type.
         /// </summary>
-        protected void CheckModifiersForBody(Location location, BindingDiagnosticBag diagnostics)
+        protected void CheckModifiersForBody(Location location, in BindingDiagnosticBag diagnostics)
         {
             if (IsExtern && !IsAbstract)
             {
@@ -972,7 +972,7 @@ done:
             // in that case ("member cannot be both extern and abstract").
         }
 
-        protected void CheckFeatureAvailabilityAndRuntimeSupport(SyntaxNode declarationSyntax, Location location, bool hasBody, BindingDiagnosticBag diagnostics)
+        protected void CheckFeatureAvailabilityAndRuntimeSupport(SyntaxNode declarationSyntax, Location location, bool hasBody, in BindingDiagnosticBag diagnostics)
         {
             if (_containingType.IsInterface)
             {

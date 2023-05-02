@@ -471,8 +471,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public RefKind RefKind(int index) { return Data.RefKind(index); }
         public ScopedKind DeclaredScope(int index) { return Data.DeclaredScope(index); }
-        public void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, TypeSymbol targetType) { Data.GenerateAnonymousFunctionConversionError(diagnostics, targetType); }
-        public bool GenerateSummaryErrors(BindingDiagnosticBag diagnostics) { return Data.GenerateSummaryErrors(diagnostics); }
+        public void GenerateAnonymousFunctionConversionError(in BindingDiagnosticBag diagnostics, TypeSymbol targetType) { Data.GenerateAnonymousFunctionConversionError(diagnostics, targetType); }
+        public bool GenerateSummaryErrors(in BindingDiagnosticBag diagnostics) { return Data.GenerateSummaryErrors(diagnostics); }
         public bool IsAsync { get { return Data.IsAsync; } }
         public bool IsStatic => Data.IsStatic;
         public bool HasParamsArray => Data.HasParamsArray;
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract RefKind RefKind(int index);
         public abstract ScopedKind DeclaredScope(int index);
         public abstract ParameterSyntax? ParameterSyntax(int i);
-        protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics);
+        protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, in BindingDiagnosticBag diagnostics);
 
         /// <summary>
         /// Return the bound expression if the lambda has an expression body and can be reused easily.
@@ -566,9 +566,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Produce a bound block for the expression returned from GetLambdaExpressionBody.
         /// </summary>
-        protected abstract BoundBlock CreateBlockFromLambdaExpressionBody(Binder lambdaBodyBinder, BoundExpression expression, BindingDiagnosticBag diagnostics);
+        protected abstract BoundBlock CreateBlockFromLambdaExpressionBody(Binder lambdaBodyBinder, BoundExpression expression, in BindingDiagnosticBag diagnostics);
 
-        public virtual void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, TypeSymbol targetType)
+        public virtual void GenerateAnonymousFunctionConversionError(in BindingDiagnosticBag diagnostics, TypeSymbol targetType)
         {
             this.Binder.GenerateAnonymousFunctionConversionError(diagnostics, _unboundLambda.Syntax, _unboundLambda, targetType);
         }
@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateLambdaSymbol(containingSymbol, returnType, parameterTypes, parameterRefKinds, refKind);
         }
 
-        private void ValidateUnsafeParameters(BindingDiagnosticBag diagnostics, ImmutableArray<TypeWithAnnotations> targetParameterTypes)
+        private void ValidateUnsafeParameters(in BindingDiagnosticBag diagnostics, ImmutableArray<TypeWithAnnotations> targetParameterTypes)
         {
             // It is legal to use a delegate type that has unsafe parameter types inside
             // a safe context if the anonymous method has no parameter list!
@@ -1236,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public bool GenerateSummaryErrors(BindingDiagnosticBag diagnostics)
+        public bool GenerateSummaryErrors(in BindingDiagnosticBag diagnostics)
         {
             // It is highly likely that "the same" error will be given for two different
             // bindings of the same lambda but with different values for the parameters
@@ -1541,12 +1541,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override BoundBlock CreateBlockFromLambdaExpressionBody(Binder lambdaBodyBinder, BoundExpression expression, BindingDiagnosticBag diagnostics)
+        protected override BoundBlock CreateBlockFromLambdaExpressionBody(Binder lambdaBodyBinder, BoundExpression expression, in BindingDiagnosticBag diagnostics)
         {
             return lambdaBodyBinder.CreateBlockFromExpression((ExpressionSyntax)this.Body, expression, diagnostics);
         }
 
-        protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)
+        protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, in BindingDiagnosticBag diagnostics)
         {
             if (this.IsExpressionLambda)
             {

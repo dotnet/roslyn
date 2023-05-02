@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        protected void GenerateMethodBodyCore(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        protected void GenerateMethodBodyCore(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
             factory.CurrentFunction = this;
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             factory.CloseMethod(block);
         }
 
-        internal virtual void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, BindingDiagnosticBag diagnostics)
+        internal virtual void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, in BindingDiagnosticBag diagnostics)
         {
             // overridden in a derived class to add extra statements to the body of the generated constructor
         }

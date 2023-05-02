@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode syntax,
             ParameterSymbol backingParameter,
             bool isOverride,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
             : base(
                 containingType,
                 syntax: syntax,
@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
             => BackingParameter.AttributeDeclarationList;
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(isAutoPropertyAccessor);
             return CreateAccessorSymbol(isGet: true, CSharpSyntaxNode, diagnostics);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(isAutoPropertyAccessor);
             return CreateAccessorSymbol(isGet: false, CSharpSyntaxNode, diagnostics);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SourcePropertyAccessorSymbol CreateAccessorSymbol(
             bool isGet,
             CSharpSyntaxNode syntax,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             var usesInit = !isGet && ShouldUseInit(ContainingType);
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
         }
 
-        protected override (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(in BindingDiagnosticBag diagnostics)
         {
             return (BackingParameter.TypeWithAnnotations,
                     ImmutableArray<ParameterSymbol>.Empty);

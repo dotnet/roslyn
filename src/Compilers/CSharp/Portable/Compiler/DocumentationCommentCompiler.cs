@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TextSpan? filterSpanWithinTree,
             bool processIncludes,
             bool isForSingleSymbol,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
             _assemblyName = assemblyName;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         /// <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and filterSpanWithinTree is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
 #nullable enable
-        public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string? assemblyName, Stream? xmlDocStream, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree? filterTree = null, TextSpan? filterSpanWithinTree = null)
+        public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string? assemblyName, Stream? xmlDocStream, in BindingDiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree? filterTree = null, TextSpan? filterSpanWithinTree = null)
 #nullable disable
         {
             StreamWriter writer = null;
@@ -1054,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Does not respect DocumentationMode, so use a temporary bag if diagnostics are not desired.
         /// </remarks>
-        private static string GetDocumentationCommentId(CrefSyntax crefSyntax, Binder binder, BindingDiagnosticBag diagnostics)
+        private static string GetDocumentationCommentId(CrefSyntax crefSyntax, Binder binder, in BindingDiagnosticBag diagnostics)
         {
             if (crefSyntax.ContainsDiagnostics)
             {
@@ -1121,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol memberSymbol,
             ref HashSet<ParameterSymbol> documentedParameters,
             ref HashSet<TypeParameterSymbol> documentedTypeParameters,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             XmlNameAttributeElementKind elementKind = syntax.GetElementKind();
 

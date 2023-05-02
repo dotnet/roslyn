@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Generate an accessor for a field-like event.
         /// </summary>
-        internal static BoundBlock ConstructFieldLikeEventAccessorBody(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
+        internal static BoundBlock ConstructFieldLikeEventAccessorBody(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(eventSymbol.HasAssociatedField);
             return eventSymbol.IsWindowsRuntimeEvent
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Remove:
         ///   EventRegistrationTokenTable&lt;Event&gt;.GetOrCreateEventRegistrationTokenTable(ref _tokenTable).RemoveEventHandler(value);
         /// </summary>
-        internal static BoundBlock ConstructFieldLikeEventAccessorBody_WinRT(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
+        internal static BoundBlock ConstructFieldLikeEventAccessorBody_WinRT(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, in BindingDiagnosticBag diagnostics)
         {
             CSharpSyntaxNode syntax = eventSymbol.CSharpSyntaxNode;
 
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// _event = (DelegateType)Delegate.Combine(_event, value); //Remove for -=
         ///
         /// </summary>
-        internal static BoundBlock ConstructFieldLikeEventAccessorBody_Regular(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
+        internal static BoundBlock ConstructFieldLikeEventAccessorBody_Regular(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, in BindingDiagnosticBag diagnostics)
         {
             CSharpSyntaxNode syntax = eventSymbol.CSharpSyntaxNode;
 

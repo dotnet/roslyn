@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal const string PropertyName = "EqualityContract";
 
-        public SynthesizedRecordEqualityContractProperty(SourceMemberContainerTypeSymbol containingType, BindingDiagnosticBag diagnostics)
+        public SynthesizedRecordEqualityContractProperty(SourceMemberContainerTypeSymbol containingType, in BindingDiagnosticBag diagnostics)
             : base(
                 containingType,
                 syntax: (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(),
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override Location TypeLocation
             => ContainingType.GetFirstLocation();
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, in BindingDiagnosticBag diagnostics)
         {
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 ContainingType,
@@ -66,18 +66,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, in BindingDiagnosticBag diagnostics)
         {
             throw ExceptionUtilities.Unreachable();
         }
 
-        protected override (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(in BindingDiagnosticBag diagnostics)
         {
             return (TypeWithAnnotations.Create(Binder.GetWellKnownType(DeclaringCompilation, WellKnownType.System_Type, diagnostics, Location), NullableAnnotation.NotAnnotated),
                     ImmutableArray<ParameterSymbol>.Empty);
         }
 
-        protected override void ValidatePropertyType(BindingDiagnosticBag diagnostics)
+        protected override void ValidatePropertyType(in BindingDiagnosticBag diagnostics)
         {
             base.ValidatePropertyType(diagnostics);
             VerifyOverridesEqualityContractFromBase(this, diagnostics);
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
 
-        internal static void VerifyOverridesEqualityContractFromBase(PropertySymbol overriding, BindingDiagnosticBag diagnostics)
+        internal static void VerifyOverridesEqualityContractFromBase(PropertySymbol overriding, in BindingDiagnosticBag diagnostics)
         {
             if (overriding.ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
             {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers propertyModifiers,
                 Location location,
                 CSharpSyntaxNode syntax,
-                BindingDiagnosticBag diagnostics)
+                in BindingDiagnosticBag diagnostics)
                 : base(
                        containingType,
                        property,
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override bool SynthesizesLoweredBoundBody => true;
             internal override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
 
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
             {
                 var F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
 

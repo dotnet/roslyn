@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly int _memberOffset;
 
-        protected SynthesizedRecordOrdinaryMethod(SourceMemberContainerTypeSymbol containingType, string name, bool isReadOnly, bool hasBody, int memberOffset, BindingDiagnosticBag diagnostics)
+        protected SynthesizedRecordOrdinaryMethod(SourceMemberContainerTypeSymbol containingType, string name, bool isReadOnly, bool hasBody, int memberOffset, in BindingDiagnosticBag diagnostics)
             : base(containingType, name, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(), MethodKind.Ordinary,
                    isIterator: false, isExtensionMethod: false, isReadOnly: isReadOnly, hasBody: hasBody, isNullableAnalysisEnabled: false, diagnostics)
         {
@@ -35,21 +35,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override Location ReturnTypeLocation => GetFirstLocation();
 
-        protected sealed override MethodSymbol? FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics) => null;
+        protected sealed override MethodSymbol? FindExplicitlyImplementedMethod(in BindingDiagnosticBag diagnostics) => null;
 
         internal sealed override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
-        protected sealed override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics) => ImmutableArray<TypeParameterSymbol>.Empty;
+        protected sealed override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, in BindingDiagnosticBag diagnostics) => ImmutableArray<TypeParameterSymbol>.Empty;
 
         public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes() => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
 
         public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds() => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
-        protected sealed override void PartialMethodChecks(BindingDiagnosticBag diagnostics)
+        protected sealed override void PartialMethodChecks(in BindingDiagnosticBag diagnostics)
         {
         }
 
-        protected sealed override void ExtensionMethodChecks(BindingDiagnosticBag diagnostics)
+        protected sealed override void ExtensionMethodChecks(in BindingDiagnosticBag diagnostics)
         {
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override TypeSymbol? ExplicitInterfaceType => null;
 
-        protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, in BindingDiagnosticBag diagnostics)
         {
         }
 
@@ -86,6 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool SynthesizesLoweredBoundBody => true;
         internal sealed override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
-        internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics);
+        internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics);
     }
 }

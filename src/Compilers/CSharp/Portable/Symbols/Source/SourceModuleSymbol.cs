@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void ValidateLinkedAssemblies(BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
+        private void ValidateLinkedAssemblies(in BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             foreach (AssemblySymbol a in GetReferencedAssemblySymbols())
             {

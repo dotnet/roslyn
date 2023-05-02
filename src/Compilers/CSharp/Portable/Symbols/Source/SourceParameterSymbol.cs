@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExtensionMethodThis,
             bool addRefReadOnlyModifier,
             ScopedKind scope,
-            BindingDiagnosticBag declarationDiagnostics)
+            in BindingDiagnosticBag declarationDiagnostics)
         {
             Debug.Assert(owner is not LambdaSymbol); // therefore we don't need to deal with discard parameters
 
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// go on the compilation, but if it is a local function it is part of the local
         /// function's declaration diagnostics.
         /// </summary>
-        internal override void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)
+        internal override void AddDeclarationDiagnostics(in BindingDiagnosticBag diagnostics)
             => ContainingSymbol.AddDeclarationDiagnostics(diagnostics);
 
         internal abstract SyntaxReference SyntaxReference { get; }

@@ -2379,7 +2379,7 @@ foundParent:;
                 return null;
             }
 
-            public override BoundStatement BindStatement(StatementSyntax node, BindingDiagnosticBag diagnostics)
+            public override BoundStatement BindStatement(StatementSyntax node, in BindingDiagnosticBag diagnostics)
             {
                 // Check the bound node cache to see if the statement was already bound.
                 if (node.SyntaxTree == _semanticModel.SyntaxTree)
@@ -2411,7 +2411,7 @@ foundParent:;
                 return statement;
             }
 
-            internal override BoundBlock BindEmbeddedBlock(BlockSyntax node, BindingDiagnosticBag diagnostics)
+            internal override BoundBlock BindEmbeddedBlock(BlockSyntax node, in BindingDiagnosticBag diagnostics)
             {
                 BoundBlock block = (BoundBlock)TryGetBoundNodeFromMap(node);
 
@@ -2442,7 +2442,7 @@ foundParent:;
                 return null;
             }
 
-            public override BoundNode BindMethodBody(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
+            public override BoundNode BindMethodBody(CSharpSyntaxNode node, in BindingDiagnosticBag diagnostics)
             {
                 BoundNode boundNode = TryGetBoundNodeFromMap(node);
 
@@ -2456,17 +2456,17 @@ foundParent:;
                 return boundNode;
             }
 
-            internal override BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax node, BindingDiagnosticBag diagnostics)
+            internal override BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax node, in BindingDiagnosticBag diagnostics)
             {
                 return (BoundExpressionStatement)TryGetBoundNodeFromMap(node) ?? base.BindConstructorInitializer(node, diagnostics);
             }
 
-            internal override BoundExpressionStatement BindConstructorInitializer(PrimaryConstructorBaseTypeSyntax node, BindingDiagnosticBag diagnostics)
+            internal override BoundExpressionStatement BindConstructorInitializer(PrimaryConstructorBaseTypeSyntax node, in BindingDiagnosticBag diagnostics)
             {
                 return (BoundExpressionStatement)TryGetBoundNodeFromMap(node) ?? base.BindConstructorInitializer(node, diagnostics);
             }
 
-            internal override BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax node, BindingDiagnosticBag diagnostics)
+            internal override BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax node, in BindingDiagnosticBag diagnostics)
             {
                 BoundBlock block = (BoundBlock)TryGetBoundNodeFromMap(node);
 

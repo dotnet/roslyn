@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedRecordClone(
             SourceMemberContainerTypeSymbol containingType,
             int memberOffset,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.CloneMethodName, isReadOnly: false, hasBody: !containingType.IsAbstract, memberOffset, diagnostics)
         {
             Debug.Assert(!containingType.IsRecordStruct);
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
+        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, in BindingDiagnosticBag diagnostics)
         {
             DeclarationModifiers result = DeclarationModifiers.Public;
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(in BindingDiagnosticBag diagnostics)
         {
             return (ReturnType: !ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses && VirtualCloneInBase() is { } baseClone ?
                                      baseClone.ReturnTypeWithAnnotations :
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override int GetParameterCountFromSyntax() => 0;
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!IsAbstract);
 

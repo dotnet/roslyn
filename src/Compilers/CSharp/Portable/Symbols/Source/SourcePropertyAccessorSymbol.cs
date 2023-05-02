@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers propertyModifiers,
             AccessorDeclarationSyntax syntax,
             bool isAutoPropertyAccessor,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration ||
                 syntax.Kind() == SyntaxKind.SetAccessorDeclaration ||
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourcePropertySymbol property,
             DeclarationModifiers propertyModifiers,
             ArrowExpressionClauseSyntax syntax,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             bool isNullableAnalysisEnabled = containingType.DeclaringCompilation.IsNullableAnalysisEnabledIn(syntax);
             return new SourcePropertyAccessorSymbol(
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers propertyModifiers,
             Location location,
             CSharpSyntaxNode syntax,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             var methodKind = isGetMethod ? MethodKind.PropertyGet : MethodKind.PropertySet;
             return new SourcePropertyAccessorSymbol(
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers propertyModifiers,
             Location location,
             CSharpSyntaxNode syntax,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             return new SynthesizedRecordEqualityContractProperty.GetAccessorSymbol(
                 containingType,
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             ArrowExpressionClauseSyntax syntax,
             bool isNullableAnalysisEnabled,
-            BindingDiagnosticBag diagnostics) :
+            in BindingDiagnosticBag diagnostics) :
             base(containingType, syntax.GetReference(), location, isIterator: false)
         {
             _property = property;
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool usesInit,
             bool isAutoPropertyAccessor,
             bool isNullableAnalysisEnabled,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
             : base(containingType,
                    syntax.GetReference(),
                    location,
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
-        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
+        protected sealed override void MethodChecks(in BindingDiagnosticBag diagnostics)
         {
             // These values may not be final, but we need to have something set here in the
             // event that we need to find the overridden accessor.
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
-        private TypeWithAnnotations ComputeReturnType(BindingDiagnosticBag diagnostics)
+        private TypeWithAnnotations ComputeReturnType(in BindingDiagnosticBag diagnostics)
         {
             if (this.MethodKind == MethodKind.PropertyGet)
             {
@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsInitOnly => !IsStatic && _usesInit;
 
         private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool isExplicitInterfaceImplementation,
-            bool hasBody, Location location, BindingDiagnosticBag diagnostics, out bool modifierErrors)
+            bool hasBody, Location location, in BindingDiagnosticBag diagnostics, out bool modifierErrors)
         {
             // No default accessibility. If unset, accessibility
             // will be inherited from the property.
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        private void CheckModifiers(Location location, bool hasBody, bool isAutoPropertyOrExpressionBodied, BindingDiagnosticBag diagnostics)
+        private void CheckModifiers(Location location, bool hasBody, bool isAutoPropertyOrExpressionBodied, in BindingDiagnosticBag diagnostics)
         {
             // Check accessibility against the accessibility declared on the accessor not the property.
             var localAccessibility = this.LocalAccessibility;

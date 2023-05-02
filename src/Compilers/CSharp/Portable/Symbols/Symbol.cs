@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Perform additional checks after the member has been
         /// added to the member list of the containing type.
         /// </summary>
-        internal virtual void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        internal virtual void AfterAddingTypeMembersChecks(ConversionsBase conversions, in BindingDiagnosticBag diagnostics)
         {
         }
 
@@ -932,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return $"{this.Kind} {this.ToDisplayString(s_debuggerDisplayFormat)}";
         }
 
-        internal virtual void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)
+        internal virtual void AddDeclarationDiagnostics(in BindingDiagnosticBag diagnostics)
         {
 #if DEBUG
             if (ContainingSymbol is SourceMemberContainerTypeSymbol container)
@@ -1101,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return info.Severity == DiagnosticSeverity.Error;
         }
 
-        internal static bool ReportUseSiteDiagnostic(DiagnosticInfo info, BindingDiagnosticBag diagnostics, Location location)
+        internal static bool ReportUseSiteDiagnostic(DiagnosticInfo info, in BindingDiagnosticBag diagnostics, Location location)
         {
             return diagnostics.ReportUseSiteDiagnostic(info, location);
         }
@@ -1408,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode block,
             CSharpSyntaxNode expression,
             CSharpSyntaxNode syntax,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             if (block != null && expression != null)
             {

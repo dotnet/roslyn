@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-        internal SynthesizedSubmissionConstructor(NamedTypeSymbol containingType, BindingDiagnosticBag diagnostics)
+        internal SynthesizedSubmissionConstructor(NamedTypeSymbol containingType, in BindingDiagnosticBag diagnostics)
             : base(containingType)
         {
             Debug.Assert(containingType.TypeKind == TypeKind.Submission);

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // then the modifiers array is non-null and not empty.
 
         private UnboundLambda AnalyzeAnonymousFunction(
-            AnonymousFunctionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
+            AnonymousFunctionExpressionSyntax syntax, in BindingDiagnosticBag diagnostics)
         {
             // !!! The only binding operations allowed here - binding type references
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return discardsBuilder.ToImmutableAndFree();
             }
 
-            static void checkAttributes(AnonymousFunctionExpressionSyntax syntax, SyntaxList<AttributeListSyntax> attributeLists, BindingDiagnosticBag diagnostics)
+            static void checkAttributes(AnonymousFunctionExpressionSyntax syntax, SyntaxList<AttributeListSyntax> attributeLists, in BindingDiagnosticBag diagnostics)
             {
                 foreach (var attributeList in attributeLists)
                 {
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
-        private (RefKind, TypeWithAnnotations) BindExplicitLambdaReturnType(TypeSyntax syntax, BindingDiagnosticBag diagnostics)
+        private (RefKind, TypeWithAnnotations) BindExplicitLambdaReturnType(TypeSyntax syntax, in BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureLambdaReturnType.CheckFeatureAvailability(diagnostics, syntax);
 
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void CheckParenthesizedLambdaParameters(
-            SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, BindingDiagnosticBag diagnostics)
+            SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, in BindingDiagnosticBag diagnostics)
         {
             if (parameterSyntaxList.Count > 0)
             {
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            static void checkForImplicitDefault(bool hasType, ParameterSyntax param, BindingDiagnosticBag diagnostics)
+            static void checkForImplicitDefault(bool hasType, ParameterSyntax param, in BindingDiagnosticBag diagnostics)
             {
                 if (!hasType && param.Default != null)
                 {
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private UnboundLambda BindAnonymousFunction(AnonymousFunctionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
+        private UnboundLambda BindAnonymousFunction(AnonymousFunctionExpressionSyntax syntax, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly int _memberOffset;
 
-        protected SynthesizedRecordEqualityOperatorBase(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, BindingDiagnosticBag diagnostics)
+        protected SynthesizedRecordEqualityOperatorBase(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, in BindingDiagnosticBag diagnostics)
             : base(MethodKind.UserDefinedOperator, explicitInterfaceType: null, name, containingType, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(),
                    DeclarationModifiers.Public | DeclarationModifiers.Static, hasBody: true, isExpressionBodied: false, isIterator: false, isNullableAnalysisEnabled: false, diagnostics)
         {
@@ -59,9 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool SynthesizesLoweredBoundBody => true;
         internal sealed override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
-        internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics);
+        internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics);
 
-        protected sealed override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected sealed override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(in BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;

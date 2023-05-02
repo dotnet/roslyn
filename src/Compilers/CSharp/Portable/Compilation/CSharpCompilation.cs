@@ -1591,7 +1591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetSpecialTypeMember(specialMember);
         }
 
-        internal TypeSymbol GetTypeByReflectionType(Type type, BindingDiagnosticBag diagnostics)
+        internal TypeSymbol GetTypeByReflectionType(Type type, in BindingDiagnosticBag diagnostics)
         {
             var result = Assembly.GetTypeByReflectionType(type);
             if (result is null)
@@ -1830,7 +1830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var noMainFoundDiagnostics = BindingDiagnosticBagFactory.GetInstance(diagnostics);
                 RoslynDebug.Assert(noMainFoundDiagnostics.DiagnosticBag is object);
 
-                bool checkValid(MethodSymbol candidate, bool isCandidate, BindingDiagnosticBag specificDiagnostics)
+                bool checkValid(MethodSymbol candidate, bool isCandidate, in BindingDiagnosticBag specificDiagnostics)
                 {
                     if (!isCandidate)
                     {
@@ -2001,7 +2001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, BindingDiagnosticBag diagnostics)
+        internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, in BindingDiagnosticBag diagnostics)
         {
             // Common case optimization
             if (method.ReturnType.IsVoidType() || method.ReturnType.SpecialType == SpecialType.System_Int32)
@@ -2039,7 +2039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// is either void or int.
         /// - has either no parameter or a single parameter of type string[]
         /// </summary>
-        internal (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, BindingDiagnosticBag bag)
+        internal (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, in BindingDiagnosticBag bag)
         {
             if (method.IsVararg)
             {
@@ -2390,7 +2390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportUnusedImports(filterTree: null, BindingDiagnosticBagFactory.New(diagnostics), cancellationToken);
         }
 
-        private void ReportUnusedImports(SyntaxTree? filterTree, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
+        private void ReportUnusedImports(SyntaxTree? filterTree, in BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             if (_lazyImportInfos != null && (filterTree is null || ReportUnusedImportsInTree(filterTree)))
             {
@@ -2788,7 +2788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Do the steps in compilation to get the method body diagnostics, but don't actually generate
         // IL or emit an assembly.
-        private void GetDiagnosticsForAllMethodBodies(BindingDiagnosticBag diagnostics, bool doLowering, CancellationToken cancellationToken)
+        private void GetDiagnosticsForAllMethodBodies(in BindingDiagnosticBag diagnostics, bool doLowering, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(diagnostics.DiagnosticBag is object);
             MethodCompiler.CompileMethodBodies(
@@ -2911,7 +2911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return diagnostics.ToReadOnlyAndFree();
 
-            void compileMethodBodiesAndDocComments(SyntaxTree? filterTree, TextSpan? filterSpan, BindingDiagnosticBag bindingDiagnostics, CancellationToken cancellationToken)
+            void compileMethodBodiesAndDocComments(SyntaxTree? filterTree, TextSpan? filterSpan, in BindingDiagnosticBag bindingDiagnostics, CancellationToken cancellationToken)
             {
                 MethodCompiler.CompileMethodBodies(
                                 compilation: this,
@@ -4364,13 +4364,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// dynamic types.
         /// </summary>
         /// <returns></returns>
-        internal bool HasDynamicEmitAttributes(BindingDiagnosticBag diagnostics, Location location)
+        internal bool HasDynamicEmitAttributes(in BindingDiagnosticBag diagnostics, Location location)
         {
             return Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor, diagnostics, location) is object &&
                    Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, diagnostics, location) is object;
         }
 
-        internal bool HasTupleNamesAttributes(BindingDiagnosticBag diagnostics, Location location) =>
+        internal bool HasTupleNamesAttributes(in BindingDiagnosticBag diagnostics, Location location) =>
             Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, diagnostics, location) is object;
 
         /// <summary>

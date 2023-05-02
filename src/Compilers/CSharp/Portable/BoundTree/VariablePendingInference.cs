@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.SetInferredTypeWithAnnotations(default, binder, diagnosticsOpt);
         }
 
-        private void ReportInferenceFailure(BindingDiagnosticBag diagnostics)
+        private void ReportInferenceFailure(in BindingDiagnosticBag diagnostics)
         {
             SingleVariableDesignationSyntax designation;
             switch (this.Syntax.Kind())

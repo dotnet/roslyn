@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected void CheckAccessibility(BindingDiagnosticBag diagnostics)
+        protected void CheckAccessibility(in BindingDiagnosticBag diagnostics)
         {
             ModifierUtils.CheckAccessibility(Modifiers, this, isExplicitInterfaceImplementation: false, diagnostics, ErrorLocation);
         }
 
-        protected void ReportModifiersDiagnostics(BindingDiagnosticBag diagnostics)
+        protected void ReportModifiersDiagnostics(in BindingDiagnosticBag diagnostics)
         {
             if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected())
             {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, in BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ErrorLocation;
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void SetLazyConstantValue(
             ConstantValue value,
             bool earlyDecodingWellKnownAttributes,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             bool startsCycle)
         {
             Debug.Assert(value != Microsoft.CodeAnalysis.ConstantValue.Unset);
@@ -377,6 +377,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected abstract ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, BindingDiagnosticBag diagnostics);
+        protected abstract ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, in BindingDiagnosticBag diagnostics);
     }
 }

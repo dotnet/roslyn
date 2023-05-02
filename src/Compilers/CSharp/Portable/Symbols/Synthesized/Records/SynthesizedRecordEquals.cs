@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly PropertySymbol? _equalityContract;
 
-        public SynthesizedRecordEquals(SourceMemberContainerTypeSymbol containingType, PropertySymbol? equalityContract, int memberOffset, BindingDiagnosticBag diagnostics)
+        public SynthesizedRecordEquals(SourceMemberContainerTypeSymbol containingType, PropertySymbol? equalityContract, int memberOffset, in BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.ObjectEquals, isReadOnly: containingType.IsRecordStruct, hasBody: true, memberOffset, diagnostics)
         {
             Debug.Assert(equalityContract is null == containingType.IsRecordStruct);
             _equalityContract = equalityContract;
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
+        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, in BindingDiagnosticBag diagnostics)
         {
             DeclarationModifiers result = DeclarationModifiers.Public | (ContainingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual);
             Debug.Assert((result & ~allowedModifiers) == 0);
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation)
-            MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+            MakeParametersAndBindReturnType(in BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override int GetParameterCountFromSyntax() => 1;
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
 

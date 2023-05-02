@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap;
 
-        protected MethodToClassRewriter(VariableSlotAllocator? slotAllocatorOpt, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        protected MethodToClassRewriter(VariableSlotAllocator? slotAllocatorOpt, TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(compilationState != null);
             // Debug.Assert(diagnostics != null);

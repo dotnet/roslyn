@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Scope scope,
             TypeSymbol contextType,
             SyntheticBoundNodeFactory factory,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             Instrumenter previous)
             : base(previous)
         {
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             BoundStatement methodBody,
             SyntheticBoundNodeFactory factory,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             Instrumenter previous,
             [NotNullWhen(true)] out LocalStateTracingInstrumenter? instrumenter)
         {

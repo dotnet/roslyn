@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // basesBeingResolved is only used to break circular references.
         internal abstract NamespaceOrTypeSymbol GetAliasTarget(ConsList<TypeSymbol>? basesBeingResolved);
 
-        internal void CheckConstraints(BindingDiagnosticBag diagnostics)
+        internal void CheckConstraints(in BindingDiagnosticBag diagnostics)
         {
             var target = this.Target as TypeSymbol;
             if ((object?)target != null && Locations.Length > 0)
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private NamespaceSymbol ResolveExternAliasTarget(BindingDiagnosticBag diagnostics)
+        private NamespaceSymbol ResolveExternAliasTarget(in BindingDiagnosticBag diagnostics)
         {
             NamespaceSymbol? target;
             if (!ContainingSymbol.DeclaringCompilation.GetExternAliasTarget(Name, out target))
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private NamespaceOrTypeSymbol ResolveAliasTarget(
             UsingDirectiveSyntax usingDirective,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             ConsList<TypeSymbol>? basesBeingResolved)
         {
             if (usingDirective.UnsafeKeyword != default)

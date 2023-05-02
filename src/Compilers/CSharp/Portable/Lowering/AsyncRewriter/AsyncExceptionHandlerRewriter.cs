@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol containingType,
             BoundStatement statement,
             TypeCompilationState compilationState,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(containingSymbol != null);
             Debug.Assert((object)containingType != null);

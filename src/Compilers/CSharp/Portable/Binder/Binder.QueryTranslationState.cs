@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            internal RangeVariableSymbol AddRangeVariable(Binder binder, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
+            internal RangeVariableSymbol AddRangeVariable(Binder binder, SyntaxToken identifier, in BindingDiagnosticBag diagnostics)
             {
                 string name = identifier.ValueText;
                 var result = new RangeVariableSymbol(name, binder.ContainingMemberOrLambda, identifier.GetLocation());

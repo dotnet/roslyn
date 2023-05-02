@@ -60,13 +60,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return locals.ToImmutableAndFree();
         }
 
-        internal override BoundForStatement BindForParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundForStatement BindForParts(in BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
             BoundForStatement result = BindForParts(_syntax, originalBinder, diagnostics);
             return result;
         }
 
-        private BoundForStatement BindForParts(ForStatementSyntax node, Binder originalBinder, BindingDiagnosticBag diagnostics)
+        private BoundForStatement BindForParts(ForStatementSyntax node, Binder originalBinder, in BindingDiagnosticBag diagnostics)
         {
             BoundStatement initializer;
             // Declaration and Initializers are mutually exclusive.

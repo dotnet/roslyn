@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal LocalFunctionStatementSyntax Syntax => (LocalFunctionStatementSyntax)syntaxReferenceOpt.GetSyntax();
 
-        internal void GetDeclarationDiagnostics(BindingDiagnosticBag addTo)
+        internal void GetDeclarationDiagnostics(in BindingDiagnosticBag addTo)
         {
             // Force complete type parameters
             foreach (var typeParam in _typeParameters)
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addTo.AddRangeAndFree(diagnostics);
         }
 
-        internal override void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)
+        internal override void AddDeclarationDiagnostics(in BindingDiagnosticBag diagnostics)
             => _declarationDiagnostics.AddRange(diagnostics);
 
         public override bool RequiresInstanceReceiver => false;
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, BindingDiagnosticBag diagnostics)
+        private void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, in BindingDiagnosticBag diagnostics)
         {
             var diagnosticInfo = MessageID.IDS_FeatureLocalFunctionAttributes.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)syntaxReferenceOpt.SyntaxTree.Options);
             if (diagnosticInfo is object)
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ImmutableArray<SourceMethodTypeParameterSymbol> MakeTypeParameters(BindingDiagnosticBag diagnostics)
+        private ImmutableArray<SourceMethodTypeParameterSymbol> MakeTypeParameters(in BindingDiagnosticBag diagnostics)
         {
             var result = ArrayBuilder<SourceMethodTypeParameterSymbol>.GetInstance();
             var typeParameters = Syntax.TypeParameterList?.Parameters ?? default;

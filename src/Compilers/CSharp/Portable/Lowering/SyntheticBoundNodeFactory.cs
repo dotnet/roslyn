@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiver,
             string methodName,
             ImmutableArray<BoundExpression> args,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             ImmutableArray<TypeSymbol> typeArgs = default(ImmutableArray<TypeSymbol>),
             bool allowUnexpandedForm = true)
         {
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="compilationState">The state of compilation of the enclosing type</param>
         /// <param name="diagnostics">A bag where any diagnostics should be output</param>
         /// <param name="instrumentationState">Instrumentation state, if the factory is used for local lowering phase.</param>
-        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethod, SyntaxNode node, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics, InstrumentationState? instrumentationState = null)
+        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethod, SyntaxNode node, TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics, InstrumentationState? instrumentationState = null)
             : this(topLevelMethod, topLevelMethod.ContainingType, node, compilationState, diagnostics, instrumentationState)
         {
         }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="compilationState">The state of compilation of the enclosing type</param>
         /// <param name="diagnostics">A bag where any diagnostics should be output</param>
         /// <param name="instrumentationState">Instrumentation state, if the factory is used for local lowering phase.</param>
-        public SyntheticBoundNodeFactory(MethodSymbol? topLevelMethodOpt, NamedTypeSymbol? currentClassOpt, SyntaxNode node, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics, InstrumentationState? instrumentationState = null)
+        public SyntheticBoundNodeFactory(MethodSymbol? topLevelMethodOpt, NamedTypeSymbol? currentClassOpt, SyntaxNode node, TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics, InstrumentationState? instrumentationState = null)
         {
             Debug.Assert(node != null);
             Debug.Assert(compilationState != null);

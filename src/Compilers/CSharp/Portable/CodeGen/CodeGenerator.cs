@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             BoundStatement boundBody,
             ILBuilder builder,
             PEModuleBuilder moduleBuilder,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             OptimizationLevel optimizations,
             bool emittingPdb)
         {

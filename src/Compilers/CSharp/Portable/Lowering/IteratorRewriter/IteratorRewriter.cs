@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
             : base(body, method, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
         {
             // the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             out IteratorStateMachine stateMachineType)
         {
             TypeWithAnnotations elementType = method.IteratorElementTypeWithAnnotations;
@@ -136,14 +136,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !hasErrors;
         }
 
-        private Symbol EnsureSpecialMember(SpecialMember member, BindingDiagnosticBag bag)
+        private Symbol EnsureSpecialMember(SpecialMember member, in BindingDiagnosticBag bag)
         {
             Symbol symbol;
             Binder.TryGetSpecialTypeMember(F.Compilation, member, body.Syntax, bag, out symbol);
             return symbol;
         }
 
-        private void EnsureSpecialType(SpecialType type, BindingDiagnosticBag bag)
+        private void EnsureSpecialType(SpecialType type, in BindingDiagnosticBag bag)
         {
             Binder.GetSpecialType(F.Compilation, type, body.Syntax, bag);
         }
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Check that the property and its getter exist and collect any use-site errors.
         /// </summary>
-        private void EnsureSpecialPropertyGetter(SpecialMember member, BindingDiagnosticBag bag)
+        private void EnsureSpecialPropertyGetter(SpecialMember member, in BindingDiagnosticBag bag)
         {
             PropertySymbol symbol = (PropertySymbol)EnsureSpecialMember(member, bag);
             if ((object)symbol != null)

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Internal for testing only.
         internal MethodCompiler(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuiltOpt, bool emittingPdb, bool hasDeclarationErrors, bool emitMethodBodies,
-            BindingDiagnosticBag diagnostics, Predicate<Symbol> filterOpt, SynthesizedEntryPointSymbol.AsyncForwardEntryPoint entryPointOpt, CancellationToken cancellationToken)
+            in BindingDiagnosticBag diagnostics, Predicate<Symbol> filterOpt, SynthesizedEntryPointSymbol.AsyncForwardEntryPoint entryPointOpt, CancellationToken cancellationToken)
         {
             Debug.Assert(compilation != null);
             // Debug.Assert(diagnostics != null);
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool emittingPdb,
             bool hasDeclarationErrors,
             bool emitMethodBodies,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             Predicate<Symbol> filterOpt,
             CancellationToken cancellationToken)
         {
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Returns the MethodSymbol for the assembly entrypoint.  If the user has a Task returning main,
         // this function returns the synthesized Main MethodSymbol.
-        private static MethodSymbol GetEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, bool hasDeclarationErrors, bool emitMethodBodies, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
+        private static MethodSymbol GetEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, bool hasDeclarationErrors, bool emitMethodBodies, in BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             Debug.Assert(diagnostics.DiagnosticBag != null);
 
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void WarnUnusedFields(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
+        private static void WarnUnusedFields(CSharpCompilation compilation, in BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             SourceAssemblySymbol assembly = (SourceAssemblySymbol)compilation.Assembly;
             diagnostics.AddRange(assembly.GetUnusedFieldWarnings(cancellationToken));
@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return method;
         }
 
-        private void CompileSynthesizedMethods(PrivateImplementationDetails privateImplClass, BindingDiagnosticBag diagnostics)
+        private void CompileSynthesizedMethods(PrivateImplementationDetails privateImplClass, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(_moduleBeingBuiltOpt != null);
 
@@ -682,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             compilationState.Free();
         }
 
-        private void CompileSynthesizedMethods(ImmutableArray<NamedTypeSymbol> additionalTypes, BindingDiagnosticBag diagnostics)
+        private void CompileSynthesizedMethods(ImmutableArray<NamedTypeSymbol> additionalTypes, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics.DiagnosticBag != null);
 
@@ -1408,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodInstrumentation instrumentation,
             DebugDocumentProvider debugDocumentProvider,
             out ImmutableArray<SourceSpan> codeCoverageSpans,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             ref VariableSlotAllocator lazyVariableSlotAllocator,
             ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
             ArrayBuilder<ClosureDebugInfo> closureDebugInfoBuilder,
@@ -1530,7 +1530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<StateMachineStateDebugInfo> stateMachineStateDebugInfos,
             StateMachineTypeSymbol stateMachineTypeOpt,
             VariableSlotAllocator variableSlotAllocatorOpt,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             DebugDocumentProvider debugDocumentProvider,
             ImportChain importChainOpt,
             bool emittingPdb,
@@ -1687,7 +1687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             PEModuleBuilder moduleBuilder,
             IEnumerable<Cci.IFieldDefinition> fieldDefs,
             VariableSlotAllocator variableSlotAllocatorOpt,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             out ImmutableArray<EncHoistedLocalInfo> hoistedVariableSlots,
             out ImmutableArray<Cci.ITypeReference> awaiterSlots)
         {
@@ -1750,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // NOTE: can return null if the method has no body.
 #nullable enable
-        internal static BoundBlock? BindSynthesizedMethodBody(MethodSymbol method, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        internal static BoundBlock? BindSynthesizedMethodBody(MethodSymbol method, TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             return BindMethodBody(
                 method,
@@ -2146,7 +2146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Confirm that our prediction was accurate enough.
             // Correctness of SynthesizedPrimaryConstructor.GetCapturedParameters depends on this.
-            static void assertBindIdentifierTargets(InMethodBinder? inMethodBinder, ConcurrentDictionary<IdentifierNameSyntax, int>? identifierMap, BoundNode methodBody, BindingDiagnosticBag diagnostics)
+            static void assertBindIdentifierTargets(InMethodBinder? inMethodBinder, ConcurrentDictionary<IdentifierNameSyntax, int>? identifierMap, BoundNode methodBody, in BindingDiagnosticBag diagnostics)
             {
                 if (identifierMap != null && inMethodBinder!.IdentifierMap == identifierMap)
                 {
@@ -2269,7 +2269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BoundBlock.SynthesizedNoLocals(symbol.GetNonNullSyntaxNode());
         }
 
-        private static BoundStatement BindImplicitConstructorInitializerIfAny(MethodSymbol method, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        private static BoundStatement BindImplicitConstructorInitializerIfAny(MethodSymbol method, TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!method.ContainingType.IsDelegateType());
 
@@ -2293,7 +2293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static void ReportCtorInitializerCycles(MethodSymbol method, BoundExpression initializerInvocation, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        private static void ReportCtorInitializerCycles(MethodSymbol method, BoundExpression initializerInvocation, TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             var ctorCall = initializerInvocation as BoundCall;
             if (ctorCall != null && !ctorCall.HasAnyErrors && ctorCall.Method != method && TypeSymbol.Equals(ctorCall.Method.ContainingType, method.ContainingType, TypeCompareKind.ConsiderEverything2))

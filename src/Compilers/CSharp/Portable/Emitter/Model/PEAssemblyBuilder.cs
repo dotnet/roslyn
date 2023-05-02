@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public sealed override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
             => _additionalTypes;
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(BindingDiagnosticBag diagnostics)
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(in BindingDiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.TrySynthesizeIsByRefLikeAttribute();
         }
 
-        private void CreateEmbeddedAttributesIfNeeded(BindingDiagnosticBag diagnostics)
+        private void CreateEmbeddedAttributesIfNeeded(in BindingDiagnosticBag diagnostics)
         {
             EmbeddableAttributes needsAttributes = GetNeedsGeneratedAttributes();
 
@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private void CreateAttributeIfNeeded<T>(
             ref T symbol,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             AttributeDescription description,
             Func<string, NamespaceSymbol, BindingDiagnosticBag, T> factory)
             where T : SynthesizedEmbeddedAttributeSymbolBase
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
 #nullable enable
 
-        private void AddDiagnosticsForExistingAttribute(AttributeDescription description, BindingDiagnosticBag diagnostics)
+        private void AddDiagnosticsForExistingAttribute(AttributeDescription description, in BindingDiagnosticBag diagnostics)
         {
             var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
             var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
@@ -545,21 +545,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
-        private NamedTypeSymbol GetWellKnownType(WellKnownType type, BindingDiagnosticBag diagnostics)
+        private NamedTypeSymbol GetWellKnownType(WellKnownType type, in BindingDiagnosticBag diagnostics)
         {
             var result = _sourceAssembly.DeclaringCompilation.GetWellKnownType(type);
             Binder.ReportUseSite(result, diagnostics, Location.None);
             return result;
         }
 
-        private NamedTypeSymbol GetSpecialType(SpecialType type, BindingDiagnosticBag diagnostics)
+        private NamedTypeSymbol GetSpecialType(SpecialType type, in BindingDiagnosticBag diagnostics)
         {
             var result = _sourceAssembly.DeclaringCompilation.GetSpecialType(type);
             Binder.ReportUseSite(result, diagnostics, Location.None);
             return result;
         }
 
-        private void EnsureAttributeUsageAttributeMembersAvailable(BindingDiagnosticBag diagnostics)
+        private void EnsureAttributeUsageAttributeMembersAvailable(in BindingDiagnosticBag diagnostics)
         {
             var compilation = _sourceAssembly.DeclaringCompilation;
             Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_AttributeUsageAttribute__ctor, diagnostics, Location.None);

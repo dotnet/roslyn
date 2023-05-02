@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override ConstantValue MakeConstantValue(
             HashSet<SourceFieldSymbolWithSyntaxReference> dependencies,
             bool earlyDecodingWellKnownAttributes,
-            BindingDiagnosticBag diagnostics) => null;
+            in BindingDiagnosticBag diagnostics) => null;
 
         public sealed override RefKind RefKind => RefKind.None;
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Can add some diagnostics into <paramref name="diagnostics"/>. 
         /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        private TypeWithAnnotations SetType(BindingDiagnosticBag diagnostics, TypeWithAnnotations type)
+        private TypeWithAnnotations SetType(in BindingDiagnosticBag diagnostics, TypeWithAnnotations type)
         {
             var originalType = _lazyType?.Value.DefaultType;
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Can add some diagnostics into <paramref name="diagnostics"/>.
         /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        internal TypeWithAnnotations SetTypeWithAnnotations(TypeWithAnnotations type, BindingDiagnosticBag diagnostics)
+        internal TypeWithAnnotations SetTypeWithAnnotations(TypeWithAnnotations type, in BindingDiagnosticBag diagnostics)
         {
             return SetType(diagnostics, type);
         }

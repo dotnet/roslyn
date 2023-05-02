@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression instanceArgument,
             string name,
             ImmutableArray<Symbol> symbols,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             FromClauseSyntax fromClause = null;
             for (SyntaxNode node = queryClause; ; node = node.Parent)
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static void ReportQueryInferenceFailed(CSharpSyntaxNode queryClause, string methodName, BoundExpression receiver, AnalyzedArguments arguments, ImmutableArray<Symbol> symbols, BindingDiagnosticBag diagnostics)
+        internal static void ReportQueryInferenceFailed(CSharpSyntaxNode queryClause, string methodName, BoundExpression receiver, AnalyzedArguments arguments, ImmutableArray<Symbol> symbols, in BindingDiagnosticBag diagnostics)
         {
             string clauseKind = null;
             bool multiple = false;
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbols), queryClause.GetFirstToken().GetLocation());
         }
 
-        private static bool ReportQueryInferenceFailedSelectMany(FromClauseSyntax fromClause, string methodName, BoundExpression receiver, AnalyzedArguments arguments, ImmutableArray<Symbol> symbols, BindingDiagnosticBag diagnostics)
+        private static bool ReportQueryInferenceFailedSelectMany(FromClauseSyntax fromClause, string methodName, BoundExpression receiver, AnalyzedArguments arguments, ImmutableArray<Symbol> symbols, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(methodName == "SelectMany");
 

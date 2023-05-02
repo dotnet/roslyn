@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol rewrittenType,
             bool @checked,
             CSharpCompilation compilation,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             bool acceptFailingConversion)
         {
             Debug.Assert(rewrittenOperand.Type is { });

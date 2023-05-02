@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isFieldLike,
             ExplicitInterfaceSpecifierSyntax? interfaceSpecifierSyntaxOpt,
             SyntaxToken nameTokenSyntax,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             _location = nameTokenSyntax.GetLocation();
 
@@ -433,14 +433,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _modifiers; }
         }
 
-        private void CheckAccessibility(Location location, BindingDiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
+        private void CheckAccessibility(Location location, in BindingDiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
         {
             ModifierUtils.CheckAccessibility(_modifiers, this, isExplicitInterfaceImplementation, diagnostics, location);
         }
 
         private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool explicitInterfaceImplementation,
                                                    bool isFieldLike, Location location,
-                                                   BindingDiagnosticBag diagnostics, out bool modifierErrors)
+                                                   in BindingDiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
             var defaultAccess = isInterface && !explicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        protected void CheckModifiersAndType(BindingDiagnosticBag diagnostics)
+        protected void CheckModifiersAndType(in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!IsStatic || !IsOverride); // Otherwise should have been reported and cleared earlier.
             Debug.Assert(!IsStatic || ContainingType.IsInterface || (!IsAbstract && !IsVirtual)); // Otherwise should have been reported and cleared earlier.
@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (isAdder ? "add_" : "remove_") + eventName;
         }
 
-        protected TypeWithAnnotations BindEventType(Binder binder, TypeSyntax typeSyntax, BindingDiagnosticBag diagnostics)
+        protected TypeWithAnnotations BindEventType(Binder binder, TypeSyntax typeSyntax, in BindingDiagnosticBag diagnostics)
         {
             // NOTE: no point in reporting unsafe errors in the return type - anything unsafe will either
             // fail to be a delegate or will be (invalidly) passed as a type argument.
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return binder.BindType(typeSyntax, diagnostics);
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, in BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = this.GetFirstLocation();
@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckExplicitImplementationAccessor(MethodSymbol? thisAccessor, MethodSymbol? otherAccessor, EventSymbol explicitlyImplementedEvent, BindingDiagnosticBag diagnostics)
+        private void CheckExplicitImplementationAccessor(MethodSymbol? thisAccessor, MethodSymbol? otherAccessor, EventSymbol explicitlyImplementedEvent, in BindingDiagnosticBag diagnostics)
         {
             if (!otherAccessor.IsImplementable() && thisAccessor is object)
             {

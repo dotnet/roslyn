@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private NamedTypeSymbol GetEnumUnderlyingType(BindingDiagnosticBag diagnostics)
+        private NamedTypeSymbol GetEnumUnderlyingType(in BindingDiagnosticBag diagnostics)
         {
             if (this.TypeKind != TypeKind.Enum)
             {

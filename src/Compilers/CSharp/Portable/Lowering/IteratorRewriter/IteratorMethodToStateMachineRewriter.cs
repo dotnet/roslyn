@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
             : base(F, originalMethod, state, instanceIdField, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             _current = current;

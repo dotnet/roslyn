@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EventSymbol explicitlyImplementedEventOpt,
             string aliasQualifierOpt,
             bool isNullableAnalysisEnabled,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
             : base(@event,
                    syntax.GetReference(),
                    syntax.Keyword.GetLocation(), explicitlyImplementedEventOpt, aliasQualifierOpt,

@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TypeWithAnnotations.Create(CreateErrorType());
         }
 
-        protected override void ValidateYield(YieldStatementSyntax node, BindingDiagnosticBag diagnostics)
+        protected override void ValidateYield(YieldStatementSyntax node, in BindingDiagnosticBag diagnostics)
         {
             if (node != null)
             {
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, BindingDiagnosticBag diagnostics)
+        private static bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, in BindingDiagnosticBag diagnostics)
         {
             var oldLocation = parameter.GetFirstLocation();
             if (oldLocation == newLocation)
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, BindingDiagnosticBag diagnostics)
+        internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, in BindingDiagnosticBag diagnostics)
         {
             ParameterSymbol existingDeclaration;
             var map = _definitionMap;

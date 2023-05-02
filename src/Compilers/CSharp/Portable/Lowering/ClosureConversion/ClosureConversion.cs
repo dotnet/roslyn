@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             HashSet<LocalSymbol> assignLocals)
             : base(slotAllocatorOpt, compilationState, diagnostics)
         {
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<ClosureDebugInfo> closureDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             HashSet<LocalSymbol> assignLocals)
         {
             Debug.Assert((object)thisType != null);
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// unfortunately either containing method or containing class could be synthetic
         /// therefore could have no syntax.
         /// </param>
-        private SynthesizedClosureEnvironment GetStaticFrame(BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        private SynthesizedClosureEnvironment GetStaticFrame(in BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             if ((object)_lazyStaticLambdaFrame == null)
             {

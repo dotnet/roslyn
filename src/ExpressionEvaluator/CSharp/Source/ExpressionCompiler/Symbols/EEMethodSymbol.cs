@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _lazyResultProperties; }
         }
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             ImmutableArray<LocalSymbol> declaredLocalsArray;
             var body = _generateMethodBody(this, diagnostics.DiagnosticBag, out declaredLocalsArray, out _lazyResultProperties);

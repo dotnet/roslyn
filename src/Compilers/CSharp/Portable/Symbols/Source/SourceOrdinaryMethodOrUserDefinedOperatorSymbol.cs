@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected MethodSymbol? MethodChecks(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
+        protected MethodSymbol? MethodChecks(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, in BindingDiagnosticBag diagnostics)
         {
             _lazyReturnType = returnType;
             _lazyParameters = parameters;
@@ -156,9 +156,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return overriddenOrExplicitlyImplementedMethod;
         }
 
-        protected abstract void ExtensionMethodChecks(BindingDiagnosticBag diagnostics);
+        protected abstract void ExtensionMethodChecks(in BindingDiagnosticBag diagnostics);
 
-        protected abstract MethodSymbol? FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics);
+        protected abstract MethodSymbol? FindExplicitlyImplementedMethod(in BindingDiagnosticBag diagnostics);
 
         protected abstract TypeSymbol? ExplicitInterfaceType { get; }
 
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, in BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
@@ -275,8 +275,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected abstract void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics);
+        protected abstract void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, in BindingDiagnosticBag diagnostics);
 
-        protected abstract void PartialMethodChecks(BindingDiagnosticBag diagnostics);
+        protected abstract void PartialMethodChecks(in BindingDiagnosticBag diagnostics);
     }
 }

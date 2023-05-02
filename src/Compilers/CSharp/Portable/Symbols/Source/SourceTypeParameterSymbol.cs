@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyBounds;
         }
 
-        protected abstract TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, BindingDiagnosticBag diagnostics);
+        protected abstract TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, in BindingDiagnosticBag diagnostics);
 
         /// <summary>
         /// Check constraints of generic types referenced in constraint types. For instance,
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// on I&lt;T&gt;. Those constraints are not checked when binding ConstraintTypes
         /// since ConstraintTypes has not been set on I&lt;T&gt; at that point.
         /// </summary>
-        private void CheckConstraintTypeConstraints(BindingDiagnosticBag diagnostics)
+        private void CheckConstraintTypeConstraints(in BindingDiagnosticBag diagnostics)
         {
             var constraintTypes = this.ConstraintTypesNoUseSiteDiagnostics;
             if (constraintTypes.Length == 0)
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             args.Free();
         }
 
-        private void CheckUnmanagedConstraint(BindingDiagnosticBag diagnostics)
+        private void CheckUnmanagedConstraint(in BindingDiagnosticBag diagnostics)
         {
             if (this.HasUnmanagedTypeConstraint)
             {
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return modifyCompilation;
         }
 
-        private void EnsureAttributesFromConstraints(BindingDiagnosticBag diagnostics)
+        private void EnsureAttributesFromConstraints(in BindingDiagnosticBag diagnostics)
         {
             if (DeclaringCompilation.ShouldEmitNativeIntegerAttributes()
                 && ConstraintTypesNoUseSiteDiagnostics.Any(static t => t.ContainsNativeIntegerWrapperType()))
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _owner.TypeParameters; }
         }
 
-        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, BindingDiagnosticBag diagnostics)
+        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, in BindingDiagnosticBag diagnostics)
         {
             var constraintTypes = _owner.GetTypeParameterConstraintTypes(this.Ordinal);
             if (constraintTypes.IsEmpty && GetConstraintKinds() == TypeParameterConstraintKind.None)
@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _owner = owner;
         }
 
-        internal override void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)
+        internal override void AddDeclarationDiagnostics(in BindingDiagnosticBag diagnostics)
             => _owner.AddDeclarationDiagnostics(diagnostics);
 
         public override TypeParameterKind TypeParameterKind
@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _owner.TypeParameters; }
         }
 
-        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, BindingDiagnosticBag diagnostics)
+        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, in BindingDiagnosticBag diagnostics)
         {
             var constraints = _owner.GetTypeParameterConstraintTypes();
             var constraintTypes = constraints.IsEmpty ? ImmutableArray<TypeWithAnnotations>.Empty : constraints[Ordinal];
@@ -954,7 +954,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.Owner.TypeParameters; }
         }
 
-        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, BindingDiagnosticBag diagnostics)
+        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, in BindingDiagnosticBag diagnostics)
         {
             var typeParameter = this.OverriddenTypeParameter;
             if ((object)typeParameter == null)

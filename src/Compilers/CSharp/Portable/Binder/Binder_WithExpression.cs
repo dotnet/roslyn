@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
-        private BoundExpression BindWithExpression(WithExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
+        private BoundExpression BindWithExpression(WithExpressionSyntax syntax, in BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureRecords.CheckFeatureAvailability(diagnostics, syntax.WithKeyword);
 

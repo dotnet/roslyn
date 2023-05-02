@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
-        internal BoundExpression BindDeconstruction(AssignmentExpressionSyntax node, BindingDiagnosticBag diagnostics, bool resultIsUsedOverride = false)
+        internal BoundExpression BindDeconstruction(AssignmentExpressionSyntax node, in BindingDiagnosticBag diagnostics, bool resultIsUsedOverride = false)
         {
             var left = node.Left;
             var right = node.Right;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode deconstruction,
             ExpressionSyntax left,
             ExpressionSyntax right,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             ref DeclarationExpressionSyntax? declaration,
             ref ExpressionSyntax? expression,
             bool resultIsUsedOverride = false,
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                         BoundExpression boundRHS,
                                                         ArrayBuilder<DeconstructionVariable> checkedVariables,
                                                         bool resultIsUsed,
-                                                        BindingDiagnosticBag diagnostics)
+                                                        in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>When boundRHS is a tuple literal, fix it up by inferring its types.</summary>
-        private BoundExpression FixTupleLiteral(ArrayBuilder<DeconstructionVariable> checkedVariables, BoundExpression boundRHS, CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        private BoundExpression FixTupleLiteral(ArrayBuilder<DeconstructionVariable> checkedVariables, BoundExpression boundRHS, CSharpSyntaxNode syntax, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeSymbol type,
                         SyntaxNode syntax,
                         SyntaxNode rightSyntax,
-                        BindingDiagnosticBag diagnostics,
+                        in BindingDiagnosticBag diagnostics,
                         ArrayBuilder<DeconstructionVariable> variables,
                         out Conversion conversion)
         {
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Inform the variables about found types.
         /// </summary>
-        private void SetInferredTypes(ArrayBuilder<DeconstructionVariable> variables, ImmutableArray<TypeSymbol> foundTypes, BindingDiagnosticBag diagnostics)
+        private void SetInferredTypes(ArrayBuilder<DeconstructionVariable> variables, ImmutableArray<TypeSymbol> foundTypes, in BindingDiagnosticBag diagnostics)
         {
             var matchCount = Math.Min(variables.Count, foundTypes.Length);
             for (int i = 0; i < matchCount; i++)
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression SetInferredType(BoundExpression expression, TypeSymbol type, BindingDiagnosticBag diagnostics)
+        private BoundExpression SetInferredType(BoundExpression expression, TypeSymbol type, in BindingDiagnosticBag diagnostics)
         {
             switch (expression.Kind)
             {
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Find any deconstruction locals that are still pending inference and fail their inference.
         /// Set the safe-to-escape scope for all deconstruction locals.
         /// </summary>
-        private void FailRemainingInferences(ArrayBuilder<DeconstructionVariable> variables, BindingDiagnosticBag diagnostics)
+        private void FailRemainingInferences(ArrayBuilder<DeconstructionVariable> variables, in BindingDiagnosticBag diagnostics)
         {
             int count = variables.Count;
             for (int i = 0; i < count; i++)
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundTupleExpression DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables,
-            BindingDiagnosticBag diagnostics, bool ignoreDiagnosticsFromTuple)
+            in BindingDiagnosticBag diagnostics, bool ignoreDiagnosticsFromTuple)
         {
             int count = variables.Count;
             var valuesBuilder = ArrayBuilder<BoundExpression>.GetInstance(count);
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int numCheckedVariables,
             BoundExpression receiver,
             SyntaxNode rightSyntax,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders,
             out bool anyApplicableCandidates,
             ArrayBuilder<DeconstructionVariable>? variablesOpt = null)
@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundBadExpression MissingDeconstruct(BoundExpression receiver, SyntaxNode rightSyntax, int numParameters, BindingDiagnosticBag diagnostics,
+        private BoundBadExpression MissingDeconstruct(BoundExpression receiver, SyntaxNode rightSyntax, int numParameters, in BindingDiagnosticBag diagnostics,
                                     out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundExpression childNode)
         {
             if (receiver.Type?.IsErrorType() == false)
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private DeconstructionVariable BindDeconstructionVariables(
             ExpressionSyntax node,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             ref DeclarationExpressionSyntax? declaration,
             ref ExpressionSyntax? expression)
         {
@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations declTypeWithAnnotations,
             VariableDesignationSyntax node,
             CSharpSyntaxNode syntax,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
@@ -865,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations declTypeWithAnnotations,
             SingleVariableDesignationSyntax designation,
             CSharpSyntaxNode syntax,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             SourceLocalSymbol localSymbol = LookupLocal(designation.Identifier);
 

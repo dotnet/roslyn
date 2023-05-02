@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly MethodSymbol _typedRecordEquals;
 
-        public SynthesizedRecordObjEquals(SourceMemberContainerTypeSymbol containingType, MethodSymbol typedRecordEquals, int memberOffset, BindingDiagnosticBag diagnostics)
+        public SynthesizedRecordObjEquals(SourceMemberContainerTypeSymbol containingType, MethodSymbol typedRecordEquals, int memberOffset, in BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.ObjectEquals, memberOffset, isReadOnly: containingType.IsRecordStruct, diagnostics)
         {
             _typedRecordEquals = typedRecordEquals;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override SpecialMember OverriddenSpecialMember => SpecialMember.System_Object__Equals;
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation)
-            MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+            MakeParametersAndBindReturnType(in BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override int GetParameterCountFromSyntax() => 1;
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, this.SyntaxNode, compilationState, diagnostics);
 

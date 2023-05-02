@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<FunctionPointerParameterSymbol> _parameters;
         private ImmutableHashSet<CustomModifier>? _lazyCallingConventionModifiers;
 
-        public static FunctionPointerMethodSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
+        public static FunctionPointerMethodSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, in BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
             ArrayBuilder<CustomModifier> customModifiers = ArrayBuilder<CustomModifier>.GetInstance();
             CallingConvention callingConvention = getCallingConvention(typeBinder.Compilation, syntax.CallingConvention, customModifiers, diagnostics);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 suppressUseSiteDiagnostics,
                 useUpdatedEscapeRules: typeBinder.UseUpdatedEscapeRules);
 
-            static CallingConvention getCallingConvention(CSharpCompilation compilation, FunctionPointerCallingConventionSyntax? callingConventionSyntax, ArrayBuilder<CustomModifier> customModifiers, BindingDiagnosticBag diagnostics)
+            static CallingConvention getCallingConvention(CSharpCompilation compilation, FunctionPointerCallingConventionSyntax? callingConventionSyntax, ArrayBuilder<CustomModifier> customModifiers, in BindingDiagnosticBag diagnostics)
             {
                 switch (callingConventionSyntax?.ManagedOrUnmanagedKeyword.Kind())
                 {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(unexpected);
                 }
 
-                static CallingConvention handleSingleConvention(FunctionPointerUnmanagedCallingConventionSyntax specifier, CSharpCompilation compilation, ArrayBuilder<CustomModifier> customModifiers, BindingDiagnosticBag diagnostics)
+                static CallingConvention handleSingleConvention(FunctionPointerUnmanagedCallingConventionSyntax specifier, CSharpCompilation compilation, ArrayBuilder<CustomModifier> customModifiers, in BindingDiagnosticBag diagnostics)
                 {
                     checkUnmanagedSupport(compilation, specifier.GetLocation(), diagnostics);
                     CustomModifier? modifier = handleIndividualUnrecognizedSpecifier(specifier, compilation, diagnostics);
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return CallingConvention.Unmanaged;
                 }
 
-                static CustomModifier? handleIndividualUnrecognizedSpecifier(FunctionPointerUnmanagedCallingConventionSyntax specifier, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
+                static CustomModifier? handleIndividualUnrecognizedSpecifier(FunctionPointerUnmanagedCallingConventionSyntax specifier, CSharpCompilation compilation, in BindingDiagnosticBag diagnostics)
                 {
                     string specifierText = specifier.Name.ValueText;
                     if (string.IsNullOrEmpty(specifierText))
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return CSharpCustomModifier.CreateOptional(specifierType);
                 }
 
-                static void checkUnmanagedSupport(CSharpCompilation compilation, Location errorLocation, BindingDiagnosticBag diagnostics)
+                static void checkUnmanagedSupport(CSharpCompilation compilation, Location errorLocation, in BindingDiagnosticBag diagnostics)
                 {
                     if (!compilation.Assembly.RuntimeSupportsUnmanagedSignatureCallingConvention)
                     {
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<CustomModifier> refCustomModifiers,
             FunctionPointerTypeSyntax syntax,
             Binder typeBinder,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             bool suppressUseSiteDiagnostics,
             bool useUpdatedEscapeRules)
         {

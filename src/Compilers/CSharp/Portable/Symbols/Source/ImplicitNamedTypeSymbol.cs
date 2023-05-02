@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class ImplicitNamedTypeSymbol : SourceMemberContainerTypeSymbol
     {
-        internal ImplicitNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
+        internal ImplicitNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, in BindingDiagnosticBag diagnostics)
             : base(containingSymbol, declaration, diagnostics)
         {
             Debug.Assert(declaration.Kind == DeclarationKind.ImplicitClass ||
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
             => IsScriptClass ? null : this.DeclaringCompilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
 
-        protected override void CheckBase(BindingDiagnosticBag diagnostics)
+        protected override void CheckBase(in BindingDiagnosticBag diagnostics)
         {
             // check that System.Object is available. 
             // Although submission semantically doesn't have a base class we need to emit one.
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        protected override void CheckInterfaces(BindingDiagnosticBag diagnostics)
+        protected override void CheckInterfaces(in BindingDiagnosticBag diagnostics)
         {
             // nop
         }

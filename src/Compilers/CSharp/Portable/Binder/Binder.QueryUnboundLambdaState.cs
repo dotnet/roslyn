@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        private delegate BoundBlock LambdaBodyFactory(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics);
+        private delegate BoundBlock LambdaBodyFactory(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, in BindingDiagnosticBag diagnostics);
 
         private sealed class QueryUnboundLambdaState : UnboundLambdaState
         {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override ParameterSyntax ParameterSyntax(int index) => null;
             public override TypeWithAnnotations ParameterTypeWithAnnotations(int index) { throw new ArgumentException(); } // implicitly typed
 
-            public override void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, TypeSymbol targetType)
+            public override void GenerateAnonymousFunctionConversionError(in BindingDiagnosticBag diagnostics, TypeSymbol targetType)
             {
                 // TODO: improved diagnostics for query expressions
                 base.GenerateAnonymousFunctionConversionError(diagnostics, targetType);
@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            protected override BoundBlock CreateBlockFromLambdaExpressionBody(Binder lambdaBodyBinder, BoundExpression expression, BindingDiagnosticBag diagnostics)
+            protected override BoundBlock CreateBlockFromLambdaExpressionBody(Binder lambdaBodyBinder, BoundExpression expression, in BindingDiagnosticBag diagnostics)
             {
                 throw ExceptionUtilities.Unreachable();
             }
 
-            protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)
+            protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, in BindingDiagnosticBag diagnostics)
             {
                 return _bodyFactory(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol delegateType,
             ArrayBuilder<Symbol> symbols,
             DelegateDeclarationSyntax syntax,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             Binder binder = delegateType.GetBinder(syntax.ParameterList);
             TypeSyntax returnTypeSyntax = syntax.ReturnType;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(delegateType.GetFirstLocation(), useSiteInfo);
         }
 
-        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
+        protected override void MethodChecks(in BindingDiagnosticBag diagnostics)
         {
             // TODO: move more functionality into here, making these symbols more lazy
         }
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeWithAnnotations returnType,
                 DelegateDeclarationSyntax syntax,
                 Binder binder,
-                BindingDiagnosticBag diagnostics)
+                in BindingDiagnosticBag diagnostics)
                 : base(delegateType, returnType, syntax, MethodKind.DelegateInvoke, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
                 this._refKind = refKind;
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }
 
-            internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+            internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, in BindingDiagnosticBag diagnostics)
             {
                 var syntax = (DelegateDeclarationSyntax)SyntaxRef.GetSyntax();
                 var location = syntax.ReturnType.GetLocation();

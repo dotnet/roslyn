@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static BindingDiagnosticBag GetInstance(BindingDiagnosticBag template)
+        internal static BindingDiagnosticBag GetInstance(in BindingDiagnosticBag template)
         {
             return GetInstance(template.AccumulatesDiagnostics, template.AccumulatesDependencies);
         }
 
-        internal static BindingDiagnosticBag Create(BindingDiagnosticBag template)
+        internal static BindingDiagnosticBag Create(in BindingDiagnosticBag template)
         {
             if (template.AccumulatesDiagnostics)
             {

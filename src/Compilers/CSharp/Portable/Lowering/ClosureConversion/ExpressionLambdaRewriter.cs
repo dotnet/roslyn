@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BindingDiagnosticBag Diagnostics { get { return _bound.Diagnostics; } }
 
-        private ExpressionLambdaRewriter(TypeCompilationState compilationState, TypeMap typeMap, SyntaxNode node, int recursionDepth, BindingDiagnosticBag diagnostics)
+        private ExpressionLambdaRewriter(TypeCompilationState compilationState, TypeMap typeMap, SyntaxNode node, int recursionDepth, in BindingDiagnosticBag diagnostics)
         {
             _bound = new SyntheticBoundNodeFactory(null, compilationState.Type, node, compilationState, diagnostics);
             _ignoreAccessibility = compilationState.ModuleBuilderOpt.IgnoreAccessibility;
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _recursionDepth = recursionDepth;
         }
 
-        internal static BoundNode RewriteLambda(BoundLambda node, TypeCompilationState compilationState, TypeMap typeMap, int recursionDepth, BindingDiagnosticBag diagnostics)
+        internal static BoundNode RewriteLambda(BoundLambda node, TypeCompilationState compilationState, TypeMap typeMap, int recursionDepth, in BindingDiagnosticBag diagnostics)
         {
             try
             {

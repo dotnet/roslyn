@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator? slotAllocatorOpt,
             TypeCompilationState compilationState,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(body != null);
             Debug.Assert(method != null);

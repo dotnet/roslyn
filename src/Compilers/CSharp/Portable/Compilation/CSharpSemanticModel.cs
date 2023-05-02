@@ -2383,7 +2383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // This is used by other binding APIs to invoke the right binder API
-        internal virtual BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
+        internal virtual BoundNode Bind(Binder binder, CSharpSyntaxNode node, in BindingDiagnosticBag diagnostics)
         {
             switch (node)
             {

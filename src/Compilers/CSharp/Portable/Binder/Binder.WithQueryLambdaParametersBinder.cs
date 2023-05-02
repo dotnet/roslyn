@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            protected override BoundExpression BindRangeVariable(SimpleNameSyntax node, RangeVariableSymbol qv, BindingDiagnosticBag diagnostics)
+            protected override BoundExpression BindRangeVariable(SimpleNameSyntax node, RangeVariableSymbol qv, in BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert(!qv.IsTransparent);
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.BindRangeVariable(node, qv, diagnostics);
             }
 
-            private BoundExpression SelectField(SimpleNameSyntax node, BoundExpression receiver, string name, BindingDiagnosticBag diagnostics)
+            private BoundExpression SelectField(SimpleNameSyntax node, BoundExpression receiver, string name, in BindingDiagnosticBag diagnostics)
             {
                 var receiverType = receiver.Type as NamedTypeSymbol;
                 if ((object)receiverType == null || !receiverType.IsAnonymousType)

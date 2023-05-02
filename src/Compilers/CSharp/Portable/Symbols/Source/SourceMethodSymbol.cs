@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds();
 
-        protected static void ReportBadRefToken(TypeSyntax returnTypeSyntax, BindingDiagnosticBag diagnostics)
+        protected static void ReportBadRefToken(TypeSyntax returnTypeSyntax, in BindingDiagnosticBag diagnostics)
         {
             if (!returnTypeSyntax.HasErrors)
             {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void ReportAsyncParameterErrors(BindingDiagnosticBag diagnostics, Location location)
+        internal void ReportAsyncParameterErrors(in BindingDiagnosticBag diagnostics, Location location)
         {
             foreach (var parameter in Parameters)
             {

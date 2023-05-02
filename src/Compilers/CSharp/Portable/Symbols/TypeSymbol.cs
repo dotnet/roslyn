@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This parameter is used to optimize caching in <see cref="FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics"/>.
         /// </param>
         /// <returns>The implementing property or null, if there isn't one.</returns>
-        private static Symbol ComputeImplementationForInterfaceMember(Symbol interfaceMember, TypeSymbol implementingType, BindingDiagnosticBag diagnostics,
+        private static Symbol ComputeImplementationForInterfaceMember(Symbol interfaceMember, TypeSymbol implementingType, in BindingDiagnosticBag diagnostics,
                                                                       bool ignoreImplementationInInterfaces, out bool implementationInInterfacesMightChangeResult)
         {
             Debug.Assert(!implementingType.IsInterfaceType());
@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static Symbol FindMostSpecificImplementationInInterfaces(Symbol interfaceMember, TypeSymbol implementingType,
                                                                          ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-                                                                         BindingDiagnosticBag diagnostics)
+                                                                         in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!implementingType.IsInterfaceType());
 
@@ -1616,7 +1616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void ReportDefaultInterfaceImplementationMatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol implicitImpl, BindingDiagnosticBag diagnostics)
+        private static void ReportDefaultInterfaceImplementationMatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol implicitImpl, in BindingDiagnosticBag diagnostics)
         {
             if (interfaceMember.Kind == SymbolKind.Method && implementingType.ContainingModule != implicitImpl.ContainingModule)
             {
@@ -1654,7 +1654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// These diagnostics are for members that do implicitly implement an interface member, but do so
         /// in an undesirable way.
         /// </summary>
-        private static void ReportImplicitImplementationMatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol implicitImpl, BindingDiagnosticBag diagnostics)
+        private static void ReportImplicitImplementationMatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol implicitImpl, in BindingDiagnosticBag diagnostics)
         {
             bool reportedAnError = false;
 
@@ -1746,7 +1746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void CheckNullableReferenceTypeAndScopedMismatchOnImplementingMember(TypeSymbol implementingType, Symbol implementingMember, Symbol interfaceMember, bool isExplicit, BindingDiagnosticBag diagnostics)
+        internal static void CheckNullableReferenceTypeAndScopedMismatchOnImplementingMember(TypeSymbol implementingType, Symbol implementingMember, Symbol interfaceMember, bool isExplicit, in BindingDiagnosticBag diagnostics)
         {
             if (!implementingMember.IsImplicitlyDeclared && !implementingMember.IsAccessor())
             {
@@ -1783,7 +1783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         bool isExplicit,
                         bool checkReturnType,
                         bool checkParameterTypes,
-                        BindingDiagnosticBag diagnostics)
+                        in BindingDiagnosticBag diagnostics)
                     {
                         ReportMismatchInReturnType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
                             static (diagnostics, implementedMethod, implementingMethod, topLevel, arg) =>
@@ -1936,7 +1936,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// These diagnostics are for members that almost, but not actually, implicitly implement an interface member.
         /// </summary>
-        private static void ReportImplicitImplementationMismatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol closestMismatch, BindingDiagnosticBag diagnostics)
+        private static void ReportImplicitImplementationMismatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol closestMismatch, in BindingDiagnosticBag diagnostics)
         {
             // Determine  a better location for diagnostic squiggles.  Squiggle the interface rather than the class.
             Location interfaceLocation = GetInterfaceLocation(interfaceMember, implementingType);
@@ -2040,7 +2040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return snt?.GetImplementsLocation(@interface) ?? implementingType.GetFirstLocationOrNone();
         }
 
-        private static bool ReportAnyMismatchedConstraints(MethodSymbol interfaceMethod, TypeSymbol implementingType, MethodSymbol implicitImpl, BindingDiagnosticBag diagnostics)
+        private static bool ReportAnyMismatchedConstraints(MethodSymbol interfaceMethod, TypeSymbol implementingType, MethodSymbol implicitImpl, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(interfaceMethod.Arity == implicitImpl.Arity);
 

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind the switch statement, reporting in the process any switch labels that are subsumed by previous cases.
         /// </summary>
-        internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, BindingDiagnosticBag diagnostics)
+        internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(SwitchSyntax.Equals(node));
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckSwitchErrors(
             ref ImmutableArray<BoundSwitchSection> switchSections,
             BoundDecisionDag decisionDag,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             var reachableLabels = decisionDag.ReachableLabels;
             static bool isSubsumed(BoundSwitchLabel switchLabel, ImmutableHashSet<LabelSymbol> reachableLabels)
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind a pattern switch label in order to force inference of the type of pattern variables.
         /// </summary>
-        internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, BindingDiagnosticBag diagnostics)
+        internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, in BindingDiagnosticBag diagnostics)
         {
             // node should be a label of this switch statement.
             Debug.Assert(this.SwitchSyntax == node.Parent.Parent);
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ImmutableArray<BoundSwitchSection> BindSwitchSections(
             Binder originalBinder,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             out BoundSwitchLabel defaultLabel)
         {
             // Bind match sections
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SwitchSectionSyntax node,
             Binder originalBinder,
             ref BoundSwitchLabel defaultLabel,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             // Bind match section labels
             var boundLabelsBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance(node.Labels.Count);

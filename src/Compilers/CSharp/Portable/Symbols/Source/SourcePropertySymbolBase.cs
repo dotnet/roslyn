@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string memberName,
             SyntaxList<AttributeListSyntax> indexerNameAttributeLists,
             Location location,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!isExpressionBodied || !isAutoProperty);
             Debug.Assert(!isExpressionBodied || !hasInitializer);
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
+        private void EnsureSignatureGuarded(in BindingDiagnosticBag diagnostics)
         {
             PropertySymbol? explicitlyImplementedProperty = null;
             _lazyRefCustomModifiers = ImmutableArray<CustomModifier>.Empty;
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isInterface,
             bool isStatic,
             Location location,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             if (isInterface && !isStatic)
             {
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected abstract SourcePropertyAccessorSymbol CreateGetAccessorSymbol(
             bool isAutoPropertyAccessor,
-            BindingDiagnosticBag diagnostics);
+            in BindingDiagnosticBag diagnostics);
 
         /// <summary>
         /// The method is called at the end of <see cref="SourcePropertySymbolBase"/> constructor.
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected abstract SourcePropertyAccessorSymbol CreateSetAccessorSymbol(
             bool isAutoPropertyAccessor,
-            BindingDiagnosticBag diagnostics);
+            in BindingDiagnosticBag diagnostics);
 
         public sealed override MethodSymbol? GetMethod
         {
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, in BindingDiagnosticBag diagnostics)
         {
 #nullable enable
             bool isExplicitInterfaceImplementation = IsExplicitInterfaceImplementation;
@@ -836,12 +836,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
         }
 
-        private void CheckAccessibility(Location location, BindingDiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
+        private void CheckAccessibility(Location location, in BindingDiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
         {
             ModifierUtils.CheckAccessibility(_modifiers, this, isExplicitInterfaceImplementation, diagnostics, location);
         }
 
-        private void CheckModifiers(bool isExplicitInterfaceImplementation, Location location, bool isIndexer, BindingDiagnosticBag diagnostics)
+        private void CheckModifiers(bool isExplicitInterfaceImplementation, Location location, bool isIndexer, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!IsStatic || !IsOverride); // Otherwise should have been reported and cleared earlier.
             Debug.Assert(!IsStatic || ContainingType.IsInterface || (!IsAbstract && !IsVirtual)); // Otherwise should have been reported and cleared earlier.
@@ -900,7 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckAccessibilityMoreRestrictive(SourcePropertyAccessorSymbol accessor, BindingDiagnosticBag diagnostics)
+        private void CheckAccessibilityMoreRestrictive(SourcePropertyAccessorSymbol accessor, in BindingDiagnosticBag diagnostics)
         {
             if (((object)accessor != null) &&
                 !IsAccessibilityMoreRestrictive(this.DeclaredAccessibility, accessor.LocalAccessibility))
@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ((accessor != Accessibility.Protected) || (property != Accessibility.Internal));
         }
 
-        private static void CheckAbstractPropertyAccessorNotPrivate(SourcePropertyAccessorSymbol accessor, BindingDiagnosticBag diagnostics)
+        private static void CheckAbstractPropertyAccessorNotPrivate(SourcePropertyAccessorSymbol accessor, in BindingDiagnosticBag diagnostics)
         {
             if (accessor.LocalAccessibility == Accessibility.Private)
             {
@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // Separate these checks out of FindExplicitlyImplementedProperty because they depend on the accessor symbols,
         // which depend on the explicitly implemented property
-        private void CheckExplicitImplementationAccessor(MethodSymbol thisAccessor, MethodSymbol otherAccessor, PropertySymbol explicitlyImplementedProperty, BindingDiagnosticBag diagnostics)
+        private void CheckExplicitImplementationAccessor(MethodSymbol thisAccessor, MethodSymbol otherAccessor, PropertySymbol explicitlyImplementedProperty, in BindingDiagnosticBag diagnostics)
         {
             var thisHasAccessor = (object)thisAccessor != null;
             var otherHasAccessor = otherAccessor.IsImplementable();
@@ -1391,7 +1391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<SourceAttributeData> FindAttributes(AttributeDescription attributeDescription)
             => GetAttributes().Where(a => a.IsTargetAttribute(this, attributeDescription)).Cast<SourceAttributeData>().ToImmutableArray();
 
-        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, in BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
@@ -1403,7 +1403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 
-        private void ValidateIndexerNameAttribute(CSharpAttributeData attribute, AttributeSyntax node, BindingDiagnosticBag diagnostics)
+        private void ValidateIndexerNameAttribute(CSharpAttributeData attribute, AttributeSyntax node, in BindingDiagnosticBag diagnostics)
         {
             if (!this.IsIndexer || this.IsExplicitInterfaceImplementation)
             {
@@ -1520,7 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected virtual void ValidatePropertyType(BindingDiagnosticBag diagnostics)
+        protected virtual void ValidatePropertyType(in BindingDiagnosticBag diagnostics)
         {
             var type = this.Type;
             if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
@@ -1551,7 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
-        protected abstract (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(BindingDiagnosticBag diagnostics);
+        protected abstract (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(in BindingDiagnosticBag diagnostics);
 
         protected static ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax)
             => (syntax as BasePropertyDeclarationSyntax)?.ExplicitInterfaceSpecifier;

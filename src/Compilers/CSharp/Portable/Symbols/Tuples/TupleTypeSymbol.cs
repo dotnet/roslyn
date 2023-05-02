@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return currentSymbol;
         }
 
-        private static void ReportUseSiteAndObsoleteDiagnostics(CSharpSyntaxNode? syntax, BindingDiagnosticBag diagnostics, NamedTypeSymbol firstTupleType)
+        private static void ReportUseSiteAndObsoleteDiagnostics(CSharpSyntaxNode? syntax, in BindingDiagnosticBag diagnostics, NamedTypeSymbol firstTupleType)
         {
             Binder.ReportUseSite(firstTupleType, diagnostics, syntax);
             Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, firstTupleType, syntax, firstTupleType.ContainingType, BinderFlags.None);
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// For tuples with no natural type, we still need to verify that an underlying type of proper arity exists, and report if otherwise.
         /// </summary>
-        internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode? syntax, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
+        internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode? syntax, CSharpCompilation compilation, in BindingDiagnosticBag diagnostics)
         {
             RoslynDebug.Assert(syntax is object);
 
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void ReportTupleNamesMismatchesIfAny(TypeSymbol destination, BoundTupleLiteral literal, BindingDiagnosticBag diagnostics)
+        internal static void ReportTupleNamesMismatchesIfAny(TypeSymbol destination, BoundTupleLiteral literal, in BindingDiagnosticBag diagnostics)
         {
             var sourceNames = literal.ArgumentNamesOpt;
             if (sourceNames.IsDefault)
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Lookup well-known member declaration in provided type and reports diagnostics.
         /// </summary>
-        internal static Symbol? GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember, BindingDiagnosticBag diagnostics, SyntaxNode? syntax)
+        internal static Symbol? GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember, in BindingDiagnosticBag diagnostics, SyntaxNode? syntax)
         {
             Symbol? member = GetWellKnownMemberInType(type, relativeMember);
 

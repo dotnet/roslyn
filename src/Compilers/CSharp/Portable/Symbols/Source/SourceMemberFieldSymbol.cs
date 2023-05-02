@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract SyntaxTokenList ModifiersTokenList { get; }
 
-        protected void TypeChecks(TypeSymbol type, BindingDiagnosticBag diagnostics)
+        protected void TypeChecks(TypeSymbol type, in BindingDiagnosticBag diagnostics)
         {
             if (type.HasFileLocalTypes() && !ContainingType.HasFileLocalTypes())
             {
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, in BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxToken firstIdentifier, SyntaxTokenList modifiers, bool isRefField, BindingDiagnosticBag diagnostics, out bool modifierErrors)
+        internal static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxToken firstIdentifier, SyntaxTokenList modifiers, bool isRefField, in BindingDiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = containingType.IsInterface;
             DeclarationModifiers defaultAccess =
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return result;
 
-            static bool reportBadMemberFlagIfAny(DeclarationModifiers result, DeclarationModifiers modifier, BindingDiagnosticBag diagnostics, SourceLocation errorLocation)
+            static bool reportBadMemberFlagIfAny(DeclarationModifiers result, DeclarationModifiers modifier, in BindingDiagnosticBag diagnostics, SourceLocation errorLocation)
             {
                 if ((result & modifier) != 0)
                 {
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             VariableDeclaratorSyntax declarator,
             DeclarationModifiers modifiers,
             bool modifierErrors,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
             : base(containingType, modifiers, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.Span)
         {
             _hasInitializer = declarator.Initializer != null;
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyFieldTypeInferred != 0 || Volatile.Read(ref _lazyFieldTypeInferred) != 0;
         }
 
-        protected sealed override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, BindingDiagnosticBag diagnostics)
+        protected sealed override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, in BindingDiagnosticBag diagnostics)
         {
             if (!this.IsConst || VariableDeclaratorNode.Initializer == null)
             {
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, in BindingDiagnosticBag diagnostics)
         {
             // This check prevents redundant ManagedAddr diagnostics on the underlying pointer field of a fixed-size buffer
             if (!IsFixedSizeBuffer)

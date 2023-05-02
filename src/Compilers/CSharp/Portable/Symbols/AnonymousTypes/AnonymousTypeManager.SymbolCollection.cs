@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Reports all use site errors in special or well known symbols required for anonymous types
         /// </summary>
         /// <returns>true if there was at least one error</returns>
-        public bool ReportMissingOrErroneousSymbols(BindingDiagnosticBag diagnostics)
+        public bool ReportMissingOrErroneousSymbols(in BindingDiagnosticBag diagnostics)
         {
             bool hasErrors = false;
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return hasErrors;
         }
 
-        public bool ReportMissingOrErroneousSymbolsForDelegates(BindingDiagnosticBag diagnostics)
+        public bool ReportMissingOrErroneousSymbolsForDelegates(in BindingDiagnosticBag diagnostics)
         {
             bool hasErrors = false;
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Error reporting implementation
 
-        private static void ReportErrorOnSymbol(Symbol symbol, BindingDiagnosticBag diagnostics, ref bool hasError)
+        private static void ReportErrorOnSymbol(Symbol symbol, in BindingDiagnosticBag diagnostics, ref bool hasError)
         {
             if ((object)symbol == null)
             {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             hasError |= diagnostics.ReportUseSite(symbol, NoLocation.Singleton);
         }
 
-        private static void ReportErrorOnSpecialMember(Symbol symbol, SpecialMember member, BindingDiagnosticBag diagnostics, ref bool hasError)
+        private static void ReportErrorOnSpecialMember(Symbol symbol, SpecialMember member, in BindingDiagnosticBag diagnostics, ref bool hasError)
         {
             if ((object)symbol == null)
             {
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void ReportErrorOnWellKnownMember(Symbol symbol, WellKnownMember member, BindingDiagnosticBag diagnostics, ref bool hasError)
+        private static void ReportErrorOnWellKnownMember(Symbol symbol, WellKnownMember member, in BindingDiagnosticBag diagnostics, ref bool hasError)
         {
             if ((object)symbol == null)
             {

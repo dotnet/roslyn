@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        private BoundIndexerAccess BindIndexerDefaultArguments(BoundIndexerAccess indexerAccess, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
+        private BoundIndexerAccess BindIndexerDefaultArguments(BoundIndexerAccess indexerAccess, BindValueKind valueKind, in BindingDiagnosticBag diagnostics)
         {
             var useSetAccessor = valueKind == BindValueKind.Assignable && !indexerAccess.Indexer.ReturnsByRef;
             var accessorForDefaultArguments = useSetAccessor
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// method returns a BoundBadExpression node. The method returns the original
         /// expression without generating any error if the expression has errors.
         /// </summary>
-        private BoundExpression CheckValue(BoundExpression expr, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
+        private BoundExpression CheckValue(BoundExpression expr, BindValueKind valueKind, in BindingDiagnosticBag diagnostics)
         {
             switch (expr.Kind)
             {
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///     
         /// (3) The syntax of the expression that started the analysis. (for error reporting purposes).
         /// </summary>
-        internal bool CheckValueKind(SyntaxNode node, BoundExpression expr, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        internal bool CheckValueKind(SyntaxNode node, BoundExpression expr, BindValueKind valueKind, bool checkingReceiver, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
 
@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, GetStandardLvalueError(valueKind), node);
             return false;
 
-            bool checkArrayAccessValueKind(SyntaxNode node, BindValueKind valueKind, ImmutableArray<BoundExpression> indices, BindingDiagnosticBag diagnostics)
+            bool checkArrayAccessValueKind(SyntaxNode node, BindValueKind valueKind, ImmutableArray<BoundExpression> indices, in BindingDiagnosticBag diagnostics)
             {
                 if (RequiresRefAssignableVariable(valueKind))
                 {
@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void ReportThisLvalueError(SyntaxNode node, BindValueKind valueKind, bool isValueType, bool isPrimaryConstructorParameter, BindingDiagnosticBag diagnostics)
+        private static void ReportThisLvalueError(SyntaxNode node, BindValueKind valueKind, bool isValueType, bool isPrimaryConstructorParameter, in BindingDiagnosticBag diagnostics)
         {
             var errorCode = GetThisLvalueError(valueKind, isValueType, isPrimaryConstructorParameter);
             if (errorCode is ErrorCode.ERR_InvalidAddrOp or ErrorCode.ERR_IncrementLvalueExpected or ErrorCode.ERR_RefReturnThis or ErrorCode.ERR_RefLocalOrParamExpected or ErrorCode.ERR_RefLvalueExpected)
@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool CheckNotNamespaceOrType(BoundExpression expr, BindingDiagnosticBag diagnostics)
+        private static bool CheckNotNamespaceOrType(BoundExpression expr, in BindingDiagnosticBag diagnostics)
         {
             switch (expr.Kind)
             {
@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool CheckLocalValueKind(SyntaxNode node, BoundLocal local, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        private bool CheckLocalValueKind(SyntaxNode node, BoundLocal local, BindValueKind valueKind, bool checkingReceiver, in BindingDiagnosticBag diagnostics)
         {
             if (valueKind == BindValueKind.AddressOf && this.IsInAsyncMethod())
             {
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class RefSafetyAnalysis
     {
-        private bool CheckLocalRefEscape(SyntaxNode node, BoundLocal local, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        private bool CheckLocalRefEscape(SyntaxNode node, BoundLocal local, uint escapeTo, bool checkingReceiver, in BindingDiagnosticBag diagnostics)
         {
             LocalSymbol localSymbol = local.LocalSymbol;
 
@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class Binder
     {
-        private bool CheckParameterValueKind(SyntaxNode node, BoundParameter parameter, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        private bool CheckParameterValueKind(SyntaxNode node, BoundParameter parameter, BindValueKind valueKind, bool checkingReceiver, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!RequiresAssignableVariable(BindValueKind.AddressOf));
             if (valueKind == BindValueKind.AddressOf && this.IsInAsyncMethod())
@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        static void reportReadOnlyParameterError(ParameterSymbol parameterSymbol, SyntaxNode node, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        static void reportReadOnlyParameterError(ParameterSymbol parameterSymbol, SyntaxNode node, BindValueKind valueKind, bool checkingReceiver, in BindingDiagnosticBag diagnostics)
         {
             // It's clearer to say that the address can't be taken than to say that the field can't be modified
             // (even though the latter message gives more explanation of why).
@@ -1057,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static EscapeLevel? GetParameterRefEscapeLevel(ParameterSymbol parameter) =>
             EscapeLevelFromScope(GetParameterRefEscape(parameter));
 
-        private bool CheckParameterValEscape(SyntaxNode node, ParameterSymbol parameter, uint escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckParameterValEscape(SyntaxNode node, ParameterSymbol parameter, uint escapeTo, in BindingDiagnosticBag diagnostics)
         {
             if (_useUpdatedEscapeRules)
             {
@@ -1075,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool CheckParameterRefEscape(SyntaxNode node, BoundExpression parameter, ParameterSymbol parameterSymbol, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        private bool CheckParameterRefEscape(SyntaxNode node, BoundExpression parameter, ParameterSymbol parameterSymbol, uint escapeTo, bool checkingReceiver, in BindingDiagnosticBag diagnostics)
         {
             var refSafeToEscape = GetParameterRefEscape(parameterSymbol);
             if (refSafeToEscape > escapeTo)
@@ -1118,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class Binder
     {
-        private bool CheckFieldValueKind(SyntaxNode node, BoundFieldAccess fieldAccess, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        private bool CheckFieldValueKind(SyntaxNode node, BoundFieldAccess fieldAccess, BindValueKind valueKind, bool checkingReceiver, in BindingDiagnosticBag diagnostics)
         {
             var fieldSymbol = fieldAccess.FieldSymbol;
 
@@ -1243,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool CheckSimpleAssignmentValueKind(SyntaxNode node, BoundAssignmentOperator assignment, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
+        private bool CheckSimpleAssignmentValueKind(SyntaxNode node, BoundAssignmentOperator assignment, BindValueKind valueKind, in BindingDiagnosticBag diagnostics)
         {
             // Only ref-assigns produce LValues
             if (assignment.IsRef)
@@ -1281,7 +1281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetRefEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
         }
 
-        private bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, uint escapeFrom, uint escapeTo, in BindingDiagnosticBag diagnostics)
         {
             var fieldSymbol = fieldAccess.FieldSymbol;
             // fields that are static or belong to reference types can ref escape anywhere
@@ -1305,7 +1305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckRefEscape(node, fieldAccess.ReceiverOpt, escapeFrom, escapeTo, checkingReceiver: true, diagnostics: diagnostics);
         }
 
-        private bool CheckFieldLikeEventRefEscape(SyntaxNode node, BoundEventAccess eventAccess, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckFieldLikeEventRefEscape(SyntaxNode node, BoundEventAccess eventAccess, uint escapeFrom, uint escapeTo, in BindingDiagnosticBag diagnostics)
         {
             var eventSymbol = eventAccess.EventSymbol;
 
@@ -1322,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class Binder
     {
-        private bool CheckEventValueKind(BoundEventAccess boundEvent, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
+        private bool CheckEventValueKind(BoundEventAccess boundEvent, BindValueKind valueKind, in BindingDiagnosticBag diagnostics)
         {
             // Compound assignment (actually "event assignment") is allowed "everywhere", subject to the restrictions of
             // accessibility, use site errors, and receiver variable-ness (for structs).
@@ -1391,7 +1391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool CheckIsValidReceiverForVariable(SyntaxNode node, BoundExpression receiver, BindValueKind kind, BindingDiagnosticBag diagnostics)
+        private bool CheckIsValidReceiverForVariable(SyntaxNode node, BoundExpression receiver, BindValueKind kind, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(receiver != null);
             return Flags.Includes(BinderFlags.ObjectInitializerMember) && receiver.Kind == BoundKind.ObjectOrCollectionValuePlaceholder ||
@@ -1423,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node,
             BindValueKind valueKind,
             bool checkingReceiver,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             // A call can only be a variable if it returns by reference. If this is the case,
             // whether or not it is a valid variable depends on whether or not the call is the
@@ -1685,7 +1685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsBadBaseAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol member, BindingDiagnosticBag diagnostics,
+        private bool IsBadBaseAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol member, in BindingDiagnosticBag diagnostics,
                                      Symbol propertyOrEventSymbolOpt = null)
         {
             Debug.Assert(member.Kind != SymbolKind.Property);
@@ -1920,7 +1920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool checkingReceiver,
             uint escapeFrom,
             uint escapeTo,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             bool isRefEscape
         )
         {
@@ -2006,7 +2006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool checkingReceiver,
             uint escapeFrom,
             uint escapeTo,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             bool isRefEscape)
         {
             bool result = true;
@@ -2378,7 +2378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbol,
             ParameterSymbol? parameter,
             bool checkingReceiver,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             ErrorCode errorCode = GetStandardCallEscapeError(checkingReceiver);
             string parameterName = GetInvocationParameterName(parameter);
@@ -2434,7 +2434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             uint scopeOfTheContainingExpression,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             if (UseUpdatedEscapeRulesForInvocation(symbol))
             {
@@ -2536,7 +2536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             uint scopeOfTheContainingExpression,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             var mixableArguments = ArrayBuilder<MixableDestination>.GetInstance();
             var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
@@ -2668,7 +2668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class Binder
     {
-        private static void ReportReadonlyLocalError(SyntaxNode node, LocalSymbol local, BindValueKind kind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        private static void ReportReadonlyLocalError(SyntaxNode node, LocalSymbol local, BindValueKind kind, bool checkingReceiver, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((object)local != null);
             Debug.Assert(kind != BindValueKind.RValue);
@@ -2827,7 +2827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class Binder
     {
-        private static void ReportReadOnlyFieldError(FieldSymbol field, SyntaxNode node, BindValueKind kind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        private static void ReportReadOnlyFieldError(FieldSymbol field, SyntaxNode node, BindValueKind kind, bool checkingReceiver, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((object)field != null);
             Debug.Assert(field.RefKind == RefKind.None ? RequiresAssignableVariable(kind) : RequiresRefAssignableVariable(kind));
@@ -2863,7 +2863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void ReportReadOnlyError(Symbol symbol, SyntaxNode node, BindValueKind kind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        private static void ReportReadOnlyError(Symbol symbol, SyntaxNode node, BindValueKind kind, bool checkingReceiver, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((object)symbol != null);
             Debug.Assert(RequiresAssignableVariable(kind));
@@ -2898,7 +2898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Checks whether given expression can escape from the current scope to the <paramref name="escapeTo"/>.
         /// </summary>
-        internal void ValidateEscape(BoundExpression expr, uint escapeTo, bool isByRef, BindingDiagnosticBag diagnostics)
+        internal void ValidateEscape(BoundExpression expr, uint escapeTo, bool isByRef, in BindingDiagnosticBag diagnostics)
         {
             // The result of escape analysis is affected by the expression's type.
             // We can't do escape analysis on expressions which lack a type, such as 'target typed new()', until they are converted.
@@ -3161,7 +3161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The result indicates whether the escape is possible. 
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// </summary>
-        internal bool CheckRefEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        internal bool CheckRefEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, in BindingDiagnosticBag diagnostics)
         {
 #if DEBUG
             AssertVisited(expr);
@@ -3890,7 +3890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The result indicates whether the escape is possible.
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// </summary>
-        internal bool CheckValEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        internal bool CheckValEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, in BindingDiagnosticBag diagnostics)
         {
 #if DEBUG
             AssertVisited(expr);
@@ -4446,7 +4446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool CheckTupleValEscape(ImmutableArray<BoundExpression> elements, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckTupleValEscape(ImmutableArray<BoundExpression> elements, uint escapeFrom, uint escapeTo, in BindingDiagnosticBag diagnostics)
         {
             foreach (var element in elements)
             {
@@ -4459,7 +4459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool CheckValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint escapeFrom, uint escapeTo, in BindingDiagnosticBag diagnostics)
         {
             foreach (var expression in initExpr.Initializers)
             {
@@ -4493,7 +4493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool CheckValEscape(ImmutableArray<BoundExpression> expressions, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckValEscape(ImmutableArray<BoundExpression> expressions, uint escapeFrom, uint escapeTo, in BindingDiagnosticBag diagnostics)
         {
             foreach (var expression in expressions)
             {
@@ -4506,7 +4506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool CheckInterpolatedStringHandlerConversionEscape(BoundExpression expression, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckInterpolatedStringHandlerConversionEscape(BoundExpression expression, uint escapeFrom, uint escapeTo, in BindingDiagnosticBag diagnostics)
         {
             var data = expression.GetInterpolatedStringHandlerData();
 

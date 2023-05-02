@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static RefKind GetRefKindInLocalOrReturn(this TypeSyntax syntax, BindingDiagnosticBag diagnostics)
+        internal static RefKind GetRefKindInLocalOrReturn(this TypeSyntax syntax, in BindingDiagnosticBag diagnostics)
         {
             syntax.SkipRefInLocalOrReturn(diagnostics, out var refKind);
             return refKind;
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static ExpressionSyntax? CheckAndUnwrapRefExpression(
             this ExpressionSyntax? syntax,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             out RefKind refKind)
         {
             if (syntax is not RefExpressionSyntax { Expression: var expression } refExpression)
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expression;
         }
 
-        internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, BindingDiagnosticBag diagnostics)
+        internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, in BindingDiagnosticBag diagnostics)
         {
             if (IsDeconstructionCompatibleArgument(expression))
             {

@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool ReportConflictWithLocal(Symbol local, Symbol newSymbol, string name, Location newLocation, BindingDiagnosticBag diagnostics)
+        private bool ReportConflictWithLocal(Symbol local, Symbol newSymbol, string name, Location newLocation, in BindingDiagnosticBag diagnostics)
         {
             // Quirk of the way we represent lambda parameters.
             SymbolKind newSymbolKind = (object)newSymbol == null ? SymbolKind.Parameter : newSymbol.Kind;
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal virtual bool EnsureSingleDefinition(Symbol symbol, string name, Location location, BindingDiagnosticBag diagnostics)
+        internal virtual bool EnsureSingleDefinition(Symbol symbol, string name, Location location, in BindingDiagnosticBag diagnostics)
         {
             LocalSymbol existingLocal = null;
             LocalFunctionSymbol existingLocalFunction = null;

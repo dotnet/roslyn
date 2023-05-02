@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExpressionBodied,
             bool isIterator,
             bool isNullableAnalysisEnabled,
-            BindingDiagnosticBag diagnostics) :
+            in BindingDiagnosticBag diagnostics) :
             base(containingType, syntax.GetReference(), location, isIterator: isIterator)
         {
             _explicitInterfaceType = explicitInterfaceType;
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false, diagnostics, location);
         }
 
-        protected static DeclarationModifiers MakeDeclarationModifiers(MethodKind methodKind, bool inInterface, BaseMethodDeclarationSyntax syntax, Location location, BindingDiagnosticBag diagnostics)
+        protected static DeclarationModifiers MakeDeclarationModifiers(MethodKind methodKind, bool inInterface, BaseMethodDeclarationSyntax syntax, Location location, in BindingDiagnosticBag diagnostics)
         {
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
             var defaultAccess = inInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return result;
 
-            static void reportModifierIfPresent(DeclarationModifiers result, DeclarationModifiers errorModifier, Location location, BindingDiagnosticBag diagnostics, CSharpRequiredLanguageVersion requiredVersionArgument, string availableVersionArgument)
+            static void reportModifierIfPresent(DeclarationModifiers result, DeclarationModifiers errorModifier, Location location, in BindingDiagnosticBag diagnostics, CSharpRequiredLanguageVersion requiredVersionArgument, string availableVersionArgument)
             {
                 if ((result & errorModifier) != 0)
                 {
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BaseMethodDeclarationSyntax declarationSyntax, TypeSyntax returnTypeSyntax, BindingDiagnosticBag diagnostics)
+        protected (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BaseMethodDeclarationSyntax declarationSyntax, TypeSyntax returnTypeSyntax, in BindingDiagnosticBag diagnostics)
         {
             TypeWithAnnotations returnType;
             ImmutableArray<ParameterSymbol> parameters;
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (returnType, parameters);
         }
 
-        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
+        protected override void MethodChecks(in BindingDiagnosticBag diagnostics)
         {
             var (returnType, parameters) = MakeParametersAndBindReturnType(diagnostics);
 
@@ -284,13 +284,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckOperatorSignatures(diagnostics);
         }
 
-        protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics);
+        protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(in BindingDiagnosticBag diagnostics);
 
-        protected sealed override void ExtensionMethodChecks(BindingDiagnosticBag diagnostics)
+        protected sealed override void ExtensionMethodChecks(in BindingDiagnosticBag diagnostics)
         {
         }
 
-        protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
+        protected sealed override MethodSymbol FindExplicitlyImplementedMethod(in BindingDiagnosticBag diagnostics)
         {
             if (_explicitInterfaceType is object)
             {
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed override TypeSymbol? ExplicitInterfaceType => _explicitInterfaceType;
 #nullable disable
 
-        private void CheckValueParameters(BindingDiagnosticBag diagnostics)
+        private void CheckValueParameters(in BindingDiagnosticBag diagnostics)
         {
             // SPEC: The parameters of an operator must be value parameters.
             foreach (var p in this.Parameters)
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckOperatorSignatures(BindingDiagnosticBag diagnostics)
+        private void CheckOperatorSignatures(in BindingDiagnosticBag diagnostics)
         {
             if (MethodKind == MethodKind.ExplicitInterfaceImplementation)
             {
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckUserDefinedConversionSignature(BindingDiagnosticBag diagnostics)
+        private void CheckUserDefinedConversionSignature(in BindingDiagnosticBag diagnostics)
         {
             CheckReturnIsNotVoid(diagnostics);
 
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckReturnIsNotVoid(BindingDiagnosticBag diagnostics)
+        private void CheckReturnIsNotVoid(in BindingDiagnosticBag diagnostics)
         {
             if (this.ReturnsVoid)
             {
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckUnarySignature(BindingDiagnosticBag diagnostics)
+        private void CheckUnarySignature(in BindingDiagnosticBag diagnostics)
         {
             // SPEC: A unary + - ! ~ operator must take a single parameter of type
             // SPEC: T or T? and can return any type.
@@ -606,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckReturnIsNotVoid(diagnostics);
         }
 
-        private void CheckTrueFalseSignature(BindingDiagnosticBag diagnostics)
+        private void CheckTrueFalseSignature(in BindingDiagnosticBag diagnostics)
         {
             // SPEC: A unary true or false operator must take a single parameter of type
             // SPEC: T or T? and must return type bool.
@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckIncrementDecrementSignature(BindingDiagnosticBag diagnostics)
+        private void CheckIncrementDecrementSignature(in BindingDiagnosticBag diagnostics)
         {
             // SPEC: A unary ++ or -- operator must take a single parameter of type T or T?
             // SPEC: and it must return that same type or a type derived from it.
@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return IsSelfConstrainedTypeParameter(type, this.ContainingType);
         }
 
-        private void CheckShiftSignature(BindingDiagnosticBag diagnostics)
+        private void CheckShiftSignature(in BindingDiagnosticBag diagnostics)
         {
             // SPEC: A binary <<, >> or >>> operator must take two parameters, the first
             // SPEC: of which must have type T or T?, the second of which can
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckReturnIsNotVoid(diagnostics);
         }
 
-        private void CheckBinarySignature(BindingDiagnosticBag diagnostics)
+        private void CheckBinarySignature(in BindingDiagnosticBag diagnostics)
         {
             // SPEC: A binary nonshift operator must take two parameters, at least
             // SPEC: one of which must have the type T or T?, and can return any type.
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckReturnIsNotVoid(diagnostics);
         }
 
-        private void CheckAbstractEqualitySignature(BindingDiagnosticBag diagnostics)
+        private void CheckAbstractEqualitySignature(in BindingDiagnosticBag diagnostics)
         {
             if (!IsSelfConstrainedTypeParameter(this.GetParameterType(0).StrippedType()) &&
                 !IsSelfConstrainedTypeParameter(this.GetParameterType(1).StrippedType()))
@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _isExpressionBodied; }
         }
 
-        protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, in BindingDiagnosticBag diagnostics)
         {
             if ((object)_explicitInterfaceType != null)
             {
@@ -826,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected sealed override void PartialMethodChecks(BindingDiagnosticBag diagnostics)
+        protected sealed override void PartialMethodChecks(in BindingDiagnosticBag diagnostics)
         {
         }
     }

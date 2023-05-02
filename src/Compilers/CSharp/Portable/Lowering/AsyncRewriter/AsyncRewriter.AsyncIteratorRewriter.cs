@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_isEnumerable != method.IsAsyncReturningIAsyncEnumerator(method.DeclaringCompilation));
             }
 
-            protected override void VerifyPresenceOfRequiredAPIs(BindingDiagnosticBag bag)
+            protected override void VerifyPresenceOfRequiredAPIs(in BindingDiagnosticBag bag)
             {
                 base.VerifyPresenceOfRequiredAPIs(bag);
 

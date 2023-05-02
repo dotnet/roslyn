@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static void ValidateIteratorMethod(CSharpCompilation compilation, MethodSymbol iterator, BindingDiagnosticBag diagnostics)
+        public static void ValidateIteratorMethod(CSharpCompilation compilation, MethodSymbol iterator, in BindingDiagnosticBag diagnostics)
         {
             if (!iterator.IsIterator)
             {

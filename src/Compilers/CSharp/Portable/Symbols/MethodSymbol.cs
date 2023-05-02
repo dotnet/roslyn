@@ -1097,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// a collection of method bodies of the current module. This method is supposed to only be
         /// called for method symbols which return SynthesizesLoweredBoundBody == true.
         /// </summary>
-        internal virtual void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        internal virtual void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             throw ExceptionUtilities.Unreachable();
         }

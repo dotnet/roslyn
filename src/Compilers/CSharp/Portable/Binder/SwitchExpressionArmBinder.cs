@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             this._switchExpressionBinder = switchExpressionBinder;
         }
 
-        internal BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, BindingDiagnosticBag diagnostics)
+        internal BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node == _arm);
             TypeSymbol inputType = _switchExpressionBinder.GetInputType();
             return BindSwitchExpressionArm(node, inputType, diagnostics);
         }
 
-        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, TypeSymbol switchGoverningType, BindingDiagnosticBag diagnostics)
+        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, TypeSymbol switchGoverningType, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node == _arm);
             Binder armBinder = this.GetRequiredBinder(node);

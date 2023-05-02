@@ -125,12 +125,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             GenerateMethodBodyCore(compilationState, diagnostics);
         }
 
-        internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, BindingDiagnosticBag diagnostics) => _getConstructorBody(factory, statements, _parameters);
+        internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, in BindingDiagnosticBag diagnostics) => _getConstructorBody(factory, statements, _parameters);
     }
 }
 

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly NamedTypeSymbol _containingType;
 
-        internal static SynthesizedEntryPointSymbol Create(SynthesizedInteractiveInitializerMethod initializerMethod, BindingDiagnosticBag diagnostics)
+        internal static SynthesizedEntryPointSymbol Create(SynthesizedInteractiveInitializerMethod initializerMethod, in BindingDiagnosticBag diagnostics)
         {
             var containingType = initializerMethod.ContainingType;
             var compilation = containingType.DeclaringCompilation;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal abstract BoundBlock CreateBody(BindingDiagnosticBag diagnostics);
+        internal abstract BoundBlock CreateBody(in BindingDiagnosticBag diagnostics);
 
         public override Symbol ContainingSymbol
         {
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(_getAwaiterGetResultCall.Type);
 
-            internal override BoundBlock CreateBody(BindingDiagnosticBag diagnostics)
+            internal override BoundBlock CreateBody(in BindingDiagnosticBag diagnostics)
             {
                 var syntax = _userMainReturnTypeSyntax;
 
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //     var script = new Script();
             //     script.<Initialize>().GetAwaiter().GetResult();
             // }
-            internal override BoundBlock CreateBody(BindingDiagnosticBag diagnostics)
+            internal override BoundBlock CreateBody(in BindingDiagnosticBag diagnostics)
             {
                 var syntax = DummySyntax();
                 var compilation = _containingType.DeclaringCompilation;
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //     var submission = new Submission#N(submissionArray);
             //     return submission.<Initialize>();
             // }
-            internal override BoundBlock CreateBody(BindingDiagnosticBag diagnostics)
+            internal override BoundBlock CreateBody(in BindingDiagnosticBag diagnostics)
             {
                 var syntax = DummySyntax();
 

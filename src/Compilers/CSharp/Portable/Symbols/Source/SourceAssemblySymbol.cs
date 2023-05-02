@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void ValidateAttributeSemantics(BindingDiagnosticBag diagnostics)
+        private void ValidateAttributeSemantics(in BindingDiagnosticBag diagnostics)
         {
             //diagnostics that come from computing the public key.
             //If building a netmodule, strong name keys need not be validated. Dev11 didn't.
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// synthesize anything in that case.  We'll only report diagnostics if the attribute TYPES are present and either they or 
         /// the attribute CONSTRUCTORS have errors.
         /// </remarks>
-        private static void ReportDiagnosticsForSynthesizedAttributes(CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
+        private static void ReportDiagnosticsForSynthesizedAttributes(CSharpCompilation compilation, in BindingDiagnosticBag diagnostics)
         {
             ReportDiagnosticsForUnsafeSynthesizedAttributes(compilation, diagnostics);
 
@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// synthesize anything in that case.  We'll only report diagnostics if the attribute TYPES are present and either they or 
         /// the attribute CONSTRUCTORS have errors.
         /// </remarks>
-        private static void ReportDiagnosticsForUnsafeSynthesizedAttributes(CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
+        private static void ReportDiagnosticsForUnsafeSynthesizedAttributes(CSharpCompilation compilation, in BindingDiagnosticBag diagnostics)
         {
             CSharpCompilationOptions compilationOptions = compilation.Options;
             if (!compilationOptions.AllowUnsafe)
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 WellKnownMember.System_Security_Permissions_SecurityPermissionAttribute__SkipVerification, diagnostics, NoLocation.Singleton);
         }
 
-        private void ValidateIVTPublicKeys(BindingDiagnosticBag diagnostics)
+        private void ValidateIVTPublicKeys(in BindingDiagnosticBag diagnostics)
         {
             EnsureAttributesAreBound();
 
@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void DetectAttributeAndOptionConflicts(BindingDiagnosticBag diagnostics)
+        private void DetectAttributeAndOptionConflicts(in BindingDiagnosticBag diagnostics)
         {
             EnsureAttributesAreBound();
 
@@ -1044,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Free();
         }
 
-        private void ReportNameCollisionDiagnosticsForAddedModules(NamespaceSymbol ns, BindingDiagnosticBag diagnostics)
+        private void ReportNameCollisionDiagnosticsForAddedModules(NamespaceSymbol ns, in BindingDiagnosticBag diagnostics)
         {
             var mergedNs = ns as MergedNamespaceSymbol;
 
@@ -1212,7 +1212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return uniqueAttributes.Add(attribute);
         }
 
-        private bool ValidateAttributeUsageForNetModuleAttribute(CSharpAttributeData attribute, string netModuleName, BindingDiagnosticBag diagnostics, ref HashSet<CSharpAttributeData> uniqueAttributes)
+        private bool ValidateAttributeUsageForNetModuleAttribute(CSharpAttributeData attribute, string netModuleName, in BindingDiagnosticBag diagnostics, ref HashSet<CSharpAttributeData> uniqueAttributes)
         {
             Debug.Assert(!attribute.HasErrors);
 
@@ -1306,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private WellKnownAttributeData ValidateAttributeUsageAndDecodeWellKnownAttributes(
             ImmutableArray<CSharpAttributeData> attributesFromNetModules,
             ImmutableArray<string> netModuleNames,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(attributesFromNetModules.Any());
             Debug.Assert(netModuleNames.Any());
@@ -2079,7 +2079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //Once the computation of the AssemblyIdentity is complete, check whether
         //any of the IVT access grants that were optimistically made during AssemblyIdentity computation
         //are in fact invalid now that the full identity is known.
-        private void CheckOptimisticIVTAccessGrants(BindingDiagnosticBag bag)
+        private void CheckOptimisticIVTAccessGrants(in BindingDiagnosticBag bag)
         {
             ConcurrentDictionary<AssemblySymbol, bool> haveGrantedAssemblies = _optimisticallyGrantedInternalsAccess;
 
@@ -2242,7 +2242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void DecodeOneInternalsVisibleToAttribute(
             AttributeSyntax nodeOpt,
             CSharpAttributeData attrData,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             int index,
             ref ConcurrentDictionary<string, ConcurrentDictionary<ImmutableArray<byte>, Tuple<Location, string>>> lazyInternalsVisibleToMap)
         {
@@ -2546,7 +2546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Checks that the integral arguments for the given well-known attribute are non-negative.
-        private static void ValidateIntegralAttributeNonNegativeArguments(CSharpAttributeData attribute, AttributeSyntax nodeOpt, BindingDiagnosticBag diagnostics)
+        private static void ValidateIntegralAttributeNonNegativeArguments(CSharpAttributeData attribute, AttributeSyntax nodeOpt, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!attribute.HasErrors);
 

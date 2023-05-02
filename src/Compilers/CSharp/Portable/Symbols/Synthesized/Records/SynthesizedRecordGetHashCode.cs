@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly PropertySymbol? _equalityContract;
 
-        public SynthesizedRecordGetHashCode(SourceMemberContainerTypeSymbol containingType, PropertySymbol? equalityContract, int memberOffset, BindingDiagnosticBag diagnostics)
+        public SynthesizedRecordGetHashCode(SourceMemberContainerTypeSymbol containingType, PropertySymbol? equalityContract, int memberOffset, in BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.ObjectGetHashCode, memberOffset, isReadOnly: containingType.IsRecordStruct, diagnostics)
         {
             Debug.Assert(containingType.IsRecordStruct == equalityContract is null);
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override SpecialMember OverriddenSpecialMember => SpecialMember.System_Object__GetHashCode;
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation)
-            MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+            MakeParametersAndBindReturnType(in BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override int GetParameterCountFromSyntax() => 0;
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, this.SyntaxNode, compilationState, diagnostics);
 

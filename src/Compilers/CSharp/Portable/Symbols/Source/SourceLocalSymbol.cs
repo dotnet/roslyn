@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return declType;
         }
 
-        protected virtual TypeWithAnnotations InferTypeOfVarVariable(BindingDiagnosticBag diagnostics)
+        protected virtual TypeWithAnnotations InferTypeOfVarVariable(in BindingDiagnosticBag diagnostics)
         {
             // TODO: this method must be overridden for pattern variables to bind the
             // expression or statement that is the nearest enclosing to the pattern variable's
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _initializerBinder = initializerBinder;
             }
 
-            protected override TypeWithAnnotations InferTypeOfVarVariable(BindingDiagnosticBag diagnostics)
+            protected override TypeWithAnnotations InferTypeOfVarVariable(in BindingDiagnosticBag diagnostics)
             {
                 BoundExpression initializerOpt = this._initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
                 return TypeWithAnnotations.Create(initializerOpt?.Type);
@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             private ForEachLoopBinder ForEachLoopBinder => (ForEachLoopBinder)ScopeBinder;
 
-            protected override TypeWithAnnotations InferTypeOfVarVariable(BindingDiagnosticBag diagnostics)
+            protected override TypeWithAnnotations InferTypeOfVarVariable(in BindingDiagnosticBag diagnostics)
             {
                 return ForEachLoopBinder.InferCollectionElementType(diagnostics, _collection);
             }
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _nodeBinder = nodeBinder;
             }
 
-            protected override TypeWithAnnotations InferTypeOfVarVariable(BindingDiagnosticBag diagnostics)
+            protected override TypeWithAnnotations InferTypeOfVarVariable(in BindingDiagnosticBag diagnostics)
             {
                 // Try binding enclosing deconstruction-declaration (the top-level VariableDeclaration), this should force the inference.
                 switch (_deconstruction.Kind())
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // the diagnostic for out variables here.
             internal override ErrorCode ForbiddenDiagnostic => ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList;
 
-            protected override TypeWithAnnotations InferTypeOfVarVariable(BindingDiagnosticBag diagnostics)
+            protected override TypeWithAnnotations InferTypeOfVarVariable(in BindingDiagnosticBag diagnostics)
             {
                 switch (_nodeToBind.Kind())
                 {

@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _event; }
         }
 
-        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
+        protected sealed override void MethodChecks(in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(_lazyParameters.IsDefault != _lazyReturnType.HasType);
 

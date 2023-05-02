@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            protected SyntheticBoundNodeFactory CreateBoundNodeFactory(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+            protected SyntheticBoundNodeFactory CreateBoundNodeFactory(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
             {
                 var F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
                 F.CurrentFunction = this;

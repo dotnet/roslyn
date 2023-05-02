@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator? slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
             : base(slotAllocatorOpt, F.CompilationState, diagnostics)
         {
             Debug.Assert(F != null);

@@ -16,20 +16,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedRecordBaseEquals : SynthesizedRecordOrdinaryMethod
     {
-        public SynthesizedRecordBaseEquals(SourceMemberContainerTypeSymbol containingType, int memberOffset, BindingDiagnosticBag diagnostics)
+        public SynthesizedRecordBaseEquals(SourceMemberContainerTypeSymbol containingType, int memberOffset, in BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.ObjectEquals, isReadOnly: false, hasBody: true, memberOffset, diagnostics)
         {
             Debug.Assert(!containingType.IsRecordStruct);
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
+        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, in BindingDiagnosticBag diagnostics)
         {
             const DeclarationModifiers result = DeclarationModifiers.Public | DeclarationModifiers.Override | DeclarationModifiers.Sealed;
             Debug.Assert((result & ~allowedModifiers) == 0);
             return result;
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(in BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override int GetParameterCountFromSyntax() => 1;
 
-        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
+        protected override void MethodChecks(in BindingDiagnosticBag diagnostics)
         {
             base.MethodChecks(diagnostics);
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, this.SyntaxNode, compilationState, diagnostics);
 

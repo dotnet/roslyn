@@ -521,56 +521,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void Error(BindingDiagnosticBag diagnostics, DiagnosticInfo info, SyntaxNode syntax)
+        internal static void Error(in BindingDiagnosticBag diagnostics, DiagnosticInfo info, SyntaxNode syntax)
         {
             diagnostics.Add(new CSDiagnostic(info, syntax.Location));
         }
 
-        internal static void Error(BindingDiagnosticBag diagnostics, DiagnosticInfo info, Location location)
+        internal static void Error(in BindingDiagnosticBag diagnostics, DiagnosticInfo info, Location location)
         {
             diagnostics.Add(new CSDiagnostic(info, location));
         }
 
-        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, CSharpSyntaxNode syntax)
+        internal static void Error(in BindingDiagnosticBag diagnostics, ErrorCode code, CSharpSyntaxNode syntax)
         {
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code), syntax.Location));
         }
 
-        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, CSharpSyntaxNode syntax, params object[] args)
+        internal static void Error(in BindingDiagnosticBag diagnostics, ErrorCode code, CSharpSyntaxNode syntax, params object[] args)
         {
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code, args), syntax.Location));
         }
 
-        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxToken token)
+        internal static void Error(in BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxToken token)
         {
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code), token.GetLocation()));
         }
 
-        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxToken token, params object[] args)
+        internal static void Error(in BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxToken token, params object[] args)
         {
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code, args), token.GetLocation()));
         }
 
-        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax)
+        internal static void Error(in BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax)
         {
             var location = syntax.GetLocation();
             RoslynDebug.Assert(location is object);
             Error(diagnostics, code, location);
         }
 
-        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)
+        internal static void Error(in BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)
         {
             var location = syntax.GetLocation();
             RoslynDebug.Assert(location is object);
             Error(diagnostics, code, location, args);
         }
 
-        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, Location location)
+        internal static void Error(in BindingDiagnosticBag diagnostics, ErrorCode code, Location location)
         {
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code), location));
         }
 
-        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, Location location, params object[] args)
+        internal static void Error(in BindingDiagnosticBag diagnostics, ErrorCode code, Location location, params object[] args)
         {
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code, args), location));
         }
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void ReportDiagnosticsIfObsolete(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, bool hasBaseReceiver)
+        internal void ReportDiagnosticsIfObsolete(in BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, bool hasBaseReceiver)
         {
             if (diagnostics.DiagnosticBag is object)
             {
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void ReportDiagnosticsIfObsolete(BindingDiagnosticBag diagnostics, Conversion conversion, SyntaxNodeOrToken node, bool hasBaseReceiver)
+        internal void ReportDiagnosticsIfObsolete(in BindingDiagnosticBag diagnostics, Conversion conversion, SyntaxNodeOrToken node, bool hasBaseReceiver)
         {
             if (conversion.IsValid && conversion.Method is object)
             {
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return kind;
         }
 
-        internal static void ReportDiagnosticsIfObsoleteInternal(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol containingMember, BinderFlags location)
+        internal static void ReportDiagnosticsIfObsoleteInternal(in BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol containingMember, BinderFlags location)
         {
             if (diagnostics.DiagnosticBag is object)
             {
@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void ReportDiagnosticsIfUnmanagedCallersOnly(BindingDiagnosticBag diagnostics, MethodSymbol symbol, SyntaxNodeOrToken syntax, bool isDelegateConversion)
+        internal static void ReportDiagnosticsIfUnmanagedCallersOnly(in BindingDiagnosticBag diagnostics, MethodSymbol symbol, SyntaxNodeOrToken syntax, bool isDelegateConversion)
         {
             var unmanagedCallersOnlyAttributeData = symbol.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
             if (unmanagedCallersOnlyAttributeData != null)
@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void ReportUseSiteDiagnosticForSynthesizedAttribute(
             CSharpCompilation compilation,
             WellKnownMember attributeMember,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             Location? location = null,
             CSharpSyntaxNode? syntax = null)
         {
@@ -826,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             useSiteInfo.Add(memberUseSiteInfo);
         }
 
-        public CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo(BindingDiagnosticBag futureDestination)
+        public CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo(in BindingDiagnosticBag futureDestination)
         {
             return new CompoundUseSiteInfo<AssemblySymbol>(futureDestination, Compilation.Assembly);
         }

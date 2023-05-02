@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable();
         }
 
-        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
+        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, in BindingDiagnosticBag diagnostics)
         {
             return GetEnclosingMemberModel(node).Bind(binder, node, diagnostics);
         }

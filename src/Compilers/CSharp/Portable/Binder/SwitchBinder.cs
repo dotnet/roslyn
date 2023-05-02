@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void BuildSwitchLabels(SyntaxList<SwitchLabelSyntax> labelsSyntax, Binder sectionBinder, ArrayBuilder<LabelSymbol> labels, BindingDiagnosticBag tempDiagnosticBag)
+        private void BuildSwitchLabels(SyntaxList<SwitchLabelSyntax> labelsSyntax, Binder sectionBinder, ArrayBuilder<LabelSymbol> labels, in BindingDiagnosticBag tempDiagnosticBag)
         {
             // add switch case/default labels
             foreach (var labelSyntax in labelsSyntax)
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected BoundExpression ConvertCaseExpression(CSharpSyntaxNode node, BoundExpression caseExpression, out ConstantValue constantValueOpt, BindingDiagnosticBag diagnostics, bool isGotoCaseExpr = false)
+        protected BoundExpression ConvertCaseExpression(CSharpSyntaxNode node, BoundExpression caseExpression, out ConstantValue constantValueOpt, in BindingDiagnosticBag diagnostics, bool isGotoCaseExpr = false)
         {
             bool hasErrors = false;
             if (isGotoCaseExpr)
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         # region "Switch statement binding methods"
 
         // Bind the switch expression
-        private BoundExpression BindSwitchGoverningExpression(BindingDiagnosticBag diagnostics)
+        private BoundExpression BindSwitchGoverningExpression(in BindingDiagnosticBag diagnostics)
         {
             // We are at present inside the switch binder, but the switch expression is not
             // bound in the context of the switch binder; it's bound in the context of the
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal BoundStatement BindGotoCaseOrDefault(GotoStatementSyntax node, Binder gotoBinder, BindingDiagnosticBag diagnostics)
+        internal BoundStatement BindGotoCaseOrDefault(GotoStatementSyntax node, Binder gotoBinder, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node.Kind() == SyntaxKind.GotoCaseStatement || node.Kind() == SyntaxKind.GotoDefaultStatement);
             BoundExpression gotoCaseExpressionOpt = null;

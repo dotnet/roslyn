@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers defaultAccess,
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             out bool modifierErrors)
         {
             var result = modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnostics.DiagnosticBag ?? new DiagnosticBag(), isOrdinaryMethod: isOrdinaryMethod);
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 => ((result & modifier) != 0) && !Binder.CheckFeatureAvailability(errorLocation.SourceTree, featureID, diagnostics, errorLocation);
         }
 
-        internal static void CheckScopedModifierAvailability(CSharpSyntaxNode syntax, SyntaxToken modifier, BindingDiagnosticBag diagnostics)
+        internal static void CheckScopedModifierAvailability(CSharpSyntaxNode syntax, SyntaxToken modifier, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(modifier.Kind() == SyntaxKind.ScopedKeyword);
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void ReportPartialError(Location errorLocation, BindingDiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
+        private static void ReportPartialError(Location errorLocation, in BindingDiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
         {
             // If we can find the 'partial' token, report it on that.
             if (modifierTokens != null)
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifiers,
             DeclarationModifiers defaultInterfaceImplementationModifiers,
             Location errorLocation,
-            BindingDiagnosticBag diagnostics)
+            in BindingDiagnosticBag diagnostics)
         {
             if ((modifiers & defaultInterfaceImplementationModifiers) != 0)
             {
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void ReportUnsupportedModifiersForLanguageVersion(DeclarationModifiers modifiers, DeclarationModifiers unsupportedModifiers, Location errorLocation, BindingDiagnosticBag diagnostics, LanguageVersion availableVersion, LanguageVersion requiredVersion)
+        internal static void ReportUnsupportedModifiersForLanguageVersion(DeclarationModifiers modifiers, DeclarationModifiers unsupportedModifiers, Location errorLocation, in BindingDiagnosticBag diagnostics, LanguageVersion availableVersion, LanguageVersion requiredVersion)
         {
             DeclarationModifiers errorModifiers = modifiers & unsupportedModifiers;
             var requiredVersionArgument = new CSharpRequiredLanguageVersion(requiredVersion);
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(DeclarationModifiers mods, bool isExplicitInterfaceImplementation, Location location, BindingDiagnosticBag diagnostics)
+        internal static void CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(DeclarationModifiers mods, bool isExplicitInterfaceImplementation, Location location, in BindingDiagnosticBag diagnostics)
         {
             if (isExplicitInterfaceImplementation && (mods & DeclarationModifiers.Static) != 0)
             {
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool CheckAccessibility(DeclarationModifiers modifiers, Symbol symbol, bool isExplicitInterfaceImplementation, BindingDiagnosticBag diagnostics, Location errorLocation)
+        internal static bool CheckAccessibility(DeclarationModifiers modifiers, Symbol symbol, bool isExplicitInterfaceImplementation, in BindingDiagnosticBag diagnostics, Location errorLocation)
         {
             if (!IsValidAccessibility(modifiers))
             {

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             BoundBlock block,
             TypeCompilationState compilationState,
-            BindingDiagnosticBag diagnostics,
+            in BindingDiagnosticBag diagnostics,
             bool hasTrailingExpression,
             bool originalBodyNested)
         {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return block;
         }
 
-        private static BoundBlock PrependImplicitInitializations(BoundBlock body, MethodSymbol method, ImmutableArray<FieldSymbol> implicitlyInitializedFields, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        private static BoundBlock PrependImplicitInitializations(BoundBlock body, MethodSymbol method, ImmutableArray<FieldSymbol> implicitlyInitializedFields, TypeCompilationState compilationState, in BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(method.MethodKind == MethodKind.Constructor);
             Debug.Assert(method.ContainingType.IsStructType());

@@ -1949,7 +1949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return GetEmbeddedTypes(BindingDiagnosticBagFactory.New(diagnostics));
         }
 
-        internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(BindingDiagnosticBag diagnostics)
+        internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(in BindingDiagnosticBag diagnostics)
         {
             return base.GetEmbeddedTypes(diagnostics.DiagnosticBag);
         }

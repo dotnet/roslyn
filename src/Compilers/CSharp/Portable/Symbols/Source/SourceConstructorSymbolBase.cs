@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(syntax.Kind() is SyntaxKind.ConstructorDeclaration or SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration);
         }
 
-        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
+        protected sealed override void MethodChecks(in BindingDiagnosticBag diagnostics)
         {
             var syntax = (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
             var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract bool AllowRefOrOut { get; }
 #nullable disable
 
-        internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, in BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
