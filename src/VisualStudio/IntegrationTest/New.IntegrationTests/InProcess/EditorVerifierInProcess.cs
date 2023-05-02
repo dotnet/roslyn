@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -266,7 +266,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 var actualTaggedText = actualTaggedSpan.Span.GetText();
                 Assert.Equal(expectedTag.taggedText, actualTaggedText);
 
-                var containerElement = (ContainerElement?)actualTaggedSpan.Tag.ToolTipContent;
+                AssertEx.NotNull(actualTaggedSpan.Tag.ToolTipContent);
+                var containerElement = (ContainerElement)actualTaggedSpan.Tag.ToolTipContent;
                 var actualTooltipText = CollectTextInRun(containerElement);
                 Assert.Equal(expectedTag.tooltipText, actualTooltipText);
             }
