@@ -737,8 +737,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             builder.Add((otherAnalyzersAnalysisScope, compilationEvents));
                         }
 
-                        var tree = analysisScope.FilterFileOpt!.Value.SourceTree!;
-                        processSymbolStartAnalyzers(tree, compilationEvents, symbolStartAnalyzers, compilation,
+                        processSymbolStartAnalyzers(analysisScope.FilterFileOpt!.Value, analysisScope.FilterSpanOpt, compilationEvents, symbolStartAnalyzers, compilation,
                             _analysisResultBuilder, builder, AdditionalFiles, cancellationToken);
                     }
 
@@ -820,7 +819,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             void processSymbolStartAnalyzers(
-                SyntaxTree tree,
+                SourceOrAdditionalFile originalFile,
+                TextSpan? originalSpan,
                 ImmutableArray<CompilationEvent> compilationEventsForTree,
                 ImmutableArray<DiagnosticAnalyzer> symbolStartAnalyzers,
                 Compilation compilation,
@@ -840,6 +840,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // compilation events generated for each tree.
 
                 var partialTrees = PooledHashSet<SyntaxTree>.GetInstance();
+                var tree = originalFile.SourceTree!;
                 partialTrees.Add(tree);
 
                 try
@@ -883,7 +884,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     var file = new SourceOrAdditionalFile(partialTree);
                     var analysisScope = AnalysisScope.Create(symbolStartAnalyzers, file, filterSpan: null,
-                        isSyntacticSingleFileAnalysis: false, this);
+                        originalFile, originalSpan, isSyntacticSingleFileAnalysis: false, this);
 
                     analysisScope = GetPendingAnalysisScope(analysisScope);
                     if (analysisScope == null)

@@ -25,6 +25,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public SourceOrAdditionalFile? FilterFileOpt { get; }
         public TextSpan? FilterSpanOpt { get; }
 
+        // Original filter file and filter span for the input analysis scope.
+        // Normally, these are the same as the above FilterFileOpt and FilterSpanOpt,
+        // except for SymbolStart/End action execution where original input
+        // file/span for diagnostic request can require analyzing other files/spans
+        // which have partial definitions for the symbol being analyzed.
+        // Below properties are used to ensure that SymbolStart action and SymbolEnd
+        // action both receive this same original filter file and span.
+        public SourceOrAdditionalFile? OriginalFilterFile { get; }
+        public TextSpan? OriginalFilterSpan { get; }
+
         public ImmutableArray<DiagnosticAnalyzer> Analyzers { get; }
 
         /// <summary>
@@ -88,25 +98,56 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var additionalFiles = analyzerOptions?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty;
             return new AnalysisScope(compilation.SyntaxTrees, additionalFiles,
-                   analyzers, hasAllAnalyzers, filterFile: null, filterSpanOpt: null, isSyntacticSingleFileAnalysis: false,
+                   analyzers, hasAllAnalyzers, filterFile: null, filterSpanOpt: null,
+                   originalFilterFile: null, originalFilterSpan: null, isSyntacticSingleFileAnalysis: false,
                    concurrentAnalysis: concurrentAnalysis);
         }
 
         public static AnalysisScope Create(ImmutableArray<DiagnosticAnalyzer> analyzers, SourceOrAdditionalFile filterFile, TextSpan? filterSpan, bool isSyntacticSingleFileAnalysis, CompilationWithAnalyzers compilationWithAnalyzers)
+            => Create(analyzers, filterFile, filterSpan, originalFilterFile: filterFile, originalFilterSpan: filterSpan, isSyntacticSingleFileAnalysis, compilationWithAnalyzers);
+
+        public static AnalysisScope Create(ImmutableArray<DiagnosticAnalyzer> analyzers, SourceOrAdditionalFile filterFile, TextSpan? filterSpan, SourceOrAdditionalFile originalFilterFile, TextSpan? originalFilterSpan, bool isSyntacticSingleFileAnalysis, CompilationWithAnalyzers compilationWithAnalyzers)
         {
             var trees = filterFile.SourceTree != null ? SpecializedCollections.SingletonEnumerable(filterFile.SourceTree) : SpecializedCollections.EmptyEnumerable<SyntaxTree>();
             var additionalFiles = filterFile.AdditionalFile != null ? SpecializedCollections.SingletonEnumerable(filterFile.AdditionalFile) : SpecializedCollections.EmptyEnumerable<AdditionalText>();
             var hasAllAnalyzers = ComputeHasAllAnalyzers(analyzers, compilationWithAnalyzers);
             var concurrentAnalysis = compilationWithAnalyzers.AnalysisOptions.ConcurrentAnalysis;
-            return new AnalysisScope(trees, additionalFiles, analyzers, hasAllAnalyzers, filterFile, filterSpan, isSyntacticSingleFileAnalysis, concurrentAnalysis);
+            return new AnalysisScope(trees, additionalFiles, analyzers, hasAllAnalyzers, filterFile, filterSpan, originalFilterFile, originalFilterSpan, isSyntacticSingleFileAnalysis, concurrentAnalysis);
         }
 
-        private AnalysisScope(IEnumerable<SyntaxTree> trees, IEnumerable<AdditionalText> additionalFiles, ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers, SourceOrAdditionalFile? filterFile, TextSpan? filterSpanOpt, bool isSyntacticSingleFileAnalysis, bool concurrentAnalysis)
+        private AnalysisScope(
+            IEnumerable<SyntaxTree> trees,
+            IEnumerable<AdditionalText> additionalFiles,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            bool hasAllAnalyzers,
+            SourceOrAdditionalFile? filterFile,
+            TextSpan? filterSpanOpt,
+            SourceOrAdditionalFile? originalFilterFile,
+            TextSpan? originalFilterSpan,
+            bool isSyntacticSingleFileAnalysis,
+            bool concurrentAnalysis)
         {
-            Debug.Assert(!filterSpanOpt.HasValue || filterFile.HasValue);
             Debug.Assert(!isSyntacticSingleFileAnalysis || filterFile.HasValue);
 
-            if (filterSpanOpt.HasValue)
+            SyntaxTrees = trees;
+            AdditionalFiles = additionalFiles;
+            Analyzers = analyzers;
+            HasAllAnalyzers = hasAllAnalyzers;
+            FilterFileOpt = filterFile;
+            FilterSpanOpt = GetEffectiveFilterSpan(filterSpanOpt, filterFile);
+            OriginalFilterFile = originalFilterFile;
+            OriginalFilterSpan = GetEffectiveFilterSpan(originalFilterSpan, originalFilterFile);
+            IsSyntacticSingleFileAnalysis = isSyntacticSingleFileAnalysis;
+            ConcurrentAnalysis = concurrentAnalysis;
+
+            _lazyAnalyzersSet = new Lazy<ImmutableHashSet<DiagnosticAnalyzer>>(CreateAnalyzersSet);
+        }
+
+        private static TextSpan? GetEffectiveFilterSpan(TextSpan? filterSpan, SourceOrAdditionalFile? filterFile)
+        {
+            Debug.Assert(!filterSpan.HasValue || filterFile.HasValue);
+
+            if (filterSpan.HasValue)
             {
                 Debug.Assert(filterFile.HasValue);
                 Debug.Assert(filterFile.GetValueOrDefault().SourceTree != null);
@@ -115,22 +156,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 //       We are basically analyzing the entire tree, and clearing out the filter span
                 //       avoids span intersection checks for each symbol/node/operation in the tree
                 //       to determine if it falls in the analysis scope.
-                if (filterSpanOpt.GetValueOrDefault().Start == 0 && filterSpanOpt.GetValueOrDefault().Length == filterFile.GetValueOrDefault().SourceTree!.Length)
+                if (filterSpan.GetValueOrDefault().Start == 0 && filterSpan.GetValueOrDefault().Length == filterFile.GetValueOrDefault().SourceTree!.Length)
                 {
-                    filterSpanOpt = null;
+                    return null;
                 }
             }
 
-            SyntaxTrees = trees;
-            AdditionalFiles = additionalFiles;
-            Analyzers = analyzers;
-            HasAllAnalyzers = hasAllAnalyzers;
-            FilterFileOpt = filterFile;
-            FilterSpanOpt = filterSpanOpt;
-            IsSyntacticSingleFileAnalysis = isSyntacticSingleFileAnalysis;
-            ConcurrentAnalysis = concurrentAnalysis;
-
-            _lazyAnalyzersSet = new Lazy<ImmutableHashSet<DiagnosticAnalyzer>>(CreateAnalyzersSet);
+            return filterSpan;
         }
 
         private ImmutableHashSet<DiagnosticAnalyzer> CreateAnalyzersSet() => Analyzers.ToImmutableHashSet();
@@ -149,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzers compilationWithAnalyzers)
         {
             var hasAllAnalyzers = ComputeHasAllAnalyzers(analyzers, compilationWithAnalyzers);
-            return new AnalysisScope(SyntaxTrees, AdditionalFiles, analyzers, hasAllAnalyzers, FilterFileOpt, FilterSpanOpt, IsSyntacticSingleFileAnalysis, ConcurrentAnalysis);
+            return new AnalysisScope(SyntaxTrees, AdditionalFiles, analyzers, hasAllAnalyzers, FilterFileOpt, FilterSpanOpt, OriginalFilterFile, OriginalFilterSpan, IsSyntacticSingleFileAnalysis, ConcurrentAnalysis);
         }
 
         private static bool ComputeHasAllAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzers compilationWithAnalyzers)
@@ -165,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public AnalysisScope WithFilterSpan(TextSpan? filterSpan)
-            => new AnalysisScope(SyntaxTrees, AdditionalFiles, Analyzers, HasAllAnalyzers, FilterFileOpt, filterSpan, IsSyntacticSingleFileAnalysis, ConcurrentAnalysis);
+            => new AnalysisScope(SyntaxTrees, AdditionalFiles, Analyzers, HasAllAnalyzers, FilterFileOpt, filterSpan, OriginalFilterFile, OriginalFilterSpan, IsSyntacticSingleFileAnalysis, ConcurrentAnalysis);
 
         public static bool ShouldSkipSymbolAnalysis(SymbolDeclaredCompilationEvent symbolEvent)
         {

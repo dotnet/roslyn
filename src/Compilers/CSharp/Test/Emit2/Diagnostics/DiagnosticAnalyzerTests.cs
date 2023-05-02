@@ -4131,35 +4131,44 @@ class C
 
         [Theory, WorkItem(67257, "https://github.com/dotnet/roslyn/issues/67257")]
         [CombinatorialData]
-        public async Task TestFilterSpanOnContextAsync(bool testSyntaxTreeAction, bool testGetAnalysisResultApi, bool testAnalyzersBasedOverload)
+        public async Task TestFilterSpanOnContextAsync(FilterSpanTestAnalyzer.AnalysisKind analysisKind, bool testGetAnalysisResultApi, bool testAnalyzersBasedOverload)
         {
-            string source = @"
-class B
+            string source1 = @"
+partial class B
 {
     void M()
     {
         int x = 1;
     }
 }";
+            string source2 = @"
+partial class B
+{
+    void M2()
+    {
+        int x2 = 1;
+    }
+}";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { source });
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2 });
             var tree = compilation.SyntaxTrees[0];
             var localDeclaration = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            var analyzer = new FilterSpanTestAnalyzer(testSyntaxTreeAction);
+            var analyzer = new FilterSpanTestAnalyzer(analysisKind);
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
 
             // Invoke "GetAnalysisResultAsync" for a sub-span and then
-            // for the entire tree span and verify FilterSpan on the callback context.
+            // for the entire tree span and verify FilterSpan/FilterTree on the callback context.
             Assert.Null(analyzer.CallbackFilterSpan);
+            Assert.Null(analyzer.CallbackFilterTree);
             await verifyCallbackSpanAsync(filterSpan: localDeclaration.Span);
             await verifyCallbackSpanAsync(filterSpan: null);
 
             async Task verifyCallbackSpanAsync(TextSpan? filterSpan)
             {
-                if (testSyntaxTreeAction)
+                if (analysisKind == FilterSpanTestAnalyzer.AnalysisKind.SyntaxTree)
                 {
                     if (testGetAnalysisResultApi)
                     {
@@ -4191,6 +4200,7 @@ class B
                 }
 
                 Assert.Equal(filterSpan, analyzer.CallbackFilterSpan);
+                Assert.Equal(tree, analyzer.CallbackFilterTree);
             }
         }
     }

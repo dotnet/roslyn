@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -726,6 +727,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options { get { return _options; } }
 
         /// <summary>
+        /// Optional filter tree being analyzed.
+        /// <see langword="null"/> if we are analyzing the entire compilation.
+        /// </summary>
+        public SyntaxTree? FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> being analyzed.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
+        /// </summary>
+        /// <remarks>This property is guaranteed to be <see langword="null"/> if <see cref="FilterTree"/> is <see langword="null"/>.</remarks>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
@@ -739,7 +754,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [Obsolete("Use CompilationWithAnalyzers instead. See https://github.com/dotnet/roslyn/issues/63440 for more details.")]
         public SymbolAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-            : this(symbol, compilation, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), isGeneratedCode: false, cancellationToken)
+            : this(symbol, compilation, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), isGeneratedCode: false, filterTree: null, filterSpan: null, cancellationToken)
         {
         }
 
@@ -750,14 +765,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
             bool isGeneratedCode,
+            SyntaxTree? filterTree,
+            TextSpan? filterSpan,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(!filterSpan.HasValue || filterTree != null);
+
             _symbol = symbol;
             _compilation = compilation;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             IsGeneratedCode = isGeneratedCode;
+            FilterTree = filterTree;
+            FilterSpan = filterSpan;
             _cancellationToken = cancellationToken;
         }
 
@@ -802,22 +823,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsGeneratedCode { get; }
 
         /// <summary>
+        /// Optional filter tree being analyzed.
+        /// <see langword="null"/> if we are analyzing the entire compilation.
+        /// </summary>
+        public SyntaxTree? FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> being analyzed.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
+        /// </summary>
+        /// <remarks>This property is guaranteed to be <see langword="null"/> if <see cref="FilterTree"/> is <see langword="null"/>.</remarks>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
         [Obsolete("Use CompilationWithAnalyzers instead. See https://github.com/dotnet/roslyn/issues/63440 for more details.")]
         public SymbolStartAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
-            : this(symbol, compilation, options, isGeneratedCode: false, cancellationToken)
+            : this(symbol, compilation, options, isGeneratedCode: false, filterTree: null, filterSpan: null, cancellationToken)
         {
         }
 
-        internal SymbolStartAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, bool isGeneratedCode, CancellationToken cancellationToken)
+        internal SymbolStartAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, bool isGeneratedCode, SyntaxTree? filterTree, TextSpan? filterSpan, CancellationToken cancellationToken)
         {
+            Debug.Assert(!filterSpan.HasValue || filterTree != null);
+
             Symbol = symbol;
             Compilation = compilation;
             Options = options;
             IsGeneratedCode = isGeneratedCode;
+            FilterTree = filterTree;
+            FilterSpan = filterSpan;
             CancellationToken = cancellationToken;
         }
 

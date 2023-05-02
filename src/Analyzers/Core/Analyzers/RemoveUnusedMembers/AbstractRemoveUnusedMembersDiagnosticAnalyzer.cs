@@ -116,6 +116,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(compilation));
             }
 
+            private static Location GetDiagnosticLocation(ISymbol symbol)
+                => symbol.Locations[0];
+
             private static IEnumerable<INamedTypeSymbol> GetAttributesForMethodsToIgnore(Compilation compilation)
             {
                 // Ignore methods with special serialization attributes, which are invoked by the runtime
@@ -181,6 +184,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 Action<ISymbol, ValueUsageInfo> onSymbolUsageFound = OnSymbolUsage;
                 compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
                 {
+                    if (!ShouldAnalyze(symbolStartContext))
+                        return;
+
                     var hasUnsupportedOperation = false;
                     symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
                     symbolStartContext.RegisterOperationAction(AnalyzeFieldInitializer, OperationKind.FieldInitializer);
@@ -202,12 +208,28 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     // Register custom language-specific actions, if any.
                     _analyzer.HandleNamedTypeSymbolStart(symbolStartContext, onSymbolUsageFound);
                 }, SymbolKind.NamedType);
+
+                bool ShouldAnalyze(SymbolStartAnalysisContext context)
+                {
+                    var members = ((INamedTypeSymbol)context.Symbol).GetMembers();
+                    foreach (var member in members)
+                    {
+                        if (IsCandidateSymbol(member.OriginalDefinition)
+                            && context.ShouldAnalyzeLocation(GetDiagnosticLocation(member)))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
             }
 
             private void AnalyzeSymbolDeclaration(SymbolAnalysisContext symbolContext)
             {
                 var symbol = symbolContext.Symbol.OriginalDefinition;
-                if (IsCandidateSymbol(symbol))
+                if (IsCandidateSymbol(symbol)
+                    && symbolContext.ShouldAnalyzeLocation(GetDiagnosticLocation(symbol)))
                 {
                     lock (_gate)
                     {
@@ -474,7 +496,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             // We report the diagnostic on the first location of the member.
                             var diagnostic = DiagnosticHelper.CreateWithMessage(
                                 rule,
-                                member.Locations[0],
+                                GetDiagnosticLocation(member),
                                 rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options),
                                 additionalLocations: null,
                                 properties: null,

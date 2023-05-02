@@ -1086,7 +1086,7 @@ class A
 
         [Theory, WorkItem(67257, "https://github.com/dotnet/roslyn/issues/67257")]
         [CombinatorialData]
-        public async Task TestFilterSpanOnContextAsync(bool testSyntaxTreeAction)
+        public async Task TestFilterSpanOnContextAsync(FilterSpanTestAnalyzer.AnalysisKind kind)
         {
             var source = @"
 class B
@@ -1098,7 +1098,7 @@ class B
 }";
             using var workspace = TestWorkspace.CreateCSharp(source);
 
-            var analyzer = new FilterSpanTestAnalyzer(testSyntaxTreeAction);
+            var analyzer = new FilterSpanTestAnalyzer(kind);
             var analyzerId = analyzer.GetAnalyzerId();
             var analyzerIdsToRequestDiagnostics = new[] { analyzerId };
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
@@ -1112,20 +1112,22 @@ class B
             var localDeclaration = root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax>().First();
 
             // Invoke "GetDiagnosticsAsync" for a sub-span and then
-            // for the entire document span and verify FilterSpan on the callback context.
+            // for the entire document span and verify FilterSpan/FilterTree on the callback context.
             Assert.Null(analyzer.CallbackFilterSpan);
+            Assert.Null(analyzer.CallbackFilterTree);
             await VerifyCallbackSpanAsync(filterSpan: localDeclaration.Span);
             await VerifyCallbackSpanAsync(filterSpan: null);
 
             async Task VerifyCallbackSpanAsync(TextSpan? filterSpan)
             {
-                var analysisKind = testSyntaxTreeAction ? AnalysisKind.Syntax : AnalysisKind.Semantic;
+                var analysisKind = kind == FilterSpanTestAnalyzer.AnalysisKind.SyntaxTree ? AnalysisKind.Syntax : AnalysisKind.Semantic;
                 _ = await DiagnosticComputer.GetDiagnosticsAsync(
                     document, project, Checksum.Null, ideAnalyzerOptions, filterSpan, analyzerIdsToRequestDiagnostics,
                     analysisKind, new DiagnosticAnalyzerInfoCache(), workspace.Services,
                     isExplicit: false, reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
                     CancellationToken.None);
                 Assert.Equal(filterSpan, analyzer.CallbackFilterSpan);
+                Assert.Equal(root.SyntaxTree, analyzer.CallbackFilterTree);
             }
         }
 
