@@ -5437,12 +5437,35 @@ class Program
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void AlwaysDefault_03()
+        public void AlwaysDefault_03_1()
         {
             var src = @"
 class C
 {
     public Buffer10<int> F;
+}
+
+class Program
+{
+    static void M(C c)
+    {
+        ref readonly int x = ref c.F[0];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+
+            // PROTOTYPE(InlineArrays): Report ErrorCode.WRN_UnassignedInternalField
+            comp.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void AlwaysDefault_03_2()
+        {
+            var src = @"
+class C
+{
+    public readonly Buffer10<int> F;
 }
 
 class Program
@@ -5504,7 +5527,7 @@ class Program
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void AlwaysDefault_06()
+        public void AlwaysDefault_06_1()
         {
             var src = @"
 class C
@@ -5527,6 +5550,32 @@ class Program
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void AlwaysDefault_06_2()
+        {
+            var src = @"
+class C
+{
+    public readonly Buffer10<int> F;
+}
+
+class Program
+{
+    static void M(C c)
+    {
+        System.ReadOnlySpan<int> x = c.F[..5];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (4,35): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
+                //     public readonly Buffer10<int> F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "").WithLocation(4, 35)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void AlwaysDefault_07()
         {
             var src = @"
@@ -5545,6 +5594,52 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
 
+            comp.VerifyDiagnostics(
+                // (4,26): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
+                //     public Buffer10<int> F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "").WithLocation(4, 26)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void AlwaysDefault_08()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void M(C c)
+    {
+        System.Span<int> x = c.F;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void AlwaysDefault_09()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void M(C c)
+    {
+        System.ReadOnlySpan<int> x = c.F;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (4,26): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
                 //     public Buffer10<int> F;
@@ -6014,6 +6109,123 @@ class Program
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void MissingHelper_11()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F = default;
+}
+
+class Program
+{
+    static void M3(C x)
+    {
+        _ = (System.Span<int>)x.F;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void MissingHelper_12()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F = default;
+}
+
+class Program
+{
+    static void M3(C x)
+    {
+        _ = (System.ReadOnlySpan<int>)x.F;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void MissingHelper_13()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F = default;
+}
+
+class Program
+{
+    static void M3(C x)
+    {
+        _ = (System.Span<int>)x.F;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T);
+
+            comp.VerifyEmitDiagnostics(
+                // (11,13): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.MemoryMarshal.CreateSpan'
+                //         _ = (System.Span<int>)x.F;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(System.Span<int>)x.F").WithArguments("System.Runtime.InteropServices.MemoryMarshal", "CreateSpan").WithLocation(11, 13),
+                // (11,13): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.As'
+                //         _ = (System.Span<int>)x.F;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(System.Span<int>)x.F").WithArguments("System.Runtime.CompilerServices.Unsafe", "As").WithLocation(11, 13)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void MissingHelper_14()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F = default;
+}
+
+class Program
+{
+    static void M3(C x)
+    {
+        _ = (System.ReadOnlySpan<int>)x.F;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T);
+
+            comp.VerifyEmitDiagnostics(
+                // (11,13): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.MemoryMarshal.CreateReadOnlySpan'
+                //         _ = (System.ReadOnlySpan<int>)x.F;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(System.ReadOnlySpan<int>)x.F").WithArguments("System.Runtime.InteropServices.MemoryMarshal", "CreateReadOnlySpan").WithLocation(11, 13),
+                // (11,13): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.AsRef'
+                //         _ = (System.ReadOnlySpan<int>)x.F;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(System.ReadOnlySpan<int>)x.F").WithArguments("System.Runtime.CompilerServices.Unsafe", "AsRef").WithLocation(11, 13),
+                // (11,13): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.As'
+                //         _ = (System.ReadOnlySpan<int>)x.F;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(System.ReadOnlySpan<int>)x.F").WithArguments("System.Runtime.CompilerServices.Unsafe", "As").WithLocation(11, 13)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void PrivateImplementationDetails_01()
         {
             var src = @"
@@ -6028,6 +6240,7 @@ class Program
     {
         _ = x.F[0];
         _ = x.F[..5];
+        _ = (System.Span<int>)x.F;
     }
 }
 ";
@@ -6071,6 +6284,7 @@ class Program
     {
         _ = x.F[0];
         _ = x.F[..5];
+        _ = (System.ReadOnlySpan<int>)x.F;
     }
 }
 ";
@@ -6141,6 +6355,106 @@ class Program
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void NullableAnalysis_02()
+        {
+            var src = @"
+#nullable enable
+
+class Program
+{
+    static void M1(Buffer10<string?> b)
+    {
+        System.Span<string> x = b;
+        System.ReadOnlySpan<string> y = b;
+    }
+
+    static void M2(Buffer10<string> b2)
+    {
+        System.Span<string> x = b2;
+        System.ReadOnlySpan<string> y = b2;
+    }
+
+    static void M3(Buffer10<string?> b3)
+    {
+        System.Span<string?> x = b3;
+        System.ReadOnlySpan<string?> y = b3;
+    }
+
+    static void M4(Buffer10<string> b4)
+    {
+        System.Span<string?> x = b4;
+        System.ReadOnlySpan<string?> y = b4;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,33): warning CS8619: Nullability of reference types in value of type 'Buffer10<string?>' doesn't match target type 'Span<string>'.
+                //         System.Span<string> x = b;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("Buffer10<string?>", "System.Span<string>").WithLocation(8, 33),
+                // (9,41): warning CS8619: Nullability of reference types in value of type 'Buffer10<string?>' doesn't match target type 'ReadOnlySpan<string>'.
+                //         System.ReadOnlySpan<string> y = b;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("Buffer10<string?>", "System.ReadOnlySpan<string>").WithLocation(9, 41),
+                // (26,34): warning CS8619: Nullability of reference types in value of type 'Buffer10<string>' doesn't match target type 'Span<string?>'.
+                //         System.Span<string?> x = b4;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b4").WithArguments("Buffer10<string>", "System.Span<string?>").WithLocation(26, 34),
+                // (27,42): warning CS8619: Nullability of reference types in value of type 'Buffer10<string>' doesn't match target type 'ReadOnlySpan<string?>'.
+                //         System.ReadOnlySpan<string?> y = b4;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b4").WithArguments("Buffer10<string>", "System.ReadOnlySpan<string?>").WithLocation(27, 42)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void NullableAnalysis_03()
+        {
+            var src = @"
+#nullable enable
+
+class Program
+{
+    static void M1(Buffer10<string?[]> b)
+    {
+        System.Span<string[]> x = b;
+        System.ReadOnlySpan<string[]> y = b;
+    }
+
+    static void M2(Buffer10<string[]> b2)
+    {
+        System.Span<string[]> x = b2;
+        System.ReadOnlySpan<string[]> y = b2;
+    }
+
+    static void M3(Buffer10<string?[]> b3)
+    {
+        System.Span<string?[]> x = b3;
+        System.ReadOnlySpan<string?[]> y = b3;
+    }
+
+    static void M4(Buffer10<string[]> b4)
+    {
+        System.Span<string?[]> x = b4;
+        System.ReadOnlySpan<string?[]> y = b4;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,35): warning CS8619: Nullability of reference types in value of type 'Buffer10<string?[]>' doesn't match target type 'Span<string[]>'.
+                //         System.Span<string[]> x = b;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("Buffer10<string?[]>", "System.Span<string[]>").WithLocation(8, 35),
+                // (9,43): warning CS8619: Nullability of reference types in value of type 'Buffer10<string?[]>' doesn't match target type 'ReadOnlySpan<string[]>'.
+                //         System.ReadOnlySpan<string[]> y = b;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("Buffer10<string?[]>", "System.ReadOnlySpan<string[]>").WithLocation(9, 43),
+                // (26,36): warning CS8619: Nullability of reference types in value of type 'Buffer10<string[]>' doesn't match target type 'Span<string?[]>'.
+                //         System.Span<string?[]> x = b4;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b4").WithArguments("Buffer10<string[]>", "System.Span<string?[]>").WithLocation(26, 36),
+                // (27,44): warning CS8619: Nullability of reference types in value of type 'Buffer10<string[]>' doesn't match target type 'ReadOnlySpan<string?[]>'.
+                //         System.ReadOnlySpan<string?[]> y = b4;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b4").WithArguments("Buffer10<string[]>", "System.ReadOnlySpan<string?[]>").WithLocation(27, 44)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void CompoundAssignment_01()
         {
             var src = @"
@@ -6190,6 +6504,1892 @@ class Program
   IL_001c:  ret
 }
 ");
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_01()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Console.Write(M1(x)[0]);
+        M2(x)[0] = 111;
+        System.Console.Write(' ');
+        System.Console.Write(M1(x)[0]);
+    }
+
+    static System.ReadOnlySpan<int> M1(C x) => x.F;
+    static System.Span<int> M2(C x) => x.F;
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M1",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+#if false // PROTOTYPE(InlineArrays):
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
+            var m2Operation = model.GetOperation(m2);
+            VerifyOperationTree(comp, m2Operation,
+@"
+");
+#endif
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_03()
+        {
+            var src = @"
+class C
+{
+    private Buffer10<int> F;
+
+    public System.ReadOnlySpan<int> M1() => F;
+    public System.Span<int> M2() => F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.M2()[0] = 111;
+        System.Console.Write(x.M1()[0]);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M1",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+
+            verifier.VerifyIL("C.M2",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_04()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static System.Span<int> M2(C x) => x.F;
+    static System.Span<int> M3(C x)
+    { 
+        System.Span<int> y = x.F;
+        return y;
+    }
+
+    static System.ReadOnlySpan<int> M4(C x) => x.F;
+    static System.ReadOnlySpan<int> M5(C x)
+    { 
+        System.ReadOnlySpan<int> y = x.F;
+        return y;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (9,40): error CS8167: Cannot return by reference a member of parameter 'x' because it is not a ref or out parameter
+                //     static System.Span<int> M2(C x) => x.F;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "x").WithArguments("x").WithLocation(9, 40),
+                // (13,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(13, 16),
+                // (16,48): error CS8167: Cannot return by reference a member of parameter 'x' because it is not a ref or out parameter
+                //     static System.ReadOnlySpan<int> M4(C x) => x.F;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "x").WithArguments("x").WithLocation(16, 48),
+                // (20,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(20, 16)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_05()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<int> F;
+
+    public System.Span<int> M2() => F;
+
+    public System.Span<int> M3()
+    { 
+        System.Span<int> y = F;
+        return y;
+    }
+
+    public System.ReadOnlySpan<int> M4() => F;
+
+    public System.ReadOnlySpan<int> M5()
+    { 
+        System.ReadOnlySpan<int> y = F;
+        return y;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (6,37): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     public System.Span<int> M2() => F;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(6, 37),
+                // (11,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(11, 16),
+                // (14,45): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     public System.ReadOnlySpan<int> M4() => F;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(14, 45),
+                // (19,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(19, 16)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_06()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        M2(ref x)[0] = 111;
+        System.Console.Write(M1(ref x)[0]);
+    }
+
+    static System.ReadOnlySpan<int> M1(ref C x) => x.F;
+    static System.Span<int> M2(ref C x) => x.F;
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M1",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_07()
+        {
+            var src = @"
+struct C
+{
+    private Buffer10<int> F;
+
+    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+    public System.ReadOnlySpan<int> M1() => F;
+
+    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+    public System.Span<int> M2() => F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.M2()[0] = 111;
+        System.Console.Write(x.M1()[0]);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M1",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+
+            verifier.VerifyIL("C.M2",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_08()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        M2(ref x)[0] = 111;
+        System.Console.Write(M1(ref x)[0]);
+    }
+
+    static System.ReadOnlySpan<int> M1(ref C x)
+    {
+        System.ReadOnlySpan<int> y = x.F;
+        return y;
+    }
+
+    static System.Span<int> M2(ref C x)
+    {
+        System.Span<int> y = x.F;
+        return y;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M1",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_09()
+        {
+            var src = @"
+struct C
+{
+    private Buffer10<int> F;
+
+    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+    public System.ReadOnlySpan<int> M1()
+    {
+        System.ReadOnlySpan<int> y = F;
+        return y;
+    }
+
+    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+    public System.Span<int> M2()
+    {
+        System.Span<int> y = F;
+        return y;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.M2()[0] = 111;
+        System.Console.Write(x.M1()[0]);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M1",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+
+            verifier.VerifyIL("C.M2",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_10_1()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<Buffer10<int>> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Console.Write(M1(x)[0]);
+        M2(x)[0] = 111;
+        System.Console.Write(' ');
+        System.Console.Write(M1(x)[0]);
+    }
+
+    static System.ReadOnlySpan<int> M1(C x) => x.F[..5][0];
+    static System.Span<int> M2(C x) => x.F[..5][0];
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_10_2()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<Buffer10<int>> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Console.Write(M1(x)[0][0]);
+        M2(x)[0][0] = 111;
+        System.Console.Write(' ');
+        System.Console.Write(M1(x)[0][0]);
+    }
+
+    static System.ReadOnlySpan<Buffer10<int>> M1(C x) => ((System.ReadOnlySpan<Buffer10<int>>)x.F)[..3];
+    static System.Span<Buffer10<int>> M2(C x) => ((System.Span<Buffer10<int>>)x.F)[..3];
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_12_1()
+        {
+            var src = @"
+class C
+{
+    private Buffer10<Buffer10<int>> F;
+
+    public System.ReadOnlySpan<int> M1() => F[..5][0];
+    public System.Span<int> M2() => F[..5][0];
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.M2()[0] = 111;
+        System.Console.Write(x.M1()[0]);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_12_2()
+        {
+            var src = @"
+class C
+{
+    private Buffer10<Buffer10<int>> F;
+
+    public System.ReadOnlySpan<Buffer10<int>> M1() => ((System.ReadOnlySpan<Buffer10<int>>)F)[..3];
+    public System.Span<Buffer10<int>> M2() => ((System.Span<Buffer10<int>>)F)[..3];
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.M2()[0][0] = 111;
+        System.Console.Write(x.M1()[0][0]);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_13_1()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<Buffer10<int>> F;
+}
+
+class Program
+{
+    static System.Span<int> M2(C x) => x.F[..5][0];
+    static System.Span<int> M3(C x)
+    { 
+        System.Span<int> y = x.F[..5][0];
+        return y;
+    }
+
+    static System.ReadOnlySpan<int> M4(C x) => x.F[..5][0];
+    static System.ReadOnlySpan<int> M5(C x)
+    { 
+        System.ReadOnlySpan<int> y = x.F[..5][0];
+        return y;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (9,40): error CS8167: Cannot return by reference a member of parameter 'x' because it is not a ref or out parameter
+                //     static System.Span<int> M2(C x) => x.F[..5][0];
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "x").WithArguments("x").WithLocation(9, 40),
+                // (13,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(13, 16),
+                // (16,48): error CS8167: Cannot return by reference a member of parameter 'x' because it is not a ref or out parameter
+                //     static System.ReadOnlySpan<int> M4(C x) => x.F[..5][0];
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "x").WithArguments("x").WithLocation(16, 48),
+                // (20,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(20, 16)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_13_2()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<Buffer10<int>> F;
+}
+
+class Program
+{
+    static System.Span<Buffer10<int>> M2(C x) => ((System.Span<Buffer10<int>>)x.F)[..3];
+    static System.Span<Buffer10<int>> M3(C x)
+    { 
+        System.Span<Buffer10<int>> y = ((System.Span<Buffer10<int>>)x.F)[..3];
+        return y;
+    }
+
+    static System.ReadOnlySpan<Buffer10<int>> M4(C x) => ((System.ReadOnlySpan<Buffer10<int>>)x.F)[..3];
+    static System.ReadOnlySpan<Buffer10<int>> M5(C x)
+    { 
+        System.ReadOnlySpan<Buffer10<int>> y = ((System.ReadOnlySpan<Buffer10<int>>)x.F)[..3];
+        return y;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (9,79): error CS8167: Cannot return by reference a member of parameter 'x' because it is not a ref or out parameter
+                //     static System.Span<Buffer10<int>> M2(C x) => ((System.Span<Buffer10<int>>)x.F)[..3];
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "x").WithArguments("x").WithLocation(9, 79),
+                // (13,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(13, 16),
+                // (16,95): error CS8167: Cannot return by reference a member of parameter 'x' because it is not a ref or out parameter
+                //     static System.ReadOnlySpan<Buffer10<int>> M4(C x) => ((System.ReadOnlySpan<Buffer10<int>>)x.F)[..3];
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "x").WithArguments("x").WithLocation(16, 95),
+                // (20,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(20, 16)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_14_1()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<Buffer10<int>> F;
+
+    public System.Span<int> M2() => F[..5][0];
+
+    public System.Span<int> M3()
+    { 
+        System.Span<int> y = F[..5][0];
+        return y;
+    }
+
+    public System.ReadOnlySpan<int> M4() => F[..5][0];
+
+    public System.ReadOnlySpan<int> M5()
+    { 
+        System.ReadOnlySpan<int> y = F[..5][0];
+        return y;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (6,37): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     public System.Span<int> M2() => F[..5][0];
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F[..5]").WithLocation(6, 37),
+                // (11,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(11, 16),
+                // (14,45): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     public System.ReadOnlySpan<int> M4() => F[..5][0];
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F[..5]").WithLocation(14, 45),
+                // (19,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(19, 16)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_14_2()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<Buffer10<int>> F;
+
+    public System.Span<Buffer10<int>> M2() => ((System.Span<Buffer10<int>>)F)[..3];
+
+    public System.Span<Buffer10<int>> M3()
+    { 
+        System.Span<Buffer10<int>> y = ((System.Span<Buffer10<int>>)F)[..3];
+        return y;
+    }
+
+    public System.ReadOnlySpan<Buffer10<int>> M4() => ((System.ReadOnlySpan<Buffer10<int>>)F)[..3];
+
+    public System.ReadOnlySpan<Buffer10<int>> M5()
+    { 
+        System.ReadOnlySpan<Buffer10<int>> y = ((System.ReadOnlySpan<Buffer10<int>>)F)[..3];
+        return y;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (6,48): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     public System.Span<Buffer10<int>> M2() => ((System.Span<Buffer10<int>>)F)[..3];
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "(System.Span<Buffer10<int>>)F").WithLocation(6, 48),
+                // (11,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(11, 16),
+                // (14,56): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     public System.ReadOnlySpan<Buffer10<int>> M4() => ((System.ReadOnlySpan<Buffer10<int>>)F)[..3];
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "(System.ReadOnlySpan<Buffer10<int>>)F").WithLocation(14, 56),
+                // (19,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(19, 16)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_15_1()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<Buffer10<int>> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        M2(ref x)[0] = 111;
+        System.Console.Write(M1(ref x)[0]);
+    }
+
+    static System.ReadOnlySpan<int> M1(ref C x) => x.F[..5][0];
+    static System.Span<int> M2(ref C x) => x.F[..5][0];
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_15_2()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<Buffer10<int>> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        M2(ref x)[0][0] = 111;
+        System.Console.Write(M1(ref x)[0][0]);
+    }
+
+    static System.ReadOnlySpan<Buffer10<int>> M1(ref C x) => ((System.ReadOnlySpan<Buffer10<int>>)x.F)[..3];
+    static System.Span<Buffer10<int>> M2(ref C x) => ((System.Span<Buffer10<int>>)x.F)[..3];
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_16_1()
+        {
+            var src = @"
+struct C
+{
+    private Buffer10<Buffer10<int>> F;
+
+    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+    public System.ReadOnlySpan<int> M1() => F[..5][0];
+
+    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+    public System.Span<int> M2() => F[..5][0];
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.M2()[0] = 111;
+        System.Console.Write(x.M1()[0]);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_16_2()
+        {
+            var src = @"
+struct C
+{
+    private Buffer10<Buffer10<int>> F;
+
+    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+    public System.ReadOnlySpan<Buffer10<int>> M1() => ((System.ReadOnlySpan<Buffer10<int>>)F)[..3];
+
+    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+    public System.Span<Buffer10<int>> M2() => ((System.Span<Buffer10<int>>)F)[..3];
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.M2()[0][0] = 111;
+        System.Console.Write(x.M1()[0][0]);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_17_1()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<Buffer10<int>> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        M2(ref x)[0] = 111;
+        System.Console.Write(M1(ref x)[0]);
+    }
+
+    static System.ReadOnlySpan<int> M1(ref C x)
+    {
+        System.ReadOnlySpan<int> y = x.F[..5][0];
+        return y;
+    }
+
+    static System.Span<int> M2(ref C x)
+    {
+        System.Span<int> y = x.F[..5][0];
+        return y;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_17_2()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<Buffer10<int>> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        M2(ref x)[0][0] = 111;
+        System.Console.Write(M1(ref x)[0][0]);
+    }
+
+    static System.ReadOnlySpan<Buffer10<int>> M1(ref C x)
+    {
+        System.ReadOnlySpan<Buffer10<int>> y = ((System.ReadOnlySpan<Buffer10<int>>)x.F)[..3];
+        return y;
+    }
+
+    static System.Span<Buffer10<int>> M2(ref C x)
+    {
+        System.Span<Buffer10<int>> y = ((System.Span<Buffer10<int>>)x.F)[..3];
+        return y;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_18_1()
+        {
+            var src = @"
+struct C
+{
+    private Buffer10<Buffer10<int>> F;
+
+    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+    public System.ReadOnlySpan<int> M1()
+    {
+        System.ReadOnlySpan<int> y = F[..5][0];
+        return y;
+    }
+
+    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+    public System.Span<int> M2()
+    {
+        System.Span<int> y = F[..5][0];
+        return y;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.M2()[0] = 111;
+        System.Console.Write(x.M1()[0]);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_18_2()
+        {
+            var src = @"
+struct C
+{
+    private Buffer10<Buffer10<int>> F;
+
+    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+    public System.ReadOnlySpan<Buffer10<int>> M1()
+    {
+        System.ReadOnlySpan<Buffer10<int>> y = ((System.ReadOnlySpan<Buffer10<int>>)F)[..3];
+        return y;
+    }
+
+    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+    public System.Span<Buffer10<int>> M2()
+    {
+        System.Span<Buffer10<int>> y = ((System.Span<Buffer10<int>>)F)[..3];
+        return y;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.M2()[0][0] = 111;
+        System.Console.Write(x.M1()[0][0]);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_IsRValue()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        ((System.Span<int>)x.F) = default;
+        ((System.ReadOnlySpan<int>)x.F) = default;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (12,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         ((System.Span<int>)x.F) = default;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "(System.Span<int>)x.F").WithLocation(12, 10),
+                // (13,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         ((System.ReadOnlySpan<int>)x.F) = default;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "(System.ReadOnlySpan<int>)x.F").WithLocation(13, 10)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_Readonly_01()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<int> F;
+
+    public C()
+    {
+        var b = new Buffer10<int>();
+        b[0] = 111;
+        F = b;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(M2(c)[0]);
+    }
+
+    static System.ReadOnlySpan<int> M2(in C c) => c.F;
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_Readonly_02()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<int> F;
+
+    public C()
+    {
+        var b = new Buffer10<int>();
+        b[0] = 111;
+        F = b;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(M2(c)[0]);
+    }
+
+    static System.ReadOnlySpan<int> M2(in C c)
+    {
+        System.ReadOnlySpan<int> x = c.F;
+        return x;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Variable_Readonly_04()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<int> F;
+
+    public C()
+    {
+        var b = new Buffer10<int>();
+        b[0] = 111;
+        F = b;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(M2(c));
+    }
+
+    static int M2(in C c)
+    {
+        return M4(c.F);
+    }
+
+    static int M4(System.Span<int> x)
+    {
+        return x[0];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (24,19): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                //         return M4(c.F);
+                Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "c.F").WithArguments("System.Span<int>").WithLocation(24, 19)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_ReadonlyContext_01()
+        {
+            var src = @"
+class C
+{
+    public readonly Buffer10<int> F;
+
+    public C()
+    {
+        F = new Buffer10<int>();
+        ((System.Span<int>)F)[0] = 111;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(M2(c)[0]);
+    }
+
+    static System.ReadOnlySpan<int> M2(C c) => c.F;
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_ReadonlyContext_04()
+        {
+            var src = @"
+class C
+{
+    public readonly Buffer10<int> F;
+}
+
+class Program
+{
+    static int M2(C c)
+    {
+        return M4(c.F);
+    }
+
+    static int M4(System.Span<int> x)
+    {
+        return x[0];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics(
+                // (11,19): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                //         return M4(c.F);
+                Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "c.F").WithArguments("System.Span<int>").WithLocation(11, 19)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_ReadonlyContext_12()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<int> F;
+
+    public C()
+    {
+        var b = new Buffer10<int>();
+        b[0] = 111;
+        F = b;
+    }
+
+    public readonly int M2()
+    {
+        return M4(F);
+    }
+
+    static int M4(System.Span<int> x)
+    {
+        return x[0];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics(
+                // (15,19): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                //         return M4(F);
+                Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "F").WithArguments("System.Span<int>").WithLocation(15, 19)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_ReadonlyContext_14()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<int> F;
+
+    public C()
+    {
+        var b = new Buffer10<int>();
+        b[0] = 111;
+        F = b;
+    }
+
+    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+    public readonly System.ReadOnlySpan<int> M2()
+    {
+        System.ReadOnlySpan<int> x = F;
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(c.M2()[0]);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M2",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_000d:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Value_01()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(M2());
+    }
+
+    static int M2() => M4(M3(), default);
+
+    static Buffer10<int> M3()
+    {
+        var b = new Buffer10<int>();
+        b[0] = 111;
+        return b;
+    }
+
+    static int M4(System.ReadOnlySpan<int> x, Buffer10<int> y)
+    {
+        return x[0];
+    }
+
+    static int M5() => M6(M3(), default);
+
+    static int M6(System.Span<int> x, Buffer10<int> y)
+    {
+        return x[0];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (9,27): error CS9502: Cannot convert expression to 'ReadOnlySpan<int>' because it may not be passed or returned by reference
+                //     static int M2() => M4(M3(), default);
+                Diagnostic(ErrorCode.ERR_InlineArrayConversionToReadOnlySpanNotSupported, "M3()").WithArguments("System.ReadOnlySpan<int>").WithLocation(9, 27),
+                // (23,27): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                //     static int M5() => M6(M3(), default);
+                Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "M3()").WithArguments("System.Span<int>").WithLocation(23, 27)
+                );
+
+            // PROTOTYPE(InlineArrays)
+            //var tree = comp.SyntaxTrees.First();
+            //var model = comp.GetSemanticModel(tree);
+
+            //            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
+            //            var m2Operation = model.GetOperation(m2);
+            //            VerifyOperationTree(comp, m2Operation,
+            //@"
+            //");
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Value_02()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(M2());
+    }
+
+    static int M2() => M4(M3(), default);
+
+    static Buffer10<int>? M3() => null;
+
+    static int M4(System.ReadOnlySpan<int>? x, Buffer10<int> y)
+    {
+        return 0;
+    }
+
+    static int M5() => M6(M3(), default);
+
+    static int M6(System.Span<int>? x, Buffer10<int> y)
+    {
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (9,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>?' to 'System.ReadOnlySpan<int>?'
+                //     static int M2() => M4(M3(), default);
+                Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>?", "System.ReadOnlySpan<int>?").WithLocation(9, 27),
+                // (13,45): error CS0306: The type 'ReadOnlySpan<int>' may not be used as a type argument
+                //     static int M4(System.ReadOnlySpan<int>? x, Buffer10<int> y)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("System.ReadOnlySpan<int>").WithLocation(13, 45),
+                // (18,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>?' to 'System.Span<int>?'
+                //     static int M5() => M6(M3(), default);
+                Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>?", "System.Span<int>?").WithLocation(18, 27),
+                // (20,37): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //     static int M6(System.Span<int>? x, Buffer10<int> y)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("System.Span<int>").WithLocation(20, 37)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Value_03()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(M2());
+    }
+
+    static int M2() => M4((System.ReadOnlySpan<int>)M3(), default);
+
+    static Buffer10<int>? M3() => null;
+
+    static int M4(System.ReadOnlySpan<int> x, Buffer10<int> y)
+    {
+        return x[0];
+    }
+
+    static int M5() => M6((System.Span<int>)M3(), default);
+
+    static int M6(System.Span<int> x, Buffer10<int> y)
+    {
+        return x[0];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (9,27): error CS0030: Cannot convert type 'Buffer10<int>?' to 'System.ReadOnlySpan<int>'
+                //     static int M2() => M4((System.ReadOnlySpan<int>)M3(), default);
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(System.ReadOnlySpan<int>)M3()").WithArguments("Buffer10<int>?", "System.ReadOnlySpan<int>").WithLocation(9, 27),
+                // (18,27): error CS0030: Cannot convert type 'Buffer10<int>?' to 'System.Span<int>'
+                //     static int M5() => M6((System.Span<int>)M3(), default);
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(System.Span<int>)M3()").WithArguments("Buffer10<int>?", "System.Span<int>").WithLocation(18, 27)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Value_04()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(M2());
+    }
+
+    static int M2() => M4(M3(), default);
+
+    static Buffer10<int> M3() => default;
+
+    static int M4(System.ReadOnlySpan<int>? x, Buffer10<int> y)
+    {
+        return 0;
+    }
+
+    static int M5() => M6(M3(), default);
+
+    static int M6(System.Span<int>? x, Buffer10<int> y)
+    {
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            // Once we stop reporting error CS0306: The type 'ReadOnlySpan<int>' may not be used as a type argument
+            // We might decide to allow a conversion from an inline array expression to nullable span types, but this scenario 
+            // should still remain an error in that case because the expression is a value.
+            comp.VerifyDiagnostics(
+                // (9,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>' to 'System.ReadOnlySpan<int>?'
+                //     static int M2() => M4(M3(), default);
+                Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>", "System.ReadOnlySpan<int>?").WithLocation(9, 27),
+                // (13,45): error CS0306: The type 'ReadOnlySpan<int>' may not be used as a type argument
+                //     static int M4(System.ReadOnlySpan<int>? x, Buffer10<int> y)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("System.ReadOnlySpan<int>").WithLocation(13, 45),
+                // (18,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>' to 'System.Span<int>?'
+                //     static int M5() => M6(M3(), default);
+                Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>", "System.Span<int>?").WithLocation(18, 27),
+                // (20,37): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //     static int M6(System.Span<int>? x, Buffer10<int> y)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("System.Span<int>").WithLocation(20, 37)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_NotFromType_01()
+        {
+            var src = @"
+class Program
+{
+    public static implicit operator Buffer10<int>(Program x) => default;
+
+    static void Main()
+    {
+        var x = new Program();
+
+        _ = (Buffer10<int>)x;
+        _ = (System.Span<int>)x;
+        _ = (System.ReadOnlySpan<int>)x;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS0030: Cannot convert type 'Program' to 'System.Span<int>'
+                //         _ = (System.Span<int>)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(System.Span<int>)x").WithArguments("Program", "System.Span<int>").WithLocation(11, 13),
+                // (12,13): error CS0030: Cannot convert type 'Program' to 'System.ReadOnlySpan<int>'
+                //         _ = (System.ReadOnlySpan<int>)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(System.ReadOnlySpan<int>)x").WithArguments("Program", "System.ReadOnlySpan<int>").WithLocation(12, 13)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_NotFromType_02()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        Buffer10 b = default;
+        b[0] = 111;
+        System.Console.Write(((System.ReadOnlySpan<int>)b)[0]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+public struct Buffer10
+{
+    private int _element0;
+
+    public static implicit operator System.ReadOnlySpan<int>(Buffer10 x) => new[] { -111 };
+}
+" + InlineArrayAttributeDefinition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Standard_01()
+        {
+            var src = @"
+class C
+{
+    public int F;
+
+    public static implicit operator C(System.ReadOnlySpan<int> x) => new C() { F = x[0] };
+}
+
+class Program
+{
+    static void Main()
+    {
+        Buffer10<int> b = default;
+        b[0] = 111;
+        System.Console.Write(((C)b).F);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Standard_02()
+        {
+            var src = @"
+class C
+{
+    public int F;
+
+    public static implicit operator C(System.Span<int> x) => new C() { F = x[0] };
+}
+
+class Program
+{
+    static void Main()
+    {
+        Buffer10<int> b = default;
+        b[0] = 111;
+        System.Console.Write(((C)b).F);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Standard_03()
+        {
+            var src = @"
+class C
+{
+    public int F;
+
+    public static implicit operator C(System.ReadOnlySpan<int> x) => new C() { F = x[0] + 1 };
+    public static implicit operator C(System.Span<int> x) => new C() { F = x[0] - 1 };
+}
+
+class Program
+{
+    static void Main()
+    {
+        Buffer10<int> b = default;
+        b[0] = 111;
+        System.Console.Write(((C)b).F);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (16,31): error CS0457: Ambiguous user defined conversions 'C.implicit operator C(ReadOnlySpan<int>)' and 'C.implicit operator C(Span<int>)' when converting from 'Buffer10<int>' to 'C'
+                //         System.Console.Write(((C)b).F);
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "(C)b").WithArguments("C.implicit operator C(System.ReadOnlySpan<int>)", "C.implicit operator C(System.Span<int>)", "Buffer10<int>", "C").WithLocation(16, 31)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Standard_04()
+        {
+            var src = @"
+class C
+{
+    public int F;
+
+    public static implicit operator C(System.ReadOnlySpan<int> x) => new C() { F = x[0] + 1 };
+    public static implicit operator C(System.Span<int> x) => new C() { F = x[0] - 1 };
+}
+
+class Program
+{
+    static void Main()
+    {
+        Buffer10<int> b = default;
+        b[0] = 111;
+        Test(in b);
+    }
+
+    static void Test(in Buffer10<int> b)
+    {
+        System.Console.Write(((C)b).F);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (21,31): error CS0457: Ambiguous user defined conversions 'C.implicit operator C(ReadOnlySpan<int>)' and 'C.implicit operator C(Span<int>)' when converting from 'Buffer10<int>' to 'C'
+                //         System.Console.Write(((C)b).F);
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "(C)b").WithArguments("C.implicit operator C(System.ReadOnlySpan<int>)", "C.implicit operator C(System.Span<int>)", "Buffer10<int>", "C").WithLocation(21, 31)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Standard_05()
+        {
+            var src = @"
+class C
+{
+    public int F;
+
+    public static implicit operator C(System.Span<int> x) => new C() { F = x[0] - 1 };
+}
+
+class Program
+{
+    static void Main()
+    {
+        Buffer10<int> b = default;
+        b[0] = 111;
+        Test(in b);
+    }
+
+    static void Test(in Buffer10<int> b)
+    {
+        System.Console.Write(((C)b).F);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (20,34): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                //         System.Console.Write(((C)b).F);
+                Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "b").WithArguments("System.Span<int>").WithLocation(20, 34)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Standard_06()
+        {
+            var src = @"
+class C
+{
+    public int F;
+
+    public static implicit operator C(System.ReadOnlySpan<int> x) => new C() { F = x[0] };
+}
+
+class Program
+{
+    static void Main()
+    {
+        Buffer10<int> b = default;
+        b[0] = 111;
+        Test(in b);
+    }
+
+    static void Test(in Buffer10<int> b)
+    {
+        System.Console.Write(((C)b).F);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Standard_07()
+        {
+            var src = @"
+class C
+{
+    public int F;
+
+    public static implicit operator C(System.ReadOnlySpan<int> x) => new C() { F = x[0] };
+}
+
+class Program
+{
+    static void Main()
+    {
+        Buffer10<int> b = default;
+        b[0] = 111;
+        System.Console.Write(((C)new Buffer10<int>()).F);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (15,34): error CS9502: Cannot convert expression to 'ReadOnlySpan<int>' because it may not be passed or returned by reference
+                //         System.Console.Write(((C)new Buffer10<int>()).F);
+                Diagnostic(ErrorCode.ERR_InlineArrayConversionToReadOnlySpanNotSupported, "new Buffer10<int>()").WithArguments("System.ReadOnlySpan<int>").WithLocation(15, 34)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_Standard_08()
+        {
+            var src = @"
+class C
+{
+    public int F;
+
+    public static implicit operator C(System.Span<int> x) => new C() { F = x[0] };
+}
+
+class Program
+{
+    static void Main()
+    {
+        Buffer10<int> b = default;
+        b[0] = 111;
+        System.Console.Write(((C)new Buffer10<int>()).F);
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (15,34): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                //         System.Console.Write(((C)new Buffer10<int>()).F);
+                Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "new Buffer10<int>()").WithArguments("System.Span<int>").WithLocation(15, 34)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Conversion_ElementTypeMismatch()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        Buffer10<int> b = default;
+        _ = (System.Span<long>)b;
+        _ = (System.ReadOnlySpan<long>)b;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0030: Cannot convert type 'Buffer10<int>' to 'System.Span<long>'
+                //         _ = (System.Span<long>)b;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(System.Span<long>)b").WithArguments("Buffer10<int>", "System.Span<long>").WithLocation(7, 13),
+                // (8,13): error CS0030: Cannot convert type 'Buffer10<int>' to 'System.ReadOnlySpan<long>'
+                //         _ = (System.ReadOnlySpan<long>)b;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(System.ReadOnlySpan<long>)b").WithArguments("Buffer10<int>", "System.ReadOnlySpan<long>").WithLocation(8, 13)
+                );
+        }
+
+        // PROTOTYPE(InlineArrays):
+        [Fact(Skip = "Test host process crashed : Stack overflow.")]
+        public void CycleThroughAttributes_01()
+        {
+            var source =
+@"using System;
+ 
+public class A : Attribute
+{
+    public A(System.Span<int> x) {}
+}
+ 
+[A(default(Buffer10))]
+[System.Runtime.CompilerServices.InlineArray(10)]
+public struct Buffer10
+{
+    private int _element0;
+}
+" + InlineArrayAttributeDefinition;
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            compilation.VerifyDiagnostics();
+        }
+
+        // PROTOTYPE(InlineArrays):
+        [Fact(Skip = "Test host process crashed : Stack overflow.")]
+        public void CycleThroughAttributes_02()
+        {
+            var source =
+@"using System;
+ 
+public class A : Attribute
+{
+    public A(int x) {}
+}
+ 
+[A(default(Buffer10)[0])]
+[System.Runtime.CompilerServices.InlineArray(10)]
+public struct Buffer10
+{
+    private int _element0;
+}
+" + InlineArrayAttributeDefinition;
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            compilation.VerifyDiagnostics();
+        }
+
+        // PROTOTYPE(InlineArrays):
+        [Fact(Skip = "Test host process crashed : Stack overflow.")]
+        public void CycleThroughAttributes_03()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    public static Buffer10 F = default;
+}
+ 
+[System.Runtime.CompilerServices.InlineArray(((System.Span<int>)C.F)[0])]
+public struct Buffer10
+{
+    private int _element0;
+}
+" + InlineArrayAttributeDefinition;
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            compilation.VerifyDiagnostics();
+        }
+
+        // PROTOTYPE(InlineArrays):
+        [Fact(Skip = "Test host process crashed : Stack overflow.")]
+        public void CycleThroughAttributes_04()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    public static Buffer10 F = default;
+}
+ 
+[System.Runtime.CompilerServices.InlineArray(C.F[0])]
+public struct Buffer10
+{
+    private int _element0;
+}
+" + InlineArrayAttributeDefinition;
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            compilation.VerifyDiagnostics();
         }
     }
 }

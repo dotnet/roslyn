@@ -7350,6 +7350,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.InterpolatedString:
                     return true;
                 default:
+                    if (value.Type.HasInlineArrayAttribute(out _) == true &&
+                        value.Type.TryGetInlineArrayElementType() is { HasType: true })
+                    {
+                        return true;
+                    }
+
                     return false;
             }
         }
@@ -8251,6 +8257,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitEnumeration:
                     // Can reach here, with an error type.
+                    break;
+
+                case ConversionKind.InlineArray:
+                    if (checkConversion)
+                    {
+                        conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false);
+                        canConvertNestedNullability = conversion.Exists;
+                    }
                     break;
 
                 default:

@@ -778,6 +778,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var assignment = (BoundAssignmentOperator)expr;
                     return CheckSimpleAssignmentValueKind(node, assignment, valueKind, diagnostics);
 
+                case BoundKind.ValuePlaceholder:
+                    // Strict RValue
+                    break;
+
                 default:
                     Debug.Assert(expr is not BoundValuePlaceholderBase, $"Placeholder kind {expr.Kind} should be explicitly handled");
                     break;
@@ -3787,6 +3791,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetInterpolatedStringHandlerConversionEscapeScope(conversion.Operand, scopeOfTheContainingExpression);
                     }
 
+                    if (conversion.Conversion.IsInlineArray)
+                    {
+                        // PROTOTYPE(InlineArrays): Confirm the rules
+                        return Math.Max(GetValEscape(conversion.Operand, scopeOfTheContainingExpression),
+                                        GetRefEscape(conversion.Operand, scopeOfTheContainingExpression));
+                    }
+
                     return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
 
                 case BoundKind.AssignmentOperator:
@@ -4274,6 +4285,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (conversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
                     {
                         return CheckInterpolatedStringHandlerConversionEscape(conversion.Operand, escapeFrom, escapeTo, diagnostics);
+                    }
+
+                    if (conversion.Conversion.IsInlineArray)
+                    {
+                        // PROTOTYPE(InlineArrays): Confirm the rules
+                        return CheckValEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver, diagnostics) &&
+                               CheckRefEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver, diagnostics);
                     }
 
                     return CheckValEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);

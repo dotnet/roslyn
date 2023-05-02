@@ -2192,6 +2192,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConstantValueOfTypeExpected = 9135,
         ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
 
+        ERR_InlineArrayConversionToSpanNotSupported = 9501, // PROTOTYPE(InlineArrays): Pack numbers
+        ERR_InlineArrayConversionToReadOnlySpanNotSupported = 9502,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

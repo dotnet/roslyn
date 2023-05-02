@@ -760,6 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                // PROTOTYPE(InlineArrays): Disallow in expression trees
                 case ConversionKind.InterpolatedStringHandler:
                     if (_inExpressionLambda)
                     {
