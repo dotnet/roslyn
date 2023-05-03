@@ -115,5 +115,15 @@ namespace Microsoft.CodeAnalysis
 
             return wrappedComparer;
         }
+
+        internal static Func<TSource, CancellationToken, ImmutableArray<TSource>> WrapPredicateForSelectMany<TSource>(this Func<TSource, bool> predicate)
+        {
+            return (item, _) => predicate(item) ? ImmutableArray.Create(item) : ImmutableArray<TSource>.Empty;
+        }
+
+        internal static Func<TSource, CancellationToken, ImmutableArray<TSource>> WrapPredicateForSelectMany<TSource>(this Func<TSource, CancellationToken, bool> predicate)
+        {
+            return (item, cancellationToken) => predicate(item, cancellationToken) ? ImmutableArray.Create(item) : ImmutableArray<TSource>.Empty;
+        }
     }
 }

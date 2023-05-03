@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
@@ -69,9 +70,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         // helper for filtering
-        public static IncrementalValuesProvider<TSource> Where<TSource>(this IncrementalValuesProvider<TSource> source, Func<TSource, bool> predicate) => source.SelectMany((item, _) => predicate(item) ? ImmutableArray.Create(item) : ImmutableArray<TSource>.Empty);
+        public static IncrementalValuesProvider<TSource> Where<TSource>(this IncrementalValuesProvider<TSource> source, Func<TSource, bool> predicate)
+        {
+            var selectManyForFilter = source.Node.TransformFactory?.WrapPredicateForSelectMany(predicate) ?? predicate.WrapPredicateForSelectMany();
+            return source.SelectMany(selectManyForFilter);
+        }
 
-        internal static IncrementalValuesProvider<TSource> Where<TSource>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, bool> predicate) => source.SelectMany((item, c) => predicate(item, c) ? ImmutableArray.Create(item) : ImmutableArray<TSource>.Empty);
+        internal static IncrementalValuesProvider<TSource> Where<TSource>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, bool> predicate)
+        {
+            var selectManyForFilter = source.Node.TransformFactory?.WrapPredicateForSelectMany(predicate) ?? predicate.WrapPredicateForSelectMany();
+            return source.SelectMany(selectManyForFilter);
+        }
 
         // custom comparer for given node
         public static IncrementalValueProvider<TSource> WithComparer<TSource>(this IncrementalValueProvider<TSource> source, IEqualityComparer<TSource> comparer)

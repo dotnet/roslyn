@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<(IIncrementalGeneratorNode, string?), IIncrementalGeneratorNode> _withTrackingName = new();
         private readonly Dictionary<object, object> _wrappedUserObjects = new();
         private readonly Dictionary<Delegate, Delegate> _wrappedUserFunctionsAsImmutableArray = new();
+        private readonly Dictionary<Delegate, Delegate> _wrappedPredicateForSelectMany = new();
 
         /// <summary>
         /// Map from a generator node to the result of calling <see cref="IncrementalValueProviderExtensions.Collect{TSource}"/> on that generator node.
@@ -111,6 +112,26 @@ namespace Microsoft.CodeAnalysis
             var wrappedUserFunctionAsImmutableArrayT = userFunction.WrapUserFunctionAsImmutableArray();
             _wrappedUserFunctionsAsImmutableArray.Add(userFunction, wrappedUserFunctionAsImmutableArrayT);
             return wrappedUserFunctionAsImmutableArrayT;
+        }
+
+        internal Func<TSource, CancellationToken, ImmutableArray<TSource>> WrapPredicateForSelectMany<TSource>(Func<TSource, bool> predicate)
+        {
+            if (_wrappedPredicateForSelectMany.TryGetValue(predicate, out var wrappedPredicateForSelectMany))
+                return (Func<TSource, CancellationToken, ImmutableArray<TSource>>)wrappedPredicateForSelectMany;
+
+            var wrappedPredicateForSelectManyT = predicate.WrapPredicateForSelectMany();
+            _wrappedPredicateForSelectMany.Add(predicate, wrappedPredicateForSelectManyT);
+            return wrappedPredicateForSelectManyT;
+        }
+
+        internal Func<TSource, CancellationToken, ImmutableArray<TSource>> WrapPredicateForSelectMany<TSource>(Func<TSource, CancellationToken, bool> predicate)
+        {
+            if (_wrappedPredicateForSelectMany.TryGetValue(predicate, out var wrappedPredicateForSelectMany))
+                return (Func<TSource, CancellationToken, ImmutableArray<TSource>>)wrappedPredicateForSelectMany;
+
+            var wrappedPredicateForSelectManyT = predicate.WrapPredicateForSelectMany();
+            _wrappedPredicateForSelectMany.Add(predicate, wrappedPredicateForSelectManyT);
+            return wrappedPredicateForSelectManyT;
         }
 
         internal BatchNode<TSource> Collect<TSource>(IIncrementalGeneratorNode<TSource> node)
