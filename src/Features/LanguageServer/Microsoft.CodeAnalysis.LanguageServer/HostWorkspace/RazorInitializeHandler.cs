@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [Method("razor/initialize")]
 internal class RazorInitializeHandler : ILspServiceNotificationHandler<object>
 {
-    private readonly RazorWorkspaceListenerInitializer _razorWorkspaceListenerInitializer;
+    private readonly Lazy<RazorWorkspaceListenerInitializer> _razorWorkspaceListenerInitializer;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RazorInitializeHandler(RazorWorkspaceListenerInitializer razorWorkspaceListenerInitializer)
+    public RazorInitializeHandler(Lazy<RazorWorkspaceListenerInitializer> razorWorkspaceListenerInitializer)
     {
         _razorWorkspaceListenerInitializer = razorWorkspaceListenerInitializer;
     }
@@ -27,7 +27,7 @@ internal class RazorInitializeHandler : ILspServiceNotificationHandler<object>
 
     Task INotificationHandler<object, RequestContext>.HandleNotificationAsync(object request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        _razorWorkspaceListenerInitializer.Initialize();
+        _razorWorkspaceListenerInitializer.Value.Initialize();
 
         return Task.CompletedTask;
     }

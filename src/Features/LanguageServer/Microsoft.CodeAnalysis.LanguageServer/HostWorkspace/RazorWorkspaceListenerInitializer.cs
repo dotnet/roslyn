@@ -17,28 +17,28 @@ internal sealed class RazorWorkspaceListenerInitializer
     private const string _projectRazorJsonFileName = "project.razor.vscode.json";
 
     private readonly ILogger _logger;
-    private readonly Lazy<LanguageServerWorkspaceFactory> _workspaceFactory;
+    private readonly Workspace _workspace;
     private readonly ILoggerFactory _loggerFactory;
 
     // Locks all access to _razorWorkspaceListener and _projectIdWithDynamicFiles
     private readonly object _initializeGate = new();
-    private readonly HashSet<ProjectId> _projectIdWithDynamicFiles = new();
+    private HashSet<ProjectId> _projectIdWithDynamicFiles = new();
 
     private RazorWorkspaceListener? _razorWorkspaceListener;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RazorWorkspaceListenerInitializer(Lazy<LanguageServerWorkspaceFactory> workspaceFactory, ILoggerFactory loggerFactory)
+    public RazorWorkspaceListenerInitializer(LanguageServerWorkspaceFactory workspaceFactory, ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger(nameof(RazorWorkspaceListenerInitializer));
 
-        _workspaceFactory = workspaceFactory;
+        _workspace = workspaceFactory.Workspace;
         _loggerFactory = loggerFactory;
     }
 
     internal void Initialize()
     {
-        ProjectId[] projectsToInitialize;
+        HashSet<ProjectId> projectsToInitialize;
         lock (_initializeGate)
         {
             // Only initialize once
@@ -49,11 +49,11 @@ internal sealed class RazorWorkspaceListenerInitializer
 
             _logger.LogTrace("Initializing the Razor workspace listener");
             _razorWorkspaceListener = new RazorWorkspaceListener(_loggerFactory);
-            _razorWorkspaceListener.EnsureInitialized(_workspaceFactory.Value.Workspace, _projectRazorJsonFileName);
+            _razorWorkspaceListener.EnsureInitialized(_workspace, _projectRazorJsonFileName);
 
-            projectsToInitialize = _projectIdWithDynamicFiles.ToArray();
+            projectsToInitialize = _projectIdWithDynamicFiles;
             // May as well clear out the collection, it will never get used again anyway.
-            _projectIdWithDynamicFiles.Clear();
+            _projectIdWithDynamicFiles = new();
         }
 
         foreach (var projectId in projectsToInitialize)

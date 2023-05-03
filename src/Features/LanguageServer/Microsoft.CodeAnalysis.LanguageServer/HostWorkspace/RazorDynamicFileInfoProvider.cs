@@ -45,18 +45,18 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
     public event EventHandler<string>? Updated;
 #pragma warning restore CS0067
 
-    private readonly RazorWorkspaceListenerInitializer _razorWorkspaceListenerInitializer;
+    private readonly Lazy<RazorWorkspaceListenerInitializer> _razorWorkspaceListenerInitializer;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RazorDynamicFileInfoProvider(RazorWorkspaceListenerInitializer razorWorkspaceListenerInitializer)
+    public RazorDynamicFileInfoProvider(Lazy<RazorWorkspaceListenerInitializer> razorWorkspaceListenerInitializer)
     {
         _razorWorkspaceListenerInitializer = razorWorkspaceListenerInitializer;
     }
 
     public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
-        _razorWorkspaceListenerInitializer.NotifyDynamicFile(projectId);
+        _razorWorkspaceListenerInitializer.Value.NotifyDynamicFile(projectId);
 
         var requestParams = new ProvideDynamicFileParams { RazorFiles = new[] { ProtocolConversions.GetUriFromFilePath(filePath) } };
 
