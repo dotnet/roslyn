@@ -94,10 +94,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 var updatedText = originalText;
                 foreach (var view in _views)
                 {
+                    // Get any changes for the editors. This will return the source text if there are no changes.
                     updatedText = await view.UpdateEditorConfigAsync(updatedText).ConfigureAwait(false);
                 }
 
-                _textUpdater.UpdateText(updatedText.GetTextChanges(originalText));
+                // Save the updates if they are different from what is currently saved
+                if (updatedText != originalText)
+                {
+                    _textUpdater.UpdateText(updatedText.GetTextChanges(originalText));
+                }
             });
         }
 

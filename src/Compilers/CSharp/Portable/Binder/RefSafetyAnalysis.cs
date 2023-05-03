@@ -647,8 +647,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitArgumentsAndGetArgumentPlaceholders(BoundExpression? receiverOpt, ImmutableArray<BoundExpression> arguments)
         {
-            Visit(receiverOpt);
-
             for (int i = 0; i < arguments.Length; i++)
             {
                 var arg = arguments[i];
@@ -663,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode? VisitCall(BoundCall node)
+        protected override void VisitArguments(BoundCall node)
         {
             Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
             VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
@@ -684,7 +682,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _diagnostics);
             }
 
-            return null;
+#if DEBUG
+            if (_visited is { } && _visited.Count <= MaxTrackVisited)
+            {
+                _visited.Add(node);
+            }
+#endif
         }
 
         private void GetInterpolatedStringPlaceholders(
@@ -796,6 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitIndexerAccess(BoundIndexerAccess node)
         {
             Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
+            Visit(node.ReceiverOpt);
             VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
 
             if (!node.HasErrors)

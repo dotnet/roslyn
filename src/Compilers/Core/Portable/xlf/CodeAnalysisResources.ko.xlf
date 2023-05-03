@@ -64,6 +64,11 @@
         <target state="translated">해당 yield return 문이 삭제되었으므로 편집하고 계속하기가 일시 중단된 반복기를 다시 시작할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="new">'end' must not be less than 'start'. start='{0}' end='{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
         <target state="translated">생성기</target>
@@ -502,11 +507,6 @@
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
         <target state="translated">'start'는 음수일 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'end'는 'start'보다 커야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">

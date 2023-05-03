@@ -86,10 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static AliasesAndUsings GetOrCreateAliasAndUsings(
-            ref ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> dictionary,
+            ref ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> dictionary,
             SingleNamespaceDeclaration declaration)
         {
-            return RoslynImmutableInterlocked.GetOrAdd(
+            return ImmutableInterlocked.GetOrAdd(
                 ref dictionary,
                 declaration,
                 static _ => new AliasesAndUsings());

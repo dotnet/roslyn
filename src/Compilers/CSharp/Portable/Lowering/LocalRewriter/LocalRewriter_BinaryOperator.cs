@@ -1578,9 +1578,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeNewNullableBoolean(SyntaxNode syntax, bool? value)
         {
-            NamedTypeSymbol nullableType = _compilation.GetSpecialType(SpecialType.System_Nullable_T);
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
-            NamedTypeSymbol nullableBoolType = nullableType.Construct(boolType);
+            NamedTypeSymbol nullableBoolType = _compilation.GetOrCreateNullableType(boolType);
             if (value == null)
             {
                 return new BoundDefaultExpression(syntax, nullableBoolType);

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression BindQuery(QueryExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureQueryExpression.CheckFeatureAvailability(diagnostics, node, node.FromClause.FromKeyword.GetLocation());
+            MessageID.IDS_FeatureQueryExpression.CheckFeatureAvailability(diagnostics, node.FromClause.FromKeyword);
 
             var fromClause = node.FromClause;
             var boundFromExpression = BindLeftOfPotentialColorColorMemberAccess(fromClause.Expression, diagnostics);

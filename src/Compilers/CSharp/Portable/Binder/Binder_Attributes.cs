@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Check the attribute type (unless the attribute type is already an error).
                     if (boundTypeSymbol.TypeKind != TypeKind.Error)
                     {
-                        var location = attributeToBind.Name.GetLocation();
-                        binder.CheckDisallowedAttributeDependentType(boundType, location, diagnostics);
+                        binder.CheckDisallowedAttributeDependentType(boundType, attributeToBind.Name, diagnostics);
                     }
 
                     boundAttributeTypes[i] = boundTypeSymbol;

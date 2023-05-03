@@ -158,9 +158,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // match on disk anymore.
             var asyncLazy = cachedIndexMap.GetOrAdd(
                 (storageService, documentKey, stringTable),
-                static t => new AsyncLazy<TopLevelSyntaxTreeIndex?>(
-                    c => TopLevelSyntaxTreeIndex.LoadAsync(
-                        t.service, t.documentKey, checksum: null, t.stringTable, c), cacheResult: true));
+                static t => AsyncLazy.Create(
+                    c => TopLevelSyntaxTreeIndex.LoadAsync(t.service, t.documentKey, checksum: null, t.stringTable, c)));
             return asyncLazy.GetValueAsync(cancellationToken);
         }
     }

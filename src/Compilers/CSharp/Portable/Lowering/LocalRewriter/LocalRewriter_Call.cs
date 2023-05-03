@@ -137,41 +137,78 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            // Rewrite the receiver
-            BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
-            var argRefKindsOpt = node.ArgumentRefKindsOpt;
+            BoundExpression rewrittenCall;
 
-            ArrayBuilder<LocalSymbol>? temps = null;
-            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
-                ref rewrittenReceiver,
-                captureReceiverMode: ReceiverCaptureMode.Default,
-                node.Arguments,
-                node.Method,
-                node.ArgsToParamsOpt,
-                argRefKindsOpt,
-                storesOpt: null,
-                ref temps);
-
-            var rewrittenCall = MakeArgumentsAndCall(
-                syntax: node.Syntax,
-                rewrittenReceiver: rewrittenReceiver,
-                method: node.Method,
-                arguments: rewrittenArguments,
-                argumentRefKindsOpt: argRefKindsOpt,
-                expanded: node.Expanded,
-                invokedAsExtensionMethod: node.InvokedAsExtensionMethod,
-                argsToParamsOpt: node.ArgsToParamsOpt,
-                resultKind: node.ResultKind,
-                type: node.Type,
-                temps,
-                nodeOpt: node);
-
-            if (Instrument)
+            if (node.ReceiverOpt is BoundCall receiver1)
             {
-                rewrittenCall = Instrumenter.InstrumentCall(node, rewrittenCall);
+                var calls = ArrayBuilder<BoundCall>.GetInstance();
+
+                calls.Push(node);
+                node = receiver1;
+
+                while (node.ReceiverOpt is BoundCall receiver2)
+                {
+                    calls.Push(node);
+                    node = receiver2;
+                }
+
+                // Rewrite the receiver
+                BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+
+                do
+                {
+                    rewrittenCall = visitArgumentsAndFinishRewrite(node, rewrittenReceiver);
+                    rewrittenReceiver = rewrittenCall;
+                }
+                while (calls.TryPop(out node!));
+
+                calls.Free();
+            }
+            else
+            {
+                // Rewrite the receiver
+                BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+                rewrittenCall = visitArgumentsAndFinishRewrite(node, rewrittenReceiver);
             }
 
             return rewrittenCall;
+
+            BoundExpression visitArgumentsAndFinishRewrite(BoundCall node, BoundExpression? rewrittenReceiver)
+            {
+                var argRefKindsOpt = node.ArgumentRefKindsOpt;
+
+                ArrayBuilder<LocalSymbol>? temps = null;
+                var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                    ref rewrittenReceiver,
+                    captureReceiverMode: ReceiverCaptureMode.Default,
+                    node.Arguments,
+                    node.Method,
+                    node.ArgsToParamsOpt,
+                    argRefKindsOpt,
+                    storesOpt: null,
+                    ref temps);
+
+                var rewrittenCall = MakeArgumentsAndCall(
+                    syntax: node.Syntax,
+                    rewrittenReceiver: rewrittenReceiver,
+                    method: node.Method,
+                    arguments: rewrittenArguments,
+                    argumentRefKindsOpt: argRefKindsOpt,
+                    expanded: node.Expanded,
+                    invokedAsExtensionMethod: node.InvokedAsExtensionMethod,
+                    argsToParamsOpt: node.ArgsToParamsOpt,
+                    resultKind: node.ResultKind,
+                    type: node.Type,
+                    temps,
+                    nodeOpt: node);
+
+                if (Instrument)
+                {
+                    rewrittenCall = Instrumenter.InstrumentCall(node, rewrittenCall);
+                }
+
+                return rewrittenCall;
+            }
         }
 
         private BoundExpression MakeArgumentsAndCall(
