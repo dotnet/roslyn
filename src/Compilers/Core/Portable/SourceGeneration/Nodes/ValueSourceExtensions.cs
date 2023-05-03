@@ -17,13 +17,15 @@ namespace Microsoft.CodeAnalysis
         public static IncrementalValueProvider<TResult> Select<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, CancellationToken, TResult> selector)
         {
             var wrappedUserFunction = source.Node.TransformFactory?.WrapUserFunction(selector) ?? selector.WrapUserFunction();
-            return new IncrementalValueProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, wrappedUserFunction));
+            var transformNode = source.Node.TransformFactory?.Select(source.Node, wrappedUserFunction) ?? new TransformNode<TSource, TResult>(source.Node, wrappedUserFunction);
+            return new IncrementalValueProvider<TResult>(transformNode);
         }
 
         public static IncrementalValuesProvider<TResult> Select<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, TResult> selector)
         {
             var wrappedUserFunction = source.Node.TransformFactory?.WrapUserFunction(selector) ?? selector.WrapUserFunction();
-            return new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, wrappedUserFunction));
+            var transformNode = source.Node.TransformFactory?.Select(source.Node, wrappedUserFunction) ?? new TransformNode<TSource, TResult>(source.Node, wrappedUserFunction);
+            return new IncrementalValuesProvider<TResult>(transformNode);
         }
 
         // 1 => many (or none) transform

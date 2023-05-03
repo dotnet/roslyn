@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private readonly Dictionary<(IIncrementalGeneratorNode left, IIncrementalGeneratorNode right), IIncrementalGeneratorNode> _combinedNodes = new();
 
+        /// <summary>
+        /// Map from a generator node and selector to the result of calling <see cref="Select{TSource, TResult}"/>.
+        /// </summary>
+        private readonly Dictionary<(IIncrementalGeneratorNode node, Delegate selector), IIncrementalGeneratorNode> _selectNodes = new();
+
         public T WithContext<T>(
             T node,
             Func<T, TransformFactory, Action<ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode>, T> applyContext,
@@ -152,6 +157,16 @@ namespace Microsoft.CodeAnalysis
             var combineNode = new CombineNode<TLeft, TRight>(node1, node2);
             _combinedNodes.Add((node1, node2), combineNode);
             return combineNode;
+        }
+
+        internal TransformNode<TSource, TResult> Select<TSource, TResult>(IIncrementalGeneratorNode<TSource> node, Func<TSource, CancellationToken, TResult> selector)
+        {
+            if (_selectNodes.TryGetValue((node, selector), out var transformedNode))
+                return (TransformNode<TSource, TResult>)transformedNode;
+
+            var transformNodeT = new TransformNode<TSource, TResult>(node, selector);
+            _selectNodes.Add((node, selector), transformNodeT);
+            return transformNodeT;
         }
     }
 }
