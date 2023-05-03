@@ -196,32 +196,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static LinePosition PositionToLinePosition(LSP.Position position)
             => new LinePosition(position.Line, position.Character);
 
-        public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
-            => new LinePositionSpan(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
-
         public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
         {
-            var linePositionSpan = RangeToLinePositionSpan(range);
-
             try
             {
                 try
                 {
+                    LinePositionSpan linePositionSpan;
+
                     // Per LSP spec, LSP.Range end position is exclusive. If you want to specify a range that 
                     // includes the line ending characters then use an end position denoting the start of the next line.
                     //
                     // The TextLines will throw a ArgumentException if asked for the line after the last line,
                     // despite the call being valid call per the LSP spec. If the end of the input range is one
                     // beyond the end of the file, edit the end character position of the last line in the file.
-                    if (text.Lines.Count == linePositionSpan.End.Line)
+                    if (text.Lines.Count == range.End.Line)
                     {
                         var indexOfLastLine = text.Lines.Count - 1;
                         var lastLineOfText = text.Lines[indexOfLastLine];
                         // Number of characters in the line (inclusive of line ending characters) are the start to the end of line break
                         var endLineCharacterPosition = lastLineOfText.EndIncludingLineBreak - lastLineOfText.Start;
 
-                        var editedEndLinePosition = new LinePosition(indexOfLastLine, endLineCharacterPosition);
-                        linePositionSpan = new LinePositionSpan(linePositionSpan.Start, editedEndLinePosition);
+                        var newEndLinePosition = new LinePosition(indexOfLastLine, endLineCharacterPosition);
+                        linePositionSpan = new LinePositionSpan(PositionToLinePosition(range.Start), newEndLinePosition);
+                    }
+                    else
+                    {
+                        linePositionSpan = new LinePositionSpan(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
                     }
 
                     return text.Lines.GetTextSpan(linePositionSpan);
