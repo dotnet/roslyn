@@ -112,6 +112,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return (solution, solution.Projects.Single().Documents.Single());
         }
 
+        private static Project AddEmptyTestProject(Solution solution)
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            return solution.
+                AddProject(ProjectInfo.Create(
+                    projectId,
+                    VersionStamp.Create(),
+                    "proj",
+                    "proj",
+                    LanguageNames.CSharp,
+                    parseOptions: CSharpParseOptions.Default.WithNoRefSafetyRulesAttribute())
+                    .WithTelemetryId(s_defaultProjectTelemetryId)).GetProject(projectId).
+                WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
+        }
+
         private static Solution AddDefaultTestProject(
             Solution solution,
             string[] sources,
@@ -119,12 +135,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             string additionalFileText = null,
             (string key, string value)[] analyzerConfig = null)
         {
-            var projectId = ProjectId.CreateNewId();
-
-            var project = solution.
-                AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "proj", "proj", LanguageNames.CSharp, parseOptions: CSharpParseOptions.Default.WithNoRefSafetyRulesAttribute()).WithTelemetryId(s_defaultProjectTelemetryId)).GetProject(projectId).
-                WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
-
+            var project = AddEmptyTestProject(solution);
             solution = project.Solution;
 
             if (generator != null)
@@ -241,7 +252,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             ActiveStatementSpanProvider activeStatementSpanProvider = null)
         {
             var result = await session.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
-            return (result.ModuleUpdates, result.GetDiagnosticData(solution));
+            return (result.ModuleUpdates, result.Diagnostics.ToDiagnosticData(solution));
         }
 
         internal static void SetDocumentsState(DebuggingSession session, Solution solution, CommittedSolution.DocumentState state)
@@ -1428,7 +1439,7 @@ class C1
                 {
                     "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True"
+                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
                 }, _telemetryLog);
             }
             else
@@ -1437,7 +1448,7 @@ class C1
                 {
                     "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True"
+                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
                 }, _telemetryLog);
             }
         }
@@ -1563,10 +1574,7 @@ class C { int Y => 2; }
 
             using var _ = CreateWorkspace(out var solution, out var service);
 
-            var project = solution.
-                AddProject("test", "test", LanguageNames.CSharp).
-                AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40));
-
+            var project = AddEmptyTestProject(solution);
             solution = project.Solution;
 
             // compile with source0:
@@ -1645,8 +1653,8 @@ class C { int Y => 2; }
                 {
                     "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=2|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=113|RudeEditSyntaxKind=8875|RudeEditBlocking=True",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True"
+                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=113|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}",
+                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
                 }, _telemetryLog);
             }
             else
@@ -1655,8 +1663,8 @@ class C { int Y => 2; }
                 {
                     "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=2|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=113|RudeEditSyntaxKind=8875|RudeEditBlocking=True",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True"
+                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=113|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}",
+                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
                 }, _telemetryLog);
             }
         }
@@ -2717,7 +2725,7 @@ class G
             Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
             ValidateDelta(updates.Updates.Single());
 
-            void ValidateDelta(ModuleUpdate delta)
+            void ValidateDelta(ManagedHotReloadUpdate delta)
             {
                 // check emitted delta:
                 Assert.Empty(delta.ActiveStatements);
@@ -2733,10 +2741,10 @@ class G
 
             // the update should be stored on the service:
             var pendingUpdate = debuggingSession.GetTestAccessor().GetPendingSolutionUpdate();
-            var (baselineProjectId, newBaseline) = pendingUpdate.EmitBaselines.Single();
+            var newBaseline = pendingUpdate.ProjectBaselines.Single();
             AssertEx.Equal(updates.Updates, pendingUpdate.Deltas);
-            Assert.Equal(document2.Project.Id, baselineProjectId);
-            Assert.Equal(moduleId, newBaseline.OriginalMetadata.GetModuleVersionId());
+            Assert.Equal(document2.Project.Id, newBaseline.ProjectId);
+            Assert.Equal(moduleId, newBaseline.EmitBaseline.OriginalMetadata.GetModuleVersionId());
 
             var readers = debuggingSession.GetTestAccessor().GetBaselineModuleReaders();
             Assert.Equal(2, readers.Length);
@@ -2759,7 +2767,7 @@ class G
                 Assert.Same(readers[1], baselineReaders[1]);
 
                 // verify that baseline is added:
-                Assert.Same(newBaseline, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(document2.Project.Id));
+                Assert.Same(newBaseline.EmitBaseline, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(document2.Project.Id));
 
                 // solution update status after committing an update:
                 (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -2868,15 +2876,15 @@ class G
 
             // the update should be stored on the service:
             var pendingUpdate = debuggingSession.GetTestAccessor().GetPendingSolutionUpdate();
-            var (baselineProjectId, newBaseline) = pendingUpdate.EmitBaselines.Single();
+            var newBaseline = pendingUpdate.ProjectBaselines.Single();
 
             var readers = debuggingSession.GetTestAccessor().GetBaselineModuleReaders();
             Assert.Equal(2, readers.Length);
             Assert.NotNull(readers[0]);
             Assert.NotNull(readers[1]);
 
-            Assert.Equal(document2.Project.Id, baselineProjectId);
-            Assert.Equal(moduleId, newBaseline.OriginalMetadata.GetModuleVersionId());
+            Assert.Equal(document2.Project.Id, newBaseline.ProjectId);
+            Assert.Equal(moduleId, newBaseline.EmitBaseline.OriginalMetadata.GetModuleVersionId());
 
             if (commitUpdate)
             {
@@ -2887,7 +2895,7 @@ class G
                 Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
                 // verify that baseline is added:
-                Assert.Same(newBaseline, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(document2.Project.Id));
+                Assert.Same(newBaseline.EmitBaseline, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(document2.Project.Id));
 
                 // solution update status after committing an update:
                 ExitBreakState(debuggingSession);
@@ -3375,8 +3383,8 @@ class C { int Y => 1; }
 
             // the update should be stored on the service:
             var pendingUpdate = debuggingSession.GetTestAccessor().GetPendingSolutionUpdate();
-            var (_, newBaselineA1) = pendingUpdate.EmitBaselines.Single(b => b.ProjectId == projectA.Id);
-            var (_, newBaselineB1) = pendingUpdate.EmitBaselines.Single(b => b.ProjectId == projectB.Id);
+            var newBaselineA1 = pendingUpdate.ProjectBaselines.Single(b => b.ProjectId == projectA.Id).EmitBaseline;
+            var newBaselineB1 = pendingUpdate.ProjectBaselines.Single(b => b.ProjectId == projectB.Id).EmitBaseline;
 
             var baselineA0 = newBaselineA1.GetInitialEmitBaseline();
             var baselineB0 = newBaselineB1.GetInitialEmitBaseline();
@@ -3423,8 +3431,8 @@ class C { int Y => 1; }
 
             // the update should be stored on the service:
             pendingUpdate = debuggingSession.GetTestAccessor().GetPendingSolutionUpdate();
-            var (_, newBaselineA2) = pendingUpdate.EmitBaselines.Single(b => b.ProjectId == projectA.Id);
-            var (_, newBaselineB2) = pendingUpdate.EmitBaselines.Single(b => b.ProjectId == projectB.Id);
+            var newBaselineA2 = pendingUpdate.ProjectBaselines.Single(b => b.ProjectId == projectA.Id).EmitBaseline;
+            var newBaselineB2 = pendingUpdate.ProjectBaselines.Single(b => b.ProjectId == projectB.Id).EmitBaseline;
 
             Assert.NotSame(newBaselineA1, newBaselineA2);
             Assert.NotSame(newBaselineB1, newBaselineB2);

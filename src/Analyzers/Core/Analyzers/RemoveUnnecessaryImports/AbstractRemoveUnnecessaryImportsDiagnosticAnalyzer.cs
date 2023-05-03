@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             var tree = context.SemanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var unnecessaryImports = UnnecessaryImportsProvider.GetUnnecessaryImports(context.SemanticModel, cancellationToken);
+            var unnecessaryImports = UnnecessaryImportsProvider.GetUnnecessaryImports(context.SemanticModel, context.FilterSpan, cancellationToken);
             if (unnecessaryImports.Any())
             {
                 // The IUnnecessaryImportsService will return individual import pieces that
