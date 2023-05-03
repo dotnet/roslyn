@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return new List<DescriptionItem>().AsReadOnly();
             }
 
-            var sourceText = document.GetTextSynchronously(CancellationToken.None);
+            var sourceText = document.GetTextSynchronously(document.Workspace.CurrentSolution, CancellationToken.None);
             var span = NavigateToUtilities.GetBoundedSpan(_searchResult.NavigableItem, sourceText);
 
             var items = new List<DescriptionItem>
@@ -111,13 +112,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             var document = _searchResult.NavigableItem.Document;
             if (document == null)
             {
-                return 0;
+                return (int)__VSPROVISIONALVIEWINGSTATUS.PVS_Disabled;
             }
 
-            var workspace = document.Project.Solution.Workspace;
+            var workspace = document.Workspace;
             var previewService = workspace.Services.GetService<INavigateToPreviewService>();
 
-            return previewService.GetProvisionalViewingStatus(document);
+            return (int)previewService.GetProvisionalViewingStatus(document);
         }
 
         public void PreviewItem()
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return;
             }
 
-            var workspace = document.Project.Solution.Workspace;
+            var workspace = document.Workspace;
             var previewService = workspace.Services.GetService<INavigateToPreviewService>();
 
             previewService.PreviewItem(this);

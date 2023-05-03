@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Navigation
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// </summary>
         bool IsImplicitlyDeclared { get; }
 
-        Document Document { get; }
+        NavigableDocument Document { get; }
         TextSpan SourceSpan { get; }
 
         /// <summary>
@@ -45,5 +48,39 @@ namespace Microsoft.CodeAnalysis.Navigation
         bool IsStale { get; }
 
         ImmutableArray<INavigableItem> ChildItems { get; }
+
+        public record NavigableDocument(NavigableProject Project, string Name, string? FilePath, IReadOnlyList<string> Folders, DocumentId Id)
+        {
+            public required Workspace Workspace { get; init; }
+
+            public static NavigableDocument FromDocument(Document document)
+                => new(NavigableProject.FromProject(document.Project), document.Name, document.FilePath, document.Folders, document.Id) { Workspace = document.Project.Solution.Workspace };
+
+            internal async ValueTask<Document> GetDocumentAsync(Solution solution, CancellationToken cancellationToken)
+            {
+                if (solution.GetDocument(Id) is { } document)
+                    return document;
+
+                return await solution.GetRequiredDocumentAsync(Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            }
+
+            internal async Task<SourceText> GetTextAsync(Solution solution, CancellationToken cancellationToken)
+            {
+                var document = await GetDocumentAsync(solution, cancellationToken).ConfigureAwait(false);
+                return await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            internal SourceText GetTextSynchronously(Solution solution, CancellationToken cancellationToken)
+            {
+                var document = solution.GetRequiredDocument(Id);
+                return document.GetTextSynchronously(cancellationToken);
+            }
+        }
+
+        public record struct NavigableProject(string Name, ProjectId Id)
+        {
+            public static NavigableProject FromProject(Project project)
+                => new(project.Name, project.Id);
+        }
     }
 }

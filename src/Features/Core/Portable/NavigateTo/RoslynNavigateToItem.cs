@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -16,7 +15,6 @@ using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -108,7 +106,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             /// <summary>
             /// The <see cref="Document"/> that <see cref="_item"/> is contained within.
             /// </summary>
-            private readonly Document _itemDocument;
+            private readonly INavigableItem.NavigableDocument _itemDocument;
 
             /// <summary>
             /// The document the user was editing when they invoked the navigate-to operation.
@@ -124,35 +122,35 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 Document? activeDocument)
             {
                 _item = item;
-                _itemDocument = itemDocument;
+                _itemDocument = INavigableItem.NavigableDocument.FromDocument(itemDocument);
                 if (activeDocument is not null)
                     _activeDocument = (activeDocument.Id, activeDocument.Folders);
 
-                _additionalInformation = ComputeAdditionalInformation();
+                _additionalInformation = ComputeAdditionalInformation(in item, itemDocument);
                 _secondarySort = new Lazy<string>(ComputeSecondarySort);
             }
 
-            private string ComputeAdditionalInformation()
+            private static string ComputeAdditionalInformation(in RoslynNavigateToItem item, Document itemDocument)
             {
                 // For partial types, state what file they're in so the user can disambiguate the results.
-                var combinedProjectName = ComputeCombinedProjectName();
-                return (_item.DeclaredSymbolInfo.IsPartial, IsNonNestedNamedType()) switch
+                var combinedProjectName = ComputeCombinedProjectName(in item, itemDocument);
+                return (item.DeclaredSymbolInfo.IsPartial, IsNonNestedNamedType(in item)) switch
                 {
-                    (true, true) => string.Format(FeaturesResources._0_dash_1, _itemDocument.Name, combinedProjectName),
-                    (true, false) => string.Format(FeaturesResources.in_0_1_2, _item.DeclaredSymbolInfo.ContainerDisplayName, _itemDocument.Name, combinedProjectName),
+                    (true, true) => string.Format(FeaturesResources._0_dash_1, itemDocument.Name, combinedProjectName),
+                    (true, false) => string.Format(FeaturesResources.in_0_1_2, item.DeclaredSymbolInfo.ContainerDisplayName, itemDocument.Name, combinedProjectName),
                     (false, true) => string.Format(FeaturesResources.project_0, combinedProjectName),
-                    (false, false) => string.Format(FeaturesResources.in_0_project_1, _item.DeclaredSymbolInfo.ContainerDisplayName, combinedProjectName),
+                    (false, false) => string.Format(FeaturesResources.in_0_project_1, item.DeclaredSymbolInfo.ContainerDisplayName, combinedProjectName),
                 };
             }
 
-            private string ComputeCombinedProjectName()
+            private static string ComputeCombinedProjectName(in RoslynNavigateToItem item, Document itemDocument)
             {
                 // If there aren't any additional matches in other projects, we don't need to merge anything.
-                if (_item.AdditionalMatchingProjects.Length > 0)
+                if (item.AdditionalMatchingProjects.Length > 0)
                 {
                     // First get the simple project name and flavor for the actual project we got a hit in.  If we can't
                     // figure this out, we can't create a merged name.
-                    var firstProject = _itemDocument.Project;
+                    var firstProject = itemDocument.Project;
                     var (firstProjectName, firstProjectFlavor) = firstProject.State.NameAndFlavor;
 
                     if (firstProjectName != null)
@@ -165,7 +163,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         // Now, do the same for the other projects where we had a match. As above, if we can't figure out the
                         // simple name/flavor, or if the simple project name doesn't match the simple project name we started
                         // with then we can't merge these.
-                        foreach (var additionalProjectId in _item.AdditionalMatchingProjects)
+                        foreach (var additionalProjectId in item.AdditionalMatchingProjects)
                         {
                             var additionalProject = solution.GetRequiredProject(additionalProjectId);
                             var (projectName, projectFlavor) = additionalProject.State.NameAndFlavor;
@@ -181,17 +179,17 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 }
 
                 // Couldn't compute a merged project name (or only had one project).  Just return the name of hte project itself.
-                return _itemDocument.Project.Name;
+                return itemDocument.Project.Name;
             }
 
             string INavigateToSearchResult.AdditionalInformation => _additionalInformation;
 
-            private bool IsNonNestedNamedType()
-                => !_item.DeclaredSymbolInfo.IsNestedType && IsNamedType();
+            private static bool IsNonNestedNamedType(in RoslynNavigateToItem item)
+                => !item.DeclaredSymbolInfo.IsNestedType && IsNamedType(in item);
 
-            private bool IsNamedType()
+            private static bool IsNamedType(in RoslynNavigateToItem item)
             {
-                switch (_item.DeclaredSymbolInfo.Kind)
+                switch (item.DeclaredSymbolInfo.Kind)
                 {
                     case DeclaredSymbolInfoKind.Class:
                     case DeclaredSymbolInfoKind.Record:
@@ -356,7 +354,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             /// </summary>
             bool INavigableItem.IsImplicitlyDeclared => false;
 
-            Document INavigableItem.Document => _itemDocument;
+            INavigableItem.NavigableDocument INavigableItem.Document => _itemDocument;
 
             TextSpan INavigableItem.SourceSpan => _item.DeclaredSymbolInfo.Span;
 
