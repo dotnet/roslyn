@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -30,15 +29,9 @@ namespace Microsoft.CodeAnalysis.Options
         private ImmutableArray<IOptionPersister> _lazyOptionPersisters;
         private ImmutableDictionary<OptionKey2, object?> _currentValues;
 
-        /// <summary>
-        /// Each registered event handler has the lifetime of an associated owning object. This table ensures the weak
-        /// references to the event handlers are not cleaned up while the owning object is still alive.
-        /// </summary>
-        private readonly ConditionalWeakTable<object, EventHandler<OptionChangedEventArgs>> _keepAliveTable = new();
-
         #endregion
 
-        private ImmutableList<WeakReference<EventHandler<OptionChangedEventArgs>>> _weakHandlers = ImmutableList<WeakReference<EventHandler<OptionChangedEventArgs>>>.Empty;
+        private readonly WeakEvent<OptionChangedEventArgs> _optionChanged = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -245,78 +238,21 @@ namespace Microsoft.CodeAnalysis.Options
 
         public void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
         {
-            lock (_gate)
-            {
-                if (_keepAliveTable.TryGetValue(target, out var existingHandler))
-                {
-                    var newHandler = existingHandler + handler;
-#if NET6_0_OR_GREATER
-                    _keepAliveTable.AddOrUpdate(target, newHandler);
-#else
-                    _keepAliveTable.Remove(target);
-                    _keepAliveTable.Add(target, newHandler);
-#endif
-                }
-            }
-
-            ImmutableInterlocked.Update(
-                ref _weakHandlers,
-                static (weakHandlers, handler) =>
-                {
-                    return weakHandlers
-                        .RemoveAll(WeakReferenceExtensions.IsNull)
-                        .Add(new WeakReference<EventHandler<OptionChangedEventArgs>>(handler));
-                },
-                handler);
+            _optionChanged.AddHandler(target, handler);
         }
 
         public void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
         {
-            lock (_gate)
-            {
-                if (_keepAliveTable.TryGetValue(target, out var existingHandler))
-                {
-                    var newHandler = existingHandler - handler;
-                    if (newHandler is null)
-                    {
-                        _keepAliveTable.Remove(target);
-                    }
-                    else
-                    {
-#if NET6_0_OR_GREATER
-                        _keepAliveTable.AddOrUpdate(target, newHandler);
-#else
-                        _keepAliveTable.Remove(target);
-                        _keepAliveTable.Add(target, newHandler);
-#endif
-                    }
-                }
-            }
-
-            ImmutableInterlocked.Update(
-                ref _weakHandlers,
-                static (weakHandlers, handler) =>
-                {
-                    return weakHandlers
-                        .RemoveAll(weakHandler => !weakHandler.TryGetTarget(out var target) || (target - handler) is null);
-                },
-                handler);
+            _optionChanged.RemoveHandler(target, handler);
         }
 
         private void RaiseOptionChangedEvent(List<OptionChangedEventArgs> changedOptions)
         {
             Debug.Assert(changedOptions.Count > 0);
 
-            // Raise option changed events.
-            foreach (var weakHandler in _weakHandlers)
+            foreach (var changedOption in changedOptions)
             {
-                if (!weakHandler.TryGetTarget(out var handler))
-                    continue;
-
-                foreach (var changedOption in changedOptions)
-                {
-                    handler(this, changedOption);
-                }
+                _optionChanged.RaiseEvent(this, changedOption);
             }
         }
 
