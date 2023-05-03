@@ -86,6 +86,7 @@ internal sealed class LanguageServerProjectSystem
         {
             _logger.LogInformation($"Loading {solutionFilePath}...");
             var solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(solutionFilePath);
+            _workspaceFactory.ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
 
             foreach (var project in solutionFile.ProjectsInOrder)
             {

@@ -10,13 +10,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 [DataContract]
 internal class ProjectDebugConfiguration
 {
-    public ProjectDebugConfiguration(string projectPath, string outputPath, string projectName, bool targetsDotnetCore, bool isExe)
+    public ProjectDebugConfiguration(string projectPath, string outputPath, string projectName, bool targetsDotnetCore, bool isExe, string? solutionPath)
     {
         ProjectPath = projectPath;
         OutputPath = outputPath;
         ProjectName = projectName;
         TargetsDotnetCore = targetsDotnetCore;
         IsExe = isExe;
+        SolutionPath = solutionPath;
     }
 
     [JsonProperty(PropertyName = "projectPath")]
@@ -33,4 +34,7 @@ internal class ProjectDebugConfiguration
 
     [JsonProperty(PropertyName = "isExe")]
     public bool IsExe { get; }
+
+    [JsonProperty(PropertyName = "solutionPath")]
+    public string? SolutionPath { get; }
 }

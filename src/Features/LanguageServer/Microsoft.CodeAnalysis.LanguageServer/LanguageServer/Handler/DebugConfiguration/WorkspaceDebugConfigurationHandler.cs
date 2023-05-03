@@ -52,7 +52,7 @@ internal class WorkspaceDebugConfigurationHandler : ILspServiceRequestHandler<Wo
     {
         var isExe = project.CompilationOptions?.OutputKind is OutputKind.ConsoleApplication or OutputKind.WindowsApplication;
         var targetsDotnetCore = _targetFrameworkManager.IsDotnetCoreProject(project.Id);
-        return new ProjectDebugConfiguration(project.FilePath!, project.OutputFilePath!, GetProjectName(project), targetsDotnetCore, isExe);
+        return new ProjectDebugConfiguration(project.FilePath!, project.OutputFilePath!, GetProjectName(project), targetsDotnetCore, isExe, project.Solution.FilePath);
     }
 
     private static string GetProjectName(Project project)
