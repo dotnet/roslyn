@@ -21,6 +21,8 @@ namespace CSharpSyntaxGenerator
 
         private readonly IDictionary<string, Node> _nodeMap;
         private readonly IDictionary<string, TreeType> _typeMap;
+        private readonly Dictionary<string, string> _camelCaseMap = new(StringComparer.Ordinal);
+        private readonly List<string> _indentMap = new();
 
         private const int INDENT_SIZE = 4;
         private int _indentLevel;
@@ -94,7 +96,12 @@ namespace CSharpSyntaxGenerator
         {
             if (_needIndent)
             {
-                _writer.Write(new string(' ', _indentLevel * INDENT_SIZE));
+                while (_indentMap.Count <= _indentLevel)
+                {
+                    _indentMap.Add(new string(' ', _indentMap.Count * INDENT_SIZE));
+                }
+
+                _writer.Write(_indentMap[_indentLevel]);
                 _needIndent = false;
             }
         }
@@ -260,13 +267,23 @@ namespace CSharpSyntaxGenerator
             return n.Errors == null || string.Compare(n.Errors, "true", true) == 0;
         }
 
-        protected static string CamelCase(string name)
+        protected string CamelCase(string name)
         {
+            if (_camelCaseMap.TryGetValue(name, out var camelCase))
+                return camelCase;
+
             if (char.IsUpper(name[0]))
             {
-                name = char.ToLowerInvariant(name[0]) + name.Substring(1);
+                camelCase = char.ToLowerInvariant(name[0]) + name.Substring(1);
             }
-            return FixKeyword(name);
+            else
+            {
+                camelCase = name;
+            }
+
+            camelCase = FixKeyword(camelCase);
+            _camelCaseMap.Add(name, camelCase);
+            return camelCase;
         }
 
         protected static string FixKeyword(string name)
