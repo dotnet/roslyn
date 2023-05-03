@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private readonly Dictionary<(IIncrementalGeneratorNode node, Delegate selector), IIncrementalGeneratorNode> _selectNodes = new();
 
+        /// <summary>
+        /// Map from a generator node and selector to the result of calling <see cref="SelectMany{TSource, TResult}"/>.
+        /// </summary>
+        private readonly Dictionary<(IIncrementalGeneratorNode node, Delegate selector), IIncrementalGeneratorNode> _selectManyNodes = new();
+
         public T WithContext<T>(
             T node,
             Func<T, TransformFactory, Action<ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode>, T> applyContext,
@@ -166,6 +171,16 @@ namespace Microsoft.CodeAnalysis
 
             var transformNodeT = new TransformNode<TSource, TResult>(node, selector);
             _selectNodes.Add((node, selector), transformNodeT);
+            return transformNodeT;
+        }
+
+        internal TransformNode<TSource, TResult> SelectMany<TSource, TResult>(IIncrementalGeneratorNode<TSource> node, Func<TSource, CancellationToken, ImmutableArray<TResult>> selector)
+        {
+            if (_selectManyNodes.TryGetValue((node, selector), out var transformedNode))
+                return (TransformNode<TSource, TResult>)transformedNode;
+
+            var transformNodeT = new TransformNode<TSource, TResult>(node, selector);
+            _selectManyNodes.Add((node, selector), transformNodeT);
             return transformNodeT;
         }
     }

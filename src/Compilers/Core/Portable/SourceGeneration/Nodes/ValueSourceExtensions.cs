@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis
@@ -32,25 +30,29 @@ namespace Microsoft.CodeAnalysis
         public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, CancellationToken, ImmutableArray<TResult>> selector)
         {
             var wrappedUserFunction = source.Node.TransformFactory?.WrapUserFunction(selector) ?? selector.WrapUserFunction();
-            return new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, wrappedUserFunction));
+            var transformNode = source.Node.TransformFactory?.SelectMany(source.Node, wrappedUserFunction) ?? new TransformNode<TSource, TResult>(source.Node, wrappedUserFunction);
+            return new IncrementalValuesProvider<TResult>(transformNode);
         }
 
         public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, CancellationToken, IEnumerable<TResult>> selector)
         {
             var wrappedUserFunctionAsImmutableArray = source.Node.TransformFactory?.WrapUserFunctionAsImmutableArray(selector) ?? selector.WrapUserFunctionAsImmutableArray();
-            return new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, wrappedUserFunctionAsImmutableArray));
+            var transformNode = source.Node.TransformFactory?.SelectMany(source.Node, wrappedUserFunctionAsImmutableArray) ?? new TransformNode<TSource, TResult>(source.Node, wrappedUserFunctionAsImmutableArray);
+            return new IncrementalValuesProvider<TResult>(transformNode);
         }
 
         public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, ImmutableArray<TResult>> selector)
         {
             var wrappedUserFunction = source.Node.TransformFactory?.WrapUserFunction(selector) ?? selector.WrapUserFunction();
-            return new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, wrappedUserFunction));
+            var transformNode = source.Node.TransformFactory?.SelectMany(source.Node, wrappedUserFunction) ?? new TransformNode<TSource, TResult>(source.Node, wrappedUserFunction);
+            return new IncrementalValuesProvider<TResult>(transformNode);
         }
 
         public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, IEnumerable<TResult>> selector)
         {
             var wrappedUserFunctionAsImmutableArray = source.Node.TransformFactory?.WrapUserFunctionAsImmutableArray(selector) ?? selector.WrapUserFunctionAsImmutableArray();
-            return new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, wrappedUserFunctionAsImmutableArray));
+            var transformNode = source.Node.TransformFactory?.SelectMany(source.Node, wrappedUserFunctionAsImmutableArray) ?? new TransformNode<TSource, TResult>(source.Node, wrappedUserFunctionAsImmutableArray);
+            return new IncrementalValuesProvider<TResult>(transformNode);
         }
 
         public static IncrementalValueProvider<ImmutableArray<TSource>> Collect<TSource>(this IncrementalValuesProvider<TSource> source)
