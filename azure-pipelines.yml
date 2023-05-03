@@ -222,7 +222,7 @@ stages:
         displayName: Restore
         inputs:
           filePath: eng/build.ps1
-          arguments: -configuration Release -prepareMachine -ci -restore -binaryLog
+          arguments: -configuration Release -prepareMachine -ci -restore -binaryLog -binaryLogName Restore.binlog
 
       - task: PowerShell@2
         displayName: Build
