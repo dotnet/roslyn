@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<object, object> _wrappedUserObjects = new();
         private readonly Dictionary<Delegate, Delegate> _wrappedUserFunctionsAsImmutableArray = new();
 
+        /// <summary>
+        /// Map from a generator node to the result of calling <see cref="IncrementalValueProviderExtensions.Collect{TSource}"/> on that generator node.
+        /// </summary>
+        private readonly Dictionary<IIncrementalGeneratorNode, IIncrementalGeneratorNode> _collectedNodes = new();
+
         public T WithContext<T>(
             T node,
             Func<T, TransformFactory, Action<ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode>, T> applyContext,
@@ -101,6 +106,16 @@ namespace Microsoft.CodeAnalysis
             var wrappedUserFunctionAsImmutableArrayT = userFunction.WrapUserFunctionAsImmutableArray();
             _wrappedUserFunctionsAsImmutableArray.Add(userFunction, wrappedUserFunctionAsImmutableArrayT);
             return wrappedUserFunctionAsImmutableArrayT;
+        }
+
+        internal BatchNode<TSource> Collect<TSource>(IIncrementalGeneratorNode<TSource> node)
+        {
+            if (_collectedNodes.TryGetValue(node, out var collectedNode))
+                return (BatchNode<TSource>)collectedNode;
+
+            var batchNode = new BatchNode<TSource>(node);
+            _collectedNodes.Add(node, batchNode);
+            return batchNode;
         }
     }
 }

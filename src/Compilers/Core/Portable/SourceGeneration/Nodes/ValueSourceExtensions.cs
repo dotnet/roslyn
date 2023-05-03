@@ -50,7 +50,11 @@ namespace Microsoft.CodeAnalysis
             return new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, wrappedUserFunctionAsImmutableArray));
         }
 
-        public static IncrementalValueProvider<ImmutableArray<TSource>> Collect<TSource>(this IncrementalValuesProvider<TSource> source) => new IncrementalValueProvider<ImmutableArray<TSource>>(new BatchNode<TSource>(source.Node));
+        public static IncrementalValueProvider<ImmutableArray<TSource>> Collect<TSource>(this IncrementalValuesProvider<TSource> source)
+        {
+            var batchNode = source.Node.TransformFactory?.Collect(source.Node) ?? new BatchNode<TSource>(source.Node);
+            return new IncrementalValueProvider<ImmutableArray<TSource>>(batchNode);
+        }
 
         public static IncrementalValuesProvider<(TLeft Left, TRight Right)> Combine<TLeft, TRight>(this IncrementalValuesProvider<TLeft> provider1, IncrementalValueProvider<TRight> provider2) => new IncrementalValuesProvider<(TLeft, TRight)>(new CombineNode<TLeft, TRight>(provider1.Node, provider2.Node));
 
