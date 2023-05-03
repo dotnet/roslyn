@@ -1091,9 +1091,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return analyzer.SupportedDiagnostics;
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (AnalyzerExecutor.HandleAnalyzerException(ex, analyzer, info: null, wrappedOnAnalyzerException, analyzerExceptionFilter: null, CancellationToken.None))
                 {
-                    AnalyzerExecutor.HandleAnalyzerException(ex, analyzer, info: null, wrappedOnAnalyzerException, analyzerExceptionFilter: null, CancellationToken.None);
                     return ImmutableArray<DiagnosticDescriptor>.Empty;
                 }
             };
@@ -1104,9 +1103,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return suppressor.SupportedSuppressions;
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (AnalyzerExecutor.HandleAnalyzerException(ex, suppressor, info: null, wrappedOnAnalyzerException, analyzerExceptionFilter: null, CancellationToken.None))
                 {
-                    AnalyzerExecutor.HandleAnalyzerException(ex, suppressor, info: null, wrappedOnAnalyzerException, analyzerExceptionFilter: null, CancellationToken.None);
                     return ImmutableArray<SuppressionDescriptor>.Empty;
                 }
             };

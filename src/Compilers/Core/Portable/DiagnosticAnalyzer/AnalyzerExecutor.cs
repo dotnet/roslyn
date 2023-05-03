@@ -1147,13 +1147,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken.ThrowIfCancellationRequested();
                 analyze(argument);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (HandleAnalyzerException(ex, analyzer, info, OnAnalyzerException, _analyzerExceptionFilter, cancellationToken))
             {
-                HandleAnalyzerException(ex, analyzer, info, OnAnalyzerException, _analyzerExceptionFilter, cancellationToken);
             }
         }
 
-        internal static void HandleAnalyzerException(
+        internal static bool HandleAnalyzerException(
             Exception exception,
             DiagnosticAnalyzer analyzer,
             AnalysisContextInfo? info,
@@ -1163,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (!ExceptionFilter(exception, analyzerExceptionFilter, cancellationToken))
             {
-                throw exception;
+                return false;
             }
 
             // Diagnostic for analyzer exception.
@@ -1176,6 +1175,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // Ignore exceptions from exception handlers.
             }
+
+            return true;
 
             static bool ExceptionFilter(Exception ex, Func<Exception, bool>? analyzerExceptionFilter, CancellationToken cancellationToken)
             {
