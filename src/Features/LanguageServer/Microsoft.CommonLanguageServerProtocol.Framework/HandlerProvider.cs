@@ -40,9 +40,8 @@ internal class HandlerProvider : IHandlerProvider
         {
             throw new InvalidOperationException($"Missing handler for {requestHandlerMetadata.MethodName}");
         }
-        var handler = lazyHandler.Value;
 
-        return handler;
+        return lazyHandler.Value;
     }
 
     public ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
@@ -52,14 +51,7 @@ internal class HandlerProvider : IHandlerProvider
     }
 
     private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
-    {
-        if (_requestHandlers is null)
-        {
-            _requestHandlers = CreateMethodToHandlerMap(_lspServices);
-        }
-
-        return _requestHandlers;
-    }
+        => _requestHandlers ??= CreateMethodToHandlerMap(_lspServices);
 
     private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> CreateMethodToHandlerMap(ILspServices lspServices)
     {
@@ -69,7 +61,7 @@ internal class HandlerProvider : IHandlerProvider
 
         if (lspServices.SupportsGetRegisteredServices())
         {
-            var requestHandlerTypes = lspServices.GetRegisteredServices().Where(type => IsTypeRequestHandler(type));
+            var requestHandlerTypes = lspServices.GetRegisteredServices().Where(type => typeof(IMethodHandler).IsAssignableFrom(type));
 
             foreach (var handlerType in requestHandlerTypes)
             {
@@ -176,11 +168,6 @@ internal class HandlerProvider : IHandlerProvider
 
                 return attribute;
             }
-        }
-
-        static bool IsTypeRequestHandler(Type type)
-        {
-            return type.GetInterfaces().Contains(typeof(IMethodHandler));
         }
 
         static void VerifyHandlers(IEnumerable<RequestHandlerMetadata> requestHandlerKeys)
