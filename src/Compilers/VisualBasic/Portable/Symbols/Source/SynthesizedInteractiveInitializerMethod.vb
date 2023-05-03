@@ -96,9 +96,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        <GenerateLinkedMembers>
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return m_containingType.Locations()
+                Return m_containingType.Locations
             End Get
         End Property
 

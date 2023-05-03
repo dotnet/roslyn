@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedStaticConstructor : MethodSymbol
+    internal sealed partial class SynthesizedStaticConstructor : MethodSymbol
     {
         private readonly NamedTypeSymbol _containingType;
         private ThreeState _lazyShouldEmit = ThreeState.Unknown;
@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return LexicalSortKey.SynthesizedCCtor;
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

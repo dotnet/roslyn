@@ -11,11 +11,12 @@ using System.Reflection;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class FunctionPointerMethodSymbol : MethodSymbol
+    internal sealed partial class FunctionPointerMethodSymbol : MethodSymbol
     {
         private readonly ImmutableArray<FunctionPointerParameterSymbol> _parameters;
         private ImmutableHashSet<CustomModifier>? _lazyCallingConventionModifiers;
@@ -807,6 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsAsync => false;
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
         public override Symbol? AssociatedSymbol => null;
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
         public override Accessibility DeclaredAccessibility => Accessibility.NotApplicable;

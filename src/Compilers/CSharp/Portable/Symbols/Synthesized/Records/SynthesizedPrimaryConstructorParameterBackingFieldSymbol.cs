@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a compiler generated backing field for a primary constructor parameter.
     /// </summary>
-    internal sealed class SynthesizedPrimaryConstructorParameterBackingFieldSymbol : SynthesizedBackingFieldSymbolBase
+    internal sealed partial class SynthesizedPrimaryConstructorParameterBackingFieldSymbol : SynthesizedBackingFieldSymbolBase
     {
         public readonly ParameterSymbol ParameterSymbol;
 
@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override Symbol? AssociatedSymbol
             => null;
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
             => ParameterSymbol.Locations;
 

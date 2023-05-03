@@ -7,11 +7,12 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LambdaSymbol : SourceMethodSymbolWithAttributes
+    internal sealed partial class LambdaSymbol : SourceMethodSymbolWithAttributes
     {
         private readonly Binder _binder;
         private readonly Symbol _containingSymbol;
@@ -213,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return Accessibility.Private; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

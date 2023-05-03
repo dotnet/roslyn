@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -279,6 +280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' or metadata. Some symbols (for example, partial classes) may be defined in more
         ''' than one location.
         ''' </summary>
+        <GenerateLinkedMembers>
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return ImmutableArray(Of Location).Empty

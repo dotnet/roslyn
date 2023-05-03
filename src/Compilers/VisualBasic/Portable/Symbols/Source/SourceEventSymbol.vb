@@ -7,6 +7,7 @@ Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -439,6 +440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New LexicalSortKey(_location, Me.DeclaringCompilation)
         End Function
 
+        <GenerateLinkedMembers>
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return ImmutableArray.Create(_location)

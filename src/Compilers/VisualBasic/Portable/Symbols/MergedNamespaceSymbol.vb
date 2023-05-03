@@ -8,6 +8,7 @@ Imports System.Collections.ObjectModel
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -340,6 +341,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return ImmutableArray.CreateRange(Of Location)((From ns In _namespacesToMerge, loc In ns.Locations Select loc))
             End Get
         End Property
+
+        Public Overrides ReadOnly Property LocationsCount As Integer
+            Get
+                Return SymbolLocationHelper.Many.LocationsCount(_namespacesToMerge, Function(ns) ns.LocationsCount)
+            End Get
+        End Property
+
+        Public Overrides Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+            Return SymbolLocationHelper.Many.GetCurrentLocation(slot, index, _namespacesToMerge, Function(ns, index1) ns.GetCurrentLocation(slot:=index1, index:=0))
+        End Function
+
+        Public Overrides Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, _namespacesToMerge, Function(ns, index1) ns.MoveNextLocation(previousSlot:=index1, previousIndex:=0))
+        End Function
+
+        Public Overrides Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+            Return SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, _namespacesToMerge, Function(ns, index1) ns.MoveNextLocationReversed(previousSlot:=index1, previousIndex:=0))
+        End Function
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get

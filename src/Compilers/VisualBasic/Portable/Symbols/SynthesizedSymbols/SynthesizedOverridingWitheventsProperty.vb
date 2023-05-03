@@ -176,6 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return _containingType.GetLexicalSortKey()
         End Function
 
+        <GenerateLinkedMembers>
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return _containingType.Locations

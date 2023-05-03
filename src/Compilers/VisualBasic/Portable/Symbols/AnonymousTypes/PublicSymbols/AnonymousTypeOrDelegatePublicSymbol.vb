@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class AnonymousTypeManager
@@ -167,6 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
+            <GenerateLinkedMembers>
             Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
                 Get
                     Return ImmutableArray.Create(Of Location)(Me.TypeDescriptor.Location)

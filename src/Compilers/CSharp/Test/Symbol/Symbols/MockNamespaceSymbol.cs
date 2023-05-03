@@ -8,10 +8,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    internal class MockNamespaceSymbol : NamespaceSymbol, IMockSymbol
+    internal partial class MockNamespaceSymbol : NamespaceSymbol, IMockSymbol
     {
         private NamespaceSymbol _container;
         private readonly NamespaceExtent _extent;
@@ -86,11 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
             {
-                return ImmutableArray.Create<Location>();
+                return ImmutableArray<Location>.Empty;
             }
         }
 

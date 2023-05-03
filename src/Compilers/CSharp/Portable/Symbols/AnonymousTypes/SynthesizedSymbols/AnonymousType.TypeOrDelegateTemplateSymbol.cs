@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly int Index;
         }
 
-        internal abstract class AnonymousTypeOrDelegateTemplateSymbol : NamedTypeSymbol
+        internal abstract partial class AnonymousTypeOrDelegateTemplateSymbol : NamedTypeSymbol
         {
             /// <summary> Name to be used as metadata name during emit </summary>
             private NameAndIndex? _nameAndIndex;
@@ -200,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            [GenerateLinkedMembers]
             public sealed override ImmutableArray<Location> Locations
             {
                 get { return ImmutableArray<Location>.Empty; }

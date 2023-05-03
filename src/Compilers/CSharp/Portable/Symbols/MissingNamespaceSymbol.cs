@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A <see cref="MissingNamespaceSymbol"/> is a special kind of <see cref="NamespaceSymbol"/> that represents
     /// a namespace that couldn't be found.
     /// </summary>
-    internal class MissingNamespaceSymbol : NamespaceSymbol
+    internal partial class MissingNamespaceSymbol : NamespaceSymbol
     {
         private readonly string _name;
         private readonly Symbol _containingSymbol;
@@ -94,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)other != null && _name.Equals(other._name) && _containingSymbol.Equals(other._containingSymbol, compareKind);
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

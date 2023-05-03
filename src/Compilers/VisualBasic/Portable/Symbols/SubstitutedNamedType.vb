@@ -215,6 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        <GenerateLinkedMembers>
         Public NotOverridable Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return OriginalDefinition.Locations

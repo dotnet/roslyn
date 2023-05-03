@@ -4,13 +4,14 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal partial class ErrorTypeSymbol
     {
-        protected sealed class ErrorTypeParameterSymbol : TypeParameterSymbol
+        protected sealed partial class ErrorTypeParameterSymbol : TypeParameterSymbol
         {
             private readonly ErrorTypeSymbol _container;
             private readonly string _name;
@@ -115,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            [GenerateLinkedMembers]
             public override ImmutableArray<Location> Locations
             {
                 get

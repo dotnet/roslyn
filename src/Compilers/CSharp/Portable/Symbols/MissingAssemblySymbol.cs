@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A <see cref="MissingAssemblySymbol"/> is a special kind of <see cref="AssemblySymbol"/> that represents
     /// an assembly that couldn't be found.
     /// </summary>
-    internal class MissingAssemblySymbol : AssemblySymbol
+    internal partial class MissingAssemblySymbol : AssemblySymbol
     {
         protected readonly AssemblyIdentity identity;
         protected readonly MissingModuleSymbol moduleSymbol;
@@ -109,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return identity.Equals(other.Identity);
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

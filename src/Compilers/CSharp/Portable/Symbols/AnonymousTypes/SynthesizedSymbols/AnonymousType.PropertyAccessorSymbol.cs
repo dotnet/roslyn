@@ -4,9 +4,11 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return _property; }
             }
 
+            [GenerateLinkedMembers]
             public override ImmutableArray<Location> Locations
             {
                 get

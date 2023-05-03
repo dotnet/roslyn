@@ -7,6 +7,7 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Linq
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -115,6 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets the locations where this symbol was originally defined.
         ''' </summary>
+        <GenerateLinkedMembers>
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return _aliasLocations

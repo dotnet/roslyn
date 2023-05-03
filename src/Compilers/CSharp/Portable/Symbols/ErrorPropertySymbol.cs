@@ -7,7 +7,9 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// However, we can't create a BoundIndexerAccess with a null indexer symbol,
     /// so we create an ErrorPropertySymbol to fill the gap.
     /// </summary>
-    internal sealed class ErrorPropertySymbol : PropertySymbol
+    internal sealed partial class ErrorPropertySymbol : PropertySymbol
     {
         private readonly Symbol _containingSymbol;
         private readonly TypeWithAnnotations _typeWithAnnotations;
@@ -59,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // CONSIDER: could create an ErrorMethodSymbol
         public override MethodSymbol SetMethod { get { return null; } }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations { get { return ImmutableArray<Location>.Empty; } }
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get { return ImmutableArray<SyntaxReference>.Empty; } }

@@ -5,13 +5,14 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed partial class AnonymousTypeManager
     {
-        internal abstract class AnonymousTypeOrDelegatePublicSymbol : NamedTypeSymbol
+        internal abstract partial class AnonymousTypeOrDelegatePublicSymbol : NamedTypeSymbol
         {
             /// <summary> Anonymous type manager owning this template </summary>
             internal readonly AnonymousTypeManager Manager;
@@ -166,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            [GenerateLinkedMembers]
             public sealed override ImmutableArray<Location> Locations
             {
                 get { return ImmutableArray.Create<Location>(this.TypeDescriptor.Location); }

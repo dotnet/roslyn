@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal sealed class SynthesizedDelegateInvokeMethod : SynthesizedInstanceMethodSymbol
+    internal sealed partial class SynthesizedDelegateInvokeMethod : SynthesizedInstanceMethodSymbol
     {
         internal readonly struct ParameterDescription
         {
@@ -215,6 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _containingType; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return ImmutableArray<Location>.Empty; }

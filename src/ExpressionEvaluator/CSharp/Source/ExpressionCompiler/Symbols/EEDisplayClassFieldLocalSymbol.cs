@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// A display class field representing a local, exposed
     /// as a local on the original method.
     /// </summary>
-    internal sealed class EEDisplayClassFieldLocalSymbol : EELocalSymbolBase
+    internal sealed partial class EEDisplayClassFieldLocalSymbol : EELocalSymbolBase
     {
         private readonly DisplayClassVariable _variable;
 
@@ -77,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return RefKind.None; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return NoLocations; }

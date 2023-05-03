@@ -281,6 +281,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public MustOverride ReadOnly Property Locations As ImmutableArray(Of Location)
 
+        Public MustOverride ReadOnly Property LocationsCount As Integer
+
+        Public MustOverride Function GetCurrentLocation(slot As Integer, index As Integer) As Location
+
+        Public MustOverride Function MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+
+        Public MustOverride Function MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer)
+
+        Public ReadOnly Property SymbolLocations As ISymbol.LocationList
+            Get
+                Return New ISymbol.LocationList(Me)
+            End Get
+        End Property
+
         ''' <summary>
         ''' Get the syntax node(s) where this symbol was declared in source. Some symbols (for example,
         ''' partial classes) may be defined in more than one location. This property should return
@@ -1236,6 +1250,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me.Locations
             End Get
         End Property
+
+        Private ReadOnly Property ISymbolInternal_SymbolLocations As ISymbol.LocationList Implements ISymbol.SymbolLocations, ISymbolInternal.SymbolLocations
+            Get
+                Return SymbolLocations
+            End Get
+        End Property
+
+        Private ReadOnly Property ISymbolInternal_LocationsCount As Integer Implements ISymbolInternal.LocationsCount
+            Get
+                Return LocationsCount
+            End Get
+        End Property
+
+        Private Function ISymbolInternal_GetCurrentLocation(slot As Integer, index As Integer) As Location Implements ISymbolInternal.GetCurrentLocation
+            Return GetCurrentLocation(slot, index)
+        End Function
+
+        Private Function ISymbolInternal_MoveNextLocation(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer) Implements ISymbolInternal.MoveNextLocation
+            Return MoveNextLocation(previousSlot, previousIndex)
+        End Function
+
+        Private Function ISymbolInternal_MoveNextLocationReversed(previousSlot As Integer, previousIndex As Integer) As (hasNext As Boolean, nextSlot As Integer, nextIndex As Integer) Implements ISymbolInternal.MoveNextLocationReversed
+            Return MoveNextLocationReversed(previousSlot, previousIndex)
+        End Function
 
         Private ReadOnly Property ISymbol_DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference) Implements ISymbol.DeclaringSyntaxReferences
             Get

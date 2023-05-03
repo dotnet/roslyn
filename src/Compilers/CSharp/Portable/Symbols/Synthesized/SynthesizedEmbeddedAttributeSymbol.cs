@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// 3) It has Microsoft.CodeAnalysis.EmbeddedAttribute
     /// 4) It has System.Runtime.CompilerServices.CompilerGeneratedAttribute
     /// </summary>
-    internal abstract class SynthesizedEmbeddedAttributeSymbolBase : NamedTypeSymbol
+    internal abstract partial class SynthesizedEmbeddedAttributeSymbolBase : NamedTypeSymbol
     {
         private readonly string _name;
         private readonly NamedTypeSymbol _baseType;
@@ -81,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override NamespaceSymbol ContainingNamespace => _namespace;
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;

@@ -7,6 +7,7 @@ Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
 Imports System.Reflection
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -94,6 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return other IsNot Nothing AndAlso (Me Is other OrElse m_Identity.Equals(other.m_Identity))
         End Function
 
+        <GenerateLinkedMembers>
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return ImmutableArray(Of Location).Empty

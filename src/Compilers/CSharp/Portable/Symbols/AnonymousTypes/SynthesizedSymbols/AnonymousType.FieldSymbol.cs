@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Represents a baking field for an anonymous type template property symbol.
         /// </summary>
-        private sealed class AnonymousTypeFieldSymbol : FieldSymbol
+        private sealed partial class AnonymousTypeFieldSymbol : FieldSymbol
         {
             private readonly PropertySymbol _property;
 
@@ -115,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            [GenerateLinkedMembers]
             public override ImmutableArray<Location> Locations
             {
                 get { return ImmutableArray<Location>.Empty; }

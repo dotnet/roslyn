@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedInteractiveInitializerMethod : SynthesizedInstanceMethodSymbol
+    internal sealed partial class SynthesizedInteractiveInitializerMethod : SynthesizedInstanceMethodSymbol
     {
         internal const string InitializerName = "<Initialize>";
 
@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return _containingType.Locations; }

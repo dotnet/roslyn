@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal sealed class EETypeParameterSymbol : TypeParameterSymbol
+    internal sealed partial class EETypeParameterSymbol : TypeParameterSymbol
     {
         private readonly Symbol _container;
         private readonly TypeParameterSymbol _sourceTypeParameter;
@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _sourceTypeParameter.HasUnmanagedTypeConstraint; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { throw ExceptionUtilities.Unreachable(); }

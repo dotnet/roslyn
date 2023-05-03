@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     /// change it in the future.
     /// </remarks>
     [InternalImplementationOnly]
-    public interface ISymbol : IEquatable<ISymbol?>
+    public partial interface ISymbol : IEquatable<ISymbol?>
     {
         /// <summary>
         /// Gets the <see cref="SymbolKind"/> indicating what kind of symbol it is.
@@ -170,6 +170,13 @@ namespace Microsoft.CodeAnalysis
         /// location.
         /// </summary>
         ImmutableArray<Location> Locations { get; }
+
+        /// <summary>
+        /// Gets the locations where the symbol was originally defined, either in source or
+        /// metadata. Some symbols (for example, partial classes) may be defined in more than one
+        /// location.
+        /// </summary>
+        LocationList SymbolLocations { get; }
 
         /// <summary>
         /// Get the syntax node(s) where this symbol was declared in source. Some symbols (for example,

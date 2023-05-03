@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="BoundObjectCreationExpression"/>, or the input expression of a pattern-matching operation.
         /// It is used to track the state of an expression, such as members being initialized.
         /// </summary>
-        private sealed class PlaceholderLocal : LocalSymbol
+        private sealed partial class PlaceholderLocal : LocalSymbol
         {
             private readonly Symbol _containingSymbol;
             private readonly TypeWithAnnotations _type;
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal override SyntaxNode ScopeDesignatorOpt => null;
             public override Symbol ContainingSymbol => _containingSymbol;
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
+            [GenerateLinkedMembers]
             public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
             public override TypeWithAnnotations TypeWithAnnotations => _type;
             internal override LocalDeclarationKind DeclarationKind => LocalDeclarationKind.None;

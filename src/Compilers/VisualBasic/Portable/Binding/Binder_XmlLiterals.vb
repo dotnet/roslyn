@@ -1654,6 +1654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        <GenerateLinkedMembers>
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return _originalDefinition.Locations
@@ -1899,6 +1900,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _originalDefinition.GetAppliedConditionalSymbols()
             End Function
 
+            <GenerateLinkedMembers>
             Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
                 Get
                     Return _originalDefinition.Locations

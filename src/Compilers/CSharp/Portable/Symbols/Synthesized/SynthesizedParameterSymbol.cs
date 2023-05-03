@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a simple compiler generated parameter of a given type.
     /// </summary>
-    internal abstract class SynthesizedParameterSymbolBase : ParameterSymbol
+    internal abstract partial class SynthesizedParameterSymbolBase : ParameterSymbol
     {
         private readonly MethodSymbol? _container;
         private readonly TypeWithAnnotations _type;
@@ -127,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _container; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return ImmutableArray<Location>.Empty; }

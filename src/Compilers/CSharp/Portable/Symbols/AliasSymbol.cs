@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     ///     IList&lt;Symbol&gt; SemanticModel.LookupSymbols(CSharpSyntaxNode location, NamespaceOrTypeSymbol container = null, string name = null, int? arity = null, LookupOptions options = LookupOptions.Default, List&lt;Symbol> results = null);
     /// </pre>
     /// </summary>
-    internal abstract class AliasSymbol : Symbol
+    internal abstract partial class AliasSymbol : Symbol
     {
         private readonly ImmutableArray<Location> _locations;  // NOTE: can be empty for the "global" alias.
         private readonly string _aliasName;
@@ -115,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

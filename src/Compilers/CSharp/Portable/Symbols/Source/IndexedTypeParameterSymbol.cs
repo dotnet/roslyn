@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// 
     /// They do not have constraints, variance, or attributes. 
     /// </summary>
-    internal sealed class IndexedTypeParameterSymbol : TypeParameterSymbol
+    internal sealed partial class IndexedTypeParameterSymbol : TypeParameterSymbol
     {
         private static TypeParameterSymbol[] s_parameterPool = Array.Empty<TypeParameterSymbol>();
 
@@ -184,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

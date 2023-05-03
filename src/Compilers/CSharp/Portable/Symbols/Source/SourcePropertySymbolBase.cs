@@ -14,11 +14,12 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourcePropertySymbolBase : PropertySymbol, IAttributeTargetSymbol
+    internal abstract partial class SourcePropertySymbolBase : PropertySymbol, IAttributeTargetSymbol
     {
         protected const string DefaultIndexerName = "Item";
 
@@ -446,6 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new LexicalSortKey(Location, this.DeclaringCompilation);
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

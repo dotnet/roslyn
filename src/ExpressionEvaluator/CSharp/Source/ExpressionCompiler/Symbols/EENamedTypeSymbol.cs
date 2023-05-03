@@ -9,11 +9,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal sealed class EENamedTypeSymbol : NamedTypeSymbol
+    internal sealed partial class EENamedTypeSymbol : NamedTypeSymbol
     {
         internal readonly NamedTypeSymbol SubstitutedSourceType;
         internal readonly ImmutableArray<TypeParameterSymbol> SourceTypeParameters;
@@ -301,6 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _container; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return ImmutableArray<Location>.Empty; }

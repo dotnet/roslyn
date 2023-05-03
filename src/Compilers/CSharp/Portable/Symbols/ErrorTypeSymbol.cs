@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -249,6 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// metadata. Some symbols (for example, partial classes) may be defined in more than one
         /// location.
         /// </summary>
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get
@@ -557,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal abstract class SubstitutedErrorTypeSymbol : ErrorTypeSymbol
+    internal abstract partial class SubstitutedErrorTypeSymbol : ErrorTypeSymbol
     {
         private readonly ErrorTypeSymbol _originalDefinition;
         private int _hashCode;
@@ -595,6 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.Name; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return _originalDefinition.Locations; }

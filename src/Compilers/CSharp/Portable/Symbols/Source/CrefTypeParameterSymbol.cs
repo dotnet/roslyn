@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// 
     /// This class represents such an implicitly declared type parameter.  The declaring syntax is expected to be
     /// an IdentifierNameSyntax in the type argument list of a QualifiedNameSyntax.
-    internal sealed class CrefTypeParameterSymbol : TypeParameterSymbol
+    internal sealed partial class CrefTypeParameterSymbol : TypeParameterSymbol
     {
         private readonly string _name;
         private readonly int _ordinal;
@@ -169,6 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

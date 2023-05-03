@@ -9,6 +9,7 @@ using System.Diagnostics;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -77,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsReadOnly => false;
         public override SymbolKind Kind => SymbolKind.FunctionPointerType;
         public override Symbol? ContainingSymbol => null;
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
         public override Accessibility DeclaredAccessibility => Accessibility.NotApplicable;

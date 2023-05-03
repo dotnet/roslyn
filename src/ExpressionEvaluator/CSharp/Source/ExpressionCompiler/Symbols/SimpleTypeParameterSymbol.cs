@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// <summary>
     /// A simple type parameter with no constraints.
     /// </summary>
-    internal sealed class SimpleTypeParameterSymbol : TypeParameterSymbol
+    internal sealed partial class SimpleTypeParameterSymbol : TypeParameterSymbol
     {
         private readonly Symbol _container;
         private readonly int _ordinal;
@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _container; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { throw ExceptionUtilities.Unreachable(); }

@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Represents an anonymous type template's type parameter.
         /// </summary>
-        internal sealed class AnonymousTypeParameterSymbol : TypeParameterSymbol
+        internal sealed partial class AnonymousTypeParameterSymbol : TypeParameterSymbol
         {
             private readonly Symbol _container;
             private readonly int _ordinal;
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            [GenerateLinkedMembers]
             public override ImmutableArray<Location> Locations
             {
                 get { return ImmutableArray<Location>.Empty; }

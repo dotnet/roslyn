@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// that must be emitted in the compiler generated
     /// PrivateImplementationDetails class
     /// </summary>
-    internal abstract class SynthesizedGlobalMethodSymbol : MethodSymbol
+    internal abstract partial class SynthesizedGlobalMethodSymbol : MethodSymbol
     {
         private readonly ModuleSymbol _containingModule;
         private readonly PrivateImplementationDetails _privateImplType;
@@ -182,6 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return Accessibility.Internal; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return ImmutableArray<Location>.Empty; }

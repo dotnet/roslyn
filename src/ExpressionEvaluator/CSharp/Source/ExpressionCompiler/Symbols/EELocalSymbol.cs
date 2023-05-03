@@ -8,11 +8,12 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal sealed class EELocalSymbol : EELocalSymbolBase
+    internal sealed partial class EELocalSymbol : EELocalSymbolBase
     {
         private readonly MethodSymbol _method;
         private readonly TypeWithAnnotations _type;
@@ -106,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return ImmutableArray<SyntaxReference>.Empty; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return _locations; }

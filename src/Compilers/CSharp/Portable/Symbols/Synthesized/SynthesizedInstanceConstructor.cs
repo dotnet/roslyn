@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class SynthesizedInstanceConstructor : SynthesizedInstanceMethodSymbol
+    internal partial class SynthesizedInstanceConstructor : SynthesizedInstanceMethodSymbol
     {
         private readonly NamedTypeSymbol _containingType;
 
@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return LexicalSortKey.SynthesizedCtor;
         }
 
+        [GenerateLinkedMembers]
         public sealed override ImmutableArray<Location> Locations
         {
             get { return ContainingType.Locations; }

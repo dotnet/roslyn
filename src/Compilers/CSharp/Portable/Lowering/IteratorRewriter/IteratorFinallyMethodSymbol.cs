@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// NOTE: Finally is a private void nonvirtual instance method with no parameters. 
     ///       It is a valid JIT inlining target as long as JIT may consider inlining profitable.
     /// </summary>
-    internal sealed class IteratorFinallyMethodSymbol : SynthesizedInstanceMethodSymbol, ISynthesizedMethodBodyImplementationSymbol
+    internal sealed partial class IteratorFinallyMethodSymbol : SynthesizedInstanceMethodSymbol, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly IteratorStateMachine _stateMachineType;
         private readonly string _name;
@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _stateMachineType; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return ContainingType.Locations; }

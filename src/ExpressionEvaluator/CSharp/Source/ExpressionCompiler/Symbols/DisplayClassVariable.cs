@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// variable: either a local, a parameter, or "this".
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal sealed class DisplayClassVariable
+    internal sealed partial class DisplayClassVariable
     {
         internal readonly string Name;
         internal readonly DisplayClassVariableKind Kind;
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new EEDisplayClassFieldSymbol(typeMap.SubstituteNamedType(field.ContainingType), field.Name, typeMap.SubstituteType(field.TypeWithAnnotations));
         }
 
-        private sealed class EEDisplayClassFieldSymbol : FieldSymbol
+        private sealed partial class EEDisplayClassFieldSymbol : FieldSymbol
         {
             private readonly NamedTypeSymbol _container;
             private readonly string _name;
@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 get { return FlowAnalysisAnnotations.None; }
             }
 
+            [GenerateLinkedMembers]
             public override ImmutableArray<Location> Locations
             {
                 get { throw ExceptionUtilities.Unreachable(); }

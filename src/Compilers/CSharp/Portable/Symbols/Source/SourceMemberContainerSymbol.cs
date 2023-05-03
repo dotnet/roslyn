@@ -972,10 +972,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public sealed override ImmutableArray<Location> Locations
-            => ImmutableArray<Location>.CastUp(declaration.NameLocations.ToImmutable());
+            => declaration.NameLocations;
 
-        public override Location TryGetFirstLocation()
-            => declaration.Declarations[0].NameLocation;
+        public sealed override int LocationsCount => declaration.NameLocationsCount;
+
+        public sealed override Location GetCurrentLocation(int slot, int index)
+            => declaration.GetCurrentNameLocation(slot, index);
+
+        public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => declaration.MoveNextNameLocation(previousSlot, previousIndex);
+
+        public sealed override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => declaration.MoveNextNameLocationReversed(previousSlot, previousIndex);
 
         public ImmutableArray<SyntaxReference> SyntaxReferences
         {

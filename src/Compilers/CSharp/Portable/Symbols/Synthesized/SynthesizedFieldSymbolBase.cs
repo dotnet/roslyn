@@ -9,13 +9,14 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// Represents a compiler generated field or captured variable.
     /// </summary>
-    internal abstract class SynthesizedFieldSymbolBase : FieldSymbol
+    internal abstract partial class SynthesizedFieldSymbolBase : FieldSymbol
     {
         private readonly NamedTypeSymbol _containingType;
         private readonly string _name;
@@ -155,6 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return ImmutableArray<Location>.Empty; }

@@ -6,11 +6,12 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal sealed class EELocalConstantSymbol : EELocalSymbolBase
+    internal sealed partial class EELocalConstantSymbol : EELocalSymbolBase
     {
         private readonly MethodSymbol _method;
         private readonly string _name;
@@ -99,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return RefKind.None; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return NoLocations; }

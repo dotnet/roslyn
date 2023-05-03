@@ -13,11 +13,12 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourceMemberMethodSymbol : LocalFunctionOrSourceMemberMethodSymbol, IAttributeTargetSymbol
+    internal abstract partial class SourceMemberMethodSymbol : LocalFunctionOrSourceMemberMethodSymbol, IAttributeTargetSymbol
     {
         // The flags type is used to compact many different bits of information.
         protected struct Flags
@@ -661,11 +662,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Overridden by <see cref="SourceOrdinaryMethodSymbol"/>, 
         /// which might return locations of partial methods.
         /// </summary>
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
             => ImmutableArray.Create(_location);
-
-        public override Location TryGetFirstLocation()
-            => _location;
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {

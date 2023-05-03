@@ -7,6 +7,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -207,6 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Debug.Assert(typeDescr.Parameters.IsSubDescription())
             End Sub
 
+            <GenerateLinkedMembers>
             Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
                 Get
                     Return ImmutableArray.Create(TypeDescr.Location)

@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Represents a base implementation for anonymous type synthesized methods.
         /// </summary>
-        private abstract class SynthesizedMethodBase : SynthesizedInstanceMethodSymbol
+        private abstract partial class SynthesizedMethodBase : SynthesizedInstanceMethodSymbol
         {
             private readonly NamedTypeSymbol _containingType;
             private readonly string _name;
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            [GenerateLinkedMembers]
             public override ImmutableArray<Location> Locations
             {
                 get { return ImmutableArray<Location>.Empty; }

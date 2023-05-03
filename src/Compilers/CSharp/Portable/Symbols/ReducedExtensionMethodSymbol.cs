@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// An extension method with the "this" parameter removed.
     /// Used for the public binding API only, not for compilation.
     /// </summary>
-    internal sealed class ReducedExtensionMethodSymbol : MethodSymbol
+    internal sealed partial class ReducedExtensionMethodSymbol : MethodSymbol
     {
         private readonly MethodSymbol _reducedFrom;
         private readonly TypeMap _typeMap;
@@ -350,6 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _reducedFrom.ContainingAssembly; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return _reducedFrom.Locations; }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Intended to be used to create ParameterSymbols for a SignatureOnlyMethodSymbol.
     /// </summary>
-    internal sealed class SignatureOnlyParameterSymbol : ParameterSymbol
+    internal sealed partial class SignatureOnlyParameterSymbol : ParameterSymbol
     {
         private readonly TypeWithAnnotations _type;
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol ContainingSymbol { get { throw ExceptionUtilities.Unreachable(); } }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations { get { throw ExceptionUtilities.Unreachable(); } }
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get { throw ExceptionUtilities.Unreachable(); } }

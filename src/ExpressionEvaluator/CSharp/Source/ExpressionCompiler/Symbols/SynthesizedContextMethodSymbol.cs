@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// expressions outside of a method - specifically, binding
     /// DebuggerDisplayAttribute expressions.
     /// </summary>
-    internal sealed class SynthesizedContextMethodSymbol : SynthesizedInstanceMethodSymbol
+    internal sealed partial class SynthesizedContextMethodSymbol : SynthesizedInstanceMethodSymbol
     {
         private readonly NamedTypeSymbol _container;
 
@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { throw ExceptionUtilities.Unreachable(); }

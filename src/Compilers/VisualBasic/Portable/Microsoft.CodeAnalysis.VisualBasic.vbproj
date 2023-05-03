@@ -15,9 +15,17 @@
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for Visual Basic, $(AssemblyName).dll.
     </PackageDescription>
+
+    <!-- Enable output of generated files back into our Generated directory -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\Source\EnumeratorSourceGenerator\EnumeratorSourceGenerator.csproj">
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="VBResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.VisualBasic" />
@@ -41,6 +49,14 @@
     <None Include="Syntax\Syntax.xml" />
     <None Include="Errors\Errors.vb" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- Don't include the output from a previous source generator execution into future runs; the */** trick here ensures that there's
+         at least one subdirectory, which is our key that it's coming from a source generator as opposed to something that is coming from
+         some other tool. -->
+    <Compile Remove="$(CompilerGeneratedFilesOutputPath)/*/**/*.vb" />
+  </ItemGroup>
+
   <ItemGroup>
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
     <Import Include="Roslyn.Utilities" />

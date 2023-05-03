@@ -109,6 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
+        ISymbol.LocationList ISymbol.SymbolLocations
+        {
+            get
+            {
+                return UnderlyingSymbol.SymbolLocations;
+            }
+        }
+
         ImmutableArray<SyntaxReference> ISymbol.DeclaringSyntaxReferences
         {
             get

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// The class to represent all generic type parameters imported from a PE/module.
     /// </summary>
     /// <remarks></remarks>
-    internal sealed class PETypeParameterSymbol
+    internal sealed partial class PETypeParameterSymbol
         : TypeParameterSymbol
     {
         private readonly Symbol _containingSymbol; // Could be PENamedType or a PEMethod
@@ -427,6 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return GetConstraintHandleCollection(((PEModuleSymbol)this.ContainingModule).Module);
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

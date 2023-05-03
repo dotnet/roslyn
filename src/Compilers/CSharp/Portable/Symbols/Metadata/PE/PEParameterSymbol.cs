@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// <summary>
     /// The class to represent all method parameters imported from a PE/module.
     /// </summary>
-    internal class PEParameterSymbol : ParameterSymbol
+    internal partial class PEParameterSymbol : ParameterSymbol
     {
         [Flags]
         private enum WellKnownAttributeFlags
@@ -987,6 +987,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

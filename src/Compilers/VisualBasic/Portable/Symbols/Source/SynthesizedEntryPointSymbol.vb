@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Linq
+Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -130,6 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return LexicalSortKey.NotInSource
         End Function
 
+        <GenerateLinkedMembers>
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return ImmutableArray(Of Location).Empty

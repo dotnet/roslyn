@@ -89,19 +89,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_locations.IsDefault)
-                {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _locations,
-                        _mergedDeclaration.NameLocations,
-                        default);
-                }
-
-                return _locations;
+                return InterlockedOperations.InterlockedInitialize(
+                    ref _locations,
+                    static mergedDeclaration => mergedDeclaration.NameLocations,
+                    _mergedDeclaration);
             }
         }
 
-        public override Location TryGetFirstLocation()
-            => _mergedDeclaration.Declarations[0].NameLocation;
+        public override int LocationsCount => _mergedDeclaration.NameLocationsCount;
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => _mergedDeclaration.GetCurrentNameLocation(slot, index);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => _mergedDeclaration.MoveNextNameLocation(previousSlot, previousIndex);
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => _mergedDeclaration.MoveNextNameLocationReversed(previousSlot, previousIndex);
 
         public override bool HasLocationContainedWithin(SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
         {
@@ -373,8 +377,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                var leftTree = possibleFileLocalType.MergedDeclaration.Declarations[0].Location.SourceTree;
-                if (otherSymbol.MergedDeclaration.NameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree))
+                var leftTree = possibleFileLocalType.SymbolLocations.First().SourceTree;
+                if (otherSymbol.SymbolLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree))
                 {
                     return false;
                 }

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// For example, parameters on a property symbol are cloned to generate parameters on accessors.
     /// Similarly parameters on delegate invoke method are cloned to delegate begin/end invoke methods.
     /// </summary>
-    internal abstract class SourceClonedParameterSymbol : SourceParameterSymbolBase
+    internal abstract partial class SourceClonedParameterSymbol : SourceParameterSymbolBase
     {
         // if true suppresses params-array and default value:
         private readonly bool _suppressOptional;
@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.IsMetadataOut; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return _originalParam.Locations; }

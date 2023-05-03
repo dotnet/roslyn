@@ -2323,7 +2323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
     }
 
-    internal sealed class DummyLocal : LocalSymbol
+    internal sealed partial class DummyLocal : LocalSymbol
     {
         internal override bool IsImportedFromMetadata
         {
@@ -2382,6 +2382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { throw new NotImplementedException(); }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { throw new NotImplementedException(); }

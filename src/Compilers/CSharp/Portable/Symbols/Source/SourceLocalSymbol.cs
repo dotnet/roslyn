@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 #if DEBUG
 using System.Runtime.CompilerServices;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a local variable in a method body.
     /// </summary>
-    internal class SourceLocalSymbol : LocalSymbol
+    internal partial class SourceLocalSymbol : LocalSymbol
     {
         private readonly Binder _scopeBinder;
 
@@ -403,16 +404,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Location TryGetFirstLocation()
-            => _identifierToken.GetLocation();
-
         /// <summary>
         /// Gets the locations where the local symbol was originally defined in source.
         /// There should not be local symbols from metadata, and there should be only one local variable declared.
         /// TODO: check if there are multiple same name local variables - error symbol or local symbol?
         /// </summary>
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
-            => ImmutableArray.Create(GetFirstLocation());
+            => ImmutableArray.Create(_identifierToken.GetLocation());
 
         internal sealed override SyntaxNode GetDeclaratorSyntax()
         {

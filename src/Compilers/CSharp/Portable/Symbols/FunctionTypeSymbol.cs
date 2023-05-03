@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// The actual delegate signature is calculated on demand in <see cref="GetInternalDelegateType()"/>.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal sealed class FunctionTypeSymbol : TypeSymbol
+    internal sealed partial class FunctionTypeSymbol : TypeSymbol
     {
         private static readonly NamedTypeSymbol Uninitialized = new UnsupportedMetadataTypeSymbol();
 
@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol? ContainingSymbol => null;
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations => throw ExceptionUtilities.Unreachable();
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => throw ExceptionUtilities.Unreachable();

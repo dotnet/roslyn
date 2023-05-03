@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Represents an anonymous type template's property symbol.
         /// </summary>
-        internal sealed class AnonymousTypePropertySymbol : PropertySymbol
+        internal sealed partial class AnonymousTypePropertySymbol : PropertySymbol
         {
             private readonly NamedTypeSymbol _containingType;
             private readonly TypeWithAnnotations _typeWithAnnotations;
@@ -86,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            [GenerateLinkedMembers]
             public override ImmutableArray<Location> Locations
             {
                 get { return _locations; }

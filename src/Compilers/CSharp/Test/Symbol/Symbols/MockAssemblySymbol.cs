@@ -9,12 +9,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    internal class MockAssemblySymbol : NonMissingAssemblySymbol
+    internal partial class MockAssemblySymbol : NonMissingAssemblySymbol
     {
         private readonly string _name;
 
@@ -40,9 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return ImmutableArray.Create<ModuleSymbol>(); }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
-            get { return ImmutableArray.Create<Location>(); }
+            get { return ImmutableArray<Location>.Empty; }
         }
 
         internal override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)

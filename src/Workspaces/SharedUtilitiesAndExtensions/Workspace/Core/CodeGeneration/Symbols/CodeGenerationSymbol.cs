@@ -145,6 +145,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
+        public ISymbol.LocationList SymbolLocations
+        {
+            get
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public static ImmutableArray<SyntaxNode> DeclaringSyntaxNodes
         {
             get

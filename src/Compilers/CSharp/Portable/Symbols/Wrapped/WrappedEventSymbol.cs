@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// That behavior should be carefully reviewed and derived type
     /// should override behavior as appropriate.
     /// </summary>
-    internal abstract class WrappedEventSymbol : EventSymbol
+    internal abstract partial class WrappedEventSymbol : EventSymbol
     {
         /// <summary>
         /// The underlying EventSymbol.
@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingEvent.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

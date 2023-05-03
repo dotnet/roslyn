@@ -126,6 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' A potentially empty collection of locations that correspond to this instance.
         ''' </summary>
+        <GenerateLinkedMembers>
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return m_containingType.Locations

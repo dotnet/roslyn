@@ -7,13 +7,14 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// State machine interface property implementation.
     /// </summary>
-    internal class SynthesizedStateMachineProperty : PropertySymbol, ISynthesizedMethodBodyImplementationSymbol
+    internal partial class SynthesizedStateMachineProperty : PropertySymbol, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly SynthesizedStateMachineMethod _getter;
         private readonly string _name;
@@ -106,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _getter.ContainingSymbol; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return ImmutableArray<Location>.Empty; }

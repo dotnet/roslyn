@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// <summary>
     /// Synthesized expression evaluation method.
     /// </summary>
-    internal sealed class EEMethodSymbol : MethodSymbol
+    internal sealed partial class EEMethodSymbol : MethodSymbol
     {
         // We only create a single EE method (per EE type) that represents an arbitrary expression,
         // whose lowering may produce synthesized members (lambdas, dynamic sites, etc).
@@ -402,6 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _container; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return _locations; }

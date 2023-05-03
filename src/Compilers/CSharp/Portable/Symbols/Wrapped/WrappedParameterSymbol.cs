@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// That behavior should be carefully reviewed and derived type
     /// should override behavior as appropriate.
     /// </summary>
-    internal abstract class WrappedParameterSymbol : ParameterSymbol
+    internal abstract partial class WrappedParameterSymbol : ParameterSymbol
     {
         protected readonly ParameterSymbol _underlyingParameter;
 
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.IsMetadataOut; }
         }
 
+        [GenerateLinkedMembers]
         public sealed override ImmutableArray<Location> Locations
         {
             get { return _underlyingParameter.Locations; }

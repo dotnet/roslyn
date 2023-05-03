@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// that doesn't have a corresponding backing field within the tuple underlying type.
     /// Created in response to an error condition.
     /// </summary>
-    internal sealed class TupleErrorFieldSymbol : SynthesizedFieldSymbolBase
+    internal sealed partial class TupleErrorFieldSymbol : SynthesizedFieldSymbolBase
     {
         private readonly TypeWithAnnotations _type;
 
@@ -112,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

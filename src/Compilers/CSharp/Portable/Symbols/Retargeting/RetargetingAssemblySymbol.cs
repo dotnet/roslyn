@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
     ///   used as is.
     /// - Symbols from referenced assemblies that must be retargeted are substituted with result of retargeting.
     /// </summary>
-    internal sealed class RetargetingAssemblySymbol : NonMissingAssemblySymbol
+    internal sealed partial class RetargetingAssemblySymbol : NonMissingAssemblySymbol
     {
         /// <summary>
         /// The underlying AssemblySymbol, it leaks symbols that should be retargeted.
@@ -180,6 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

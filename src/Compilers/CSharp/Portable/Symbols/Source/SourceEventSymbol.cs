@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using System.Linq;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// field-like (see <see cref="SourceFieldLikeEventSymbol"/>) or property-like (see
     /// <see cref="SourceCustomEventSymbol"/>).
     /// </summary>
-    internal abstract class SourceEventSymbol : EventSymbol, IAttributeTargetSymbol
+    internal abstract partial class SourceEventSymbol : EventSymbol, IAttributeTargetSymbol
     {
         private readonly Location _location;
         private readonly SyntaxReference _syntaxRef;
@@ -109,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new LexicalSortKey(_location, this.DeclaringCompilation);
         }
 
+        [GenerateLinkedMembers]
         public sealed override ImmutableArray<Location> Locations
         {
             get
@@ -116,9 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray.Create(_location);
             }
         }
-
-        public override Location TryGetFirstLocation()
-            => _location;
 
         public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

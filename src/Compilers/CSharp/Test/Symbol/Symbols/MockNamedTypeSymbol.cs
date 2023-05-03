@@ -9,11 +9,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    internal class MockNamedTypeSymbol : NamedTypeSymbol, IMockSymbol
+    internal partial class MockNamedTypeSymbol : NamedTypeSymbol, IMockSymbol
     {
         private Symbol _container;
         private readonly string _name;
@@ -156,9 +157,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return null; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
-            get { return ImmutableArray.Create<Location>(); }
+            get { return ImmutableArray<Location>.Empty; }
         }
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences

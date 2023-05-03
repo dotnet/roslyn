@@ -5,10 +5,12 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class DiscardSymbol : Symbol
+    internal sealed partial class DiscardSymbol : Symbol
     {
         public DiscardSymbol(TypeWithAnnotations typeWithAnnotations)
         {
@@ -29,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsStatic => false;
         public override bool IsVirtual => false;
         public override SymbolKind Kind => SymbolKind.Discard;
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument a) => visitor.VisitDiscard(this, a);

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// An error type, used to represent the type of a type binding
     /// operation when binding fails.
     /// </summary>
-    internal sealed class ExtendedErrorTypeSymbol : ErrorTypeSymbol
+    internal sealed partial class ExtendedErrorTypeSymbol : ErrorTypeSymbol
     {
         private readonly string _name;
         private readonly int _arity;
@@ -172,6 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // public override SymbolKind Kind { get { return SymbolKind.Error; } }
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

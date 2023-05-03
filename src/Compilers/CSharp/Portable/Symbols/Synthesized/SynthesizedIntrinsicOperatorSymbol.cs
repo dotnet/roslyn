@@ -9,10 +9,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 using System;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedIntrinsicOperatorSymbol : MethodSymbol
+    internal sealed partial class SynthesizedIntrinsicOperatorSymbol : MethodSymbol
     {
         private readonly TypeSymbol _containingType;
         private readonly string _name;
@@ -325,6 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get

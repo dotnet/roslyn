@@ -574,6 +574,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override int LocationsCount => SymbolLocationHelper.Many.LocationsCount(Modules, static module => module.LocationsCount);
+
+        public override Location GetCurrentLocation(int slot, int index)
+            => SymbolLocationHelper.Many.GetCurrentLocation(slot, index, Modules, static (module, index) => module.GetCurrentLocation(slot: index, index: 0));
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocation(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Many.MoveNextLocation(previousSlot, previousIndex, Modules, static (module, previousIndex) => module.MoveNextLocation(previousSlot: previousIndex, previousIndex: 0));
+
+        public override (bool hasNext, int nextSlot, int nextIndex) MoveNextLocationReversed(int previousSlot, int previousIndex)
+            => SymbolLocationHelper.Many.MoveNextLocationReversed(previousSlot, previousIndex, Modules, static (module, previousIndex) => module.MoveNextLocationReversed(previousSlot: previousIndex, previousIndex: 0));
+
         private void ValidateAttributeSemantics(BindingDiagnosticBag diagnostics)
         {
             //diagnostics that come from computing the public key.

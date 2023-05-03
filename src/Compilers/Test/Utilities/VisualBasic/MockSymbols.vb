@@ -7,6 +7,7 @@ Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 
 Friend Interface IMockSymbol
     Sub SetContainer(container As Symbol)
@@ -79,9 +80,10 @@ Friend Class MockNamespaceSymbol
         End Get
     End Property
 
+    <GenerateLinkedMembers>
     Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
         Get
-            Return ImmutableArray.Create(Of Location)()
+            Return ImmutableArray(Of Location).Empty
         End Get
     End Property
 
@@ -244,9 +246,10 @@ Friend Class MockNamedTypeSymbol
         Return SpecializedCollections.EmptyEnumerable(Of FieldSymbol)()
     End Function
 
+    <GenerateLinkedMembers>
     Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
         Get
-            Return ImmutableArray.Create(Of Location)()
+            Return ImmutableArray(Of Location).Empty
         End Get
     End Property
 
@@ -556,9 +559,10 @@ Friend Class MockMethodSymbol
         Throw New NotImplementedException()
     End Function
 
+    <GenerateLinkedMembers>
     Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
         Get
-            Return ImmutableArray.Create(Of Location)()
+            Return ImmutableArray(Of Location).Empty
         End Get
     End Property
 
@@ -690,9 +694,10 @@ Friend Class MockModuleSymbol
         End Get
     End Property
 
+    <GenerateLinkedMembers>
     Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
         Get
-            Return ImmutableArray.Create(Of Location)()
+            Return ImmutableArray(Of Location).Empty
         End Get
     End Property
 
@@ -764,9 +769,10 @@ Friend Class MockAssemblySymbol
         Return ImmutableArray.Create(Of VisualBasicAttributeData)()
     End Function
 
+    <GenerateLinkedMembers>
     Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
         Get
-            Return ImmutableArray.Create(Of Location)()
+            Return ImmutableArray(Of Location).Empty
         End Get
     End Property
 

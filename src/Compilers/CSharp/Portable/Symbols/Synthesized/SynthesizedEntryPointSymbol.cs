@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents an interactive code entry point that is inserted into the compilation if there is not an existing one. 
     /// </summary>
-    internal abstract class SynthesizedEntryPointSymbol : MethodSymbol
+    internal abstract partial class SynthesizedEntryPointSymbol : MethodSymbol
     {
         internal const string MainName = "<Main>";
         internal const string FactoryName = "<Factory>";
@@ -99,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return Accessibility.Private; }
         }
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
         {
             get { return ImmutableArray<Location>.Empty; }

@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a compiler generated backing field for an automatically implemented property.
     /// </summary>
-    internal sealed class SynthesizedBackingFieldSymbol : SynthesizedBackingFieldSymbolBase
+    internal sealed partial class SynthesizedBackingFieldSymbol : SynthesizedBackingFieldSymbolBase
     {
         private readonly SourcePropertySymbolBase _property;
         internal override bool HasInitializer { get; }
@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override Symbol AssociatedSymbol
             => _property;
 
+        [GenerateLinkedMembers]
         public override ImmutableArray<Location> Locations
             => _property.Locations;
 
