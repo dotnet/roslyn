@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private readonly Dictionary<IIncrementalGeneratorNode, IIncrementalGeneratorNode> _collectedNodes = new();
 
+        /// <summary>
+        /// Map from a pair of generator nodes to the result of calling <see cref="Combine{TLeft, TRight}"/> on those nodes.
+        /// </summary>
+        private readonly Dictionary<(IIncrementalGeneratorNode left, IIncrementalGeneratorNode right), IIncrementalGeneratorNode> _combinedNodes = new();
+
         public T WithContext<T>(
             T node,
             Func<T, TransformFactory, Action<ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode>, T> applyContext,
@@ -116,6 +121,16 @@ namespace Microsoft.CodeAnalysis
             var batchNode = new BatchNode<TSource>(node);
             _collectedNodes.Add(node, batchNode);
             return batchNode;
+        }
+
+        internal CombineNode<TLeft, TRight> Combine<TLeft, TRight>(IIncrementalGeneratorNode<TLeft> node1, IIncrementalGeneratorNode<TRight> node2)
+        {
+            if (_combinedNodes.TryGetValue((node1, node2), out var combinedNode))
+                return (CombineNode<TLeft, TRight>)combinedNode;
+
+            var combineNode = new CombineNode<TLeft, TRight>(node1, node2);
+            _combinedNodes.Add((node1, node2), combineNode);
+            return combineNode;
         }
     }
 }

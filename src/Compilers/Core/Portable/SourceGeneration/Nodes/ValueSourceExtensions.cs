@@ -56,9 +56,17 @@ namespace Microsoft.CodeAnalysis
             return new IncrementalValueProvider<ImmutableArray<TSource>>(batchNode);
         }
 
-        public static IncrementalValuesProvider<(TLeft Left, TRight Right)> Combine<TLeft, TRight>(this IncrementalValuesProvider<TLeft> provider1, IncrementalValueProvider<TRight> provider2) => new IncrementalValuesProvider<(TLeft, TRight)>(new CombineNode<TLeft, TRight>(provider1.Node, provider2.Node));
+        public static IncrementalValuesProvider<(TLeft Left, TRight Right)> Combine<TLeft, TRight>(this IncrementalValuesProvider<TLeft> provider1, IncrementalValueProvider<TRight> provider2)
+        {
+            var combineNode = provider1.Node.TransformFactory?.Combine(provider1.Node, provider2.Node) ?? new CombineNode<TLeft, TRight>(provider1.Node, provider2.Node);
+            return new IncrementalValuesProvider<(TLeft, TRight)>(combineNode);
+        }
 
-        public static IncrementalValueProvider<(TLeft Left, TRight Right)> Combine<TLeft, TRight>(this IncrementalValueProvider<TLeft> provider1, IncrementalValueProvider<TRight> provider2) => new IncrementalValueProvider<(TLeft, TRight)>(new CombineNode<TLeft, TRight>(provider1.Node, provider2.Node));
+        public static IncrementalValueProvider<(TLeft Left, TRight Right)> Combine<TLeft, TRight>(this IncrementalValueProvider<TLeft> provider1, IncrementalValueProvider<TRight> provider2)
+        {
+            var combineNode = provider1.Node.TransformFactory?.Combine(provider1.Node, provider2.Node) ?? new CombineNode<TLeft, TRight>(provider1.Node, provider2.Node);
+            return new IncrementalValueProvider<(TLeft, TRight)>(combineNode);
+        }
 
         // helper for filtering
         public static IncrementalValuesProvider<TSource> Where<TSource>(this IncrementalValuesProvider<TSource> source, Func<TSource, bool> predicate) => source.SelectMany((item, _) => predicate(item) ? ImmutableArray.Create(item) : ImmutableArray<TSource>.Empty);
