@@ -2,13 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
@@ -23,10 +17,12 @@ internal sealed class RazorWorkspaceListenerInitializer
     private const string _projectRazorJsonFileName = "project.razor.vscode.json";
 
     private readonly ILogger _logger;
-    private readonly HashSet<ProjectId> _projectIdWithDynamicFiles = new();
-    private readonly object _initializeGate = new();
     private readonly Lazy<LanguageServerWorkspaceFactory> _workspaceFactory;
     private readonly ILoggerFactory _loggerFactory;
+
+    // Locks all access to _razorWorkspaceListener and _projectIdWithDynamicFiles
+    private readonly object _initializeGate = new();
+    private readonly HashSet<ProjectId> _projectIdWithDynamicFiles = new();
 
     private RazorWorkspaceListener? _razorWorkspaceListener;
 
@@ -42,6 +38,7 @@ internal sealed class RazorWorkspaceListenerInitializer
 
     internal void Initialize()
     {
+        ProjectId[] projectsToInitialize;
         lock (_initializeGate)
         {
             // Only initialize once
@@ -53,16 +50,17 @@ internal sealed class RazorWorkspaceListenerInitializer
             _logger.LogTrace("Initializing the Razor workspace listener");
             _razorWorkspaceListener = new RazorWorkspaceListener(_loggerFactory);
             _razorWorkspaceListener.EnsureInitialized(_workspaceFactory.Value.Workspace, _projectRazorJsonFileName);
+
+            projectsToInitialize = _projectIdWithDynamicFiles.ToArray();
+            // May as well clear out the collection, it will never get used again anyway.
+            _projectIdWithDynamicFiles.Clear();
         }
 
-        foreach (var projectId in _projectIdWithDynamicFiles)
+        foreach (var projectId in projectsToInitialize)
         {
             _logger.LogTrace("{projectId} notifying a dynamic file for the first time", projectId);
             _razorWorkspaceListener.NotifyDynamicFile(projectId);
         }
-
-        // May as well clear out the collection, it will never get used again anyway.
-        _projectIdWithDynamicFiles.Clear();
     }
 
     internal void NotifyDynamicFile(ProjectId projectId)

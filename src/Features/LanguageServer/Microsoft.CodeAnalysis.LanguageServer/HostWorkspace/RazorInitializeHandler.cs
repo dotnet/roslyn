@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
