@@ -6988,23 +6988,20 @@ $@"class MyInt
             }
         }
 
-        [Fact]
-        public void BinaryOperators()
+        private void UnifiedBinaryOps(string op, string leftType, string rightType, string expectedSymbol1 = null, string expectedSymbol2 = "", DiagnosticDescription[] diagnostics1 = null, DiagnosticDescription[] diagnostics2 = null)
         {
-            void unifiedBinaryOps(string op, string leftType, string rightType, string expectedSymbol1 = null, string expectedSymbol2 = "", DiagnosticDescription[] diagnostics1 = null, DiagnosticDescription[] diagnostics2 = null)
-            {
-                binaryOps(op, leftType, rightType, expectedSymbol1, expectedSymbol2, diagnostics1, diagnostics2);
+            binaryOps(op, leftType, rightType, expectedSymbol1, expectedSymbol2, diagnostics1, diagnostics2);
 
-                var fullLeftType = leftType switch
-                {
-                    "nint" => "System.IntPtr",
-                    "nint?" => "System.IntPtr?",
-                    "nuint" => "System.UIntPtr",
-                    "nuint?" => "System.UIntPtr?",
-                    _ => throw ExceptionUtilities.Unreachable()
-                };
-                binaryOps(op, fullLeftType, rightType, expectedSymbol1, expectedSymbol2, diagnostics1, diagnostics2);
-            }
+            var fullLeftType = leftType switch
+            {
+                "nint" => "System.IntPtr",
+                "nint?" => "System.IntPtr?",
+                "nuint" => "System.UIntPtr",
+                "nuint?" => "System.UIntPtr?",
+                _ => throw ExceptionUtilities.Unreachable()
+            };
+            binaryOps(op, fullLeftType, rightType, expectedSymbol1, expectedSymbol2, diagnostics1, diagnostics2);
+
 
             void binaryOps(string op, string leftType, string rightType, string expectedSymbol1 = null, string expectedSymbol2 = "", DiagnosticDescription[] diagnostics1 = null, DiagnosticDescription[] diagnostics2 = null)
             {
@@ -7016,1061 +7013,9 @@ $@"class MyInt
             {
                 if (expectedSymbol == null && diagnostics == null)
                 {
-                    diagnostics = getBadBinaryOpsDiagnostics(op, leftType, rightType);
+                    diagnostics = GetBadBinaryOpsDiagnostics(op, leftType, rightType);
                 }
                 binaryOperator(op, leftType, rightType, expectedSymbol, diagnostics ?? Array.Empty<DiagnosticDescription>());
-            }
-
-            static DiagnosticDescription[] getBadBinaryOpsDiagnostics(string op, string leftType, string rightType, bool includeBadBinaryOps = true, bool includeVoidError = false)
-            {
-                var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
-                if (includeBadBinaryOps) builder.Add(Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, AsNative(leftType), AsNative(rightType)));
-                if (includeVoidError) builder.Add(Diagnostic(ErrorCode.ERR_VoidError, $"x {op} y"));
-                return builder.ToArrayAndFree();
-            }
-
-            static DiagnosticDescription[] getAmbiguousBinaryOpsDiagnostics(string op, string leftType, string rightType)
-            {
-                return new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {op} y").WithArguments(op, leftType, rightType) };
-            }
-
-            var arithmeticOperators = new[]
-            {
-                ("-", "op_Subtraction"),
-                ("*", "op_Multiply"),
-                ("/", "op_Division"),
-                ("%", "op_Modulus"),
-            };
-            var additionOperators = new[]
-            {
-                ("+", "op_Addition"),
-            };
-            var comparisonOperators = new[]
-            {
-                ("<", "op_LessThan"),
-                ("<=", "op_LessThanOrEqual"),
-                (">", "op_GreaterThan"),
-                (">=", "op_GreaterThanOrEqual"),
-            };
-            var shiftOperators = new[]
-            {
-                ("<<", "op_LeftShift"),
-                (">>", "op_RightShift"),
-            };
-            var equalityOperators = new[]
-            {
-                ("==", "op_Equality"),
-                ("!=", "op_Inequality"),
-            };
-            var logicalOperators = new[]
-            {
-                ("&", "op_BitwiseAnd"),
-                ("|", "op_BitwiseOr"),
-                ("^", "op_ExclusiveOr"),
-            };
-
-            foreach ((string symbol, string name) in arithmeticOperators)
-            {
-                bool includeBadBinaryOps = (symbol != "-");
-
-                // nint arithmeticOp type
-                unifiedBinaryOps(symbol, "nint", "object");
-                unifiedBinaryOps(symbol, "nint", "string");
-                unifiedBinaryOps(symbol, "nint", "void*", null, (symbol == "-") ? $"void* void*.{name}(void* left, long right)" : null, getBadBinaryOpsDiagnostics(symbol, "nint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nint", includeBadBinaryOps: includeBadBinaryOps, includeVoidError: true));
-                unifiedBinaryOps(symbol, "nint", "bool");
-                unifiedBinaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "byte", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "short", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "ushort", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "int", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "uint", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "nint", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
-                unifiedBinaryOps(symbol, "nint", "long", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint"));
-                unifiedBinaryOps(symbol, "nint", "float", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint", "double", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "System.UIntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
-
-                // nint arithmeticOp type?
-                unifiedBinaryOps(symbol, "nint", "bool?");
-                unifiedBinaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "byte?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "short?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "ushort?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "int?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "uint?", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "nint?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
-                unifiedBinaryOps(symbol, "nint", "long?", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint"));
-                unifiedBinaryOps(symbol, "nint", "float?", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint", "double?", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "System.UIntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
-                unifiedBinaryOps(symbol, "nint", "object");
-
-                // nint? arithmeticOp type
-                unifiedBinaryOps(symbol, "nint?", "string");
-                unifiedBinaryOps(symbol, "nint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nint?", includeVoidError: true));
-                unifiedBinaryOps(symbol, "nint?", "bool");
-                unifiedBinaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "byte", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "short", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "ushort", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "int", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "uint", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "nint", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "long", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "float", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint?", "double", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint?", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "System.UIntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
-
-                // nint? arithmeticOp type?
-                unifiedBinaryOps(symbol, "nint?", "bool?");
-                unifiedBinaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "byte?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "short?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "int?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "uint?", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "nint?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "long?", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "float?", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint?", "double?", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "System.UIntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
-
-                // nuint arithmeticOp type
-                unifiedBinaryOps(symbol, "nuint", "object");
-                unifiedBinaryOps(symbol, "nuint", "string");
-                unifiedBinaryOps(symbol, "nuint", "void*", null, (symbol == "-") ? $"void* void*.{name}(void* left, ulong right)" : null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeBadBinaryOps: includeBadBinaryOps, includeVoidError: true));
-                unifiedBinaryOps(symbol, "nuint", "bool");
-                unifiedBinaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint", "float", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint", "double", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint", "System.IntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
-
-                // nuint arithmeticOp type?
-                unifiedBinaryOps(symbol, "nuint", "bool?");
-                unifiedBinaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint", "float?", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint", "double?", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint", "System.IntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
-
-                // nuint? arithmeticOp type
-                unifiedBinaryOps(symbol, "nuint?", "object");
-                unifiedBinaryOps(symbol, "nuint?", "string");
-                unifiedBinaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
-                unifiedBinaryOps(symbol, "nuint?", "bool");
-                unifiedBinaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint?", "float", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint?", "double", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint?", "System.IntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
-
-                // nuint? arithmeticOp type?
-                unifiedBinaryOps(symbol, "nuint?", "bool?");
-                unifiedBinaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint?", "float?", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint?", "double?", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint?", "System.IntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
-            }
-
-            foreach ((string symbol, string name) in comparisonOperators)
-            {
-                // nint comparisonOp type
-                unifiedBinaryOps(symbol, "nint", "object");
-                unifiedBinaryOps(symbol, "nint", "string");
-                unifiedBinaryOps(symbol, "nint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nint"));
-                unifiedBinaryOps(symbol, "nint", "bool");
-                unifiedBinaryOps(symbol, "nint", "char", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "sbyte", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "byte", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "short", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "ushort", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "int", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "uint", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "nint", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
-                unifiedBinaryOps(symbol, "nint", "long", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint"));
-                unifiedBinaryOps(symbol, "nint", "float", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint", "double", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint", "System.IntPtr", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "System.UIntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
-
-                // nint comparisonOp type?
-                unifiedBinaryOps(symbol, "nint", "bool?");
-                unifiedBinaryOps(symbol, "nint", "char?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "sbyte?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "byte?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "short?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "ushort?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "int?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "uint?", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "nint?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
-                unifiedBinaryOps(symbol, "nint", "long?", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint"));
-                unifiedBinaryOps(symbol, "nint", "float?", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint", "double?", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint", "System.IntPtr?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "System.UIntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
-                unifiedBinaryOps(symbol, "nint", "object");
-
-                // nint? comparisonOp type
-                unifiedBinaryOps(symbol, "nint?", "string");
-                unifiedBinaryOps(symbol, "nint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "bool");
-                unifiedBinaryOps(symbol, "nint?", "char", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "sbyte", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "byte", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "short", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "ushort", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "int", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "uint", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "nint", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "long", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "float", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint?", "double", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint?", "System.IntPtr", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "System.UIntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
-
-                // nint? comparisonOp type?
-                unifiedBinaryOps(symbol, "nint?", "bool?");
-                unifiedBinaryOps(symbol, "nint?", "char?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "sbyte?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "byte?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "short?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "ushort?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "int?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "uint?", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "nint?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "long?", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "float?", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint?", "double?", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint?", "System.IntPtr?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "System.UIntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
-
-                // nuint comparisonOp type
-                unifiedBinaryOps(symbol, "nuint", "object");
-                unifiedBinaryOps(symbol, "nuint", "string");
-                unifiedBinaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "bool");
-                unifiedBinaryOps(symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint", "float", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint", "double", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint", "System.IntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
-
-                // nuint comparisonOp type?
-                unifiedBinaryOps(symbol, "nuint", "bool?");
-                unifiedBinaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint", "float?", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint", "double?", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint", "System.IntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "System.UIntPtr?", $"bool nuint.{name}(nuint left, nuint right)");
-
-                // nuint? comparisonOp type
-                unifiedBinaryOps(symbol, "nuint?", "object");
-                unifiedBinaryOps(symbol, "nuint?", "string");
-                unifiedBinaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "bool");
-                unifiedBinaryOps(symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint?", "float", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint?", "double", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint?", "System.IntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
-
-                // nuint comparisonOp type?
-                unifiedBinaryOps(symbol, "nuint?", "bool?");
-                unifiedBinaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint?", "float?", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint?", "double?", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint?", "System.IntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "System.UIntPtr?", $"bool nuint.{name}(nuint left, nuint right)");
-            }
-
-            foreach ((string symbol, string name) in additionOperators)
-            {
-                // nint additionOperator type
-                unifiedBinaryOps(symbol, "nint", "object");
-                unifiedBinaryOps(symbol, "nint", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
-                unifiedBinaryOps(symbol, "nint", "void*", $"void* void*.{name}(long left, void* right)", $"void* void*.{name}(void* left, long right)", new[] { Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
-                unifiedBinaryOps(symbol, "nint", "bool");
-                unifiedBinaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "byte", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "short", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "ushort", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "int", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "uint", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "nint", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
-                unifiedBinaryOps(symbol, "nint", "long", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint"));
-                unifiedBinaryOps(symbol, "nint", "float", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint", "double", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "System.UIntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
-
-                // nint additionOperator type?
-                unifiedBinaryOps(symbol, "nint", "bool?");
-                unifiedBinaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "byte?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "short?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "ushort?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "int?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "uint?", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "nint?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
-                unifiedBinaryOps(symbol, "nint", "long?", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint"));
-                unifiedBinaryOps(symbol, "nint", "float?", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint", "double?", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "System.UIntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
-                unifiedBinaryOps(symbol, "nint", "object");
-
-                // nint? additionOperator type
-                unifiedBinaryOps(symbol, "nint?", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
-                unifiedBinaryOps(symbol, "nint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nint?", includeVoidError: true));
-                unifiedBinaryOps(symbol, "nint?", "bool");
-                unifiedBinaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "byte", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "short", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "ushort", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "int", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "uint", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "nint", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "long", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "float", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint?", "double", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint?", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "System.UIntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
-
-                // nint? additionOperator type?
-                unifiedBinaryOps(symbol, "nint?", "bool?");
-                unifiedBinaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "byte?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "short?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "int?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "uint?", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "nint?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "long?", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "float?", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint?", "double?", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "System.UIntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
-
-                // nuint additionOperator type
-                unifiedBinaryOps(symbol, "nuint", "object");
-                unifiedBinaryOps(symbol, "nuint", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
-                unifiedBinaryOps(symbol, "nuint", "void*", $"void* void*.{name}(ulong left, void* right)", $"void* void*.{name}(void* left, ulong right)", new[] { Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
-                unifiedBinaryOps(symbol, "nuint", "bool");
-                unifiedBinaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint", "float", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint", "double", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint", "System.IntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
-
-                // nuint additionOperator type?
-                unifiedBinaryOps(symbol, "nuint", "bool?");
-                unifiedBinaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint", "float?", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint", "double?", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint", "System.IntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
-
-                // nuint? additionOperator type
-                unifiedBinaryOps(symbol, "nuint?", "object");
-                unifiedBinaryOps(symbol, "nuint?", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
-                unifiedBinaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
-                unifiedBinaryOps(symbol, "nuint?", "bool");
-                unifiedBinaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint?", "float", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint?", "double", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint?", "System.IntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
-
-                // nuint? additionOperator type?
-                unifiedBinaryOps(symbol, "nuint?", "bool?");
-                unifiedBinaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint?", "float?", $"float float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint?", "double?", $"double double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint?", "System.IntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
-            }
-
-            foreach ((string symbol, string name) in shiftOperators)
-            {
-                // nint shiftOp type
-                unifiedBinaryOps(symbol, "nint", "object");
-                unifiedBinaryOps(symbol, "nint", "string");
-                unifiedBinaryOps(symbol, "nint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nint", includeVoidError: true));
-                unifiedBinaryOps(symbol, "nint", "bool");
-                unifiedBinaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint", "byte", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint", "short", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint", "ushort", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint", "int", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint", "uint");
-                unifiedBinaryOps(symbol, "nint", "nint");
-                unifiedBinaryOps(symbol, "nint", "nuint");
-                unifiedBinaryOps(symbol, "nint", "long");
-                unifiedBinaryOps(symbol, "nint", "ulong");
-                unifiedBinaryOps(symbol, "nint", "float");
-                unifiedBinaryOps(symbol, "nint", "double");
-                unifiedBinaryOps(symbol, "nint", "decimal");
-                unifiedBinaryOps(symbol, "nint", "System.IntPtr");
-                unifiedBinaryOps(symbol, "nint", "System.UIntPtr");
-
-                // nint shiftOp type?
-                unifiedBinaryOps(symbol, "nint", "bool?");
-                unifiedBinaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint", "byte?", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint", "short?", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint", "ushort?", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint", "int?", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint", "uint?");
-                unifiedBinaryOps(symbol, "nint", "nint?");
-                unifiedBinaryOps(symbol, "nint", "nuint?");
-                unifiedBinaryOps(symbol, "nint", "long?");
-                unifiedBinaryOps(symbol, "nint", "ulong?");
-                unifiedBinaryOps(symbol, "nint", "float?");
-                unifiedBinaryOps(symbol, "nint", "double?");
-                unifiedBinaryOps(symbol, "nint", "decimal?");
-                unifiedBinaryOps(symbol, "nint", "System.IntPtr?");
-                unifiedBinaryOps(symbol, "nint", "System.UIntPtr?");
-                unifiedBinaryOps(symbol, "nint", "object");
-
-                // nint? shiftOp type
-                unifiedBinaryOps(symbol, "nint?", "string");
-                unifiedBinaryOps(symbol, "nint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nint?", includeVoidError: true));
-                unifiedBinaryOps(symbol, "nint?", "bool");
-                unifiedBinaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint?", "byte", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint?", "short", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint?", "ushort", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint?", "int", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint?", "uint");
-                unifiedBinaryOps(symbol, "nint?", "nint");
-                unifiedBinaryOps(symbol, "nint?", "nuint");
-                unifiedBinaryOps(symbol, "nint?", "long");
-                unifiedBinaryOps(symbol, "nint?", "ulong");
-                unifiedBinaryOps(symbol, "nint?", "float");
-                unifiedBinaryOps(symbol, "nint?", "double");
-                unifiedBinaryOps(symbol, "nint?", "decimal");
-                unifiedBinaryOps(symbol, "nint?", "System.IntPtr");
-                unifiedBinaryOps(symbol, "nint?", "System.UIntPtr");
-
-                // nint? shiftOp type?
-                unifiedBinaryOps(symbol, "nint?", "bool?");
-                unifiedBinaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint?", "byte?", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint?", "short?", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint?", "int?", $"nint nint.{name}(nint left, int right)", null);
-                unifiedBinaryOps(symbol, "nint?", "uint?");
-                unifiedBinaryOps(symbol, "nint?", "nint?");
-                unifiedBinaryOps(symbol, "nint?", "nuint?");
-                unifiedBinaryOps(symbol, "nint?", "long?");
-                unifiedBinaryOps(symbol, "nint?", "ulong?");
-                unifiedBinaryOps(symbol, "nint?", "float?");
-                unifiedBinaryOps(symbol, "nint?", "double?");
-                unifiedBinaryOps(symbol, "nint?", "decimal?");
-                unifiedBinaryOps(symbol, "nint?", "System.IntPtr?");
-                unifiedBinaryOps(symbol, "nint?", "System.UIntPtr?");
-
-                // nuint shiftOp type
-                unifiedBinaryOps(symbol, "nuint", "object");
-                unifiedBinaryOps(symbol, "nuint", "string");
-                unifiedBinaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeVoidError: true));
-                unifiedBinaryOps(symbol, "nuint", "bool");
-                unifiedBinaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint", "int", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint", "uint");
-                unifiedBinaryOps(symbol, "nuint", "nint");
-                unifiedBinaryOps(symbol, "nuint", "nuint");
-                unifiedBinaryOps(symbol, "nuint", "long");
-                unifiedBinaryOps(symbol, "nuint", "ulong");
-                unifiedBinaryOps(symbol, "nuint", "float");
-                unifiedBinaryOps(symbol, "nuint", "double");
-                unifiedBinaryOps(symbol, "nuint", "decimal");
-                unifiedBinaryOps(symbol, "nuint", "System.IntPtr");
-                unifiedBinaryOps(symbol, "nuint", "System.UIntPtr");
-
-                // nuint shiftOp type?
-                unifiedBinaryOps(symbol, "nuint", "bool?");
-                unifiedBinaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint", "int?", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint", "uint?");
-                unifiedBinaryOps(symbol, "nuint", "nint?");
-                unifiedBinaryOps(symbol, "nuint", "nuint?");
-                unifiedBinaryOps(symbol, "nuint", "long?");
-                unifiedBinaryOps(symbol, "nuint", "ulong?");
-                unifiedBinaryOps(symbol, "nuint", "float?");
-                unifiedBinaryOps(symbol, "nuint", "double?");
-                unifiedBinaryOps(symbol, "nuint", "decimal?");
-                unifiedBinaryOps(symbol, "nuint", "System.IntPtr?");
-                unifiedBinaryOps(symbol, "nuint", "System.UIntPtr?");
-
-                // nuint? shiftOp type
-                unifiedBinaryOps(symbol, "nuint?", "object");
-                unifiedBinaryOps(symbol, "nuint?", "string");
-                unifiedBinaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
-                unifiedBinaryOps(symbol, "nuint?", "bool");
-                unifiedBinaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint?", "int", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint?", "uint");
-                unifiedBinaryOps(symbol, "nuint?", "nint");
-                unifiedBinaryOps(symbol, "nuint?", "nuint");
-                unifiedBinaryOps(symbol, "nuint?", "long");
-                unifiedBinaryOps(symbol, "nuint?", "ulong");
-                unifiedBinaryOps(symbol, "nuint?", "float");
-                unifiedBinaryOps(symbol, "nuint?", "double");
-                unifiedBinaryOps(symbol, "nuint?", "decimal");
-                unifiedBinaryOps(symbol, "nuint?", "System.IntPtr");
-                unifiedBinaryOps(symbol, "nuint?", "System.UIntPtr");
-
-                // nuint? shiftOp type?
-                unifiedBinaryOps(symbol, "nuint?", "bool?");
-                unifiedBinaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint?", "int?", $"nuint nuint.{name}(nuint left, int right)", null);
-                unifiedBinaryOps(symbol, "nuint?", "uint?");
-                unifiedBinaryOps(symbol, "nuint?", "nint?");
-                unifiedBinaryOps(symbol, "nuint?", "nuint?");
-                unifiedBinaryOps(symbol, "nuint?", "long?");
-                unifiedBinaryOps(symbol, "nuint?", "ulong?");
-                unifiedBinaryOps(symbol, "nuint?", "float?");
-                unifiedBinaryOps(symbol, "nuint?", "double?");
-                unifiedBinaryOps(symbol, "nuint?", "decimal?");
-                unifiedBinaryOps(symbol, "nuint?", "System.IntPtr?");
-                unifiedBinaryOps(symbol, "nuint?", "System.UIntPtr?");
-            }
-
-            foreach ((string symbol, string name) in equalityOperators)
-            {
-                // nint equalityOp type
-                unifiedBinaryOps(symbol, "nint", "object");
-                unifiedBinaryOps(symbol, "nint", "string");
-                unifiedBinaryOps(symbol, "nint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nint"));
-                unifiedBinaryOps(symbol, "nint", "bool");
-                unifiedBinaryOps(symbol, "nint", "char", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "sbyte", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "byte", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "short", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "ushort", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "int", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "uint", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "nint", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
-                unifiedBinaryOps(symbol, "nint", "long", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint"));
-                unifiedBinaryOps(symbol, "nint", "float", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint", "double", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint", "System.IntPtr", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "System.UIntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
-
-                // nint equalityOp type?
-                unifiedBinaryOps(symbol, "nint", "bool?");
-                unifiedBinaryOps(symbol, "nint", "char?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "sbyte?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "byte?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "short?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "ushort?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "int?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "uint?", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "nint?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
-                unifiedBinaryOps(symbol, "nint", "long?", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint"));
-                unifiedBinaryOps(symbol, "nint", "float?", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint", "double?", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint", "System.IntPtr?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "System.UIntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
-                unifiedBinaryOps(symbol, "nint", "object");
-
-                // nint? equalityOp type
-                unifiedBinaryOps(symbol, "nint?", "string");
-                unifiedBinaryOps(symbol, "nint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "bool");
-                unifiedBinaryOps(symbol, "nint?", "char", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "sbyte", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "byte", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "short", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "ushort", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "int", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "uint", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "nint", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "long", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "float", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint?", "double", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint?", "System.IntPtr", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "System.UIntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
-
-                // nint? equalityOp type?
-                unifiedBinaryOps(symbol, "nint?", "bool?");
-                unifiedBinaryOps(symbol, "nint?", "char?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "sbyte?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "byte?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "short?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "ushort?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "int?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "uint?", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "nint?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "long?", $"bool long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint?"));
-                unifiedBinaryOps(symbol, "nint?", "float?", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nint?", "double?", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nint?", "System.IntPtr?", $"bool nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "System.UIntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
-
-                // nuint equalityOp type
-                unifiedBinaryOps(symbol, "nuint", "object");
-                unifiedBinaryOps(symbol, "nuint", "string");
-                unifiedBinaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "bool");
-                unifiedBinaryOps(symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint", "float", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint", "double", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint", "System.IntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
-
-                // nuint equalityOp type?
-                unifiedBinaryOps(symbol, "nuint", "bool?");
-                unifiedBinaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint", "float?", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint", "double?", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint", "System.IntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
-                unifiedBinaryOps(symbol, "nuint", "System.UIntPtr?", $"bool nuint.{name}(nuint left, nuint right)");
-
-                // nuint? equalityOp type
-                unifiedBinaryOps(symbol, "nuint?", "object");
-                unifiedBinaryOps(symbol, "nuint?", "string");
-                unifiedBinaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "bool");
-                unifiedBinaryOps(symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint?", "float", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint?", "double", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint?", "System.IntPtr", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
-
-                // nuint? equalityOp type?
-                unifiedBinaryOps(symbol, "nuint?", "bool?");
-                unifiedBinaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint?", "float?", $"bool float.{name}(float left, float right)");
-                unifiedBinaryOps(symbol, "nuint?", "double?", $"bool double.{name}(double left, double right)");
-                unifiedBinaryOps(symbol, "nuint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                unifiedBinaryOps(symbol, "nuint?", "System.IntPtr?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
-                unifiedBinaryOps(symbol, "nuint?", "System.UIntPtr?", $"bool nuint.{name}(nuint left, nuint right)");
-            }
-
-            foreach ((string symbol, string name) in logicalOperators)
-            {
-                // nint logicalOp type
-                unifiedBinaryOps(symbol, "nint", "object");
-                unifiedBinaryOps(symbol, "nint", "string");
-                unifiedBinaryOps(symbol, "nint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nint", includeVoidError: true));
-                unifiedBinaryOps(symbol, "nint", "bool");
-                unifiedBinaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "byte", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "short", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "ushort", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "int", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "uint", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "nint", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "nuint");
-                unifiedBinaryOps(symbol, "nint", "long", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "ulong");
-                unifiedBinaryOps(symbol, "nint", "float");
-                unifiedBinaryOps(symbol, "nint", "double");
-                unifiedBinaryOps(symbol, "nint", "decimal");
-                unifiedBinaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "System.UIntPtr");
-
-                // nint logicalOp type?
-                unifiedBinaryOps(symbol, "nint", "bool?");
-                unifiedBinaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "byte?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "short?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "ushort?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "int?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "uint?", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "nint?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "nuint?");
-                unifiedBinaryOps(symbol, "nint", "long?", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint", "ulong?");
-                unifiedBinaryOps(symbol, "nint", "float?");
-                unifiedBinaryOps(symbol, "nint", "double?");
-                unifiedBinaryOps(symbol, "nint", "decimal?");
-                unifiedBinaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint", "System.UIntPtr?");
-                unifiedBinaryOps(symbol, "nint", "object");
-
-                // nint? logicalOp type
-                unifiedBinaryOps(symbol, "nint?", "string");
-                unifiedBinaryOps(symbol, "nint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nint?", includeVoidError: true));
-                unifiedBinaryOps(symbol, "nint?", "bool");
-                unifiedBinaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "byte", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "short", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "ushort", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "int", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "uint", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "nint", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "nuint");
-                unifiedBinaryOps(symbol, "nint?", "long", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "ulong");
-                unifiedBinaryOps(symbol, "nint?", "float");
-                unifiedBinaryOps(symbol, "nint?", "double");
-                unifiedBinaryOps(symbol, "nint?", "decimal");
-                unifiedBinaryOps(symbol, "nint?", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "System.UIntPtr");
-
-                // nint? logicalOp type?
-                unifiedBinaryOps(symbol, "nint?", "bool?");
-                unifiedBinaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "byte?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "short?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "int?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "uint?", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "nint?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "nuint?");
-                unifiedBinaryOps(symbol, "nint?", "long?", $"long long.{name}(long left, long right)");
-                unifiedBinaryOps(symbol, "nint?", "ulong?");
-                unifiedBinaryOps(symbol, "nint?", "float?");
-                unifiedBinaryOps(symbol, "nint?", "double?");
-                unifiedBinaryOps(symbol, "nint?", "decimal?");
-                unifiedBinaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
-                unifiedBinaryOps(symbol, "nint?", "System.UIntPtr?");
-
-                // nuint logicalOp type
-                unifiedBinaryOps(symbol, "nuint", "object");
-                unifiedBinaryOps(symbol, "nuint", "string");
-                unifiedBinaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeVoidError: true));
-                unifiedBinaryOps(symbol, "nuint", "bool");
-                unifiedBinaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "sbyte");
-                unifiedBinaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "short");
-                unifiedBinaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "int");
-                unifiedBinaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "nint");
-                unifiedBinaryOps(symbol, "nuint", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "long");
-                unifiedBinaryOps(symbol, "nuint", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint", "float");
-                unifiedBinaryOps(symbol, "nuint", "double");
-                unifiedBinaryOps(symbol, "nuint", "decimal");
-                unifiedBinaryOps(symbol, "nuint", "System.IntPtr");
-                unifiedBinaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
-
-                // nuint logicalOp type?
-                unifiedBinaryOps(symbol, "nuint", "bool?");
-                unifiedBinaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "sbyte?");
-                unifiedBinaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "short?");
-                unifiedBinaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "int?");
-                unifiedBinaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "nint?");
-                unifiedBinaryOps(symbol, "nuint", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint", "long?");
-                unifiedBinaryOps(symbol, "nuint", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint", "float?");
-                unifiedBinaryOps(symbol, "nuint", "double?");
-                unifiedBinaryOps(symbol, "nuint", "decimal?");
-                unifiedBinaryOps(symbol, "nuint", "System.IntPtr?");
-                unifiedBinaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
-
-                // nuint? logicalOp type
-                unifiedBinaryOps(symbol, "nuint?", "object");
-                unifiedBinaryOps(symbol, "nuint?", "string");
-                unifiedBinaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
-                unifiedBinaryOps(symbol, "nuint?", "bool");
-                unifiedBinaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "sbyte");
-                unifiedBinaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "short");
-                unifiedBinaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "int");
-                unifiedBinaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "nint");
-                unifiedBinaryOps(symbol, "nuint?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "long");
-                unifiedBinaryOps(symbol, "nuint?", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint?", "float");
-                unifiedBinaryOps(symbol, "nuint?", "double");
-                unifiedBinaryOps(symbol, "nuint?", "decimal");
-                unifiedBinaryOps(symbol, "nuint?", "System.IntPtr");
-                unifiedBinaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
-
-                // nuint? logicalOp type?
-                unifiedBinaryOps(symbol, "nuint?", "bool?");
-                unifiedBinaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "sbyte?");
-                unifiedBinaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "short?");
-                unifiedBinaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "int?");
-                unifiedBinaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "nint?");
-                unifiedBinaryOps(symbol, "nuint?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                unifiedBinaryOps(symbol, "nuint?", "long?");
-                unifiedBinaryOps(symbol, "nuint?", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
-                unifiedBinaryOps(symbol, "nuint?", "float?");
-                unifiedBinaryOps(symbol, "nuint?", "double?");
-                unifiedBinaryOps(symbol, "nuint?", "decimal?");
-                unifiedBinaryOps(symbol, "nuint?", "System.IntPtr?");
-                unifiedBinaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
             }
 
             void binaryOperator(string op, string leftType, string rightType, string expectedSymbol, DiagnosticDescription[] expectedDiagnostics)
@@ -8099,6 +7044,1088 @@ $@"class Program
                 }
 
                 static bool useUnsafe(string type) => type == "void*";
+            }
+        }
+
+        private static DiagnosticDescription[] GetBadBinaryOpsDiagnostics(string op, string leftType, string rightType, bool includeBadBinaryOps = true, bool includeVoidError = false)
+        {
+            var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
+            if (includeBadBinaryOps) builder.Add(Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, AsNative(leftType), AsNative(rightType)));
+            if (includeVoidError) builder.Add(Diagnostic(ErrorCode.ERR_VoidError, $"x {op} y"));
+            return builder.ToArrayAndFree();
+        }
+
+        private static DiagnosticDescription[] GetAmbiguousBinaryOpsDiagnostics(string op, string leftType, string rightType)
+        {
+            return new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {op} y").WithArguments(op, leftType, rightType) };
+        }
+
+        [Fact]
+        public void BinaryOperators_Arithmetic()
+        {
+
+            var arithmeticOperators = new[]
+            {
+                ("-", "op_Subtraction"),
+                ("*", "op_Multiply"),
+                ("/", "op_Division"),
+                ("%", "op_Modulus"),
+            };
+
+            foreach ((string symbol, string name) in arithmeticOperators)
+            {
+                bool includeBadBinaryOps = (symbol != "-");
+
+                // nint arithmeticOp type
+                UnifiedBinaryOps(symbol, "nint", "object");
+                UnifiedBinaryOps(symbol, "nint", "string");
+                UnifiedBinaryOps(symbol, "nint", "void*", null, (symbol == "-") ? $"void* void*.{name}(void* left, long right)" : null, GetBadBinaryOpsDiagnostics(symbol, "nint", "void*", includeVoidError: true), GetBadBinaryOpsDiagnostics(symbol, "void*", "nint", includeBadBinaryOps: includeBadBinaryOps, includeVoidError: true));
+                UnifiedBinaryOps(symbol, "nint", "bool");
+                UnifiedBinaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "byte", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "short", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "ushort", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "int", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "uint", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "nint", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "nuint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "long", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "ulong", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "float", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint", "double", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "System.UIntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
+
+                // nint arithmeticOp type?
+                UnifiedBinaryOps(symbol, "nint", "bool?");
+                UnifiedBinaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "byte?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "short?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "ushort?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "int?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "uint?", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "nint?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "nuint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "long?", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "ulong?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "float?", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint", "double?", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "System.UIntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "object");
+
+                // nint? arithmeticOp type
+                UnifiedBinaryOps(symbol, "nint?", "string");
+                UnifiedBinaryOps(symbol, "nint?", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nint?", "void*", includeVoidError: true), GetBadBinaryOpsDiagnostics(symbol, "void*", "nint?", includeVoidError: true));
+                UnifiedBinaryOps(symbol, "nint?", "bool");
+                UnifiedBinaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "byte", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "short", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "ushort", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "int", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "uint", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "nint", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "nuint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "long", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "ulong", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "float", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint?", "double", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.UIntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
+
+                // nint? arithmeticOp type?
+                UnifiedBinaryOps(symbol, "nint?", "bool?");
+                UnifiedBinaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "byte?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "short?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "int?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "uint?", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "nint?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "nuint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "long?", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "ulong?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "float?", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint?", "double?", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.UIntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
+
+                // nuint arithmeticOp type
+                UnifiedBinaryOps(symbol, "nuint", "object");
+                UnifiedBinaryOps(symbol, "nuint", "string");
+                UnifiedBinaryOps(symbol, "nuint", "void*", null, (symbol == "-") ? $"void* void*.{name}(void* left, ulong right)" : null, GetBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), GetBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeBadBinaryOps: includeBadBinaryOps, includeVoidError: true));
+                UnifiedBinaryOps(symbol, "nuint", "bool");
+                UnifiedBinaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "sbyte", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "short", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "int", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "nint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "long", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint", "float", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint", "double", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint", "System.IntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
+
+                // nuint arithmeticOp type?
+                UnifiedBinaryOps(symbol, "nuint", "bool?");
+                UnifiedBinaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "sbyte?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "short?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "int?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "nint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "long?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint", "float?", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint", "double?", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint", "System.IntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
+
+                // nuint? arithmeticOp type
+                UnifiedBinaryOps(symbol, "nuint?", "object");
+                UnifiedBinaryOps(symbol, "nuint?", "string");
+                UnifiedBinaryOps(symbol, "nuint?", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), GetBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
+                UnifiedBinaryOps(symbol, "nuint?", "bool");
+                UnifiedBinaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "sbyte", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "short", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "int", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "nint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "long", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint?", "float", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint?", "double", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint?", "System.IntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
+
+                // nuint? arithmeticOp type?
+                UnifiedBinaryOps(symbol, "nuint?", "bool?");
+                UnifiedBinaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "sbyte?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "short?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "int?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "nint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "long?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint?", "float?", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint?", "double?", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint?", "System.IntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
+            }
+        }
+
+        [Fact]
+        public void BinaryOperators_Comparison()
+        {
+            var comparisonOperators = new[]
+            {
+                ("<", "op_LessThan"),
+                ("<=", "op_LessThanOrEqual"),
+                (">", "op_GreaterThan"),
+                (">=", "op_GreaterThanOrEqual"),
+            };
+
+            foreach ((string symbol, string name) in comparisonOperators)
+            {
+                // nint comparisonOp type
+                UnifiedBinaryOps(symbol, "nint", "object");
+                UnifiedBinaryOps(symbol, "nint", "string");
+                UnifiedBinaryOps(symbol, "nint", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nint", "void*"), GetBadBinaryOpsDiagnostics(symbol, "void*", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "bool");
+                UnifiedBinaryOps(symbol, "nint", "char", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "sbyte", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "byte", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "short", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "ushort", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "int", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "uint", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "nint", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "nuint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "long", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "ulong", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "float", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint", "double", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint", "System.IntPtr", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "System.UIntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
+
+                // nint comparisonOp type?
+                UnifiedBinaryOps(symbol, "nint", "bool?");
+                UnifiedBinaryOps(symbol, "nint", "char?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "sbyte?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "byte?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "short?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "ushort?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "int?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "uint?", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "nint?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "nuint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "long?", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "ulong?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "float?", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint", "double?", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint", "System.IntPtr?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "System.UIntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "object");
+
+                // nint? comparisonOp type
+                UnifiedBinaryOps(symbol, "nint?", "string");
+                UnifiedBinaryOps(symbol, "nint?", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nint?", "void*"), GetBadBinaryOpsDiagnostics(symbol, "void*", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "bool");
+                UnifiedBinaryOps(symbol, "nint?", "char", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "sbyte", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "byte", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "short", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "ushort", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "int", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "uint", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "nint", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "nuint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "long", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "ulong", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "float", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint?", "double", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.IntPtr", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.UIntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
+
+                // nint? comparisonOp type?
+                UnifiedBinaryOps(symbol, "nint?", "bool?");
+                UnifiedBinaryOps(symbol, "nint?", "char?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "sbyte?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "byte?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "short?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "ushort?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "int?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "uint?", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "nint?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "nuint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "long?", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "ulong?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "float?", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint?", "double?", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.IntPtr?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.UIntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
+
+                // nuint comparisonOp type
+                UnifiedBinaryOps(symbol, "nuint", "object");
+                UnifiedBinaryOps(symbol, "nuint", "string");
+                UnifiedBinaryOps(symbol, "nuint", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nuint", "void*"), GetBadBinaryOpsDiagnostics(symbol, "void*", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "bool");
+                UnifiedBinaryOps(symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "sbyte", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "short", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "int", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "nint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "long", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint", "float", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint", "double", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint", "System.IntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
+
+                // nuint comparisonOp type?
+                UnifiedBinaryOps(symbol, "nuint", "bool?");
+                UnifiedBinaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "sbyte?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "short?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "int?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "nint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "long?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint", "float?", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint", "double?", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint", "System.IntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "System.UIntPtr?", $"bool nuint.{name}(nuint left, nuint right)");
+
+                // nuint? comparisonOp type
+                UnifiedBinaryOps(symbol, "nuint?", "object");
+                UnifiedBinaryOps(symbol, "nuint?", "string");
+                UnifiedBinaryOps(symbol, "nuint?", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nuint?", "void*"), GetBadBinaryOpsDiagnostics(symbol, "void*", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "bool");
+                UnifiedBinaryOps(symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "sbyte", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "short", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "int", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "nint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "long", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint?", "float", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint?", "double", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint?", "System.IntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
+
+                // nuint comparisonOp type?
+                UnifiedBinaryOps(symbol, "nuint?", "bool?");
+                UnifiedBinaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "sbyte?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "short?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "int?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "nint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "long?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint?", "float?", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint?", "double?", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint?", "System.IntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "System.UIntPtr?", $"bool nuint.{name}(nuint left, nuint right)");
+            }
+        }
+
+        [Fact]
+        public void BinaryOperators_Addition()
+        {
+            var additionOperators = new[]
+            {
+                ("+", "op_Addition"),
+            };
+
+            foreach ((string symbol, string name) in additionOperators)
+            {
+                // nint additionOperator type
+                UnifiedBinaryOps(symbol, "nint", "object");
+                UnifiedBinaryOps(symbol, "nint", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
+                UnifiedBinaryOps(symbol, "nint", "void*", $"void* void*.{name}(long left, void* right)", $"void* void*.{name}(void* left, long right)", new[] { Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
+                UnifiedBinaryOps(symbol, "nint", "bool");
+                UnifiedBinaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "byte", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "short", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "ushort", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "int", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "uint", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "nint", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "nuint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "long", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "ulong", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "float", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint", "double", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "System.UIntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
+
+                // nint additionOperator type?
+                UnifiedBinaryOps(symbol, "nint", "bool?");
+                UnifiedBinaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "byte?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "short?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "ushort?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "int?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "uint?", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "nint?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "nuint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "long?", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "ulong?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "float?", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint", "double?", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "System.UIntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "object");
+
+                // nint? additionOperator type
+                UnifiedBinaryOps(symbol, "nint?", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
+                UnifiedBinaryOps(symbol, "nint?", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nint?", "void*", includeVoidError: true), GetBadBinaryOpsDiagnostics(symbol, "void*", "nint?", includeVoidError: true));
+                UnifiedBinaryOps(symbol, "nint?", "bool");
+                UnifiedBinaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "byte", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "short", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "ushort", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "int", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "uint", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "nint", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "nuint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "long", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "ulong", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "float", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint?", "double", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.UIntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
+
+                // nint? additionOperator type?
+                UnifiedBinaryOps(symbol, "nint?", "bool?");
+                UnifiedBinaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "byte?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "short?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "int?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "uint?", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "nint?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "nuint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "long?", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "ulong?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "float?", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint?", "double?", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.UIntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
+
+                // nuint additionOperator type
+                UnifiedBinaryOps(symbol, "nuint", "object");
+                UnifiedBinaryOps(symbol, "nuint", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
+                UnifiedBinaryOps(symbol, "nuint", "void*", $"void* void*.{name}(ulong left, void* right)", $"void* void*.{name}(void* left, ulong right)", new[] { Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
+                UnifiedBinaryOps(symbol, "nuint", "bool");
+                UnifiedBinaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "sbyte", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "short", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "int", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "nint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "long", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint", "float", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint", "double", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint", "System.IntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
+
+                // nuint additionOperator type?
+                UnifiedBinaryOps(symbol, "nuint", "bool?");
+                UnifiedBinaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "sbyte?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "short?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "int?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "nint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "long?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint", "float?", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint", "double?", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint", "System.IntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
+
+                // nuint? additionOperator type
+                UnifiedBinaryOps(symbol, "nuint?", "object");
+                UnifiedBinaryOps(symbol, "nuint?", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
+                UnifiedBinaryOps(symbol, "nuint?", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), GetBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
+                UnifiedBinaryOps(symbol, "nuint?", "bool");
+                UnifiedBinaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "sbyte", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "short", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "int", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "nint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "long", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint?", "float", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint?", "double", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint?", "System.IntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
+
+                // nuint? additionOperator type?
+                UnifiedBinaryOps(symbol, "nuint?", "bool?");
+                UnifiedBinaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "sbyte?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "short?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "int?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "nint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "long?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint?", "float?", $"float float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint?", "double?", $"double double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint?", "System.IntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
+            }
+        }
+
+        [Fact]
+        public void BinaryOperators_Shift()
+        {
+            var shiftOperators = new[]
+            {
+                ("<<", "op_LeftShift"),
+                (">>", "op_RightShift"),
+            };
+
+            foreach ((string symbol, string name) in shiftOperators)
+            {
+                // nint shiftOp type
+                UnifiedBinaryOps(symbol, "nint", "object");
+                UnifiedBinaryOps(symbol, "nint", "string");
+                UnifiedBinaryOps(symbol, "nint", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nint", "void*", includeVoidError: true), GetBadBinaryOpsDiagnostics(symbol, "void*", "nint", includeVoidError: true));
+                UnifiedBinaryOps(symbol, "nint", "bool");
+                UnifiedBinaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint", "byte", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint", "short", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint", "ushort", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint", "int", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint", "uint");
+                UnifiedBinaryOps(symbol, "nint", "nint");
+                UnifiedBinaryOps(symbol, "nint", "nuint");
+                UnifiedBinaryOps(symbol, "nint", "long");
+                UnifiedBinaryOps(symbol, "nint", "ulong");
+                UnifiedBinaryOps(symbol, "nint", "float");
+                UnifiedBinaryOps(symbol, "nint", "double");
+                UnifiedBinaryOps(symbol, "nint", "decimal");
+                UnifiedBinaryOps(symbol, "nint", "System.IntPtr");
+                UnifiedBinaryOps(symbol, "nint", "System.UIntPtr");
+
+                // nint shiftOp type?
+                UnifiedBinaryOps(symbol, "nint", "bool?");
+                UnifiedBinaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint", "byte?", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint", "short?", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint", "ushort?", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint", "int?", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint", "uint?");
+                UnifiedBinaryOps(symbol, "nint", "nint?");
+                UnifiedBinaryOps(symbol, "nint", "nuint?");
+                UnifiedBinaryOps(symbol, "nint", "long?");
+                UnifiedBinaryOps(symbol, "nint", "ulong?");
+                UnifiedBinaryOps(symbol, "nint", "float?");
+                UnifiedBinaryOps(symbol, "nint", "double?");
+                UnifiedBinaryOps(symbol, "nint", "decimal?");
+                UnifiedBinaryOps(symbol, "nint", "System.IntPtr?");
+                UnifiedBinaryOps(symbol, "nint", "System.UIntPtr?");
+                UnifiedBinaryOps(symbol, "nint", "object");
+
+                // nint? shiftOp type
+                UnifiedBinaryOps(symbol, "nint?", "string");
+                UnifiedBinaryOps(symbol, "nint?", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nint?", "void*", includeVoidError: true), GetBadBinaryOpsDiagnostics(symbol, "void*", "nint?", includeVoidError: true));
+                UnifiedBinaryOps(symbol, "nint?", "bool");
+                UnifiedBinaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint?", "byte", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint?", "short", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint?", "ushort", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint?", "int", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint?", "uint");
+                UnifiedBinaryOps(symbol, "nint?", "nint");
+                UnifiedBinaryOps(symbol, "nint?", "nuint");
+                UnifiedBinaryOps(symbol, "nint?", "long");
+                UnifiedBinaryOps(symbol, "nint?", "ulong");
+                UnifiedBinaryOps(symbol, "nint?", "float");
+                UnifiedBinaryOps(symbol, "nint?", "double");
+                UnifiedBinaryOps(symbol, "nint?", "decimal");
+                UnifiedBinaryOps(symbol, "nint?", "System.IntPtr");
+                UnifiedBinaryOps(symbol, "nint?", "System.UIntPtr");
+
+                // nint? shiftOp type?
+                UnifiedBinaryOps(symbol, "nint?", "bool?");
+                UnifiedBinaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint?", "byte?", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint?", "short?", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint?", "int?", $"nint nint.{name}(nint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nint?", "uint?");
+                UnifiedBinaryOps(symbol, "nint?", "nint?");
+                UnifiedBinaryOps(symbol, "nint?", "nuint?");
+                UnifiedBinaryOps(symbol, "nint?", "long?");
+                UnifiedBinaryOps(symbol, "nint?", "ulong?");
+                UnifiedBinaryOps(symbol, "nint?", "float?");
+                UnifiedBinaryOps(symbol, "nint?", "double?");
+                UnifiedBinaryOps(symbol, "nint?", "decimal?");
+                UnifiedBinaryOps(symbol, "nint?", "System.IntPtr?");
+                UnifiedBinaryOps(symbol, "nint?", "System.UIntPtr?");
+
+                // nuint shiftOp type
+                UnifiedBinaryOps(symbol, "nuint", "object");
+                UnifiedBinaryOps(symbol, "nuint", "string");
+                UnifiedBinaryOps(symbol, "nuint", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), GetBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeVoidError: true));
+                UnifiedBinaryOps(symbol, "nuint", "bool");
+                UnifiedBinaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint", "int", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint", "uint");
+                UnifiedBinaryOps(symbol, "nuint", "nint");
+                UnifiedBinaryOps(symbol, "nuint", "nuint");
+                UnifiedBinaryOps(symbol, "nuint", "long");
+                UnifiedBinaryOps(symbol, "nuint", "ulong");
+                UnifiedBinaryOps(symbol, "nuint", "float");
+                UnifiedBinaryOps(symbol, "nuint", "double");
+                UnifiedBinaryOps(symbol, "nuint", "decimal");
+                UnifiedBinaryOps(symbol, "nuint", "System.IntPtr");
+                UnifiedBinaryOps(symbol, "nuint", "System.UIntPtr");
+
+                // nuint shiftOp type?
+                UnifiedBinaryOps(symbol, "nuint", "bool?");
+                UnifiedBinaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint", "int?", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint", "uint?");
+                UnifiedBinaryOps(symbol, "nuint", "nint?");
+                UnifiedBinaryOps(symbol, "nuint", "nuint?");
+                UnifiedBinaryOps(symbol, "nuint", "long?");
+                UnifiedBinaryOps(symbol, "nuint", "ulong?");
+                UnifiedBinaryOps(symbol, "nuint", "float?");
+                UnifiedBinaryOps(symbol, "nuint", "double?");
+                UnifiedBinaryOps(symbol, "nuint", "decimal?");
+                UnifiedBinaryOps(symbol, "nuint", "System.IntPtr?");
+                UnifiedBinaryOps(symbol, "nuint", "System.UIntPtr?");
+
+                // nuint? shiftOp type
+                UnifiedBinaryOps(symbol, "nuint?", "object");
+                UnifiedBinaryOps(symbol, "nuint?", "string");
+                UnifiedBinaryOps(symbol, "nuint?", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), GetBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
+                UnifiedBinaryOps(symbol, "nuint?", "bool");
+                UnifiedBinaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint?", "int", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint?", "uint");
+                UnifiedBinaryOps(symbol, "nuint?", "nint");
+                UnifiedBinaryOps(symbol, "nuint?", "nuint");
+                UnifiedBinaryOps(symbol, "nuint?", "long");
+                UnifiedBinaryOps(symbol, "nuint?", "ulong");
+                UnifiedBinaryOps(symbol, "nuint?", "float");
+                UnifiedBinaryOps(symbol, "nuint?", "double");
+                UnifiedBinaryOps(symbol, "nuint?", "decimal");
+                UnifiedBinaryOps(symbol, "nuint?", "System.IntPtr");
+                UnifiedBinaryOps(symbol, "nuint?", "System.UIntPtr");
+
+                // nuint? shiftOp type?
+                UnifiedBinaryOps(symbol, "nuint?", "bool?");
+                UnifiedBinaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint?", "int?", $"nuint nuint.{name}(nuint left, int right)", null);
+                UnifiedBinaryOps(symbol, "nuint?", "uint?");
+                UnifiedBinaryOps(symbol, "nuint?", "nint?");
+                UnifiedBinaryOps(symbol, "nuint?", "nuint?");
+                UnifiedBinaryOps(symbol, "nuint?", "long?");
+                UnifiedBinaryOps(symbol, "nuint?", "ulong?");
+                UnifiedBinaryOps(symbol, "nuint?", "float?");
+                UnifiedBinaryOps(symbol, "nuint?", "double?");
+                UnifiedBinaryOps(symbol, "nuint?", "decimal?");
+                UnifiedBinaryOps(symbol, "nuint?", "System.IntPtr?");
+                UnifiedBinaryOps(symbol, "nuint?", "System.UIntPtr?");
+            }
+        }
+
+        [Fact]
+        public void BinaryOperators_Equality()
+        {
+            var equalityOperators = new[]
+            {
+                ("==", "op_Equality"),
+                ("!=", "op_Inequality"),
+            };
+
+            foreach ((string symbol, string name) in equalityOperators)
+            {
+                // nint equalityOp type
+                UnifiedBinaryOps(symbol, "nint", "object");
+                UnifiedBinaryOps(symbol, "nint", "string");
+                UnifiedBinaryOps(symbol, "nint", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nint", "void*"), GetBadBinaryOpsDiagnostics(symbol, "void*", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "bool");
+                UnifiedBinaryOps(symbol, "nint", "char", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "sbyte", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "byte", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "short", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "ushort", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "int", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "uint", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "nint", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "nuint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "long", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "ulong", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "float", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint", "double", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint", "System.IntPtr", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "System.UIntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
+
+                // nint equalityOp type?
+                UnifiedBinaryOps(symbol, "nint", "bool?");
+                UnifiedBinaryOps(symbol, "nint", "char?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "sbyte?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "byte?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "short?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "ushort?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "int?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "uint?", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "nint?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "nuint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "long?", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "ulong?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "float?", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint", "double?", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint", "System.IntPtr?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "System.UIntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
+                UnifiedBinaryOps(symbol, "nint", "object");
+
+                // nint? equalityOp type
+                UnifiedBinaryOps(symbol, "nint?", "string");
+                UnifiedBinaryOps(symbol, "nint?", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nint?", "void*"), GetBadBinaryOpsDiagnostics(symbol, "void*", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "bool");
+                UnifiedBinaryOps(symbol, "nint?", "char", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "sbyte", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "byte", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "short", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "ushort", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "int", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "uint", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "nint", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "nuint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "long", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "ulong", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "float", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint?", "double", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.IntPtr", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.UIntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
+
+                // nint? equalityOp type?
+                UnifiedBinaryOps(symbol, "nint?", "bool?");
+                UnifiedBinaryOps(symbol, "nint?", "char?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "sbyte?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "byte?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "short?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "ushort?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "int?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "uint?", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "nint?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "nuint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "long?", $"bool long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "ulong?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint?"));
+                UnifiedBinaryOps(symbol, "nint?", "float?", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nint?", "double?", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.IntPtr?", $"bool nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.UIntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
+
+                // nuint equalityOp type
+                UnifiedBinaryOps(symbol, "nuint", "object");
+                UnifiedBinaryOps(symbol, "nuint", "string");
+                UnifiedBinaryOps(symbol, "nuint", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nuint", "void*"), GetBadBinaryOpsDiagnostics(symbol, "void*", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "bool");
+                UnifiedBinaryOps(symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "sbyte", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "short", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "int", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "nint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "long", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint", "float", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint", "double", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint", "System.IntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
+
+                // nuint equalityOp type?
+                UnifiedBinaryOps(symbol, "nuint", "bool?");
+                UnifiedBinaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "sbyte?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "short?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "int?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "nint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "long?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint", "float?", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint", "double?", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint", "System.IntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
+                UnifiedBinaryOps(symbol, "nuint", "System.UIntPtr?", $"bool nuint.{name}(nuint left, nuint right)");
+
+                // nuint? equalityOp type
+                UnifiedBinaryOps(symbol, "nuint?", "object");
+                UnifiedBinaryOps(symbol, "nuint?", "string");
+                UnifiedBinaryOps(symbol, "nuint?", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nuint?", "void*"), GetBadBinaryOpsDiagnostics(symbol, "void*", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "bool");
+                UnifiedBinaryOps(symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "sbyte", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "short", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "int", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "nint", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "long", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint?", "float", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint?", "double", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint?", "System.IntPtr", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
+
+                // nuint? equalityOp type?
+                UnifiedBinaryOps(symbol, "nuint?", "bool?");
+                UnifiedBinaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "sbyte?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "short?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "int?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "nint?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "long?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint?", "float?", $"bool float.{name}(float left, float right)");
+                UnifiedBinaryOps(symbol, "nuint?", "double?", $"bool double.{name}(double left, double right)");
+                UnifiedBinaryOps(symbol, "nuint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                UnifiedBinaryOps(symbol, "nuint?", "System.IntPtr?", null, null, GetAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), GetAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
+                UnifiedBinaryOps(symbol, "nuint?", "System.UIntPtr?", $"bool nuint.{name}(nuint left, nuint right)");
+            }
+        }
+
+        [Fact]
+        public void BinaryOperators_Logical()
+        {
+            var logicalOperators = new[]
+            {
+                ("&", "op_BitwiseAnd"),
+                ("|", "op_BitwiseOr"),
+                ("^", "op_ExclusiveOr"),
+            };
+
+            foreach ((string symbol, string name) in logicalOperators)
+            {
+                // nint logicalOp type
+                UnifiedBinaryOps(symbol, "nint", "object");
+                UnifiedBinaryOps(symbol, "nint", "string");
+                UnifiedBinaryOps(symbol, "nint", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nint", "void*", includeVoidError: true), GetBadBinaryOpsDiagnostics(symbol, "void*", "nint", includeVoidError: true));
+                UnifiedBinaryOps(symbol, "nint", "bool");
+                UnifiedBinaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "byte", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "short", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "ushort", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "int", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "uint", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "nint", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "nuint");
+                UnifiedBinaryOps(symbol, "nint", "long", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "ulong");
+                UnifiedBinaryOps(symbol, "nint", "float");
+                UnifiedBinaryOps(symbol, "nint", "double");
+                UnifiedBinaryOps(symbol, "nint", "decimal");
+                UnifiedBinaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "System.UIntPtr");
+
+                // nint logicalOp type?
+                UnifiedBinaryOps(symbol, "nint", "bool?");
+                UnifiedBinaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "byte?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "short?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "ushort?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "int?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "uint?", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "nint?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "nuint?");
+                UnifiedBinaryOps(symbol, "nint", "long?", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint", "ulong?");
+                UnifiedBinaryOps(symbol, "nint", "float?");
+                UnifiedBinaryOps(symbol, "nint", "double?");
+                UnifiedBinaryOps(symbol, "nint", "decimal?");
+                UnifiedBinaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint", "System.UIntPtr?");
+                UnifiedBinaryOps(symbol, "nint", "object");
+
+                // nint? logicalOp type
+                UnifiedBinaryOps(symbol, "nint?", "string");
+                UnifiedBinaryOps(symbol, "nint?", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nint?", "void*", includeVoidError: true), GetBadBinaryOpsDiagnostics(symbol, "void*", "nint?", includeVoidError: true));
+                UnifiedBinaryOps(symbol, "nint?", "bool");
+                UnifiedBinaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "byte", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "short", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "ushort", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "int", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "uint", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "nint", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "nuint");
+                UnifiedBinaryOps(symbol, "nint?", "long", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "ulong");
+                UnifiedBinaryOps(symbol, "nint?", "float");
+                UnifiedBinaryOps(symbol, "nint?", "double");
+                UnifiedBinaryOps(symbol, "nint?", "decimal");
+                UnifiedBinaryOps(symbol, "nint?", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.UIntPtr");
+
+                // nint? logicalOp type?
+                UnifiedBinaryOps(symbol, "nint?", "bool?");
+                UnifiedBinaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "byte?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "short?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "int?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "uint?", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "nint?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "nuint?");
+                UnifiedBinaryOps(symbol, "nint?", "long?", $"long long.{name}(long left, long right)");
+                UnifiedBinaryOps(symbol, "nint?", "ulong?");
+                UnifiedBinaryOps(symbol, "nint?", "float?");
+                UnifiedBinaryOps(symbol, "nint?", "double?");
+                UnifiedBinaryOps(symbol, "nint?", "decimal?");
+                UnifiedBinaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
+                UnifiedBinaryOps(symbol, "nint?", "System.UIntPtr?");
+
+                // nuint logicalOp type
+                UnifiedBinaryOps(symbol, "nuint", "object");
+                UnifiedBinaryOps(symbol, "nuint", "string");
+                UnifiedBinaryOps(symbol, "nuint", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), GetBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeVoidError: true));
+                UnifiedBinaryOps(symbol, "nuint", "bool");
+                UnifiedBinaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "sbyte");
+                UnifiedBinaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "short");
+                UnifiedBinaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "int");
+                UnifiedBinaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "nint");
+                UnifiedBinaryOps(symbol, "nuint", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "long");
+                UnifiedBinaryOps(symbol, "nuint", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint", "float");
+                UnifiedBinaryOps(symbol, "nuint", "double");
+                UnifiedBinaryOps(symbol, "nuint", "decimal");
+                UnifiedBinaryOps(symbol, "nuint", "System.IntPtr");
+                UnifiedBinaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
+
+                // nuint logicalOp type?
+                UnifiedBinaryOps(symbol, "nuint", "bool?");
+                UnifiedBinaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "sbyte?");
+                UnifiedBinaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "short?");
+                UnifiedBinaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "int?");
+                UnifiedBinaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "nint?");
+                UnifiedBinaryOps(symbol, "nuint", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint", "long?");
+                UnifiedBinaryOps(symbol, "nuint", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint", "float?");
+                UnifiedBinaryOps(symbol, "nuint", "double?");
+                UnifiedBinaryOps(symbol, "nuint", "decimal?");
+                UnifiedBinaryOps(symbol, "nuint", "System.IntPtr?");
+                UnifiedBinaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
+
+                // nuint? logicalOp type
+                UnifiedBinaryOps(symbol, "nuint?", "object");
+                UnifiedBinaryOps(symbol, "nuint?", "string");
+                UnifiedBinaryOps(symbol, "nuint?", "void*", null, null, GetBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), GetBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
+                UnifiedBinaryOps(symbol, "nuint?", "bool");
+                UnifiedBinaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "sbyte");
+                UnifiedBinaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "short");
+                UnifiedBinaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "int");
+                UnifiedBinaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "nint");
+                UnifiedBinaryOps(symbol, "nuint?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "long");
+                UnifiedBinaryOps(symbol, "nuint?", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint?", "float");
+                UnifiedBinaryOps(symbol, "nuint?", "double");
+                UnifiedBinaryOps(symbol, "nuint?", "decimal");
+                UnifiedBinaryOps(symbol, "nuint?", "System.IntPtr");
+                UnifiedBinaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
+
+                // nuint? logicalOp type?
+                UnifiedBinaryOps(symbol, "nuint?", "bool?");
+                UnifiedBinaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "sbyte?");
+                UnifiedBinaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "short?");
+                UnifiedBinaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "int?");
+                UnifiedBinaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "nint?");
+                UnifiedBinaryOps(symbol, "nuint?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                UnifiedBinaryOps(symbol, "nuint?", "long?");
+                UnifiedBinaryOps(symbol, "nuint?", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
+                UnifiedBinaryOps(symbol, "nuint?", "float?");
+                UnifiedBinaryOps(symbol, "nuint?", "double?");
+                UnifiedBinaryOps(symbol, "nuint?", "decimal?");
+                UnifiedBinaryOps(symbol, "nuint?", "System.IntPtr?");
+                UnifiedBinaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
             }
         }
 
