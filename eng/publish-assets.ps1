@@ -120,7 +120,7 @@ function Publish-Npm([string]$npmPackagesDir) {
   Write-Host ""
   Write-Host "Publishing NPM packages in $npmPackagesDir..."
 
-  $npmrcPath = [IO.Path]::Combine($RepoRoot, "src", "VisualStudio", "Microsoft.CodeAnalysis.LanguageServer.Internal", ".npmrc")
+  $npmrcPath = [IO.Path]::Combine($RepoRoot, "src", "VisualStudio", "DevKit", "Impl", ".npmrc")
   if (-not (Test-Path $npmrcPath)) {
     throw "Missing .npmrc at $npmrcPath"
   }
@@ -128,7 +128,7 @@ function Publish-Npm([string]$npmPackagesDir) {
   foreach ($npmPackage in Get-ChildItem -Path (Join-Path $npmPackagesDir "*") -Include *.tgz) {
     Write-Host ""
 
-    $publishCommandArgs = "npm publish --dryrun --userconfig ""$npmrcPath"" ""$npmPackage"""
+    $publishCommandArgs = "npm publish --userconfig ""$npmrcPath"" ""$npmPackage"""
     Write-Host "Publishing $npmPackage"
     $publishOutput = & cmd /c "$publishCommandArgs"
     if ($LastExitCode -ne 0)

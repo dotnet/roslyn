@@ -131,27 +131,20 @@ stages:
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
 
-    - task: NuGetToolInstaller@0
-      inputs:
-        versionSpec: '4.9.2'
-
     - task: NodeTool@0
       inputs:
         versionSpec: '16.x'
       displayName: 'Install Node.js'
 
+
+    - task: NuGetToolInstaller@0
+      inputs:
+        versionSpec: '4.9.2'
+
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
     - task: NuGetAuthenticate@0
       inputs:
         nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
-
-    # Authenticates the .npmrc file for publishing to the internal AzDO feed.
-    # See: https://learn.microsoft.com/azure/devops/pipelines/tasks/package/npm-authenticate?view=azure-devops
-    - task: npmAuthenticate@0
-      displayName: Authenticate NPM Feed
-      inputs:
-        workingFile: $(Build.SourcesDirectory)/src/VisualStudio/Microsoft.CodeAnalysis.LanguageServer.Internal/.npmrc
-        customEndpoint: devdiv-vs-green-npm-package-feed
 
     # Needed for SBOM tool
     - task: UseDotNet@2
@@ -327,6 +320,21 @@ stages:
         nuGetFeedType: external
         publishFeedCredentials: 'DevDiv - VS package feed'
       condition: succeeded()
+
+    # Publish language server package
+    - powershell: Write-Host "##vso[task.setvariable variable=NPMFileName]$((ls -file $(Build.SourcesDirectory)\artifacts\packages\Release\NPM\ | select -First 1).FullName)"
+      displayName: Setting NPM Package Variable
+
+    # Authenticates the .npmrc file for publishing to the internal AzDO feed.
+    # See: https://learn.microsoft.com/azure/devops/pipelines/tasks/package/npm-authenticate?view=azure-devops
+    - task: npmAuthenticate@0
+      displayName: Authenticate NPM Feed
+      inputs:
+        workingFile: $(Build.SourcesDirectory)/src/VisualStudio/DevKit/Impl/.npmrc
+        customEndpoint: devdiv-vs-green-npm-package-feed
+
+    - script: npm publish --userconfig $(Build.SourcesDirectory)\src\VisualStudio\DevKit\Impl\.npmrc $(NPMFileName)
+      displayName: Publish Language Server NPM Package
 
     # Publish Asset Manifests for Build Asset Registry job
     - task: PublishBuildArtifacts@1

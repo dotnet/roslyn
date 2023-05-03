@@ -291,8 +291,9 @@ static class Extensions
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var solution = testLspServer.TestWorkspace.CurrentSolution;
 
-            // Make sure the unimported types option is on by default.
+            // Make sure the unimported types option is on
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, true);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, true);
 
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
@@ -406,7 +407,8 @@ class A
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var expected = await CreateCompletionItemAsync(
-                label: "d", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, sortText: "0000").ConfigureAwait(false);
+                label: "d", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, sortText: "0000",
+                labelDetails: new() { Description = "shortdate" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -467,7 +469,7 @@ class A
 
             var expected = await CreateCompletionItemAsync(
                 label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, textEditText: @"\\A",
-                sortText: "0000").ConfigureAwait(false);
+                sortText: "0000", labelDetails: new() { Description = "startofstringonly" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -504,7 +506,7 @@ class A
 
             var expected = await CreateCompletionItemAsync(
                 label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document,
-                sortText: "0000", vsResolveTextEditOnCommit: true).ConfigureAwait(false);
+                sortText: "0000", vsResolveTextEditOnCommit: true, labelDetails: new() { Description = "startofstringonly" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -541,7 +543,7 @@ class A
 
             var expected = await CreateCompletionItemAsync(
                 label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document,
-                sortText: "0000", vsResolveTextEditOnCommit: true).ConfigureAwait(false);
+                sortText: "0000", vsResolveTextEditOnCommit: true, labelDetails: new() { Description = "startofstringonly" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -589,7 +591,7 @@ class A
 
             var expected = await CreateCompletionItemAsync(
                 label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, textEdit: textEdit,
-                sortText: "0000").ConfigureAwait(false);
+                sortText: "0000", labelDetails: new() { Description = "startofstringonly" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());

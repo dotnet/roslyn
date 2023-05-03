@@ -65,14 +65,22 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
         // shares the same sync/lock/application code with the core workspace code.  Once that happens, we won't need
         // to do special coordination here.
         return this.ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(
-            _ => this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false),
+            _ =>
+            {
+                this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
+                return ValueTask.CompletedTask;
+            },
             cancellationToken);
     }
 
     internal override ValueTask TryOnDocumentOpenedAsync(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, CancellationToken cancellationToken)
     {
         return this.ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(
-            _ => this.OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false),
+            _ =>
+            {
+                this.OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false);
+                return ValueTask.CompletedTask;
+            },
             cancellationToken);
     }
 
@@ -89,6 +97,8 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
                     var loader = this.ProjectSystemProjectFactory.CreateFileTextLoader(filePath);
                     this.OnDocumentClosedEx(documentId, loader, requireDocumentPresentAndOpen: false);
                 }
+
+                return ValueTask.CompletedTask;
             },
             cancellationToken);
     }

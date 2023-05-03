@@ -14,14 +14,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 {
     internal interface ILspCompletionResultCreationService : IWorkspaceService
     {
-        Task<LSP.CompletionItem> CreateAsync(
+        Task<LSP.CompletionList> ConvertToLspCompletionListAsync(
             Document document,
-            SourceText documentText,
-            bool snippetsSupported,
-            bool itemDefaultsSupported,
-            TextSpan defaultSpan,
-            CompletionItem item,
-            CompletionService completionService,
+            CompletionCapabilityHelper capabilityHelper,
+            CompletionList list, bool isIncomplete, long resultId,
             CancellationToken cancellationToken);
 
         Task<LSP.CompletionItem> ResolveAsync(

@@ -39,7 +39,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EditAndContinueCapabilities.UpdateParameters;
 
         public const EditAndContinueCapabilities AllRuntimeCapabilities =
-            Net6RuntimeCapabilities;
+            Net6RuntimeCapabilities |
+            EditAndContinueCapabilities.GenericAddMethodToExistingType |
+            EditAndContinueCapabilities.GenericUpdateMethod |
+            EditAndContinueCapabilities.GenericAddFieldToExistingType;
 
         public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
 

@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") Language Server Protocol internal.
+    </PackageDescription>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\Workspace\Mef\MefConstruction.cs" Link="Utilities\MefConstruction.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Can only reference internal Microsoft.CodeAnalysis.Contracts namespace (via Restricted IVT) or public APIs. -->
+    <ProjectReference Include="..\..\..\Features\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" />
+
+    <!-- Hide workspaces behind extern alias to avoid ambiguities in linked files -->
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
+      <Aliases>DoNotUse</Aliases>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.NpmPack" PrivateAssets="all" Version="$(MicrosoftVisualStudioInternalMicroBuildNpmPackVersion)" Condition="'$(IsNpmPackable)' == 'true'" />
+    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
+    
+    <!-- 
+    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgMicrosoft_VisualStudio_Telemetry 
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" GeneratePathProperty="True" />
+
+    <!--
+    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgMicrosoft_VisualStudio_RemoteControl
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" GeneratePathProperty="True" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.DevKit.UnitTests" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <StageForNpmPackDependsOn>$(StageForNpmPackDependsOn);CollectNpmInputs</StageForNpmPackDependsOn>
+  </PropertyGroup>
+
+  <Target Name="GetBuildVersion">
+    <PropertyGroup>
+      <NpmPackageVersion>$(PackageVersion)</NpmPackageVersion>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="CollectNpmInputs" DependsOnTargets="Build" Returns="@(NpmContent)">
+    <Message Text="Package version is $(PackageVersion)" />
+    <Message Text="Version is $(Version)" />
+    <ItemGroup>
+      <NpmContent Include="$(PkgMicrosoft_VisualStudio_Telemetry)\lib\netstandard2.0\Microsoft.VisualStudio.Telemetry.dll" />
+      <NpmContent Include="$(PkgMicrosoft_VisualStudio_RemoteControl)\lib\netstandard2.0\Microsoft.VisualStudio.RemoteControl.dll" />
+      <NpmContent Include="$(TargetPath)" />
+      <NpmContent Include="@(AppConfigWithTargetPath->'$(OutDir)%(TargetPath)')" />
+      <NpmContent Include="$(ProjectDepsFilePath)" />
+      <NpmContent Include="@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" PackagePath="%(ReferenceCopyLocalPaths.DestinationSubDirectory)" Condition="'%(Extension)'!='.xml'" />
+      <NpmContent Include="@(None)" PackagePath="%(None.TargetPath)" Condition="'%(None.CopyToOutputDirectory)'=='PreserveNewest'" />
+    </ItemGroup>
+  </Target>
+  <ItemGroup>
+    <Content Include="package.json" />
+  </ItemGroup>
+</Project>

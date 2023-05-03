@@ -4892,14 +4892,6 @@ lElseClause:
                 getResult = BadExpression(node, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
             End If
 
-            Dim resultType As TypeSymbol
-
-            If bindAsStatement Then
-                resultType = GetSpecialType(SpecialType.System_Void, node, diagnostics)
-            Else
-                resultType = getResult.Type
-            End If
-
             If Not hasErrors Then
                 diagnostics.AddRange(allIgnoreDiagnostics)
             End If
@@ -4909,7 +4901,7 @@ lElseClause:
             Return New BoundAwaitOperator(node, operand,
                                           awaitableInstancePlaceholder, getAwaiter,
                                           awaiterInstancePlaceholder, isCompleted, getResult,
-                                          resultType, hasErrors)
+                                          type:=getResult.Type, hasErrors)
         End Function
 
         Private Shared Function DiagnosticBagHasErrorsOtherThanObsoleteOnes(bag As DiagnosticBag) As Boolean

@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
             (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
-        private readonly IEditAndContinueWorkspaceService _encService;
+        private readonly IEditAndContinueService _encService;
         private DebuggingSessionId _sessionId;
         private readonly ImmutableArray<string> _capabilities;
 
         public WatchHotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
-            => (_encService, _capabilities) = (services.GetRequiredService<IEditAndContinueWorkspaceService>(), capabilities);
+            => (_encService, _capabilities) = (services.GetRequiredService<IEditAndContinueWorkspaceService>().Service, capabilities);
 
         /// <summary>
         /// Starts the watcher.
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             }
 
             var updates = results.ModuleUpdates.Updates.SelectAsArray(
-                update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes, update.RequiredCapabilities.ToStringArray()));
+                update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes, update.RequiredCapabilities));
 
             var diagnostics = await results.GetAllDiagnosticsAsync(solution, cancellationToken).ConfigureAwait(false);
 

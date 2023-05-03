@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
                 label: "A").ConfigureAwait(false);
 
             var description = new ClassifiedTextElement(CreateClassifiedTextRunForClass("A"));
-            var expected = CreateResolvedCompletionItem(clientCompletionItem, description, "class A", null);
+            var expected = CreateResolvedCompletionItem(clientCompletionItem, description, null);
 
             var results = (LSP.VSInternalCompletionItem)await RunResolveCompletionItemAsync(
                 testLspServer, clientCompletionItem).ConfigureAwait(false);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(testLspServer, label: "A").ConfigureAwait(false);
 
             var description = new ClassifiedTextElement(CreateClassifiedTextRunForClass("A"));
-            var expected = CreateResolvedCompletionItem(clientCompletionItem, description, "class A", null);
+            var expected = CreateResolvedCompletionItem(clientCompletionItem, description, null);
 
             var results = (LSP.VSInternalCompletionItem)await RunResolveCompletionItemAsync(
                 testLspServer, clientCompletionItem).ConfigureAwait(false);
@@ -182,7 +182,7 @@ class B : A
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var selectedItem = CodeAnalysis.Completion.CompletionItem.Create(displayText: "M", isComplexTextEdit: true);
-            var (textEdit, _, _) = await LspCompletionUtilities.GenerateComplexTextEditAsync(
+            var (textEdit, _, _) = await AbstractLspCompletionResultCreationService.GenerateComplexTextEditAsync(
                 document, new TestCaretOutOfScopeCompletionService(testLspServer.TestWorkspace.Services.SolutionServices), selectedItem, snippetsSupported: true, insertNewPositionPlaceholder: true, CancellationToken.None).ConfigureAwait(false);
 
             Assert.Equal(@"public override void M()
@@ -352,24 +352,51 @@ link text";
                            completionItem, CancellationToken.None);
         }
 
-        private static LSP.VSInternalCompletionItem CreateResolvedCompletionItem(
+        private static VSInternalCompletionItem Clone(VSInternalCompletionItem completionItem)
+        {
+            return new VSInternalCompletionItem()
+            {
+                Label = completionItem.Label,
+                LabelDetails = completionItem.LabelDetails,
+                Kind = completionItem.Kind,
+                Detail = completionItem.Detail,
+                Documentation = completionItem.Documentation,
+                Preselect = completionItem.Preselect,
+                SortText = completionItem.SortText,
+                FilterText = completionItem.FilterText,
+                InsertText = completionItem.InsertText,
+                InsertTextFormat = completionItem.InsertTextFormat,
+                TextEdit = completionItem.TextEdit,
+                TextEditText = completionItem.TextEditText,
+                AdditionalTextEdits = completionItem.AdditionalTextEdits,
+                CommitCharacters = completionItem.CommitCharacters,
+                Command = completionItem.Command,
+                Data = completionItem.Data,
+                Icon = completionItem.Icon,
+                Description = completionItem.Description,
+                VsCommitCharacters = completionItem.VsCommitCharacters,
+                VsResolveTextEditOnCommit = completionItem.VsResolveTextEditOnCommit,
+            };
+        }
+
+        private static VSInternalCompletionItem CreateResolvedCompletionItem(
             VSInternalCompletionItem completionItem,
             ClassifiedTextElement description,
-            string detail,
             string documentation)
         {
-            completionItem.Detail = detail;
+            var expectedCompletionItem = Clone(completionItem);
+
             if (documentation != null)
             {
-                completionItem.Documentation = new LSP.MarkupContent()
+                expectedCompletionItem.Documentation = new MarkupContent()
                 {
                     Kind = LSP.MarkupKind.PlainText,
                     Value = documentation
                 };
             }
 
-            completionItem.Description = description;
-            return completionItem;
+            expectedCompletionItem.Description = description;
+            return expectedCompletionItem;
         }
 
         private static ClassifiedTextRun[] CreateClassifiedTextRunForClass(string className)
