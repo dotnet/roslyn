@@ -22,9 +22,9 @@ public abstract class AbstractLanguageServerHostTests
         TestOutputLogger = new TestOutputLogger(testOutputHelper);
     }
 
-    protected Task<TestLspServer> CreateLanguageServerAsync()
+    protected Task<TestLspServer> CreateLanguageServerAsync(bool includeDevKitComponents = true)
     {
-        return TestLspServer.CreateAsync(new ClientCapabilities(), TestOutputLogger);
+        return TestLspServer.CreateAsync(new ClientCapabilities(), TestOutputLogger, includeDevKitComponents);
     }
 
     protected sealed class TestLspServer : IAsyncDisposable
@@ -32,10 +32,10 @@ public abstract class AbstractLanguageServerHostTests
         private readonly Task _languageServerHostCompletionTask;
         private readonly JsonRpc _clientRpc;
 
-        public static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, ILogger logger)
+        public static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, ILogger logger, bool includeDevKitComponents = true)
         {
             var loggerFactory = new LoggerFactory(SpecializedCollections.SingletonEnumerable(new TestLoggerProvider(logger)));
-            var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(loggerFactory);
+            var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(loggerFactory, includeDevKitComponents);
             var testLspServer = new TestLspServer(exportProvider, logger);
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);

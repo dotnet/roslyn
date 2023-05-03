@@ -10,6 +10,19 @@
       .NET Compiler Platform ("Roslyn") Language Server Protocol internal.
     </PackageDescription>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\Workspace\Mef\MefConstruction.cs" Link="Utilities\MefConstruction.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Can only reference internal Microsoft.CodeAnalysis.Contracts namespace (via Restricted IVT) or public APIs. -->
+    <ProjectReference Include="..\..\..\Features\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" />
+
+    <!-- Hide workspaces behind extern alias to avoid ambiguities in linked files -->
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
+      <Aliases>DoNotUse</Aliases>
+    </ProjectReference>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.NpmPack" PrivateAssets="all" Version="$(MicrosoftVisualStudioInternalMicroBuildNpmPackVersion)" Condition="'$(IsNpmPackable)' == 'true'" />
@@ -40,12 +53,12 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="CollectNpmInputs" DependsOnTargets="Build">
-    <Message Text="Package version is $(PackageVersion)" Importance="high" />
-    <Message Text="Version is $(Version)" Importance="high" />
+  <Target Name="CollectNpmInputs" DependsOnTargets="Build" Returns="@(NpmContent)">
+    <Message Text="Package version is $(PackageVersion)" />
+    <Message Text="Version is $(Version)" />
     <ItemGroup>
       <NpmContent Include="$(PkgMicrosoft_VisualStudio_Telemetry)\lib\netstandard2.0\Microsoft.VisualStudio.Telemetry.dll" />
-      <NpmContent Include="$(PkgMicrosoft_VisualStudio_RemoteControl)\lib\netstandard2.0\Microsoft.VisualStudio.Remotecontrol.dll" />
+      <NpmContent Include="$(PkgMicrosoft_VisualStudio_RemoteControl)\lib\netstandard2.0\Microsoft.VisualStudio.RemoteControl.dll" />
       <NpmContent Include="$(TargetPath)" />
       <NpmContent Include="@(AppConfigWithTargetPath->'$(OutDir)%(TargetPath)')" />
       <NpmContent Include="$(ProjectDepsFilePath)" />

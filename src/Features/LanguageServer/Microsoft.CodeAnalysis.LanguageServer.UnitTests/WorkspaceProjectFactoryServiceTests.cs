@@ -9,14 +9,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
+
 public class WorkspaceProjectFactoryServiceTests
 {
     [Fact]
     public async Task CreateProjectAndBatch()
     {
-        var loggerFactory = new LoggerFactory();
-        using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(loggerFactory);
-        exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
+        using var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(new LoggerFactory(), includeDevKitComponents: false);
 
         var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
         var workspaceProjectFactoryServiceInstance = (WorkspaceProjectFactoryService)exportProvider

@@ -7,13 +7,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServer.Services.Telemetry;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging
@@ -25,22 +24,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
         private static readonly ConcurrentDictionary<(FunctionId id, string name), string> s_propertyMap = new();
 
         private readonly ConcurrentDictionary<int, object> _pendingScopes = new(concurrencyLevel: 2, capacity: 10);
-        private static TelemetryService? _telemetryService;
+        private static ITelemetryReporter? _telemetryReporter;
 
         private RoslynLogger()
         {
         }
 
-        public static void Initialize(string? telemetryLevel, string? location)
+        public static void Initialize(ITelemetryReporter? reporter, string? telemetryLevel)
         {
-            Roslyn.Utilities.Contract.ThrowIfTrue(_instance is not null);
+            Contract.ThrowIfTrue(_instance is not null);
 
-            FatalError.Handler = (exception, severity, forceDump) => ReportFault(exception, severity, forceDump);
+            FatalError.Handler = ReportFault;
             FatalError.CopyHandlerTo(typeof(Compilation).Assembly);
 
-            if (telemetryLevel is not null && location is not null)
+            if (reporter is not null && telemetryLevel is not null)
             {
-                _telemetryService = TelemetryService.TryCreate(telemetryLevel, location);
+                reporter.InitializeSession(telemetryLevel, isDefaultSession: true);
+                _telemetryReporter = reporter;
             }
 
             _instance = new();
@@ -75,12 +75,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
                     return;
                 }
 
-                if (_telemetryService is not null)
+                if (_telemetryReporter is not null)
                 {
                     var eventName = GetEventName(FunctionId.NonFatalWatson);
                     var description = GetDescription(exception);
                     var currentProcess = Process.GetCurrentProcess();
-                    _telemetryService.ReportFault(eventName, description, (int)severity, forceDump, currentProcess.Id, exception);
+                    _telemetryReporter.ReportFault(eventName, description, (int)severity, forceDump, currentProcess.Id, exception);
                 }
             }
             catch (OutOfMemoryException)
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
         }
 
         public bool IsEnabled(FunctionId functionId)
-            => _telemetryService is not null;
+            => _telemetryReporter is not null;
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 
             try
             {
-                _telemetryService?.Log(name, properties);
+                _telemetryReporter?.Log(name, properties);
             }
             catch
             {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 
             try
             {
-                _telemetryService?.LogBlockStart(eventName, (int)kind, blockId);
+                _telemetryReporter?.LogBlockStart(eventName, (int)kind, blockId);
             }
             catch
             {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
             var properties = GetProperties(functionId, logMessage, delta);
             try
             {
-                _telemetryService?.LogBlockEnd(blockId, properties, cancellationToken);
+                _telemetryReporter?.LogBlockEnd(blockId, properties, cancellationToken);
             }
             catch
             {
