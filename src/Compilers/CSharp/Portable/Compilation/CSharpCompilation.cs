@@ -1581,7 +1581,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal NamedTypeSymbol GetOrCreateNullableType(TypeSymbol typeArgument)
         {
 #if DEBUG
-            Debug.Assert(isSupportedType(typeArgument));
+            if (!isSupportedType(typeArgument))
+                Debug.Fail($"Unsupported type argument: {typeArgument.ToDisplayString()}");
 #endif
 
             if (!_typeToNullableVersion.TryGetValue(typeArgument, out var constructedNullableInstance))
