@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Func<DriverStateTable.Builder, ImmutableArray<T>> _getInput;
         private readonly Action<ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode> _registerOutput;
         private readonly IEqualityComparer<T> _inputComparer;
+        private readonly TransformFactory? _transformFactory;
         private readonly IEqualityComparer<T> _comparer;
         private readonly string? _name;
 
@@ -35,12 +36,12 @@ namespace Microsoft.CodeAnalysis
             _getInput = getInput;
             _comparer = comparer ?? EqualityComparer<T>.Default;
             _inputComparer = inputComparer ?? EqualityComparer<T>.Default;
-            TransformFactory = transformFactory;
+            _transformFactory = transformFactory;
             _registerOutput = registerOutput ?? ((_, _) => throw ExceptionUtilities.Unreachable());
             _name = name;
         }
 
-        public TransformFactory? TransformFactory { get; }
+        public TransformFactory TransformFactory => _transformFactory ?? throw ExceptionUtilities.Unreachable();
 
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T>? previousTable, CancellationToken cancellationToken)
         {
@@ -103,22 +104,12 @@ namespace Microsoft.CodeAnalysis
 
         public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer)
         {
-            if (TransformFactory is { } transformFactory)
-            {
-                return transformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, comparer, _name);
-            }
-
-            return ApplyComparer(this, comparer);
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, comparer, _name);
         }
 
         public IIncrementalGeneratorNode<T> WithTrackingName(string name)
         {
-            if (TransformFactory is { } transformFactory)
-            {
-                return transformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, _comparer, name);
-            }
-
-            return ApplyTrackingName(this, name);
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, _comparer, name);
         }
 
         public InputNode<T> WithContext(TransformFactory transformFactory, Action<ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode> registerOutput)

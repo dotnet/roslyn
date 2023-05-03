@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler
             _action = action;
         }
 
-        TransformFactory? IIncrementalGeneratorNode.TransformFactory => _source.TransformFactory;
+        TransformFactory IIncrementalGeneratorNode.TransformFactory => _source.TransformFactory;
 
         public IncrementalGeneratorOutputKind Kind => GeneratorDriver.HostKind;
 

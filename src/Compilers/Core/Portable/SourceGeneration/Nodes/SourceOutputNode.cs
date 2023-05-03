@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
             _sourceExtension = sourceExtension;
         }
 
-        public TransformFactory? TransformFactory => _source.TransformFactory;
+        public TransformFactory TransformFactory => _source.TransformFactory;
 
         public IncrementalGeneratorOutputKind Kind => _outputKind;
 

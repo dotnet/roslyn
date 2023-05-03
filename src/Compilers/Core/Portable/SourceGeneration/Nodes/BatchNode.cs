@@ -24,26 +24,16 @@ namespace Microsoft.CodeAnalysis
             _name = name;
         }
 
-        public TransformFactory? TransformFactory => _sourceNode.TransformFactory;
+        public TransformFactory TransformFactory => _sourceNode.TransformFactory;
 
         public IIncrementalGeneratorNode<ImmutableArray<TInput>> WithComparer(IEqualityComparer<ImmutableArray<TInput>> comparer)
         {
-            if (TransformFactory is { } transformFactory)
-            {
-                return transformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, comparer, _name);
-            }
-
-            return ApplyComparer(this, comparer);
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, comparer, _name);
         }
 
         public IIncrementalGeneratorNode<ImmutableArray<TInput>> WithTrackingName(string name)
         {
-            if (TransformFactory is { } transformFactory)
-            {
-                return transformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, _comparer, name);
-            }
-
-            return ApplyTrackingName(this, name);
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, _comparer, name);
         }
 
         private static IIncrementalGeneratorNode<ImmutableArray<TInput>> ApplyComparer(IIncrementalGeneratorNode<ImmutableArray<TInput>> node, IEqualityComparer<ImmutableArray<TInput>>? comparer)

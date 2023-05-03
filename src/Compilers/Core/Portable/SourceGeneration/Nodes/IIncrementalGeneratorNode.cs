@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 internal interface IIncrementalGeneratorNode
 {
-    TransformFactory? TransformFactory { get; }
+    TransformFactory TransformFactory { get; }
 
     void RegisterOutput(ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, IIncrementalGeneratorOutputNode output);
 }

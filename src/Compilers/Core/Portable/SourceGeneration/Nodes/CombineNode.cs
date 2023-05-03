@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
             _name = name;
         }
 
-        public TransformFactory? TransformFactory => _input1.TransformFactory ?? _input2.TransformFactory;
+        public TransformFactory TransformFactory => _input1.TransformFactory;
 
         public NodeStateTable<(TInput1, TInput2)> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, TInput2)>? previousTable, CancellationToken cancellationToken)
         {
@@ -100,22 +100,12 @@ namespace Microsoft.CodeAnalysis
 
         public IIncrementalGeneratorNode<(TInput1, TInput2)> WithComparer(IEqualityComparer<(TInput1, TInput2)> comparer)
         {
-            if (TransformFactory is { } transformFactory)
-            {
-                return transformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, comparer, _name);
-            }
-
-            return ApplyComparer(this, comparer);
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, comparer, _name);
         }
 
         public IIncrementalGeneratorNode<(TInput1, TInput2)> WithTrackingName(string name)
         {
-            if (TransformFactory is { } transformFactory)
-            {
-                return transformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, _comparer, name);
-            }
-
-            return ApplyTrackingName(this, name);
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, _comparer, name);
         }
 
         private static IIncrementalGeneratorNode<(TInput1, TInput2)> ApplyComparer(IIncrementalGeneratorNode<(TInput1, TInput2)> node, IEqualityComparer<(TInput1, TInput2)>? comparer)

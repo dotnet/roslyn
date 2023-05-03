@@ -33,26 +33,16 @@ namespace Microsoft.CodeAnalysis
             _name = name;
         }
 
-        public TransformFactory? TransformFactory => _sourceNode.TransformFactory;
+        public TransformFactory TransformFactory => _sourceNode.TransformFactory;
 
         public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer)
         {
-            if (TransformFactory is { } transformFactory)
-            {
-                return transformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, comparer, _name);
-            }
-
-            return ApplyComparer(this, comparer);
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, comparer, _name);
         }
 
         public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name)
         {
-            if (TransformFactory is { } transformFactory)
-            {
-                return transformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, _comparer, name);
-            }
-
-            return ApplyTrackingName(this, name);
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, _comparer, name);
         }
 
         private static IIncrementalGeneratorNode<TOutput> ApplyComparer(IIncrementalGeneratorNode<TOutput> node, IEqualityComparer<TOutput>? comparer)
