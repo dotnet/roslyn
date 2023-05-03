@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
                 context.RegisterSymbolStartAction(context =>
                 {
-                    if (!ShouldAnalyze(context))
+                    if (!ShouldAnalyze(context, (INamedTypeSymbol)context.Symbol))
                         return;
 
                     context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference);
@@ -136,10 +136,10 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     }
                 }
 
-                bool ShouldAnalyze(SymbolStartAnalysisContext context)
+                bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
                 {
-                    var members = ((INamedTypeSymbol)context.Symbol).GetMembers();
-                    foreach (var member in members)
+                    // Check if we have at least one candidate field in analysis scope.
+                    foreach (var member in namedType.GetMembers())
                     {
                         if (member is IFieldSymbol field
                             && IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute)
@@ -148,6 +148,10 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                             return true;
                         }
                     }
+
+                    // We have to analyze nested types if containing type contains a candidate field in analysis scope.
+                    if (namedType.ContainingType is { } containingType)
+                        return ShouldAnalyze(context, containingType);
 
                     return false;
                 }

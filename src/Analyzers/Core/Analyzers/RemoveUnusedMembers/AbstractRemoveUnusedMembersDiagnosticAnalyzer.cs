@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 Action<ISymbol, ValueUsageInfo> onSymbolUsageFound = OnSymbolUsage;
                 compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
                 {
-                    if (!ShouldAnalyze(symbolStartContext))
+                    if (!ShouldAnalyze(symbolStartContext, (INamedTypeSymbol)symbolStartContext.Symbol))
                         return;
 
                     var hasUnsupportedOperation = false;
@@ -209,10 +209,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     _analyzer.HandleNamedTypeSymbolStart(symbolStartContext, onSymbolUsageFound);
                 }, SymbolKind.NamedType);
 
-                bool ShouldAnalyze(SymbolStartAnalysisContext context)
+                bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
                 {
-                    var members = ((INamedTypeSymbol)context.Symbol).GetMembers();
-                    foreach (var member in members)
+                    // Check if we have at least one candidate symbol in analysis scope.
+                    foreach (var member in namedType.GetMembers())
                     {
                         if (IsCandidateSymbol(member.OriginalDefinition)
                             && context.ShouldAnalyzeLocation(GetDiagnosticLocation(member)))
@@ -220,6 +220,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             return true;
                         }
                     }
+
+                    // We have to analyze nested types if containing type contains a candidate field in analysis scope.
+                    if (namedType.ContainingType is { } containingType)
+                        return ShouldAnalyze(context, containingType);
 
                     return false;
                 }
