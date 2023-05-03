@@ -207,6 +207,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             {
                 try
                 {
+                    // Per LSP spec, LSP.Range end position is exclusive. If you want to specify a range that 
+                    // includes the line ending characters then use an end position denoting the start of the next line.
+                    //
+                    // The TextLines will throw a ArgumentException if asked for the line after the last line,
+                    // despite the call being valid call per the LSP spec. If the end of the input range is one
+                    // beyond the end of the file, edit the end character position of the last line in the file.
+                    if (text.Lines.Count == linePositionSpan.End.Line)
+                    {
+                        var indexOfLastLine = text.Lines.Count - 1;
+                        var lastLineOfText = text.Lines[indexOfLastLine];
+                        // Number of characters in the line (inclusive of line ending characters) are the start to the end of line break
+                        var endLineCharacterPosition = lastLineOfText.EndIncludingLineBreak - lastLineOfText.Start;
+
+                        var editedEndLinePosition = new LinePosition(indexOfLastLine, endLineCharacterPosition);
+                        linePositionSpan = new LinePositionSpan(linePositionSpan.Start, editedEndLinePosition);
+                    }
+
                     return text.Lines.GetTextSpan(linePositionSpan);
                 }
                 catch (ArgumentException)
