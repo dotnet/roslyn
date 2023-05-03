@@ -69,14 +69,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Assert.Equal(0, analyzerTelemetry.SymbolActionsCount);
         }
 
-        [Fact]
+        [Fact, Obsolete(message: "IsDiagnosticAnalyzerSuppressed is an obsolete public API")]
         public void TestIsDiagnosticAnalyzerSuppressedWithExceptionInSupportedDiagnostics()
         {
             // Verify IsDiagnosticAnalyzerSuppressed does not throw an exception when 'onAnalyzerException' is null.
             var analyzer = new AnalyzerThatThrowsInSupportedDiagnostics();
-#pragma warning disable CS0618 // Type or member is obsolete
             _ = CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, s_dllWithMaxWarningLevel, onAnalyzerException: null);
-#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }

@@ -516,8 +516,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             }
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete - IsDiagnosticAnalyzerSuppressed is obsolete
-        [Fact]
+        [Fact, Obsolete(message: "IsDiagnosticAnalyzerSuppressed is an obsolete public API")]
         public void TestDisabledAnalyzers()
         {
             var fullyDisabledAnalyzer = new FullyDisabledAnalyzer();
@@ -541,7 +540,6 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
             Assert.True(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
         }
-#pragma warning restore CS0618 // Type or member is obsolete - IsDiagnosticAnalyzerSuppressed is obsolete
 
         [Fact, WorkItem(1008059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")]
         public void TestCodeBlockAnalyzersForNoExecutableCode()
