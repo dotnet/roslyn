@@ -72,10 +72,7 @@ static async Task RunAsync(
         }
     }
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyPaths);
-
-    // Immediately set the logger factory, so that way it'll be available for the rest of the composition
-    exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyPaths, loggerFactory);
 
     // Allow the extension to override the razor file name to generate, in case they need to break the format
     if (projectRazorJsonFileName is not null)
