@@ -423,5 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (Conversions)base.WithNullability(includeNullability);
         }
+
+        protected override bool IsEarlyAttributeBinding => _binder.IsEarlyAttributeBinder;
     }
 }

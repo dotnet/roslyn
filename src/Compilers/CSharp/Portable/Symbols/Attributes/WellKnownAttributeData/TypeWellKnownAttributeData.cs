@@ -54,26 +54,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
         #endregion
-
-        #region InlineArrayAttribute
-
-        private int _inlineArrayLength;
-        public int InlineArrayLength
-        {
-            get
-            {
-                return _inlineArrayLength;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                Debug.Assert(_inlineArrayLength is 0);
-                Debug.Assert(value is -1 or > 0);
-                _inlineArrayLength = value;
-                SetDataStored();
-            }
-        }
-
-        #endregion
     }
 }

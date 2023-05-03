@@ -1007,6 +1007,25 @@ next:;
                 return (null, null);
             }
 
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.InlineArrayAttribute))
+            {
+                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
+                if (!attributeData.HasErrors)
+                {
+                    int length = attributeData.GetConstructorArgument<int>(0, SpecialType.System_Int32);
+                    // PROTOTYPE(InlineArrays): Validate the length and the shape of the type?
+
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().InlineArrayLength = length > 0 ? length : -1;
+
+                    if (!hasAnyDiagnostics)
+                    {
+                        return (attributeData, boundAttribute);
+                    }
+                }
+
+                return (null, null);
+            }
+
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
 #nullable disable
@@ -1117,17 +1136,6 @@ next:;
             {
                 // CS1608: The Required attribute is not permitted on C# types
                 diagnostics.Add(ErrorCode.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.Name.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.InlineArrayAttribute))
-            {
-                if (arguments.GetOrCreateData<TypeWellKnownAttributeData>().InlineArrayLength == 0)
-                {
-                    int length = attribute.CommonConstructorArguments[0].DecodeValue<int>(SpecialType.System_Int32);
-
-                    // PROTOTYPE(InlineArrays): Validate the length and the shape of the type?
-
-                    arguments.GetOrCreateData<TypeWellKnownAttributeData>().InlineArrayLength = length > 0 ? length : -1;
-                }
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.DynamicAttribute
@@ -1555,7 +1563,7 @@ next:;
 
         internal override bool HasInlineArrayAttribute(out int length)
         {
-            TypeWellKnownAttributeData data = this.GetDecodedWellKnownAttributeData();
+            TypeEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
             if (data?.InlineArrayLength is > 0 and var lengthFromAttribute)
             {
                 length = lengthFromAttribute;
