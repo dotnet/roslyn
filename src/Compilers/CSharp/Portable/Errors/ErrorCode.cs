@@ -2192,6 +2192,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConstantValueOfTypeExpected = 9135,
         ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
 
+        // PROTOTYPE: Pack numbers.
+        WRN_BadArgRef = 9501,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

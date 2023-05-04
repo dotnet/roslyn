@@ -1217,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (refParameter == RefKind.None || refParameter == RefKind.In)
                 {
-                    //  Argument {0} should not be passed with the {1} keyword
+                    //  Argument {0} may not be passed with the '{1}' keyword
                     diagnostics.Add(
                         ErrorCode.ERR_BadArgExtraRef,
                         sourceLocation,

@@ -2077,6 +2077,16 @@
         <target state="translated">無法在此內容中使用類型，因為它無法在中繼資料中表示。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_BadArgRef">
+        <source>Argument {0} should not be passed with the '{1}' keyword</source>
+        <target state="new">Argument {0} should not be passed with the '{1}' keyword</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_BadArgRef_Title">
+        <source>Argument should not be passed with the keyword</source>
+        <target state="new">Argument should not be passed with the keyword</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
         <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
         <target state="translated">對 '{0}' 使用此引數組合，會在其宣告範圍外公開參數 '{1}' 所參考的變數</target>

@@ -3201,9 +3201,9 @@ unsafe class C
                 // (15,40): error CS8757: No overload for 'M3' matches function pointer 'delegate*<object, void>'
                 //         delegate*<object, void> ptr3 = &M3;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<object, void>").WithLocation(15, 40),
-                // (16,44): error CS8757: No overload for 'M2' matches function pointer 'delegate*<ref object, void>'
+                // (16,45): error CS8759: Cannot create a function pointer for 'C.M2(in object)' because it is not a static method
                 //         delegate*<ref object, void> ptr4 = &M2;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<ref object, void>").WithLocation(16, 44),
+                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "M2").WithArguments("C.M2(in object)").WithLocation(16, 45),
                 // (17,44): error CS8757: No overload for 'M3' matches function pointer 'delegate*<ref object, void>'
                 //         delegate*<ref object, void> ptr5 = &M3;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<ref object, void>").WithLocation(17, 44),
@@ -7354,9 +7354,9 @@ unsafe class Test
                 // (14,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         param2(out var l);
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var l").WithArguments("1", "out").WithLocation(14, 20),
-                // (17,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                // (17,20): warning CS9501: Argument 1 should not be passed with the 'ref' keyword
                 //         param2(ref s);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(17, 20),
+                Diagnostic(ErrorCode.WRN_BadArgRef, "s").WithArguments("1", "ref").WithLocation(17, 20),
                 // (23,16): error CS1620: Argument 1 must be passed with the 'out' keyword
                 //         param3(s);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(23, 16),

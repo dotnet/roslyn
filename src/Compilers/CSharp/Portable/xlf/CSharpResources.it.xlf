@@ -2077,6 +2077,16 @@
         <target state="translated">Non è possibile usare il tipo in questo contesto perché non può essere rappresentato nei metadati.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_BadArgRef">
+        <source>Argument {0} should not be passed with the '{1}' keyword</source>
+        <target state="new">Argument {0} should not be passed with the '{1}' keyword</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_BadArgRef_Title">
+        <source>Argument should not be passed with the keyword</source>
+        <target state="new">Argument should not be passed with the keyword</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
         <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
         <target state="translated">Questa combinazione di argomenti per '{0}' può esporre variabili a cui fa riferimento il parametro '{1}' all'esterno del relativo ambito di dichiarazione</target>

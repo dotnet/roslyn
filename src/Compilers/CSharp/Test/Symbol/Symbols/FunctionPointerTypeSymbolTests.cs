@@ -1224,9 +1224,9 @@ unsafe class C
                 // (17,15): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         p4(in s);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(17, 15),
-                // (18,16): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                // (18,16): warning CS9501: Argument 1 should not be passed with the 'ref' keyword
                 //         p5(ref s);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(18, 16));
+                Diagnostic(ErrorCode.WRN_BadArgRef, "s").WithArguments("1", "ref").WithLocation(18, 16));
         }
 
         [Fact]

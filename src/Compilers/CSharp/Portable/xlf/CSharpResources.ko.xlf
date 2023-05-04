@@ -2077,6 +2077,16 @@
         <target state="translated">유형은 메타데이터로 표현할 수 없기 때문에 이 컨텍스트에서 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_BadArgRef">
+        <source>Argument {0} should not be passed with the '{1}' keyword</source>
+        <target state="new">Argument {0} should not be passed with the '{1}' keyword</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_BadArgRef_Title">
+        <source>Argument should not be passed with the keyword</source>
+        <target state="new">Argument should not be passed with the keyword</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
         <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
         <target state="translated">'{0}'에 대한 이 인수 조합은 선언 범위 외부에 있는 '{1}' 매개 변수에서 참조하는 변수를 노출할 수 있습니다.</target>

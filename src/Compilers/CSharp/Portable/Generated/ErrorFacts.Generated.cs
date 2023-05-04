@@ -315,6 +315,7 @@
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                 case ErrorCode.WRN_AddressOfInAsync:
+                case ErrorCode.WRN_BadArgRef:
                     return true;
                 default:
                     return false;
