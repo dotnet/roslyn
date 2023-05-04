@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override CSharpCompilation Compilation => null;
 
-        protected override bool IsEarlyAttributeBinding => false;
+        protected override bool IsAttributeArgumentBinding => false;
+
+        protected override bool IsParameterDefaultValueBinding => false;
     }
 }

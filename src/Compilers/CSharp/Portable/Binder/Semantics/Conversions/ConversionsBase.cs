@@ -73,7 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
 
-        protected abstract bool IsEarlyAttributeBinding { get; }
+        protected abstract bool IsAttributeArgumentBinding { get; }
+
+        protected abstract bool IsParameterDefaultValueBinding { get; }
 
         internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 
@@ -1100,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Neither Span<T>, nor ReadOnlySpan<T> can be wrapped into a Nullable<T>, therefore, there is no point to check for an attempt to convert to Nullable types here. 
-            if (!IsEarlyAttributeBinding &&
+            if (!IsAttributeArgumentBinding && !IsParameterDefaultValueBinding && // These checks prevent cycles caused by attribute binding when HasInlineArrayAttribute check triggers that.
                 source?.HasInlineArrayAttribute(out _) == true &&
                 source.TryGetInlineArrayElementType() is { HasType: true } elementType &&
                 (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions) ||

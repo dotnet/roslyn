@@ -8533,6 +8533,118 @@ class Program
         }
 
         [Fact]
+        public void AttributeDefaultValueArgument()
+        {
+            var source =
+@"using System;
+ 
+namespace AttributeTest
+{
+    [A(3, X = 6)]
+    public class A : Attribute
+    {
+        public int X;
+        public A(int x, int y = 4, object a = default(A)) { }
+    
+        static void Main()
+        {
+            typeof(A).GetCustomAttributes(false);
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+
+            var a = compilation.GlobalNamespace.GetMember<MethodSymbol>("AttributeTest.A..ctor");
+            // The following was causing a reentrancy into DefaultSyntaxValue on the same thread,
+            // effectively blocking the thread indefinitely instead of causing a stack overflow.
+            // DefaultSyntaxValue starts binding the syntax, that triggers attribute binding,
+            // that asks for a default value for the same parameter and we are back where we started.
+            Assert.Null(a.Parameters[2].ExplicitDefaultValue);
+            Assert.True(a.Parameters[2].HasExplicitDefaultValue);
+
+            compilation.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void DefaultSyntaxValueReentrancy_01()
+        {
+            var source =
+@"
+#nullable enable
+
+[A(3, X = 6)]
+public struct A
+{
+    public int X;
+
+    public A(int x, System.Span<int> a = default(A)) { }
+}
+";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            // The following was causing a reentrancy into DefaultSyntaxValue on the same thread,
+            // effectively blocking the thread indefinitely instead of causing a stack overflow.
+            // DefaultSyntaxValue starts binding the syntax, that triggers attribute binding,
+            // that asks for a default value for the same parameter and we are back where we started.
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (4,2): error CS0616: 'A' is not an attribute class
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(4, 2),
+                // (4,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A(3, X = 6)").WithLocation(4, 2),
+                // (9,38): error CS1750: A value of type 'A' cannot be used as a default parameter because there are no standard conversions to type 'Span<int>'
+                //     public A(int x, System.Span<int> a = default(A)) { }
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "a").WithArguments("A", "System.Span<int>").WithLocation(9, 38)
+                );
+        }
+
+        [Fact]
+        public void DefaultSyntaxValueReentrancy_02()
+        {
+            var source =
+@"
+#nullable enable
+
+[A(3, X = 6)]
+public struct A
+{
+    public int X;
+
+    public A(int x, int a = default(A)[0]) { }
+}
+";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            // The following was causing a reentrancy into DefaultSyntaxValue on the same thread,
+            // effectively blocking the thread indefinitely instead of causing a stack overflow.
+            // DefaultSyntaxValue starts binding the syntax, that triggers attribute binding,
+            // that asks for a default value for the same parameter and we are back where we started.
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (4,2): error CS0616: 'A' is not an attribute class
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(4, 2),
+                // (4,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A(3, X = 6)").WithLocation(4, 2),
+                // (9,29): error CS0021: Cannot apply indexing with [] to an expression of type 'A'
+                //     public A(int x, int a = default(A)[0]) { }
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "default(A)[0]").WithArguments("A").WithLocation(9, 29)
+                );
+        }
+
+        [Fact]
         public void CycleThroughAttributes_00()
         {
             var source =
@@ -8591,12 +8703,9 @@ public struct Buffer10
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             compilation.VerifyDiagnostics(
-                // (8,2): error CS0181: Attribute constructor parameter 'x' has type 'Span<int>', which is not a valid attribute parameter type
+                // (8,4): error CS1503: Argument 1: cannot convert from 'Buffer10' to 'System.Span<int>'
                 // [A(default(Buffer10))]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("x", "System.Span<int>").WithLocation(8, 2),
-                // (8,4): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
-                // [A(default(Buffer10))]
-                Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "default(Buffer10)").WithArguments("System.Span<int>").WithLocation(8, 4)
+                Diagnostic(ErrorCode.ERR_BadArgType, "default(Buffer10)").WithArguments("1", "Buffer10", "System.Span<int>").WithLocation(8, 4)
                 );
         }
 
@@ -8621,9 +8730,9 @@ public struct Buffer10
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             compilation.VerifyDiagnostics(
-                // (8,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (8,4): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10'
                 // [A(default(Buffer10)[0])]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(Buffer10)[0]").WithLocation(8, 4)
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "default(Buffer10)[0]").WithArguments("Buffer10").WithLocation(8, 4)
                 );
         }
 
