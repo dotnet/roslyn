@@ -91,14 +91,23 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
                         case ID.RoslynCommands.DocumentOutlineSortByName:
                             prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
+                            if (_viewModel.SortOption == SortOption.Name)
+                                prgCmds[i].cmdf |= (uint)OLECMDF.OLECMDF_LATCHED;
+
                             break;
 
                         case ID.RoslynCommands.DocumentOutlineSortByOrder:
                             prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
+                            if (_viewModel.SortOption == SortOption.Location)
+                                prgCmds[i].cmdf |= (uint)OLECMDF.OLECMDF_LATCHED;
+
                             break;
 
                         case ID.RoslynCommands.DocumentOutlineSortByType:
                             prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
+                            if (_viewModel.SortOption == SortOption.Type)
+                                prgCmds[i].cmdf |= (uint)OLECMDF.OLECMDF_LATCHED;
+
                             break;
 
                         default:
