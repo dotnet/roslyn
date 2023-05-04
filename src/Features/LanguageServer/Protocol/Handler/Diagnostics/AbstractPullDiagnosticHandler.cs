@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -26,8 +25,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     {
         public AbstractDocumentPullDiagnosticHandler(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
-            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
-            IGlobalOptionService globalOptions) : base(diagnosticAnalyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
+            IDiagnosticsRefresher diagnosticRefresher,
+            IGlobalOptionService globalOptions) : base(diagnosticAnalyzerService, diagnosticRefresher, globalOptions)
         {
         }
 
@@ -51,30 +50,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected const int WorkspaceDiagnosticIdentifier = 1;
         protected const int DocumentDiagnosticIdentifier = 2;
 
-        private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
+        private readonly IDiagnosticsRefresher _diagnosticRefresher;
         protected readonly IGlobalOptionService GlobalOptions;
 
         protected readonly IDiagnosticAnalyzerService DiagnosticAnalyzerService;
 
         /// <summary>
         /// Cache where we store the data produced by prior requests so that they can be returned if nothing of significance 
-        /// changed. The VersionStamp is produced by <see cref="Project.GetDependentVersionAsync(CancellationToken)"/> while the 
-        /// Checksum is produced by <see cref="Project.GetDependentChecksumAsync(CancellationToken)"/>.  The former is faster
+        /// changed. The <see cref="VersionStamp"/> is produced by <see cref="Project.GetDependentVersionAsync(CancellationToken)"/> while the 
+        /// <see cref="Checksum"/> is produced by <see cref="Project.GetDependentChecksumAsync(CancellationToken)"/>.  The former is faster
         /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
         /// update the version stamp but not the content (for example, forking LSP text).
         /// </summary>
-        private readonly ConcurrentDictionary<string, VersionedPullCache<(int, VersionStamp?), (int, Checksum)>> _categoryToVersionedCache = new();
+        private readonly ConcurrentDictionary<string, VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum)>> _categoryToVersionedCache = new();
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
         protected AbstractPullDiagnosticHandler(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
-            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+            IDiagnosticsRefresher diagnosticRefresher,
             IGlobalOptionService globalOptions)
         {
             DiagnosticAnalyzerService = diagnosticAnalyzerService;
-            _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
+            _diagnosticRefresher = diagnosticRefresher;
             GlobalOptions = globalOptions;
         }
 
@@ -164,7 +163,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             foreach (var diagnosticSource in orderedSources)
             {
-                var encVersion = _editAndContinueDiagnosticUpdateSource.Version;
+                var globalStateVersion = _diagnosticRefresher.GlobalStateVersion;
 
                 var project = diagnosticSource.GetProject();
 
@@ -172,8 +171,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     documentToPreviousDiagnosticParams,
                     diagnosticSource.GetId(),
                     project,
-                    computeCheapVersionAsync: async () => (encVersion, await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false)),
-                    computeExpensiveVersionAsync: async () => (encVersion, await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false)),
+                    computeCheapVersionAsync: async () => (globalStateVersion, await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false)),
+                    computeExpensiveVersionAsync: async () => (globalStateVersion, await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false)),
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {

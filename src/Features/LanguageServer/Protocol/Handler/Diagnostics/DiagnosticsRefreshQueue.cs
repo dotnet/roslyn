@@ -4,6 +4,8 @@
 
 using System;
 using System.Composition;
+using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -45,6 +47,11 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
     [Export(typeof(IDiagnosticsRefresher))]
     internal sealed class Refresher : IDiagnosticsRefresher
     {
+        /// <summary>
+        /// Incremented every time a refresh is requested.
+        /// </summary>
+        private int _globalStateVersion;
+
         public event Action? WorkspaceRefreshRequested;
 
         [ImportingConstructor]
@@ -54,7 +61,15 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
         }
 
         public void RequestWorkspaceRefresh()
-            => WorkspaceRefreshRequested?.Invoke();
+        {
+            // bump version before sending the request to the client:
+            Interlocked.Increment(ref _globalStateVersion);
+
+            WorkspaceRefreshRequested?.Invoke();
+        }
+
+        public int GlobalStateVersion
+            => _globalStateVersion;
     }
 
     private readonly Refresher _refresher;
