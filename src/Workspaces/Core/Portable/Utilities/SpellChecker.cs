@@ -4,9 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Roslyn.Utilities
 {
@@ -29,17 +29,18 @@ namespace Roslyn.Utilities
         {
         }
 
-        public IList<string> FindSimilarWords(string value)
-            => FindSimilarWords(value, substringsAreSimilar: false);
-
-        public IList<string> FindSimilarWords(string value, bool substringsAreSimilar)
+        public void FindSimilarWords(ref TemporaryArray<string> similarWords, string value, bool substringsAreSimilar)
         {
-            var result = _bkTree.Find(value, threshold: null);
-
+            using var result = TemporaryArray<string>.Empty;
             using var checker = new WordSimilarityChecker(value, substringsAreSimilar);
-            var array = result.Where(checker.AreSimilar).ToArray();
 
-            return array;
+            _bkTree.Find(ref result.AsRef(), value, threshold: null);
+
+            foreach (var current in result)
+            {
+                if (checker.AreSimilar(current))
+                    similarWords.Add(current);
+            }
         }
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
@@ -61,9 +62,7 @@ namespace Roslyn.Utilities
                     var checksum = Checksum.ReadFrom(reader);
                     var bkTree = BKTree.ReadFrom(reader);
                     if (bkTree != null)
-                    {
                         return new SpellChecker(checksum, bkTree.Value);
-                    }
                 }
             }
             catch
