@@ -2090,9 +2090,9 @@ class Program
             // According to the language specification: "an argument_list enclosed in square brackets shall specify arguments for an accessible indexer on the object being initialized"
             // Buffer10<int> doesn't have an indexer.
             comp.VerifyDiagnostics(
-                // (14,37): error CS1913: Member '[0]' cannot be initialized. It is not a field or property.
+                // (14,37): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10<int>'
                 //     static C M2() => new C() { F = {[0] = 111} };
-                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "[0]").WithArguments("[0]").WithLocation(14, 37)
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0]").WithArguments("Buffer10<int>").WithLocation(14, 37)
                 );
 
 #if false // PROTOTYPE(InlineArrays):
@@ -2140,13 +2140,22 @@ public struct Buffer10<T>
 " + InlineArrayAttributeDefinition;
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
-            // Keeping this an error even in presence of an indexer, in case we decide to handle initializers like that specially in the future.
-            comp.VerifyDiagnostics(
-                // (14,37): error CS1913: Member '[0]' cannot be initialized. It is not a field or property.
-                //     static C M2() => new C() { F = {[0] = 111} };
-                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "[0]").WithArguments("[0]").WithLocation(14, 37)
-                );
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       20 (0x14)
+  .maxstack  4
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldflda     ""Buffer10<int> C.F""
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.s   111
+  IL_000e:  call       ""void Buffer10<int>.this[int].set""
+  IL_0013:  ret
+}
+");
 
 #if false // PROTOTYPE(InlineArrays):
             var tree = comp.SyntaxTrees.First();
@@ -2184,9 +2193,9 @@ class Program
             // According to the language specification: "an argument_list enclosed in square brackets shall specify arguments for an accessible indexer on the object being initialized"
             // Buffer10<int> doesn't have an indexer.
             comp.VerifyDiagnostics(
-                // (14,37): error CS1913: Member '[^10]' cannot be initialized. It is not a field or property.
+                // (14,37): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10<int>'
                 //     static C M2() => new C() { F = {[^10] = 111} };
-                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "[^10]").WithArguments("[^10]").WithLocation(14, 37)
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[^10]").WithArguments("Buffer10<int>").WithLocation(14, 37)
                 );
 
 #if false // PROTOTYPE(InlineArrays):
@@ -2237,7 +2246,7 @@ public struct Buffer10<T>
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
 
-            // Keeping this an error even in presence of an indexer, in case we decide to handle initializers like that specially in the future.
+            // This scenario fails due to https://github.com/dotnet/roslyn/issues/67533
             comp.VerifyDiagnostics(
                 // (14,37): error CS1913: Member '[^10]' cannot be initialized. It is not a field or property.
                 //     static C M2() => new C() { F = {[^10] = 111} };
@@ -2280,9 +2289,9 @@ class Program
             // According to the language specification: "an argument_list enclosed in square brackets shall specify arguments for an accessible indexer on the object being initialized"
             // Buffer10<int> doesn't have an indexer.
             comp.VerifyDiagnostics(
-                // (14,37): error CS1913: Member '[0..1]' cannot be initialized. It is not a field or property.
+                // (14,37): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10<int>'
                 //     static C M2() => new C() { F = {[0..1] = 111} };
-                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "[0..1]").WithArguments("[0..1]").WithLocation(14, 37)
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0..1]").WithArguments("Buffer10<int>").WithLocation(14, 37)
                 );
 
 #if false // PROTOTYPE(InlineArrays):
