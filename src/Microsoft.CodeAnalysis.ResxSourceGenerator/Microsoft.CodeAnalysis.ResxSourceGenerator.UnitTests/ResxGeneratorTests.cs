@@ -101,6 +101,82 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
         }
 
         [Fact]
+        public async Task TwoResourcesSameName_DefaultCSharpAsync()
+        {
+            var code = ResxHeader
+                + @"  <data name=""Name"" xml:space=""preserve"">
+    <value>value</value>
+    <comment>comment</comment>
+  </data>"
+                + ResxFooter;
+
+            await new VerifyCS.Test()
+            {
+                TestState =
+                {
+                    Sources = { "" },
+                    AdditionalFiles =
+                    {
+                        ("/0/First/Resources.resx", code),
+                        ("/0/Second/Resources.resx", code),
+                    },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", $@"
+is_global = true
+
+build_property.RootNamespace = TestProject
+
+[/0/First/Resources.resx]
+build_metadata.AdditionalFiles.RelativeDir = First/
+
+[/0/Second/Resources.resx]
+build_metadata.AdditionalFiles.RelativeDir = Second/
+"),
+                    },
+                },
+            }.AddGeneratedSources().RunAsync();
+        }
+
+        [Fact]
+        public async Task TwoResourcesSameName_DefaultVisualBasicAsync()
+        {
+            var code = ResxHeader
+                + @"  <data name=""Name"" xml:space=""preserve"">
+    <value>value</value>
+    <comment>comment</comment>
+  </data>"
+                + ResxFooter;
+
+            await new VerifyVB.Test()
+            {
+                TestState =
+                {
+                    Sources = { "" },
+                    AdditionalFiles =
+                    {
+                        ("/0/First/Resources.resx", code),
+                        ("/0/Second/Resources.resx", code),
+                    },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", $@"
+is_global = true
+
+build_property.RootNamespace = TestProject
+
+[/0/First/Resources.resx]
+build_metadata.AdditionalFiles.RelativeDir = First/
+
+[/0/Second/Resources.resx]
+build_metadata.AdditionalFiles.RelativeDir = Second/
+"),
+                    },
+                },
+            }.AddGeneratedSources().RunAsync();
+        }
+
+        [Fact]
         public async Task SingleString_DefaultVisualBasicAsync()
         {
             var code = ResxHeader
