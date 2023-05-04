@@ -61,18 +61,13 @@ namespace Microsoft.CodeAnalysis.Navigation
                     Workspace = document.Project.Solution.Workspace,
                 };
 
-            internal async ValueTask<Document> GetDocumentAsync(Solution solution, CancellationToken cancellationToken)
-            {
-                if (solution.GetDocument(Id) is { } document)
-                    return document;
+            internal ValueTask<Document> GetDocumentAsync(Solution solution, CancellationToken cancellationToken)
+                => solution.GetRequiredDocumentAsync(Id, includeSourceGenerated: IsSourceGeneratedDocument, cancellationToken);
 
-                return await solution.GetRequiredDocumentAsync(Id, includeSourceGenerated: IsSourceGeneratedDocument, cancellationToken).ConfigureAwait(false);
-            }
-
-            internal async Task<SourceText> GetTextAsync(Solution solution, CancellationToken cancellationToken)
+            internal async ValueTask<SourceText> GetTextAsync(Solution solution, CancellationToken cancellationToken)
             {
                 var document = await GetDocumentAsync(solution, cancellationToken).ConfigureAwait(false);
-                return await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                return await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             }
 
             internal SourceText GetTextSynchronously(Solution solution, CancellationToken cancellationToken)
