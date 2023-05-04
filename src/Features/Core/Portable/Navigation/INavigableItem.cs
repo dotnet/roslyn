@@ -70,10 +70,10 @@ namespace Microsoft.CodeAnalysis.Navigation
                 return await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            internal SourceText GetTextSynchronously(Solution solution, CancellationToken cancellationToken)
+            internal SourceText? TryGetTextSynchronously(Solution solution, CancellationToken cancellationToken)
             {
-                var document = solution.GetRequiredDocument(Id);
-                return document.GetTextSynchronously(cancellationToken);
+                var document = solution.GetDocument(Id);
+                return document?.GetTextSynchronously(cancellationToken);
             }
         }
 

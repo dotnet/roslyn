@@ -64,9 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return new List<DescriptionItem>().AsReadOnly();
             }
 
-            var sourceText = document.GetTextSynchronously(document.Workspace.CurrentSolution, CancellationToken.None);
-            var span = NavigateToUtilities.GetBoundedSpan(_searchResult.NavigableItem, sourceText);
-
             var items = new List<DescriptionItem>
                     {
                         new DescriptionItem(
@@ -79,12 +76,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                                 new[] { new DescriptionRun("File:", bold: true) }),
                             new ReadOnlyCollection<DescriptionRun>(
                                 new[] { new DescriptionRun(document.FilePath ?? document.Name) })),
-                        new DescriptionItem(
-                            new ReadOnlyCollection<DescriptionRun>(
-                                new[] { new DescriptionRun("Line:", bold: true) }),
-                            new ReadOnlyCollection<DescriptionRun>(
-                                new[] { new DescriptionRun((sourceText.Lines.IndexOf(span.Start) + 1).ToString()) }))
                     };
+
+            if (document.TryGetTextSynchronously(document.Workspace.CurrentSolution, CancellationToken.None) is { } sourceText)
+            {
+                var span = NavigateToUtilities.GetBoundedSpan(_searchResult.NavigableItem, sourceText);
+                items.Add(
+                    new DescriptionItem(
+                        new ReadOnlyCollection<DescriptionRun>(
+                            new[] { new DescriptionRun("Line:", bold: true) }),
+                        new ReadOnlyCollection<DescriptionRun>(
+                            new[] { new DescriptionRun((sourceText.Lines.IndexOf(span.Start) + 1).ToString()) })));
+            }
 
             var summary = _searchResult.Summary;
             if (!string.IsNullOrWhiteSpace(summary))
