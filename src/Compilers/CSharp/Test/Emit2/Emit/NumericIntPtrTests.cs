@@ -7002,6 +7002,7 @@ $@"class MyInt
             };
             binaryOps(op, fullLeftType, rightType, expectedSymbol1, expectedSymbol2, diagnostics1, diagnostics2);
 
+
             void binaryOps(string op, string leftType, string rightType, string expectedSymbol1 = null, string expectedSymbol2 = "", DiagnosticDescription[] diagnostics1 = null, DiagnosticDescription[] diagnostics2 = null)
             {
                 binaryOp(op, leftType, rightType, expectedSymbol1, diagnostics1);
