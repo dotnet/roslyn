@@ -23,7 +23,7 @@ namespace Roslyn.Utilities
     /// Pages 230-236 
     /// http://dl.acm.org/citation.cfm?doid=362003.362025
     /// </summary>
-    internal partial class BKTree
+    internal readonly partial struct BKTree
     {
         public static readonly BKTree Empty = new(
             Array.Empty<char>(),
