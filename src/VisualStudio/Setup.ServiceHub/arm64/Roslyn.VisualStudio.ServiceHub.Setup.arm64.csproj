@@ -9,7 +9,7 @@
 
     <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
-    <SetupProductArch>x64</SetupProductArch>
+    <SetupProductArch>arm64</SetupProductArch>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
@@ -26,8 +26,8 @@
     <ServiceHubHostRuntime>core</ServiceHubHostRuntime>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Workspaces\Remote\ServiceHub.CoreComponents\x64\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.x64.csproj">
-      <Name>ServiceHubX64</Name>
+    <ProjectReference Include="..\..\..\Workspaces\Remote\ServiceHub.CoreComponents\arm64\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.arm64.csproj">
+      <Name>ServiceHubARM64</Name>
       <!-- This project targets netcoreapp -->
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -43,7 +43,7 @@
     <ContentManifest Include="ContentManifest.json" />
   </ItemGroup>  
   <ItemGroup>
-    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3\$(SQLitePCLRawbundle_greenVersion)\runtimes\win-x64\native\e_sqlite3.dll">
+    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3\$(SQLitePCLRawbundle_greenVersion)\runtimes\win-arm64\native\e_sqlite3.dll">
       <Link>e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
