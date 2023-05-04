@@ -51,17 +51,22 @@ namespace Microsoft.CodeAnalysis.Navigation
 
         public record NavigableDocument(NavigableProject Project, string Name, string? FilePath, IReadOnlyList<string> Folders, DocumentId Id)
         {
+            public required bool IsSourceGeneratedDocument { get; init; }
             public required Workspace Workspace { get; init; }
 
             public static NavigableDocument FromDocument(Document document)
-                => new(NavigableProject.FromProject(document.Project), document.Name, document.FilePath, document.Folders, document.Id) { Workspace = document.Project.Solution.Workspace };
+                => new(NavigableProject.FromProject(document.Project), document.Name, document.FilePath, document.Folders, document.Id)
+                {
+                    IsSourceGeneratedDocument = document is SourceGeneratedDocument,
+                    Workspace = document.Project.Solution.Workspace,
+                };
 
             internal async ValueTask<Document> GetDocumentAsync(Solution solution, CancellationToken cancellationToken)
             {
                 if (solution.GetDocument(Id) is { } document)
                     return document;
 
-                return await solution.GetRequiredDocumentAsync(Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                return await solution.GetRequiredDocumentAsync(Id, includeSourceGenerated: IsSourceGeneratedDocument, cancellationToken).ConfigureAwait(false);
             }
 
             internal async Task<SourceText> GetTextAsync(Solution solution, CancellationToken cancellationToken)
