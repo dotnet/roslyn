@@ -3,23 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
+using InternalUtilities = Microsoft.Internal.VisualStudio.PlatformUI.Utilities;
 using IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
 using OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
 using OLECMDF = Microsoft.VisualStudio.OLE.Interop.OLECMDF;
@@ -31,15 +27,17 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// Interaction logic for DocumentOutlineView.xaml
     /// All operations happen on the UI thread for visual studio
     /// </summary>
-    internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarget, IDisposable
+    internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarget, IDisposable, IVsWindowSearch
     {
         private readonly IThreadingContext _threadingContext;
         private readonly VsCodeWindowViewTracker _viewTracker;
         private readonly DocumentOutlineViewModel _viewModel;
         private readonly IVsToolbarTrayHost _toolbarTrayHost;
+        private readonly IVsWindowSearchHost _windowSearchHost;
 
         public DocumentOutlineView(
             IVsUIShell4 uiShell,
+            IVsWindowSearchHostFactory windowSearchHostFactory,
             IThreadingContext threadingContext,
             VsCodeWindowViewTracker viewTracker,
             DocumentOutlineViewModel viewModel)
@@ -60,18 +58,19 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             ErrorHandler.ThrowOnFailure(((IVsUIWpfElement)uiObject).GetFrameworkElement(out var frameworkElement));
             Commands.Content = frameworkElement;
 
+            _windowSearchHost = windowSearchHostFactory.CreateWindowSearchHost(SearchHost);
+            _windowSearchHost.SetupSearch(this);
+
             viewTracker.CaretMovedOrActiveViewChanged += ViewTracker_CaretMovedOrActiveViewChanged;
         }
 
         public void Dispose()
         {
             _toolbarTrayHost.Close();
+            _windowSearchHost.TerminateSearch();
             _viewTracker.CaretMovedOrActiveViewChanged -= ViewTracker_CaretMovedOrActiveViewChanged;
             _viewModel.Dispose();
         }
-
-        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
-            => _viewModel.SearchText = SearchBox.Text;
 
         int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
@@ -122,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             return (int)OleConstants.OLECMDERR_E_NOTSUPPORTED;
         }
 
-        public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
+        int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
             if (pguidCmdGroup == Guids.RoslynGroupId)
             {
@@ -151,6 +150,45 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
 
             return (int)OleConstants.OLECMDERR_E_NOTSUPPORTED;
+        }
+
+        bool IVsWindowSearch.SearchEnabled => true;
+
+        Guid IVsWindowSearch.Category => Guids.DocumentOutlineSearchCategoryId;
+
+        IVsEnumWindowSearchFilters? IVsWindowSearch.SearchFiltersEnum => null;
+
+        IVsEnumWindowSearchOptions? IVsWindowSearch.SearchOptionsEnum => null;
+
+        IVsSearchTask IVsWindowSearch.CreateSearch(uint dwCookie, IVsSearchQuery pSearchQuery, IVsSearchCallback pSearchCallback)
+        {
+            _viewModel.SearchText = pSearchQuery.SearchString;
+            return new VsSearchTask(dwCookie, pSearchQuery, pSearchCallback);
+        }
+
+        void IVsWindowSearch.ClearSearch()
+        {
+            _viewModel.SearchText = "";
+        }
+
+        void IVsWindowSearch.ProvideSearchSettings(IVsUIDataSource pSearchSettings)
+        {
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.ControlMaxWidth, uint.MaxValue);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchStartType, (uint)VSSEARCHSTARTTYPE.SST_DELAYED);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchStartDelay, (uint)100);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchUseMRU, true);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.PrefixFilterMRUItems, false);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.MaximumMRUItems, (uint)25);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchWatermark, ServicesVSResources.Document_Outline_Search);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchPopupAutoDropdown, false);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.ControlBorderThickness, "1");
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchProgressType, (uint)VSSEARCHPROGRESSTYPE.SPT_INDETERMINATE);
+        }
+
+        bool IVsWindowSearch.OnNavigationKeyDown(uint dwNavigationKey, uint dwModifiers)
+        {
+            // By default we are not interesting in intercepting navigation keys, so return "not handled"
+            return false;
         }
 
         private void UpdateSort(SortOption sortOption)

@@ -73,37 +73,11 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="23" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <ContentControl Grid.Row="0" Name="Commands" Focusable="True" />
-        <TextBox Grid.Row="1" x:Name="SearchBox" TextChanged="SearchBox_TextChanged"  VerticalContentAlignment="Center">
-            <TextBox.Style>
-                <Style TargetType="TextBox">
-                    <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}" />
-                    <Setter Property="Padding" Value="3, 0, 0, 0" />
-                    <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
-                    <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
-                    <Setter Property="CaretBrush" Value="{StaticResource {x:Static vsui:HeaderColors.DefaultTextBrushKey}}" />
-                    <Style.Resources>
-                        <VisualBrush x:Key="CueBannerBrush" AlignmentX="Left" AlignmentY="Center" Stretch="None">
-                            <VisualBrush.Visual>
-                                <Label Content="{x:Static self:DocumentOutlineStrings.Document_Outline_Search}"
-                                       Foreground="{DynamicResource {x:Static vsshell:VsBrushes.TitleBarInactiveTextKey}}"
-                                       FontFamily="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}"
-                                       FontSize="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
-                            </VisualBrush.Visual>
-                        </VisualBrush>
-                    </Style.Resources>
-                    <Style.Triggers>
-                        <Trigger Property="Text" Value="">
-                            <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </TextBox.Style>
-        </TextBox>
+        <Grid Grid.Row="1" x:Name="SearchHost" />
         <!-- Two important properties are being set for TreeView:
                We set IsVirtualizing to "True" so that WPF only generates internal data-structures elements that are visible.
                Setting VirtualizationMode to "Recycling" ensures that WPF internal data is reused as items scroll in and out of view.
