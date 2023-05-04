@@ -270,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 var viewTracker = new VsCodeWindowViewTracker(_codeWindow, threadingContext, editorAdaptersFactoryService);
                 _documentOutlineView = new DocumentOutlineView(
-                    uiShell, windowSearchHostFactory, threadingContext, viewTracker,
+                    uiShell, windowSearchHostFactory, threadingContext, _globalOptions, viewTracker,
                     new DocumentOutlineViewModel(threadingContext, viewTracker, languageServiceBroker, asyncListener));
 
                 _documentOutlineViewHost = new ElementHost

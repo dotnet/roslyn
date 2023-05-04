@@ -10,6 +10,7 @@ using System.Windows.Data;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -30,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarget, IDisposable, IVsWindowSearch
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptionService;
         private readonly VsCodeWindowViewTracker _viewTracker;
         private readonly DocumentOutlineViewModel _viewModel;
         private readonly IVsToolbarTrayHost _toolbarTrayHost;
@@ -39,16 +41,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             IVsUIShell4 uiShell,
             IVsWindowSearchHostFactory windowSearchHostFactory,
             IThreadingContext threadingContext,
+            IGlobalOptionService globalOptionService,
             VsCodeWindowViewTracker viewTracker,
             DocumentOutlineViewModel viewModel)
         {
             _threadingContext = threadingContext;
+            _globalOptionService = globalOptionService;
             _viewTracker = viewTracker;
             _viewModel = viewModel;
 
             DataContext = _viewModel;
             InitializeComponent();
-            UpdateSort(SortOption.Location); // Set default sort for top-level items
+            UpdateSort(_globalOptionService.GetOption(DocumentOutlineOptionsStorage.DocumentOutlineSortOrder), userSelected: false);
 
             ErrorHandler.ThrowOnFailure(uiShell.CreateToolbarTray(this, out _toolbarTrayHost));
             ErrorHandler.ThrowOnFailure(_toolbarTrayHost.AddToolbar(Guids.RoslynGroupId, ID.RoslynCommands.DocumentOutlineToolbar));
@@ -136,15 +140,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                         return VSConstants.S_OK;
 
                     case ID.RoslynCommands.DocumentOutlineSortByName:
-                        UpdateSort(SortOption.Name);
+                        UpdateSort(SortOption.Name, userSelected: true);
                         return VSConstants.S_OK;
 
                     case ID.RoslynCommands.DocumentOutlineSortByOrder:
-                        UpdateSort(SortOption.Location);
+                        UpdateSort(SortOption.Location, userSelected: true);
                         return VSConstants.S_OK;
 
                     case ID.RoslynCommands.DocumentOutlineSortByType:
-                        UpdateSort(SortOption.Type);
+                        UpdateSort(SortOption.Type, userSelected: true);
                         return VSConstants.S_OK;
                 }
             }
@@ -191,18 +195,23 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             return false;
         }
 
-        private void UpdateSort(SortOption sortOption)
+        private void UpdateSort(SortOption sortOption, bool userSelected)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            // Log which sort option was used
-            Logger.Log(sortOption switch
+            if (userSelected)
             {
-                SortOption.Name => FunctionId.DocumentOutline_SortByName,
-                SortOption.Location => FunctionId.DocumentOutline_SortByOrder,
-                SortOption.Type => FunctionId.DocumentOutline_SortByType,
-                _ => throw new NotImplementedException(),
-            }, logLevel: LogLevel.Information);
+                // Log which sort option was used and save it back to the global options
+                Logger.Log(sortOption switch
+                {
+                    SortOption.Name => FunctionId.DocumentOutline_SortByName,
+                    SortOption.Location => FunctionId.DocumentOutline_SortByOrder,
+                    SortOption.Type => FunctionId.DocumentOutline_SortByType,
+                    _ => throw new NotImplementedException(),
+                }, logLevel: LogLevel.Information);
+
+                _globalOptionService.SetGlobalOption(DocumentOutlineOptionsStorage.DocumentOutlineSortOrder, sortOption);
+            }
 
             // "DocumentSymbolItems" is the key name we specified for our CollectionViewSource in the XAML file
             var collectionView = ((CollectionViewSource)FindResource("DocumentSymbolItems")).View;
