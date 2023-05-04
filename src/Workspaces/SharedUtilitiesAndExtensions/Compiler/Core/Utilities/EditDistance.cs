@@ -28,7 +28,7 @@ namespace Roslyn.Utilities
     /// Specifically, this implementation satisfies the following inequality: D(x, y) + D(y, z) >= D(x, z)
     /// (where D is the edit distance).
     ///</summary> 
-    internal class EditDistance : IDisposable
+    internal readonly struct EditDistance : IDisposable
     {
         // Our edit distance algorithm makes use of an 'infinite' value.  A value so high that it 
         // could never participate in an edit distance (and effectively means the path through it
@@ -45,8 +45,8 @@ namespace Roslyn.Utilities
 
         public const int BeyondThreshold = int.MaxValue;
 
-        private string _source;
-        private char[] _sourceLowerCaseCharacters;
+        private readonly string _source;
+        private readonly char[] _sourceLowerCaseCharacters;
 
         public EditDistance(string text)
         {
@@ -67,9 +67,10 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
+            if (_sourceLowerCaseCharacters is null)
+                return;
+
             ArrayPool<char>.ReleaseArray(_sourceLowerCaseCharacters);
-            _source = null!;
-            _sourceLowerCaseCharacters = null!;
         }
 
         public static int GetEditDistance(string source, string target, int threshold = int.MaxValue)

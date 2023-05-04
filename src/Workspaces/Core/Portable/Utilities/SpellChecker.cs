@@ -39,9 +39,8 @@ namespace Roslyn.Utilities
         {
             var result = _bkTree.Find(value, threshold: null);
 
-            var checker = WordSimilarityChecker.Allocate(value, substringsAreSimilar);
+            using var checker = new WordSimilarityChecker(value, substringsAreSimilar);
             var array = result.Where(checker.AreSimilar).ToArray();
-            checker.Free();
 
             return array;
         }
