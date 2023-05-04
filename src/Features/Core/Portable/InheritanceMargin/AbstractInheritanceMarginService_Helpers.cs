@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var allDeclarationNodes = GetMembers(root.DescendantNodes(spanToSearch));
             if (!allDeclarationNodes.IsEmpty)
             {
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var mappingService = document.Project.Solution.Services.GetRequiredService<ISymbolMappingService>();
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             if (nonLocalImports.Length == 0)
                 return ImmutableArray<InheritanceMarginItem>.Empty;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var lineNumber = text.Lines.GetLineFromPosition(spanStart).LineNumber;
 
             var projectState = document.Project.State;

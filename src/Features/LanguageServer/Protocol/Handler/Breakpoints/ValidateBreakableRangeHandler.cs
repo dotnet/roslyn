@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             var document = context.GetRequiredDocument();
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var span = ProtocolConversions.RangeToTextSpan(request.Range, text);
             var breakpointService = document.Project.Services.GetRequiredService<IBreakpointResolutionService>();
 

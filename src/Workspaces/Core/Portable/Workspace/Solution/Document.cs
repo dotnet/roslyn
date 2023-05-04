@@ -410,8 +410,8 @@ namespace Microsoft.CodeAnalysis
                         return tree.GetChanges(oldTree);
                     }
 
-                    text = await this.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    text = await this.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                    oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                     return text.GetTextChanges(oldText).ToList();
                 }

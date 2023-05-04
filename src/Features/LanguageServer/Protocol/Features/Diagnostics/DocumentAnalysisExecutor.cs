@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (span.HasValue && document != null)
             {
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // TODO: Unclear if using the unmapped span here is correct.  It does feel somewhat appropriate as the
                 // caller should be asking about diagnostics in an actual document, and not where they were remapped to.
