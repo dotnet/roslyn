@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             // All the changes from the original document to the most updated. Will later be
             // collapsed into one collapsed TextChange.
             var changesArray = changes.ToImmutableArray();
-            var sourceText = await annotatedReformattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await annotatedReformattedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             return new SnippetChange(
                 textChanges: changesArray,
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         private static async Task<Document> GetDocumentWithSnippetAsync(Document document, ImmutableArray<TextChange> snippets, CancellationToken cancellationToken)
         {
-            var originalText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var originalText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             originalText = originalText.WithChanges(snippets);
             var snippetDocument = document.WithText(originalText);

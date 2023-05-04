@@ -1,35 +1,35 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
     <GenerateReadyToRun Condition="'$(GenerateReadyToRun)' == '' and '$(Configuration)' == 'Release' and '$(OfficialBuild)' == 'true'">true</GenerateReadyToRun>
-    <MicrosoftNETCoreAppRuntimewinx64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftNETCoreAppRuntimewinx64Version>
-    <MicrosoftWindowsDesktopAppRuntimewinx64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftWindowsDesktopAppRuntimewinx64Version>
-    <MicrosoftNETCoreAppcrossgen2winx64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftNETCoreAppcrossgen2winx64Version>    
-    <!--
-    The purpose of this project is to include all dependecies of Microsoft.CodeAnalysis.Remote.ServiceHub and C# and VB features layer targeting .Net Core.
-    -->
-    <IsShipping>false</IsShipping>
-  </PropertyGroup>
+    <MicrosoftNETCoreAppcrossgen2winx64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftNETCoreAppcrossgen2winx64Version>
+  </PropertyGroup>  
+
   <ItemGroup>
-    <ProjectReference Include="..\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
-    <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
-    <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
+    <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- These references need to be deployed to the vsix subfolder containing servicehub bits for .Net Core -->
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
     <!--
-      We use the content of these two runtime pacakges to: 
+      Following packages are being referenced to: 
         - exclude BCL library from the dependencies we need to deploy as part of Roslyn vsix.
         - compile ReadyToRun binaries
-    -->
-    <PackageReference Include="Microsoft.NETCore.App.Runtime.win-x64" Version="$(MicrosoftNETCoreAppRuntimewinx64Version)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="$(MicrosoftWindowsDesktopAppRuntimewinx64Version)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.NETCore.App.crossgen2.win-x64" Version="$(MicrosoftNETCoreAppcrossgen2winx64Version)" Condition="'$(GenerateReadyToRun)' == 'true'" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
+
+      "Microsoft.NETCore.App.Runtime.win-{arch}"
+      "Microsoft.WindowsDesktop.App.Runtime.win-{arch}"
+    -->    
+    <PackageReference Include="Microsoft.NETCore.App.crossgen2.win-x64" Version="$(MicrosoftNETCoreAppcrossgen2winx64Version)" Condition="'$(GenerateReadyToRun)' == 'true'" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />    
   </ItemGroup>
 
   <Target Name="LocateCrossgenTargets" DependsOnTargets="Publish">
@@ -90,7 +90,7 @@
           Condition="'$(GenerateReadyToRun)' == 'true'"
           Inputs="%(_CrossgenTargetPaths.FullPath)"
           Outputs="%(_CrossgenTargetPaths.OutputPath)">    
-    <PropertyGroup>    
+    <PropertyGroup>
       <_Crossgen2Path>$(PkgMicrosoft_NETCore_App_crossgen2_win-x64)\tools\crossgen2.dll</_Crossgen2Path>
       <_R2ROptimizeAssemblyPath>%(_CrossgenTargetPaths.FullPath)</_R2ROptimizeAssemblyPath>
       <_R2ROptimizeAssemblyOutputPath>$(PublishDir)%(_CrossgenTargetPaths.Filename)%(_CrossgenTargetPaths.Extension)</_R2ROptimizeAssemblyOutputPath>      
@@ -99,7 +99,7 @@
     <ItemGroup>
       <_RspFileLines Include="$(_R2ROptimizeAssemblyPath)" />
       <_RspFileLines Include="--out:$(_R2ROptimizeAssemblyOutputPath)" />
-      <_RspFileLines Include="--targetarch:x64" />
+      <_RspFileLines Include="--targetarch:$(TargetArch)" />
       <_RspFileLines Include="--optimize" />
       <_RspFileLines Include="@(_RuntimeLibraries->'--reference:%(FullPath)')" />
       <_RspFileLines Include="@(_CrossgenTargetsAsDependencies->'--reference:%(FullPath)')" />
@@ -119,8 +119,8 @@
 
   <Target Name="LocateDependencies" DependsOnTargets="Publish">
     <ItemGroup>
-      <_RuntimeLibraries Include="$(PkgMicrosoft_NETCore_App_Runtime_win-x64)\runtimes\win-x64\**\*.dll" />
-      <_WinRuntimeLibraries Include="$(PkgMicrosoft_WindowsDesktop_App_Runtime_win-x64)\runtimes\win-x64\**\*.dll" />
+      <_RuntimeLibraries Include="$(_RuntimeLibrariesPath)**\*.dll" />
+      <_WinRuntimeLibraries Include="$(_WinRuntimeLibrariesPath)**\*.dll" />
 
       <_RuntimeLibrariesInPublishDir Include="@(_RuntimeLibraries->'$(PublishDir)%(FileName)%(Extension)')" />
       <_RuntimeLibrariesInPublishDir Include="@(_WinRuntimeLibraries->'$(PublishDir)%(FileName)%(Extension)')" />

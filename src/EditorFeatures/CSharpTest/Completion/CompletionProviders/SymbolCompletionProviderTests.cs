@@ -3746,6 +3746,28 @@ class Program
             await VerifyItemExistsAsync(markup, "Substring");
         }
 
+        [Fact, WorkItem(61343, "https://github.com/dotnet/roslyn/issues/61343")]
+        public async Task LambdaParameterMemberAccessOverloads()
+        {
+            var markup = @"
+using System.Linq;
+
+public class C
+{
+    public void M() { }
+    public void M(int i) { }
+    public int P { get; }
+
+    void Test()
+    {
+        new C[0].Select(x => x.$$)
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M() (+ 1 {FeaturesResources.overload})");
+            await VerifyItemExistsAsync(markup, "P", expectedDescriptionOrNull: "int C.P { get; }");
+        }
+
         [Fact]
         public async Task ValueNotAtRoot_Interactive()
         {

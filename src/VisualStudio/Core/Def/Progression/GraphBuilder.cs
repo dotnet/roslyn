@@ -744,7 +744,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (existing != null)
                 return null;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var span = text.Lines.GetLinePositionSpan(NavigateToUtilities.GetBoundedSpan(result.NavigableItem, text));
             var sourceLocation = TryCreateSourceLocation(document.FilePath, span);
             if (sourceLocation == null)

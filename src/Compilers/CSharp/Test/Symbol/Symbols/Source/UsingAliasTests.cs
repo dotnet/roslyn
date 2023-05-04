@@ -895,5 +895,61 @@ class C
 
             CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67989")]
+        public void AliasToPointerReferencedInExpression()
+        {
+            CreateCompilation("""
+                using unsafe Alias = int*;
+
+                namespace N
+                {
+                    internal unsafe class C
+                    {
+                        const int Factor = 3;
+
+                        void M()
+                        {
+                            _ = Alias * Factor;
+                        }
+                    }
+                }
+                """, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (11,17): error CS0119: 'int*' is a type, which is not valid in the given context
+                //             _ = Alias * Factor;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Alias").WithArguments("int*", "type").WithLocation(11, 17));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67989")]
+        public void AliasToTupleReferencedInExpression()
+        {
+            CreateCompilation("""
+                using Alias = (int, int);
+
+                internal class C
+                {
+                    void M()
+                    {
+                        Alias.Equals(null, null);
+                    }
+                }
+                """).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67989")]
+        public void AliasToPointerReferencedInNameof()
+        {
+            CreateCompilation("""
+                using Alias = (int, int);
+
+                internal class C
+                {
+                    void M()
+                    {
+                        System.Console.WriteLine(nameof(Alias));
+                    }
+                }
+                """).VerifyDiagnostics();
+        }
     }
 }

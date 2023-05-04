@@ -5525,11 +5525,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!wasTargetTyped)
                 {
-                    // This can happen when we're inferring the return type of a lambda. For this case, we don't need to do any work,
+                    // This can happen when we're inferring the return type of a lambda or visiting a node without diagnostics like
+                    // BoundConvertedTupleLiteral.SourceTuple. For these cases, we don't need to do any work,
                     // the unconverted conditional operator can't contribute info. The conversion that should be on top of this
                     // can add or remove nullability, and nested nodes aren't being publicly exposed by the semantic model.
                     Debug.Assert(node is BoundUnconvertedConditionalOperator);
-                    Debug.Assert(_returnTypesOpt is not null);
+                    Debug.Assert(_returnTypesOpt is not null || _disableDiagnostics);
                     SetResultType(node, TypeWithState.Create(resultType, default));
                     return null;
                 }

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
             if (containsUnformattableContent)
                 return null;
 
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return new BinaryExpressionCodeActionComputer(
                 this, document, sourceText, options, binaryExpr,
                 exprsAndOperators, cancellationToken);

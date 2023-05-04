@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static async Task<int> GetPositionFromLinePositionAsync(this TextDocument document, LinePosition linePosition, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return text.Lines.GetPosition(linePosition);
         }
 

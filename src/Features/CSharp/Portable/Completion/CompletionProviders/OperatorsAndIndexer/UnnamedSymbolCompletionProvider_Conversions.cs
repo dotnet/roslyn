@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var (dotToken, _) = GetDotAndExpressionStart(root, position, cancellationToken);
 
