@@ -257,6 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
                 threadingContext.ThrowIfNotOnUIThread();
 
+                var uiShell = (IVsUIShell4)_languageService.SystemServiceProvider.GetService(typeof(SVsUIShell));
                 var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
                 var asyncListenerProvider = _languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
                 var asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.DocumentOutline);
@@ -268,7 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 var viewTracker = new VsCodeWindowViewTracker(_codeWindow, threadingContext, editorAdaptersFactoryService);
                 _documentOutlineView = new DocumentOutlineView(
-                    threadingContext, viewTracker,
+                    uiShell, threadingContext, viewTracker,
                     new DocumentOutlineViewModel(threadingContext, viewTracker, languageServiceBroker, asyncListener));
 
                 _documentOutlineViewHost = new ElementHost

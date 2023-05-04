@@ -8,20 +8,5 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     {
         public static string Document_Outline_Search
             => ServicesVSResources.Document_Outline_Search;
-
-        public static string Document_Outline_Expand_All
-            => ServicesVSResources.Document_Outline_Expand_All;
-
-        public static string Document_Outline_Collapse_All
-            => ServicesVSResources.Document_Outline_Collapse_All;
-
-        public static string Document_Outline_Sort_Name
-            => ServicesVSResources.Document_Outline_Sort_Name;
-
-        public static string Document_Outline_Sort_Order
-            => ServicesVSResources.Document_Outline_Sort_Order;
-
-        public static string Document_Outline_Sort_Type
-            => ServicesVSResources.Document_Outline_Sort_Type;
     }
 }

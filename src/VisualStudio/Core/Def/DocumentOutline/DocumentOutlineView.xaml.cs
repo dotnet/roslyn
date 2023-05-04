@@ -16,9 +16,14 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
+using OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
+using OLECMDF = Microsoft.VisualStudio.OLE.Interop.OLECMDF;
+using OleConstants = Microsoft.VisualStudio.OLE.Interop.Constants;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
@@ -26,13 +31,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// Interaction logic for DocumentOutlineView.xaml
     /// All operations happen on the UI thread for visual studio
     /// </summary>
-    internal sealed partial class DocumentOutlineView : UserControl, IDisposable
+    internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarget, IDisposable
     {
         private readonly IThreadingContext _threadingContext;
         private readonly VsCodeWindowViewTracker _viewTracker;
         private readonly DocumentOutlineViewModel _viewModel;
+        private readonly IVsToolbarTrayHost _toolbarTrayHost;
 
         public DocumentOutlineView(
+            IVsUIShell4 uiShell,
             IThreadingContext threadingContext,
             VsCodeWindowViewTracker viewTracker,
             DocumentOutlineViewModel viewModel)
@@ -45,11 +52,20 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             InitializeComponent();
             UpdateSort(SortOption.Location); // Set default sort for top-level items
 
+            ErrorHandler.ThrowOnFailure(uiShell.CreateToolbarTray(this, out _toolbarTrayHost));
+            ErrorHandler.ThrowOnFailure(_toolbarTrayHost.AddToolbar(Guids.RoslynGroupId, ID.RoslynCommands.DocumentOutlineToolbar));
+
+            ErrorHandler.ThrowOnFailure(_toolbarTrayHost.GetToolbarTray(out var toolbarTray));
+            ErrorHandler.ThrowOnFailure(toolbarTray.GetUIObject(out var uiObject));
+            ErrorHandler.ThrowOnFailure(((IVsUIWpfElement)uiObject).GetFrameworkElement(out var frameworkElement));
+            Commands.Content = frameworkElement;
+
             viewTracker.CaretMovedOrActiveViewChanged += ViewTracker_CaretMovedOrActiveViewChanged;
         }
 
         public void Dispose()
         {
+            _toolbarTrayHost.Close();
             _viewTracker.CaretMovedOrActiveViewChanged -= ViewTracker_CaretMovedOrActiveViewChanged;
             _viewModel.Dispose();
         }
@@ -57,20 +73,76 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
             => _viewModel.SearchText = SearchBox.Text;
 
-        private void ExpandAll(object sender, RoutedEventArgs e)
-            => _viewModel.ExpandOrCollapseAll(true);
+        int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
+        {
+            if (pguidCmdGroup == Guids.RoslynGroupId)
+            {
+                for (var i = 0; i < cCmds; i++)
+                {
+                    switch (prgCmds[i].cmdID)
+                    {
+                        case ID.RoslynCommands.DocumentOutlineExpandAll:
+                            prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
+                            break;
 
-        private void CollapseAll(object sender, RoutedEventArgs e)
-            => _viewModel.ExpandOrCollapseAll(false);
+                        case ID.RoslynCommands.DocumentOutlineCollapseAll:
+                            prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
+                            break;
 
-        private void SortByName(object sender, EventArgs e)
-            => UpdateSort(SortOption.Name);
+                        case ID.RoslynCommands.DocumentOutlineSortByName:
+                            prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
+                            break;
 
-        private void SortByOrder(object sender, EventArgs e)
-            => UpdateSort(SortOption.Location);
+                        case ID.RoslynCommands.DocumentOutlineSortByOrder:
+                            prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
+                            break;
 
-        private void SortByType(object sender, EventArgs e)
-            => UpdateSort(SortOption.Type);
+                        case ID.RoslynCommands.DocumentOutlineSortByType:
+                            prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
+                            break;
+
+                        default:
+                            prgCmds[i].cmdf = 0;
+                            break;
+                    }
+                }
+
+                return VSConstants.S_OK;
+            }
+
+            return (int)OleConstants.OLECMDERR_E_NOTSUPPORTED;
+        }
+
+        public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
+        {
+            if (pguidCmdGroup == Guids.RoslynGroupId)
+            {
+                switch (nCmdID)
+                {
+                    case ID.RoslynCommands.DocumentOutlineExpandAll:
+                        _viewModel.ExpandOrCollapseAll(true);
+                        return VSConstants.S_OK;
+
+                    case ID.RoslynCommands.DocumentOutlineCollapseAll:
+                        _viewModel.ExpandOrCollapseAll(false);
+                        return VSConstants.S_OK;
+
+                    case ID.RoslynCommands.DocumentOutlineSortByName:
+                        UpdateSort(SortOption.Name);
+                        return VSConstants.S_OK;
+
+                    case ID.RoslynCommands.DocumentOutlineSortByOrder:
+                        UpdateSort(SortOption.Location);
+                        return VSConstants.S_OK;
+
+                    case ID.RoslynCommands.DocumentOutlineSortByType:
+                        UpdateSort(SortOption.Type);
+                        return VSConstants.S_OK;
+                }
+            }
+
+            return (int)OleConstants.OLECMDERR_E_NOTSUPPORTED;
+        }
 
         private void UpdateSort(SortOption sortOption)
         {
