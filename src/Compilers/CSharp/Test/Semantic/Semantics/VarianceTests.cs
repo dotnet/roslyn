@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Test generic interface assignment with type parameter variance.
         /// </summary>
-        [ConditionalFact(typeof(NoIOperationValidation), Reason = "Timeouts")]
+        [Fact]
         public void TestInterfaceAssignment()
         {
             var text = @"
@@ -133,7 +133,7 @@ class Test
         /// <summary>
         /// Test generic interface assignment with type parameter variance.
         /// </summary>
-        [ConditionalFact(typeof(NoIOperationValidation), Reason = "Timeouts")]
+        [Fact]
         public void TestDelegateAssignment()
         {
             var text = @"

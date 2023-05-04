@@ -409,7 +409,7 @@ class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), Reason = "Timeouts")]
+        [Fact]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly()
         {

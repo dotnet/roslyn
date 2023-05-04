@@ -30380,7 +30380,7 @@ record R1(int x);
             Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(mDefinition.SpanStart).Select(s => s.ToTestDisplayString()));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), Reason = "Timeouts")]
+        [Fact]
         [WorkItem(66900, "https://github.com/dotnet/roslyn/issues/66900")]
         public void Issue66900()
         {
