@@ -14,7 +14,7 @@ namespace Roslyn.Utilities
 {
     internal readonly partial struct BKTree
     {
-        private class Builder
+        private readonly struct Builder
         {
             // The number of edges we pre-allocate space for for each node in _compactEdges.
             //
@@ -289,7 +289,7 @@ namespace Roslyn.Utilities
                 public int EdgeCount;
                 public Dictionary<int, int>? SpilloverEdges;
 
-                public BuilderNode(TextSpan characterSpan) : this()
+                public BuilderNode(TextSpan characterSpan)
                     => this.CharacterSpan = characterSpan;
             }
         }
