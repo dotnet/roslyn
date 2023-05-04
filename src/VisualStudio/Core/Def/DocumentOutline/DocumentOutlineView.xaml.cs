@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -286,6 +288,40 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 {
                     _viewModel.IsNavigating = false;
                 }
+            }
+        }
+
+        /// <summary>
+        /// When a symbol node in the window is selected, make sure it is visible.
+        /// </summary>
+        private void SymbolTreeItem_Selected(object sender, RoutedEventArgs e)
+        {
+            // Construct a rectangle at the left of the item to avoid horizontal scrolling when the items is longer than
+            // fits in the view. We make the rectangle 25% the width of the containing tree view to ensure at least some
+            // of the text is visible for deeply nested items.
+            if (e.OriginalSource is TreeViewItem item)
+            {
+                double renderHeight;
+                if (item.IsExpanded)
+                {
+                    // The first child is a container. Inside the container are three children:
+                    // 1. The expander
+                    // 2. The border for the header item
+                    // 3. The container for the children
+                    //
+                    // For expanded items, we want to only consider the render heigh of the header item, since that is
+                    // the specific item which is selected.
+                    var container = VisualTreeHelper.GetChild(item, 0);
+                    var border = VisualTreeHelper.GetChild(container, 1);
+                    renderHeight = ((UIElement)border).RenderSize.Height;
+                }
+                else
+                {
+                    renderHeight = item.RenderSize.Height;
+                }
+
+                var croppedRenderWidth = Math.Min(item.RenderSize.Width, SymbolTree.RenderSize.Width / 4);
+                item.BringIntoView(new Rect(new Point(0, 0), new Size(croppedRenderWidth, renderHeight)));
             }
         }
 

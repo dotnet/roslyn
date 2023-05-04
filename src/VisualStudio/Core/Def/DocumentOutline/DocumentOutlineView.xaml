@@ -94,6 +94,7 @@
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
                   TreeViewItem.SourceUpdated="SymbolTreeItem_SourceUpdated"
+                  TreeViewItem.Selected="SymbolTreeItem_Selected"
                   ItemsSource="{Binding Source={StaticResource DocumentSymbolItems}}"> <!-- Binding to our CollectionViewSource -->
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolDataViewModel}">
