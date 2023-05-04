@@ -756,7 +756,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             symbolNode.AddCategory(category);
             symbolNode[DgmlNodeProperties.Icon] = GetIconString(result.NavigableItem.Glyph);
             symbolNode[RoslynGraphProperties.ContextDocumentId] = document.Id;
-            symbolNode[RoslynGraphProperties.ContextProjectId] = document.Id.ProjectId;
+            symbolNode[RoslynGraphProperties.ContextProjectId] = document.Project.Id;
 
             symbolNode[CodeNodeProperties.SourceLocation] = sourceLocation.Value;
 
