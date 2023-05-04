@@ -29,7 +29,6 @@ static async Task RunAsync(
     string? brokeredServicePipeName,
     LogLevel minimumLogLevel,
     string? starredCompletionPath,
-    string? projectRazorJsonFileName,
     string? telemetryLevel,
     IEnumerable<string> extensionAssemblyPaths,
     CancellationToken cancellationToken)
@@ -73,12 +72,6 @@ static async Task RunAsync(
     }
 
     using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyPaths, loggerFactory);
-
-    // Allow the extension to override the razor file name to generate, in case they need to break the format
-    if (projectRazorJsonFileName is not null)
-    {
-        RazorDynamicFileInfoProvider.SetProjectRazorJsonFileName(projectRazorJsonFileName);
-    }
 
     // Initialize the fault handler if it's available
     var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
@@ -159,11 +152,6 @@ static Parser CreateCommandLineParser()
         IsRequired = false,
     };
 
-    var projectRazorJsonFileNameOption = new Option<string?>("--projectRazorJsonFileName")
-    {
-        Description = "The file name to use for the project.razor.json file (for Razor projects).",
-        IsRequired = false,
-    };
     var telemetryLevelOption = new Option<string?>("--telemetryLevel")
     {
         Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
@@ -181,7 +169,6 @@ static Parser CreateCommandLineParser()
         brokeredServicePipeNameOption,
         logLevelOption,
         starredCompletionsPathOption,
-        projectRazorJsonFileNameOption,
         telemetryLevelOption,
         extensionAssemblyPathsOption,
     };
@@ -192,11 +179,10 @@ static Parser CreateCommandLineParser()
         var brokeredServicePipeName = context.ParseResult.GetValueForOption(brokeredServicePipeNameOption);
         var logLevel = context.ParseResult.GetValueForOption(logLevelOption);
         var starredCompletionsPath = context.ParseResult.GetValueForOption(starredCompletionsPathOption);
-        var projectRazorJsonFileName = context.ParseResult.GetValueForOption(projectRazorJsonFileNameOption);
         var telemetryLevel = context.ParseResult.GetValueForOption(telemetryLevelOption);
         var extensionAssemblyPaths = context.ParseResult.GetValueForOption(extensionAssemblyPathsOption) ?? Array.Empty<string>();
 
-        return RunAsync(launchDebugger, brokeredServicePipeName, logLevel, starredCompletionsPath, projectRazorJsonFileName, telemetryLevel, extensionAssemblyPaths, cancellationToken);
+        return RunAsync(launchDebugger, brokeredServicePipeName, logLevel, starredCompletionsPath, telemetryLevel, extensionAssemblyPaths, cancellationToken);
     });
 
     return new CommandLineBuilder(rootCommand).UseDefaults().Build();
