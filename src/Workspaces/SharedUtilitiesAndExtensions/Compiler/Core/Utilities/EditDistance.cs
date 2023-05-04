@@ -58,17 +58,15 @@ namespace Roslyn.Utilities
         {
             var array = ArrayPool<char>.GetArray(text.Length);
             for (var i = 0; i < text.Length; i++)
-            {
                 array[i] = CaseInsensitiveComparison.ToLower(text[i]);
-            }
 
             return array;
         }
 
         public void Dispose()
         {
-            if (_sourceLowerCaseCharacters is null)
-                return;
+            if (_sourceLowerCaseCharacters == null)
+                throw new ObjectDisposedException(nameof(EditDistance));
 
             ArrayPool<char>.ReleaseArray(_sourceLowerCaseCharacters);
         }
@@ -85,9 +83,7 @@ namespace Roslyn.Utilities
         public int GetEditDistance(string target, int threshold = int.MaxValue)
         {
             if (_sourceLowerCaseCharacters == null)
-            {
                 throw new ObjectDisposedException(nameof(EditDistance));
-            }
 
             var targetLowerCaseCharacters = ConvertToLowercaseArray(target);
             try
