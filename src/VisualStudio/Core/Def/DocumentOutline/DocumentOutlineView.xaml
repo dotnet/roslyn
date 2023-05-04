@@ -91,6 +91,7 @@
              interaction. -->
         <TreeView Grid.Row="2"
                   Name="SymbolTree"
+                  AutomationProperties.Name="{x:Static self:DocumentOutlineStrings.Document_Outline}"
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
                   TreeViewItem.SourceUpdated="SymbolTreeItem_SourceUpdated"
@@ -101,7 +102,7 @@
                     <HierarchicalDataTemplate.ItemsSource>
                         <MultiBinding Converter="{StaticResource ItemSorter}"> <!-- This binding ensures our TreeViewItems are sorted if the collection is changed OR the sort option is changed -->
                             <Binding Path="Children" />
-                            <Binding Path="DataContext.SortOption"  RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=UserControl}" />
+                            <Binding Path="DataContext.SortOption" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=UserControl}" />
                         </MultiBinding>
                     </HierarchicalDataTemplate.ItemsSource>
                     <StackPanel Orientation="Horizontal"
@@ -122,6 +123,7 @@
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}">
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="AutomationProperties.Name" Value="{Binding Data.Name, Mode=OneWay}" />
                     <!-- See docs above for why we set `NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False` -->
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False}" />
                     <Setter Property="Padding" Value="4, 0, 6, 1" />
