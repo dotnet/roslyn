@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 #if !CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 removing dependency on WorkspaceServices.
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 return SpecializedCollections.SingletonEnumerable(codeAction);
 #else
 
-                using var _ = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance(out var operations);
+                using var operations = TemporaryArray<CodeActionOperation>.Empty;
 
                 operations.Add(codeAction);
                 var factory = _startingSolution.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                     operations.Add(factory.CreateSymbolRenamedOperation(_symbol, _newName, _startingSolution, newSolution));
                 }
 
-                return operations.ToImmutable();
+                return operations.ToImmutableAndClear();
 #endif
             }
 
