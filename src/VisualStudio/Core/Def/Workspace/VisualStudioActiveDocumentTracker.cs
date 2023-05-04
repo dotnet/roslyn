@@ -316,9 +316,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 _documentTracker.AssertIsForeground();
 
-                if (ErrorHandler.Succeeded(Frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocCookie, out var boxedDocCookie)) && boxedDocCookie is uint docCookie)
+                if (ErrorHandler.Succeeded(Frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocCookie, out var boxedDocCookie)) && boxedDocCookie is int docCookie)
                 {
-                    var flags = (_VSRDTFLAGS)_runningDocumentTable.GetDocumentFlags(docCookie);
+                    var flags = (_VSRDTFLAGS)_runningDocumentTable.GetDocumentFlags((uint)docCookie);
                     if ((flags & (_VSRDTFLAGS)_VSRDTFLAGS4.RDT_PendingInitialization) != 0)
                     {
                         // This document is not yet initialized. Defer initialization to the next OnShow event.
