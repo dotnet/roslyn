@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Roslyn.Utilities
 {
-    internal class WordSimilarityChecker
+    internal struct WordSimilarityChecker : IDisposable
     {
         private readonly struct CacheResult
         {
@@ -29,42 +28,18 @@ namespace Roslyn.Utilities
         // same value immediately.
         private CacheResult _lastAreSimilarResult;
 
-        private string _source;
-        private EditDistance _editDistance;
-        private int _threshold;
+        private readonly string _source;
+        private readonly EditDistance _editDistance;
+        private readonly int _threshold;
 
         /// <summary>
         /// Whether or words should be considered similar if one is contained within the other
         /// (regardless of edit distance).  For example if is true then IService would be considered
         /// similar to IServiceFactory despite the edit distance being quite high at 7.
         /// </summary>
-        private bool _substringsAreSimilar;
+        private readonly bool _substringsAreSimilar;
 
-        private static readonly object s_poolGate = new();
-        private static readonly Stack<WordSimilarityChecker> s_pool = new();
-
-        public static WordSimilarityChecker Allocate(string text, bool substringsAreSimilar)
-        {
-            WordSimilarityChecker checker;
-            lock (s_poolGate)
-            {
-                checker = s_pool.Count > 0
-                    ? s_pool.Pop()
-                    : new WordSimilarityChecker();
-            }
-
-            checker.Initialize(text, substringsAreSimilar);
-            return checker;
-        }
-
-        private WordSimilarityChecker()
-        {
-            // These are initialized by 'Initialize'
-            _source = null!;
-            _editDistance = null!;
-        }
-
-        private void Initialize(string text, bool substringsAreSimilar)
+        public WordSimilarityChecker(string text, bool substringsAreSimilar)
         {
             _source = text ?? throw new ArgumentNullException(nameof(text));
             _threshold = GetThreshold(_source);
@@ -72,17 +47,8 @@ namespace Roslyn.Utilities
             _substringsAreSimilar = substringsAreSimilar;
         }
 
-        public void Free()
-        {
-            _editDistance?.Dispose();
-            _source = null!;
-            _editDistance = null!;
-            _lastAreSimilarResult = default;
-            lock (s_poolGate)
-            {
-                s_pool.Push(this);
-            }
-        }
+        public readonly void Dispose()
+            => _editDistance.Dispose();
 
         public static bool AreSimilar(string originalText, string candidateText)
             => AreSimilar(originalText, candidateText, substringsAreSimilar: false);
@@ -104,9 +70,8 @@ namespace Roslyn.Utilities
         /// </summary>
         public static bool AreSimilar(string originalText, string candidateText, bool substringsAreSimilar, out double similarityWeight)
         {
-            var checker = Allocate(originalText, substringsAreSimilar);
+            using var checker = new WordSimilarityChecker(originalText, substringsAreSimilar);
             var result = checker.AreSimilar(candidateText, out similarityWeight);
-            checker.Free();
 
             return result;
         }
