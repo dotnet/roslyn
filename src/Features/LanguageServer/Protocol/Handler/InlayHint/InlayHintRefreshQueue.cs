@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager)
         {
             _globalOptionService = globalOptionService;
-            _globalOptionService.OptionChanged += OnOptionChanged;
+            _globalOptionService.AddOptionChangedHandler(this, OnOptionChanged);
         }
 
         public override void Dispose()
         {
             base.Dispose();
-            _globalOptionService.OptionChanged -= OnOptionChanged;
+            _globalOptionService.RemoveOptionChangedHandler(this, OnOptionChanged);
         }
 
         private void OnOptionChanged(object? sender, OptionChangedEventArgs e)

@@ -73,14 +73,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
         {
-            // TODO: we need to normalize this. but for now, we check both absolute and local path
-            //       right now, based on who calls this, solution might has "/" or "\\" as directory
-            //       separator
+            // This logic needs to be cleaned up when we support URIs as a first class concept.
+            // For now we do our best to handle as many cases as we can.
+            // Tracking issue - https://github.com/dotnet/roslyn/issues/68083
+
             var documentIds = solution.GetDocumentIdsWithFilePath(documentUri.AbsolutePath);
             if (documentIds.Any())
                 return documentIds;
 
-            return solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
+            documentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
+            if (documentIds.Any())
+                return documentIds;
+
+            documentIds = solution.GetDocumentIdsWithFilePath(documentUri.OriginalString);
+            return documentIds;
         }
 
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
@@ -157,7 +163,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static async Task<int> GetPositionFromLinePositionAsync(this TextDocument document, LinePosition linePosition, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return text.Lines.GetPosition(linePosition);
         }
 

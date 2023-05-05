@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 try
                 {
                     path = MakeSourceFileLogPath(document, fileNameSuffix, updateId, generation);
-                    var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                     using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Write | FileShare.Delete);
                     using var writer = new StreamWriter(file, text.Encoding ?? Encoding.UTF8);
                     text.Write(writer, cancellationToken);

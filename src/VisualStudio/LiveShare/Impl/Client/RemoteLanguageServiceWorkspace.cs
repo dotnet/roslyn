@@ -309,7 +309,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return null;
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // The protocol converter would have synced the file to disk but we the document snapshot that was in the workspace before the sync would have empty text.
             // So we need to read from disk in order to map from line\column to a textspan.
@@ -494,12 +494,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 if (_openedDocs.Values.Contains(documentId) || IsDocumentOpen(documentId))
                 {
-                    var textBuffer = _threadingContext.JoinableTaskFactory.Run(async () =>
-                    {
-                        var sourceText = await document.GetTextAsync().ConfigureAwait(false);
-                        var textContainer = sourceText.Container;
-                        return textContainer.TryGetTextBuffer();
-                    });
+                    var sourceText = document.GetTextSynchronously(CancellationToken.None);
+                    var textContainer = sourceText.Container;
+                    var textBuffer = textContainer.TryGetTextBuffer();
 
                     if (textBuffer == null)
                     {
