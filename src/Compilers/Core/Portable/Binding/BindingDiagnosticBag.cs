@@ -52,6 +52,18 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        protected BindingDiagnosticBag(DiagnosticBag? diagnosticBag, ICollection<TAssemblySymbol>? dependenciesBag)
+            : this(diagnosticBag)
+        {
+            Debug.Assert(diagnosticBag?.GetType().IsValueType != true);
+            DependenciesBag = dependenciesBag;
+        }
+
+        protected BindingDiagnosticBag(bool usePool)
+            : this(usePool ? DiagnosticBag.GetInstance() : new DiagnosticBag(), usePool ? PooledHashSet<TAssemblySymbol>.GetInstance() : new HashSet<TAssemblySymbol>())
+        {
+        }
+
         [MemberNotNullWhen(true, nameof(DiagnosticBag))]
         internal bool AccumulatesDiagnostics => DiagnosticBag is object;
 

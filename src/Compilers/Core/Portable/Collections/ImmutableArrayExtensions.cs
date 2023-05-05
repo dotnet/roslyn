@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Roslyn.Utilities;
 
 #if DEBUG
 using System.Linq;
@@ -907,107 +908,87 @@ namespace Microsoft.CodeAnalysis
 
         internal static void CreateNameToMembersMap
             <TNamespaceOrTypeSymbol, TNamedTypeSymbol, TNamespaceSymbol>
-            (Dictionary<string, object> dictionary, Dictionary<String, ImmutableArray<TNamespaceOrTypeSymbol>> result)
+            (Dictionary<string, object> dictionary, Dictionary<string, ImmutableArray<TNamespaceOrTypeSymbol>> result)
             where TNamespaceOrTypeSymbol : class
             where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
             where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
         {
-            foreach (var kvp in dictionary)
-            {
-                object value = kvp.Value;
-                ImmutableArray<TNamespaceOrTypeSymbol> members;
+            foreach (var (name, value) in dictionary)
+                result.Add(name, createMembers(value));
 
-                var builder = value as ArrayBuilder<TNamespaceOrTypeSymbol>;
-                if (builder != null)
+            return;
+
+            static ImmutableArray<TNamespaceOrTypeSymbol> createMembers(object value)
+            {
+                if (value is ArrayBuilder<TNamespaceOrTypeSymbol> builder)
                 {
                     Debug.Assert(builder.Count > 1);
-                    bool hasNamespaces = false;
-                    for (int i = 0; i < builder.Count; i++)
+                    foreach (var item in builder)
                     {
-                        if (builder[i] is TNamespaceSymbol)
-                        {
-                            hasNamespaces = true;
-                            break;
-                        }
+                        if (item is TNamespaceSymbol)
+                            return builder.ToImmutableAndFree();
                     }
 
-                    members = hasNamespaces
-                        ? builder.ToImmutable()
-                        : ImmutableArray<TNamespaceOrTypeSymbol>.CastUp(builder.ToDowncastedImmutable<TNamedTypeSymbol>());
-
-                    builder.Free();
+                    return ImmutableArray<TNamespaceOrTypeSymbol>.CastUp(builder.ToDowncastedImmutableAndFree<TNamedTypeSymbol>());
                 }
                 else
                 {
                     TNamespaceOrTypeSymbol symbol = (TNamespaceOrTypeSymbol)value;
-                    members = symbol is TNamespaceSymbol
-                        ? ImmutableArray.Create<TNamespaceOrTypeSymbol>(symbol)
-                        : ImmutableArray<TNamespaceOrTypeSymbol>.CastUp(ImmutableArray.Create<TNamedTypeSymbol>((TNamedTypeSymbol)symbol));
+                    return symbol is TNamespaceSymbol
+                        ? ImmutableArray.Create(symbol)
+                        : ImmutableArray<TNamespaceOrTypeSymbol>.CastUp(ImmutableArray.Create((TNamedTypeSymbol)symbol));
                 }
-
-                result.Add(kvp.Key, members);
             }
         }
 
-        internal static Dictionary<string, ImmutableArray<TNamedTypeSymbol>> GetTypesFromMemberMap
-            <TNamespaceOrTypeSymbol, TNamedTypeSymbol
-#if DEBUG
-             , TNamespaceSymbol
-#endif
-            >
+        internal static Dictionary<string, ImmutableArray<TNamedTypeSymbol>> GetTypesFromMemberMap<TNamespaceOrTypeSymbol, TNamedTypeSymbol>
             (Dictionary<string, ImmutableArray<TNamespaceOrTypeSymbol>> map, IEqualityComparer<string> comparer)
             where TNamespaceOrTypeSymbol : class
             where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
-#if DEBUG
-            where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
-#endif
         {
             var dictionary = new Dictionary<string, ImmutableArray<TNamedTypeSymbol>>(comparer);
 
-            foreach (var kvp in map)
+            foreach (var (name, members) in map)
             {
-                ImmutableArray<TNamespaceOrTypeSymbol> members = kvp.Value;
-
-                bool hasType = false;
-                bool hasNamespace = false;
-
-                foreach (var symbol in members)
-                {
-                    if (symbol is TNamedTypeSymbol)
-                    {
-                        hasType = true;
-                        if (hasNamespace)
-                        {
-                            break;
-                        }
-                    }
-                    else
-                    {
-#if DEBUG
-                        Debug.Assert(symbol is TNamespaceSymbol);
-#endif
-                        hasNamespace = true;
-                        if (hasType)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                if (hasType)
-                {
-                    if (hasNamespace)
-                    {
-                        dictionary.Add(kvp.Key, members.OfType<TNamedTypeSymbol>().AsImmutable());
-                    }
-                    else
-                    {
-                        dictionary.Add(kvp.Key, members.As<TNamedTypeSymbol>());
-                    }
-                }
+                var namedTypes = getOrCreateNamedTypes(members);
+                if (namedTypes.Length > 0)
+                    dictionary.Add(name, namedTypes);
             }
 
             return dictionary;
+
+            static ImmutableArray<TNamedTypeSymbol> getOrCreateNamedTypes(ImmutableArray<TNamespaceOrTypeSymbol> members)
+            {
+                Debug.Assert(members.Length > 0);
+
+                // See if creator 'map' put a downcasted ImmutableArray<TNamedTypeSymbol> in it.  If so, we can just directly
+                // downcast to that and trivially reuse it.  If not, that means the array must have contained at least one
+                // TNamespaceSymbol and we'll need to filter that out.
+                var membersAsNamedTypes = members.As<TNamedTypeSymbol>();
+
+                if (!membersAsNamedTypes.IsDefault)
+                    return membersAsNamedTypes;
+
+                // Preallocate the right amount so we can avoid garbage reallocs.
+                var count = members.Count(static s => s is TNamedTypeSymbol);
+
+                // Must have less items than in the original array.  Otherwise, the .As<TNamedTypeSymbol>() cast would
+                // have succeeded.
+                Debug.Assert(count < members.Length);
+
+                if (count == 0)
+                    return ImmutableArray<TNamedTypeSymbol>.Empty;
+
+                var builder = ArrayBuilder<TNamedTypeSymbol>.GetInstance(count);
+                foreach (var member in members)
+                {
+                    if (member is TNamedTypeSymbol namedType)
+                        builder.Add(namedType);
+                }
+
+                Debug.Assert(builder.Count == count);
+                return builder.ToImmutableAndFree();
+            }
         }
 
         internal static bool SequenceEqual<TElement, TArg>(this ImmutableArray<TElement> array1, ImmutableArray<TElement> array2, TArg arg, Func<TElement, TElement, TArg, bool> predicate)

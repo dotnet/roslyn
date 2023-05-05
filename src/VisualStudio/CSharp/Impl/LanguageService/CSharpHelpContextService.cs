@@ -370,12 +370,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     case SyntaxKind.PartialKeyword:
                         if (token.Parent.GetAncestorOrThis<MethodDeclarationSyntax>() != null)
                         {
-                            text = "partialmethod_CSharpKeyword";
+                            text = Keyword("partialmethod");
                             return true;
                         }
                         else if (token.Parent.GetAncestorOrThis<TypeDeclarationSyntax>() != null)
                         {
-                            text = "partialtype_CSharpKeyword";
+                            text = Keyword("partialtype");
                             return true;
                         }
 
@@ -383,8 +383,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                     case SyntaxKind.WhereKeyword:
                         text = token.Parent.GetAncestorOrThis<TypeParameterConstraintClauseSyntax>() != null
-                            ? "whereconstraint_CSharpKeyword"
-                            : "whereclause_CSharpKeyword";
+                            ? Keyword("whereconstraint")
+                            : Keyword("whereclause");
 
                         return true;
 
@@ -411,25 +411,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 case SyntaxKind.PrivateKeyword when ModifiersContains(token, SyntaxKind.ProtectedKeyword):
                 case SyntaxKind.ProtectedKeyword when ModifiersContains(token, SyntaxKind.PrivateKeyword):
-                    text = "privateprotected_CSharpKeyword";
+                    text = Keyword("privateprotected");
                     return true;
 
                 case SyntaxKind.ProtectedKeyword when ModifiersContains(token, SyntaxKind.InternalKeyword):
                 case SyntaxKind.InternalKeyword when ModifiersContains(token, SyntaxKind.ProtectedKeyword):
-                    text = "protectedinternal_CSharpKeyword";
+                    text = Keyword("protectedinternal");
                     return true;
 
                 case SyntaxKind.UsingKeyword when token.Parent is UsingDirectiveSyntax:
                     text = token.GetNextToken().IsKind(SyntaxKind.StaticKeyword)
-                        ? "using-static_CSharpKeyword"
-                        : "using_CSharpKeyword";
+                        ? Keyword("using-static")
+                        : Keyword("using");
                     return true;
                 case SyntaxKind.StaticKeyword when token.Parent is UsingDirectiveSyntax:
-                    text = "using-static_CSharpKeyword";
+                    text = Keyword("using-static");
                     return true;
                 case SyntaxKind.ReturnKeyword when token.Parent.IsKind(SyntaxKind.YieldReturnStatement):
                 case SyntaxKind.BreakKeyword when token.Parent.IsKind(SyntaxKind.YieldBreakStatement):
-                    text = "yield_CSharpKeyword";
+                    text = Keyword("yield");
                     return true;
             }
 
@@ -448,13 +448,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 if (token.GetAncestor<FromClauseSyntax>() != null)
                 {
-                    text = "from_CSharpKeyword";
+                    text = Keyword("from");
                     return true;
                 }
 
                 if (token.GetAncestor<JoinClauseSyntax>() != null)
                 {
-                    text = "join_CSharpKeyword";
+                    text = Keyword("join");
                     return true;
                 }
             }
@@ -513,13 +513,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (token.ValueText == "var" && token.IsKind(SyntaxKind.IdentifierToken) &&
                 token.Parent?.Parent is VariableDeclarationSyntax declaration && token.Parent == declaration.Type)
             {
-                text = "var_CSharpKeyword";
+                text = Keyword("var");
                 return true;
             }
 
             if (token.IsTypeNamedDynamic())
             {
-                text = "dynamic_CSharpKeyword";
+                text = Keyword("dynamic");
                 return true;
             }
 
