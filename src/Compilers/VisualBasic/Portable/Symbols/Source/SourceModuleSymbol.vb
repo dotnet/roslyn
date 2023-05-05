@@ -1083,7 +1083,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _lazyContainsExtensionMethods = ThreeState.True
         End Sub
 
-        Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
+        Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
 
             Dim attrData = arguments.Attribute

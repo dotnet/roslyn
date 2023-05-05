@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Globalization;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -259,7 +260,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute);
 
-        public void ReportInvalidAttributeArgument(BindingDiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute)
+        public void ReportInvalidAttributeArgument<TAssemblySymbol>(
+            BindingDiagnosticBag<TAssemblySymbol> diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute)
+            where TAssemblySymbol : class, IAssemblySymbolInternal
         {
             if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
             {
@@ -269,7 +272,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract void ReportInvalidNamedArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex, ITypeSymbol attributeClass, string parameterName);
 
-        public void ReportInvalidNamedArgument(BindingDiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex, ITypeSymbol attributeClass, string parameterName)
+        public void ReportInvalidNamedArgument<TAssemblySymbol>(
+            BindingDiagnosticBag<TAssemblySymbol> diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex, ITypeSymbol attributeClass, string parameterName)
+            where TAssemblySymbol : class, IAssemblySymbolInternal
         {
             if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
             {
@@ -279,7 +284,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract void ReportParameterNotValidForType(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex);
 
-        public void ReportParameterNotValidForType(BindingDiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex)
+        public void ReportParameterNotValidForType<TAssemblySymbol>(
+            BindingDiagnosticBag<TAssemblySymbol> diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex)
+            where TAssemblySymbol : class, IAssemblySymbolInternal
         {
             if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
             {
@@ -289,7 +296,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract void ReportMarshalUnmanagedTypeNotValidForFields(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, string unmanagedTypeName, AttributeData attribute);
 
-        public void ReportMarshalUnmanagedTypeNotValidForFields(BindingDiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, string unmanagedTypeName, AttributeData attribute)
+        public void ReportMarshalUnmanagedTypeNotValidForFields<TAssemblySymbol>(
+            BindingDiagnosticBag<TAssemblySymbol> diagnostics, SyntaxNode attributeSyntax, int parameterIndex, string unmanagedTypeName, AttributeData attribute)
+            where TAssemblySymbol : class, IAssemblySymbolInternal
         {
             if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
             {
@@ -299,7 +308,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract void ReportMarshalUnmanagedTypeOnlyValidForFields(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, string unmanagedTypeName, AttributeData attribute);
 
-        public void ReportMarshalUnmanagedTypeOnlyValidForFields(BindingDiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, string unmanagedTypeName, AttributeData attribute)
+        public void ReportMarshalUnmanagedTypeOnlyValidForFields<TAssemblySymbol>(
+            BindingDiagnosticBag<TAssemblySymbol> diagnostics, SyntaxNode attributeSyntax, int parameterIndex, string unmanagedTypeName, AttributeData attribute)
+            where TAssemblySymbol : class, IAssemblySymbolInternal
         {
             if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
             {
@@ -309,7 +320,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName);
 
-        public void ReportAttributeParameterRequired(BindingDiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName)
+        public void ReportAttributeParameterRequired<TAssemblySymbol>(
+            BindingDiagnosticBag<TAssemblySymbol> diagnostics, SyntaxNode attributeSyntax, string parameterName)
+            where TAssemblySymbol : class, IAssemblySymbolInternal
         {
             if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
             {
@@ -319,7 +332,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName1, string parameterName2);
 
-        public void ReportAttributeParameterRequired(BindingDiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName1, string parameterName2)
+        public void ReportAttributeParameterRequired<TAssemblySymbol>(
+            BindingDiagnosticBag<TAssemblySymbol> diagnostics, SyntaxNode attributeSyntax, string parameterName1, string parameterName2)
+            where TAssemblySymbol : class, IAssemblySymbolInternal
         {
             if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
             {

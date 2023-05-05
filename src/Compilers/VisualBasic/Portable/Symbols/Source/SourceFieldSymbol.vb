@@ -707,7 +707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return MyBase.EarlyDecodeWellKnownAttribute(arguments)
         End Function
 
-        Friend NotOverridable Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
+        Friend NotOverridable Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
 
             Dim attrData = arguments.Attribute
@@ -738,7 +738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)().SetFieldOffset(offset)
 
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
-                MarshalAsAttributeDecoder(Of CommonFieldWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.Field, MessageProvider.Instance)
+                MarshalAsAttributeDecoder(Of CommonFieldWellKnownAttributeData, AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.Field, MessageProvider.Instance)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DateTimeConstantAttribute) Then
                 VerifyConstantValueMatches(attrData.DecodeDateTimeConstantValue(), arguments)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DecimalConstantAttribute) Then
@@ -753,7 +753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' (DateTimeConstantAttribute or DecimalConstantAttribute).
         ''' If not, report ERR_FieldHasMultipleDistinctConstantValues.
         ''' </summary>
-        Private Sub VerifyConstantValueMatches(attrValue As ConstantValue, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
+        Private Sub VerifyConstantValueMatches(attrValue As ConstantValue, ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim data = arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)()
             Dim constValue As ConstantValue
             Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)

@@ -1566,7 +1566,7 @@ lReportErrorOnTwoTokens:
             Return If(data IsNot Nothing, data.ConditionalSymbols, ImmutableArray(Of String).Empty)
         End Function
 
-        Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
+        Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
 
@@ -1590,7 +1590,7 @@ lReportErrorOnTwoTokens:
             MyBase.DecodeWellKnownAttribute(arguments)
         End Sub
 
-        Private Sub DecodeWellKnownAttributeAppliedToMethod(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
+        Private Sub DecodeWellKnownAttributeAppliedToMethod(ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
             Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
@@ -1639,7 +1639,7 @@ lReportErrorOnTwoTokens:
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().SetPreserveSignature(arguments.Index)
 
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MethodImplAttribute) Then
-                AttributeData.DecodeMethodImplAttribute(Of MethodWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)(arguments, MessageProvider.Instance)
+                AttributeData.DecodeMethodImplAttribute(Of MethodWellKnownAttributeData, AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)(arguments, MessageProvider.Instance)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DllImportAttribute) Then
                 If Not IsDllImportAttributeAllowed(arguments.AttributeSyntaxOpt, diagnostics) Then
                     Return
@@ -1745,7 +1745,7 @@ lReportErrorOnTwoTokens:
         End Sub
 
         Private Function VerifyObsoleteAttributeAppliedToMethod(
-            ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation),
+            ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation),
             description As AttributeDescription
         ) As Boolean
             If arguments.Attribute.IsTargetAttribute(Me, description) Then
@@ -1760,13 +1760,13 @@ lReportErrorOnTwoTokens:
             Return False
         End Function
 
-        Private Sub DecodeWellKnownAttributeAppliedToReturnValue(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
+        Private Sub DecodeWellKnownAttributeAppliedToReturnValue(ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             ' Decode well-known attributes applied to return value
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
-                MarshalAsAttributeDecoder(Of CommonReturnTypeWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.ReturnValue, MessageProvider.Instance)
+                MarshalAsAttributeDecoder(Of CommonReturnTypeWellKnownAttributeData, AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.ReturnValue, MessageProvider.Instance)
             End If
         End Sub
 

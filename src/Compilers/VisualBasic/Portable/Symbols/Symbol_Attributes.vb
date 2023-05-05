@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' this (base) method.
         ''' </para>
         ''' </remarks>
-        Friend Overridable Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
+        Friend Overridable Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim compilation = Me.DeclaringCompilation
             MarkEmbeddedAttributeTypeReference(arguments.Attribute, arguments.AttributeSyntaxOpt, compilation)
             ReportExtensionAttributeUseSiteInfo(arguments.Attribute, arguments.AttributeSyntaxOpt, compilation, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
@@ -453,7 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim totalAttributesCount As Integer = boundAttributes.Length
             Dim uniqueAttributeTypes = New HashSet(Of NamedTypeSymbol)
-            Dim arguments = New DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation)()
+            Dim arguments = New DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)()
             arguments.AttributesCount = totalAttributesCount
             arguments.Diagnostics = diagnostics
             arguments.SymbolPart = symbolPart

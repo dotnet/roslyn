@@ -1318,7 +1318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Get unique source assembly attributes.
             HashSet<CSharpAttributeData> uniqueAttributes = GetUniqueSourceAssemblyAttributes();
 
-            var arguments = new DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation>();
+            var arguments = new DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation>();
             arguments.AttributesCount = netModuleAttributesCount;
             arguments.Diagnostics = diagnostics;
             arguments.SymbolPart = AttributeLocation.None;
@@ -2173,7 +2173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)attributeSyntaxOpt != null ? attributeSyntaxOpt.Location : NoLocation.Singleton;
         }
 
-        private void DecodeTypeForwardedToAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        private void DecodeTypeForwardedToAttribute(ref DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             // this code won't be called unless we bound a well-formed, semantically correct ctor call.
             Debug.Assert(!arguments.Attribute.HasErrors);
@@ -2329,12 +2329,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             DecodeWellKnownAttribute(ref arguments, arguments.Index, isFromNetModule: false);
         }
 
-        private void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, int index, bool isFromNetModule)
+        private void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AssemblySymbol, AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, int index, bool isFromNetModule)
         {
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);

@@ -2155,7 +2155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return SpecializedCollections.EmptyEnumerable(Of Microsoft.Cci.SecurityAttribute)()
         End Function
 
-        Friend NotOverridable Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
+        Friend NotOverridable Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
 
             Dim attrData = arguments.Attribute
@@ -2258,7 +2258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
 
                     Dim defaultAutoLayoutSize = If(Me.TypeKind = TypeKind.Structure, 1, 0)
-                    AttributeData.DecodeStructLayoutAttribute(Of CommonTypeWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)(
+                    AttributeData.DecodeStructLayoutAttribute(Of CommonTypeWellKnownAttributeData, AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)(
                         arguments, Me.DefaultMarshallingCharSet, defaultAutoLayoutSize, MessageProvider.Instance)
 
                     If Me.IsGenericType Then

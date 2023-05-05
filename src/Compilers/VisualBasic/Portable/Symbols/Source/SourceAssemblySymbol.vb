@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Get unique source assembly attributes.
             Dim uniqueAttributes As HashSet(Of VisualBasicAttributeData) = GetUniqueSourceAssemblyAttributes(attributeIndicesToSkip)
 
-            Dim arguments = New DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation)()
+            Dim arguments = New DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)()
             arguments.AttributesCount = netModuleAttributesCount
             arguments.Diagnostics = diagnostics
             arguments.SymbolPart = AttributeLocation.None
@@ -987,7 +987,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return True
         End Function
 
-        Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
+        Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)

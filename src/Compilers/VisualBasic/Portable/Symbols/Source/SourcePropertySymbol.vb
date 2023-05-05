@@ -550,7 +550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return MyBase.EarlyDecodeWellKnownAttribute(arguments)
         End Function
 
-        Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
+        Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
 
             Dim attrData = arguments.Attribute
@@ -573,7 +573,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 If isMarshalAs Then
-                    MarshalAsAttributeDecoder(Of CommonReturnTypeWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).
+                    MarshalAsAttributeDecoder(Of CommonReturnTypeWellKnownAttributeData, AssemblySymbol, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).
                         Decode(arguments, AttributeTargets.Field, MessageProvider.Instance)
 
                     Return

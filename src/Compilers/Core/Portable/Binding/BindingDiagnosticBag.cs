@@ -18,13 +18,27 @@ namespace Microsoft.CodeAnalysis
     /// This is base class for a bag used to accumulate information while binding is performed.
     /// Including diagnostic messages and dependencies in the form of "used" assemblies. 
     /// </summary>
-    internal abstract class BindingDiagnosticBag
+    internal abstract class BindingDiagnosticBag<TAssemblySymbol>
+        where TAssemblySymbol : class, IAssemblySymbolInternal
     {
         public readonly DiagnosticBag? DiagnosticBag;
+        public readonly ICollection<TAssemblySymbol>? DependenciesBag;
 
-        protected BindingDiagnosticBag(DiagnosticBag? diagnosticBag)
+        private BindingDiagnosticBag(DiagnosticBag? diagnosticBag)
         {
             DiagnosticBag = diagnosticBag;
+        }
+
+        protected BindingDiagnosticBag(DiagnosticBag? diagnosticBag, ICollection<TAssemblySymbol>? dependenciesBag)
+            : this(diagnosticBag)
+        {
+            Debug.Assert(diagnosticBag?.GetType().IsValueType != true);
+            DependenciesBag = dependenciesBag;
+        }
+
+        protected BindingDiagnosticBag(bool usePool)
+            : this(usePool ? DiagnosticBag.GetInstance() : new DiagnosticBag(), usePool ? PooledHashSet<TAssemblySymbol>.GetInstance() : new HashSet<TAssemblySymbol>())
+        {
         }
 
         [MemberNotNullWhen(true, nameof(DiagnosticBag))]
@@ -56,23 +70,6 @@ namespace Microsoft.CodeAnalysis
         {
             DiagnosticBag?.Add(diag);
         }
-    }
-
-    internal abstract class BindingDiagnosticBag<TAssemblySymbol> : BindingDiagnosticBag
-        where TAssemblySymbol : class, IAssemblySymbolInternal
-    {
-        public readonly ICollection<TAssemblySymbol>? DependenciesBag;
-
-        protected BindingDiagnosticBag(DiagnosticBag? diagnosticBag, ICollection<TAssemblySymbol>? dependenciesBag)
-            : base(diagnosticBag)
-        {
-            Debug.Assert(diagnosticBag?.GetType().IsValueType != true);
-            DependenciesBag = dependenciesBag;
-        }
-
-        protected BindingDiagnosticBag(bool usePool)
-            : this(usePool ? DiagnosticBag.GetInstance() : new DiagnosticBag(), usePool ? PooledHashSet<TAssemblySymbol>.GetInstance() : new HashSet<TAssemblySymbol>())
-        { }
 
         internal bool AccumulatesDependencies => DependenciesBag is object;
 
