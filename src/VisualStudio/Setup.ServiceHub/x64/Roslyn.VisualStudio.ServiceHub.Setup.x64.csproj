@@ -39,10 +39,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <!-- ContentManifest is used add machineArch to manifest.json, which has no officual support from VSSDK build tools -->
-    <ContentManifest Include="ContentManifest.json" />
-  </ItemGroup>  
-  <ItemGroup>
     <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3\$(SQLitePCLRawbundle_greenVersion)\runtimes\win-x64\native\e_sqlite3.dll">
       <Link>e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
