@@ -23,9 +23,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// <summary>
     /// Implements core of Edit and Continue orchestration: management of edit sessions and connecting EnC related services.
     /// </summary>
-    [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
-    internal sealed class EditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
+    [Export(typeof(IEditAndContinueService)), Shared]
+    internal sealed class EditAndContinueService : IEditAndContinueService
     {
+        [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
+        internal sealed class WorkspaceService : IEditAndContinueWorkspaceService
+        {
+            public IEditAndContinueService Service { get; }
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public WorkspaceService(IEditAndContinueService service)
+                => Service = service;
+        }
+
         internal static readonly TraceLog Log;
         internal static readonly TraceLog AnalysisLog;
 
@@ -39,12 +50,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditAndContinueWorkspaceService()
+        public EditAndContinueService()
         {
             _compilationOutputsProvider = GetCompilationOutputs;
         }
 
-        static EditAndContinueWorkspaceService()
+        static EditAndContinueService()
         {
             Log = new(2048, "EnC", "Trace.log");
             AnalysisLog = new(1024, "EnC", "Analysis.log");
@@ -249,38 +260,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return debuggingSession.GetAdjustedActiveStatementSpansAsync(mappedDocument, activeStatementSpanProvider, cancellationToken);
         }
 
-        public ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(DebuggingSessionId sessionId, Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            // It is allowed to call this method before entering or after exiting break mode. In fact, the VS debugger does so.
-            // We return null since there the concept of active statement only makes sense during break mode.
-            var debuggingSession = TryGetDebuggingSession(sessionId);
-            if (debuggingSession == null)
-            {
-                return ValueTaskFactory.FromResult<LinePositionSpan?>(null);
-            }
-
-            return debuggingSession.GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instructionId, cancellationToken);
-        }
-
-        public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(DebuggingSessionId sessionId, Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            var debuggingSession = TryGetDebuggingSession(sessionId);
-            if (debuggingSession == null)
-            {
-                return ValueTaskFactory.FromResult<bool?>(null);
-            }
-
-            return debuggingSession.IsActiveStatementInExceptionRegionAsync(solution, instructionId, cancellationToken);
-        }
-
         internal TestAccessor GetTestAccessor()
             => new(this);
 
         internal readonly struct TestAccessor
         {
-            private readonly EditAndContinueWorkspaceService _service;
+            private readonly EditAndContinueService _service;
 
-            public TestAccessor(EditAndContinueWorkspaceService service)
+            public TestAccessor(EditAndContinueService service)
             {
                 _service = service;
             }

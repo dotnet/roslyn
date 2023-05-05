@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         #endregion
 
-        public event EventHandler<OptionChangedEventArgs>? OptionChanged;
+        private readonly WeakEvent<OptionChangedEventArgs> _optionChanged = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -236,27 +236,46 @@ namespace Microsoft.CodeAnalysis.Options
             return true;
         }
 
+        public void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+        {
+            _optionChanged.AddHandler(target, handler);
+        }
+
+        public void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+        {
+            _optionChanged.RemoveHandler(target, handler);
+        }
+
         private void RaiseOptionChangedEvent(List<OptionChangedEventArgs> changedOptions)
         {
             Debug.Assert(changedOptions.Count > 0);
 
-            // Raise option changed events.
-            var optionChanged = OptionChanged;
-            if (optionChanged != null)
+            foreach (var changedOption in changedOptions)
             {
-                foreach (var changedOption in changedOptions)
-                {
-                    optionChanged(this, changedOption);
-                }
+                _optionChanged.RaiseEvent(this, changedOption);
             }
         }
 
-        // for testing
-        public void ClearCachedValues()
+        internal TestAccessor GetTestAccessor()
         {
-            lock (_gate)
+            return new TestAccessor(this);
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly GlobalOptionService _instance;
+
+            internal TestAccessor(GlobalOptionService instance)
             {
-                _currentValues = ImmutableDictionary.Create<OptionKey2, object?>();
+                _instance = instance;
+            }
+
+            public void ClearCachedValues()
+            {
+                lock (_instance._gate)
+                {
+                    _instance._currentValues = ImmutableDictionary.Create<OptionKey2, object?>();
+                }
             }
         }
     }
