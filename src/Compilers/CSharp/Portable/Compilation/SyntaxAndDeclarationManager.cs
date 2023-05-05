@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             stack.Push(current.Children[i]);
 
                         // Process any type we see before we process its nested types.
-                        if (current is SingleTypeDeclaration singleType)
+                        if (current is SingleTypeDeclaration singleType && DeclarationTreeBuilder.CachesComputedMemberNames(singleType.Kind))
                             builder.Add(singleType.MemberNames);
                     }
 

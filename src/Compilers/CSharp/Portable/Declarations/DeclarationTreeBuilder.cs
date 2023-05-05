@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly string _scriptClassName;
         private readonly bool _isSubmission;
 
-        // Cleared once we hit the first type.
-        private ImmutableSegmentedHashSet<string> _previousMemberNames;
+        private readonly OneOrMany<ImmutableSegmentedHashSet<string>> _previousMemberNames;
 
         /// <summary>
         /// Any special attributes we may be referencing through a using alias in the file.
@@ -32,11 +31,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private QuickAttributes _nonGlobalAliasedQuickAttributes;
 
+        /// <summary>
+        /// The index of the current type we're processing in lexicographic order with respect to all other types in the
+        /// file.  For example:
+        /// <code>
+        /// class A // Index 0
+        /// {
+        ///     class B // Index 1
+        ///     {
+        ///     }
+        /// }
+        /// 
+        /// class C // Index 2
+        /// {
+        /// }
+        /// </code>
+        /// </summary>
+        private int _currentTypeIndex;
+
         private DeclarationTreeBuilder(
             SyntaxTree syntaxTree,
             string scriptClassName,
             bool isSubmission,
-            ImmutableSegmentedHashSet<string> previousMemberNames)
+            OneOrMany<ImmutableSegmentedHashSet<string>> previousMemberNames)
         {
             _syntaxTree = syntaxTree;
             _scriptClassName = scriptClassName;
@@ -48,10 +65,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTree syntaxTree,
             string scriptClassName,
             bool isSubmission,
-            ImmutableSegmentedHashSet<string> previousMemberNames = default)
+            OneOrMany<ImmutableSegmentedHashSet<string>>? previousMemberNames = null)
         {
-            var builder = new DeclarationTreeBuilder(syntaxTree, scriptClassName, isSubmission, previousMemberNames);
+            var builder = new DeclarationTreeBuilder(syntaxTree, scriptClassName, isSubmission, previousMemberNames ?? OneOrMany<ImmutableSegmentedHashSet<string>>.Empty);
             return (RootSingleNamespaceDeclaration)builder.Visit(syntaxTree.GetRoot());
+        }
+
+        public static bool CachesComputedMemberNames(DeclarationKind kind)
+        {
+            return kind switch
+            {
+                DeclarationKind.Class or
+                DeclarationKind.Interface or
+                DeclarationKind.Struct or
+                DeclarationKind.Enum or
+                DeclarationKind.Script or
+                DeclarationKind.Submission or
+                DeclarationKind.ImplicitClass or
+                DeclarationKind.Record or
+                DeclarationKind.RecordStruct => true,
+                // Namespaces aren't types, and thus don't cache any names of members. Delegates also do not cache any
+                // members names as the member names are always a known fixed set.
+                DeclarationKind.Namespace or DeclarationKind.Delegate => false,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind)
+            }; ; ;
         }
 
         private ImmutableArray<SingleNamespaceOrTypeDeclaration> VisitNamespaceChildren(
@@ -806,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static ImmutableSegmentedHashSet<string> GetEnumMemberNames(SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+        private ImmutableSegmentedHashSet<string> GetEnumMemberNames(SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             var cnt = members.Count;
 
@@ -831,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes;
             }
 
-            return ToImmutableAndFree(memberNamesBuilder);
+            return TryReusePriorComputedMemberNames(memberNamesBuilder);
         }
 
         private ImmutableSegmentedHashSet<string> GetNonTypeMemberNames(
@@ -892,20 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasRequiredMembers;
             }
 
-            // See if we have the member names from the last time a type-decl was created for this tree. If so, reuse
-            // that if the same names were produced this time around (the common case).
-
-            var previousMemberNames = _previousMemberNames;
-            _previousMemberNames = default;
-
-            if (!previousMemberNames.IsDefault && previousMemberNames.SetEquals(memberNameBuilder))
-            {
-                memberNameBuilder.Clear();
-                s_memberNameBuilderPool.Free(memberNameBuilder);
-                return previousMemberNames;
-            }
-
-            return ToImmutableAndFree(memberNameBuilder);
+            return TryReusePriorComputedMemberNames(memberNameBuilder);
 
             static bool checkPropertyOrFieldMemberForRequiredModifier(Syntax.InternalSyntax.CSharpSyntaxNode member)
             {
@@ -918,6 +942,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return modifiers.Any((int)SyntaxKind.RequiredKeyword);
             }
+        }
+
+        private ImmutableSegmentedHashSet<string> TryReusePriorComputedMemberNames(ImmutableSegmentedHashSet<string>.Builder memberNameBuilder)
+        {
+            // See if we have the member names from the last time a type-decl was created for this tree. If so, reuse
+            // that if the same names were produced this time around (the common case).
+
+            var previousMemberNames = _currentTypeIndex < _previousMemberNames.Count
+                ? _previousMemberNames[_currentTypeIndex]
+                : ImmutableSegmentedHashSet<string>.Empty;
+
+            _currentTypeIndex++;
+
+            if (!previousMemberNames.IsDefault && previousMemberNames.SetEquals(memberNameBuilder))
+            {
+                memberNameBuilder.Clear();
+                s_memberNameBuilderPool.Free(memberNameBuilder);
+                return previousMemberNames;
+            }
+
+            return ToImmutableAndFree(memberNameBuilder);
         }
 
         private static bool CheckMethodMemberForExtensionSyntax(Syntax.InternalSyntax.CSharpSyntaxNode member)
