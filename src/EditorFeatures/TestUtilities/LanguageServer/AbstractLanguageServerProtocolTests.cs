@@ -475,13 +475,14 @@ namespace Roslyn.Test.Utilities
             };
         }
 
-        private static LSP.DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(Uri uri, string source)
+        private static LSP.DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(Uri uri, string source, string languageId = "")
             => new LSP.DidOpenTextDocumentParams
             {
                 TextDocument = new LSP.TextDocumentItem
                 {
                     Text = source,
-                    Uri = uri
+                    Uri = uri,
+                    LanguageId = languageId
                 }
             };
 
@@ -610,7 +611,7 @@ namespace Roslyn.Test.Utilities
                 return result;
             }
 
-            public async Task OpenDocumentAsync(Uri documentUri, string? text = null)
+            public async Task OpenDocumentAsync(Uri documentUri, string? text = null, string languageId = "")
             {
                 if (text == null)
                 {
@@ -620,7 +621,7 @@ namespace Roslyn.Test.Utilities
                     text = sourceText.ToString();
                 }
 
-                var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, text.ToString());
+                var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, text.ToString(), languageId);
                 await ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(LSP.Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None);
             }
 
@@ -693,7 +694,7 @@ namespace Roslyn.Test.Utilities
 
             internal T GetRequiredLspService<T>() where T : class, ILspService => LanguageServer.GetTestAccessor().GetRequiredLspService<T>();
 
-            internal ImmutableArray<SourceText> GetTrackedTexts() => GetManager().GetTrackedLspText().Values.ToImmutableArray();
+            internal ImmutableArray<SourceText> GetTrackedTexts() => GetManager().GetTrackedLspText().Values.Select(v => v.Text).ToImmutableArray();
 
             public async ValueTask DisposeAsync()
             {
