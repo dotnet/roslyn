@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis
 
         private readonly Func<DiagnosticInfo, DiagnosticBag, Location, bool> _reportUseSiteDiagnostic;
 
+#if DEBUG
+        private readonly bool _usePool;
+#endif
+
         private BindingDiagnosticBag(
             DiagnosticBag? diagnosticBag,
             Func<DiagnosticInfo, DiagnosticBag, Location, bool> reportUseSiteDiagnostic)
@@ -50,18 +54,9 @@ namespace Microsoft.CodeAnalysis
                   usePool ? PooledHashSet<TAssemblySymbol>.GetInstance() : new HashSet<TAssemblySymbol>(),
                   reportUseSiteDiagnostic)
         {
-        }
-
-        protected BindingDiagnosticBag(DiagnosticBag? diagnosticBag, ICollection<TAssemblySymbol>? dependenciesBag)
-            : this(diagnosticBag)
-        {
-            Debug.Assert(diagnosticBag?.GetType().IsValueType != true);
-            DependenciesBag = dependenciesBag;
-        }
-
-        protected BindingDiagnosticBag(bool usePool)
-            : this(usePool ? DiagnosticBag.GetInstance() : new DiagnosticBag(), usePool ? PooledHashSet<TAssemblySymbol>.GetInstance() : new HashSet<TAssemblySymbol>())
-        {
+#if DEBUG
+            _usePool = usePool;
+#endif
         }
 
         [MemberNotNullWhen(true, nameof(DiagnosticBag))]
@@ -98,6 +93,10 @@ namespace Microsoft.CodeAnalysis
 
         internal void Free()
         {
+#if DEBUG
+            Debug.Assert(_usePool, $"Trying to free a {nameof(BindingDiagnosticBag<IAssemblySymbolInternal>)} that wasn't using pooling.");
+#endif
+
             DiagnosticBag?.Free();
             ((PooledHashSet<TAssemblySymbol>?)DependenciesBag)?.Free();
         }
