@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var currentSolution = oldSolution;
             foreach (var (docId, textChanges) in documentTextChanges)
             {
-                var text = await oldSolution.GetDocument(docId).GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await oldSolution.GetDocument(docId).GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 currentSolution = currentSolution.WithDocumentText(docId, text.WithChanges(textChanges));
             }
 

@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public static ManagedHotReloadUpdate FromContract(this Contracts.ManagedHotReloadUpdate update)
             => new(
                 module: update.Module,
+                moduleName: update.ModuleName,
                 ilDelta: update.ILDelta,
                 metadataDelta: update.MetadataDelta,
                 pdbDelta: update.PdbDelta,

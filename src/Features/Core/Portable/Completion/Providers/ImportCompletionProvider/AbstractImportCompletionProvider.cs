@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             builder.Add(new TextChange(completionItem.Span, insertText));
 
             // Then get the combined change
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
 
             var changes = builder.ToImmutable();

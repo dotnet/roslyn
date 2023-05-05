@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             else
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 return _identifierCache.GetOrAdd(identifier, _ => FindMatchingIdentifierTokensFromText(text));
             }
 
