@@ -1083,7 +1083,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We decided that it was reasonable to exclude explicit interface implementations
                     // from the list of member names.
                     var methodDecl = (Syntax.InternalSyntax.MethodDeclarationSyntax)member;
-                    if (methodDecl.ExplicitInterfaceSpecifier == null)
+
+                    // Common to have several overloads of method next to each other.  Trivially skip adding the name
+                    // again if we just added it.
+                    if (methodDecl.ExplicitInterfaceSpecifier == null &&
+                        set.LastOrDefault() != methodDecl.Identifier.ValueText)
                     {
                         set.Add(methodDecl.Identifier.ValueText);
                     }
@@ -1110,11 +1114,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.ConstructorDeclaration:
-                    anyNonTypeMembers = true;
-                    set.Add(((Syntax.InternalSyntax.ConstructorDeclarationSyntax)member).Modifiers.Any((int)SyntaxKind.StaticKeyword)
-                        ? WellKnownMemberNames.StaticConstructorName
-                        : WellKnownMemberNames.InstanceConstructorName);
-                    break;
+                    {
+                        anyNonTypeMembers = true;
+                        var name = ((Syntax.InternalSyntax.ConstructorDeclarationSyntax)member).Modifiers.Any((int)SyntaxKind.StaticKeyword)
+                            ? WellKnownMemberNames.StaticConstructorName
+                            : WellKnownMemberNames.InstanceConstructorName;
+
+                        // Common to have several overloads of constructors next to each other.  Trivially skip adding the name
+                        // again if we just added it.
+                        if (set.LastOrDefault() != name)
+                            set.Add(name);
+
+                        break;
+                    }
 
                 case SyntaxKind.DestructorDeclaration:
                     anyNonTypeMembers = true;
