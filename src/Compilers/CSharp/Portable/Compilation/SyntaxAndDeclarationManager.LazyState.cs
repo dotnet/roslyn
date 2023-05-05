@@ -23,15 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> RootNamespaces;
 
             /// <summary>
-            /// The last fully computed member names for the top-most type (in lexicographic order) for this file.
-            /// Member names often don't change for most edits, so being able to reuse the same set from the last time
-            /// things were computed saves on a lot of memory churn producing the new set, then GC'ing the last set
-            /// (esp. for very large types).  We only track top-level types as that is the most common case for all
-            /// files is just to have a single type, and by only tracking that we vastly simplify keeping track and
-            /// mapping this state forward (otherwise, we'd have to have to keep track of which type in the file these
-            /// member names corresponded to).
+            /// The last fully computed member names for all the types (in lexicographic order) for this file. Member
+            /// names often don't change for most edits, so being able to reuse the same set from the last time things
+            /// were computed saves on a lot of memory churn producing the new set, then GC'ing the last set (esp. for
+            /// very large types). The value is stored as a <see cref="OneOrMany"/> as the most common case for most
+            /// files is a single type declaration.
             /// </summary>
-            internal readonly ImmutableDictionary<SyntaxTree, ImmutableSegmentedHashSet<string>> LastComputedTopLevelTypeMemberNames;
+            internal readonly ImmutableDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>> LastComputedTopLevelTypeMemberNames;
             internal readonly DeclarationTable DeclarationTable;
 
             internal State(
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableDictionary<SyntaxTree, ImmutableArray<LoadDirective>> loadDirectiveMap,
                 ImmutableDictionary<string, SyntaxTree> loadedSyntaxTreeMap,
                 ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> rootNamespaces,
-                ImmutableDictionary<SyntaxTree, ImmutableSegmentedHashSet<string>> lastComputedTopLevelTypeMemberNames,
+                ImmutableDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>> lastComputedTopLevelTypeMemberNames,
                 DeclarationTable declarationTable)
             {
                 Debug.Assert(syntaxTrees.All(tree => syntaxTrees[syntaxTreeOrdinalMap[tree]] == tree));

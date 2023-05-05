@@ -12,11 +12,15 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class SyntaxAndDeclarationManager : CommonSyntaxAndDeclarationManager
     {
+        private static readonly ObjectPool<Stack<SingleNamespaceOrTypeDeclaration>> s_declarationStack =
+            new ObjectPool<Stack<SingleNamespaceOrTypeDeclaration>>(() => new Stack<SingleNamespaceOrTypeDeclaration>());
+
         private State _lazyState;
 
         internal SyntaxAndDeclarationManager(
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loadDirectiveMapBuilder = PooledDictionary<SyntaxTree, ImmutableArray<LoadDirective>>.GetInstance();
             var loadedSyntaxTreeMapBuilder = PooledDictionary<string, SyntaxTree>.GetInstance();
             var declMapBuilder = PooledDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>>.GetInstance();
-            var lastComputedMemberNamesMap = PooledDictionary<SyntaxTree, ImmutableSegmentedHashSet<string>>.GetInstance();
+            var lastComputedMemberNamesMap = PooledDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>>.GetInstance();
             var declTable = DeclarationTable.Empty;
 
             foreach (var tree in externalSyntaxTrees)
@@ -156,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IDictionary<SyntaxTree, ImmutableArray<LoadDirective>> loadDirectiveMapBuilder,
             IDictionary<string, SyntaxTree> loadedSyntaxTreeMapBuilder,
             IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
-            IDictionary<SyntaxTree, ImmutableSegmentedHashSet<string>> lastComputedMemberNamesMap,
+            IDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>> lastComputedMemberNamesMap,
             ref DeclarationTable declTable)
         {
             var sourceCodeKind = tree.Options.Kind;
@@ -166,11 +170,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AddSyntaxTreeToDeclarationMapAndTable(
-                tree, scriptClassName, isSubmission, declMapBuilder, lastComputedTopLevelTypeMemberNames: ImmutableSegmentedHashSet<string>.Empty, ref declTable);
+                tree, scriptClassName, isSubmission, declMapBuilder,
+                lastComputedTopLevelTypeMemberNames: OneOrMany<ImmutableSegmentedHashSet<string>>.Empty, ref declTable);
 
             treesBuilder.Add(tree);
             ordinalMapBuilder.Add(tree, ordinalMapBuilder.Count);
-            lastComputedMemberNamesMap.Add(tree, ImmutableSegmentedHashSet<string>.Empty);
+            lastComputedMemberNamesMap.Add(tree, OneOrMany<ImmutableSegmentedHashSet<string>>.Empty);
         }
 
         private static void AppendAllLoadedSyntaxTrees(
@@ -184,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IDictionary<SyntaxTree, ImmutableArray<LoadDirective>> loadDirectiveMapBuilder,
             IDictionary<string, SyntaxTree> loadedSyntaxTreeMapBuilder,
             IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
-            IDictionary<SyntaxTree, ImmutableSegmentedHashSet<string>> lastComputedMemberNamesMap,
+            IDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>> lastComputedMemberNamesMap,
             ref DeclarationTable declTable)
         {
             ArrayBuilder<LoadDirective> loadDirectives = null;
@@ -281,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string scriptClassName,
             bool isSubmission,
             IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
-            ImmutableSegmentedHashSet<string> lastComputedTopLevelTypeMemberNames,
+            OneOrMany<ImmutableSegmentedHashSet<string>> lastComputedTopLevelTypeMemberNames,
             ref DeclarationTable declTable)
         {
             var lazyRoot = new Lazy<RootSingleNamespaceDeclaration>(() => DeclarationTreeBuilder.ForTree(tree, scriptClassName, isSubmission, lastComputedTopLevelTypeMemberNames));
@@ -589,29 +594,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 state);
 
-            ImmutableSegmentedHashSet<string> tryGetLastComputedMemberNames()
+            OneOrMany<ImmutableSegmentedHashSet<string>> tryGetLastComputedMemberNames()
             {
                 var previousRootNamespaceDeclaration = declMapBuilder[oldTree];
                 if (previousRootNamespaceDeclaration.IsValueCreated)
                 {
                     // we computed the last root.  It will have up to date member names.  So just return those if present.
+                    var stack = s_declarationStack.Allocate();
+                    stack.Push(previousRootNamespaceDeclaration.Value);
 
-                    // Walk down the namespaces as long as it's just a single chain of them.
-                    SingleNamespaceDeclaration current = previousRootNamespaceDeclaration.Value;
-                    while (current is SingleNamespaceDeclaration { Children: [SingleNamespaceDeclaration childNamespace] })
-                        current = childNamespace;
+                    var builder = ArrayBuilder<ImmutableSegmentedHashSet<string>>.GetInstance();
 
-                    // return the member names for the single top level type if we find one.
-                    return current is SingleNamespaceDeclaration { Children: [SingleTypeDeclaration childType] }
-                        ? childType.MemberNames
-                        : ImmutableSegmentedHashSet<string>.Empty;
+                    while (stack.Count > 0)
+                    {
+                        var current = stack.Pop();
+
+                        // As we walk down, push children on in reverse order so we get a DFS walk.
+
+                        for (int i = current.Children.Length - 1; i >= 0; i--)
+                            stack.Push(current.Children[i]);
+
+                        // Process any type we see before we process its nested types.
+                        if (current is SingleTypeDeclaration singleType)
+                            builder.Add(singleType.MemberNames);
+                    }
+
+                    return builder.ToOneOrManyAndFree();
                 }
 
                 // The previous root wasn't computed yet.  So just return whatever info we have from before.
                 if (lastComputedMemberNamesMap.TryGetValue(oldTree, out var lastComputedMemberNames))
                     return lastComputedMemberNames;
-                
-                return ImmutableSegmentedHashSet<string>.Empty;
+
+                // Didn't have the current root, and didn't have any prior cached items.  No reuse of computed names
+                // possible here.
+                return OneOrMany<ImmutableSegmentedHashSet<string>>.Empty;
             }
         }
 
