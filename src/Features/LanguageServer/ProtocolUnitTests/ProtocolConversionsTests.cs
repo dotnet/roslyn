@@ -38,19 +38,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         }
 
         [Fact]
-        public void RangeToTextSpanWithNextLine()
-        {
-            var markup = GetTestMarkup();
-            var sourceText = SourceText.From(markup);
-            var range = new Range() { Start = new Position(2, 0), End = new Position(3, 0) };
-            var textSpan = ProtocolConversions.RangeToTextSpan(range, sourceText);
-
-            // End should be start of fourth line
-            Assert.Equal(13, textSpan.Start);
-            Assert.Equal(29, textSpan.End);
-        }
-
-        [Fact]
         public void RangeToTextSpanMidLine()
         {
             var markup = GetTestMarkup();
@@ -65,7 +52,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         }
 
         [Fact]
-        public void RangeToTextSpanLineAfterEndOfDocument()
+        public void RangeToTextSpanLineEndOfDocument()
+        {
+            var markup = GetTestMarkup();
+            var sourceText = SourceText.From(markup);
+
+            var range = new Range() { Start = new Position(0, 0), End = new Position(3, 1) };
+            var textSpan = ProtocolConversions.RangeToTextSpan(range, sourceText);
+
+            Assert.Equal(0, textSpan.Start);
+            Assert.Equal(30, textSpan.End);
+        }
+
+        [Fact]
+        public void RangeToTextSpanEndOfDocumentExclusive()
         {
             var markup = GetTestMarkup();
             var sourceText = SourceText.From(markup);
@@ -83,7 +83,38 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         }
 
         [Fact]
-        public void RangeToTextSpanStartFailure()
+        public void RangeToTextSpanLineEndOfDocumentWithEndOfLineChars()
+        {
+            var markup =
+@"void M()
+{
+    var x = 5;
+}
+"; // add additional end line 
+
+            var sourceText = SourceText.From(markup);
+
+            var range = new Range() { Start = new Position(0, 0), End = new Position(4, 0) };
+            var textSpan = ProtocolConversions.RangeToTextSpan(range, sourceText);
+
+            // Result now includes end of line characters for line 3
+            Assert.Equal(0, textSpan.Start);
+            Assert.Equal(32, textSpan.End);
+        }
+
+        [Fact]
+        public void RangeToTextSpanEndOfDocumentCharacterError()
+        {
+            var markup = GetTestMarkup();
+            var sourceText = SourceText.From(markup);
+
+            // Ensure that requesting a character on the line that doesn't exist throws an error
+            var range = new Range() { Start = new Position(0, 0), End = new Position(4, 1) };
+            Assert.Throws<ArgumentException>(() => ProtocolConversions.RangeToTextSpan(range, sourceText));
+        }
+
+        [Fact]
+        public void RangeToTextSpanEndOfDocumentStartError()
         {
             var markup = GetTestMarkup();
             var sourceText = SourceText.From(markup);

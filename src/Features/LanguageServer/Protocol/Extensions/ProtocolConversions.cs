@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     // The TextLines will throw a ArgumentException if asked for the line after the last line,
                     // despite the call being valid call per the LSP spec. If the end of the input range is one
                     // beyond the end of the file, edit the end character position of the last line in the file.
-                    if (text.Lines.Count == range.End.Line)
+                    if (text.Lines.Count == range.End.Line && range.End.Character == 0)
                     {
                         var indexOfLastLine = text.Lines.Count - 1;
                         var lastLineOfText = text.Lines[indexOfLastLine];
