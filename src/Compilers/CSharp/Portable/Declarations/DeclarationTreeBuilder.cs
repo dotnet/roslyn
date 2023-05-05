@@ -836,12 +836,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static readonly ObjectPool<ImmutableSegmentedHashSet<string>.Builder> s_memberNameBuilderPool =
-            new ObjectPool<ImmutableSegmentedHashSet<string>.Builder>(() => ImmutableSegmentedHashSet.CreateBuilder<string>());
+        private static readonly ObjectPool<ArrayBuilder<string>> s_memberNameBuilderPool =
+            new ObjectPool<ArrayBuilder<string>>(() => ArrayBuilder<string>.GetInstance());
 
-        private static ImmutableSegmentedHashSet<string> ToImmutableAndFree(ImmutableSegmentedHashSet<string>.Builder builder)
+        private static ImmutableSegmentedHashSet<string> ToImmutableAndFree(ArrayBuilder<string> builder)
         {
-            var result = builder.ToImmutable();
+            var result = ImmutableSegmentedHashSet.CreateRange(builder);
             builder.Clear();
             s_memberNameBuilderPool.Free(builder);
             return result;
@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableSegmentedHashSet<string> TryReusePriorComputedMemberNames(ImmutableSegmentedHashSet<string>.Builder memberNameBuilder)
+        private ImmutableSegmentedHashSet<string> TryReusePriorComputedMemberNames(ArrayBuilder<string> memberNameBuilder)
         {
             // See if we have the member names from the last time a type-decl was created for this tree. If so, reuse
             // that if the same names were produced this time around (the common case).
@@ -959,7 +959,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _currentTypeIndex++;
 
-            if (!previousMemberNames.IsDefault && previousMemberNames.SetEquals(memberNameBuilder))
+            memberNameBuilder.RemoveDuplicates();
+
+            if (!previousMemberNames.IsDefault &&
+                previousMemberNames.Count == memberNameBuilder.Count &&
+                previousMemberNames.SetEquals(memberNameBuilder))
             {
                 memberNameBuilder.Clear();
                 s_memberNameBuilderPool.Free(memberNameBuilder);
@@ -1046,7 +1050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void AddNonTypeMemberNames(
-            Syntax.InternalSyntax.CSharpSyntaxNode member, ImmutableSegmentedHashSet<string>.Builder set, ref bool anyNonTypeMembers, bool skipGlobalStatements)
+            Syntax.InternalSyntax.CSharpSyntaxNode member, ArrayBuilder<string> set, ref bool anyNonTypeMembers, bool skipGlobalStatements)
         {
             switch (member.Kind)
             {
