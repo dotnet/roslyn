@@ -1105,7 +1105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
             Get
-                TryCalculateRequiredMembersWithCache(Nothing)
+                EnsureRequiredMembersCalculated()
                 Debug.Assert(Not _lazyRequiredMembers.IsDefault)
                 Return If(_lazyRequiredMembers = s_requiredMembersErrorSentinel, ImmutableSegmentedDictionary(Of String, Symbol).Empty, _lazyRequiredMembers)
             End Get
@@ -1117,7 +1117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property HasRequiredMembersError As Boolean
             Get
-                TryCalculateRequiredMembersWithCache(Nothing)
+                EnsureRequiredMembersCalculated()
                 Debug.Assert(Not _lazyRequiredMembers.IsDefault)
                 Return _lazyRequiredMembers = s_requiredMembersErrorSentinel
             End Get
@@ -1125,18 +1125,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend MustOverride ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
 
-        Private Function TryCalculateRequiredMembersWithCache(<Out> ByRef requiredMembersBuilder As ImmutableSegmentedDictionary(Of String, Symbol).Builder) As Boolean
-            Debug.Assert(requiredMembersBuilder Is Nothing)
+        Private Sub EnsureRequiredMembersCalculated()
             Dim lazyRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol) = _lazyRequiredMembers
 
             If Not lazyRequiredMembers.IsDefault Then
-                If lazyRequiredMembers = s_requiredMembersErrorSentinel Then
-                    Return False
-                Else
-                    Return True
-                End If
+                Return
             End If
 
+            Dim requiredMembersBuilder As ImmutableSegmentedDictionary(Of String, Symbol).Builder = Nothing
             Dim success = TryCalculateRequiredMembers(requiredMembersBuilder)
 
             Dim requiredMembers = If(success,
@@ -1144,12 +1140,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 s_requiredMembersErrorSentinel)
 
             RoslynImmutableInterlocked.InterlockedInitialize(_lazyRequiredMembers, requiredMembers)
+        End Sub
 
-            Return success
-        End Function
-
-        Private Function TryCalculateRequiredMembers(<[In], Out> ByRef requiredMembersBuilder As ImmutableSegmentedDictionary(Of String, Symbol).Builder) As Boolean
-            If BaseTypeNoUseSiteDiagnostics?.TryCalculateRequiredMembersWithCache(requiredMembersBuilder) = False Then
+        Private Function TryCalculateRequiredMembers(<Out> ByRef requiredMembersBuilder As ImmutableSegmentedDictionary(Of String, Symbol).Builder) As Boolean
+            If BaseTypeNoUseSiteDiagnostics?.HasRequiredMembersError = True Then
                 Return False
             End If
 
