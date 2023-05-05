@@ -1917,6 +1917,11 @@
         <target state="translated">odvozený typ delegáta</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureInlineArrays">
+        <source>inline arrays</source>
+        <target state="new">inline arrays</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
         <target state="new">instance member in 'nameof'</target>
