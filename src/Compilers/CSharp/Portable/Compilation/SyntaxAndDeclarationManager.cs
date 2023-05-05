@@ -619,6 +619,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             builder.Add(singleType.MemberNames);
                     }
 
+                    s_declarationStack.Free(stack);
+
                     return builder.ToOneOrManyAndFree();
                 }
 
