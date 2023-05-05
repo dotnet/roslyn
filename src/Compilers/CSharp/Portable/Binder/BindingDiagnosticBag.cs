@@ -17,21 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ObjectPool<BindingDiagnosticBag> s_poolWithBoth = new ObjectPool<BindingDiagnosticBag>(() => new BindingDiagnosticBag(s_poolWithBoth!, new DiagnosticBag(), new HashSet<AssemblySymbol>()));
         private static readonly ObjectPool<BindingDiagnosticBag> s_poolWithDiagnosticsOnly = new ObjectPool<BindingDiagnosticBag>(() => new BindingDiagnosticBag(s_poolWithDiagnosticsOnly!, new DiagnosticBag(), dependenciesBag: null));
         private static readonly ObjectPool<BindingDiagnosticBag> s_poolWithDependenciesOnly = new ObjectPool<BindingDiagnosticBag>(() => new BindingDiagnosticBag(s_poolWithDependenciesOnly!, diagnosticBag: null, new HashSet<AssemblySymbol>()));
+        private static readonly ObjectPool<BindingDiagnosticBag> s_poolWithConcurrent = new ObjectPool<BindingDiagnosticBag>(() => new BindingDiagnosticBag(s_poolWithConcurrent!, new DiagnosticBag(), new Roslyn.Utilities.ConcurrentSet<AssemblySymbol>()));
 
         public static readonly BindingDiagnosticBag Discarded = new BindingDiagnosticBag(null, null);
 
         private readonly ObjectPool<BindingDiagnosticBag>? _pool;
 
-        public BindingDiagnosticBag()
-            : base(usePool: false)
-        { }
-
-        public BindingDiagnosticBag(DiagnosticBag? diagnosticBag)
-            : base(diagnosticBag, dependenciesBag: null)
-        {
-        }
-
-        public BindingDiagnosticBag(DiagnosticBag? diagnosticBag, ICollection<AssemblySymbol>? dependenciesBag)
+        private BindingDiagnosticBag(DiagnosticBag? diagnosticBag, ICollection<AssemblySymbol>? dependenciesBag)
             : base(diagnosticBag, dependenciesBag)
         {
         }
@@ -73,25 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetInstance(template.AccumulatesDiagnostics, template.AccumulatesDependencies);
         }
 
-        internal static BindingDiagnosticBag Create(BindingDiagnosticBag template)
+        internal static BindingDiagnosticBag GetConcurrentInstance()
         {
-            if (template.AccumulatesDiagnostics)
-            {
-                if (template.AccumulatesDependencies)
-                {
-                    return new BindingDiagnosticBag();
-                }
-
-                return new BindingDiagnosticBag(new DiagnosticBag());
-            }
-            else if (template.AccumulatesDependencies)
-            {
-                return new BindingDiagnosticBag(diagnosticBag: null, new HashSet<AssemblySymbol>());
-            }
-            else
-            {
-                return Discarded;
-            }
+            return s_poolWithConcurrent.Allocate();
         }
 
         internal override void Free()
