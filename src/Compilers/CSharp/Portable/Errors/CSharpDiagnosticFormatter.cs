@@ -11,5 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public static new CSharpDiagnosticFormatter Instance { get; } = new CSharpDiagnosticFormatter();
+
+        internal override bool HasDefaultHelpLinkUri(Diagnostic diagnostic)
+        {
+            return diagnostic.Descriptor.HelpLinkUri == ErrorFacts.GetHelpLink((ErrorCode)diagnostic.Code);
+        }
     }
 }

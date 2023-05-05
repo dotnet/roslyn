@@ -419,6 +419,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _identifierToken.Parent;
         }
 
+        internal override bool HasSourceLocation => true;
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get

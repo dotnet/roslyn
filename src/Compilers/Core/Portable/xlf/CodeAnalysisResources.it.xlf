@@ -64,6 +64,11 @@
         <target state="translated">Modifica e Continua non sono in grado di riprendere l'enumeratore sospeso perché l'istruzione yield return corrispondente è stata eliminata</target>
         <note />
       </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="new">'end' must not be less than 'start'. start='{0}' end='{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
         <target state="translated">Generatore</target>
@@ -502,11 +507,6 @@
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
         <target state="translated">'start' non deve essere negativo</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'il valore di 'end' deve essere minore di quello di 'start'</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">

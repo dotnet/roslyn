@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Cache of T to Nullable&lt;T&gt;.
         /// </summary>
-        private ImmutableSegmentedDictionary<TypeSymbol, NamedTypeSymbol> _typeToNullableVersion = ImmutableSegmentedDictionary<TypeSymbol, NamedTypeSymbol>.Empty;
+        private readonly ConcurrentCache<TypeSymbol, NamedTypeSymbol> _typeToNullableVersion = new ConcurrentCache<TypeSymbol, NamedTypeSymbol>(size: 100);
 
         public override string Language
         {
@@ -1581,14 +1581,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal NamedTypeSymbol GetOrCreateNullableType(TypeSymbol typeArgument)
         {
 #if DEBUG
-            Debug.Assert(isSupportedType(typeArgument));
+            if (!isSupportedType(typeArgument))
+                Debug.Fail($"Unsupported type argument: {typeArgument.ToDisplayString()}");
 #endif
 
-            return RoslynImmutableInterlocked.GetOrAdd(
-                ref _typeToNullableVersion,
-                typeArgument,
-                static (typeArgument, @this) => @this.GetSpecialType(SpecialType.System_Nullable_T).Construct(typeArgument),
-                this);
+            if (!_typeToNullableVersion.TryGetValue(typeArgument, out var constructedNullableInstance))
+            {
+                constructedNullableInstance = this.GetSpecialType(SpecialType.System_Nullable_T).Construct(typeArgument);
+                _typeToNullableVersion.TryAdd(typeArgument, constructedNullableInstance);
+            }
+
+            return constructedNullableInstance;
 
 #if DEBUG
             static bool isSupportedType(TypeSymbol typeArgument)

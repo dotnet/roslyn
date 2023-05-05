@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Execute actions for a given analyzer sequentially.
-                    AnalyzerExecutor.ExecuteSyntaxTreeActions(syntaxTreeActions, analyzer, file, isGeneratedCode, cancellationToken);
+                    AnalyzerExecutor.ExecuteSyntaxTreeActions(syntaxTreeActions, analyzer, file, analysisScope.FilterSpanOpt, isGeneratedCode, cancellationToken);
                 }
             }
         }
@@ -1831,7 +1831,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 // Execute actions for a given analyzer sequentially.
-                AnalyzerExecutor.ExecuteSemanticModelActions(semanticModelActions, analyzer, semanticModel, analysisScope, isGeneratedCode, cancellationToken);
+                AnalyzerExecutor.ExecuteSemanticModelActions(semanticModelActions, analyzer, semanticModel, analysisScope.FilterSpanOpt, isGeneratedCode, cancellationToken);
             }
         }
 
@@ -2493,17 +2493,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var semanticModel = symbolEvent.SemanticModelWithCachedBoundNodes ??
                 GetOrCreateSemanticModel(decl.SyntaxTree, symbolEvent.Compilation);
 
-            using var declarationAnalysisData = AnalyzerDriver<TLanguageKindEnum>.ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, cancellationToken);
-            if (!analysisScope.ShouldAnalyze(declarationAnalysisData.TopmostNodeForAnalysis))
+            var declarationAnalysisData = ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, cancellationToken);
+            if (analysisScope.ShouldAnalyze(declarationAnalysisData.TopmostNodeForAnalysis))
             {
-                return;
+                // Execute stateless syntax node actions.
+                executeNodeActions();
+
+                // Execute actions in executable code: code block actions, operation actions and operation block actions.
+                executeExecutableCodeActions();
             }
 
-            // Execute stateless syntax node actions.
-            executeNodeActions();
-
-            // Execute actions in executable code: code block actions, operation actions and operation block actions.
-            executeExecutableCodeActions();
+            declarationAnalysisData.Free();
 
             return;
 

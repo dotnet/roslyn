@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // We use the default completion list span as our comparison point for optimization when generating the TextEdits later on.
             var defaultSpan = list.Span;
-            var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var defaultRange = ProtocolConversions.TextSpanToRange(defaultSpan, documentText);
 
             // Set resolve data on list if the client supports it, otherwise set it on each item.

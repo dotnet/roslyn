@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // Local functions
             static async Task<char> GetInsertionCharacterAsync(Document document, int position, CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // We use 'position - 1' here since we want to find the character that was just inserted.
                 Contract.ThrowIfTrue(position < 1);
@@ -205,13 +205,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             try
             {
-                return text.Lines.GetTextSpan(linePositionSpan);
+                try
+                {
+                    return text.Lines.GetTextSpan(linePositionSpan);
+                }
+                catch (ArgumentException)
+                {
+                    // Create a custom error for this so we can examine the data we're getting.
+                    throw new ArgumentException($"Range={RangeToString(range)}. text.Length={text.Length}. text.Lines.Count={text.Lines.Count}");
+                }
             }
             // Temporary exception reporting to investigate https://github.com/dotnet/roslyn/issues/66258.
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw;
             }
+
+            static string RangeToString(LSP.Range range)
+                => $"{{ Start={PositionToString(range.Start)}, End={PositionToString(range.End)} }}";
+
+            static string PositionToString(LSP.Position position)
+                => $"{{ Line={position.Line}, Character={position.Character} }}";
         }
 
         public static LSP.TextEdit TextChangeToTextEdit(TextChange textChange, SourceText oldText)
@@ -270,7 +284,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 var newDocument = getNewDocumentFunc(docId);
                 var oldDocument = getOldDocumentFunc(docId);
 
-                var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 ImmutableArray<TextChange> textChanges;
 
@@ -283,7 +297,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
                 else
                 {
-                    var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                     textChanges = newText.GetTextChanges(oldText).ToImmutableArray();
                 }
 
@@ -370,7 +384,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 if (uri == null)
                     return null;
 
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 if (isStale)
                 {
                     // in the case of a stale item, the span may be out of bounds of the document. Cap

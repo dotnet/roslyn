@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
             (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var completionListSpan = GetDefaultCompletionListSpan(text, caretPosition);
 
             var providers = _providerManager.GetFilteredProviders(document.Project, roles, trigger, options);

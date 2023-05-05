@@ -183,7 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returned bound expression is guaranteed to have a non-null type, except when <paramref name="expr"/> is an unbound lambda.
         /// If <paramref name="expr"/> already has errors and meets the above type requirements, then it is returned unchanged.
         /// Otherwise, if <paramref name="expr"/> is a BoundBadExpression, then it is updated with the <paramref name="resultKind"/> and non-null type.
-        /// Otherwise, a new <see cref="BoundBadExpression"/> wrapping <paramref name="expr"/> is returned. 
+        /// Otherwise, a new <see cref="BoundBadExpression"/> wrapping <paramref name="expr"/> is returned.
+        /// The returned expression has not been converted if needed, so callers need to make sure that the expression is converted before being put into the
+        /// bound tree. Make sure to test with unconverted constructs such as switch expressions, target-typed new, or interpolated strings.
         /// </summary>
         /// <remarks>
         /// Returned expression need not be a <see cref="BoundBadExpression"/>, but is guaranteed to have HasErrors set to true.
@@ -2030,17 +2032,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Alias:
                     {
                         var alias = (AliasSymbol)symbol;
-                        symbol = alias.Target;
-                        switch (symbol.Kind)
+                        return alias.Target switch
                         {
-                            case SymbolKind.NamedType:
-                            case SymbolKind.ErrorType:
-                                return new BoundTypeExpression(node, alias, (NamedTypeSymbol)symbol, hasErrors: isError);
-                            case SymbolKind.Namespace:
-                                return new BoundNamespaceExpression(node, (NamespaceSymbol)symbol, alias, hasErrors: isError);
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
-                        }
+                            TypeSymbol typeSymbol => new BoundTypeExpression(node, alias, typeSymbol, hasErrors: isError),
+                            NamespaceSymbol namespaceSymbol => new BoundNamespaceExpression(node, namespaceSymbol, alias, hasErrors: isError),
+                            _ => throw ExceptionUtilities.UnexpectedValue(alias.Target.Kind),
+                        };
                     }
 
                 case SymbolKind.RangeVariable:
@@ -2052,14 +2049,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isUsedBeforeDeclaration(SimpleNameSyntax node, LocalSymbol localSymbol)
             {
-                Location localSymbolLocation = localSymbol.GetFirstLocation();
+                if (!localSymbol.HasSourceLocation)
+                    return false;
 
-                if (node.SyntaxTree == localSymbolLocation.SourceTree)
-                {
-                    return node.SpanStart < localSymbolLocation.SourceSpan.Start;
-                }
+                var declarator = localSymbol.GetDeclaratorSyntax();
 
-                return false;
+                // trivial position check, before more costly tree check (which requires walking up the nodes). Most
+                // code is correct, so this check is expected to succeed nearly every time.
+                if (node.SpanStart >= declarator.SpanStart)
+                    return false;
+
+                return node.SyntaxTree == declarator.SyntaxTree;
             }
         }
 
@@ -4962,7 +4962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var boundExpression = BindValue(memberInitializer, diagnostics, BindValueKind.RValue);
             Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, memberInitializer);
-            return ToBadExpression(boundExpression, LookupResultKind.NotAValue);
+            return BindToTypeForErrorRecovery(ToBadExpression(boundExpression, LookupResultKind.NotAValue));
         }
 
         // returns BadBoundExpression or BoundObjectInitializerMember
@@ -5203,6 +5203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindValueKind valueKind,
             bool suppressErrors)
         {
+            Debug.Assert(!boundMember.NeedsToBeConverted());
             if (!suppressErrors)
             {
                 string member;
