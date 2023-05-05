@@ -68,8 +68,17 @@ BC37324: 'VbDerivedBase' cannot satisfy the 'New' constraint on parameter 'T' in
 BC37324: 'VbDerivedDerived' cannot satisfy the 'New' constraint on parameter 'T' in the generic type or or method 'Public Sub G(Of T As New)()' because 'VbDerivedDerived' has required members.
         G(Of VbDerivedDerived)()
         ~~~~~~~~~~~~~~~~~~~~~~
-
 </expected>)
+
+            Dim vbDerived = vb.GlobalNamespace.GetTypeMember("VbDerivedBase")
+            Assert.False(vbDerived.HasRequiredMembersError)
+            Assert.False(vbDerived.HasAnyDeclaredRequiredMembers)
+            AssertEx.Equal({"Property Base.Field As System.Int32"}, vbDerived.AllRequiredMembers.Select(Function(m) m.Value.ToTestDisplayString()))
+
+            Dim vbDerivedDerived = vb.GlobalNamespace.GetTypeMember("VbDerivedDerived")
+            Assert.False(vbDerivedDerived.HasRequiredMembersError)
+            Assert.False(vbDerivedDerived.HasAnyDeclaredRequiredMembers)
+            AssertEx.Equal({"Property Base.Field As System.Int32"}, vbDerivedDerived.AllRequiredMembers.Select(Function(m) m.Value.ToTestDisplayString()))
         End Sub
 
         <Fact>
@@ -205,6 +214,11 @@ BC37324: 'VbDerivedDerived' cannot satisfy the 'New' constraint on parameter 'T'
         G(Of VbDerivedDerived)()
         ~~~~~~~~~~~~~~~~~~~~~~
                                       </expected>)
+
+            Dim vbDerivedDerived = vb.GlobalNamespace.GetTypeMember("VbDerivedDerived")
+            Assert.True(vbDerivedDerived.HasRequiredMembersError)
+            Assert.False(vbDerivedDerived.HasAnyDeclaredRequiredMembers)
+            AssertEx.Empty(vbDerivedDerived.AllRequiredMembers.Select(Function(m) m.Value.ToTestDisplayString()))
         End Sub
 
         Private Shared Function GetCDefinition(hasSetsRequiredMembers As Boolean, Optional typeKind As String = "class") As String
