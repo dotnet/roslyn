@@ -71,10 +71,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (RootSingleNamespaceDeclaration)builder.Visit(syntaxTree.GetRoot());
         }
 
-        public static bool CachesComputedMemberNames(DeclarationKind kind)
+        public static bool CachesComputedMemberNames(SingleTypeDeclaration typeDeclaration)
         {
-            return kind switch
+            return typeDeclaration.Kind switch
             {
+                // A type declaration can't ever be a namespace.
+                DeclarationKind.Namespace => throw ExceptionUtilities.Unreachable(),
+
+                // Delegates also do not cache any members names as the member names are always a known fixed set.
+                DeclarationKind.Namespace or DeclarationKind.Delegate => false,
+
                 DeclarationKind.Class or
                 DeclarationKind.Interface or
                 DeclarationKind.Struct or
@@ -84,11 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeclarationKind.ImplicitClass or
                 DeclarationKind.Record or
                 DeclarationKind.RecordStruct => true,
-                // Namespaces aren't types, and thus don't cache any names of members. Delegates also do not cache any
-                // members names as the member names are always a known fixed set.
-                DeclarationKind.Namespace or DeclarationKind.Delegate => false,
-                _ => throw ExceptionUtilities.UnexpectedValue(kind)
-            }; ; ;
+
+                _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind)
+            };
         }
 
         private ImmutableArray<SingleNamespaceOrTypeDeclaration> VisitNamespaceChildren(
