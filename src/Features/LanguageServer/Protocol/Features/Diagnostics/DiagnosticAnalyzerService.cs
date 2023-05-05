@@ -59,13 +59,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             registrationService.Register(this);
 
-            globalOptions.OptionChanged += (_, e) =>
+            globalOptions.AddOptionChangedHandler(this, (_, e) =>
             {
                 if (IsGlobalOptionAffectingDiagnostics(e.Option))
                 {
                     diagnosticsRefresher.RequestWorkspaceRefresh();
                 }
-            };
+            });
         }
 
         public static bool IsGlobalOptionAffectingDiagnostics(IOption2 option)

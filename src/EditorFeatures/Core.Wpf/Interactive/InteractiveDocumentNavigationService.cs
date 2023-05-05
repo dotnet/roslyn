@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             if (document is null)
                 return null;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
             if (textSnapshot == null)
                 return null;

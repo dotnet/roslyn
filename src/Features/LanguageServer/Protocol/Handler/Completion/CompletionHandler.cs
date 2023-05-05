@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Contract.ThrowIfNull(context.Solution);
 
             var document = context.Document;
-            var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var capabilityHelper = new CompletionCapabilityHelper(context.GetRequiredClientCapabilities());
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);

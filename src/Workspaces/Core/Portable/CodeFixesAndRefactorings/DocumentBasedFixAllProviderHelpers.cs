@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
                         tasks.Add(Task.Run(async () =>
                         {
                             var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
-                            var cleanedText = await cleanedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            var cleanedText = await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                             return (dirtyDocument.Id, cleanedText);
                         }, cancellationToken));
                     }

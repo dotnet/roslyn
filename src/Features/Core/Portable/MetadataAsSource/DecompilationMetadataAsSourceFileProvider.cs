@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
 
                 // We have the content, so write it out to disk
-                var text = await temporaryDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await temporaryDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
                 // to retry this a few times.
