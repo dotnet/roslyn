@@ -59,11 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // Otherwise we have a URI that doesn't point to an actual file.  In such a scenario, we'll store the full URI string (including schema).
             // This will allow correct round-tripping of the URI for features that need it until we support URI as a first class document concept.
             // Tracking issue - https://github.com/dotnet/roslyn/issues/68083
-            var documentFilePath = uri.OriginalString;
-            if (uri.IsFile)
-            {
-                documentFilePath = uri.LocalPath;
-            }
+            var documentFilePath = uri.IsFile ? uri.LocalPath : uri.OriginalString;
 
             var languageInformation = GetLanguageInformation(documentFilePath, languageId);
             if (languageInformation == null)
