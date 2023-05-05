@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal TypeSymbol lazyDeclaredExtensionUnderlyingType = null;
             internal ImmutableArray<NamedTypeSymbol> lazyDeclaredBaseExtensions = default;
             internal ImmutableArray<NamedTypeSymbol> lazyBaseExtensions = default;
+            internal ImmutableArray<NamedTypeSymbol> lazyAllBaseExtensions = default;
 
 #if DEBUG
             internal bool IsDefaultValue()
@@ -175,7 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyIsExplicitExtension.HasValue() &&
                     lazyDeclaredExtensionUnderlyingType is null &&
                     lazyDeclaredBaseExtensions.IsDefault &&
-                    lazyBaseExtensions.IsDefault;
+                    lazyBaseExtensions.IsDefault &&
+                    lazyAllBaseExtensions.IsDefault;
             }
 #endif
         }
@@ -691,11 +693,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (!uncommon.lazyBaseExtensions.IsDefault)
                     return uncommon.lazyBaseExtensions;
 
-                var declaredBaseExtensions = GetDeclaredBaseExtensions();
+                var declaredBaseExtensions = GetDeclaredBaseExtensions(basesBeingResolved: null);
                 var baseExtensions = declaredBaseExtensions.SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(depends: t, on: this) ? CyclicInheritanceError(t) : t);
                 ImmutableInterlocked.InterlockedCompareExchange(ref uncommon.lazyBaseExtensions, baseExtensions, default);
 
                 return uncommon.lazyBaseExtensions;
+            }
+        }
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                    return ImmutableArray<NamedTypeSymbol>.Empty;
+
+                if (!uncommon.lazyAllBaseExtensions.IsDefault)
+                    return uncommon.lazyAllBaseExtensions;
+
+                var allBaseExtensions = MakeAllBaseExtensions();
+                ImmutableInterlocked.InterlockedCompareExchange(ref uncommon.lazyAllBaseExtensions, allBaseExtensions, default);
+
+                return uncommon.lazyAllBaseExtensions;
             }
         }
 
@@ -715,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return uncommon.lazyDeclaredExtensionUnderlyingType;
         }
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions(ConsList<TypeSymbol>? basesBeingResolved)
         {
             if (this.TypeKind != TypeKind.Extension)
                 return ImmutableArray<NamedTypeSymbol>.Empty;

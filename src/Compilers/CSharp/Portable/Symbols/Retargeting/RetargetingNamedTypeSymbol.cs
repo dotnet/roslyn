@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private TypeSymbol _lazyExtendedType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyBaseExtensions = default;
+        private ImmutableArray<NamedTypeSymbol> _lazyAllBaseExtensions = default;
 
         private TypeSymbol _lazyDeclaredExtendedType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyDeclaredBaseExtensions;
@@ -427,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 if (_lazyBaseExtensions.IsDefault)
                 {
-                    var declaredBaseExtensions = GetDeclaredBaseExtensions();
+                    var declaredBaseExtensions = GetDeclaredBaseExtensions(basesBeingResolved: null);
 
                     ImmutableArray<NamedTypeSymbol> result = declaredBaseExtensions
                         .SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(t, on: this) ? CyclicInheritanceError(t) : t);
@@ -436,6 +437,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
 
                 return _lazyBaseExtensions;
+            }
+        }
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
+        {
+            get
+            {
+                if (_lazyAllBaseExtensions.IsDefault)
+                {
+                    var allBaseExtensions = MakeAllBaseExtensions();
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyAllBaseExtensions, allBaseExtensions, default);
+                }
+
+                return _lazyAllBaseExtensions;
             }
         }
 
@@ -470,14 +485,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
         }
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions(ConsList<TypeSymbol>? basesBeingResolved)
         {
             if (TypeKind != TypeKind.Extension)
                 return ImmutableArray<NamedTypeSymbol>.Empty;
 
             if (_lazyDeclaredBaseExtensions.IsDefault)
             {
-                var underlyingBaseExtensions = _underlyingType.GetDeclaredBaseExtensions();
+                var underlyingBaseExtensions = _underlyingType.GetDeclaredBaseExtensions(basesBeingResolved);
                 var result = this.RetargetingTranslator.Retarget(underlyingBaseExtensions);
 
                 if (result.Any(b => isBadBaseExtension(b)))

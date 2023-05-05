@@ -274,10 +274,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
                 => ImmutableArray<NamedTypeSymbol>.Empty;
 
+            internal sealed override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
+                => ImmutableArray<NamedTypeSymbol>.Empty;
+
             internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
                 => throw ExceptionUtilities.Unreachable();
 
-            internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
+            internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions(ConsList<TypeSymbol>? basesBeingResolved)
                 => throw ExceptionUtilities.Unreachable();
 
             internal abstract override bool Equals(TypeSymbol t2, TypeCompareKind comparison);

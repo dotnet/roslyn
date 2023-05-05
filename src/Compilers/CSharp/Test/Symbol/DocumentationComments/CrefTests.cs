@@ -6871,5 +6871,80 @@ record CacheContext(string String)" + terminator;
             var symbol = model.GetSymbolInfo(crefSyntaxes.Single()).Symbol;
             Assert.Equal(SymbolKind.Property, symbol.Kind);
         }
+
+        [Fact]
+        public void ExtensionInheritedMembersInSemanticModelLookup()
+        {
+            var source = """
+explicit extension Base for object
+{
+    int P => throw null;
+}
+
+explicit extension Derived for object : Base
+{
+}
+
+/// <see cref='Derived.P'/>
+class C
+{
+}
+""";
+            var comp = (Compilation)CreateCompilation(source, targetFramework: TargetFramework.Net70,
+                parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            // Not expected to bind, since we don't consider inherited members.
+            comp.VerifyDiagnostics(
+                // (10,16): warning CS1574: XML comment has cref attribute 'P' that could not be resolved
+                // /// <see cref='Derived.P'/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "Derived.P").WithArguments("P").WithLocation(10, 16));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var syntax = GetCrefSyntaxes(comp).Single();
+
+            // No info, since it doesn't bind.
+            var info = model.GetSymbolInfo(syntax);
+            Assert.Null(info.Symbol);
+            Assert.Equal(CandidateReason.None, info.CandidateReason);
+            Assert.Equal(0, info.CandidateSymbols.Length);
+
+            // No lookup results.
+            var derivedInterface = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("Derived");
+            Assert.Equal(0, model.LookupSymbols(syntax.SpanStart, derivedInterface).Length);
+        }
+
+        [Fact]
+        public void InheritedExtensionMember()
+        {
+            var source = """
+explicit extension Base for object
+{
+    public void Member() { }
+}
+
+class Member
+{
+    /// <summary>
+    /// <see cref="Member"/>
+    /// </summary>
+    explicit extension Derived for object : Base { }
+}
+""";
+
+            var compilation = (Compilation)CreateCompilation(source, targetFramework: TargetFramework.Net70,
+                parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            compilation.VerifyDiagnostics();
+
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Member");
+
+            var cref = GetCrefSyntaxes(compilation).Single();
+
+            var model = compilation.GetSemanticModel(cref.SyntaxTree);
+            var actualSymbol = model.GetSymbolInfo(cref).Symbol;
+            Assert.Equal(expectedSymbol, actualSymbol);
+        }
     }
 }

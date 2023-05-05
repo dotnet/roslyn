@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // PROTOTYPE consider renaming ExtensionUnderlyingType->ExtendedType (here and elsewhere)
         private TypeSymbol? _lazyExtensionUnderlyingType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyBaseExtensions;
+        private ImmutableArray<NamedTypeSymbol> _lazyAllBaseExtensions;
 
         internal SourceExtensionTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
             : base(containingSymbol, declaration, diagnostics)
@@ -70,12 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected override void CheckBaseExtensions(BindingDiagnosticBag diagnostics)
         {
-            // PROTOTYPE confirm and test this once extensions can be loaded from metadata
             // Check all base extensions. This is necessary
             // since references to all extensions will be emitted to metadata
             // and it's possible to define derived extensions with weaker
             // constraints than the base extensions, at least in metadata.
-            var allBaseExtensions = this.GetExtensionsAndTheirBaseExtensionsNoUseSiteDiagnostics();
+            var allBaseExtensions = mapAllBaseExtensionsDuplicates();
             if (allBaseExtensions.IsEmpty)
                 return;
 
@@ -112,31 +112,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
-        }
 
-        // PROTOTYPE consider caching and using a property like InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics
-        private MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> GetExtensionsAndTheirBaseExtensionsNoUseSiteDiagnostics()
-        {
-            var baseExtensions = this.BaseExtensionsNoUseSiteDiagnostics;
-            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(baseExtensions.Length,
-                SymbolEqualityComparer.CLRSignature, SymbolEqualityComparer.ConsiderEverything);
-
-            foreach (var baseExtension in baseExtensions)
+            MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> mapAllBaseExtensionsDuplicates()
             {
-                if (resultBuilder.Add(baseExtension, baseExtension))
-                {
-                    // PROTOTYPE we need to collect all base extensions from baseExtension too
-                }
-            }
+                var baseExtensions = this.AllBaseExtensionsNoUseSiteDiagnostics;
+                var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(baseExtensions.Length,
+                    SymbolEqualityComparer.CLRSignature, SymbolEqualityComparer.ConsiderEverything);
 
-            return resultBuilder;
+                foreach (var baseExtension in baseExtensions)
+                {
+                    resultBuilder.Add(baseExtension, baseExtension);
+                }
+
+                return resultBuilder;
+            }
         }
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
-            => GetDeclaredExtensionInfo().UnderlyingType;
+            => GetDeclaredExtensionInfo(basesBeingResolved: null).UnderlyingType;
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
-            => GetDeclaredExtensionInfo().BaseExtensions;
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions(ConsList<TypeSymbol>? basesBeingResolved)
+            => GetDeclaredExtensionInfo(basesBeingResolved).BaseExtensions;
 
         internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics
         {
@@ -160,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 TypeSymbol? makeAcyclicUnderlyingType(BindingDiagnosticBag diagnostics)
                 {
-                    TypeSymbol? declaredUnderlyingType = GetDeclaredExtensionInfo().UnderlyingType;
+                    TypeSymbol? declaredUnderlyingType = GetDeclaredExtensionInfo(basesBeingResolved: null).UnderlyingType;
 
                     if (declaredUnderlyingType is null)
                     {
@@ -263,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ImmutableArray<NamedTypeSymbol> makeAcyclicBaseExtensions(BindingDiagnosticBag diagnostics)
                 {
-                    ImmutableArray<NamedTypeSymbol> declaredBaseExtensions = GetDeclaredExtensionInfo().BaseExtensions;
+                    ImmutableArray<NamedTypeSymbol> declaredBaseExtensions = GetDeclaredExtensionInfo(basesBeingResolved: null).BaseExtensions;
 
                     var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
                     foreach (var declaredBaseExtension in declaredBaseExtensions)
@@ -277,17 +273,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         result.Add(declaredBaseExtension);
 
-                        if (declaredBaseExtension.DeclaringCompilation != this.DeclaringCompilation)
+                        if (declaredBaseExtension.ContainingModule != this.ContainingModule)
                         {
-                            // PROTOTYPE Validate use-site errors on base extensions once we can emit extensions to metadata
                             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
                             declaredBaseExtension.AddUseSiteInfo(ref useSiteInfo);
 
-                            // PROTOTYPE why do we go one extra level here, and, if that is necessary, why only one level.
-                            foreach (var extension in declaredBaseExtension.BaseExtensionsNoUseSiteDiagnostics)
+                            foreach (var extension in declaredBaseExtension.AllBaseExtensionsNoUseSiteDiagnostics)
                             {
-                                // PROTOTYPE should this should check declaring module rather than compilations?
-                                if (extension.DeclaringCompilation != this.DeclaringCompilation)
+                                if (extension.ContainingModule != this.ContainingModule)
                                 {
                                     extension.AddUseSiteInfo(ref useSiteInfo);
                                 }
@@ -301,14 +294,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ExtensionInfo GetDeclaredExtensionInfo()
+        internal override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
+        {
+            get
+            {
+                if (_lazyAllBaseExtensions.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyAllBaseExtensions, MakeAllBaseExtensions());
+                }
+
+                return _lazyAllBaseExtensions;
+            }
+        }
+
+        private ExtensionInfo GetDeclaredExtensionInfo(ConsList<TypeSymbol>? basesBeingResolved)
         {
             if (ReferenceEquals(_lazyDeclaredExtensionInfo, ExtensionInfo.Sentinel))
             {
                 BindingDiagnosticBag diagnostics = BindingDiagnosticBag.GetInstance();
 
                 var original = Interlocked.CompareExchange(ref _lazyDeclaredExtensionInfo,
-                    this.MakeDeclaredExtensionInfo(basesBeingResolved: null, diagnostics),
+                    this.MakeDeclaredExtensionInfo(basesBeingResolved, diagnostics),
                     ExtensionInfo.Sentinel);
 
                 if (ReferenceEquals(original, ExtensionInfo.Sentinel))

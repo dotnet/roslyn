@@ -336,8 +336,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal override bool IsExplicitExtension => false;
         internal override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics => null;
         internal override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics => ImmutableArray<NamedTypeSymbol>.Empty;
+        internal override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics => ImmutableArray<NamedTypeSymbol>.Empty;
         internal override TypeSymbol? GetDeclaredExtensionUnderlyingType() => throw ExceptionUtilities.Unreachable();
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions() => throw ExceptionUtilities.Unreachable();
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions(ConsList<TypeSymbol>? basesBeingResolved) => throw ExceptionUtilities.Unreachable();
 #nullable disable
         internal override bool IsInterpolatedStringHandlerType => false;
 
