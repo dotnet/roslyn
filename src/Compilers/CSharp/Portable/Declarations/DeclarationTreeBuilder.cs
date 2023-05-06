@@ -28,26 +28,76 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly string _scriptClassName;
         private readonly bool _isSubmission;
 
+        private readonly OneOrMany<ImmutableSegmentedHashSet<string>> _previousMemberNames;
+
         /// <summary>
         /// Any special attributes we may be referencing through a using alias in the file.
         /// For example <c>using X = System.Runtime.CompilerServices.TypeForwardedToAttribute</c>.
         /// </summary>
         private QuickAttributes _nonGlobalAliasedQuickAttributes;
 
-        private DeclarationTreeBuilder(SyntaxTree syntaxTree, string scriptClassName, bool isSubmission)
+        /// <summary>
+        /// The index of the current type we're processing in lexicographic order with respect to all other types in the
+        /// file.  For example:
+        /// <code>
+        /// class A // Index 0
+        /// {
+        ///     class B // Index 1
+        ///     {
+        ///     }
+        /// }
+        /// 
+        /// class C // Index 2
+        /// {
+        /// }
+        /// </code>
+        /// </summary>
+        private int _currentTypeIndex;
+
+        private DeclarationTreeBuilder(
+            SyntaxTree syntaxTree,
+            string scriptClassName,
+            bool isSubmission,
+            OneOrMany<ImmutableSegmentedHashSet<string>> previousMemberNames)
         {
             _syntaxTree = syntaxTree;
             _scriptClassName = scriptClassName;
             _isSubmission = isSubmission;
+            _previousMemberNames = previousMemberNames;
         }
 
         public static RootSingleNamespaceDeclaration ForTree(
             SyntaxTree syntaxTree,
             string scriptClassName,
-            bool isSubmission)
+            bool isSubmission,
+            OneOrMany<ImmutableSegmentedHashSet<string>>? previousMemberNames = null)
         {
-            var builder = new DeclarationTreeBuilder(syntaxTree, scriptClassName, isSubmission);
+            var builder = new DeclarationTreeBuilder(syntaxTree, scriptClassName, isSubmission, previousMemberNames ?? OneOrMany<ImmutableSegmentedHashSet<string>>.Empty);
             return (RootSingleNamespaceDeclaration)builder.Visit(syntaxTree.GetRoot());
+        }
+
+        public static bool CachesComputedMemberNames(SingleTypeDeclaration typeDeclaration)
+        {
+            return typeDeclaration.Kind switch
+            {
+                // A type declaration can't ever be a namespace.
+                DeclarationKind.Namespace => throw ExceptionUtilities.Unreachable(),
+
+                // Delegates also do not cache any members names as the member names are always a known fixed set.
+                DeclarationKind.Namespace or DeclarationKind.Delegate => false,
+
+                DeclarationKind.Class or
+                DeclarationKind.Interface or
+                DeclarationKind.Struct or
+                DeclarationKind.Enum or
+                DeclarationKind.Script or
+                DeclarationKind.Submission or
+                DeclarationKind.ImplicitClass or
+                DeclarationKind.Record or
+                DeclarationKind.RecordStruct => true,
+
+                _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind)
+            };
         }
 
         private ImmutableArray<SingleNamespaceOrTypeDeclaration> VisitNamespaceChildren(
@@ -601,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitTypeDeclaration(node, declarationKind);
         }
 
-        private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
+        private SingleTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
             var declFlags = node.AttributeLists.Any()
                 ? SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes
@@ -792,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static ImmutableSegmentedHashSet<string> GetEnumMemberNames(
+        private ImmutableSegmentedHashSet<string> GetEnumMemberNames(
             EnumDeclarationSyntax enumDeclaration,
             SeparatedSyntaxList<EnumMemberDeclarationSyntax> members,
             ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
@@ -828,18 +878,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 members);
         }
 
-        private static ImmutableSegmentedHashSet<string> GetOrComputeMemberNames<TData>(
+        private ImmutableSegmentedHashSet<string> GetOrComputeMemberNames<TData>(
             SyntaxNode parent,
             Action<HashSet<string>, TData> addMemberNames,
             TData data)
         {
+            var previousMemberNames = _currentTypeIndex < _previousMemberNames.Count
+                ? _previousMemberNames[_currentTypeIndex]
+                : ImmutableSegmentedHashSet<string>.Empty;
+
+            _currentTypeIndex++;
+
             var greenNode = parent.Green;
             if (!s_nodeToMemberNames.TryGetValue(greenNode, out var memberNames))
             {
                 var memberNamesBuilder = PooledHashSet<string>.GetInstance();
                 addMemberNames(memberNamesBuilder, data);
 
-                var result = ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder);
+                var result = previousMemberNames.Count == memberNamesBuilder.Count && previousMemberNames.SetEquals(memberNamesBuilder)
+                    ? previousMemberNames
+                    : ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder);
                 memberNamesBuilder.Free();
 
                 if (result.Count == 0)
@@ -861,7 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return memberNames.Value;
         }
 
-        private static ImmutableSegmentedHashSet<string> GetNonTypeMemberNames(
+        private ImmutableSegmentedHashSet<string> GetNonTypeMemberNames(
             CSharpSyntaxNode parent,
             CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members,
             ref SingleTypeDeclaration.TypeDeclarationFlags declFlags,
@@ -1079,6 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     set.Add(((Syntax.InternalSyntax.ConstructorDeclarationSyntax)member).Modifiers.Any((int)SyntaxKind.StaticKeyword)
                         ? WellKnownMemberNames.StaticConstructorName
                         : WellKnownMemberNames.InstanceConstructorName);
+
                     break;
 
                 case SyntaxKind.DestructorDeclaration:
