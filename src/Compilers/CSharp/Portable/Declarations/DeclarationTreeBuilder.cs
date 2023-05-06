@@ -867,13 +867,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool anyNonTypeMembers = false;
             bool anyRequiredMembers = false;
 
-            foreach (var member in members)
-            {
-                anyNonTypeMembers = HasAnyNonTypeMemberNames(member, skipGlobalStatements);
-                if (anyNonTypeMembers)
-                    break;
-            }
-
             var greenNode = parent.CsGreen;
             if (!s_nodeToMemberNames.TryGetValue(greenNode, out var memberNames))
             {
@@ -889,6 +882,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var member in members)
             {
+                if (!anyNonTypeMembers && HasAnyNonTypeMemberNames(member, skipGlobalStatements))
+                {
+                    anyNonTypeMembers = true;
+                }
+
                 // Check to see if any method contains a 'this' modifier on its first parameter.
                 // This data is used to determine if a type needs to have its members materialized
                 // as part of extension method lookup.
