@@ -836,13 +836,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static ImmutableSegmentedHashSet<string> ToImmutableAndFree(PooledHashSet<string> builder)
-        {
-            var result = ImmutableSegmentedHashSet.CreateRange(builder);
-            builder.Free();
-            return result;
-        }
-
         private ImmutableSegmentedHashSet<string> GetEnumMemberNames(SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             var cnt = members.Count;
@@ -962,7 +955,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return previousMemberNames;
             }
 
-            return ToImmutableAndFree(memberNameBuilder);
+            var result = ImmutableSegmentedHashSet.CreateRange(memberNameBuilder);
+            memberNameBuilder.Free();
+            return result;
         }
 
         private static bool CheckMethodMemberForExtensionSyntax(Syntax.InternalSyntax.CSharpSyntaxNode member)
