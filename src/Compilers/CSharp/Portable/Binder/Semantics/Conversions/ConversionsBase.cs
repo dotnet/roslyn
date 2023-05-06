@@ -1614,7 +1614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return ConstructibleCollectionTypeKind.ReadOnlySpan;
             }
-            else if (supportsCollectionInitializer(compilation, destination))
+            else if (implementsIEnumerable(compilation, destination))
             {
                 elementType = null;
                 return ConstructibleCollectionTypeKind.CollectionInitializer;
@@ -1635,7 +1635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            static bool supportsCollectionInitializer(CSharpCompilation compilation, TypeSymbol targetType)
+            static bool implementsIEnumerable(CSharpCompilation compilation, TypeSymbol targetType)
             {
                 ImmutableArray<NamedTypeSymbol> allInterfaces;
                 switch (targetType.TypeKind)
@@ -1654,6 +1654,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
                 // That method checks for an implicit conversion from IEnumerable to the collection type,
                 // but that would allow: Nullable<StructCollection> s = [];
+                // PROTOTYPE: Perhaps adjust the behavior of Binder.CollectionInitializerTypeImplementsIEnumerable()
+                // and use that method instead.
                 var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
                 return allInterfaces.Any(static (a, b) => a.Equals(b, TypeCompareKind.AllIgnoreOptions), ienumerableType);
             }

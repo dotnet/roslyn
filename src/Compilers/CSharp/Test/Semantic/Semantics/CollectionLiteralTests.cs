@@ -173,9 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var model = comp.GetSemanticModel(tree);
             var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
             Assert.Equal(3, collections.Length);
-            VerifyTypes(model, collections[0], "?", "System.Object", ConversionKind.NoConversion);
-            VerifyTypes(model, collections[1], "?", "dynamic", ConversionKind.NoConversion);
-            VerifyTypes(model, collections[2], "?", "?", ConversionKind.Identity);
+            VerifyTypes(model, collections[0], expectedType: "?", expectedConvertedType: "System.Object", ConversionKind.NoConversion);
+            VerifyTypes(model, collections[1], expectedType: "?", expectedConvertedType: "dynamic", ConversionKind.NoConversion);
+            VerifyTypes(model, collections[2], expectedType: "?", expectedConvertedType: "?", ConversionKind.Identity);
         }
 
         [Fact]
@@ -203,9 +203,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var model = comp.GetSemanticModel(tree);
             var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
             Assert.Equal(3, collections.Length);
-            VerifyTypes(model, collections[0], "System.Collections.Generic.List<System.Int32>", "System.Object", ConversionKind.ImplicitReference);
-            VerifyTypes(model, collections[1], "System.Collections.Generic.List<System.Int32>", "dynamic", ConversionKind.ImplicitReference);
-            VerifyTypes(model, collections[2], "System.Collections.Generic.List<System.Int32>", "System.Collections.Generic.List<System.Int32>", ConversionKind.Identity);
+            VerifyTypes(model, collections[0], expectedType: "System.Collections.Generic.List<System.Int32>", expectedConvertedType: "System.Object", ConversionKind.ImplicitReference);
+            VerifyTypes(model, collections[1], expectedType: "System.Collections.Generic.List<System.Int32>", expectedConvertedType: "dynamic", ConversionKind.ImplicitReference);
+            VerifyTypes(model, collections[2], expectedType: "System.Collections.Generic.List<System.Int32>", expectedConvertedType: "System.Collections.Generic.List<System.Int32>", ConversionKind.Identity);
         }
 
         [Fact]
@@ -745,8 +745,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var model = comp.GetSemanticModel(tree);
             var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
             Assert.Equal(2, collections.Length);
-            VerifyTypes(model, collections[0], "System.Collections.Generic.List<dynamic>", "System.Collections.Generic.List<dynamic>", ConversionKind.Identity);
-            VerifyTypes(model, collections[1], "System.Collections.Generic.List<dynamic[]>", "System.Collections.Generic.List<dynamic[]>", ConversionKind.Identity);
+            VerifyTypes(model, collections[0], expectedType: "System.Collections.Generic.List<dynamic>", expectedConvertedType: "System.Collections.Generic.List<dynamic>", ConversionKind.Identity);
+            VerifyTypes(model, collections[1], expectedType: "System.Collections.Generic.List<dynamic[]>", expectedConvertedType: "System.Collections.Generic.List<dynamic[]>", ConversionKind.Identity);
         }
 
         [Fact]
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         var c1 = [a, b];
                         return c1;
                     }
-                    static object F2((int, int)[] a, (int X, int Y)[] b)
+                    static object F2((int A, int B)[] a, (int X, int Y)[] b)
                     {
                         var c2 = [b, a];
                         return c2;
@@ -780,8 +780,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var model = comp.GetSemanticModel(tree);
             var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
             Assert.Equal(2, collections.Length);
-            VerifyTypes(model, collections[0], "System.Collections.Generic.List<(System.Int32, System.Int32)>", "System.Collections.Generic.List<(System.Int32, System.Int32)>", ConversionKind.Identity);
-            VerifyTypes(model, collections[1], "System.Collections.Generic.List<(System.Int32, System.Int32)[]>", "System.Collections.Generic.List<(System.Int32, System.Int32)[]>", ConversionKind.Identity);
+            VerifyTypes(model, collections[0], expectedType: "System.Collections.Generic.List<(System.Int32, System.Int32)>", expectedConvertedType: "System.Collections.Generic.List<(System.Int32, System.Int32)>", ConversionKind.Identity);
+            VerifyTypes(model, collections[1], expectedType: "System.Collections.Generic.List<(System.Int32, System.Int32)[]>", expectedConvertedType: "System.Collections.Generic.List<(System.Int32, System.Int32)[]>", ConversionKind.Identity);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -816,8 +816,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var model = comp.GetSemanticModel(tree);
             var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
             Assert.Equal(2, collections.Length);
-            VerifyTypes(model, collections[0], "System.Collections.Generic.List<nint>", "System.Collections.Generic.List<nint>", ConversionKind.Identity);
-            VerifyTypes(model, collections[1], "System.Collections.Generic.List<nuint[]>", "System.Collections.Generic.List<nuint[]>", ConversionKind.Identity);
+            VerifyTypes(model, collections[0], expectedType: "System.Collections.Generic.List<nint>", expectedConvertedType: "System.Collections.Generic.List<nint>", ConversionKind.Identity);
+            VerifyTypes(model, collections[1], expectedType: "System.Collections.Generic.List<nuint[]>", expectedConvertedType: "System.Collections.Generic.List<nuint[]>", ConversionKind.Identity);
         }
 
         [Fact]
@@ -855,8 +855,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var model = comp.GetSemanticModel(tree);
             var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
             Assert.Equal(2, collections.Length);
-            VerifyTypes(model, collections[0], "System.Collections.Generic.List<System.Object>", "System.Collections.Generic.List<System.Object>", ConversionKind.Identity);
-            VerifyTypes(model, collections[1], "System.Collections.Generic.List<System.Object[]>", "System.Collections.Generic.List<System.Object[]>", ConversionKind.Identity);
+            VerifyTypes(model, collections[0], expectedType: "System.Collections.Generic.List<System.Object>", expectedConvertedType: "System.Collections.Generic.List<System.Object>", ConversionKind.Identity);
+            VerifyTypes(model, collections[1], expectedType: "System.Collections.Generic.List<System.Object[]>", expectedConvertedType: "System.Collections.Generic.List<System.Object[]>", ConversionKind.Identity);
         }
 
         [Fact]
@@ -1134,6 +1134,67 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TargetType_01()
+        {
+            string source = """
+                class Program
+                {
+                    static void F(bool b, object o)
+                    {
+                        int[] a1 = b ? [1] : [];
+                        int[] a2 = b? [] : [2];
+                        object[] a3 = b ? [3] : [o];
+                        object[] a4 = b ? [o] : [4];
+                        int?[] a5 = b ? [5] : [null];
+                        int?[] a6 = b ? [null] : [6];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,20): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'int[]'
+                //         int[] a1 = b ? [1] : [];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "b ? [1] : []").WithArguments("System.Collections.Generic.List<int>", "int[]").WithLocation(5, 20),
+                // (6,20): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'int[]'
+                //         int[] a2 = b? [] : [2];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "b? [] : [2]").WithArguments("System.Collections.Generic.List<int>", "int[]").WithLocation(6, 20),
+                // (9,32): error CS1950: The best overloaded Add method 'List<int>.Add(int)' for the collection initializer has some invalid arguments
+                //         int?[] a5 = b ? [5] : [null];
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "null").WithArguments("System.Collections.Generic.List<int>.Add(int)").WithLocation(9, 32),
+                // (9,32): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
+                //         int?[] a5 = b ? [5] : [null];
+                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(9, 32),
+                // (10,26): error CS1950: The best overloaded Add method 'List<int>.Add(int)' for the collection initializer has some invalid arguments
+                //         int?[] a6 = b ? [null] : [6];
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "null").WithArguments("System.Collections.Generic.List<int>.Add(int)").WithLocation(10, 26),
+                // (10,26): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
+                //         int?[] a6 = b ? [null] : [6];
+                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(10, 26));
+        }
+
+        [Fact]
+        public void TargetType_02()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void F(bool b, object o)
+                    {
+                        Func<int[]> f1 = () => { if (b) return [1]; return []; };
+                        Func<int[]> f2 = () => { if (b) return []; return [2]; };
+                        Func<object[]> f3 = () => { if (b) return [3]; return [o]; };
+                        Func<object[]> f4 = () => { if (b) return [o]; return [4]; };
+                        Func<int?[]> f5 = () => { if (b) return [5]; return [null]; };
+                        Func<int?[]> f6 = () => { if (b) return [null]; return [6]; };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void OverloadResolution_01()
         {
             string source = """
@@ -1153,7 +1214,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should these calls be ambiguous when we treat IEnumerable<T> as a valid target type (since it is an interface of List<T>)?
+            // PROTOTYPE: Should these calls be ambiguous when we treat IEnumerable<T> as a constructible type?
+            // Should better function member prefer one of the two overloads?
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Int32[][], System.Int32[][1, 2], ");
         }
 
@@ -1177,7 +1239,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should these calls be ambiguous when we treat IEnumerable<T> as a valid target type (since it is an interface of List<T>)?
+            // PROTOTYPE: Should these calls be ambiguous when we treat IEnumerable<T> as a constructible type?
+            // Should better function member prefer one of the two overloads?
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[1, 2], ");
         }
 
@@ -1255,6 +1318,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void OverloadResolution_06()
         {
             string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static List<int?> F1(List<int?> arg) => arg;
+                    static List<long> F1(List<long> arg) => arg;
+                    static List<long> F2(List<long> arg) => arg;
+                    static List<int?> F2(List<int?> arg) => arg;
+                    static void Main()
+                    {
+                        var x = F1([1]);
+                        var y = F2([2]);
+                        x.Report(includeType: true);
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(10,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(List<int?>)' and 'Program.F1(List<long>)'
+                //         var x = F1([1]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("Program.F1(System.Collections.Generic.List<int?>)", "Program.F1(System.Collections.Generic.List<long>)").WithLocation(10, 17),
+                // 0.cs(11,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(List<long>)' and 'Program.F2(List<int?>)'
+                //         var y = F2([2]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(System.Collections.Generic.List<long>)", "Program.F2(System.Collections.Generic.List<int?>)").WithLocation(11, 17));
+        }
+
+        [Fact]
+        public void OverloadResolution_07()
+        {
+            string source = """
                 using System.Collections;
                 using System.Collections.Generic;
                 struct S : IEnumerable
@@ -1282,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void OverloadResolution_07()
+        public void OverloadResolution_08()
         {
             string source = """
                 using System.Collections.Generic;
@@ -1301,12 +1394,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should these calls be ambiguous when we treat IEnumerable<T> as a valid target type (since it is an interface of List<T>)?
+            // PROTOTYPE: Should these calls be ambiguous when we treat IEnumerable<T> as a constructible type?
+            // Should better function member prefer one of the two overloads?
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Collections.Generic.List<System.Int32>[1], System.Collections.Generic.List<System.Int32>[2], ");
         }
 
         [Fact]
-        public void OverloadResolution_08()
+        public void OverloadResolution_09()
         {
             string source = """
                 using System.Collections.Generic;

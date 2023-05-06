@@ -4621,7 +4621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbol? InferCollectionLiteralType(ImmutableArray<BoundExpression> initializers)
         {
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded; // PROTOTYPE: Include use-site diagnostics.
-            var bestType = BestTypeInferrer.InferBestType(initializers, Conversions, ref useSiteInfo, out _);
+            var bestType = BestTypeInferrer.InferBestType(initializers, Conversions, ref useSiteInfo, inferredFromFunctionType: out _);
 
             if (bestType is { } && !bestType.IsVoidType())
             {
