@@ -883,47 +883,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 members);
         }
 
-        private ImmutableSegmentedHashSet<string> GetOrComputeMemberNames<TData>(
-            SyntaxNode parent,
-            Action<HashSet<string>, TData> addMemberNames,
-            TData data)
-        {
-            var previousMemberNames = _currentTypeIndex < _previousMemberNames.Count
-                ? _previousMemberNames[_currentTypeIndex]
-                : ImmutableSegmentedHashSet<string>.Empty;
-
-            _currentTypeIndex++;
-
-            var greenNode = parent.Green;
-            if (!s_nodeToMemberNames.TryGetValue(greenNode, out var memberNames))
-            {
-                var memberNamesBuilder = PooledHashSet<string>.GetInstance();
-                addMemberNames(memberNamesBuilder, data);
-
-                var result = previousMemberNames.Count == memberNamesBuilder.Count && previousMemberNames.SetEquals(memberNamesBuilder)
-                    ? previousMemberNames
-                    : ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder);
-                memberNamesBuilder.Free();
-
-                if (result.Count == 0)
-                    return result;
-
-                memberNames = new StrongBox<ImmutableSegmentedHashSet<string>>(result);
-
-#if NET
-                s_nodeToMemberNames.AddOrUpdate(greenNode, memberNames);
-#else
-                lock (s_nodeToMemberNames)
-                {
-                    s_nodeToMemberNames.Remove(greenNode);
-                    s_nodeToMemberNames.Add(greenNode, memberNames);
-                }
-#endif
-            }
-
-            return memberNames.Value;
-        }
-
         private ImmutableSegmentedHashSet<string> GetNonTypeMemberNames(
             CSharpSyntaxNode parent,
             CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members,
@@ -1005,6 +964,47 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return modifiers.Any((int)SyntaxKind.RequiredKeyword);
             }
+        }
+
+        private ImmutableSegmentedHashSet<string> GetOrComputeMemberNames<TData>(
+            SyntaxNode parent,
+            Action<HashSet<string>, TData> addMemberNames,
+            TData data)
+        {
+            var previousMemberNames = _currentTypeIndex < _previousMemberNames.Count
+                ? _previousMemberNames[_currentTypeIndex]
+                : ImmutableSegmentedHashSet<string>.Empty;
+
+            _currentTypeIndex++;
+
+            var greenNode = parent.Green;
+            if (!s_nodeToMemberNames.TryGetValue(greenNode, out var memberNames))
+            {
+                var memberNamesBuilder = PooledHashSet<string>.GetInstance();
+                addMemberNames(memberNamesBuilder, data);
+
+                var result = previousMemberNames.Count == memberNamesBuilder.Count && previousMemberNames.SetEquals(memberNamesBuilder)
+                    ? previousMemberNames
+                    : ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder);
+                memberNamesBuilder.Free();
+
+                if (result.Count == 0)
+                    return result;
+
+                memberNames = new StrongBox<ImmutableSegmentedHashSet<string>>(result);
+
+#if NET
+                s_nodeToMemberNames.AddOrUpdate(greenNode, memberNames);
+#else
+                lock (s_nodeToMemberNames)
+                {
+                    s_nodeToMemberNames.Remove(greenNode);
+                    s_nodeToMemberNames.Add(greenNode, memberNames);
+                }
+#endif
+            }
+
+            return memberNames.Value;
         }
 
         private static bool CheckMethodMemberForExtensionSyntax(Syntax.InternalSyntax.CSharpSyntaxNode member)
