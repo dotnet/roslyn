@@ -353,5 +353,20 @@ namespace Microsoft.CodeAnalysis
         {
             return Diagnostics.GetHashCode();
         }
+
+        public bool HasAnyErrors() => Diagnostics.HasAnyErrors();
+
+        public bool HasAnyResolvedErrors()
+        {
+            foreach (var diagnostic in Diagnostics)
+            {
+                if ((diagnostic as DiagnosticWithInfo)?.HasLazyInfo != true && diagnostic.Severity == DiagnosticSeverity.Error)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

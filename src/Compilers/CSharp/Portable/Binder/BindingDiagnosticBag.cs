@@ -65,6 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetInstance(template.AccumulatesDiagnostics, template.AccumulatesDependencies);
         }
 
+        /// <summary>
+        /// Get an instance suitable for concurrent additions to both underlying bags.
+        /// </summary>
         internal static BindingDiagnosticBag GetConcurrentInstance()
         {
             return s_poolWithConcurrent.Allocate();

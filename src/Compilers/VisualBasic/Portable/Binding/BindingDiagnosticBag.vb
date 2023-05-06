@@ -13,20 +13,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared ReadOnly s_poolWithBoth As ObjectPool(Of BindingDiagnosticBag) = New ObjectPool(Of BindingDiagnosticBag)(Function() New BindingDiagnosticBag(s_poolWithBoth, New DiagnosticBag(), New HashSet(Of AssemblySymbol)()))
         Private Shared ReadOnly s_poolWithDiagnosticsOnly As ObjectPool(Of BindingDiagnosticBag) = New ObjectPool(Of BindingDiagnosticBag)(Function() New BindingDiagnosticBag(s_poolWithDiagnosticsOnly, New DiagnosticBag(), dependenciesBag:=Nothing))
         Private Shared ReadOnly s_poolWithDependenciesOnly As ObjectPool(Of BindingDiagnosticBag) = New ObjectPool(Of BindingDiagnosticBag)(Function() New BindingDiagnosticBag(s_poolWithDependenciesOnly, diagnosticBag:=Nothing, New HashSet(Of AssemblySymbol)()))
+        Private Shared ReadOnly s_poolWithConcurrent As ObjectPool(Of BindingDiagnosticBag) = New ObjectPool(Of BindingDiagnosticBag)(Function() New BindingDiagnosticBag(s_poolWithConcurrent, New DiagnosticBag(), New ConcurrentSet(Of AssemblySymbol)()))
 
         Public Shared ReadOnly Discarded As New BindingDiagnosticBag(Nothing, Nothing)
 
         Private ReadOnly _pool As ObjectPool(Of BindingDiagnosticBag)
 
-        Public Sub New()
-            MyBase.New(usePool:=False)
-        End Sub
-
-        Public Sub New(diagnosticBag As DiagnosticBag)
-            MyBase.New(diagnosticBag, dependenciesBag:=Nothing)
-        End Sub
-
-        Public Sub New(diagnosticBag As DiagnosticBag, dependenciesBag As ICollection(Of AssemblySymbol))
+        Private Sub New(diagnosticBag As DiagnosticBag, dependenciesBag As ICollection(Of AssemblySymbol))
             MyBase.New(diagnosticBag, dependenciesBag)
         End Sub
 
@@ -58,23 +51,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return GetInstance(withDiagnostics:=template.AccumulatesDiagnostics, withDependencies:=template.AccumulatesDependencies)
         End Function
 
-        Friend Shared Function Create(withDiagnostics As Boolean, withDependencies As Boolean) As BindingDiagnosticBag
-            If withDependencies Then
-                If withDiagnostics Then
-                    Return New BindingDiagnosticBag()
-                End If
-
-                Return New BindingDiagnosticBag(diagnosticBag:=Nothing, New HashSet(Of AssemblySymbol)())
-
-            ElseIf withDiagnostics Then
-                Return New BindingDiagnosticBag(New DiagnosticBag())
-            Else
-                Return Discarded
-            End If
-        End Function
-
-        Friend Shared Function Create(template As BindingDiagnosticBag) As BindingDiagnosticBag
-            Return Create(withDiagnostics:=template.AccumulatesDiagnostics, withDependencies:=template.AccumulatesDependencies)
+        ''' <summary>
+        ''' Get an instance suitable for concurrent additions to both underlying bags.
+        ''' </summary>
+        Friend Shared Function GetConcurrentInstance() As BindingDiagnosticBag
+            Return s_poolWithConcurrent.Allocate()
         End Function
 
         Friend ReadOnly Property IsEmpty As Boolean
