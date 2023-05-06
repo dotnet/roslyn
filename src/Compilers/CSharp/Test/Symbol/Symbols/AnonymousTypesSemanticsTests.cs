@@ -1891,14 +1891,14 @@ unsafe class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
-        public void AnonymousTypeSymbols_PointerListField()
+        public void AnonymousTypeSymbols_NestedPointerArrayField()
         {
             var source = """
-unsafe class C
+unsafe class C<T>
 {
-    static int*[] M()
+    static C<int*[]> M()
     {
-        var a = new { F = new int*[0] };
+        var a = new { F = new C<int*[]>() };
         return a.F;
     }
 }

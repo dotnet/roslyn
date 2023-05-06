@@ -1808,6 +1808,68 @@ class Container<T> {{ }}
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo").WithLocation(9, 15));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void UnsafeDelegateAssignment_PointerArray_Nested_Parameter()
+        {
+            var template = @"
+{0} class C<T>
+{{
+    {1} static void Main()
+    {{
+        D d;
+        {{ d = delegate {{ }}; }}
+        {{ d = null; }}
+        {{ d = Goo; }}
+    }}
+
+    {1} delegate void D(C<int*[]> x = null);
+    {1} static void Goo(C<int*[]> x = null) {{ }}
+}}
+";
+
+            CompareUnsafeDiagnostics(template,
+                // (13,24): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      static void Goo(C<int*[]> x = null) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 24),
+                // (12,24): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      delegate void D(C<int*[]> x = null);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(12, 24),
+                // (9,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         { d = Goo; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo").WithLocation(9, 15));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void UnsafeDelegateAssignment_PointerArray_Nested_Return()
+        {
+            var template = @"
+{0} class C<T>
+{{
+    {1} static void Main()
+    {{
+        D d;
+        {{ d = delegate {{ throw null; }}; }}
+        {{ d = null; }}
+        {{ d = Goo; }}
+    }}
+
+    {1} delegate C<int*[]> D();
+    {1} static C<int*[]> Goo() {{ throw null; }}
+}}
+";
+
+            CompareUnsafeDiagnostics(template,
+                // (13,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      static C<int*[]> Goo() { throw null; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 15),
+                // (12,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //      delegate C<int*[]> D();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(12, 17),
+                // (9,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         { d = Goo; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo").WithLocation(9, 15));
+        }
+
         private static void CompareUnsafeDiagnostics(string template, params DiagnosticDescription[] expectedWithoutUnsafe)
         {
             CompareUnsafeDiagnostics(template, expectedWithoutUnsafe, new DiagnosticDescription[0]);
@@ -2152,7 +2214,7 @@ class C<T> {{ }}
         }
 
         [Fact]
-        public void ConstructorInitializerWithUnsafeArgument_PointerArray_Unsafe()
+        public void ConstructorInitializerWithUnsafeArgument_PointerArray_Nested()
         {
             var template = @"
 class C<T> {{ }}
