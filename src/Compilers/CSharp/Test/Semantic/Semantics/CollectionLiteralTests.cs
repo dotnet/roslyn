@@ -808,7 +808,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net60);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(6,18): error CS9503: No best type found for implicitly-typed collection literal.
+                //         var c1 = [a, b];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[a, b]").WithLocation(6, 18),
+                // 0.cs(11,18): error CS9503: No best type found for implicitly-typed collection literal.
+                //         var c2 = [b, a];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[b, a]").WithLocation(11, 18),
+                // 0.cs(16,12): error CS1503: Argument 1: cannot convert from 'int' to 'System.IntPtr'
+                //         F1(1, 2).Report();
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "System.IntPtr").WithLocation(16, 12),
+                // 0.cs(17,28): error CS0266: Cannot implicitly convert type 'int' to 'System.UIntPtr'. An explicit conversion exists (are you missing a cast?)
+                //         F2(new UIntPtr[] { 3 }, new nuint[] { 4 }).Report();
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "3").WithArguments("int", "System.UIntPtr").WithLocation(17, 28));
+
+            comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "[1, 2], [[4], [3]], ");
 

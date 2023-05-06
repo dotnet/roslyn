@@ -5638,7 +5638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindCollectionInitializerElementAddMethod(
-            SyntaxNode elementInitializer,
+            SyntaxNode elementInitializer, // PROTOTYPE: Use ExpressionSyntax instead?
             ImmutableArray<BoundExpression> boundElementInitializerExpressions,
             bool hasEnumerableInitializerType,
             Binder collectionInitializerAddMethodBinder,
