@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class DeclarationTreeBuilder : CSharpSyntaxVisitor<SingleNamespaceOrTypeDeclaration>
     {
-        private static readonly ConditionalWeakTable<Syntax.InternalSyntax.CSharpSyntaxNode, StrongBox<ImmutableSegmentedHashSet<string>>> s_nodeToMemberNames
-            = new ConditionalWeakTable<Syntax.InternalSyntax.CSharpSyntaxNode, StrongBox<ImmutableSegmentedHashSet<string>>>();
+        private static readonly ConditionalWeakTable<GreenNode, StrongBox<ImmutableSegmentedHashSet<string>>> s_nodeToMemberNames
+            = new ConditionalWeakTable<GreenNode, StrongBox<ImmutableSegmentedHashSet<string>>>();
 
         private readonly SyntaxTree _syntaxTree;
         private readonly string _scriptClassName;
@@ -818,29 +818,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes;
             }
 
-            var greenNode = enumDeclaration.CsGreen;
+            return GetOrComputeMemberNames(
+                enumDeclaration,
+                static (memberNamesBuilder, members) =>
+                {
+                    foreach (var member in members)
+                        memberNamesBuilder.Add(member.Identifier.ValueText);
+                },
+                members);
+        }
+
+        private static ImmutableSegmentedHashSet<string> GetOrComputeMemberNames<TData>(
+            SyntaxNode parent,
+            Action<HashSet<string>, TData> addMemberNames,
+            TData data)
+        {
+            var greenNode = parent.Green;
             if (!s_nodeToMemberNames.TryGetValue(greenNode, out var memberNames))
             {
                 var memberNamesBuilder = PooledHashSet<string>.GetInstance();
-                foreach (var member in members)
-                    memberNamesBuilder.Add(member.Identifier.ValueText);
+                addMemberNames(memberNamesBuilder, data);
 
-                memberNames = UpdateMemberNamesMap(greenNode, memberNamesBuilder);
-            }
+                var result = ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder);
+                memberNamesBuilder.Free();
 
-            return memberNames.Value;
-        }
+                if (result.Count == 0)
+                    return result;
 
-        private static StrongBox<ImmutableSegmentedHashSet<string>> UpdateMemberNamesMap(
-            Syntax.InternalSyntax.CSharpSyntaxNode greenNode, PooledHashSet<string> memberNamesBuilder)
-        {
-            var result = ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder);
-            memberNamesBuilder.Free();
+                memberNames = new StrongBox<ImmutableSegmentedHashSet<string>>(result);
 
-            var memberNames = new StrongBox<ImmutableSegmentedHashSet<string>>(result);
-
-            if (result.Count > 0)
-            {
 #if NET
                 s_nodeToMemberNames.AddOrUpdate(greenNode, memberNames);
 #else
@@ -852,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             }
 
-            return memberNames;
+            return memberNames.Value;
         }
 
         private static ImmutableSegmentedHashSet<string> GetNonTypeMemberNames(
@@ -866,19 +872,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool anyMemberHasAttributes = false;
             bool anyNonTypeMembers = false;
             bool anyRequiredMembers = false;
-
-            var greenNode = parent.CsGreen;
-            if (!s_nodeToMemberNames.TryGetValue(greenNode, out var memberNames))
-            {
-                var memberNamesBuilder = PooledHashSet<string>.GetInstance();
-                if (hasPrimaryCtor)
-                    memberNamesBuilder.Add(WellKnownMemberNames.InstanceConstructorName);
-
-                foreach (var member in members)
-                    AddNonTypeMemberNames(member, memberNamesBuilder);
-
-                memberNames = UpdateMemberNamesMap(greenNode, memberNamesBuilder);
-            }
 
             foreach (var member in members)
             {
@@ -926,7 +919,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasRequiredMembers;
             }
 
-            return memberNames.Value;
+            return GetOrComputeMemberNames(
+                parent,
+                static (memberNamesBuilder, tuple) =>
+                {
+                    if (tuple.hasPrimaryCtor)
+                        memberNamesBuilder.Add(WellKnownMemberNames.InstanceConstructorName);
+
+                    foreach (var member in tuple.members)
+                        AddNonTypeMemberNames(member, memberNamesBuilder);
+                },
+                (members, hasPrimaryCtor));
 
             static bool checkPropertyOrFieldMemberForRequiredModifier(Syntax.InternalSyntax.CSharpSyntaxNode member)
             {
@@ -1018,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void AddNonTypeMemberNames(
-            Syntax.InternalSyntax.CSharpSyntaxNode member, PooledHashSet<string> set)
+            Syntax.InternalSyntax.CSharpSyntaxNode member, HashSet<string> set)
         {
             switch (member.Kind)
             {
