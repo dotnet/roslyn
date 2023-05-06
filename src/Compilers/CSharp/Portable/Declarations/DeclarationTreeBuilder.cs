@@ -955,8 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _currentTypeIndex++;
 
-            if (!previousMemberNames.IsDefault &&
-                previousMemberNames.Count == memberNameBuilder.Count &&
+            if (previousMemberNames.Count == memberNameBuilder.Count &&
                 previousMemberNames.SetEquals(memberNameBuilder))
             {
                 memberNameBuilder.Free();
