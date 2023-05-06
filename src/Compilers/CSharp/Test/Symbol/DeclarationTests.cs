@@ -848,6 +848,36 @@ namespace N1
             Assert.True(type1a.MergedDeclaration.Declarations[0].MemberNames == type2a.MergedDeclaration.Declarations[0].MemberNames);
         }
 
+        [Fact]
+        public void TestMemberNamesReused_SameTreeDifferentCompilations()
+        {
+            var firstTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+namespace N1
+{
+    namespace N2.N3
+    {
+        enum E
+        {
+            x, y, z;
+        }
+    }
+}
+");
+
+            var compilation1 = CreateCompilation(new SyntaxTree[] { firstTree });
+            var compilation2 = CreateCompilation(new SyntaxTree[] { firstTree });
+
+            var type1 = (SourceNamedTypeSymbol)compilation1.GetTypeByMetadataName("N1.N2.N3.E");
+            var type2 = (SourceNamedTypeSymbol)compilation1.GetTypeByMetadataName("N1.N2.N3.E");
+            Assert.True(type1.MergedDeclaration.Declarations[0].MemberNames.SetEquals(new[] { "x", "y", "z" }));
+            Assert.True(type2.MergedDeclaration.Declarations[0].MemberNames.SetEquals(new[] { "x", "y", "z" }));
+
+            // We should have the exact same set for the names.
+            Assert.True(type1.MergedDeclaration.Declarations[0].MemberNames == type2.MergedDeclaration.Declarations[0].MemberNames);
+        }
+
         /// <remarks>
         /// When using this type, make sure to pass an explicit CompilationOptions to CreateCompilation, as the check
         /// to see whether the syntax tree has top-level statements will increment the counter.
