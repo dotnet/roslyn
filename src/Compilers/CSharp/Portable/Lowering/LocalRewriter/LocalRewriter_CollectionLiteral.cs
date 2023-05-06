@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var listType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(elementType);
                 var listToArray = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)!).AsMember(listType);
                 var list = VisitCollectionInitializerCollectionLiteralExpression(node);
-                array = _factory.Call(list, listToArray);
+                array = _factory.Call(list, listToArray); // PROTOTYPE: Improve perf. For instance, avoid copying to a new array.
             }
             else
             {

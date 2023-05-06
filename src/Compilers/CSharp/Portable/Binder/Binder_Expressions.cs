@@ -4617,20 +4617,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var expression = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
                 var builder = new ForEachEnumeratorInfo.Builder();
-                bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref builder, ref expression, isAsync: false, diagnostics, out _) ||
+                bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref builder, ref expression, isAsync: false, diagnostics, inferredType: out _) ||
                     builder.IsIncomplete;
                 if (hasErrors)
                 {
                     // PROTOTYPE: Report error.
+                    // PROTOTYPE: Return a BoundCollectionLiteralSpreadElement (with HasErrors set)
+                    // instead of BoundBadExpression? Compare with BindForEachPartsWorker which
+                    // always returns a BoundForEachStatement, even when there are errors.
                     return BadExpression(syntax);
                 }
 
-                var enumeratorInfo = builder.Build(default);
+                var enumeratorInfo = builder.Build(location: default);
                 var collectionType = enumeratorInfo.CollectionType;
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var conversion = Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                 diagnostics.Add(syntax.Expression, useSiteInfo);
-                hasErrors = !conversion.Exists || !conversion.IsImplicit;
+                hasErrors = !conversion.IsImplicit;
                 if (hasErrors)
                 {
                     GenerateImplicitConversionError(diagnostics, syntax, conversion, expression, collectionType);
@@ -4649,7 +4652,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementConversion: null,
                     addElementPlaceholder: null,
                     addMethodInvocation: null,
-                    type: enumeratorInfo.CollectionType)
+                    type: enumeratorInfo.CollectionType,
+                    hasErrors)
                 { WasCompilerGenerated = true };
             }
         }
@@ -5678,7 +5682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindCollectionInitializerElementAddMethod(
-            SyntaxNode elementInitializer, // PROTOTYPE: Use ExpressionSyntax instead?
+            ExpressionSyntax elementInitializer,
             ImmutableArray<BoundExpression> boundElementInitializerExpressions,
             bool hasEnumerableInitializerType,
             Binder collectionInitializerAddMethodBinder,

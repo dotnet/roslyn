@@ -564,20 +564,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundExpression>.GetInstance(node.Initializers.Length);
             foreach (var element in node.Initializers)
             {
-                var result = (element is BoundCollectionLiteralSpreadElement spreadElement)
-                    ? BindCollectionInitializerSpreadElementAddMethod(
-                        (SpreadElementSyntax)spreadElement.Syntax,
-                        spreadElement,
-                        collectionInitializerAddMethodBinder,
-                        implicitReceiver,
-                        diagnostics)
-                    : BindCollectionInitializerElementAddMethod(
-                        element.Syntax,
+                var result = element switch
+                {
+                    BoundBadExpression => element,
+                    BoundCollectionLiteralSpreadElement spreadElement => BindCollectionInitializerSpreadElementAddMethod(
+                            (SpreadElementSyntax)spreadElement.Syntax,
+                            spreadElement,
+                            collectionInitializerAddMethodBinder,
+                            implicitReceiver,
+                            diagnostics),
+                    _ => BindCollectionInitializerElementAddMethod(
+                        (ExpressionSyntax)element.Syntax,
                         ImmutableArray.Create(element),
                         hasEnumerableInitializerType: true,
                         collectionInitializerAddMethodBinder,
                         diagnostics,
-                        implicitReceiver);
+                        implicitReceiver),
+                };
                 result.WasCompilerGenerated = true;
                 builder.Add(result);
             }
