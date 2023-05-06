@@ -971,26 +971,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             Action<HashSet<string>, TData> addMemberNames,
             TData data)
         {
+            // Try to obtain the prior member names computed for the corresponding type decl (in lexicographic order)
+            // from the prior version of this tree.
             var previousMemberNames = _currentTypeIndex < _previousMemberNames.Count
                 ? _previousMemberNames[_currentTypeIndex]
                 : ImmutableSegmentedHashSet<string>.Empty;
 
             _currentTypeIndex++;
 
+            // Lookup in the cache first.
             var greenNode = parent.Green;
             if (!s_nodeToMemberNames.TryGetValue(greenNode, out var memberNames))
             {
+                // If not there, make a fresh set, and add all the member names to it.
                 var memberNamesBuilder = PooledHashSet<string>.GetInstance();
                 addMemberNames(memberNamesBuilder, data);
 
+                // If the members names are the same as the prior computed ones, then use that instead.
                 var result = previousMemberNames.Count == memberNamesBuilder.Count && previousMemberNames.SetEquals(memberNamesBuilder)
                     ? previousMemberNames
                     : ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder);
                 memberNamesBuilder.Free();
 
+                // Don't bother caching when there are no member names (common for most compilation units).
                 if (result.Count == 0)
                     return result;
 
+                // Store the names in the cache to be found in the next compilation update.
                 memberNames = new StrongBox<ImmutableSegmentedHashSet<string>>(result);
 
 #if NET
