@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class DeclarationTreeBuilder : CSharpSyntaxVisitor<SingleNamespaceOrTypeDeclaration>
     {
+        /// <summary>
+        /// Cache of node to the last set of member names computed for it.  Helpful for avoiding excess hashset
+        /// allocations for common scenarios where compilations are created with the same trees used to create prior
+        /// compilations.
+        /// </summary>
         private static readonly ConditionalWeakTable<GreenNode, StrongBox<ImmutableSegmentedHashSet<string>>> s_nodeToMemberNames
             = new ConditionalWeakTable<GreenNode, StrongBox<ImmutableSegmentedHashSet<string>>>();
 
