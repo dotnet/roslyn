@@ -867,6 +867,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool anyNonTypeMembers = false;
             bool anyRequiredMembers = false;
 
+            foreach (var member in members)
+            {
+                anyNonTypeMembers = HasAnyNonTypeMemberNames(member, skipGlobalStatements);
+                if (anyNonTypeMembers)
+                    break;
+            }
+
             var greenNode = parent.CsGreen;
             if (!s_nodeToMemberNames.TryGetValue(greenNode, out var memberNames))
             {
@@ -875,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     memberNamesBuilder.Add(WellKnownMemberNames.InstanceConstructorName);
 
                 foreach (var member in members)
-                    AddNonTypeMemberNames(member, memberNamesBuilder, ref anyNonTypeMembers, skipGlobalStatements);
+                    AddNonTypeMemberNames(member, memberNamesBuilder);
 
                 memberNames = UpdateMemberNamesMap(greenNode, memberNamesBuilder);
             }
@@ -1013,12 +1020,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void AddNonTypeMemberNames(
-            Syntax.InternalSyntax.CSharpSyntaxNode member, PooledHashSet<string> set, ref bool anyNonTypeMembers, bool skipGlobalStatements)
+            Syntax.InternalSyntax.CSharpSyntaxNode member, PooledHashSet<string> set)
         {
             switch (member.Kind)
             {
                 case SyntaxKind.FieldDeclaration:
-                    anyNonTypeMembers = true;
                     CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> fieldDeclarators =
                         ((Syntax.InternalSyntax.FieldDeclarationSyntax)member).Declaration.Variables;
                     int numFieldDeclarators = fieldDeclarators.Count;
@@ -1029,7 +1035,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.EventFieldDeclaration:
-                    anyNonTypeMembers = true;
                     CoreInternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> eventDeclarators =
                         ((Syntax.InternalSyntax.EventFieldDeclarationSyntax)member).Declaration.Variables;
                     int numEventDeclarators = eventDeclarators.Count;
@@ -1040,7 +1045,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.MethodDeclaration:
-                    anyNonTypeMembers = true;
                     // Member names are exposed via NamedTypeSymbol.MemberNames and are used primarily
                     // as an acid test to determine whether a more in-depth search of a type is worthwhile.
                     // We decided that it was reasonable to exclude explicit interface implementations
@@ -1053,7 +1057,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.PropertyDeclaration:
-                    anyNonTypeMembers = true;
                     // Handle in the same way as explicit method implementations
                     var propertyDecl = (Syntax.InternalSyntax.PropertyDeclarationSyntax)member;
                     if (propertyDecl.ExplicitInterfaceSpecifier == null)
@@ -1063,7 +1066,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.EventDeclaration:
-                    anyNonTypeMembers = true;
                     // Handle in the same way as explicit method implementations
                     var eventDecl = (Syntax.InternalSyntax.EventDeclarationSyntax)member;
                     if (eventDecl.ExplicitInterfaceSpecifier == null)
@@ -1073,26 +1075,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.ConstructorDeclaration:
-                    anyNonTypeMembers = true;
                     set.Add(((Syntax.InternalSyntax.ConstructorDeclarationSyntax)member).Modifiers.Any((int)SyntaxKind.StaticKeyword)
                         ? WellKnownMemberNames.StaticConstructorName
                         : WellKnownMemberNames.InstanceConstructorName);
                     break;
 
                 case SyntaxKind.DestructorDeclaration:
-                    anyNonTypeMembers = true;
                     set.Add(WellKnownMemberNames.DestructorName);
                     break;
 
                 case SyntaxKind.IndexerDeclaration:
-                    anyNonTypeMembers = true;
                     set.Add(WellKnownMemberNames.Indexer);
                     break;
 
                 case SyntaxKind.OperatorDeclaration:
                     {
-                        anyNonTypeMembers = true;
-
                         // Handle in the same way as explicit method implementations
                         var opDecl = (Syntax.InternalSyntax.OperatorDeclarationSyntax)member;
 
@@ -1106,8 +1103,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ConversionOperatorDeclaration:
                     {
-                        anyNonTypeMembers = true;
-
                         // Handle in the same way as explicit method implementations
                         var opDecl = (Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax)member;
 
@@ -1118,14 +1113,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
+            }
+        }
+
+        private static bool HasAnyNonTypeMemberNames(
+            Syntax.InternalSyntax.CSharpSyntaxNode member, bool skipGlobalStatements)
+        {
+            switch (member.Kind)
+            {
+                case SyntaxKind.FieldDeclaration:
+                case SyntaxKind.EventFieldDeclaration:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.EventDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                case SyntaxKind.IndexerDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    return true;
 
                 case SyntaxKind.GlobalStatement:
-                    if (!skipGlobalStatements)
-                    {
-                        anyNonTypeMembers = true;
-                    }
-                    break;
+                    return !skipGlobalStatements;
             }
+
+            return false;
         }
     }
 }
