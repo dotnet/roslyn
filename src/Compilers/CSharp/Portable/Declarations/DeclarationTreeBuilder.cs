@@ -792,13 +792,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static ImmutableSegmentedHashSet<string> ToImmutableAndFree(PooledHashSet<string> builder)
-        {
-            var result = ImmutableSegmentedHashSet.CreateRange(builder);
-            builder.Free();
-            return result;
-        }
-
         private static ImmutableSegmentedHashSet<string> GetEnumMemberNames(
             EnumDeclarationSyntax enumDeclaration,
             SeparatedSyntaxList<EnumMemberDeclarationSyntax> members,
@@ -841,17 +834,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static StrongBox<ImmutableSegmentedHashSet<string>> UpdateMemberNamesMap(
             Syntax.InternalSyntax.CSharpSyntaxNode greenNode, PooledHashSet<string> memberNamesBuilder)
         {
-            var memberNames = new StrongBox<ImmutableSegmentedHashSet<string>>(ToImmutableAndFree(memberNamesBuilder));
+            var result = ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder);
+            memberNamesBuilder.Free();
 
-#if NET
-            s_nodeToMemberNames.AddOrUpdate(greenNode, memberNames);
-#else
-            lock (s_nodeToMemberNames)
+            var memberNames = new StrongBox<ImmutableSegmentedHashSet<string>>(result);
+
+            if (result.Count > 0)
             {
-                s_nodeToMemberNames.Remove(greenNode);
-                s_nodeToMemberNames.Add(greenNode, memberNames);
-            }
+#if NET
+                s_nodeToMemberNames.AddOrUpdate(greenNode, memberNames);
+#else
+                lock (s_nodeToMemberNames)
+                {
+                    s_nodeToMemberNames.Remove(greenNode);
+                    s_nodeToMemberNames.Add(greenNode, memberNames);
+                }
 #endif
+            }
 
             return memberNames;
         }
