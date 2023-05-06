@@ -836,14 +836,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static readonly ObjectPool<ArrayBuilder<string>> s_memberNameBuilderPool =
-            new ObjectPool<ArrayBuilder<string>>(() => ArrayBuilder<string>.GetInstance());
-
-        private static ImmutableSegmentedHashSet<string> ToImmutableAndFree(ArrayBuilder<string> builder)
+        private static ImmutableSegmentedHashSet<string> ToImmutableAndFree(PooledHashSet<string> builder)
         {
             var result = ImmutableSegmentedHashSet.CreateRange(builder);
-            builder.Clear();
-            s_memberNameBuilderPool.Free(builder);
+            builder.Free();
             return result;
         }
 
@@ -851,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var cnt = members.Count;
 
-            var memberNamesBuilder = s_memberNameBuilderPool.Allocate();
+            var memberNamesBuilder = PooledHashSet<string>.GetInstance();
             if (cnt != 0)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
@@ -883,7 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool anyNonTypeMembers = false;
             bool anyRequiredMembers = false;
 
-            var memberNameBuilder = s_memberNameBuilderPool.Allocate();
+            var memberNameBuilder = PooledHashSet<string>.GetInstance();
 
             if (hasPrimaryCtor)
             {
@@ -948,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableSegmentedHashSet<string> TryReusePriorComputedMemberNames(ArrayBuilder<string> memberNameBuilder)
+        private ImmutableSegmentedHashSet<string> TryReusePriorComputedMemberNames(PooledHashSet<string> memberNameBuilder)
         {
             // See if we have the member names from the last time a type-decl was created for this tree. If so, reuse
             // that if the same names were produced this time around (the common case).
@@ -959,14 +955,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _currentTypeIndex++;
 
-            memberNameBuilder.RemoveDuplicates();
-
             if (!previousMemberNames.IsDefault &&
                 previousMemberNames.Count == memberNameBuilder.Count &&
                 previousMemberNames.SetEquals(memberNameBuilder))
             {
-                memberNameBuilder.Clear();
-                s_memberNameBuilderPool.Free(memberNameBuilder);
+                memberNameBuilder.Free();
                 return previousMemberNames;
             }
 
@@ -1050,7 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void AddNonTypeMemberNames(
-            Syntax.InternalSyntax.CSharpSyntaxNode member, ArrayBuilder<string> set, ref bool anyNonTypeMembers, bool skipGlobalStatements)
+            Syntax.InternalSyntax.CSharpSyntaxNode member, PooledHashSet<string> set, ref bool anyNonTypeMembers, bool skipGlobalStatements)
         {
             switch (member.Kind)
             {
@@ -1083,11 +1076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We decided that it was reasonable to exclude explicit interface implementations
                     // from the list of member names.
                     var methodDecl = (Syntax.InternalSyntax.MethodDeclarationSyntax)member;
-
-                    // Common to have several overloads of method next to each other.  Trivially skip adding the name
-                    // again if we just added it.
-                    if (methodDecl.ExplicitInterfaceSpecifier == null &&
-                        set.LastOrDefault() != methodDecl.Identifier.ValueText)
+                    if (methodDecl.ExplicitInterfaceSpecifier == null)
                     {
                         set.Add(methodDecl.Identifier.ValueText);
                     }
@@ -1114,19 +1103,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.ConstructorDeclaration:
-                    {
-                        anyNonTypeMembers = true;
-                        var name = ((Syntax.InternalSyntax.ConstructorDeclarationSyntax)member).Modifiers.Any((int)SyntaxKind.StaticKeyword)
-                            ? WellKnownMemberNames.StaticConstructorName
-                            : WellKnownMemberNames.InstanceConstructorName;
+                    anyNonTypeMembers = true;
 
-                        // Common to have several overloads of constructors next to each other.  Trivially skip adding the name
-                        // again if we just added it.
-                        if (set.LastOrDefault() != name)
-                            set.Add(name);
+                    set.Add(((Syntax.InternalSyntax.ConstructorDeclarationSyntax)member).Modifiers.Any((int)SyntaxKind.StaticKeyword)
+                        ? WellKnownMemberNames.StaticConstructorName
+                        : WellKnownMemberNames.InstanceConstructorName);
 
-                        break;
-                    }
+                    break;
 
                 case SyntaxKind.DestructorDeclaration:
                     anyNonTypeMembers = true;
