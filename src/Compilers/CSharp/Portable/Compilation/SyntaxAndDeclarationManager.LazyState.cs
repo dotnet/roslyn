@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// very large types). The value is stored as a <see cref="OneOrMany"/> as the most common case for most
             /// files is a single type declaration.
             /// </summary>
-            internal readonly ImmutableDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>> LastComputedTopLevelTypeMemberNames;
+            internal readonly ImmutableDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>> LastComputedMemberNames;
             internal readonly DeclarationTable DeclarationTable;
 
             internal State(
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableDictionary<SyntaxTree, ImmutableArray<LoadDirective>> loadDirectiveMap,
                 ImmutableDictionary<string, SyntaxTree> loadedSyntaxTreeMap,
                 ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> rootNamespaces,
-                ImmutableDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>> lastComputedTopLevelTypeMemberNames,
+                ImmutableDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>> lastComputedMemberNames,
                 DeclarationTable declarationTable)
             {
                 Debug.Assert(syntaxTrees.All(tree => syntaxTrees[syntaxTreeOrdinalMap[tree]] == tree));
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.LoadDirectiveMap = loadDirectiveMap;
                 this.LoadedSyntaxTreeMap = loadedSyntaxTreeMap;
                 this.RootNamespaces = rootNamespaces;
-                this.LastComputedTopLevelTypeMemberNames = lastComputedTopLevelTypeMemberNames;
+                this.LastComputedMemberNames = lastComputedMemberNames;
                 this.DeclarationTable = declarationTable;
             }
         }

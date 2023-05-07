@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loadDirectiveMapBuilder = state.LoadDirectiveMap.ToBuilder();
             var loadedSyntaxTreeMapBuilder = state.LoadedSyntaxTreeMap.ToBuilder();
             var declMapBuilder = state.RootNamespaces.ToBuilder();
-            var lastComputedMemberNamesMap = state.LastComputedTopLevelTypeMemberNames.ToBuilder();
+            var lastComputedMemberNamesMap = state.LastComputedMemberNames.ToBuilder();
             var declTable = state.DeclarationTable;
 
             var treesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AddSyntaxTreeToDeclarationMapAndTable(
                 tree, scriptClassName, isSubmission, declMapBuilder,
-                lastComputedTopLevelTypeMemberNames: OneOrMany<ImmutableSegmentedHashSet<string>>.Empty, ref declTable);
+                lastComputedMemberNames: OneOrMany<ImmutableSegmentedHashSet<string>>.Empty, ref declTable);
 
             treesBuilder.Add(tree);
             ordinalMapBuilder.Add(tree, ordinalMapBuilder.Count);
@@ -286,10 +286,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             string scriptClassName,
             bool isSubmission,
             IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
-            OneOrMany<ImmutableSegmentedHashSet<string>> lastComputedTopLevelTypeMemberNames,
+            OneOrMany<ImmutableSegmentedHashSet<string>> lastComputedMemberNames,
             ref DeclarationTable declTable)
         {
-            var lazyRoot = new Lazy<RootSingleNamespaceDeclaration>(() => DeclarationTreeBuilder.ForTree(tree, scriptClassName, isSubmission, lastComputedTopLevelTypeMemberNames));
+            var lazyRoot = new Lazy<RootSingleNamespaceDeclaration>(() => DeclarationTreeBuilder.ForTree(tree, scriptClassName, isSubmission, lastComputedMemberNames));
             declMapBuilder.Add(tree, lazyRoot); // Callers are responsible for checking for existing entries.
             declTable = declTable.AddRootDeclaration(lazyRoot);
         }
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var treesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
             var ordinalMapBuilder = PooledDictionary<SyntaxTree, int>.GetInstance();
             var declMapBuilder = state.RootNamespaces.ToBuilder();
-            var lastComputedMemberNamesMap = state.LastComputedTopLevelTypeMemberNames.ToBuilder();
+            var lastComputedMemberNamesMap = state.LastComputedMemberNames.ToBuilder();
             var declTable = state.DeclarationTable;
             foreach (var tree in syntaxTrees)
             {
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loadDirectiveMapBuilder = loadDirectiveMap.ToBuilder();
             var loadedSyntaxTreeMapBuilder = loadedSyntaxTreeMap.ToBuilder();
             var declMapBuilder = state.RootNamespaces.ToBuilder();
-            var lastComputedMemberNamesMap = state.LastComputedTopLevelTypeMemberNames.ToBuilder();
+            var lastComputedMemberNamesMap = state.LastComputedMemberNames.ToBuilder();
             var declTable = state.DeclarationTable;
 
             var lastComputedMemberNames = tryGetLastComputedMemberNames();
