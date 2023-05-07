@@ -643,7 +643,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return convertedCollectionExpression;
         }
 
-        // PROTOTYPE: Why is collectionExpr passed by ref?
         protected bool GetEnumeratorInfoAndInferCollectionElementType(SyntaxNode syntax, ExpressionSyntax collectionSyntax, ref ForEachEnumeratorInfo.Builder builder, ref BoundExpression collectionExpr, bool isAsync, BindingDiagnosticBag diagnostics, out TypeWithAnnotations inferredType)
         {
             bool gotInfo = GetEnumeratorInfo(syntax, collectionSyntax, ref builder, ref collectionExpr, isAsync, diagnostics);

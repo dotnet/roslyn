@@ -4591,27 +4591,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.IsIncomplete;
                 if (hasErrors)
                 {
-                    // PROTOTYPE: Report error.
-                    // PROTOTYPE: Return a BoundCollectionLiteralSpreadElement (with HasErrors set)
-                    // instead of BoundBadExpression? Compare with BindForEachPartsWorker which
-                    // always returns a BoundForEachStatement, even when there are errors.
-                    return BadExpression(syntax);
+                    return new BoundCollectionLiteralSpreadElement(
+                        syntax,
+                        expression,
+                        enumeratorInfoOpt: null,
+                        elementPlaceholder: null,
+                        elementConversion: null,
+                        addElementPlaceholder: null,
+                        addMethodInvocation: null,
+                        type: CreateErrorType(),
+                        hasErrors);
                 }
 
                 var enumeratorInfo = builder.Build(location: default);
                 var collectionType = enumeratorInfo.CollectionType;
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var conversion = Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+                Debug.Assert(conversion.IsValid);
                 diagnostics.Add(syntax.Expression, useSiteInfo);
-                hasErrors = !conversion.IsImplicit;
-                if (hasErrors)
-                {
-                    GenerateImplicitConversionError(diagnostics, syntax, conversion, expression, collectionType);
-                    // PROTOTYPE:
-                    //// Suppress any additional diagnostics
-                    //diagnostics = BindingDiagnosticBag.Discarded;
-                }
-
                 expression = ConvertForEachCollection(expression, conversion, collectionType, diagnostics);
                 var elementPlaceholder = new BoundValuePlaceholder(syntax.Expression, enumeratorInfo.ElementType);
                 return new BoundCollectionLiteralSpreadElement(
@@ -4623,7 +4620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     addElementPlaceholder: null,
                     addMethodInvocation: null,
                     type: enumeratorInfo.CollectionType,
-                    hasErrors)
+                    hasErrors: false)
                 { WasCompilerGenerated = true };
             }
         }
@@ -5718,6 +5715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private BoundCollectionLiteralSpreadElement BindCollectionInitializerSpreadElementAddMethod(
             SpreadElementSyntax syntax,
             BoundCollectionLiteralSpreadElement element,
@@ -5725,7 +5723,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
             BindingDiagnosticBag diagnostics)
         {
-            var enumeratorInfo = element.EnumeratorInfo;
+            var enumeratorInfo = element.EnumeratorInfoOpt;
+            if (enumeratorInfo is null)
+            {
+                return element;
+            }
+
             Debug.Assert(enumeratorInfo.ElementType is { });
             var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
             var addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
@@ -5743,6 +5746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 addMethodInvocation,
                 element.Type);
         }
+#nullable disable
 
         internal ImmutableArray<MethodSymbol> FilterInaccessibleConstructors(ImmutableArray<MethodSymbol> constructors, bool allowProtectedConstructorsOfBaseType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {

@@ -3438,6 +3438,86 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidQM, "c ? [null] : []").WithArguments("collection literals", "collection literals").WithLocation(5, 26));
         }
 
+        [Fact]
+        public void SpreadElement_07()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[,] a = new[,] { { 1, 2 }, { 3, 4 } };
+                        int[] b = F(a);
+                        b.Report();
+                    }
+                    static int[] F(int[,] a) => [..a];
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3, 4], ");
+            verifier.VerifyIL("Program.F",
+                """
+                {
+                  // Code size       95 (0x5f)
+                  .maxstack  3
+                  .locals init (System.Collections.Generic.List<int> V_0,
+                                int[,] V_1,
+                                int V_2,
+                                int V_3,
+                                int V_4,
+                                int V_5,
+                                int V_6)
+                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  stloc.1
+                  IL_0008:  ldloc.1
+                  IL_0009:  ldc.i4.0
+                  IL_000a:  callvirt   "int System.Array.GetUpperBound(int)"
+                  IL_000f:  stloc.2
+                  IL_0010:  ldloc.1
+                  IL_0011:  ldc.i4.1
+                  IL_0012:  callvirt   "int System.Array.GetUpperBound(int)"
+                  IL_0017:  stloc.3
+                  IL_0018:  ldloc.1
+                  IL_0019:  ldc.i4.0
+                  IL_001a:  callvirt   "int System.Array.GetLowerBound(int)"
+                  IL_001f:  stloc.s    V_4
+                  IL_0021:  br.s       IL_0053
+                  IL_0023:  ldloc.1
+                  IL_0024:  ldc.i4.1
+                  IL_0025:  callvirt   "int System.Array.GetLowerBound(int)"
+                  IL_002a:  stloc.s    V_5
+                  IL_002c:  br.s       IL_0048
+                  IL_002e:  ldloc.1
+                  IL_002f:  ldloc.s    V_4
+                  IL_0031:  ldloc.s    V_5
+                  IL_0033:  call       "int[*,*].Get"
+                  IL_0038:  stloc.s    V_6
+                  IL_003a:  ldloc.0
+                  IL_003b:  ldloc.s    V_6
+                  IL_003d:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_0042:  ldloc.s    V_5
+                  IL_0044:  ldc.i4.1
+                  IL_0045:  add
+                  IL_0046:  stloc.s    V_5
+                  IL_0048:  ldloc.s    V_5
+                  IL_004a:  ldloc.3
+                  IL_004b:  ble.s      IL_002e
+                  IL_004d:  ldloc.s    V_4
+                  IL_004f:  ldc.i4.1
+                  IL_0050:  add
+                  IL_0051:  stloc.s    V_4
+                  IL_0053:  ldloc.s    V_4
+                  IL_0055:  ldloc.2
+                  IL_0056:  ble.s      IL_0023
+                  IL_0058:  ldloc.0
+                  IL_0059:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+                  IL_005e:  ret
+                }
+                """);
+        }
+
         [Theory(Skip = "PROTOTYPE: RuntimeBinderException : Cannot implicitly convert type 'void' to 'object'")]
         [InlineData("object[]")]
         [InlineData("List<object>")]

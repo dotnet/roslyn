@@ -870,10 +870,38 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private BoundStatement RewriteMultiDimensionalArrayForEachStatement(BoundForEachStatement node)
         {
-            var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
-
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node, out _);
             Debug.Assert(collectionExpression.Type is { TypeKind: TypeKind.Array });
+
+            BoundStatement? rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
+
+            return RewriteMultiDimensionalArrayForEachEnumerator(
+                node,
+                collectionExpression,
+                node.ElementPlaceholder,
+                node.ElementConversion,
+                node.IterationVariables,
+                node.DeconstructionOpt,
+                node.BreakLabel,
+                node.ContinueLabel,
+                rewrittenBody);
+        }
+
+        private BoundStatement RewriteMultiDimensionalArrayForEachEnumerator(
+            BoundNode node,
+            BoundExpression collectionExpression,
+            BoundValuePlaceholder? elementPlaceholder,
+            BoundExpression? elementConversion,
+            ImmutableArray<LocalSymbol> iterationVariables,
+            BoundForEachDeconstructStep? deconstruction,
+            GeneratedLabelSymbol breakLabel,
+            GeneratedLabelSymbol continueLabel,
+            BoundStatement rewrittenBody)
+        {
+            Debug.Assert(collectionExpression.Type is { TypeKind: TypeKind.Array });
+
+            var forEachSyntax = (CSharpSyntaxNode)node.Syntax;
 
             ArrayTypeSymbol arrayType = (ArrayTypeSymbol)collectionExpression.Type;
 
@@ -888,8 +916,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getUpperBoundMethod = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_Array__GetUpperBound);
 
             BoundExpression rewrittenExpression = VisitExpression(collectionExpression);
-            BoundStatement? rewrittenBody = VisitStatement(node.Body);
-            Debug.Assert(rewrittenBody is { });
 
             // A[...] a
             LocalSymbol arrayVar = _factory.SynthesizedLocal(arrayType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
@@ -938,8 +964,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // (V)a[p_0, p_1, ...]
             BoundExpression iterationVarInitValue = ApplyConversionIfNotIdentity(
-                node.ElementConversion,
-                node.ElementPlaceholder,
+                elementConversion,
+                elementPlaceholder,
                 new BoundArrayAccess(forEachSyntax,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create((BoundExpression[])boundPositionVar),
@@ -947,8 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // V v = (V)a[p_0, p_1, ...];   /* OR */   (D1 d1, ...) = (V)a[p_0, p_1, ...];
 
-            ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
-            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(forEachSyntax, node.DeconstructionOpt, iterationVariables, iterationVarInitValue);
+            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(forEachSyntax, deconstruction, iterationVariables, iterationVarInitValue);
 
             InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVarDecl);
 
@@ -981,8 +1006,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // int p_dimension = a.GetLowerBound(dimension);
                 BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar[dimension], currentDimensionLowerBound);
 
-                GeneratedLabelSymbol breakLabel = dimension == 0 // outermost for-loop
-                    ? node.BreakLabel // i.e. the one that break statements will jump to
+                GeneratedLabelSymbol breakLabelInner = dimension == 0 // outermost for-loop
+                    ? breakLabel // i.e. the one that break statements will jump to
                     : new GeneratedLabelSymbol("break"); // Should not affect emitted code since unused
 
                 // p_dimension <= q_dimension  //NB: OrEqual
@@ -1001,18 +1026,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement positionIncrement = MakePositionIncrement(forEachSyntax, boundPositionVar[dimension], intType);
 
                 BoundStatement body;
-                GeneratedLabelSymbol continueLabel;
+                GeneratedLabelSymbol continueLabelInner;
 
                 if (forLoop == null)
                 {
                     // innermost for-loop
                     body = innermostLoopBody;
-                    continueLabel = node.ContinueLabel; //i.e. the one continue statements will actually jump to
+                    continueLabelInner = continueLabel; //i.e. the one continue statements will actually jump to
                 }
                 else
                 {
                     body = forLoop;
-                    continueLabel = new GeneratedLabelSymbol("continue"); // Should not affect emitted code since unused
+                    continueLabelInner = new GeneratedLabelSymbol("continue"); // Should not affect emitted code since unused
                 }
 
                 forLoop = RewriteForStatementWithoutInnerLocals(
@@ -1022,8 +1047,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenCondition: exitCondition,
                     rewrittenIncrement: positionIncrement,
                     rewrittenBody: body,
-                    breakLabel: breakLabel,
-                    continueLabel: continueLabel,
+                    breakLabel: breakLabelInner,
+                    continueLabel: continueLabelInner,
                     hasErrors: node.HasErrors);
             }
 

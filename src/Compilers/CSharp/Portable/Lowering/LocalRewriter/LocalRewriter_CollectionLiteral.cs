@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement initializer, Func<BoundCollectionLiteralSpreadElement, BoundStatement> getRewrittenBody)
         {
-            var enumeratorInfo = initializer.EnumeratorInfo;
+            var enumeratorInfo = initializer.EnumeratorInfoOpt;
             var addElementPlaceholder = initializer.AddElementPlaceholder;
 
             Debug.Assert(enumeratorInfo is { });
@@ -156,6 +156,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenBody = getRewrittenBody(initializer);
             RemovePlaceholderReplacement(addElementPlaceholder);
 
+            var elementPlaceholder = initializer.ElementPlaceholder;
+            var elementConversion = initializer.ElementConversion;
+            var iterationVariables = ImmutableArray.Create(iterationVariable);
+            var breakLabel = new GeneratedLabelSymbol("break");
+            var continueLabel = new GeneratedLabelSymbol("continue");
+
             BoundStatement statement;
             if (convertedExpression.Operand.Type is ArrayTypeSymbol arrayType)
             {
@@ -164,18 +170,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     statement = RewriteSingleDimensionalArrayForEachEnumerator(
                         initializer,
                         convertedExpression.Operand,
-                        initializer.ElementPlaceholder,
-                        initializer.ElementConversion,
-                        iterationVariables: ImmutableArray.Create(iterationVariable),
+                        elementPlaceholder,
+                        elementConversion,
+                        iterationVariables,
                         deconstruction: null,
-                        breakLabel: new GeneratedLabelSymbol("break"), // PROTOTYPE: Is this needed?
-                        continueLabel: new GeneratedLabelSymbol("continue"), // PROTOTYPE: Is this needed?
+                        breakLabel,
+                        continueLabel,
                         rewrittenBody);
                 }
                 else
                 {
-                    // PROTOTYPE: ...
-                    throw ExceptionUtilities.UnexpectedValue(arrayType);
+                    statement = RewriteMultiDimensionalArrayForEachEnumerator(
+                        initializer,
+                        convertedExpression.Operand,
+                        elementPlaceholder,
+                        elementConversion,
+                        iterationVariables,
+                        deconstruction: null,
+                        breakLabel,
+                        continueLabel,
+                        rewrittenBody);
                 }
             }
             else
@@ -184,13 +198,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     initializer,
                     convertedExpression,
                     enumeratorInfo,
-                    initializer.ElementPlaceholder,
-                    initializer.ElementConversion,
-                    iterationVariables: ImmutableArray.Create(iterationVariable),
+                    elementPlaceholder,
+                    elementConversion,
+                    iterationVariables,
                     deconstruction: null,
                     awaitableInfo: null,
-                    breakLabel: new GeneratedLabelSymbol("break"), // PROTOTYPE: Is this needed?
-                    continueLabel: new GeneratedLabelSymbol("continue"), // PROTOTYPE: Is this needed?
+                    breakLabel,
+                    continueLabel,
                     rewrittenBody);
             }
 

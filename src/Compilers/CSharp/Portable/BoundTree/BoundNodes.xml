@@ -1893,8 +1893,8 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Expression" Type="BoundExpression"/>
-    <Field Name="EnumeratorInfo" Type="ForEachEnumeratorInfo" Null="disallow"/>
-    <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder" SkipInVisitor="true" Null="disallow"/>
+    <Field Name="EnumeratorInfoOpt" Type="ForEachEnumeratorInfo?"/>
+    <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
     <Field Name="ElementConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
     <Field Name="AddElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
     <Field Name="AddMethodInvocation" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>

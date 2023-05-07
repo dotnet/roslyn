@@ -466,7 +466,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (elements.Any(e => e is BoundCollectionLiteralSpreadElement))
             {
-                // PROTOTYPE: Test with missing List<T> and with missing ToArray().
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
 
                 var result = BindCollectionInitializerCollectionLiteral(
