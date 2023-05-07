@@ -2183,9 +2183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversion = Conversion.Identity;
                     }
                 }
-                else if (boundExpr is BoundCollectionLiteralExpression { WasTargetTyped: true } convertedCollection)
+                else if (boundExpr is BoundCollectionLiteralExpression convertedCollection)
                 {
-                    type = convertedCollection.NaturalTypeOpt;
+                    type = null;
                     if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.CollectionLiteral, Conversion: var convertedCollectionConversion })
                     {
                         convertedType = convertedCollection.Type;

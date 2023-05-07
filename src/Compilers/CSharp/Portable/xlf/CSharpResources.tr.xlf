@@ -398,8 +398,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
-        <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible and no best type was found for the collection literal.</source>
-        <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible and no best type was found for the collection literal.</target>
+        <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
+        <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -830,11 +830,6 @@
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">Örtük Aralık Dizin Oluşturucu'nun çağrılması bağımsız değişkeni adlandıramaz.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ImplicitlyTypedCollectionLiteralNoBestType">
-        <source>No best type found for implicitly-typed collection literal.</source>
-        <target state="new">No best type found for implicitly-typed collection literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">

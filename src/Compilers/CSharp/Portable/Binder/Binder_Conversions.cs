@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? elementType;
             var collectionTypeKind = ConversionsBase.GetConstructibleCollectionType(Compilation, targetType, out elementType);
             BoundCollectionLiteralExpression collectionLiteral = (collectionTypeKind == ConversionsBase.ConstructibleCollectionTypeKind.CollectionInitializer)
-                ? BindCollectionInitializerCollectionLiteral(node, targetType, wasTargetTyped: true, wasCompilerGenerated: wasCompilerGenerated, diagnostics)
+                ? BindCollectionInitializerCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, diagnostics)
                 : BindArrayOrSpanCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, collectionTypeKind, node.Initializers, elementType!, diagnostics);
 
             return new BoundConversion(
@@ -472,10 +472,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = BindCollectionInitializerCollectionLiteral(
                     node,
                     GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, syntax).Construct(elementType),
-                    wasTargetTyped: true,
                     wasCompilerGenerated: wasCompilerGenerated,
                     diagnostics);
-                return result.Update(result.NaturalTypeOpt, result.WasTargetTyped, result.Placeholder, result.CollectionCreation, result.Initializers, targetType);
+                return result.Update(result.Placeholder, result.CollectionCreation, result.Initializers, targetType);
             }
 
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
@@ -486,8 +485,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return new BoundCollectionLiteralExpression(
                 syntax,
-                naturalTypeOpt: null,
-                wasTargetTyped: true,
                 implicitReceiver,
                 collectionCreation: null,
                 builder.ToImmutableAndFree(),
@@ -524,23 +521,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundCollectionLiteralExpression BindCollectionInitializerCollectionLiteral(
             BoundUnconvertedCollectionLiteralExpression node,
             TypeSymbol targetType,
-            bool wasTargetTyped,
             bool wasCompilerGenerated,
             BindingDiagnosticBag diagnostics,
             bool hasErrors = false)
         {
-            Debug.Assert(wasTargetTyped ||
-                targetType.IsErrorType() ||
-                targetType.Equals(node.Type, TypeCompareKind.ConsiderEverything));
-
             var syntax = node.Syntax;
 
             BoundExpression collectionCreation;
             if (targetType is NamedTypeSymbol namedType)
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                // PROTOTYPE: Should we use List<T>(int capacity) constructor when the size is known
-                // and using natural type? What about when target-typed to List<T>?
+                // PROTOTYPE: Should we use List<T>(int capacity) constructor when the size is known?
                 collectionCreation = BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
                 collectionCreation.WasCompilerGenerated = true;
                 analyzedArguments.Free();
@@ -557,8 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-            // PROTOTYPE: When binding a collection literal using the natural type, or
-            // when creating an intermediate List<T>, should we use the well-known
+            // PROTOTYPE: When generating a List<T>, should we use the well-known
             // member List<T>.Add() rather than relying on lookup?
             var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
             var builder = ArrayBuilder<BoundExpression>.GetInstance(node.Initializers.Length);
@@ -586,8 +576,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return new BoundCollectionLiteralExpression(
                 syntax,
-                naturalTypeOpt: node.Type,
-                wasTargetTyped: wasTargetTyped,
                 implicitReceiver,
                 collectionCreation,
                 builder.ToImmutableAndFree(),

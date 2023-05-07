@@ -386,33 +386,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = RebindSimpleBinaryOperatorAsConverted(unconvertedBinaryOperator, diagnostics);
                     }
                     break;
-                case BoundUnconvertedCollectionLiteralExpression expr:
-                    {
-                        bool hasErrors = expr.HasErrors;
-                        var syntax = (CollectionCreationExpressionSyntax)expr.Syntax;
-                        var collectionType = expr.Type;
-                        if (collectionType is null)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, syntax.Location);
-                            collectionType = CreateErrorType();
-                            hasErrors = true;
-                        }
-                        else
-                        {
-                            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                            collectionType.AddUseSiteInfo(ref useSiteInfo);
-                            diagnostics.Add(syntax, useSiteInfo);
-                            collectionType.CheckAllConstraints(Compilation, Conversions, syntax.Location, diagnostics);
-                        }
-                        result = BindCollectionInitializerCollectionLiteral(
-                            expr,
-                            collectionType,
-                            wasTargetTyped: false,
-                            wasCompilerGenerated: expr.WasCompilerGenerated,
-                            diagnostics,
-                            hasErrors);
-                    }
-                    break;
                 default:
                     result = expression;
                     break;
@@ -4589,10 +4562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Add(bindElement(element, diagnostics));
             }
-
-            var initializers = builder.ToImmutableAndFree();
-            TypeSymbol? collectionType = InferCollectionLiteralType(initializers);
-            return new BoundUnconvertedCollectionLiteralExpression(syntax, initializers, this, type: collectionType);
+            return new BoundUnconvertedCollectionLiteralExpression(syntax, builder.ToImmutableAndFree(), this);
 
             BoundExpression bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
             {
@@ -4656,36 +4626,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors)
                 { WasCompilerGenerated = true };
             }
-        }
-
-        private TypeSymbol? InferCollectionLiteralType(ImmutableArray<BoundExpression> initializers)
-        {
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded; // PROTOTYPE: Include use-site diagnostics.
-            // PROTOTYPE: Should IEnumerable contribute object or no type to the best common type?
-            var expressions = initializers.Any(i => i is BoundCollectionLiteralSpreadElement)
-                ? initializers.SelectAsArray(i => i is BoundCollectionLiteralSpreadElement s ? s.ElementPlaceholder : i)
-                : initializers;
-            var bestType = BestTypeInferrer.InferBestType(expressions, Conversions, ref useSiteInfo, inferredFromFunctionType: out _);
-
-            if (bestType is { } && !bestType.IsVoidType())
-            {
-                // Check that each element (even those without a type) can be converted to the best type.
-                foreach (var expr in expressions)
-                {
-                    if (!Conversions.ClassifyImplicitConversionFromExpression(expr, bestType, ref useSiteInfo).Exists)
-                    {
-                        bestType = null;
-                        break;
-                    }
-                }
-
-                if (bestType is { })
-                {
-                    return Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(bestType);
-                }
-            }
-
-            return null;
         }
 #nullable disable
 

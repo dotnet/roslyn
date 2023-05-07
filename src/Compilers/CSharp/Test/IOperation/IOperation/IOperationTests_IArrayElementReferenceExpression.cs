@@ -519,21 +519,16 @@ class C
 ";
 
             string expectedOperationTree = @"
-IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[0]')
-  Arguments(0)
-  Initializer:
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[0]')
-      Initializers(1):
-          IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '0')
-            Instance Receiver:
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[0]')
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '0')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '[0]')
+  Children(1):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ";
-            var expectedDiagnostics = new DiagnosticDescription[0];
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (6,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                //         var a = /*<bind>*/[0]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "a = /*<bind>*/[0]").WithArguments("collection literals").WithLocation(6, 13)
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<CollectionCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

@@ -159,23 +159,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (5,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("object").WithLocation(5, 20),
-                // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic y = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("dynamic").WithLocation(6, 21),
-                // (7,17): error CS9503: No best type found for implicitly-typed collection literal.
+                // (7,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
                 //         var z = [];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[]").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = []").WithArguments("collection literals").WithLocation(7, 13));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
             Assert.Equal(3, collections.Length);
-            VerifyTypes(model, collections[0], expectedType: "?", expectedConvertedType: "System.Object", ConversionKind.NoConversion);
-            VerifyTypes(model, collections[1], expectedType: "?", expectedConvertedType: "dynamic", ConversionKind.NoConversion);
-            VerifyTypes(model, collections[2], expectedType: "?", expectedConvertedType: "?", ConversionKind.Identity);
+            VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: "System.Object", ConversionKind.NoConversion);
+            VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "dynamic", ConversionKind.NoConversion);
+            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
         }
 
         [Fact]
@@ -189,23 +189,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         object x = [1];
                         dynamic y = [2];
                         var z = [3];
-                        x.Report(includeType: true);
-                        ((object)y).Report(includeType: true);
-                        z.Report(includeType: true);
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput:
-                "System.Collections.Generic.List<System.Int32>[1], System.Collections.Generic.List<System.Int32>[2], System.Collections.Generic.List<System.Int32>[3], ");
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
+                //         object x = [1];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1]").WithArguments("object").WithLocation(5, 20),
+                // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
+                //         dynamic y = [2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("dynamic").WithLocation(6, 21),
+                // (7,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                //         var z = [3];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = [3]").WithArguments("collection literals").WithLocation(7, 13));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
             Assert.Equal(3, collections.Length);
-            VerifyTypes(model, collections[0], expectedType: "System.Collections.Generic.List<System.Int32>", expectedConvertedType: "System.Object", ConversionKind.ImplicitReference);
-            VerifyTypes(model, collections[1], expectedType: "System.Collections.Generic.List<System.Int32>", expectedConvertedType: "dynamic", ConversionKind.ImplicitReference);
-            VerifyTypes(model, collections[2], expectedType: "System.Collections.Generic.List<System.Int32>", expectedConvertedType: "System.Collections.Generic.List<System.Int32>", ConversionKind.Identity);
+            VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: "System.Object", ConversionKind.NoConversion);
+            VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "dynamic", ConversionKind.NoConversion);
+            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
         }
 
         [Fact]
@@ -224,15 +229,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (5,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object x = [1, ""];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, @"[1, """"]").WithArguments("object").WithLocation(5, 20),
-                // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic y = [2, ""];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, @"[2, """"]").WithArguments("dynamic").WithLocation(6, 21),
-                // (7,17): error CS9503: No best type found for implicitly-typed collection literal.
+                // (7,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
                 //         var z = [3, ""];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, @"[3, """"]").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, @"z = [3, """"]").WithArguments("collection literals").WithLocation(7, 13));
         }
 
         [Fact]
@@ -252,15 +257,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (5,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object x = [null];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[null]").WithArguments("object").WithLocation(5, 20),
-                // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic y = [null];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[null]").WithArguments("dynamic").WithLocation(6, 21),
-                // (7,17): error CS9503: No best type found for implicitly-typed collection literal.
+                // (7,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
                 //         var z = [null];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[null]").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = [null]").WithArguments("collection literals").WithLocation(7, 13));
         }
 
         [Fact]
@@ -280,13 +285,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,17): error CS9503: No best type found for implicitly-typed collection literal.
+                // (5,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
                 //         var x = [1, 2, null];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[1, 2, null]").WithLocation(5, 17),
-                // (6,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = [1, 2, null]").WithArguments("collection literals").WithLocation(5, 13),
+                // (6,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object y = [1, 2, null];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2, null]").WithArguments("object").WithLocation(6, 20),
-                // (7,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (7,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic z = [1, 2, null];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2, null]").WithArguments("dynamic").WithLocation(7, 21));
         }
@@ -305,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,23): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (5,23): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object[] x = [[]];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("object").WithLocation(5, 23));
         }
@@ -319,11 +324,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         object[] y = [[2]];
-                        y.Report(includeType: true);
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Object[][[2]], ");
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,23): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
+                //         object[] y = [[2]];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("object").WithLocation(5, 23));
         }
 
         [Fact]
@@ -335,11 +343,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         var z = [[3]];
-                        z.Report(includeType: true);
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>[[3]], ");
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                //         var z = [[3]];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = [[3]]").WithArguments("collection literals").WithLocation(5, 13));
         }
 
         [Fact]
@@ -380,7 +391,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static T F<T>(T t) => t;
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2], [[3, 4]], ");
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(5,9): error CS0411: The type arguments for method 'Program.F<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F([1, 2]).Report();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T)").WithLocation(5, 9),
+                // 0.cs(6,9): error CS0411: The type arguments for method 'Program.F<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F([[3, 4]]).Report();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T)").WithLocation(6, 9));
         }
 
         [Fact]
@@ -423,179 +441,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,25): error CS9500: Cannot initialize type 'IEnumerable' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (7,25): error CS9500: Cannot initialize type 'IEnumerable' with a collection literal because the type is not constructible.
                 //         IEnumerable x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.IEnumerable").WithLocation(7, 25),
-                // (8,30): error CS9500: Cannot initialize type 'IEnumerable<int>' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (8,30): error CS9500: Cannot initialize type 'IEnumerable<int>' with a collection literal because the type is not constructible.
                 //         IEnumerable<int> y = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(8, 30),
-                // (9,27): error CS9500: Cannot initialize type 'IList<object>' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (9,27): error CS9500: Cannot initialize type 'IList<object>' with a collection literal because the type is not constructible.
                 //         IList<object> z = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IList<object>").WithLocation(9, 27),
-                // (10,38): error CS9500: Cannot initialize type 'IDictionary<string, int>' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (10,38): error CS9500: Cannot initialize type 'IDictionary<string, int>' with a collection literal because the type is not constructible.
                 //         IDictionary<string, int> w = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IDictionary<string, int>").WithLocation(10, 38));
-        }
-
-        [Fact]
-        public void NaturalType_13()
-        {
-            string source = """
-                #nullable enable
-                class Program
-                {
-                    static void Main()
-                    {
-                        var x = [null, ""];
-                        var y = [new object(), (string?)null];
-                        var z = [new object(), ""];
-                        x[0] = null;
-                        y[0] = null;
-                        z[0] = null; // 1
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            // PROTOTYPE: Should report warning for // 1.
-            comp.VerifyEmitDiagnostics();
-        }
-
-        [Fact]
-        public void NaturalType_14()
-        {
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        var a = [(int x) => x];
-                        var b = [Main];
-                        var c = [null, () => { }, Main];
-                        a.Report();
-                        b.Report();
-                        c.Report();
-                    }
-                }
-                """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput:
-                "[System.Func`2[System.Int32,System.Int32]], [System.Action], [null, System.Action, System.Action], ");
-        }
-
-        [Fact]
-        public void NaturalType_15()
-        {
-            string source = """
-                using System;
-                using System.Collections.Generic;
-                class Program
-                {
-                    static void Main()
-                    {
-                        Action<object>[] a = [x => { }];
-                        List<Func<int>> b = [() => default];
-                        a.Report();
-                        b.Report();
-                    }
-                }
-                """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput:
-                "[System.Action`1[System.Object]], [System.Func`1[System.Int32]], ");
-        }
-
-        [Fact]
-        public void NaturalType_16()
-        {
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        var a = [x => x];
-                        var b = [(int x) => { }, Main];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (5,17): error CS9503: No best type found for implicitly-typed collection literal.
-                //         var a = [x => x];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[x => x]").WithLocation(5, 17),
-                // (6,17): error CS9503: No best type found for implicitly-typed collection literal.
-                //         var b = [(int x) => { }, Main];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[(int x) => { }, Main]").WithLocation(6, 17));
-        }
-
-        [Fact]
-        public void NaturalType_17()
-        {
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        var a = [Unknown];
-                        var b = [Unknown, 2];
-                        var c = [3, Unknown];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (5,18): error CS0103: The name 'Unknown' does not exist in the current context
-                //         var a = [Unknown];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Unknown").WithArguments("Unknown").WithLocation(5, 18),
-                // (6,17): error CS9503: No best type found for implicitly-typed collection literal.
-                //         var b = [Unknown, 2];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[Unknown, 2]").WithLocation(6, 17),
-                // (6,18): error CS0103: The name 'Unknown' does not exist in the current context
-                //         var b = [Unknown, 2];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Unknown").WithArguments("Unknown").WithLocation(6, 18),
-                // (7,17): error CS9503: No best type found for implicitly-typed collection literal.
-                //         var c = [3, Unknown];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[3, Unknown]").WithLocation(7, 17),
-                // (7,21): error CS0103: The name 'Unknown' does not exist in the current context
-                //         var c = [3, Unknown];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Unknown").WithArguments("Unknown").WithLocation(7, 21));
-        }
-
-        [Fact]
-        public void NaturalType_18()
-        {
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        var x = new[] { Main() };
-                        var y = [Main()];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (5,17): error CS0826: No best type found for implicitly-typed array
-                //         var x = new[] { Main() };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { Main() }").WithLocation(5, 17),
-                // (6,17): error CS9503: No best type found for implicitly-typed collection literal.
-                //         var y = [Main()];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[Main()]").WithLocation(6, 17));
-        }
-
-        [Fact]
-        public void NaturalType_19()
-        {
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        (var x, var y) = (["str"], [[], [1, 2]]);
-                        x.Report(includeType: true);
-                        y.Report(includeType: true);
-                    }
-                }
-                """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Collections.Generic.List<System.String>[str], System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>[[], [1, 2]], ");
         }
 
         [Fact]
@@ -616,9 +473,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(
-                new[] { source, s_collectionExtensions },
-                expectedOutput: "System.Collections.Generic.List<System.Int32>[1], System.Collections.Generic.List<System.Int32>[2], System.Collections.Generic.List<System.Int32>[3], ");
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(6,25): error CS9500: Cannot initialize type 'IEnumerable' with a collection literal because the type is not constructible.
+                //         IEnumerable a = [1];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1]").WithArguments("System.Collections.IEnumerable").WithLocation(6, 25),
+                // 0.cs(7,25): error CS9500: Cannot initialize type 'ICollection' with a collection literal because the type is not constructible.
+                //         ICollection b = [2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("System.Collections.ICollection").WithLocation(7, 25),
+                // 0.cs(8,19): error CS9500: Cannot initialize type 'IList' with a collection literal because the type is not constructible.
+                //         IList c = [3];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[3]").WithArguments("System.Collections.IList").WithLocation(8, 19));
         }
 
         [Fact]
@@ -646,19 +511,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // PROTOTYPE: Verify expectedOutput once interfaces of List<T> are supported for target types.
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
             comp.VerifyEmitDiagnostics(
-                // 0.cs(6,30): error CS9500: Cannot initialize type 'IEnumerable<int>' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // 0.cs(6,30): error CS9500: Cannot initialize type 'IEnumerable<int>' with a collection literal because the type is not constructible.
                 //         IEnumerable<int> a = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(6, 30),
-                // 0.cs(7,30): error CS9500: Cannot initialize type 'ICollection<int>' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // 0.cs(7,30): error CS9500: Cannot initialize type 'ICollection<int>' with a collection literal because the type is not constructible.
                 //         ICollection<int> b = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.ICollection<int>").WithLocation(7, 30),
-                // 0.cs(8,24): error CS9500: Cannot initialize type 'IList<int>' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // 0.cs(8,24): error CS9500: Cannot initialize type 'IList<int>' with a collection literal because the type is not constructible.
                 //         IList<int> c = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IList<int>").WithLocation(8, 24),
-                // 0.cs(9,38): error CS9500: Cannot initialize type 'IReadOnlyCollection<int>' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // 0.cs(9,38): error CS9500: Cannot initialize type 'IReadOnlyCollection<int>' with a collection literal because the type is not constructible.
                 //         IReadOnlyCollection<int> d = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IReadOnlyCollection<int>").WithLocation(9, 38),
-                // 0.cs(10,32): error CS9500: Cannot initialize type 'IReadOnlyList<int>' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // 0.cs(10,32): error CS9500: Cannot initialize type 'IReadOnlyList<int>' with a collection literal because the type is not constructible.
                 //         IReadOnlyList<int> e = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IReadOnlyList<int>").WithLocation(10, 32));
         }
@@ -685,9 +550,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(
-                new[] { source, s_collectionExtensions },
-                expectedOutput: "System.Collections.Generic.List<System.Int32>[1], System.Collections.Generic.List<System.Int32>[2], System.Collections.Generic.List<System.Int32>[3], System.Collections.Generic.List<System.Int32>[4], System.Collections.Generic.List<System.Int32>[5], ");
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(6,30): error CS9500: Cannot initialize type 'IEnumerable<int>' with a collection literal because the type is not constructible.
+                //         IEnumerable<int> a = [1];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(6, 30),
+                // 0.cs(7,30): error CS9500: Cannot initialize type 'ICollection<int>' with a collection literal because the type is not constructible.
+                //         ICollection<int> b = [2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("System.Collections.Generic.ICollection<int>").WithLocation(7, 30),
+                // 0.cs(8,24): error CS9500: Cannot initialize type 'IList<int>' with a collection literal because the type is not constructible.
+                //         IList<int> c = [3];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[3]").WithArguments("System.Collections.Generic.IList<int>").WithLocation(8, 24),
+                // 0.cs(9,38): error CS9500: Cannot initialize type 'IReadOnlyCollection<int>' with a collection literal because the type is not constructible.
+                //         IReadOnlyCollection<int> d = [4];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[4]").WithArguments("System.Collections.Generic.IReadOnlyCollection<int>").WithLocation(9, 38),
+                // 0.cs(10,32): error CS9500: Cannot initialize type 'IReadOnlyList<int>' with a collection literal because the type is not constructible.
+                //         IReadOnlyList<int> e = [5];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[5]").WithArguments("System.Collections.Generic.IReadOnlyList<int>").WithLocation(10, 32));
         }
 
         [Fact]
@@ -706,447 +585,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,17): error CS9503: No best type found for implicitly-typed collection literal.
+                // (5,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
                 //         var x = [null, 1];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[null, 1]").WithLocation(5, 17),
-                // (6,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = [null, 1]").WithArguments("collection literals").WithLocation(5, 13),
+                // (6,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object y = [null, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[null, 2]").WithArguments("object").WithLocation(6, 20));
-        }
-
-        [Fact]
-        public void NaturalType_24()
-        {
-            string source = """
-                class Program
-                {
-                    static object F1(dynamic a, object b)
-                    {
-                        var c1 = [a, b];
-                        return c1;
-                    }
-                    static object F2(dynamic[] a, object[] b)
-                    {
-                        var c2 = [b, a];
-                        return c2;
-                    }
-                    static void Main()
-                    {
-                        F1(1, 2).Report();
-                        F2(new dynamic[] { 3 }, new object[] { 4 }).Report();
-                    }
-                }
-                """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
-            comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "[1, 2], [[4], [3]], ");
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
-            Assert.Equal(2, collections.Length);
-            VerifyTypes(model, collections[0], expectedType: "System.Collections.Generic.List<dynamic>", expectedConvertedType: "System.Collections.Generic.List<dynamic>", ConversionKind.Identity);
-            VerifyTypes(model, collections[1], expectedType: "System.Collections.Generic.List<dynamic[]>", expectedConvertedType: "System.Collections.Generic.List<dynamic[]>", ConversionKind.Identity);
-        }
-
-        [Fact]
-        public void NaturalType_25()
-        {
-            string source = """
-                class Program
-                {
-                    static object F1((int, int) a, (int X, int Y) b)
-                    {
-                        var c1 = [a, b];
-                        return c1;
-                    }
-                    static object F2((int A, int B)[] a, (int X, int Y)[] b)
-                    {
-                        var c2 = [b, a];
-                        return c2;
-                    }
-                    static void Main()
-                    {
-                        F1((1, 2), (3, 4)).Report();
-                        F2(new [] { (1, 2) }, new [] { (3, 4) }).Report();
-                    }
-                }
-                """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
-            comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "[(1, 2), (3, 4)], [[(3, 4)], [(1, 2)]], ");
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
-            Assert.Equal(2, collections.Length);
-            VerifyTypes(model, collections[0], expectedType: "System.Collections.Generic.List<(System.Int32, System.Int32)>", expectedConvertedType: "System.Collections.Generic.List<(System.Int32, System.Int32)>", ConversionKind.Identity);
-            VerifyTypes(model, collections[1], expectedType: "System.Collections.Generic.List<(System.Int32, System.Int32)[]>", expectedConvertedType: "System.Collections.Generic.List<(System.Int32, System.Int32)[]>", ConversionKind.Identity);
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void NaturalType_26()
-        {
-            string source = """
-                using System;
-                class Program
-                {
-                    static object F1(IntPtr a, nint b)
-                    {
-                        var c1 = [a, b];
-                        return c1;
-                    }
-                    static object F2(UIntPtr[] a, nuint[] b)
-                    {
-                        var c2 = [b, a];
-                        return c2;
-                    }
-                    static void Main()
-                    {
-                        F1(1, 2).Report();
-                        F2(new UIntPtr[] { 3 }, new nuint[] { 4 }).Report();
-                    }
-                }
-                """;
-
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net60);
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(6,18): error CS9503: No best type found for implicitly-typed collection literal.
-                //         var c1 = [a, b];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[a, b]").WithLocation(6, 18),
-                // 0.cs(11,18): error CS9503: No best type found for implicitly-typed collection literal.
-                //         var c2 = [b, a];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[b, a]").WithLocation(11, 18),
-                // 0.cs(16,12): error CS1503: Argument 1: cannot convert from 'int' to 'System.IntPtr'
-                //         F1(1, 2).Report();
-                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "System.IntPtr").WithLocation(16, 12),
-                // 0.cs(17,28): error CS0266: Cannot implicitly convert type 'int' to 'System.UIntPtr'. An explicit conversion exists (are you missing a cast?)
-                //         F2(new UIntPtr[] { 3 }, new nuint[] { 4 }).Report();
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "3").WithArguments("int", "System.UIntPtr").WithLocation(17, 28));
-
-            comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
-            comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "[1, 2], [[4], [3]], ");
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
-            Assert.Equal(2, collections.Length);
-            VerifyTypes(model, collections[0], expectedType: "System.Collections.Generic.List<nint>", expectedConvertedType: "System.Collections.Generic.List<nint>", ConversionKind.Identity);
-            VerifyTypes(model, collections[1], expectedType: "System.Collections.Generic.List<nuint[]>", expectedConvertedType: "System.Collections.Generic.List<nuint[]>", ConversionKind.Identity);
-        }
-
-        [Fact]
-        public void NaturalType_27()
-        {
-            string source = """
-                #nullable enable
-                class Program
-                {
-                    static object F1(object? a, object b)
-                    {
-                        var c1 = [a, b];
-                        return c1;
-                    }
-                    static object F2(object?[] a, object[] b)
-                    {
-                        var c2 = [b, a];
-                        return c2;
-                    }
-                    static void Main()
-                    {
-                        F1(1, 2).Report();
-                        F2(new object[] { 3 }, new object[] { 4 }).Report();
-                    }
-                }
-                """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(11,22): warning CS8620: Argument of type 'object?[]' cannot be used for parameter 'item' of type 'object[]' in 'void List<object[]>.Add(object[] item)' due to differences in the nullability of reference types.
-                //         var c2 = [b, a];
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "a").WithArguments("object?[]", "object[]", "item", "void List<object[]>.Add(object[] item)").WithLocation(11, 22));
-            CompileAndVerify(comp, expectedOutput: "[1, 2], [[4], [3]], ");
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
-            Assert.Equal(2, collections.Length);
-            VerifyTypes(model, collections[0], expectedType: "System.Collections.Generic.List<System.Object>", expectedConvertedType: "System.Collections.Generic.List<System.Object>", ConversionKind.Identity);
-            VerifyTypes(model, collections[1], expectedType: "System.Collections.Generic.List<System.Object[]>", expectedConvertedType: "System.Collections.Generic.List<System.Object[]>", ConversionKind.Identity);
-        }
-
-        [Fact]
-        public void NaturalType_28()
-        {
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        F(false);
-                    }
-                    static void F(bool b)
-                    {
-                        var x = b ? [1] : [];
-                        var y = b? [] : [2];
-                        x.Report(includeType: true);
-                        y.Report(includeType: true);
-                    }
-                }
-                """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput:
-                "System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[2], ");
-        }
-
-        [Fact]
-        public void NaturalType_29()
-        {
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        F(false);
-                    }
-                    static void F(bool b)
-                    {
-                        var x = b switch { true => [1], false => [] };
-                        var y = b switch { true => [], false => [2] };
-                        x.Report(includeType: true);
-                        y.Report(includeType: true);
-                    }
-                }
-                """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput:
-                "System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[2], ");
-        }
-
-        [Fact]
-        public void NaturalType_30()
-        {
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        F(false);
-                    }
-                    static void F(bool b)
-                    {
-                        var x = () => { if (b) return [1]; return []; };
-                        var y = () => { if (b) return []; return [2]; };
-                        x().Report(includeType: true);
-                        y().Report(includeType: true);
-                    }
-                }
-                """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput:
-                "System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[2], ");
-        }
-
-        [Fact]
-        public void NaturalType_31()
-        {
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        F(false, 3);
-                    }
-                    static void F(bool b, object o)
-                    {
-                        var x = b ? [1] : [o];
-                        var y = b? [o] : [2];
-                        x.Report(includeType: true);
-                        y.Report(includeType: true);
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (9,17): error CS0172: Type of conditional expression cannot be determined because 'List<int>' and 'List<object>' implicitly convert to one another
-                //         var x = b ? [1] : [o];
-                Diagnostic(ErrorCode.ERR_AmbigQM, "b ? [1] : [o]").WithArguments("System.Collections.Generic.List<int>", "System.Collections.Generic.List<object>").WithLocation(9, 17),
-                // (10,17): error CS0172: Type of conditional expression cannot be determined because 'List<object>' and 'List<int>' implicitly convert to one another
-                //         var y = b? [o] : [2];
-                Diagnostic(ErrorCode.ERR_AmbigQM, "b? [o] : [2]").WithArguments("System.Collections.Generic.List<object>", "System.Collections.Generic.List<int>").WithLocation(10, 17));
-        }
-
-        [Fact]
-        public void NaturalType_32()
-        {
-            string source = """
-                class Program
-                {
-                    static void F(bool b)
-                    {
-                        var x = b ? [1] : [null];
-                        var y = b? [null] : [2];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (5,28): error CS1950: The best overloaded Add method 'List<int>.Add(int)' for the collection initializer has some invalid arguments
-                //         var x = b ? [1] : [null];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "null").WithArguments("System.Collections.Generic.List<int>.Add(int)").WithLocation(5, 28),
-                // (5,28): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
-                //         var x = b ? [1] : [null];
-                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(5, 28),
-                // (6,21): error CS1950: The best overloaded Add method 'List<int>.Add(int)' for the collection initializer has some invalid arguments
-                //         var y = b? [null] : [2];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "null").WithArguments("System.Collections.Generic.List<int>.Add(int)").WithLocation(6, 21),
-                // (6,21): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
-                //         var y = b? [null] : [2];
-                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(6, 21));
-        }
-
-        [Fact]
-        public void NaturalType_33()
-        {
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        F(false);
-                    }
-                    static void F(bool b)
-                    {
-                        var x = b ? ["1"] : [null];
-                        var y = b? [null] : ["2"];
-                        x.Report(includeType: true);
-                        y.Report(includeType: true);
-                    }
-                }
-                """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput:
-                "System.Collections.Generic.List<System.String>[null], System.Collections.Generic.List<System.String>[2], ");
-        }
-
-        [Fact]
-        public void NaturalType_34()
-        {
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        int n = [].Count;
-                        var v = [][0];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (5,17): error CS9503: No best type found for implicitly-typed collection literal.
-                //         int n = [].Count;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[]").WithLocation(5, 17),
-                // (6,17): error CS9503: No best type found for implicitly-typed collection literal.
-                //         var v = [][0];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[]").WithLocation(6, 17));
-        }
-
-        [Fact]
-        public void NaturalType_35()
-        {
-            string source = """
-                using System;
-                class Program
-                {
-                    static void Main()
-                    {
-                        int x = [1, 2, 3].Count;
-                        var y = [1, 2, 3][1];
-                        Console.Write($"{x}, {y}, ");
-                        int? z = [4]?.Count;
-                        var w = [4]?[0];
-                        Console.Write($"{z}, {w}, ");
-                    }
-                }
-                """;
-            CompileAndVerify(source, expectedOutput: "3, 2, 1, 4, ");
-        }
-
-        [Fact]
-        public void NaturalType_36()
-        {
-            string source = """
-                using System;
-                class Program
-                {
-                    static void Main()
-                    {
-                        int n = [() => 42][0]();
-                        Console.WriteLine(n);
-                    }
-                }
-                """;
-            CompileAndVerify(source, expectedOutput: "42");
-        }
-
-        [Fact]
-        public void NaturalType_37()
-        {
-            string source = """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        if (args.Length > 0) throw [];
-                        throw [1, 2, 3];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (5,36): error CS9500: Cannot initialize type 'Exception' with a collection literal because the type is not constructible and no best type was found for the collection literal.
-                //         if (args.Length > 0) throw [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Exception").WithLocation(5, 36),
-                // (6,15): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'System.Exception'
-                //         throw [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[1, 2, 3]").WithArguments("System.Collections.Generic.List<int>", "System.Exception").WithLocation(6, 15));
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void NaturalType_38()
-        {
-            string source = """
-                using System;
-                class Program
-                {
-                    static void Main()
-                    {
-                        Console.WriteLine([1, 2, 3] is []);
-                        Console.WriteLine([1, 2, 3] is [_, _, _]);
-                    }
-                }
-                """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net70, expectedOutput: """
-                False
-                True
-                """);
-        }
-
-        [Fact]
-        public void NaturalType_39()
-        {
-            string source = """
-                struct S { }
-                class Program
-                {
-                    static void Main()
-                    {
-                        S s = [null, Unknown];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (6,22): error CS0103: The name 'Unknown' does not exist in the current context
-                //         S s = [null, Unknown];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Unknown").WithArguments("Unknown").WithLocation(6, 22));
         }
 
         [Fact]
@@ -1167,25 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (5,20): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'int[]'
-                //         int[] a1 = b ? [1] : [];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "b ? [1] : []").WithArguments("System.Collections.Generic.List<int>", "int[]").WithLocation(5, 20),
-                // (6,20): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'int[]'
-                //         int[] a2 = b? [] : [2];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "b? [] : [2]").WithArguments("System.Collections.Generic.List<int>", "int[]").WithLocation(6, 20),
-                // (9,32): error CS1950: The best overloaded Add method 'List<int>.Add(int)' for the collection initializer has some invalid arguments
-                //         int?[] a5 = b ? [5] : [null];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "null").WithArguments("System.Collections.Generic.List<int>.Add(int)").WithLocation(9, 32),
-                // (9,32): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
-                //         int?[] a5 = b ? [5] : [null];
-                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(9, 32),
-                // (10,26): error CS1950: The best overloaded Add method 'List<int>.Add(int)' for the collection initializer has some invalid arguments
-                //         int?[] a6 = b ? [null] : [6];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "null").WithArguments("System.Collections.Generic.List<int>.Add(int)").WithLocation(10, 26),
-                // (10,26): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
-                //         int?[] a6 = b ? [null] : [6];
-                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(10, 26));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1297,13 +723,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         var x = F1([1]);
                         var y = F2([2]);
-                        x.Report(includeType: true);
-                        y.Report(includeType: true);
                     }
                 }
                 """;
-            // PROTOTYPE: Should the calls be ambiguous?
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Collections.Generic.List<System.Int32>[1], System.Collections.Generic.List<System.Int32>[2], ");
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(List<int>)' and 'Program.F1(int[])'
+                //         var x = F1([1]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("Program.F1(System.Collections.Generic.List<int>)", "Program.F1(int[])").WithLocation(10, 17),
+                // (11,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(int[])' and 'Program.F2(List<int>)'
+                //         var y = F2([2]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(int[])", "Program.F2(System.Collections.Generic.List<int>)").WithLocation(11, 17));
         }
 
         [Fact]
@@ -1321,13 +751,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         var x = F1([1]);
                         var y = F2([2]);
-                        x.Report(includeType: true);
-                        y.Report(includeType: true);
                     }
                 }
                 """;
-            // PROTOTYPE: Should the calls be ambiguous?
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Collections.Generic.List<System.Int32>[1], System.Collections.Generic.List<System.Int32>[2], ");
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(List<int>)' and 'Program.F1(List<long?>)'
+                //         var x = F1([1]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("Program.F1(System.Collections.Generic.List<int>)", "Program.F1(System.Collections.Generic.List<long?>)").WithLocation(10, 17),
+                // (11,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(List<long?>)' and 'Program.F2(List<int>)'
+                //         var y = F2([2]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(System.Collections.Generic.List<long?>)", "Program.F2(System.Collections.Generic.List<int>)").WithLocation(11, 17));
         }
 
         [Fact]
@@ -1345,12 +779,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         var x = F1([1]);
                         var y = F2([2]);
-                        x.Report(includeType: true);
-                        y.Report(includeType: true);
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(10,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(List<int?>)' and 'Program.F1(List<long>)'
                 //         var x = F1([1]);
@@ -1381,13 +813,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         var x = F1([1]);
                         var y = F2([2]);
-                        x.Report(includeType: true);
-                        y.Report(includeType: true);
                     }
                 }
                 """;
-            // PROTOTYPE: Should the calls be ambiguous?
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Collections.Generic.List<System.Int32>[1], System.Collections.Generic.List<System.Int32>[2], ");
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (16,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(S)' and 'Program.F1(List<int>)'
+                //         var x = F1([1]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("Program.F1(S)", "Program.F1(System.Collections.Generic.List<int>)").WithLocation(16, 17),
+                // (17,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(List<int>)' and 'Program.F2(S)'
+                //         var y = F2([2]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(System.Collections.Generic.List<int>)", "Program.F2(S)").WithLocation(17, 17));
         }
 
         [Fact]
@@ -1405,14 +841,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         var x = F1([1]);
                         var y = F2([2]);
-                        x.Report(includeType: true);
-                        y.Report(includeType: true);
                     }
                 }
                 """;
-            // PROTOTYPE: Should these calls be ambiguous when we treat IEnumerable<T> as a constructible type?
-            // Should better function member prefer one of the two overloads?
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Collections.Generic.List<System.Int32>[1], System.Collections.Generic.List<System.Int32>[2], ");
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,17): error CS0411: The type arguments for method 'Program.F1<T>(IEnumerable<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x = F1([1]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Collections.Generic.IEnumerable<T>)").WithLocation(10, 17),
+                // (11,17): error CS0411: The type arguments for method 'Program.F2<T>(T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var y = F2([2]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T[])").WithLocation(11, 17));
         }
 
         [Fact]
@@ -1486,12 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should compile and run successfully: expectedOutput: "System.Collections.Generic.List<System.Int32[]>[[1, 2, 3]], "
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(6,17): error CS0826: No best type found for implicitly-typed array
-                //         var b = new[] { a, [1, 2, 3] };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { a, [1, 2, 3] }").WithLocation(6, 17));
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Int32[][][[], [1, 2, 3]], ");
         }
 
         [Fact]
@@ -1508,12 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should compile and run successfully: expectedOutput: "System.Collections.Generic.List<System.Byte[]>[[1, 2, 3]], "
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(6,17): error CS0826: No best type found for implicitly-typed array
-                //         var b = new[] { a, [1, 2, 3] };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { a, [1, 2, 3] }").WithLocation(6, 17));
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Byte[][][[], [1, 2, 3]], ");
         }
 
         [Fact]
@@ -1530,12 +959,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         var x = F(["str"]);
                         var y = F([[], [1, 2]]);
-                        x.Report(includeType: true);
-                        y.Report(includeType: true);
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Collections.Generic.List<System.String>[str], System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>[[], [1, 2]], ");
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS0411: The type arguments for method 'Program.F<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x = F(["str"]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T)").WithLocation(9, 17),
+                // (10,17): error CS0411: The type arguments for method 'Program.F<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var y = F([[], [1, 2]]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T)").WithLocation(10, 17));
         }
 
         [Fact]
@@ -1580,8 +1014,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: expectedOutput: "[1, 2, 3], "
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[[1, 2, 3]], ");
+            // PROTOTYPE: Should compile and run successfully: expectedOutput: "[1, 2, 3], ")
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(9,17): error CS0411: The type arguments for method 'Program.AsArray<T>(params T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var a = AsArray([1, 2, 3]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsArray").WithArguments("Program.AsArray<T>(params T[])").WithLocation(9, 17));
         }
 
         [Fact]
@@ -1605,8 +1043,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: expectedOutput: "[2], "
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[[2]], ");
+            // PROTOTYPE: Should compile and run successfully: expectedOutput: "[2], ")
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(9,29): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection literals' and 'collection literals'
+                //         var a = AsArray([.. b ? [x] : [y]]);
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [x] : [y]").WithArguments("collection literals", "collection literals").WithLocation(9, 29));
         }
 
         [Fact]
@@ -1629,9 +1071,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // PROTOTYPE: Should compile and run successfully: expectedOutput: "[1, 2, 3], "
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
             comp.VerifyEmitDiagnostics(
-                // 0.cs(9,27): error CS1061: 'List<int>' does not contain a definition for 'AsArray' and no accessible extension method 'AsArray' accepting a first argument of type 'List<int>' could be found (are you missing a using directive or an assembly reference?)
+                // 0.cs(9,27): error CS0117: 'collection literals' does not contain a definition for 'AsArray'
                 //         var a = [1, 2, 3].AsArray();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "AsArray").WithArguments("System.Collections.Generic.List<int>", "AsArray").WithLocation(9, 27));
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "AsArray").WithArguments("collection literals", "AsArray").WithLocation(9, 27));
         }
 
         [Fact]
@@ -1696,135 +1138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // 1.cs(7,31): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         ListBase<int> y = [1, 2];
                 Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("1", "int", "string").WithLocation(7, 31));
-        }
-
-        [Fact]
-        public void MissingList()
-        {
-            string sourceA = """
-                namespace System
-                {
-                    public class Object { }
-                    public abstract class ValueType { }
-                    public class String { }
-                    public class Type { }
-                    public struct Void { }
-                    public struct Boolean { }
-                    public struct Int32 { }
-                }
-                """;
-            string sourceB = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        var a = [1, 2, 3];
-                        int[] b = [4, 5];
-                    }
-                }
-                """;
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
-            comp.VerifyEmitDiagnostics(
-                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(5,17): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
-                //         var a = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[1, 2, 3]").WithArguments("System.Collections.Generic.List`1").WithLocation(5, 17));
-        }
-
-        [Fact]
-        public void MissingListConstructor()
-        {
-            string sourceA = """
-                using System.Collections;
-                namespace System
-                {
-                    public class Object { }
-                    public abstract class ValueType { }
-                    public class String { }
-                    public class Type { }
-                    public struct Void { }
-                    public struct Boolean { }
-                    public struct Int32 { }
-                }
-                namespace System.Collections
-                {
-                    public interface IEnumerable { }
-                }
-                namespace System.Collections.Generic
-                {
-                    public class List<T> : IEnumerable
-                    {
-                        public List(object obj) { }
-                        public void Add(T t) { }
-                    }
-                }
-                """;
-            string sourceB = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        var a = [1, 2, 3];
-                        int[] b = [4, 5];
-                    }
-                }
-                """;
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
-            comp.VerifyEmitDiagnostics(
-                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(5,17): error CS7036: There is no argument given that corresponds to the required parameter 'obj' of 'List<int>.List(object)'
-                //         var a = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[1, 2, 3]").WithArguments("obj", "System.Collections.Generic.List<int>.List(object)").WithLocation(5, 17));
-        }
-
-        [Fact]
-        public void ListTypeParameterConstraint()
-        {
-            string sourceA = """
-                using System.Collections;
-                namespace System
-                {
-                    public class Object { }
-                    public abstract class ValueType { }
-                    public class String { }
-                    public class Type { }
-                    public struct Void { }
-                    public struct Boolean { }
-                    public struct Int32 { }
-                }
-                namespace System.Collections
-                {
-                    public interface IEnumerable { }
-                }
-                namespace System.Collections.Generic
-                {
-                    public class List<T> : IEnumerable
-                        where T : class
-                    {
-                        public void Add(T t) { }
-                    }
-                }
-                """;
-            string sourceB = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        _ = [1];
-                        _ = ["2"];
-                        int[] a = [3];
-                    }
-                }
-                """;
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
-            comp.VerifyEmitDiagnostics(
-                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(5,13): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'List<T>'
-                //         _ = [1];
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "[1]").WithArguments("System.Collections.Generic.List<T>", "T", "int").WithLocation(5, 13));
         }
 
         [Fact]
@@ -2031,10 +1344,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,23): error CS9500: Cannot initialize type 'object[*,*]' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (5,23): error CS9500: Cannot initialize type 'object[*,*]' with a collection literal because the type is not constructible.
                 //         object[,] x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("object[*,*]").WithLocation(5, 23),
-                // (6,20): error CS9500: Cannot initialize type 'int[*,*]' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (6,20): error CS9500: Cannot initialize type 'int[*,*]' with a collection literal because the type is not constructible.
                 //         int[,] y = [null, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[null, 2]").WithArguments("int[*,*]").WithLocation(6, 20));
         }
@@ -2053,9 +1366,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,20): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<System.Collections.Generic.List<int>>' to 'int[*,*]'
+                // (5,20): error CS9500: Cannot initialize type 'int[*,*]' with a collection literal because the type is not constructible.
                 //         int[,] z = [[1, 2], [3, 4]];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[[1, 2], [3, 4]]").WithArguments("System.Collections.Generic.List<System.Collections.Generic.List<int>>", "int[*,*]").WithLocation(5, 20));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[[1, 2], [3, 4]]").WithArguments("int[*,*]").WithLocation(5, 20));
         }
 
         [ConditionalTheory(typeof(CoreClrOnly))]
@@ -2317,12 +1630,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (26,13): error CS9500: Cannot initialize type 'I' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (26,13): error CS9500: Cannot initialize type 'I' with a collection literal because the type is not constructible.
                 //         i = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("I").WithLocation(26, 13),
-                // (27,13): error CS0266: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'I'. An explicit conversion exists (are you missing a cast?)
+                // (27,13): error CS9500: Cannot initialize type 'I' with a collection literal because the type is not constructible.
                 //         i = [3, 4];
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "[3, 4]").WithArguments("System.Collections.Generic.List<int>", "I").WithLocation(27, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[3, 4]").WithArguments("I").WithLocation(27, 13));
         }
 
         [Fact]
@@ -2342,12 +1655,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,13): error CS9500: Cannot initialize type 'E' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (7,13): error CS9500: Cannot initialize type 'E' with a collection literal because the type is not constructible.
                 //         e = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("E").WithLocation(7, 13),
-                // (8,13): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'E'
+                // (8,13): error CS9500: Cannot initialize type 'E' with a collection literal because the type is not constructible.
                 //         e = [1, 2];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[1, 2]").WithArguments("System.Collections.Generic.List<int>", "E").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("E").WithLocation(8, 13));
         }
 
         [Fact]
@@ -2393,12 +1706,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(7,13): error CS9500: Cannot initialize type 'E' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // 1.cs(7,13): error CS9500: Cannot initialize type 'E' with a collection literal because the type is not constructible.
                 //         e = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("E").WithLocation(7, 13),
-                // 1.cs(8,13): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'E'
+                // 1.cs(8,13): error CS9500: Cannot initialize type 'E' with a collection literal because the type is not constructible.
                 //         e = [1, 2];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[1, 2]").WithArguments("System.Collections.Generic.List<int>", "E").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("E").WithLocation(8, 13));
         }
 
         [Fact]
@@ -2418,12 +1731,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,13): error CS9500: Cannot initialize type 'D' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (7,13): error CS9500: Cannot initialize type 'D' with a collection literal because the type is not constructible.
                 //         d = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("D").WithLocation(7, 13),
-                // (8,13): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'D'
+                // (8,13): error CS9500: Cannot initialize type 'D' with a collection literal because the type is not constructible.
                 //         d = [1, 2];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[1, 2]").WithArguments("System.Collections.Generic.List<int>", "D").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("D").WithLocation(8, 13));
         }
 
         [Fact]
@@ -2471,12 +1784,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(7,13): error CS9500: Cannot initialize type 'D' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // 1.cs(7,13): error CS9500: Cannot initialize type 'D' with a collection literal because the type is not constructible.
                 //         d = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("D").WithLocation(7, 13),
-                // 1.cs(8,13): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'D'
+                // 1.cs(8,13): error CS9500: Cannot initialize type 'D' with a collection literal because the type is not constructible.
                 //         d = [1, 2];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[1, 2]").WithArguments("System.Collections.Generic.List<int>", "D").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("D").WithLocation(8, 13));
         }
 
         [Fact]
@@ -2495,15 +1808,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (5,18): error CS9500: Cannot initialize type 'int*' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (5,18): error CS9500: Cannot initialize type 'int*' with a collection literal because the type is not constructible.
                 //         int* x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("int*").WithLocation(5, 18),
-                // (6,18): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'int*'
+                // (6,18): error CS9500: Cannot initialize type 'int*' with a collection literal because the type is not constructible.
                 //         int* y = [1, 2];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[1, 2]").WithArguments("System.Collections.Generic.List<int>", "int*").WithLocation(6, 18),
-                // (7,17): error CS0030: Cannot convert type 'System.Collections.Generic.List<int>' to 'int*'
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("int*").WithLocation(6, 18),
+                // (7,17): error CS9500: Cannot initialize type 'int*' with a collection literal because the type is not constructible.
                 //         var z = (int*)[3];
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int*)[3]").WithArguments("System.Collections.Generic.List<int>", "int*").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(int*)[3]").WithArguments("int*").WithLocation(7, 17));
         }
 
         [Fact]
@@ -2522,15 +1835,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (5,29): error CS9500: Cannot initialize type 'delegate*<void>' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (5,29): error CS9500: Cannot initialize type 'delegate*<void>' with a collection literal because the type is not constructible.
                 //         delegate*<void> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("delegate*<void>").WithLocation(5, 29),
-                // (6,29): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'delegate*<void>'
+                // (6,29): error CS9500: Cannot initialize type 'delegate*<void>' with a collection literal because the type is not constructible.
                 //         delegate*<void> y = [1, 2];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[1, 2]").WithArguments("System.Collections.Generic.List<int>", "delegate*<void>").WithLocation(6, 29),
-                // (7,17): error CS0030: Cannot convert type 'System.Collections.Generic.List<int>' to 'delegate*<void>'
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("delegate*<void>").WithLocation(6, 29),
+                // (7,17): error CS9500: Cannot initialize type 'delegate*<void>' with a collection literal because the type is not constructible.
                 //         var z = (delegate*<void>)[3];
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(delegate*<void>)[3]").WithArguments("System.Collections.Generic.List<int>", "delegate*<void>").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(delegate*<void>)[3]").WithArguments("delegate*<void>").WithLocation(7, 17));
         }
 
         [Fact]
@@ -2550,12 +1863,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (7,17): error CS0306: The type 'void*' may not be used as a type argument
+                // (7,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
                 //         var x = [p];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "[p]").WithArguments("void*").WithLocation(7, 17),
-                // (8,17): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = [p]").WithArguments("collection literals").WithLocation(7, 13),
+                // (8,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
                 //         var y = [d];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "[d]").WithArguments("delegate*<void>").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "y = [d]").WithArguments("collection literals").WithLocation(8, 13));
         }
 
         [Fact]
@@ -2695,12 +2008,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,5): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (2,5): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 // s = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(2, 5),
-                // (3,5): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'S'
+                // (3,5): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 // s = [1, 2];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[1, 2]").WithArguments("System.Collections.Generic.List<int>", "S").WithLocation(3, 5));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(3, 5));
         }
 
         [Fact]
@@ -3462,12 +2775,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (16,57): error CS9500: Cannot initialize type 'T?' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (16,57): error CS9500: Cannot initialize type 'T?' with a collection literal because the type is not constructible.
                 //     static T? Create2<T, U>() where T : struct, I<U> => [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("T?").WithLocation(16, 57),
-                // (16,57): error CS9503: No best type found for implicitly-typed collection literal.
-                //     static T? Create2<T, U>() where T : struct, I<U> => [];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[]").WithLocation(16, 57));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("T?").WithLocation(16, 57));
         }
 
         [Fact]
@@ -3539,12 +2849,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(SpecialType.System_Collections_IEnumerable);
             comp.VerifyEmitDiagnostics(
-                // (8,15): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (8,15): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         S s = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(8, 15),
-                // (9,20): error CS0030: Cannot convert type 'System.Collections.Generic.List<int>' to 'S'
+                // (9,20): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         object o = (S)[1, 2];
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S)[1, 2]").WithArguments("System.Collections.Generic.List<int>", "S").WithLocation(9, 20));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S)[1, 2]").WithArguments("S").WithLocation(9, 20));
         }
 
         [Fact]
@@ -3672,7 +2982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void SpreadElement_01(
             [CombinatorialValues("IEnumerable", "IEnumerable<int>", "int[]", "List<int>", "Span<int>", "ReadOnlySpan<int>")] string spreadType,
-            [CombinatorialValues("IEnumerable", "IEnumerable<int>", "int[]", "List<int>", "Span<int>", "ReadOnlySpan<int>")] string collectionType)
+            [CombinatorialValues("IEnumerable<int>", "int[]", "List<int>", "Span<int>", "ReadOnlySpan<int>")] string collectionType)
         {
             string source = $$"""
                 using System;
@@ -3682,16 +2992,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        var c = F([1, 2, 3]);
-                        c.Report();
+                        F([1, 2, 3]).Report();
                     }
                     static {{collectionType}} F({{spreadType}} s) => [..s];
                 }
                 """;
 
             // PROTOTYPE: Should IEnumerable contribute object or no type to the best common type?
-            // For now, skip cases where the spread is IEnumerable and the collection type is strongly-typed.
-            if (spreadType == "IEnumerable" && collectionType != "IEnumerable") return;
+            if (spreadType == "IEnumerable") return;
+
+            // PROTOTYPE: Include IEnumerable<int> cases when IEnumerable<T> is considered constructible.
+            if (spreadType == "IEnumerable<int>" || collectionType == "IEnumerable<int>") return;
 
             var verifier = CompileAndVerify(
                 new[] { source, s_collectionExtensionsWithSpan },
@@ -3877,9 +3188,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         c = Append(c);
                         c.Report();
                     }
-                    static {{collectionType}} Append({{collectionType}} c)
+                    static {{collectionType}} Append({{collectionType}} x)
                     {
-                        return [..c, ..[1, 2]];
+                        {{collectionType}} y = [1, 2];
+                        return [..x, ..y];
                     }
                 }
                 """;
@@ -3896,62 +3208,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 verifier.VerifyIL("Program.Append",
                     """
                     {
-                      // Code size      120 (0x78)
-                      .maxstack  3
-                      .locals init (System.Collections.Generic.List<int> V_0,
-                                    System.ReadOnlySpan<int>.Enumerator V_1,
-                                    int V_2,
-                                    System.Collections.Generic.List<int>.Enumerator V_3)
-                      IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
-                      IL_0005:  stloc.0
-                      IL_0006:  ldarga.s   V_0
-                      IL_0008:  call       "System.ReadOnlySpan<int>.Enumerator System.ReadOnlySpan<int>.GetEnumerator()"
-                      IL_000d:  stloc.1
-                      IL_000e:  br.s       IL_0020
-                      IL_0010:  ldloca.s   V_1
-                      IL_0012:  call       "ref readonly int System.ReadOnlySpan<int>.Enumerator.Current.get"
-                      IL_0017:  ldind.i4
+                      // Code size       99 (0x63)
+                      .maxstack  2
+                      .locals init (System.ReadOnlySpan<int> V_0, //y
+                                    System.Collections.Generic.List<int> V_1,
+                                    System.ReadOnlySpan<int>.Enumerator V_2,
+                                    int V_3)
+                      IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=8_Align=4 <PrivateImplementationDetails>.34FB5C825DE7CA4AEA6E712F19D439C1DA0C92C37B423936C5F618545CA4FA1F4"
+                      IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                      IL_000a:  stloc.0
+                      IL_000b:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                      IL_0010:  stloc.1
+                      IL_0011:  ldarga.s   V_0
+                      IL_0013:  call       "System.ReadOnlySpan<int>.Enumerator System.ReadOnlySpan<int>.GetEnumerator()"
                       IL_0018:  stloc.2
-                      IL_0019:  ldloc.0
-                      IL_001a:  ldloc.2
-                      IL_001b:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
-                      IL_0020:  ldloca.s   V_1
-                      IL_0022:  call       "bool System.ReadOnlySpan<int>.Enumerator.MoveNext()"
-                      IL_0027:  brtrue.s   IL_0010
-                      IL_0029:  newobj     "System.Collections.Generic.List<int>..ctor()"
-                      IL_002e:  dup
-                      IL_002f:  ldc.i4.1
-                      IL_0030:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
-                      IL_0035:  dup
-                      IL_0036:  ldc.i4.2
-                      IL_0037:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
-                      IL_003c:  callvirt   "System.Collections.Generic.List<int>.Enumerator System.Collections.Generic.List<int>.GetEnumerator()"
-                      IL_0041:  stloc.3
-                      .try
-                      {
-                        IL_0042:  br.s       IL_0053
-                        IL_0044:  ldloca.s   V_3
-                        IL_0046:  call       "int System.Collections.Generic.List<int>.Enumerator.Current.get"
-                        IL_004b:  stloc.2
-                        IL_004c:  ldloc.0
-                        IL_004d:  ldloc.2
-                        IL_004e:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
-                        IL_0053:  ldloca.s   V_3
-                        IL_0055:  call       "bool System.Collections.Generic.List<int>.Enumerator.MoveNext()"
-                        IL_005a:  brtrue.s   IL_0044
-                        IL_005c:  leave.s    IL_006c
-                      }
-                      finally
-                      {
-                        IL_005e:  ldloca.s   V_3
-                        IL_0060:  constrained. "System.Collections.Generic.List<int>.Enumerator"
-                        IL_0066:  callvirt   "void System.IDisposable.Dispose()"
-                        IL_006b:  endfinally
-                      }
-                      IL_006c:  ldloc.0
-                      IL_006d:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
-                      IL_0072:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
-                      IL_0077:  ret
+                      IL_0019:  br.s       IL_002b
+                      IL_001b:  ldloca.s   V_2
+                      IL_001d:  call       "ref readonly int System.ReadOnlySpan<int>.Enumerator.Current.get"
+                      IL_0022:  ldind.i4
+                      IL_0023:  stloc.3
+                      IL_0024:  ldloc.1
+                      IL_0025:  ldloc.3
+                      IL_0026:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                      IL_002b:  ldloca.s   V_2
+                      IL_002d:  call       "bool System.ReadOnlySpan<int>.Enumerator.MoveNext()"
+                      IL_0032:  brtrue.s   IL_001b
+                      IL_0034:  ldloca.s   V_0
+                      IL_0036:  call       "System.ReadOnlySpan<int>.Enumerator System.ReadOnlySpan<int>.GetEnumerator()"
+                      IL_003b:  stloc.2
+                      IL_003c:  br.s       IL_004e
+                      IL_003e:  ldloca.s   V_2
+                      IL_0040:  call       "ref readonly int System.ReadOnlySpan<int>.Enumerator.Current.get"
+                      IL_0045:  ldind.i4
+                      IL_0046:  stloc.3
+                      IL_0047:  ldloc.1
+                      IL_0048:  ldloc.3
+                      IL_0049:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                      IL_004e:  ldloca.s   V_2
+                      IL_0050:  call       "bool System.ReadOnlySpan<int>.Enumerator.MoveNext()"
+                      IL_0055:  brtrue.s   IL_003e
+                      IL_0057:  ldloc.1
+                      IL_0058:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+                      IL_005d:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
+                      IL_0062:  ret
                     }
                     """);
             }
@@ -3990,9 +3289,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         s = Append(s);
                         s.Report();
                     }
-                    static S<int> Append(S<int> s)
+                    static S<int> Append(S<int> x)
                     {
-                        return [..s, ..[1, 2]];
+                        S<int> y = [1, 2];
+                        return [..x, ..y];
                     }
                 }
                 """;
@@ -4005,71 +3305,76 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyIL("Program.Append",
                 """
                 {
-                  // Code size      123 (0x7b)
-                  .maxstack  3
-                  .locals init (S<int> V_0,
-                                System.Collections.Generic.IEnumerator<int> V_1,
-                                int V_2,
-                                System.Collections.Generic.List<int>.Enumerator V_3)
-                  IL_0000:  ldloca.s   V_0
+                  // Code size      126 (0x7e)
+                  .maxstack  2
+                  .locals init (S<int> V_0, //y
+                                S<int> V_1,
+                                System.Collections.Generic.IEnumerator<int> V_2,
+                                int V_3)
+                  IL_0000:  ldloca.s   V_1
                   IL_0002:  initobj    "S<int>"
-                  IL_0008:  ldarga.s   V_0
-                  IL_000a:  call       "System.Collections.Generic.IEnumerator<int> S<int>.GetEnumerator()"
-                  IL_000f:  stloc.1
+                  IL_0008:  ldloca.s   V_1
+                  IL_000a:  ldc.i4.1
+                  IL_000b:  call       "void S<int>.Add(int)"
+                  IL_0010:  ldloca.s   V_1
+                  IL_0012:  ldc.i4.2
+                  IL_0013:  call       "void S<int>.Add(int)"
+                  IL_0018:  ldloc.1
+                  IL_0019:  stloc.0
+                  IL_001a:  ldloca.s   V_1
+                  IL_001c:  initobj    "S<int>"
+                  IL_0022:  ldarga.s   V_0
+                  IL_0024:  call       "System.Collections.Generic.IEnumerator<int> S<int>.GetEnumerator()"
+                  IL_0029:  stloc.2
                   .try
                   {
-                    IL_0010:  br.s       IL_0021
-                    IL_0012:  ldloc.1
-                    IL_0013:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
-                    IL_0018:  stloc.2
-                    IL_0019:  ldloca.s   V_0
-                    IL_001b:  ldloc.2
-                    IL_001c:  call       "void S<int>.Add(int)"
-                    IL_0021:  ldloc.1
-                    IL_0022:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
-                    IL_0027:  brtrue.s   IL_0012
-                    IL_0029:  leave.s    IL_0035
+                    IL_002a:  br.s       IL_003b
+                    IL_002c:  ldloc.2
+                    IL_002d:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+                    IL_0032:  stloc.3
+                    IL_0033:  ldloca.s   V_1
+                    IL_0035:  ldloc.3
+                    IL_0036:  call       "void S<int>.Add(int)"
+                    IL_003b:  ldloc.2
+                    IL_003c:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0041:  brtrue.s   IL_002c
+                    IL_0043:  leave.s    IL_004f
                   }
                   finally
                   {
-                    IL_002b:  ldloc.1
-                    IL_002c:  brfalse.s  IL_0034
-                    IL_002e:  ldloc.1
-                    IL_002f:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_0034:  endfinally
+                    IL_0045:  ldloc.2
+                    IL_0046:  brfalse.s  IL_004e
+                    IL_0048:  ldloc.2
+                    IL_0049:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_004e:  endfinally
                   }
-                  IL_0035:  newobj     "System.Collections.Generic.List<int>..ctor()"
-                  IL_003a:  dup
-                  IL_003b:  ldc.i4.1
-                  IL_003c:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
-                  IL_0041:  dup
-                  IL_0042:  ldc.i4.2
-                  IL_0043:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
-                  IL_0048:  callvirt   "System.Collections.Generic.List<int>.Enumerator System.Collections.Generic.List<int>.GetEnumerator()"
-                  IL_004d:  stloc.3
+                  IL_004f:  ldloca.s   V_0
+                  IL_0051:  call       "System.Collections.Generic.IEnumerator<int> S<int>.GetEnumerator()"
+                  IL_0056:  stloc.2
                   .try
                   {
-                    IL_004e:  br.s       IL_0060
-                    IL_0050:  ldloca.s   V_3
-                    IL_0052:  call       "int System.Collections.Generic.List<int>.Enumerator.Current.get"
-                    IL_0057:  stloc.2
-                    IL_0058:  ldloca.s   V_0
-                    IL_005a:  ldloc.2
-                    IL_005b:  call       "void S<int>.Add(int)"
-                    IL_0060:  ldloca.s   V_3
-                    IL_0062:  call       "bool System.Collections.Generic.List<int>.Enumerator.MoveNext()"
-                    IL_0067:  brtrue.s   IL_0050
-                    IL_0069:  leave.s    IL_0079
+                    IL_0057:  br.s       IL_0068
+                    IL_0059:  ldloc.2
+                    IL_005a:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+                    IL_005f:  stloc.3
+                    IL_0060:  ldloca.s   V_1
+                    IL_0062:  ldloc.3
+                    IL_0063:  call       "void S<int>.Add(int)"
+                    IL_0068:  ldloc.2
+                    IL_0069:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_006e:  brtrue.s   IL_0059
+                    IL_0070:  leave.s    IL_007c
                   }
                   finally
                   {
-                    IL_006b:  ldloca.s   V_3
-                    IL_006d:  constrained. "System.Collections.Generic.List<int>.Enumerator"
-                    IL_0073:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_0078:  endfinally
+                    IL_0072:  ldloc.2
+                    IL_0073:  brfalse.s  IL_007b
+                    IL_0075:  ldloc.2
+                    IL_0076:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_007b:  endfinally
                   }
-                  IL_0079:  ldloc.0
-                  IL_007a:  ret
+                  IL_007c:  ldloc.1
+                  IL_007d:  ret
                 }
                 """);
         }
@@ -4086,15 +3391,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should we infer List<int> for [] rather than reporting an error?
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,17): error CS9503: No best type found for implicitly-typed collection literal.
+                // (5,26): error CS0446: Foreach cannot operate on a 'collection literals'. Did you intend to invoke the 'collection literals'?
                 //         var a = [1, 2, ..[]];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[1, 2, ..[]]").WithLocation(5, 17),
-                // (5,26): error CS9503: No best type found for implicitly-typed collection literal.
-                //         var a = [1, 2, ..[]];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[]").WithLocation(5, 26));
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "[]").WithArguments("collection literals").WithLocation(5, 26));
         }
 
         [Fact]
@@ -4110,12 +3411,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should we infer List<int> for [] rather than reporting an error?
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,21): error CS9503: No best type found for implicitly-typed collection literal.
+                // (6,21): error CS0446: Foreach cannot operate on a 'collection literals'. Did you intend to invoke the 'collection literals'?
                 //         a = [..a, ..[]];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[]").WithLocation(6, 21));
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "[]").WithArguments("collection literals").WithLocation(6, 21));
         }
 
         [Fact]
@@ -4152,29 +3452,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static {{resultType}} F(List<dynamic> e)
                     {
                         return [..e];
-                    }
-                    static void Main()
-                    {
-                        var a = F([1, 2, 3]);
-                        a.Report();
-                    }
-                }
-                """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, expectedOutput: "[1, 2, 3], ");
-        }
-
-        [Theory]
-        [InlineData("object[]")]
-        [InlineData("List<object>")]
-        public void SpreadElement_Dynamic_02(string resultType)
-        {
-            string source = $$"""
-                using System.Collections.Generic;
-                class Program
-                {
-                    static {{resultType}} F(dynamic d)
-                    {
-                        return [..d];
                     }
                     static void Main()
                     {
@@ -4352,18 +3629,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (13,24): error CS9500: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (13,24): error CS9500: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
                 //         S<object>? x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S<object>?").WithLocation(13, 24),
-                // (14,13): error CS9500: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (14,13): error CS9500: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
                 //         x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S<object>?").WithLocation(14, 13),
-                // (15,24): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'S<object>?'
+                // (15,24): error CS9500: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
                 //         S<object>? y = [1];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[1]").WithArguments("System.Collections.Generic.List<int>", "S<object>?").WithLocation(15, 24),
-                // (16,13): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'S<object>?'
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1]").WithArguments("S<object>?").WithLocation(15, 24),
+                // (16,13): error CS9500: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
                 //         y = [2];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[2]").WithArguments("System.Collections.Generic.List<int>", "S<object>?").WithLocation(16, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("S<object>?").WithLocation(16, 13));
         }
 
         [Fact]
@@ -4435,15 +3712,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (9,15): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (9,15): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         S s = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(9, 15),
-                // (10,13): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'S'
+                // (10,13): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         s = [1, 2];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[1, 2]").WithArguments("System.Collections.Generic.List<int>", "S").WithLocation(10, 13),
-                // (11,13): error CS0030: Cannot convert type 'System.Collections.Generic.List<int>' to 'S'
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
+                // (11,13): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         s = (S)[3, 4];
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S)[3, 4]").WithArguments("System.Collections.Generic.List<int>", "S").WithLocation(11, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S)[3, 4]").WithArguments("S").WithLocation(11, 13));
         }
 
         [Fact]
@@ -4466,116 +3743,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (9,15): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (9,15): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         S s = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(9, 15),
-                // (10,13): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'S'
+                // (10,13): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         s = [1, 2];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[1, 2]").WithArguments("System.Collections.Generic.List<int>", "S").WithLocation(10, 13),
-                // (11,13): error CS0030: Cannot convert type 'System.Collections.Generic.List<int>' to 'S'
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
+                // (11,13): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         s = (S)[3, 4];
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S)[3, 4]").WithArguments("System.Collections.Generic.List<int>", "S").WithLocation(11, 13));
-        }
-
-        [Fact]
-        public void UserDefinedConversions_03()
-        {
-            string source = """
-                using System.Collections.Generic;
-                struct S
-                {
-                    public static implicit operator S(List<int> list) => default;
-                }
-                class Program
-                {
-                    static void Main()
-                    {
-                        S s = [];
-                        s = [1, 2];
-                        s = (S)[3, 4];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (10,15): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible and no best type was found for the collection literal.
-                //         S s = [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(10, 15));
-        }
-
-        [Fact]
-        public void UserDefinedConversions_04()
-        {
-            string source = """
-                using System.Collections.Generic;
-                struct S
-                {
-                    public static explicit operator S(List<int> list) => default;
-                }
-                class Program
-                {
-                    static void Main()
-                    {
-                        S s = [];
-                        s = [1, 2];
-                        s = (S)[3, 4];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (10,15): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible and no best type was found for the collection literal.
-                //         S s = [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(10, 15),
-                // (11,13): error CS0266: Cannot implicitly convert type 'System.Collections.Generic.List<int>' to 'S'. An explicit conversion exists (are you missing a cast?)
-                //         s = [1, 2];
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "[1, 2]").WithArguments("System.Collections.Generic.List<int>", "S").WithLocation(11, 13));
-        }
-
-        [Fact]
-        public void UserDefinedConversions_05()
-        {
-            string source = """
-                using System.Collections.Generic;
-                struct S
-                {
-                    public List<object> List;
-                    public static implicit operator S(List<object> list) => new() { List = list };
-                }
-                class Program
-                {
-                    static void Main()
-                    {
-                        S s;
-                        s = [3, (object)null];
-                        s.List.Report();
-                    }
-                }
-                """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[3, null], ");
-        }
-
-        [Fact]
-        public void UserDefinedConversions_06()
-        {
-            string source = """
-                using System.Collections.Generic;
-                struct S
-                {
-                    public List<int> List;
-                    public static explicit operator S(List<int> list) => new() { List = list };
-                }
-                class Program
-                {
-                    static void Main()
-                    {
-                        S s;
-                        s = (S)[3, 4];
-                        s.List.Report();
-                    }
-                }
-                """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[3, 4], ");
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S)[3, 4]").WithArguments("S").WithLocation(11, 13));
         }
 
         [Fact]
@@ -4774,32 +3950,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (20,17): error CS9500: Cannot initialize type 'S2' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (20,17): error CS9500: Cannot initialize type 'S2' with a collection literal because the type is not constructible.
                 //         S2 v6 = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S2").WithLocation(20, 17),
-                // (26,19): error CS9500: Cannot initialize type 'S2' with a collection literal because the type is not constructible and no best type was found for the collection literal.
+                // (26,19): error CS9500: Cannot initialize type 'S2' with a collection literal because the type is not constructible.
                 //         var v12 = (S2)[];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S2)[]").WithArguments("S2").WithLocation(26, 19),
-                // (26,23): error CS9503: No best type found for implicitly-typed collection literal.
-                //         var v12 = (S2)[];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedCollectionLiteralNoBestType, "[]").WithLocation(26, 23));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S2)[]").WithArguments("S2").WithLocation(26, 19));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
             Assert.Equal(12, collections.Length);
-            VerifyTypes(model, collections[0], null, "System.Int32[]", ConversionKind.CollectionLiteral);
-            VerifyTypes(model, collections[1], null, "System.Collections.Generic.List<System.Object>", ConversionKind.CollectionLiteral);
-            VerifyTypes(model, collections[2], null, "System.Span<System.Int32>", ConversionKind.CollectionLiteral);
-            VerifyTypes(model, collections[3], null, "System.ReadOnlySpan<System.Object>", ConversionKind.CollectionLiteral);
-            VerifyTypes(model, collections[4], null, "S1", ConversionKind.CollectionLiteral);
-            VerifyTypes(model, collections[5], "?", "S2", ConversionKind.NoConversion);
-            VerifyTypes(model, collections[6], null, "System.Int32[]", ConversionKind.CollectionLiteral);
-            VerifyTypes(model, collections[7], null, "System.Collections.Generic.List<System.Object>", ConversionKind.CollectionLiteral);
-            VerifyTypes(model, collections[8], null, "System.Span<System.Int32>", ConversionKind.CollectionLiteral);
-            VerifyTypes(model, collections[9], null, "System.ReadOnlySpan<System.Object>", ConversionKind.CollectionLiteral);
-            VerifyTypes(model, collections[10], null, "S1", ConversionKind.CollectionLiteral);
-            VerifyTypes(model, collections[11], "?", "?", ConversionKind.Identity);
+            VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: "System.Int32[]", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "System.Collections.Generic.List<System.Object>", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: "System.Span<System.Int32>", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[3], expectedType: null, expectedConvertedType: "System.ReadOnlySpan<System.Object>", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[4], expectedType: null, expectedConvertedType: "S1", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[5], expectedType: null, expectedConvertedType: "S2", ConversionKind.NoConversion);
+            VerifyTypes(model, collections[6], expectedType: null, expectedConvertedType: "System.Int32[]", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[7], expectedType: null, expectedConvertedType: "System.Collections.Generic.List<System.Object>", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[8], expectedType: null, expectedConvertedType: "System.Span<System.Int32>", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[9], expectedType: null, expectedConvertedType: "System.ReadOnlySpan<System.Object>", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[10], expectedType: null, expectedConvertedType: "S1", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[11], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
         }
 
         private static void VerifyTypes(SemanticModel model, ExpressionSyntax expr, string expectedType, string expectedConvertedType, ConversionKind expectedConversionKind)
@@ -4828,15 +4001,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,17): error CS0306: The type 'TypedReference' may not be used as a type argument
+                // (6,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
                 //         var x = [default(TypedReference)];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "[default(TypedReference)]").WithArguments("System.TypedReference").WithLocation(6, 17),
-                // (7,17): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = [default(TypedReference)]").WithArguments("collection literals").WithLocation(6, 13),
+                // (7,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
                 //         var y = [default(ArgIterator)];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "[default(ArgIterator)]").WithArguments("System.ArgIterator").WithLocation(7, 17),
-                // (8,17): error CS0306: The type 'RuntimeArgumentHandle' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "y = [default(ArgIterator)]").WithArguments("collection literals").WithLocation(7, 13),
+                // (8,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
                 //         var z = [default(RuntimeArgumentHandle)];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "[default(RuntimeArgumentHandle)]").WithArguments("System.RuntimeArgumentHandle").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = [default(RuntimeArgumentHandle)]").WithArguments("collection literals").WithLocation(8, 13));
         }
 
         [Fact]
@@ -4858,13 +4031,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
+            // PROTOTYPE: Should not report that 'i' is unused.
             comp.VerifyEmitDiagnostics(
-                // (10,17): error CS0306: The type 'R' may not be used as a type argument
+                // (9,13): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         int i = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(9, 13),
+                // (10,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
                 //         var x = [default(R)];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "[default(R)]").WithArguments("R").WithLocation(10, 17),
-                // (11,17): error CS0306: The type 'R' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = [default(R)]").WithArguments("collection literals").WithLocation(10, 13),
+                // (11,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
                 //         var y = [new R(ref i)];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "[new R(ref i)]").WithArguments("R").WithLocation(11, 17));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "y = [new R(ref i)]").WithArguments("collection literals").WithLocation(11, 13));
         }
 
         [Fact]
@@ -5017,8 +4194,7 @@ Block[B2] - Exit
 ");
         }
 
-        // PROTOTYPE: List<T> returned from InferCollectionLiteralType() is an error type when testing used assembly references.
-        [ConditionalFact(typeof(CoreClrOnly), typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void IOperation_Span()
         {
             string source = """
@@ -5308,37 +4484,40 @@ Block[B2] - Exit
 
             VerifyOperationTreeForTest<CollectionCreationExpressionSyntax>(comp,
 @"IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '[[Get(1)]]')
-  Arguments(0)
-  Initializer:
+    Arguments(0)
+    Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
-      Initializers(1):
-          IInvocationOperation ( void System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>.Add(System.Collections.Generic.List<System.Int32> item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '[Get(1)]')
+        Initializers(1):
+            IInvocationOperation ( void System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>.Add(System.Collections.Generic.List<System.Int32> item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '[Get(1)]')
             Instance Receiver:
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
+                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[Get(1)]')
-                  IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[Get(1)]')
-                    Arguments(0)
-                    Initializer:
-                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                        Initializers(1):
-                            IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'Get(1)')
-                              Instance Receiver:
-                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                              Arguments(1):
-                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Get(1)')
-                                    IInvocationOperation (System.Int32 Program.Get(System.Int32 value)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get(1)')
-                                      Instance Receiver:
-                                        null
-                                      Arguments(1):
-                                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '1')
-                                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand:
+                        IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[Get(1)]')
+                        Arguments(0)
+                        Initializer:
+                            IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
+                            Initializers(1):
+                                IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'Get(1)')
+                                    Instance Receiver:
+                                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
+                                    Arguments(1):
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Get(1)')
+                                        IInvocationOperation (System.Int32 Program.Get(System.Int32 value)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get(1)')
+                                            Instance Receiver:
+                                            null
+                                            Arguments(1):
+                                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '1')
+                                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
 
             var tree = comp.SyntaxTrees[0];
@@ -5356,10 +4535,10 @@ Block[B2] - Exit
         Predecessors: [B0]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[[Get(1)]]')
-              Value:
+                Value:
                 IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '[[Get(1)]]')
-                  Arguments(0)
-                  Initializer:
+                    Arguments(0)
+                    Initializer:
                     null
         Next (Regular) Block[B2]
             Entering: {R2}
@@ -5370,32 +4549,36 @@ Block[B2] - Exit
             Predecessors: [B1]
             Statements (3)
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[Get(1)]')
-                  Value:
+                    Value:
                     IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[Get(1)]')
-                      Arguments(0)
-                      Initializer:
+                        Arguments(0)
+                        Initializer:
                         null
                 IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'Get(1)')
-                  Instance Receiver:
+                    Instance Receiver:
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                  Arguments(1):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Get(1)')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Get(1)')
                         IInvocationOperation (System.Int32 Program.Get(System.Int32 value)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get(1)')
-                          Instance Receiver:
+                            Instance Receiver:
                             null
-                          Arguments(1):
-                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '1')
+                            Arguments(1):
+                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '1')
                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 IInvocationOperation ( void System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>.Add(System.Collections.Generic.List<System.Int32> item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '[Get(1)]')
-                  Instance Receiver:
+                    Instance Receiver:
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
-                  Arguments(1):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[Get(1)]')
-                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[Get(1)]')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionLiteral)
+                            Operand:
+                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Next (Regular) Block[B3]
@@ -5405,10 +4588,14 @@ Block[B2] - Exit
         Predecessors: [B2]
         Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'x = /*<bind>*/[[Get(1)]]')
-              Left:
+                Left:
                 ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'x = /*<bind>*/[[Get(1)]]')
-              Right:
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
+                Right:
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (CollectionLiteral)
+                    Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
         Next (Regular) Block[B4]
             Leaving: {R1}
 }
@@ -5426,7 +4613,7 @@ Block[B4] - Exit
                 {
                     static int[] Append(int[] a)
                     {
-                        return /*<bind>*/[..a, ..[3, 4]]/*</bind>*/;
+                        return /*<bind>*/[..a]/*</bind>*/;
                     }
                 }
                 """;
@@ -5436,44 +4623,18 @@ Block[B4] - Exit
 
             VerifyOperationTreeForTest<CollectionCreationExpressionSyntax>(comp,
                 """
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: '[..a, ..[3, 4]]')
+                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: '[..a]')
                   Dimension Sizes(1):
-                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[..a, ..[3, 4]]')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '[..a]')
                   Initializer:
-                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[..a, ..[3, 4]]')
-                      Element Values(2):
+                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[..a]')
+                      Element Values(1):
                           IInvalidOperation (OperationKind.Invalid, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
                             Children(1):
                                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                   Operand:
                                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
-                          IInvalidOperation (OperationKind.Invalid, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '..[3, 4]')
-                            Children(1):
-                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
-                                  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                  Operand:
-                                    IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[3, 4]')
-                                      Arguments(0)
-                                      Initializer:
-                                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
-                                          Initializers(2):
-                                              IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '3')
-                                                Instance Receiver:
-                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
-                                                Arguments(1):
-                                                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '3')
-                                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-                                                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                              IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '4')
-                                                Instance Receiver:
-                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
-                                                Arguments(1):
-                                                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '4')
-                                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
-                                                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 """);
 
             var tree = comp.SyntaxTrees[0];
@@ -5483,68 +4644,27 @@ Block[B4] - Exit
                 Block[B0] - Entry
                     Statements (0)
                     Next (Regular) Block[B1]
-                        Entering: {R1}
-                .locals {R1}
-                {
-                    CaptureIds: [0] [1] [2]
-                    Block[B1] - Block
-                        Predecessors: [B0]
-                        Statements (5)
-                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[..a, ..[3, 4]]')
-                              Value:
-                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[..a, ..[3, 4]]')
-                            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '..a')
-                              Value:
-                                IInvalidOperation (OperationKind.Invalid, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
-                                  Children(1):
-                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
-                                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                          (ImplicitReference)
-                                        Operand:
-                                          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
-                            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[3, 4]')
-                              Value:
-                                IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[3, 4]')
-                                  Arguments(0)
-                                  Initializer:
-                                    null
-                            IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '3')
-                              Instance Receiver:
-                                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
-                              Arguments(1):
-                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '3')
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '4')
-                              Instance Receiver:
-                                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
-                              Arguments(1):
-                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '4')
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
-                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Next (Return) Block[B2]
-                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], IsImplicit) (Syntax: '[..a, ..[3, 4]]')
-                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                (CollectionLiteral)
-                              Operand:
-                                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: '[..a, ..[3, 4]]')
-                                  Dimension Sizes(1):
-                                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[..a, ..[3, 4]]')
-                                  Initializer:
-                                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[..a, ..[3, 4]]')
-                                      Element Values(2):
-                                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
-                                          IInvalidOperation (OperationKind.Invalid, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '..[3, 4]')
-                                            Children(1):
-                                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
-                                                  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                    (Identity)
-                                                  Operand:
-                                                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[3, 4]')
-                            Leaving: {R1}
-                }
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], IsImplicit) (Syntax: '[..a]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionLiteral)
+                          Operand:
+                            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: '[..a]')
+                              Dimension Sizes(1):
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '[..a]')
+                              Initializer:
+                                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[..a]')
+                                  Element Values(1):
+                                      IInvalidOperation (OperationKind.Invalid, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                                        Children(1):
+                                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
+                                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                                (ImplicitReference)
+                                              Operand:
+                                                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
                 Block[B2] - Exit
                     Predecessors: [B1]
                     Statements (0)

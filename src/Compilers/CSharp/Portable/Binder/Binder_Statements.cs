@@ -2364,12 +2364,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.UnconvertedCollectionLiteralExpression:
                     {
-                        if (operand.Type is null)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
-                            return;
-                        }
-                        break;
+                        Debug.Assert(operand.Type is null);
+                        Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
+                        return;
                     }
                 case BoundKind.AddressOfOperator when targetType.IsFunctionPointer():
                     {

@@ -3495,6 +3495,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
         {
+            foreach (var initializer in node.Initializers)
+            {
+                VisitRvalue(initializer);
+            }
+
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
             return null;
         }
