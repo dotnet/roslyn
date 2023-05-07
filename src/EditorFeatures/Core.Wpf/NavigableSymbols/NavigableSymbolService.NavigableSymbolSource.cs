@@ -4,7 +4,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -54,14 +53,11 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 if (navigableLocation == null)
                     return null;
 
-                var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-
                 return new NavigableSymbol(
                     _service,
                     _textView,
                     navigableLocation,
-                    snapshot.GetSpan(symbolSpan.ToSpan()),
-                    indicatorFactory);
+                    snapshot.GetSpan(symbolSpan.ToSpan()));
             }
         }
     }

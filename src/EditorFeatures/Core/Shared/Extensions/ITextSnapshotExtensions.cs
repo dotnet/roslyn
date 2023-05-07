@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -61,8 +62,30 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <see cref="GetFullyLoadedOpenDocumentInCurrentContextWithChanges(ITextSnapshot, IUIThreadOperationContext, IThreadingContext)"/>.
         /// otherwise, one can get into a deadlock
         /// </summary>
-        public static async Task<Document?> GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+        public static Task<Document?> GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
             this ITextSnapshot snapshot, IUIThreadOperationContext operationContext)
+            => GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                snapshot,
+                (text) => operationContext.AddScope(allowCancellation: true, text),
+                operationContext.UserCancellationToken);
+
+        /// <summary>
+        /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot)"/>
+        /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns
+        /// 
+        /// for synchronous code path, make sure to use synchronous version 
+        /// <see cref="GetFullyLoadedOpenDocumentInCurrentContextWithChanges(ITextSnapshot, IUIThreadOperationContext, IThreadingContext)"/>.
+        /// otherwise, one can get into a deadlock
+        /// </summary>
+        public static Task<Document?> GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+            this ITextSnapshot snapshot, IBackgroundWorkIndicator backgroundWorkIndicator)
+            => GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                snapshot,
+                (text) => backgroundWorkIndicator.AddScope(text),
+                backgroundWorkIndicator.CancellationToken);
+
+        private static async Task<Document?> GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+            ITextSnapshot snapshot, Func<string, IDisposable> addWorkIndicatorScope, CancellationToken cancellationToken)
         {
             // just get a document from whatever we have
             var document = snapshot.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
@@ -72,15 +95,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return null;
             }
 
-            // partial mode is always cancellable
-            using (operationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Waiting_for_background_work_to_finish))
+            using (addWorkIndicatorScope(EditorFeaturesResources.Waiting_for_background_work_to_finish))
             {
                 var service = document.Project.Solution.Services.GetService<IWorkspaceStatusService>();
                 if (service != null)
                 {
                     // TODO: decide for prototype, we don't do anything complex and just ask workspace whether it is fully loaded
                     // later we might need to go and change all these with more specific info such as document/project/solution
-                    await service.WaitUntilFullyLoadedAsync(operationContext.UserCancellationToken).ConfigureAwait(false);
+                    await service.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 // get proper document

@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+        private readonly IBackgroundWorkIndicatorService _backgroundWorkIndicatorService;
         private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public InlineRenameService(
             IThreadingContext threadingContext,
             IUIThreadOperationExecutor uiThreadOperationExecutor,
+            IBackgroundWorkIndicatorService backgroundWorkIndicatorService,
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
             ITextBufferCloneService textBufferCloneService,
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             _threadingContext = threadingContext;
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
+            _backgroundWorkIndicatorService = backgroundWorkIndicatorService;
             _textBufferAssociatedViewService = textBufferAssociatedViewService;
             _textBufferFactoryService = textBufferFactoryService;
             _textBufferCloneService = textBufferCloneService;
@@ -124,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 options,
                 previewChanges,
                 _uiThreadOperationExecutor,
+                _backgroundWorkIndicatorService,
                 _textBufferAssociatedViewService,
                 _textBufferFactoryService,
                 _textBufferCloneService,

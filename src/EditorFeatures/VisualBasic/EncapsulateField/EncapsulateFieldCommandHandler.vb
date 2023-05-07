@@ -26,8 +26,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
         Public Sub New(threadingContext As IThreadingContext,
                        undoManager As ITextBufferUndoManagerProvider,
                        globalOptions As IGlobalOptionService,
+                       backgroundWorkIndicatorService As IBackgroundWorkIndicatorService,
                        listenerProvider As IAsynchronousOperationListenerProvider)
-            MyBase.New(threadingContext, undoManager, globalOptions, listenerProvider)
+            MyBase.New(threadingContext, undoManager, globalOptions, backgroundWorkIndicatorService, listenerProvider)
         End Sub
     End Class
 End Namespace
