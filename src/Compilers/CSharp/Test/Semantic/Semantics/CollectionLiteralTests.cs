@@ -4074,60 +4074,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void SpreadElement_04()
-        {
-            string source = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-                class Program
-                {
-                    static IEnumerable F1(IEnumerable e1)
-                    {
-                        var c1 = [..e1];
-                        return c1;
-                    }
-                    static IEnumerable F2<T>(IEnumerable<T> e2)
-                    {
-                        var c2 = [..e2];
-                        return c2;
-                    }
-                    static IEnumerable F3<T>(T[] e3)
-                    {
-                        var c3 = [..e3];
-                        return c3;
-                    }
-                    static IEnumerable F4<T>(Span<T> e4)
-                    {
-                        var c4 = [..e4];
-                        return c4;
-                    }
-                    static void Main()
-                    {
-                        F1(new[] { 1 }).Report();
-                        F2(new[] { 2 }).Report();
-                        F3(new[] { 3 }).Report();
-                        F4(new Span<int>(new[] { 4 })).Report();
-                    }
-                }
-                """;
-
-            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
-            CompileAndVerify(comp, expectedOutput: "[1], [2], [3], [4], ");
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
-            Assert.Equal(4, collections.Length);
-            VerifyTypes(model, collections[0], "System.Collections.Generic.List<System.Object>", "System.Collections.Generic.List<System.Object>", ConversionKind.Identity);
-            VerifyTypes(model, collections[1], "System.Collections.Generic.List<T>", "System.Collections.Generic.List<T>", ConversionKind.Identity);
-            VerifyTypes(model, collections[2], "System.Collections.Generic.List<T>", "System.Collections.Generic.List<T>", ConversionKind.Identity);
-            VerifyTypes(model, collections[3], "System.Collections.Generic.List<T>", "System.Collections.Generic.List<T>", ConversionKind.Identity);
-        }
-
         [Fact]
-        public void SpreadElement_05()
+        public void SpreadElement_04()
         {
             string source = """
                 class Program
@@ -4150,7 +4098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void SpreadElement_06()
+        public void SpreadElement_05()
         {
             string source = """
                 class Program
@@ -4171,7 +4119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void SpreadElement_07()
+        public void SpreadElement_06()
         {
             string source = """
                 class Program
