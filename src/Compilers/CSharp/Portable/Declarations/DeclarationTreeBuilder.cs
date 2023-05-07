@@ -1201,6 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.IndexerDeclaration:
+                case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
                     return true;
 
