@@ -56,14 +56,22 @@ internal static class StarredCompletionAssemblyHelper
         }
     }
 
+    private static bool _completionProviderTaskFailed = false;
     internal static async Task<CompletionProvider?> GetCompletionProviderAsync(CancellationToken cancellationToken)
     {
-        if (_completionProviderLazy != null)
+        // early exit if async lazy is not initialized or if task has previously failed
+        // this prevents us from seeing errors every time we try to get completions
+        if (_completionProviderLazy == null || _completionProviderTaskFailed)
         {
-            return await _completionProviderLazy.GetValueAsync(cancellationToken);
+            return null;
         }
-
-        return null;
+        var completionProviderTask = _completionProviderLazy.GetValueAsync(cancellationToken);
+        if (!completionProviderTask.IsCompleted)
+        {
+            return null;
+        }
+        _completionProviderTaskFailed = completionProviderTask.IsFaulted; //note if the task faulted so we don't await it again
+        return await completionProviderTask;
     }
 
     private static async Task<CompletionProvider> CreateCompletionProviderAsync(MethodInfo createCompletionProviderMethodInfo, IServiceBroker serviceBroker, string modelBasePath, ILogger logger)
