@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // |              |a|b|e|n|vvv|yy|s|r|q|z|kk|wwwww|
             // 
             // w = method kind.  5 bits.
-            // k = ref kind.  3 bits.
+            // k = ref kind.  2 bits.
             // z = isExtensionMethod. 1 bit.
             // q = isMetadataVirtualIgnoringInterfaceChanges. 1 bit.
             // r = isMetadataVirtual. 1 bit. (At least as true as isMetadataVirtualIgnoringInterfaceChanges.)
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int MethodKindMask = (1 << MethodKindSize) - 1;
 
             private const int RefKindOffset = MethodKindOffset + MethodKindSize;
-            private const int RefKindSize = 3;
+            private const int RefKindSize = 2;
             private const int RefKindMask = (1 << RefKindSize) - 1;
 
             private const int IsExtensionMethodOffset = RefKindOffset + RefKindSize;
@@ -114,19 +114,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public RefKind RefKind
             {
                 get { return (RefKind)((_flags >> RefKindOffset) & RefKindMask); }
-                set { ThreadSafeFlagOperations.Set(ref _flags, (int)value << RefKindOffset); }
             }
 
             public bool HasAnyBody
             {
                 get { return (_flags & HasAnyBodyBit) != 0; }
-                set { ThreadSafeFlagOperations.Set(ref _flags, value ? HasAnyBodyBit : 0); }
             }
 
             public bool IsExpressionBodied
             {
                 get { return (_flags & IsExpressionBodiedBit) != 0; }
-                set { ThreadSafeFlagOperations.Set(ref _flags, value ? IsExpressionBodiedBit : 0); }
             }
 
             public bool IsExtensionMethod
@@ -189,6 +186,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     | isMetadataVirtualInt
                     | (returnsVoid ? ReturnsVoidBit : 0)
                     | ReturnsVoidIsSetBit;
+            }
+
+            public void SetOrdinaryMethodFlags(RefKind refKind, bool isExpressionBodied, bool hasAnyBody)
+            {
+                // Only set in the constructor of SourceOrdinaryMethodSymbol, so does not need ThreadSafe operations.
+                _flags |= ((int)refKind & RefKindMask) << RefKindOffset;
+                _flags |= isExpressionBodied ? IsExpressionBodiedBit : 0;
+                _flags |= hasAnyBody ? HasAnyBodyBit : 0;
             }
 
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)

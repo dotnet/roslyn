@@ -79,11 +79,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _explicitInterfaceType = explicitInterfaceType;
 
-            bool hasBlockBody = syntax.Body != null;
-            flags.IsExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            flags.HasAnyBody = hasBlockBody || flags.IsExpressionBodied;
             Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
-            flags.RefKind = syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics);
+
+            var hasBlockBody = syntax.Body != null;
+            var isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            var hasAnyBody = hasBlockBody || isExpressionBodied;
+            var refKind = syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics);
+
+            flags.SetOrdinaryMethodFlags(refKind, isExpressionBodied, hasAnyBody);
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
