@@ -2,8 +2,6 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
   <Import Project="$(RepositoryEngineeringDir)targets\Services.props" />
   <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net472</TargetFramework>
     <IsShippingAssembly>false</IsShippingAssembly>
 
     <!-- VSIX -->
