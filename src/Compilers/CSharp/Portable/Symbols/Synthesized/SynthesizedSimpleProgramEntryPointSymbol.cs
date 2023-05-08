@@ -198,8 +198,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        internal override bool IsExpressionBodied => false;
-
         public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
             => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
 

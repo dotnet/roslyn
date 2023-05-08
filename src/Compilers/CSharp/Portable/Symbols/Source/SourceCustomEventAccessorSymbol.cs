@@ -37,6 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.Kind() == SyntaxKind.AddAccessorDeclaration || syntax.Kind() == SyntaxKind.RemoveAccessorDeclaration);
 
+            var hasBody = syntax.Body != null;
+            var hasExpressionBody = syntax.ExpressionBody != null;
+            flags.IsExpressionBodied = !hasBody && hasExpressionBody;
+
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, this.Location, hasBody: true, diagnostics: diagnostics);
 
             if (syntax.Body != null || syntax.ExpressionBody != null)
@@ -90,17 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool GenerateDebugInfo
         {
             get { return true; }
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get
-            {
-                var syntax = GetSyntax();
-                var hasBody = syntax.Body != null;
-                var hasExpressionBody = syntax.ExpressionBody != null;
-                return !hasBody && hasExpressionBody;
-            }
         }
     }
 }

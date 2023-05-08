@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override bool HasAnyBody => true;
 
-        internal sealed override bool IsExpressionBodied => false;
-
         public sealed override bool IsImplicitlyDeclared => true;
 
         protected sealed override Location ReturnTypeLocation => GetFirstLocation();

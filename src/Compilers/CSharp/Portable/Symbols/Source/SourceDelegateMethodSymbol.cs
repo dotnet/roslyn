@@ -176,11 +176,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsExpressionBodied
-        {
-            get { return false; }
-        }
-
         internal override bool GenerateDebugInfo
         {
             get { return false; }

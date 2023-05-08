@@ -502,11 +502,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsExpressionBodied
-        {
-            get { return flags.IsExpressionBodied; }
-        }
-
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
