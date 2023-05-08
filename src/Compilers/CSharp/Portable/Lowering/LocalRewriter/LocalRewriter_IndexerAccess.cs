@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // createSpan(ref receiver, length)[index]
 
-                result = _factory.Call(_factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length)), getItemOrSliceHelper, VisitExpression(node.Argument));
+                result = _factory.Call(_factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true), getItemOrSliceHelper, VisitExpression(node.Argument));
                 // PROTOTYPE(InlineArrays): Use specialized helper to get to the first item without creating a span.
             }
             else
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Argument, out PatternIndexOffsetLoweringStrategy strategy);
                     BoundExpression integerArgument = makePatternIndexOffsetExpression(makeOffsetInput, length, strategy);
-                    result = _factory.Call(_factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length)), getItemOrSliceHelper, integerArgument);
+                    result = _factory.Call(_factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true), getItemOrSliceHelper, integerArgument);
                 }
                 else
                 {
@@ -261,13 +261,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (sideEffectsBuilder.Count != 0)
                     {
-                        possiblyRefCapturedReceiver = _factory.StoreToTemp(possiblyRefCapturedReceiver, out var refCapture, RefKind.Ref);
+                        possiblyRefCapturedReceiver = _factory.StoreToTemp(possiblyRefCapturedReceiver, out var refCapture, createSpan.Parameters[0].RefKind == RefKind.In ? RefKindExtensions.StrictIn : RefKind.Ref);
                         localsBuilder.Insert(0, ((BoundLocal)possiblyRefCapturedReceiver).LocalSymbol);
                         sideEffectsBuilder.Insert(0, refCapture);
                     }
 
                     result = _factory.Sequence(localsBuilder.ToImmutableAndFree(), sideEffectsBuilder.ToImmutableAndFree(),
-                                               _factory.Call(_factory.Call(null, createSpan, possiblyRefCapturedReceiver, _factory.Literal(length)),
+                                               _factory.Call(_factory.Call(null, createSpan, possiblyRefCapturedReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true),
                                                              getItemOrSliceHelper, startExpr, rangeSizeExpr));
                 }
             }

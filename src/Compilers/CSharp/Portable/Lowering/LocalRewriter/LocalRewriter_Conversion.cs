@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         createSpan = createSpan.Construct(rewrittenOperand.Type, spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type);
                         _ = rewrittenOperand.Type.HasInlineArrayAttribute(out int length);
 
-                        return _factory.Call(null, createSpan, rewrittenOperand, _factory.Literal(length));
+                        return _factory.Call(null, createSpan, rewrittenOperand, _factory.Literal(length), useStrictArgumentRefKinds: true);
                     }
 
                 default:
