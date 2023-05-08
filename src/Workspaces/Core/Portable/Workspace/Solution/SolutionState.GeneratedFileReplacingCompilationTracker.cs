@@ -199,8 +199,9 @@ namespace Microsoft.CodeAnalysis
 
             public ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionState solution, CancellationToken cancellationToken)
             {
-                // PROTOTYPE: the run results should always be the same?
-                return UnderlyingTracker.GetSourceGeneratorRunResultAsync(solution, cancellationToken);
+                // The provided run result would be out of sync with the replaced documents.
+                // Currently this is only used by razor to get the HostOutputs, which should never be used here.
+                throw new NotImplementedException();
             }
         }
     }
