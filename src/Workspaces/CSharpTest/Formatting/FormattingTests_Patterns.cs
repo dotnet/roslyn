@@ -534,5 +534,133 @@ class TypeName
 
             await AssertFormatAsync(expected, content);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+        public async Task FormatNestedListPattern1()
+        {
+            var content = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [ [  ]  ])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var expected = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[]])
+                        {
+                
+                        }
+                    }
+                }
+                """;
+
+            await AssertFormatAsync(expected, content);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+        public async Task FormatNestedListPattern2()
+        {
+            var content = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [ [  ],[ ]     ])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var expected = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[], []])
+                        {
+                
+                        }
+                    }
+                }
+                """;
+
+            await AssertFormatAsync(expected, content);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+        public async Task FormatNestedListPattern3()
+        {
+            var content = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [    [  ],[ ]     , [   ]  ] )
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var expected = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[], [], []])
+                        {
+                
+                        }
+                    }
+                }
+                """;
+
+            await AssertFormatAsync(expected, content);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+        public async Task FormatNestedListPattern4()
+        {
+            var content = """
+                class C
+                {
+                    void M(string[][] ss)
+                    {
+                        if (ss is [    [ [ ] ] ] )
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var expected = """
+                class C
+                {
+                    void M(string[][] ss)
+                    {
+                        if (ss is [[[]]])
+                        {
+                
+                        }
+                    }
+                }
+                """;
+
+            await AssertFormatAsync(expected, content);
+        }
     }
 }

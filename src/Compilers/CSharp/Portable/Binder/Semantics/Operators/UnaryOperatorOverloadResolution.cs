@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var nullableEnum = MakeNullable(enumType);
+            var nullableEnum = Compilation.GetOrCreateNullableType(enumType);
 
             switch (kind)
             {

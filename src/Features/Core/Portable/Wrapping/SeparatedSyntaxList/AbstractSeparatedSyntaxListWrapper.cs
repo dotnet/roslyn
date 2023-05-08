@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             if (containsUnformattableContent)
                 return null;
 
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return new SeparatedSyntaxListCodeActionComputer(
                 this, document, sourceText, options, listSyntax, listItems, cancellationToken);
         }

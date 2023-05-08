@@ -93,14 +93,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.InsertOperator, nameof(FeaturesResources.Adding_a_user_defined_0_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.InsertIntoStruct, nameof(FeaturesResources.Adding_0_into_a_1_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.InsertIntoClassWithLayout, nameof(FeaturesResources.Adding_0_into_a_class_with_explicit_or_sequential_layout_requires_restarting_the_application));
-            AddRudeEdit(RudeEditKind.InsertGenericMethod, nameof(FeaturesResources.Adding_a_generic_0_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.Move, nameof(FeaturesResources.Moving_0_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.Delete, nameof(FeaturesResources.Deleting_0_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.GenericMethodUpdate, nameof(FeaturesResources.Modifying_a_generic_method_requires_restarting_the_application));
-            AddRudeEdit(RudeEditKind.GenericMethodTriviaUpdate, nameof(FeaturesResources.Modifying_whitespace_or_comments_in_a_generic_0_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.GenericTypeUpdate, nameof(FeaturesResources.Modifying_a_method_inside_the_context_of_a_generic_type_requires_restarting_the_application));
-            AddRudeEdit(RudeEditKind.GenericTypeTriviaUpdate, nameof(FeaturesResources.Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_requires_restarting_the_application));
-            AddRudeEdit(RudeEditKind.GenericTypeInitializerUpdate, nameof(FeaturesResources.Modifying_the_initializer_of_0_in_a_generic_type_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, nameof(FeaturesResources.Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.RenamingCapturedVariable, nameof(FeaturesResources.Renaming_a_captured_variable_from_0_to_1_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.StackAllocUpdate, nameof(FeaturesResources.Modifying_0_which_contains_the_stackalloc_operator_requires_restarting_the_application));
@@ -137,7 +133,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.MemberBodyInternalError, nameof(FeaturesResources.Modifying_body_of_0_requires_restarting_the_application_due_to_internal_error_1));
             AddRudeEdit(RudeEditKind.MemberBodyTooBig, nameof(FeaturesResources.Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements));
             AddRudeEdit(RudeEditKind.SourceFileTooBig, nameof(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big));
-            AddRudeEdit(RudeEditKind.InsertIntoGenericType, nameof(FeaturesResources.Adding_0_into_a_generic_type_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.ImplementRecordParameterAsReadOnly, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.ImplementRecordParameterWithSet, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, nameof(FeaturesResources.Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0));
@@ -157,6 +152,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.ChangingTypeNotSupportedByRuntime, nameof(FeaturesResources.Changing_the_type_of_0_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.DeleteNotSupportedByRuntime, nameof(FeaturesResources.Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime, nameof(FeaturesResources.Updating_async_or_iterator_requires_restarting_the_application_because_is_not_supported_by_the_runtime));
+            AddRudeEdit(RudeEditKind.UpdatingGenericNotSupportedByRuntime, nameof(FeaturesResources.Updating_0_within_generic_type_or_method_requires_restarting_the_application_because_is_not_supported_by_the_runtime));
 
             // VB specific
             AddRudeEdit(RudeEditKind.HandlesClauseUpdate, nameof(FeaturesResources.Updating_the_Handles_clause_of_0_requires_restarting_the_application));

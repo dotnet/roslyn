@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GoToDefinition
                     Case SyntaxKind.ExitFunctionStatement
                     Case SyntaxKind.ExitPropertyStatement
                         Dim Symbol = semanticModel.GetDeclaredSymbol(exitTarget)
-                        Return Symbol.Locations.FirstOrNone().SourceSpan.Start
+                        Return If(Symbol.Locations.FirstOrDefault()?.SourceSpan.Start, 0)
                 End Select
 
                 ' Exit Select, Exit While, Exit For, Exit ForEach, ...

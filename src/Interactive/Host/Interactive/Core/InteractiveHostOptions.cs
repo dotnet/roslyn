@@ -24,9 +24,14 @@ namespace Microsoft.CodeAnalysis.Interactive
         public string? InitializationFilePath { get; }
 
         /// <summary>
-        /// Host culture used for localization of doc comments, errors.
+        /// Host culture used for data formatting.
         /// </summary>
         public CultureInfo Culture { get; }
+
+        /// <summary>
+        /// Host culture used for localization of doc comments, errors.
+        /// </summary>
+        public CultureInfo UICulture { get; }
 
         /// <summary>
         /// Host process platform.
@@ -37,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             string hostPath,
             string? initializationFilePath,
             CultureInfo culture,
+            CultureInfo uiCulture,
             InteractiveHostPlatform platform)
         {
             Contract.ThrowIfNull(hostPath);
@@ -44,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             HostPath = hostPath;
             InitializationFilePath = initializationFilePath;
             Culture = culture;
+            UICulture = uiCulture;
             Platform = platform;
         }
 
@@ -51,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             string hostDirectory,
             string? initializationFileName,
             CultureInfo culture,
+            CultureInfo uiCulture,
             InteractiveHostPlatform platform)
         {
             var hostSubdirectory = (platform == InteractiveHostPlatform.Core) ? "Core" : "Desktop";
@@ -59,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             var hostPath = Path.Combine(hostDirectory, hostSubdirectory, hostExecutableFileName);
             var initializationFilePath = (initializationFileName != null) ? Path.Combine(hostDirectory, hostSubdirectory, initializationFileName) : null;
 
-            return new InteractiveHostOptions(hostPath, initializationFilePath, culture, platform);
+            return new InteractiveHostOptions(hostPath, initializationFilePath, culture, uiCulture, platform);
         }
     }
 }

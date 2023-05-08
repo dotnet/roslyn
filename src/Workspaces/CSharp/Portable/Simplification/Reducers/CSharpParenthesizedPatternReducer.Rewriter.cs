@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitParenthesizedPattern(ParenthesizedPatternSyntax node)
             {
-                return SimplifyExpression(
+                return SimplifyNode(
                     node,
                     newNode: base.VisitParenthesizedPattern(node),
                     simplifier: s_simplifyParentheses);
