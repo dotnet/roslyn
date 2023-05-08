@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, hasBody, location, diagnostics, out modifierErrors);
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
-            flags.IsExpressionBodied = IsExpressionBodied;
+            this.MakeFlags(isExpressionBodied, methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (syntax.Identifier.ValueText != containingType.Name)
             {

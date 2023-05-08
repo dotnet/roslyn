@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
                  isReadOnly: false,
                  hasBody: syntax.Body != null || syntax.ExpressionBody != null,
+                 isExpressionBodied: syntax is { Body: null, ExpressionBody: not null },
                  isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                  diagnostics)
         {

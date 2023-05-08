@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // assume that the return type is non-void; when we do the lazy initialization
             // of the parameters and return type we will update the flag if necessary.
 
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
-            flags.IsExpressionBodied = isExpressionBodied;
+            this.MakeFlags(isExpressionBodied, methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (this.ContainingType.IsInterface &&
                 !(IsAbstract || IsVirtual) && !IsExplicitInterfaceImplementation &&

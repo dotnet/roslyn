@@ -148,7 +148,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _property = property;
             _isAutoPropertyAccessor = false;
-            flags.IsExpressionBodied = true;
 
             // The modifiers for the accessor are the same as the modifiers for the property,
             // minus the indexer and readonly bit
@@ -157,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
             bool isExplicitInterfaceImplementation = property.IsExplicitInterfaceImplementation;
-            this.MakeFlags(MethodKind.PropertyGet, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+            this.MakeFlags(isExpressionBodied: true, MethodKind.PropertyGet, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0);
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
@@ -192,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _property = property;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
-            flags.IsExpressionBodied = !hasBody && hasExpressionBody;
+            var isExpressionBodied = !hasBody && hasExpressionBody;
             _usesInit = usesInit;
             if (_usesInit)
             {
@@ -213,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+            this.MakeFlags(isExpressionBodied, methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0);
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: hasBody || hasExpressionBody || isAutoPropertyAccessor, diagnostics);

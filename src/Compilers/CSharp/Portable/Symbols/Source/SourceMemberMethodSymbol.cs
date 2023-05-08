@@ -124,7 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public bool IsExpressionBodied
             {
                 get { return (_flags & IsExpressionBodiedBit) != 0; }
-                set { ThreadSafeFlagOperations.Set(ref _flags, value ? IsExpressionBodiedBit : 0); }
             }
 
             public bool IsExtensionMethod
@@ -165,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             public Flags(
+                bool isExpressionBodied,
                 MethodKind methodKind,
                 DeclarationModifiers declarationModifiers,
                 bool returnsVoid,
@@ -179,12 +179,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int isNullableAnalysisEnabledInt = isNullableAnalysisEnabled ? IsNullableAnalysisEnabledBit : 0;
                 int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
+                int isExpressionBodyInt = isExpressionBodied ? IsExpressionBodiedBit : 0;
 
                 _flags = methodKindInt
                     | isExtensionMethodInt
                     | isNullableAnalysisEnabledInt
                     | isMetadataVirtualIgnoringInterfaceImplementationChangesInt
                     | isMetadataVirtualInt
+                    | isExpressionBodyInt
                     | (returnsVoid ? ReturnsVoidBit : 0)
                     | ReturnsVoidIsSetBit;
             }
@@ -339,6 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected void MakeFlags(
+            bool isExpressionBodied,
             MethodKind methodKind,
             DeclarationModifiers declarationModifiers,
             bool returnsVoid,
@@ -347,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isMetadataVirtualIgnoringModifiers = false)
         {
             DeclarationModifiers = declarationModifiers;
-            this.flags = new Flags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers);
+            this.flags = new Flags(isExpressionBodied, methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers);
         }
 
         protected void SetReturnsVoid(bool returnsVoid)

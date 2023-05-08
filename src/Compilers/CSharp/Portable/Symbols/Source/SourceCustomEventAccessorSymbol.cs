@@ -32,14 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    syntax.Keyword.GetLocation(), explicitlyImplementedEventOpt, aliasQualifierOpt,
                    isAdder: syntax.Kind() == SyntaxKind.AddAccessorDeclaration,
                    isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
-                   isNullableAnalysisEnabled: isNullableAnalysisEnabled)
+                   isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                   isExpressionBodied: syntax is { Body: null, ExpressionBody: not null })
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.Kind() == SyntaxKind.AddAccessorDeclaration || syntax.Kind() == SyntaxKind.RemoveAccessorDeclaration);
-
-            var hasBody = syntax.Body != null;
-            var hasExpressionBody = syntax.ExpressionBody != null;
-            flags.IsExpressionBodied = !hasBody && hasExpressionBody;
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, this.Location, hasBody: true, diagnostics: diagnostics);
 

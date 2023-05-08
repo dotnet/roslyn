@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(containingType is IAttributeTargetSymbol);
 
             this.MakeFlags(
+                isExpressionBodied: false,
                 MethodKind.Constructor,
                 containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public,
                 returnsVoid: true,
