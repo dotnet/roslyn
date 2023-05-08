@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -19,23 +20,47 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    // This is a type symbol associated with a type definition in source code.
-    // That is, for a generic type C<T> this is the instance type C<T>.  
-    internal sealed partial class SourceNamedTypeSymbol : SourceMemberContainerTypeSymbol, IAttributeTargetSymbol
+    internal sealed class SourceNamedTypeSymbolTypeParameterInfo
     {
-        private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
+        public readonly ImmutableArray<TypeParameterSymbol> TypeParameters;
 
         /// <summary>
         /// A collection of type parameter constraint types, populated when
         /// constraint types for the first type parameter are requested.
         /// </summary>
-        private ImmutableArray<ImmutableArray<TypeWithAnnotations>> _lazyTypeParameterConstraintTypes;
+        public ImmutableArray<ImmutableArray<TypeWithAnnotations>> LazyTypeParameterConstraintTypes;
 
         /// <summary>
         /// A collection of type parameter constraint kinds, populated when
         /// constraint kinds for the first type parameter are requested.
         /// </summary>
-        private ImmutableArray<TypeParameterConstraintKind> _lazyTypeParameterConstraintKinds;
+        public ImmutableArray<TypeParameterConstraintKind> LazyTypeParameterConstraintKinds;
+
+        public static readonly SourceNamedTypeSymbolTypeParameterInfo Empty = new SourceNamedTypeSymbolTypeParameterInfo(
+            ImmutableArray<TypeParameterSymbol>.Empty, ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty, ImmutableArray<TypeParameterConstraintKind>.Empty);
+
+        private SourceNamedTypeSymbolTypeParameterInfo(
+            ImmutableArray<TypeParameterSymbol> typeParameters,
+            ImmutableArray<ImmutableArray<TypeWithAnnotations>> typeParameterConstraintTypes,
+            ImmutableArray<TypeParameterConstraintKind> typeParameterConstraintKinds)
+        {
+            TypeParameters = typeParameters;
+            LazyTypeParameterConstraintTypes = typeParameterConstraintTypes;
+            LazyTypeParameterConstraintKinds = typeParameterConstraintKinds;
+        }
+
+        public static SourceNamedTypeSymbolTypeParameterInfo Create(ImmutableArray<TypeParameterSymbol> typeParameters)
+        {
+            // If we have no type parameters (common case), we can just point at the singleton empty instance.
+            return typeParameters.IsEmpty ? Empty : new SourceNamedTypeSymbolTypeParameterInfo(typeParameters, default, default);
+        }
+    }
+
+    // This is a type symbol associated with a type definition in source code.
+    // That is, for a generic type C<T> this is the instance type C<T>.  
+    internal sealed partial class SourceNamedTypeSymbol : SourceMemberContainerTypeSymbol, IAttributeTargetSymbol
+    {
+        private SourceNamedTypeSymbolTypeParameterInfo _lazyTypeParameterInfo;
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
@@ -277,18 +302,24 @@ next:;
 
         private ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
         {
-            var constraintTypes = _lazyTypeParameterConstraintTypes;
+            var constraintTypes = _lazyTypeParameterInfo?.LazyTypeParameterConstraintTypes ?? default;
             if (constraintTypes.IsDefault)
             {
                 GetTypeParameterConstraintKinds();
 
                 var diagnostics = BindingDiagnosticBag.GetInstance();
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintTypes, MakeTypeParameterConstraintTypes(diagnostics)))
+                var localConstraintTypes = MakeTypeParameterConstraintTypes(diagnostics);
+                Debug.Assert(_lazyTypeParameterInfo != null);
+
+                if (ImmutableInterlocked.InterlockedInitialize(
+                        ref _lazyTypeParameterInfo.LazyTypeParameterConstraintTypes,
+                        localConstraintTypes))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
+
                 diagnostics.Free();
-                constraintTypes = _lazyTypeParameterConstraintTypes;
+                constraintTypes = _lazyTypeParameterInfo.LazyTypeParameterConstraintTypes;
             }
 
             return constraintTypes;
@@ -305,11 +336,15 @@ next:;
 
         private ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
         {
-            var constraintKinds = _lazyTypeParameterConstraintKinds;
+            var constraintKinds = _lazyTypeParameterInfo?.LazyTypeParameterConstraintKinds ?? default;
             if (constraintKinds.IsDefault)
             {
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintKinds, MakeTypeParameterConstraintKinds());
-                constraintKinds = _lazyTypeParameterConstraintKinds;
+                var localConstraintKinds = MakeTypeParameterConstraintKinds();
+                Debug.Assert(_lazyTypeParameterInfo != null);
+
+                ImmutableInterlocked.InterlockedInitialize(
+                    ref _lazyTypeParameterInfo.LazyTypeParameterConstraintKinds, localConstraintKinds);
+                constraintKinds = _lazyTypeParameterInfo.LazyTypeParameterConstraintKinds;
             }
 
             return constraintKinds;
@@ -749,10 +784,13 @@ next:;
         {
             get
             {
-                if (_lazyTypeParameters.IsDefault)
+                if (_lazyTypeParameterInfo is null)
                 {
                     var diagnostics = BindingDiagnosticBag.GetInstance();
-                    if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters, MakeTypeParameters(diagnostics)))
+                    if (Interlocked.CompareExchange(
+                            ref _lazyTypeParameterInfo,
+                            SourceNamedTypeSymbolTypeParameterInfo.Create(MakeTypeParameters(diagnostics)),
+                            comparand: null) is null)
                     {
                         AddDeclarationDiagnostics(diagnostics);
                     }
@@ -760,7 +798,7 @@ next:;
                     diagnostics.Free();
                 }
 
-                return _lazyTypeParameters;
+                return _lazyTypeParameterInfo.TypeParameters;
             }
         }
 
