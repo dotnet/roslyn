@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConstructibleCollectionTypeKind.Array:
                 case ConstructibleCollectionTypeKind.Span:
                 case ConstructibleCollectionTypeKind.ReadOnlySpan:
-                    collectionLiteral = BindArrayOrSpanCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, collectionTypeKind, node.Initializers, elementType!, diagnostics);
+                    collectionLiteral = BindArrayOrSpanCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, collectionTypeKind, elementType!, diagnostics);
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
@@ -459,7 +459,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol targetType,
             bool wasCompilerGenerated,
             ConstructibleCollectionTypeKind collectionTypeKind,
-            ImmutableArray<BoundExpression> elements,
             TypeSymbol elementType,
             BindingDiagnosticBag diagnostics)
         {
@@ -475,6 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
+            var elements = node.Initializers;
             if (elements.Any(e => e is BoundCollectionLiteralSpreadElement))
             {
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);

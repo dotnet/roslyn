@@ -423,40 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NaturalType_12()
-        {
-            string source = """
-                using System.Collections;
-                using System.Collections.Generic;
-                class Program
-                {
-                    static void Main()
-                    {
-                        IEnumerable x = [];
-                        IEnumerable<int> y = [];
-                        IList<object> z = [];
-                        IDictionary<string, int> w = [];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (7,25): error CS9500: Cannot initialize type 'IEnumerable' with a collection literal because the type is not constructible.
-                //         IEnumerable x = [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.IEnumerable").WithLocation(7, 25),
-                // (8,30): error CS9500: Cannot initialize type 'IEnumerable<int>' with a collection literal because the type is not constructible.
-                //         IEnumerable<int> y = [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(8, 30),
-                // (9,27): error CS9500: Cannot initialize type 'IList<object>' with a collection literal because the type is not constructible.
-                //         IList<object> z = [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IList<object>").WithLocation(9, 27),
-                // (10,38): error CS9500: Cannot initialize type 'IDictionary<string, int>' with a collection literal because the type is not constructible.
-                //         IDictionary<string, int> w = [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IDictionary<string, int>").WithLocation(10, 38));
-        }
-
-        [Fact]
-        public void NaturalType_20()
+        public void InterfaceType_01()
         {
             string source = """
                 using System.Collections;
@@ -487,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NaturalType_21()
+        public void InterfaceType_02()
         {
             string source = """
                 using System.Collections.Generic;
@@ -529,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NaturalType_22()
+        public void InterfaceType_03()
         {
             string source = """
                 using System.Collections.Generic;
