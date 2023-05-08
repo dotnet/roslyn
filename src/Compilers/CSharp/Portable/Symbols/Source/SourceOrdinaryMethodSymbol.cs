@@ -19,11 +19,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceOrdinaryMethodSymbol : SourceOrdinaryMethodSymbolBase
     {
+        // The flags type is used to compact many different bits of information.
+        private struct OrdinaryMethodFlags
+        {
+            // We currently pack everything into a 16 bit int with the following layout:
+            //
+            // |              |rrrrrrrr|
+            // 
+            // r = ref-kind.  8 bits. (overkill, but means we support the entire byte range of RefKind)
+            // e = isExpressionBody. 1 bit.
+            // b = hasAnyBody. 1 bit.
+            // v = isVarArgs. 1 bit.
+
+            private readonly short _flags;
+
+            private const int RefKindOffset = 0;
+            private const int RefKindSize = 8;
+
+            private const int IsExpressionBodiedOffset = RefKindOffset + RefKindSize;
+            private const int IsExpressionBodiedSize = 1;
+
+            private const int HasAnyBodyOffset = IsExpressionBodiedOffset + IsExpressionBodiedSize;
+            private const int HasAnyBodySize = 1;
+
+            private const int RefKindMask = (1 << RefKindSize) - 1;
+
+
+            public RefKind RefKind => (RefKind)((_flags >> RefKindOffset) & RefKindMask); }
+        }
+
         private readonly TypeSymbol _explicitInterfaceType;
-        private readonly bool _isExpressionBodied;
-        private readonly bool _hasAnyBody;
-        private readonly RefKind _refKind;
-        private bool _lazyIsVararg;
 
         /// <summary>
         /// A collection of type parameter constraint types, populated when
@@ -45,6 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The implementation part is not listed among the "members" of the enclosing type.
         /// </summary>
         private SourceOrdinaryMethodSymbol _otherPartOfPartial;
+
+        private 
+
+        private readonly bool _isExpressionBodied;
+        private readonly bool _hasAnyBody;
+        private readonly RefKind _refKind;
+        private bool _lazyIsVararg;
 
         public static SourceOrdinaryMethodSymbol CreateMethodSymbol(
             NamedTypeSymbol containingType,
