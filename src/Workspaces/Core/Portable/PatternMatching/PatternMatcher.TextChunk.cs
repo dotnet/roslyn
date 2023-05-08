@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             /// </summary>
             public TemporaryArray<TextSpan> PatternHumps;
 
-            public readonly WordSimilarityChecker SimilarityChecker;
+            public readonly WordSimilarityChecker? SimilarityChecker;
 
             public readonly bool IsLowercase;
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 StringBreaker.AddCharacterParts(text, ref PatternHumps);
 
                 this.SimilarityChecker = allowFuzzingMatching
-                    ? WordSimilarityChecker.Allocate(text, substringsAreSimilar: false)
+                    ? new WordSimilarityChecker(text, substringsAreSimilar: false)
                     : null;
 
                 IsLowercase = !ContainsUpperCaseLetter(text);
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             public void Dispose()
             {
                 this.PatternHumps.Dispose();
-                this.SimilarityChecker?.Free();
+                this.SimilarityChecker?.Dispose();
             }
         }
     }

@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The span identifies the text in the document that is used to filter the initial list 
         /// presented to the user, and typically represents the region of the document that will 
         /// be changed if this item is committed.
+        /// The latter is not always the case because each provider is free to make more complex changes 
+        /// to the document. If this is the case, <see cref="CompletionItem.IsComplexTextEdit"/> must be
+        /// set to <see langword="true"/>.
         /// </summary>
         public TextSpan Span { get; }
 

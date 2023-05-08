@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -34,6 +36,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly IGlobalOptionService _globalOptions;
             private readonly IThreadingContext _threadingContext;
 
+            private readonly object _gate = new();
+            private VisualStudioRemoteHostClientProvider? _cachedVSInstance;
+
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public Factory(
@@ -56,18 +61,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // We don't want to bring up the OOP process in a VS cloud environment client instance
                 // Avoids proffering brokered services on the client instance.
                 if (!_globalOptions.GetOption(RemoteHostOptionsStorage.OOP64Bit) ||
-                    workspaceServices.Workspace is not VisualStudioWorkspace ||
+                    workspaceServices.Workspace is not (VisualStudioWorkspace or PreviewWorkspace) ||
                     workspaceServices.GetRequiredService<IWorkspaceContextService>().IsCloudEnvironmentClient())
                 {
                     // Run code in the current process
                     return new DefaultRemoteHostClientProvider();
                 }
 
-                return new VisualStudioRemoteHostClientProvider(workspaceServices.SolutionServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
+                lock (_gate)
+                {
+                    // If we have a cached vs instance, and the workspace this is for uses the same host services, then
+                    // we can return that instance.
+                    if (_cachedVSInstance?.Services.WorkspaceServices.HostServices == workspaceServices.SolutionServices.WorkspaceServices.HostServices)
+                        return _cachedVSInstance;
+
+                    // Otherwise, we either don't have a cached vs instance, or this is for a different set of host
+                    // services.  Make a fresh provider.  If this was for the VSWorkspace, then cache this for future
+                    // callers with the same services.
+                    var provider = new VisualStudioRemoteHostClientProvider(workspaceServices.SolutionServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
+                    if (workspaceServices.Workspace is VisualStudioWorkspace)
+                        _cachedVSInstance = provider;
+
+                    return provider;
+                }
             }
         }
 
-        private readonly SolutionServices _services;
+        public readonly SolutionServices Services;
         private readonly IGlobalOptionService _globalOptions;
         private readonly VSThreading.AsyncLazy<RemoteHostClient?> _lazyClient;
         private readonly IAsyncServiceProvider _vsServiceProvider;
@@ -83,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             AsynchronousOperationListenerProvider listenerProvider,
             RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
-            _services = services;
+            Services = services;
             _globalOptions = globalOptions;
             _vsServiceProvider = vsServiceProvider;
             _threadingContext = threadingContext;
@@ -108,10 +128,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler) ? RemoteProcessConfiguration.EnableSolutionCrawler : 0);
 
                 // VS AsyncLazy does not currently support cancellation:
-                var client = await ServiceHubRemoteHostClient.CreateAsync(_services, configuration, _listenerProvider, serviceBroker, _callbackDispatchers, CancellationToken.None).ConfigureAwait(false);
+                var client = await ServiceHubRemoteHostClient.CreateAsync(Services, configuration, _listenerProvider, serviceBroker, _callbackDispatchers, CancellationToken.None).ConfigureAwait(false);
 
                 // proffer in-proc brokered services:
-                _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(_services)));
+                _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(Services)));
 
                 return client;
             }

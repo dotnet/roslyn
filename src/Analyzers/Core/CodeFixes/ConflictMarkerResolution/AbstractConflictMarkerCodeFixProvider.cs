@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var document = context.Document;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var position = context.Span.Start;
             if (!ShouldFix(root, text, position, out var startLine, out var firstMiddleLine, out var secondMiddleLine, out var endLine))
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             Action<SourceText, ArrayBuilder<TextChange>, int, int, int, int> addEdits,
             CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var edits);
             addEdits(text, edits, startPos, firstMiddlePos, secondMiddlePos, endPos);
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var orderedDiagnostics = diagnostics.OrderBy(
                 (d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start).ToImmutableArray();
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Create a single array of edits to apply.  Then walk over all the

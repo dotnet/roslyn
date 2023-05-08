@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         {
             Name = name;
             Glyph = glyph;
-            _lazySolution = new AsyncLazy<Solution>(getSolutionAsync, cacheResult: true);
+            _lazySolution = AsyncLazy.Create(getSolutionAsync);
         }
 
         public Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)

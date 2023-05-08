@@ -109,6 +109,9 @@ namespace Roslyn.Test.Utilities
 
         protected static LSP.ClientCapabilities CapabilitiesWithVSExtensions => new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
 
+        protected static LSP.ClientCapabilities GetCapabilities(bool isVS)
+            => isVS ? CapabilitiesWithVSExtensions : new LSP.ClientCapabilities();
+
         /// <summary>
         /// Asserts two objects are equivalent by converting to JSON and ignoring whitespace.
         /// </summary>
@@ -244,7 +247,8 @@ namespace Roslyn.Test.Utilities
             string? insertText = null,
             string? sortText = null,
             string? filterText = null,
-            long resultId = 0)
+            long resultId = 0,
+            bool vsResolveTextEditOnCommit = false)
         {
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
@@ -264,7 +268,8 @@ namespace Roslyn.Test.Utilities
                 {
                     ResultId = resultId,
                 }),
-                Preselect = preselect
+                Preselect = preselect,
+                VsResolveTextEditOnCommit = vsResolveTextEditOnCommit
             };
 
             if (tags != null)
@@ -470,13 +475,14 @@ namespace Roslyn.Test.Utilities
             };
         }
 
-        private static LSP.DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(Uri uri, string source)
+        private static LSP.DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(Uri uri, string source, string languageId = "")
             => new LSP.DidOpenTextDocumentParams
             {
                 TextDocument = new LSP.TextDocumentItem
                 {
                     Text = source,
-                    Uri = uri
+                    Uri = uri,
+                    LanguageId = languageId
                 }
             };
 
@@ -605,7 +611,7 @@ namespace Roslyn.Test.Utilities
                 return result;
             }
 
-            public async Task OpenDocumentAsync(Uri documentUri, string? text = null)
+            public async Task OpenDocumentAsync(Uri documentUri, string? text = null, string languageId = "")
             {
                 if (text == null)
                 {
@@ -615,7 +621,7 @@ namespace Roslyn.Test.Utilities
                     text = sourceText.ToString();
                 }
 
-                var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, text.ToString());
+                var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, text.ToString(), languageId);
                 await ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(LSP.Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None);
             }
 
@@ -688,7 +694,7 @@ namespace Roslyn.Test.Utilities
 
             internal T GetRequiredLspService<T>() where T : class, ILspService => LanguageServer.GetTestAccessor().GetRequiredLspService<T>();
 
-            internal ImmutableArray<SourceText> GetTrackedTexts() => GetManager().GetTrackedLspText().Values.ToImmutableArray();
+            internal ImmutableArray<SourceText> GetTrackedTexts() => GetManager().GetTrackedLspText().Values.Select(v => v.Text).ToImmutableArray();
 
             public async ValueTask DisposeAsync()
             {

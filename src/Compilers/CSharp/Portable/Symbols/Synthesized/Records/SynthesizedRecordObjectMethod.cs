@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (reportAnError)
             {
-                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideMethodFromObject, overriding.Locations[0], overriding);
+                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideMethodFromObject, overriding.GetFirstLocation(), overriding);
             }
 
             return reportAnError;

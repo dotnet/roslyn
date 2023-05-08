@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3576,6 +3578,8 @@ public class FileModifierTests : CSharpTestBase
         Assert.Null(comp.GetTypeByMetadataName("<>F1__C"));
         Assert.Null(comp.GetTypeByMetadataName("F0__C"));
         Assert.Null(comp.GetTypeByMetadataName("<file>F0__C"));
+        Assert.Null(comp.GetTypeByMetadataName("C"));
+        Assert.Null(comp.GetTypeByMetadataName("C`1"));
 
         // from metadata
         var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
@@ -3585,6 +3589,8 @@ public class FileModifierTests : CSharpTestBase
 
         var metadataType = comp2.GetTypeByMetadataName("<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C");
         Assert.Equal(metadataMember, metadataType);
+
+        Assert.Null(comp2.GetTypeByMetadataName("C"));
     }
 
     [Fact]
@@ -3603,6 +3609,8 @@ public class FileModifierTests : CSharpTestBase
         var sourceType = comp.GetTypeByMetadataName("<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C`1");
         Assert.Equal(sourceMember, sourceType);
         Assert.Null(comp.GetTypeByMetadataName("<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C"));
+        Assert.Null(comp.GetTypeByMetadataName("C"));
+        Assert.Null(comp.GetTypeByMetadataName("C`1"));
 
         // from metadata
         var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
@@ -3613,6 +3621,8 @@ public class FileModifierTests : CSharpTestBase
 
         var metadataType = comp2.GetTypeByMetadataName("<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C`1");
         Assert.Equal(metadataMember, metadataType);
+
+        Assert.Null(comp2.GetTypeByMetadataName("C`1"));
     }
 
     [Fact]
@@ -3639,6 +3649,7 @@ public class FileModifierTests : CSharpTestBase
         // However, since we don't actually support nested file types, we don't think we need the API to do the additional lookup
         // when the requested type is nested, and so we end up giving a null here.
         Assert.Null(sourceType);
+        Assert.Null(comp.GetTypeByMetadataName("Outer.C"));
     }
 
     [Fact]
@@ -3661,6 +3672,11 @@ public class FileModifierTests : CSharpTestBase
         var sourceType = comp.GetTypeByMetadataName("<file1>F96B1D9CB33A43D51528FE81EDAFE5AE31358FE749929AC76B76C64B60DEF129D__C");
         Assert.Equal(sourceMember, sourceType);
 
+        var sourceTypeCByMetadataName = comp.GetTypeByMetadataName("C");
+        Assert.NotNull(sourceTypeCByMetadataName);
+        Assert.Equal("C", sourceTypeCByMetadataName.MetadataName);
+        Assert.False(sourceTypeCByMetadataName is SourceMemberContainerTypeSymbol { IsFileLocal: true });
+
         // from metadata
         var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
         comp2.VerifyDiagnostics();
@@ -3670,6 +3686,10 @@ public class FileModifierTests : CSharpTestBase
 
         var metadataType = comp2.GetTypeByMetadataName("<file1>F96B1D9CB33A43D51528FE81EDAFE5AE31358FE749929AC76B76C64B60DEF129D__C");
         Assert.Equal(metadataMember, metadataType);
+
+        var metadataTypeCByMetadataName = comp2.GetTypeByMetadataName("C");
+        Assert.NotNull(metadataTypeCByMetadataName);
+        Assert.Equal("C", metadataTypeCByMetadataName.MetadataName);
     }
 
     [CombinatorialData]
@@ -3694,12 +3714,15 @@ public class FileModifierTests : CSharpTestBase
         const string metadataName = "<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C";
         var sourceType = comp.GetTypeByMetadataName(metadataName);
         Assert.Null(sourceType);
+        Assert.Null(comp.GetTypeByMetadataName("C"));
 
         var types = comp.GetTypesByMetadataName(metadataName);
         Assert.Equal(2, types.Length);
         Assert.Equal(firstIsMetadataReference ? "C@<tree 0>" : "C@<unknown>", types[0].ToTestDisplayString());
         Assert.Equal(secondIsMetadataReference ? "C@<tree 0>" : "C@<unknown>", types[1].ToTestDisplayString());
         Assert.NotEqual(types[0], types[1]);
+
+        Assert.Empty(comp.GetTypesByMetadataName("C"));
     }
 
     [Fact]
@@ -3720,9 +3743,13 @@ public class FileModifierTests : CSharpTestBase
         var sourceType = ((Compilation)comp).GetTypeByMetadataName(metadataName);
         Assert.Equal("C@<tree 0>", sourceType.ToTestDisplayString());
 
+        Assert.Null(((Compilation)comp).GetTypeByMetadataName("C"));
+
         var types = comp.GetTypesByMetadataName(metadataName);
         Assert.Equal(1, types.Length);
         Assert.Same(sourceType, types[0]);
+
+        Assert.Empty(comp.GetTypesByMetadataName("C"));
     }
 
     [Fact]
@@ -3748,6 +3775,51 @@ public class FileModifierTests : CSharpTestBase
         var types = comp.GetTypesByMetadataName($"<SomeFile>F{checksum}__C");
         Assert.Equal(1, types.Length);
         Assert.Same(sourceType, types[0]);
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_08()
+    {
+        var source1 = """
+            file class C { public static void M() { } }
+            """;
+
+        var comp = CreateCompilation(source1, targetFramework: TargetFramework.Mscorlib40);
+        comp.VerifyDiagnostics();
+
+        const string metadataName = "<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C";
+
+        var member = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(metadataName, member.MetadataName);
+
+        Assert.Null(comp.GetTypeByMetadataName("C"));
+        Assert.Equal(member, comp.GetTypeByMetadataName(metadataName));
+
+        var source2 = """
+            class C2
+            {
+                void M()
+                {
+                    C.M();
+                }
+            }
+            """;
+
+        var comp2 = CreateCompilation(source2, references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib45);
+        comp2.VerifyDiagnostics(
+        // (5,9): error CS0103: The name 'C' does not exist in the current context
+        //         C.M();
+        Diagnostic(ErrorCode.ERR_NameNotInContext, "C").WithArguments("C").WithLocation(5, 9)
+        );
+
+        Assert.NotEqual(comp.Assembly.CorLibrary, comp2.Assembly.CorLibrary);
+
+        var retargeted = comp2.GetMember<NamedTypeSymbol>("C");
+        Assert.IsType<RetargetingNamedTypeSymbol>(retargeted);
+        Assert.Equal(metadataName, retargeted.MetadataName);
+
+        Assert.Null(comp2.GetTypeByMetadataName("C"));
+        Assert.Equal(retargeted, comp2.GetTypeByMetadataName(metadataName));
     }
 
     [Fact]

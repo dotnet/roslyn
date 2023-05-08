@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -61,7 +62,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// the URI.
     /// <para/> Access to this is guaranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    private ImmutableDictionary<Uri, SourceText> _trackedDocuments = ImmutableDictionary<Uri, SourceText>.Empty;
+    private ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> _trackedDocuments = ImmutableDictionary<Uri, (SourceText, string)>.Empty;
 
     private readonly ILspLogger _logger;
     private readonly LspMiscellaneousFilesWorkspace? _lspMiscellaneousFilesWorkspace;
@@ -99,11 +100,11 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// <see cref="DidOpenHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public async ValueTask StartTrackingAsync(Uri uri, SourceText documentText, CancellationToken cancellationToken)
+    public async ValueTask StartTrackingAsync(Uri uri, SourceText documentText, string languageId, CancellationToken cancellationToken)
     {
         // First, store the LSP view of the text as the uri is now owned by the LSP client.
         Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(uri), $"didOpen received for {uri} which is already open.");
-        _trackedDocuments = _trackedDocuments.Add(uri, documentText);
+        _trackedDocuments = _trackedDocuments.Add(uri, (documentText, languageId));
 
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
@@ -172,7 +173,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     {
         // Store the updated LSP view of the source text.
         Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(uri), $"didChange received for {uri} which is not open.");
-        _trackedDocuments = _trackedDocuments.SetItem(uri, newSourceText);
+        var (_, language) = _trackedDocuments[uri];
+        _trackedDocuments = _trackedDocuments.SetItem(uri, (newSourceText, language));
 
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
@@ -180,7 +182,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         LspTextChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    public ImmutableDictionary<Uri, SourceText> GetTrackedLspText() => _trackedDocuments;
+    public ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> GetTrackedLspText() => _trackedDocuments;
 
     #endregion
 
@@ -241,14 +243,15 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         }
 
         // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
+        // Depending on the host, this can be entirely normal (e.g. opening a loose file)
         var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.Workspace.Kind));
-        _logger.LogError($"Could not find '{textDocumentIdentifier.Uri}'.  Searched {searchedWorkspaceKinds}");
+        _logger.LogInformation($"Could not find '{textDocumentIdentifier.Uri}'.  Searched {searchedWorkspaceKinds}");
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         // Add the document to our loose files workspace (if we have one) if it iss open.
-        if (_trackedDocuments.TryGetValue(uri, out var trackedText))
+        if (_trackedDocuments.TryGetValue(uri, out var trackedDocument))
         {
-            var miscDocument = _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, trackedText, _logger);
+            var miscDocument = _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, trackedDocument.Text, trackedDocument.LanguageId, _logger);
             if (miscDocument is not null)
                 return (_lspMiscellaneousFilesWorkspace, miscDocument.Project.Solution, miscDocument);
         }
@@ -339,7 +342,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             // Step 5: Fork a new solution from the workspace with the LSP text applied.
             var lspSolution = workspaceCurrentSolution;
             foreach (var (uri, workspaceDocuments) in documentsInWorkspace)
-                lspSolution = lspSolution.WithDocumentText(workspaceDocuments.Select(d => d.Id), _trackedDocuments[uri]);
+                lspSolution = lspSolution.WithDocumentText(workspaceDocuments.Select(d => d.Id), _trackedDocuments[uri].Text);
 
             // Remember this forked solution and the workspace version it was forked from.
             _cachedLspSolutions[workspace] = (workspaceCurrentSolution.WorkspaceVersion, lspSolution);
@@ -348,7 +351,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         async ValueTask TryOpenAndEditDocumentsInMutatingWorkspaceAsync(Workspace workspace)
         {
-            foreach (var (uri, sourceText) in _trackedDocuments)
+            foreach (var (uri, (sourceText, _)) in _trackedDocuments)
             {
                 await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, async (mutatingWorkspace, documentId) =>
                 {
@@ -381,7 +384,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             // We're comparing text, so we can take any of the linked documents.
             var firstDocument = documentsForUri.First();
-            var isTextEquivalent = await AreChecksumsEqualAsync(firstDocument, _trackedDocuments[uriInWorkspace], cancellationToken).ConfigureAwait(false);
+            var isTextEquivalent = await AreChecksumsEqualAsync(firstDocument, _trackedDocuments[uriInWorkspace].Text, cancellationToken).ConfigureAwait(false);
 
             if (!isTextEquivalent)
             {

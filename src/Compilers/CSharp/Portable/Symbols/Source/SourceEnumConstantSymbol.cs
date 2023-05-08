@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected SourceEnumConstantSymbol(SourceMemberContainerTypeSymbol containingEnum, EnumMemberDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
-            : base(containingEnum, syntax.Identifier.ValueText, syntax.GetReference(), syntax.Identifier.GetLocation())
+            : base(containingEnum, syntax.Identifier.ValueText, syntax.GetReference(), syntax.Identifier.Span)
         {
             if (this.Name == WellKnownMemberNames.EnumBackingFieldName)
             {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // Report an error if the value is immediately
                     // outside the range, but not otherwise.
-                    diagnostics.Add(ErrorCode.ERR_EnumeratorOverflow, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_EnumeratorOverflow, this.GetFirstLocation(), this);
                 }
                 return value;
             }

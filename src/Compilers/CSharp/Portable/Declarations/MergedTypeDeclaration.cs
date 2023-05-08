@@ -129,6 +129,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public bool HasPrimaryConstructor
+        {
+            get
+            {
+                foreach (var decl in this.Declarations)
+                {
+                    if (decl.HasPrimaryConstructor)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
         public bool AnyMemberHasAttributes
         {
             get
@@ -229,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyMemberNames == null)
                 {
-                    var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames.Keys);
+                    var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames);
                     Interlocked.CompareExchange(ref _lazyMemberNames, names, null);
                 }
 

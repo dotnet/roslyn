@@ -136,23 +136,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if ((addSyntax == null || removeSyntax == null) && (!syntax.AccessorList.OpenBraceToken.IsMissing || !isExplicitInterfaceImplementation))
                 {
-                    diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.GetFirstLocation(), this);
                 }
             }
             else if (isExplicitInterfaceImplementation && !IsAbstract)
             {
-                diagnostics.Add(ErrorCode.ERR_ExplicitEventFieldImpl, this.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_ExplicitEventFieldImpl, this.GetFirstLocation());
             }
 
             if (isExplicitInterfaceImplementation && IsAbstract && syntax.AccessorList == null)
             {
                 Debug.Assert(containingType.IsInterface);
 
-                Binder.CheckFeatureAvailability(syntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, this.Locations[0]);
+                Binder.CheckFeatureAvailability(syntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, this.GetFirstLocation());
 
                 if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                 {
-                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.Locations[0]);
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.GetFirstLocation());
                 }
 
                 _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, explicitlyImplementedEvent, aliasQualifierOpt);

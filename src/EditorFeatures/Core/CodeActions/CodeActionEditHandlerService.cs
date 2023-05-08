@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             var singleChangedDocument = TryGetSingleChangedText(oldSolution, operations);
             if (singleChangedDocument != null)
             {
-                var text = await singleChangedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
+                var text = await singleChangedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(true);
 
                 using (workspace.Services.GetRequiredService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
                 {
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                                 if (pathToRenameToken.TryResolve(openRoot, out resolvedRenameToken) &&
                                     resolvedRenameToken.IsToken)
                                 {
-                                    var text = await openDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                                    var text = await openDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                                     var snapshot = text.FindCorrespondingEditorTextSnapshot();
                                     if (snapshot != null)
                                     {

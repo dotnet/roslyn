@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.StringIndentation
         public async Task<ImmutableArray<StringIndentationRegion>> GetStringIndentationRegionsAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<StringIndentationRegion>.GetInstance(out var result);
