@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _explicitInterfaceType = explicitInterfaceType;
             _name = name;
-            flags.IsExpressionBodied = isExpressionBodied;
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
 
@@ -47,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // of the parameters and return type we will update the flag if necessary.
 
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
+            flags.IsExpressionBodied = isExpressionBodied;
 
             if (this.ContainingType.IsInterface &&
                 !(IsAbstract || IsVirtual) && !IsExplicitInterfaceImplementation &&
