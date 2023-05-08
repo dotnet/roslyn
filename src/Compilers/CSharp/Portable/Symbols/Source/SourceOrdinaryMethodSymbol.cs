@@ -25,21 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
         private bool _lazyIsVararg;
 
-        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
-
-        /// <summary>
-        /// A collection of type parameter constraint types, populated when
-        /// constraint types for the first type parameter is requested.
-        /// Initialized in two steps. Hold a copy if accessing during initialization.
-        /// </summary>
-        private ImmutableArray<ImmutableArray<TypeWithAnnotations>> _lazyTypeParameterConstraintTypes;
-
-        /// <summary>
-        /// A collection of type parameter constraint kinds, populated when
-        /// constraint kinds for the first type parameter is requested.
-        /// Initialized in two steps. Hold a copy if accessing during initialization.
-        /// </summary>
-        private ImmutableArray<TypeParameterConstraintKind> _lazyTypeParameterConstraintKinds;
+        private readonly TypeParameterInfo _typeParameterInfo;
 
         /// <summary>
         /// If this symbol represents a partial method definition or implementation part, its other part (if any).
@@ -94,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
-            _typeParameters = MakeTypeParameters(syntax, diagnostics);
+            _typeParameterInfo = TypeParameterInfo.Create(MakeTypeParameters(syntax, diagnostics));
 
             _explicitInterfaceType = explicitInterfaceType;
 
@@ -111,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
-            get { return _typeParameters; }
+            get { return _typeParameterInfo.TypeParameters; }
         }
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
@@ -303,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
         {
-            if (_lazyTypeParameterConstraintTypes.IsDefault)
+            if (_typeParameterInfo.LazyTypeParameterConstraintTypes.IsDefault)
             {
                 GetTypeParameterConstraintKinds();
 
@@ -319,19 +305,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
                     diagnostics);
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintTypes, constraints))
+                if (ImmutableInterlocked.InterlockedInitialize(
+                        ref _typeParameterInfo.LazyTypeParameterConstraintTypes,
+                        constraints))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
                 diagnostics.Free();
             }
 
-            return _lazyTypeParameterConstraintTypes;
+            return _typeParameterInfo.LazyTypeParameterConstraintTypes;
         }
 
         public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
         {
-            if (_lazyTypeParameterConstraintKinds.IsDefault)
+            if (_typeParameterInfo.LazyTypeParameterConstraintKinds.IsDefault)
             {
                 var syntax = GetSyntax();
                 var withTypeParametersBinder =
@@ -344,10 +332,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses);
 
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintKinds, constraints);
+                ImmutableInterlocked.InterlockedInitialize(
+                    ref _typeParameterInfo.LazyTypeParameterConstraintKinds,
+                    constraints);
             }
 
-            return _lazyTypeParameterConstraintKinds;
+            return _typeParameterInfo.LazyTypeParameterConstraintKinds;
         }
 
         public override bool IsVararg

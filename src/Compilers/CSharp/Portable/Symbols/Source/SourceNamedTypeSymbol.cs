@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -20,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourceNamedTypeSymbolTypeParameterInfo
+    internal sealed class TypeParameterInfo
     {
         public readonly ImmutableArray<TypeParameterSymbol> TypeParameters;
 
@@ -36,10 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public ImmutableArray<TypeParameterConstraintKind> LazyTypeParameterConstraintKinds;
 
-        public static readonly SourceNamedTypeSymbolTypeParameterInfo Empty = new SourceNamedTypeSymbolTypeParameterInfo(
+        public static readonly TypeParameterInfo Empty = new TypeParameterInfo(
             ImmutableArray<TypeParameterSymbol>.Empty, ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty, ImmutableArray<TypeParameterConstraintKind>.Empty);
 
-        private SourceNamedTypeSymbolTypeParameterInfo(
+        private TypeParameterInfo(
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ImmutableArray<TypeWithAnnotations>> typeParameterConstraintTypes,
             ImmutableArray<TypeParameterConstraintKind> typeParameterConstraintKinds)
@@ -49,10 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             LazyTypeParameterConstraintKinds = typeParameterConstraintKinds;
         }
 
-        public static SourceNamedTypeSymbolTypeParameterInfo Create(ImmutableArray<TypeParameterSymbol> typeParameters)
+        public static TypeParameterInfo Create(ImmutableArray<TypeParameterSymbol> typeParameters)
         {
             // If we have no type parameters (common case), we can just point at the singleton empty instance.
-            return typeParameters.IsEmpty ? Empty : new SourceNamedTypeSymbolTypeParameterInfo(typeParameters, default, default);
+            return typeParameters.IsEmpty ? Empty : new TypeParameterInfo(typeParameters, default, default);
         }
     }
 
@@ -60,7 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     // That is, for a generic type C<T> this is the instance type C<T>.  
     internal sealed partial class SourceNamedTypeSymbol : SourceMemberContainerTypeSymbol, IAttributeTargetSymbol
     {
-        private SourceNamedTypeSymbolTypeParameterInfo _lazyTypeParameterInfo;
+#nullable enable
+        private TypeParameterInfo? _lazyTypeParameterInfo;
+#nullable disable
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
@@ -789,7 +790,7 @@ next:;
                     var diagnostics = BindingDiagnosticBag.GetInstance();
                     if (Interlocked.CompareExchange(
                             ref _lazyTypeParameterInfo,
-                            SourceNamedTypeSymbolTypeParameterInfo.Create(MakeTypeParameters(diagnostics)),
+                            TypeParameterInfo.Create(MakeTypeParameters(diagnostics)),
                             comparand: null) is null)
                     {
                         AddDeclarationDiagnostics(diagnostics);
