@@ -427,10 +427,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             TypeSymbol? elementType;
+            BoundCollectionLiteralExpression collectionLiteral;
             var collectionTypeKind = ConversionsBase.GetConstructibleCollectionType(Compilation, targetType, out elementType);
-            BoundCollectionLiteralExpression collectionLiteral = (collectionTypeKind == ConversionsBase.ConstructibleCollectionTypeKind.CollectionInitializer)
-                ? BindCollectionInitializerCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, diagnostics)
-                : BindArrayOrSpanCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, collectionTypeKind, node.Initializers, elementType!, diagnostics);
+            switch (collectionTypeKind)
+            {
+                case ConstructibleCollectionTypeKind.CollectionInitializer:
+                    collectionLiteral = BindCollectionInitializerCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, diagnostics);
+                    break;
+                case ConstructibleCollectionTypeKind.Array:
+                case ConstructibleCollectionTypeKind.Span:
+                case ConstructibleCollectionTypeKind.ReadOnlySpan:
+                    collectionLiteral = BindArrayOrSpanCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, collectionTypeKind, node.Initializers, elementType!, diagnostics);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
+            }
 
             return new BoundConversion(
                 node.Syntax,
@@ -447,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundUnconvertedCollectionLiteralExpression node,
             TypeSymbol targetType,
             bool wasCompilerGenerated,
-            ConversionsBase.ConstructibleCollectionTypeKind collectionTypeKind,
+            ConstructibleCollectionTypeKind collectionTypeKind,
             ImmutableArray<BoundExpression> elements,
             TypeSymbol elementType,
             BindingDiagnosticBag diagnostics)
@@ -456,10 +467,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (collectionTypeKind)
             {
-                case ConversionsBase.ConstructibleCollectionTypeKind.Span:
+                case ConstructibleCollectionTypeKind.Span:
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor_Array, diagnostics, syntax: syntax);
                     break;
-                case ConversionsBase.ConstructibleCollectionTypeKind.ReadOnlySpan:
+                case ConstructibleCollectionTypeKind.ReadOnlySpan:
                     _ = GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics, syntax: syntax);
                     break;
             }

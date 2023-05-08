@@ -1585,15 +1585,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
         }
 
-        internal enum ConstructibleCollectionTypeKind
-        {
-            None = 0,
-            Array,
-            Span,
-            ReadOnlySpan,
-            CollectionInitializer,
-        }
-
         internal static ConstructibleCollectionTypeKind GetConstructibleCollectionType(CSharpCompilation compilation, TypeSymbol destination, out TypeSymbol? elementType)
         {
             Debug.Assert(compilation is { });

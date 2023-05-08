@@ -1225,12 +1225,12 @@ namespace Microsoft.CodeAnalysis.Operations
             var collectionTypeKind = ConversionsBase.GetConstructibleCollectionType((CSharpCompilation)_semanticModel.Compilation, boundCollectionLiteralExpression.Type, out var elementType);
             switch (collectionTypeKind)
             {
-                case ConversionsBase.ConstructibleCollectionTypeKind.None:
-                case ConversionsBase.ConstructibleCollectionTypeKind.CollectionInitializer:
+                case ConstructibleCollectionTypeKind.None:
+                case ConstructibleCollectionTypeKind.CollectionInitializer:
                     return CreateBoundCollectionInitializerCollectionLiteralExpression(boundCollectionLiteralExpression);
-                case ConversionsBase.ConstructibleCollectionTypeKind.Array:
-                case ConversionsBase.ConstructibleCollectionTypeKind.Span:
-                case ConversionsBase.ConstructibleCollectionTypeKind.ReadOnlySpan:
+                case ConstructibleCollectionTypeKind.Array:
+                case ConstructibleCollectionTypeKind.Span:
+                case ConstructibleCollectionTypeKind.ReadOnlySpan:
                     Debug.Assert(elementType is { });
                     return CreateBoundArrayOrSpanCollectionLiteralExpression(boundCollectionLiteralExpression);
                 default:
