@@ -439,6 +439,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConstructibleCollectionTypeKind.ReadOnlySpan:
                     collectionLiteral = BindArrayOrSpanCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, collectionTypeKind, elementType!, diagnostics);
                     break;
+                case ConstructibleCollectionTypeKind.ListInterface:
+                    collectionLiteral = BindListInterfaceCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, elementType!, diagnostics);
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
             }
@@ -592,6 +595,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetType,
                 hasErrors)
             { WasCompilerGenerated = wasCompilerGenerated };
+        }
+
+        private BoundCollectionLiteralExpression BindListInterfaceCollectionLiteral(
+            BoundUnconvertedCollectionLiteralExpression node,
+            TypeSymbol targetType,
+            bool wasCompilerGenerated,
+            TypeSymbol elementType,
+            BindingDiagnosticBag diagnostics)
+        {
+            // PROTOTYPE: Improve perf. For instance, emit [] as Array.Empty<T>() rather than a List<T>.
+            var result = BindCollectionInitializerCollectionLiteral(
+                node,
+                GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, node.Syntax).Construct(elementType),
+                wasCompilerGenerated: wasCompilerGenerated,
+                diagnostics);
+            return result.Update(result.Placeholder, result.CollectionCreation, result.Initializers, targetType);
         }
 
         /// <summary>

@@ -475,24 +475,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Verify expectedOutput once interfaces of List<T> are supported for target types.
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(6,30): error CS9500: Cannot initialize type 'IEnumerable<int>' with a collection literal because the type is not constructible.
-                //         IEnumerable<int> a = [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(6, 30),
-                // 0.cs(7,30): error CS9500: Cannot initialize type 'ICollection<int>' with a collection literal because the type is not constructible.
-                //         ICollection<int> b = [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.ICollection<int>").WithLocation(7, 30),
-                // 0.cs(8,24): error CS9500: Cannot initialize type 'IList<int>' with a collection literal because the type is not constructible.
-                //         IList<int> c = [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IList<int>").WithLocation(8, 24),
-                // 0.cs(9,38): error CS9500: Cannot initialize type 'IReadOnlyCollection<int>' with a collection literal because the type is not constructible.
-                //         IReadOnlyCollection<int> d = [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IReadOnlyCollection<int>").WithLocation(9, 38),
-                // 0.cs(10,32): error CS9500: Cannot initialize type 'IReadOnlyList<int>' with a collection literal because the type is not constructible.
-                //         IReadOnlyList<int> e = [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IReadOnlyList<int>").WithLocation(10, 32));
+            CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: "System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[], ");
         }
 
         [Fact]
@@ -517,23 +502,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(6,30): error CS9500: Cannot initialize type 'IEnumerable<int>' with a collection literal because the type is not constructible.
-                //         IEnumerable<int> a = [1];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(6, 30),
-                // 0.cs(7,30): error CS9500: Cannot initialize type 'ICollection<int>' with a collection literal because the type is not constructible.
-                //         ICollection<int> b = [2];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("System.Collections.Generic.ICollection<int>").WithLocation(7, 30),
-                // 0.cs(8,24): error CS9500: Cannot initialize type 'IList<int>' with a collection literal because the type is not constructible.
-                //         IList<int> c = [3];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[3]").WithArguments("System.Collections.Generic.IList<int>").WithLocation(8, 24),
-                // 0.cs(9,38): error CS9500: Cannot initialize type 'IReadOnlyCollection<int>' with a collection literal because the type is not constructible.
-                //         IReadOnlyCollection<int> d = [4];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[4]").WithArguments("System.Collections.Generic.IReadOnlyCollection<int>").WithLocation(9, 38),
-                // 0.cs(10,32): error CS9500: Cannot initialize type 'IReadOnlyList<int>' with a collection literal because the type is not constructible.
-                //         IReadOnlyList<int> e = [5];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[5]").WithArguments("System.Collections.Generic.IReadOnlyList<int>").WithLocation(10, 32));
+            CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: "System.Collections.Generic.List<System.Int32>[1], System.Collections.Generic.List<System.Int32>[2], System.Collections.Generic.List<System.Int32>[3], System.Collections.Generic.List<System.Int32>[4], System.Collections.Generic.List<System.Int32>[5], ");
         }
 
         [Fact]
@@ -623,8 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should these calls be ambiguous when we treat IEnumerable<T> as a constructible type?
-            // Should better function member prefer one of the two overloads?
+            // PROTOTYPE: Should these calls be ambiguous?
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Int32[][], System.Int32[][1, 2], ");
         }
 
@@ -648,8 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should these calls be ambiguous when we treat IEnumerable<T> as a constructible type?
-            // Should better function member prefer one of the two overloads?
+            // PROTOTYPE: Should these calls be ambiguous?
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[1, 2], ");
         }
 
@@ -1105,6 +1074,149 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // 1.cs(7,31): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         ListBase<int> y = [1, 2];
                 Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("1", "int", "string").WithLocation(7, 31));
+        }
+
+        [Fact]
+        public void ListInterfaces_01()
+        {
+            string sourceA = """
+                namespace System
+                {
+                    public class Object { }
+                    public abstract class ValueType { }
+                    public class String { }
+                    public class Type { }
+                    public struct Void { }
+                    public struct Boolean { }
+                    public struct Int32 { }
+                }
+                namespace System.Collections
+                {
+                    public interface IEnumerable { }
+                }
+                namespace System.Collections.Generic
+                {
+                    public interface IA { }
+                    public interface IB<T> { }
+                    public interface IC<T> { }
+                    public class List<T> : IEnumerable, IA, IB<T>, IC<object>
+                    {
+                        public void Add(T t) { }
+                    }
+                }
+                """;
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        List<int> l = [1];
+                        IA a = [2];
+                        IB<object> b = [3];
+                        IC<object> c = [4];
+                    }
+                }
+                """;
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // 1.cs(7,16): error CS9500: Cannot initialize type 'IA' with a collection literal because the type is not constructible.
+                //         IA a = [2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("System.Collections.Generic.IA").WithLocation(7, 16),
+                // 1.cs(9,24): error CS9500: Cannot initialize type 'IC<object>' with a collection literal because the type is not constructible.
+                //         IC<object> c = [4];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[4]").WithArguments("System.Collections.Generic.IC<object>").WithLocation(9, 24));
+        }
+
+        [Fact]
+        public void ListInterfaces_02()
+        {
+            string sourceA = """
+                namespace System
+                {
+                    public class Object { }
+                    public abstract class ValueType { }
+                    public class String { }
+                    public class Type { }
+                    public struct Void { }
+                    public struct Boolean { }
+                    public struct Int32 { }
+                    public interface IEquatable<T>
+                    {
+                        bool Equals(T other);
+                    }
+                }
+                namespace System.Collections
+                {
+                    public interface IEnumerable { }
+                }
+                namespace System.Collections.Generic
+                {
+                    public class List<T> : IEnumerable, IEquatable<List<T>>
+                    {
+                        public bool Equals(List<T> other) => false;
+                        public void Add(T t) { }
+                    }
+                }
+                """;
+            string sourceB = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        List<int> l = [1];
+                        IEquatable<int> e = [2];
+                    }
+                }
+                """;
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // 1.cs(8,29): error CS9500: Cannot initialize type 'IEquatable<int>' with a collection literal because the type is not constructible.
+                //         IEquatable<int> e = [2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("System.IEquatable<int>").WithLocation(8, 29));
+        }
+
+        [Fact]
+        public void ListInterfaces_MissingList()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> a = [];
+                        ICollection<int> b = [2];
+                        IList<int> c = [];
+                        IReadOnlyCollection<int> d = [3];
+                        IReadOnlyList<int> e = [];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_List_T);
+            comp.VerifyEmitDiagnostics(
+                // (6,30): error CS9500: Cannot initialize type 'IEnumerable<int>' with a collection literal because the type is not constructible.
+                //         IEnumerable<int> a = [];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(6, 30),
+                // (7,30): error CS9500: Cannot initialize type 'ICollection<int>' with a collection literal because the type is not constructible.
+                //         ICollection<int> b = [2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("System.Collections.Generic.ICollection<int>").WithLocation(7, 30),
+                // (8,24): error CS9500: Cannot initialize type 'IList<int>' with a collection literal because the type is not constructible.
+                //         IList<int> c = [];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IList<int>").WithLocation(8, 24),
+                // (9,38): error CS9500: Cannot initialize type 'IReadOnlyCollection<int>' with a collection literal because the type is not constructible.
+                //         IReadOnlyCollection<int> d = [3];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[3]").WithArguments("System.Collections.Generic.IReadOnlyCollection<int>").WithLocation(9, 38),
+                // (10,32): error CS9500: Cannot initialize type 'IReadOnlyList<int>' with a collection literal because the type is not constructible.
+                //         IReadOnlyList<int> e = [];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IReadOnlyList<int>").WithLocation(10, 32));
         }
 
         [Fact]
@@ -2968,9 +3080,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // PROTOTYPE: Should IEnumerable contribute object or no type to the best common type?
             if (spreadType == "IEnumerable") return;
 
-            // PROTOTYPE: Include IEnumerable<int> cases when IEnumerable<T> is considered constructible.
-            if (spreadType == "IEnumerable<int>" || collectionType == "IEnumerable<int>") return;
-
             var verifier = CompileAndVerify(
                 new[] { source, s_collectionExtensionsWithSpan },
                 options: TestOptions.ReleaseExe,
@@ -3663,9 +3772,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_List_T);
             // PROTOTYPE: Should report missing List<T>, and only report for [..e] case only, not [..a].
-            //comp.VerifyEmitDiagnostics(
-            //    // error CS7038: Failed to emit module '95210788-147c-448a-b756-d2b1a2fb1f6d': Unable to determine specific cause of the failure.
-            //    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("95210788-147c-448a-b756-d2b1a2fb1f6d", "Unable to determine specific cause of the failure.").WithLocation(1, 1));
+            comp.VerifyEmitDiagnostics(
+                // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         b = [..a];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..a]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(9, 13),
+                // (9,13): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
+                //         b = [..a];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[..a]").WithArguments("System.Collections.Generic.List`1").WithLocation(9, 13),
+                // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         b = [..e];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(10, 13),
+                // (10,13): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
+                //         b = [..e];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[..e]").WithArguments("System.Collections.Generic.List`1").WithLocation(10, 13));
 
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_List_T__ToArray);

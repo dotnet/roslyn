@@ -7,7 +7,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1610,6 +1609,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = null;
                 return ConstructibleCollectionTypeKind.CollectionInitializer;
             }
+            else if (isListInterface(compilation, destination, out elementType))
+            {
+                return ConstructibleCollectionTypeKind.ListInterface;
+            }
 
             elementType = null;
             return ConstructibleCollectionTypeKind.None;
@@ -1649,6 +1652,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and use that method instead.
                 var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
                 return allInterfaces.Any(static (a, b) => a.Equals(b, TypeCompareKind.AllIgnoreOptions), ienumerableType);
+            }
+
+            static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)
+            {
+                if (targetType is NamedTypeSymbol { TypeKind: TypeKind.Interface, Arity: 1 } namedType)
+                {
+                    var definition = namedType.OriginalDefinition;
+                    var listType = compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T);
+                    foreach (var listInterface in listType.AllInterfacesNoUseSiteDiagnostics)
+                    {
+                        // Is the interface implemented by List<T>?
+                        if (listInterface.OriginalDefinition.Equals(definition, TypeCompareKind.AllIgnoreOptions) &&
+                            // Is the implementation with type argument T?
+                            listType.TypeParameters[0].Equals(listInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                            return true;
+                        }
+                    }
+                }
+                elementType = null;
+                return false;
             }
         }
 #nullable disable

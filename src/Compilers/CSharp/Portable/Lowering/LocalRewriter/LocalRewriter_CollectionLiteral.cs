@@ -29,6 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConstructibleCollectionTypeKind.ReadOnlySpan:
                     Debug.Assert(elementType is { });
                     return VisitArrayOrSpanCollectionLiteralExpression(node, elementType);
+                case ConstructibleCollectionTypeKind.ListInterface:
+                    Debug.Assert(elementType is { });
+                    return VisitListInterfaceCollectionLiteralExpression(node, elementType);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
             }
@@ -136,6 +139,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects.ToImmutableAndFree(),
                 temp,
                 node.Type);
+        }
+
+        private BoundExpression VisitListInterfaceCollectionLiteralExpression(BoundCollectionLiteralExpression node, TypeSymbol elementType)
+        {
+            Debug.Assert(!_inExpressionLambda);
+            Debug.Assert(node.Type is { });
+
+            // PROTOTYPE: Improve perf. For instance, emit [] as Array.Empty<T>() rather than a List<T>.
+            var listType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(elementType);
+            var list = VisitCollectionInitializerCollectionLiteralExpression(node);
+            return _factory.Convert(node.Type, list);
         }
 
         private BoundExpression MakeCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement initializer)

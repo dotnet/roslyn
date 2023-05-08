@@ -11,5 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         Span,
         ReadOnlySpan,
         CollectionInitializer,
+        ListInterface,
     }
 }

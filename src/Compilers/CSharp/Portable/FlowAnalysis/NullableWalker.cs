@@ -3476,11 +3476,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (initializer)
                 {
                     case BoundCollectionElementInitializer element:
-                        var completion = VisitCollectionElementInitializer(element, node.Type, delayCompletionForType);
+                        var collectionType = element.AddMethod.ContainingType;
+                        var completion = VisitCollectionElementInitializer(element, collectionType, delayCompletionForType);
                         if (completion is { })
                         {
                             // PROTOTYPE: Complete the analysis later.
-                            completion(containerSlot, node.Type);
+                            completion(containerSlot, collectionType);
                         }
                         break;
                     default:
