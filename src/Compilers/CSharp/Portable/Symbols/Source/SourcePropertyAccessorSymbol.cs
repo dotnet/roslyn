@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private string _lazyName;
         private readonly bool _isAutoPropertyAccessor;
-        private readonly bool _isExpressionBodied;
         private readonly bool _usesInit;
 
         public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
@@ -128,9 +127,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
-        internal sealed override bool IsExpressionBodied
-            => _isExpressionBodied;
-
         internal sealed override ImmutableArray<string> NotNullMembers
             => _property.NotNullMembers.Concat(base.NotNullMembers);
 
@@ -152,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _property = property;
             _isAutoPropertyAccessor = false;
-            _isExpressionBodied = true;
+            flags.IsExpressionBodied = true;
 
             // The modifiers for the accessor are the same as the modifiers for the property,
             // minus the indexer and readonly bit
@@ -196,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _property = property;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
-            _isExpressionBodied = !hasBody && hasExpressionBody;
+            flags.IsExpressionBodied = !hasBody && hasExpressionBody;
             _usesInit = usesInit;
             if (_usesInit)
             {

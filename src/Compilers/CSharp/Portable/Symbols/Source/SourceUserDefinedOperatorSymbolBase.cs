@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
         private const TypeCompareKind ComparisonForUserDefinedOperators = TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
         private readonly string _name;
-        private readonly bool _isExpressionBodied;
 #nullable enable
         private readonly TypeSymbol? _explicitInterfaceType;
 #nullable disable
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _explicitInterfaceType = explicitInterfaceType;
             _name = name;
-            _isExpressionBodied = isExpressionBodied;
+            flags.IsExpressionBodied = isExpressionBodied;
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
 
@@ -793,11 +792,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override RefKind RefKind
         {
             get { return RefKind.None; }
-        }
-
-        internal sealed override bool IsExpressionBodied
-        {
-            get { return _isExpressionBodied; }
         }
 
         protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)

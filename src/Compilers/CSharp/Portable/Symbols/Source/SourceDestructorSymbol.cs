@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceDestructorSymbol : SourceMemberMethodSymbol
     {
         private TypeWithAnnotations _lazyReturnType;
-        private readonly bool _isExpressionBodied;
 
         internal SourceDestructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
@@ -36,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             bool hasBlockBody = syntax.Body != null;
-            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            flags.IsExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
 
-            if (hasBlockBody || _isExpressionBodied)
+            if (hasBlockBody || flags.IsExpressionBodied)
             {
                 if (IsExtern)
                 {
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!modifierErrors && !hasBlockBody && !_isExpressionBodied && !IsExtern)
+            if (!modifierErrors && !hasBlockBody && !flags.IsExpressionBodied && !IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -140,14 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override string Name
         {
             get { return WellKnownMemberNames.DestructorName; }
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get
-            {
-                return _isExpressionBodied;
-            }
         }
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()

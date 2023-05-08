@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public bool IsExpressionBodied
             {
                 get { return (_flags & IsExpressionBodiedBit) != 0; }
+                set { ThreadSafeFlagOperations.Set(ref _flags, value ? IsExpressionBodiedBit : 0); }
             }
 
             public bool IsExtensionMethod
@@ -1052,7 +1053,7 @@ done:
         /// If the method has both block body and an expression body
         /// present, this is not treated as expression-bodied.
         /// </remarks>
-        internal abstract bool IsExpressionBodied { get; }
+        internal bool IsExpressionBodied => flags.IsExpressionBodied;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

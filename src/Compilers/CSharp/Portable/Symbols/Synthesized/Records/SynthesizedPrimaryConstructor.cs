@@ -69,8 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override bool AllowRefOrOut => !(ContainingType is { IsRecord: true } or { IsRecordStruct: true });
 
-        internal override bool IsExpressionBodied => false;
-
         internal override bool IsNullableAnalysisEnabled()
         {
             return ContainingType.IsNullableEnabledForConstructorsAndInitializers(IsStatic);

@@ -246,11 +246,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return null;
         }
-
-        internal override bool IsExpressionBodied
-        {
-            // Events cannot be expression-bodied
-            get { return false; }
-        }
     }
 }

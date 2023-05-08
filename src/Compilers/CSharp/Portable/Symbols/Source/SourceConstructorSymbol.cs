@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceConstructorSymbol : SourceConstructorSymbolBase
     {
-        private readonly bool _isExpressionBodied;
         private readonly bool _hasThisInitializer;
 
         public static SourceConstructorSymbol CreateConstructorSymbol(
@@ -35,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
              base(containingType, location, syntax, SyntaxFacts.HasYieldOperations(syntax))
         {
             bool hasBlockBody = syntax.Body != null;
-            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            bool hasBody = hasBlockBody || _isExpressionBodied;
+            flags.IsExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            bool hasBody = hasBlockBody || flags.IsExpressionBodied;
 
             _hasThisInitializer = syntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer;
 
@@ -161,14 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
             return OneOrMany.Create(((ConstructorDeclarationSyntax)this.SyntaxNode).AttributeLists);
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get
-            {
-                return _isExpressionBodied;
-            }
         }
 
         internal override bool IsNullableAnalysisEnabled()
