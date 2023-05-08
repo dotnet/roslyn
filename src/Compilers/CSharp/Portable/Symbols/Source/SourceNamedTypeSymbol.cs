@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class TypeParameterInfo
     {
-        public readonly ImmutableArray<TypeParameterSymbol> TypeParameters;
+        public ImmutableArray<TypeParameterSymbol> LazyTypeParameters;
 
         /// <summary>
         /// A collection of type parameter constraint types, populated when
@@ -38,12 +38,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static readonly TypeParameterInfo Empty = new TypeParameterInfo(
             ImmutableArray<TypeParameterSymbol>.Empty, ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty, ImmutableArray<TypeParameterConstraintKind>.Empty);
 
+        public TypeParameterInfo() : this(default, default, default)
+        {
+        }
+
         private TypeParameterInfo(
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ImmutableArray<TypeWithAnnotations>> typeParameterConstraintTypes,
             ImmutableArray<TypeParameterConstraintKind> typeParameterConstraintKinds)
         {
-            TypeParameters = typeParameters;
+            LazyTypeParameters = typeParameters;
             LazyTypeParameterConstraintTypes = typeParameterConstraintTypes;
             LazyTypeParameterConstraintKinds = typeParameterConstraintKinds;
         }
@@ -59,9 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     // That is, for a generic type C<T> this is the instance type C<T>.  
     internal sealed partial class SourceNamedTypeSymbol : SourceMemberContainerTypeSymbol, IAttributeTargetSymbol
     {
-#nullable enable
-        private TypeParameterInfo? _lazyTypeParameterInfo;
-#nullable disable
+        private readonly TypeParameterInfo _typeParameterInfo;
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
@@ -130,6 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Nested types are never unified.
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.False;
             }
+
+            _typeParameterInfo = declaration.Arity == 0
+                ? TypeParameterInfo.Empty
+                : new TypeParameterInfo();
         }
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
@@ -303,27 +309,24 @@ next:;
 
         private ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
         {
-            var constraintTypes = _lazyTypeParameterInfo?.LazyTypeParameterConstraintTypes ?? default;
-            if (constraintTypes.IsDefault)
+            if (_typeParameterInfo.LazyTypeParameterConstraintTypes.IsDefault)
             {
                 GetTypeParameterConstraintKinds();
 
                 var diagnostics = BindingDiagnosticBag.GetInstance();
-                var localConstraintTypes = MakeTypeParameterConstraintTypes(diagnostics);
-                Debug.Assert(_lazyTypeParameterInfo != null);
 
                 if (ImmutableInterlocked.InterlockedInitialize(
-                        ref _lazyTypeParameterInfo.LazyTypeParameterConstraintTypes,
-                        localConstraintTypes))
+                        ref _typeParameterInfo.LazyTypeParameterConstraintTypes,
+                        MakeTypeParameterConstraintTypes(diagnostics)))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
 
                 diagnostics.Free();
-                constraintTypes = _lazyTypeParameterInfo.LazyTypeParameterConstraintTypes;
             }
 
-            return constraintTypes;
+            Debug.Assert(!_typeParameterInfo.LazyTypeParameterConstraintTypes.IsDefault);
+            return _typeParameterInfo.LazyTypeParameterConstraintTypes;
         }
 
         /// <summary>
@@ -337,18 +340,15 @@ next:;
 
         private ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
         {
-            var constraintKinds = _lazyTypeParameterInfo?.LazyTypeParameterConstraintKinds ?? default;
-            if (constraintKinds.IsDefault)
+            if (_typeParameterInfo.LazyTypeParameterConstraintKinds.IsDefault)
             {
-                var localConstraintKinds = MakeTypeParameterConstraintKinds();
-                Debug.Assert(_lazyTypeParameterInfo != null);
-
                 ImmutableInterlocked.InterlockedInitialize(
-                    ref _lazyTypeParameterInfo.LazyTypeParameterConstraintKinds, localConstraintKinds);
-                constraintKinds = _lazyTypeParameterInfo.LazyTypeParameterConstraintKinds;
+                    ref _typeParameterInfo.LazyTypeParameterConstraintKinds,
+                    MakeTypeParameterConstraintKinds());
             }
 
-            return constraintKinds;
+            Debug.Assert(!_typeParameterInfo.LazyTypeParameterConstraintKinds.IsDefault);
+            return _typeParameterInfo.LazyTypeParameterConstraintKinds;
         }
 
         private ImmutableArray<ImmutableArray<TypeWithAnnotations>> MakeTypeParameterConstraintTypes(BindingDiagnosticBag diagnostics)
@@ -785,13 +785,12 @@ next:;
         {
             get
             {
-                if (_lazyTypeParameterInfo is null)
+                if (_typeParameterInfo.LazyTypeParameters.IsDefault)
                 {
                     var diagnostics = BindingDiagnosticBag.GetInstance();
-                    if (Interlocked.CompareExchange(
-                            ref _lazyTypeParameterInfo,
-                            TypeParameterInfo.Create(MakeTypeParameters(diagnostics)),
-                            comparand: null) is null)
+                    if (ImmutableInterlocked.InterlockedInitialize(
+                            ref _typeParameterInfo.LazyTypeParameters,
+                            MakeTypeParameters(diagnostics)))
                     {
                         AddDeclarationDiagnostics(diagnostics);
                     }
@@ -799,7 +798,7 @@ next:;
                     diagnostics.Free();
                 }
 
-                return _lazyTypeParameterInfo.TypeParameters;
+                return _typeParameterInfo.LazyTypeParameters;
             }
         }
 
