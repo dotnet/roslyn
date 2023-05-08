@@ -901,7 +901,7 @@ public void Initialize(IncrementalGeneratorInitializationContext context)
 {
     var txtFiles = context.AdditionalTextsProvider.Where(static f => f.Path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase));
     
-    // ensure we forward the cancellation token to GeText
+    // ensure we forward the cancellation token to GetText
     var fileContents = txtFiles.Select(static (file, cancellationToken) => file.GetText(cancellationToken));   
 }
 ```
