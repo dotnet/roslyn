@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
         private bool _lazyIsVararg;
 
+        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
+
         /// <summary>
         /// A collection of type parameter constraint types, populated when
         /// constraint types for the first type parameter is requested.
@@ -92,6 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
+            _typeParameters = MakeTypeParameters(syntax, diagnostics);
+
             _explicitInterfaceType = explicitInterfaceType;
 
             bool hasBlockBody = syntax.Body != null;
@@ -105,18 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
-        protected override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
-            var syntax = (MethodDeclarationSyntax)node;
-            if (syntax.Arity == 0)
-            {
-                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics.DiagnosticBag);
-                return ImmutableArray<TypeParameterSymbol>.Empty;
-            }
-            else
-            {
-                return MakeTypeParameters(syntax, diagnostics);
-            }
+            get { return _typeParameters; }
         }
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
@@ -530,6 +525,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
+            if (syntax.Arity == 0)
+            {
+                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics.DiagnosticBag);
+                return ImmutableArray<TypeParameterSymbol>.Empty;
+            }
+
             Debug.Assert(syntax.TypeParameterList != null);
 
             MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, syntax.TypeParameterList.LessThanToken);
