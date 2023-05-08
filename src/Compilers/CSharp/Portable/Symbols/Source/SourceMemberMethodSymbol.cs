@@ -191,11 +191,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     | ReturnsVoidIsSetBit;
             }
 
-            public void SetOrdinaryMethodFlags(RefKind refKind, bool isExpressionBodied, bool hasAnyBody)
+            public void SetOrdinaryMethodFlags(RefKind refKind, bool hasAnyBody)
             {
                 // Only set in the constructor of SourceOrdinaryMethodSymbol, so does not need ThreadSafe operations.
                 _flags |= ((int)refKind & RefKindMask) << RefKindOffset;
-                _flags |= isExpressionBodied ? IsExpressionBodiedBit : 0;
                 _flags |= hasAnyBody ? HasAnyBodyBit : 0;
             }
 
