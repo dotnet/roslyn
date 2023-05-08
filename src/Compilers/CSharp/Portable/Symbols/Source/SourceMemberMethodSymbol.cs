@@ -164,10 +164,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             public Flags(
-                bool isExpressionBodied,
                 MethodKind methodKind,
                 DeclarationModifiers declarationModifiers,
                 bool returnsVoid,
+                bool isExpressionBodied,
                 bool isExtensionMethod,
                 bool isNullableAnalysisEnabled,
                 bool isMetadataVirtualIgnoringModifiers = false)
@@ -175,18 +175,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool isMetadataVirtual = isMetadataVirtualIgnoringModifiers || ModifiersRequireMetadataVirtual(declarationModifiers);
 
                 int methodKindInt = ((int)methodKind & MethodKindMask) << MethodKindOffset;
+                int isExpressionBodyInt = isExpressionBodied ? IsExpressionBodiedBit : 0;
                 int isExtensionMethodInt = isExtensionMethod ? IsExtensionMethodBit : 0;
                 int isNullableAnalysisEnabledInt = isNullableAnalysisEnabled ? IsNullableAnalysisEnabledBit : 0;
                 int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
-                int isExpressionBodyInt = isExpressionBodied ? IsExpressionBodiedBit : 0;
 
                 _flags = methodKindInt
+                    | isExpressionBodyInt
                     | isExtensionMethodInt
                     | isNullableAnalysisEnabledInt
                     | isMetadataVirtualIgnoringInterfaceImplementationChangesInt
                     | isMetadataVirtualInt
-                    | isExpressionBodyInt
                     | (returnsVoid ? ReturnsVoidBit : 0)
                     | ReturnsVoidIsSetBit;
             }
@@ -341,16 +341,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected void MakeFlags(
-            bool isExpressionBodied,
             MethodKind methodKind,
             DeclarationModifiers declarationModifiers,
             bool returnsVoid,
+            bool isExpressionBodied,
             bool isExtensionMethod,
             bool isNullableAnalysisEnabled,
             bool isMetadataVirtualIgnoringModifiers = false)
         {
             DeclarationModifiers = declarationModifiers;
-            this.flags = new Flags(isExpressionBodied, methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers);
+            this.flags = new Flags(methodKind, declarationModifiers, returnsVoid, isExpressionBodied, isExtensionMethod, isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers);
         }
 
         protected void SetReturnsVoid(bool returnsVoid)

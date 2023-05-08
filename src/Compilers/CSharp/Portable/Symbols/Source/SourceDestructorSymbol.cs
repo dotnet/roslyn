@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasBlockBody = syntax.Body != null;
             bool isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
 
-            this.MakeFlags(isExpressionBodied, methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (syntax.Identifier.ValueText != containingType.Name)
             {

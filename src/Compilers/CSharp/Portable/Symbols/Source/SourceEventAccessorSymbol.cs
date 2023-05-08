@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
 
             this.MakeFlags(
-                isExpressionBodied,
                 isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
                 @event.Modifiers,
                 returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
+                isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: @event.IsExplicitInterfaceImplementation && (@event.Modifiers & DeclarationModifiers.Static) == 0);

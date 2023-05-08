@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _returnType = returnType;
             this.MakeFlags(
-                isExpressionBodied: false,
-                methodKind, declarationModifiers, _returnType.IsVoidType(), isExtensionMethod: false, isNullableAnalysisEnabled: false);
+                methodKind, declarationModifiers, _returnType.IsVoidType(), isExpressionBodied: false, isExtensionMethod: false, isNullableAnalysisEnabled: false);
         }
 
         internal sealed override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
