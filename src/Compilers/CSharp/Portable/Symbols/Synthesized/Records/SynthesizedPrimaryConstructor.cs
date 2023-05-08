@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodKind.Constructor,
                 containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public,
                 returnsVoid: true,
+                isExpressionBodied: false,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
         }

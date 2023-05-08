@@ -27,17 +27,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             var declarationModifiers = MakeModifiers(syntax.Modifiers, location, diagnostics, out modifierErrors);
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
+
+            bool hasBlockBody = syntax.Body != null;
+            bool isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (syntax.Identifier.ValueText != containingType.Name)
             {
                 diagnostics.Add(ErrorCode.ERR_BadDestructorName, syntax.Identifier.GetLocation());
             }
 
-            bool hasBlockBody = syntax.Body != null;
-            flags.IsExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-
-            if (hasBlockBody || flags.IsExpressionBodied)
+            if (hasBlockBody || isExpressionBodied)
             {
                 if (IsExtern)
                 {
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!modifierErrors && !hasBlockBody && !flags.IsExpressionBodied && !IsExtern)
+            if (!modifierErrors && !hasBlockBody && !isExpressionBodied && !IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }

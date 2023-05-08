@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string aliasQualifierOpt,
             bool isAdder,
             bool isIterator,
-            bool isNullableAnalysisEnabled)
+            bool isNullableAnalysisEnabled,
+            bool isExpressionBodied)
             : base(@event.containingType, syntaxReference, location, isIterator)
         {
             _event = @event;
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
                 @event.Modifiers,
                 returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
+                isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: @event.IsExplicitInterfaceImplementation && (@event.Modifiers & DeclarationModifiers.Static) == 0);

@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodKind.Ordinary,
                 DeclarationModifiers.Static | DeclarationModifiers.Private | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None),
                 returnsVoid: !hasAwait && !hasReturnWithExpression,
+                isExpressionBodied: false,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: false);

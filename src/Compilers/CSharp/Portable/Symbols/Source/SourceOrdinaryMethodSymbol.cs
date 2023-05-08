@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
                  isReadOnly: false,
                  hasBody: syntax.Body != null || syntax.ExpressionBody != null,
+                 isExpressionBodied: syntax is { Body: null, ExpressionBody: not null },
                  isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                  diagnostics)
         {
@@ -81,12 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
 
-            var hasBlockBody = syntax.Body != null;
-            var isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            var hasAnyBody = hasBlockBody || isExpressionBodied;
+            bool hasBlockBody = syntax.Body != null;
+            bool isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            bool hasAnyBody = hasBlockBody || isExpressionBodied;
             var refKind = syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics);
 
-            flags.SetOrdinaryMethodFlags(refKind, isExpressionBodied, hasAnyBody);
+            flags.SetOrdinaryMethodFlags(refKind, hasAnyBody);
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
