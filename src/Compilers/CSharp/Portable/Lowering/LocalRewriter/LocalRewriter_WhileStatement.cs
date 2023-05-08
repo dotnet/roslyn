@@ -80,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case BoundKind.CollectionLiteralSpreadElement:
-                        // PROTOTYPE: Test.
+                        // No instrumentation needed since the loop for the spread expression
+                        // was generated in lowering, and not explicit in the source.
                         break;
 
                     default:

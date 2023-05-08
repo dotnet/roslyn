@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundCollectionElementInitializer collectionElement => MakeCollectionInitializer(temp, collectionElement),
                     BoundDynamicCollectionElementInitializer dynamicElement => MakeDynamicCollectionInitializer(temp, dynamicElement),
-                    BoundCollectionLiteralSpreadElement spreadElement => MakeCollectionLiteralSpreadElement(spreadElement, initializer => _factory.ExpressionStatement(VisitExpression(initializer.AddMethodInvocation)!)),
+                    BoundCollectionLiteralSpreadElement spreadElement => MakeCollectionLiteralSpreadElement(spreadElement),
                     _ => throw ExceptionUtilities.UnexpectedValue(initializer)
                 };
                 if (rewrittenInitializer != null)
@@ -138,26 +138,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Type);
         }
 
-        private BoundExpression MakeCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement initializer, Func<BoundCollectionLiteralSpreadElement, BoundStatement> getRewrittenBody)
+        private BoundExpression MakeCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement initializer)
         {
             var enumeratorInfo = initializer.EnumeratorInfoOpt;
             var addElementPlaceholder = initializer.AddElementPlaceholder;
 
             Debug.Assert(enumeratorInfo is { });
             Debug.Assert(addElementPlaceholder is { });
-            Debug.Assert(addElementPlaceholder.Type is { }); // PROTOTYPE: Is this guaranteed?
+            Debug.Assert(addElementPlaceholder.Type is { });
 
             var syntax = (CSharpSyntaxNode)initializer.Syntax;
             var iterationVariable = _factory.SynthesizedLocal(addElementPlaceholder.Type, syntax);
-
             var convertedExpression = (BoundConversion)initializer.Expression;
 
             AddPlaceholderReplacement(addElementPlaceholder, _factory.Local(iterationVariable));
-            var rewrittenBody = getRewrittenBody(initializer);
+            var rewrittenAdd = VisitExpression(initializer.AddMethodInvocation);
+            Debug.Assert(rewrittenAdd is { });
+            var rewrittenBody = _factory.ExpressionStatement(rewrittenAdd);
             RemovePlaceholderReplacement(addElementPlaceholder);
 
             var elementPlaceholder = initializer.ElementPlaceholder;
-            var elementConversion = initializer.ElementConversion;
             var iterationVariables = ImmutableArray.Create(iterationVariable);
             var breakLabel = new GeneratedLabelSymbol("break");
             var continueLabel = new GeneratedLabelSymbol("continue");
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         initializer,
                         convertedExpression.Operand,
                         elementPlaceholder,
-                        elementConversion,
+                        elementConversion: null,
                         iterationVariables,
                         deconstruction: null,
                         breakLabel,
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         initializer,
                         convertedExpression.Operand,
                         elementPlaceholder,
-                        elementConversion,
+                        elementConversion: null,
                         iterationVariables,
                         deconstruction: null,
                         breakLabel,
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedExpression,
                     enumeratorInfo,
                     elementPlaceholder,
-                    elementConversion,
+                    elementConversion: null,
                     iterationVariables,
                     deconstruction: null,
                     awaitableInfo: null,

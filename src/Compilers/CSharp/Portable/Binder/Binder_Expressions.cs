@@ -4596,7 +4596,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expression,
                         enumeratorInfoOpt: null,
                         elementPlaceholder: null,
-                        elementConversion: null,
                         addElementPlaceholder: null,
                         addMethodInvocation: null,
                         type: CreateErrorType(),
@@ -4616,7 +4615,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expression,
                     enumeratorInfo,
                     elementPlaceholder: elementPlaceholder,
-                    elementConversion: null,
                     addElementPlaceholder: null,
                     addMethodInvocation: null,
                     type: enumeratorInfo.CollectionType,
@@ -5741,7 +5739,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 element.Expression,
                 enumeratorInfo,
                 element.ElementPlaceholder,
-                elementConversion: null, // PROTOTYPE: Remove BoundCollectionLiteralSpreadElement.ElementConversion if not used.
                 addElementPlaceholder,
                 addMethodInvocation,
                 element.Type);

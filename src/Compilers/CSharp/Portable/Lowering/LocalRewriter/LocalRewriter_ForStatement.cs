@@ -152,7 +152,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         branchBack = Instrumenter.InstrumentForStatementConditionalGotoStartOrBreak((BoundForStatement)original, branchBack);
                         break;
                     case BoundKind.CollectionLiteralSpreadElement:
-                        // PROTOTYPE: Test.
+                        // No instrumentation needed since the loop for the spread expression
+                        // was generated in lowering, and not explicit in the source.
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(original.Kind);

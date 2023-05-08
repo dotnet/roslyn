@@ -3392,6 +3392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
+            // PROTOTYPE: ERR_AnonMethGrpInForEach is misleading since there is no 'foreach' in source.
             comp.VerifyEmitDiagnostics(
                 // (5,26): error CS0446: Foreach cannot operate on a 'collection literals'. Did you intend to invoke the 'collection literals'?
                 //         var a = [1, 2, ..[]];
@@ -3412,6 +3413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
+            // PROTOTYPE: ERR_AnonMethGrpInForEach is misleading since there is no 'foreach' in source.
             comp.VerifyEmitDiagnostics(
                 // (6,21): error CS0446: Foreach cannot operate on a 'collection literals'. Did you intend to invoke the 'collection literals'?
                 //         a = [..a, ..[]];
@@ -3516,6 +3518,136 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_005e:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void SpreadElement_08()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] a = [1, 2, 3];
+                        object[] b;
+                        b = F1(a);
+                        b.Report();
+                        b = F2<int, object>(a);
+                        b.Report();
+                    }
+                    static object[] F1(int[] a) => [..a];
+                    static U[] F2<T, U>(T[] a) where T : U => [..a];
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3], [1, 2, 3], ");
+            verifier.VerifyIL("Program.F1",
+                """
+                {
+                  // Code size       45 (0x2d)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<object> V_0,
+                                int[] V_1,
+                                int V_2,
+                                int V_3)
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  stloc.1
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stloc.2
+                  IL_000a:  br.s       IL_0020
+                  IL_000c:  ldloc.1
+                  IL_000d:  ldloc.2
+                  IL_000e:  ldelem.i4
+                  IL_000f:  stloc.3
+                  IL_0010:  ldloc.0
+                  IL_0011:  ldloc.3
+                  IL_0012:  box        "int"
+                  IL_0017:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_001c:  ldloc.2
+                  IL_001d:  ldc.i4.1
+                  IL_001e:  add
+                  IL_001f:  stloc.2
+                  IL_0020:  ldloc.2
+                  IL_0021:  ldloc.1
+                  IL_0022:  ldlen
+                  IL_0023:  conv.i4
+                  IL_0024:  blt.s      IL_000c
+                  IL_0026:  ldloc.0
+                  IL_0027:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
+                  IL_002c:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.F2<T, U>",
+                """
+                {
+                  // Code size       54 (0x36)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<U> V_0,
+                                T[] V_1,
+                                int V_2,
+                                T V_3)
+                  IL_0000:  newobj     "System.Collections.Generic.List<U>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  stloc.1
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stloc.2
+                  IL_000a:  br.s       IL_0029
+                  IL_000c:  ldloc.1
+                  IL_000d:  ldloc.2
+                  IL_000e:  ldelem     "T"
+                  IL_0013:  stloc.3
+                  IL_0014:  ldloc.0
+                  IL_0015:  ldloc.3
+                  IL_0016:  box        "T"
+                  IL_001b:  unbox.any  "U"
+                  IL_0020:  callvirt   "void System.Collections.Generic.List<U>.Add(U)"
+                  IL_0025:  ldloc.2
+                  IL_0026:  ldc.i4.1
+                  IL_0027:  add
+                  IL_0028:  stloc.2
+                  IL_0029:  ldloc.2
+                  IL_002a:  ldloc.1
+                  IL_002b:  ldlen
+                  IL_002c:  conv.i4
+                  IL_002d:  blt.s      IL_000c
+                  IL_002f:  ldloc.0
+                  IL_0030:  callvirt   "U[] System.Collections.Generic.List<U>.ToArray()"
+                  IL_0035:  ret
+                }
+                """);
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [InlineData("List")]
+        [InlineData("Span")]
+        [InlineData("ReadOnlySpan")]
+        public void SpreadElement_09(string collectionType)
+        {
+            string source = $$"""
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        {{collectionType}}<int> a = [1, 2, 3];
+                        {{collectionType}}<object> b;
+                        b = F1(a);
+                        b.Report();
+                        b = F2<int, object>(a);
+                        b.Report();
+                    }
+                    static {{collectionType}}<object> F1({{collectionType}}<int> a) => [..a];
+                    static {{collectionType}}<U> F2<T, U>({{collectionType}}<T> a) where T : U => [..a];
+                }
+                """;
+            CompileAndVerify(
+                new[] { source, s_collectionExtensionsWithSpan },
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Skipped,
+                expectedOutput: "[1, 2, 3], [1, 2, 3], ");
         }
 
         [Theory(Skip = "PROTOTYPE: RuntimeBinderException : Cannot implicitly convert type 'void' to 'object'")]
