@@ -34,14 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
              base(containingType, location, syntax, SyntaxFacts.HasYieldOperations(syntax))
         {
             bool hasBlockBody = syntax.Body != null;
-            flags.IsExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            bool hasBody = hasBlockBody || flags.IsExpressionBodied;
+            bool isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            bool hasBody = hasBlockBody || isExpressionBodied;
 
             _hasThisInitializer = syntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer;
 
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, hasBody, location, diagnostics, out modifierErrors);
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
+            flags.IsExpressionBodied = IsExpressionBodied;
 
             if (syntax.Identifier.ValueText != containingType.Name)
             {
