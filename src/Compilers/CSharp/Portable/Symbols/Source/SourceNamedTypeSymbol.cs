@@ -274,14 +274,12 @@ next:;
                 GetTypeParameterConstraintKinds();
 
                 var diagnostics = BindingDiagnosticBag.GetInstance();
-
                 if (ImmutableInterlocked.InterlockedInitialize(
                         ref _typeParameterInfo.LazyTypeParameterConstraintTypes,
                         MakeTypeParameterConstraintTypes(diagnostics)))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
-
                 diagnostics.Free();
             }
 
