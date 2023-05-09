@@ -74,6 +74,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             });
         }
 
+        public static bool IsViableMemberToAssignTo(
+            INamedTypeSymbol namedType,
+            [NotNullWhen(true)] ISymbol? member,
+            [NotNullWhen(true)] out SyntaxNode? nodeToRemove,
+            CancellationToken cancellationToken)
+        {
+            nodeToRemove = null;
+            if (member is not IFieldSymbol and not IPropertySymbol)
+                return false;
+
+            if (member.IsImplicitlyDeclared)
+                return false;
+
+            if (member.IsStatic)
+                return false;
+
+            if (!namedType.Equals(member.ContainingType))
+                return false;
+
+            if (member.DeclaringSyntaxReferences is not [var memberReference, ..])
+                return false;
+
+            nodeToRemove = memberReference.GetSyntax(cancellationToken);
+            if (nodeToRemove is not VariableDeclaratorSyntax and not PropertyDeclarationSyntax)
+                return false;
+
+            return true;
+        }
+
         private sealed class Analyzer
         {
             private readonly CSharpUsePrimaryConstructorDiagnosticAnalyzer _diagnosticAnalyzer;
@@ -256,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     var leftIdentifier = assignmentExpression.Left switch
                     {
                         IdentifierNameSyntax identifierName => identifierName,
-                        BinaryExpressionSyntax(kind: SyntaxKind.SimpleMemberAccessExpression) { Left: (kind: SyntaxKind.ThisExpression), Right: IdentifierNameSyntax identifierName } => identifierName,
+                        MemberAccessExpressionSyntax(kind: SyntaxKind.SimpleMemberAccessExpression) { Expression: (kind: SyntaxKind.ThisExpression), Name: IdentifierNameSyntax identifierName } => identifierName,
                         _ => null,
                     };
 
@@ -292,35 +321,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
                     return true;
                 }
-            }
-
-            public static bool IsViableMemberToAssignTo(
-                INamedTypeSymbol namedType,
-                [NotNullWhen(true)] ISymbol? member,
-                [NotNullWhen(true)] out SyntaxNode? nodeToRemove,
-                CancellationToken cancellationToken)
-            {
-                nodeToRemove = null;
-                if (member is not IFieldSymbol and not IPropertySymbol)
-                    return false;
-
-                if (member.IsImplicitlyDeclared)
-                    return false;
-
-                if (member.IsStatic)
-                    return false;
-
-                if (!namedType.Equals(member.ContainingType))
-                    return false;
-
-                if (member.DeclaringSyntaxReferences is not [var memberReference, ..])
-                    return false;
-
-                nodeToRemove = memberReference.GetSyntax(cancellationToken);
-                if (nodeToRemove is not VariableDeclaratorSyntax and not PropertyDeclarationSyntax)
-                    return false;
-
-                return true;
             }
 
             private void AnalyzeFieldOrPropertyReference(OperationAnalysisContext context)

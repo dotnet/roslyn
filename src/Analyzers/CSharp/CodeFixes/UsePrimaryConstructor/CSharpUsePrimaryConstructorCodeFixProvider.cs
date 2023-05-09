@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -86,21 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             var solution = document.Project.Solution;
             var solutionEditor = new SolutionEditor(solution);
 
-            using var _ = PooledHashSet<ISymbol>.GetInstance(out var removedMembers);
+            using var _1 = PooledHashSet<ISymbol>.GetInstance(out var removedMembers);
 
             // If we're removing members, first go through and update all references to that member to use the parameter name
-            if (removeMembers)
-            {
-                Contract.ThrowIfTrue(properties.IsEmpty);
-                foreach (var (memberName, parameterName) in properties)
-                {
-                    Contract.ThrowIfNull(parameterName);
-
-                    // Validated by analyzer.
-                    var member = namedType.GetMembers(memberName).Where(m => m is IFieldSymbol or IPropertySymbol).First();
-
-                }
-            }
+            var namedTypeDocuments = namedType.DeclaringSyntaxReferences.Select(r => r.SyntaxTree).Distinct().Select(solution.GetRequiredDocument).ToImmutableHashSet();
+            await RemoveMembersAsync().ConfigureAwait(false);
 
             // Now, remove the constructor itself.
             var constructorDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
@@ -191,6 +182,90 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 else
                 {
                     throw ExceptionUtilities.Unreachable();
+                }
+            }
+
+            async ValueTask RemoveMembersAsync()
+            {
+                if (!removeMembers)
+                    return;
+
+                Contract.ThrowIfTrue(properties.IsEmpty);
+                using var _2 = PooledHashSet<SyntaxNode>.GetInstance(out var nodesToRemove);
+
+                // Go through each pair of member/parameterName.  Update all references to member to now refer to
+                // parameterName. This is safe as the analyzer ensured that all existing locations would safely be able
+                // to do this.  Then once those are all done, actually remove the members.
+                foreach (var (memberName, parameterName) in properties)
+                {
+                    Contract.ThrowIfNull(parameterName);
+
+                    // Validated by analyzer.
+                    var (member, nodeToRemove) = GetMemberToRemove(memberName);
+                    removedMembers.Add(member);
+                    nodesToRemove.Add(nodeToRemove);
+
+                    await ReplaceReferencesToMemberWithParameterAsync(member, parameterName).ConfigureAwait(false);
+                }
+
+                foreach (var group in nodesToRemove.GroupBy(n => n.SyntaxTree))
+                {
+                    var syntaxTree = group.Key;
+                    var memberDocument = solution.GetRequiredDocument(syntaxTree);
+                    var documentEditor = await solutionEditor.GetDocumentEditorAsync(memberDocument.Id, cancellationToken).ConfigureAwait(false);
+
+                    foreach (var memberToRemove in group)
+                        documentEditor.RemoveNode(memberToRemove);
+                }
+            }
+
+            (ISymbol member, SyntaxNode nodeToRemove) GetMemberToRemove(string memberName)
+            {
+                foreach (var member in namedType.GetMembers(memberName))
+                {
+                    if (CSharpUsePrimaryConstructorDiagnosticAnalyzer.IsViableMemberToAssignTo(namedType, member, out var nodeToRemove, cancellationToken))
+                        return (member, nodeToRemove);
+                }
+
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            async ValueTask ReplaceReferencesToMemberWithParameterAsync(ISymbol member, string parameterName)
+            {
+                var parameterNameNode = IdentifierName(parameterName);
+
+                // find all the references to member within this project.  We can immediately filter down just to the
+                // documents containing our named type.
+                var references = await SymbolFinder.FindReferencesAsync(
+                    member, solution, namedTypeDocuments, cancellationToken).ConfigureAwait(false);
+                foreach (var reference in references)
+                {
+                    foreach (var group in reference.Locations.GroupBy(loc => loc.Document))
+                    {
+                        var document = group.Key;
+                        var documentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+
+                        foreach (var location in group)
+                        {
+                            if (location.IsImplicit)
+                                continue;
+
+                            var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) as ExpressionSyntax;
+                            var nodeToReplace = node switch
+                            {
+                                IdentifierNameSyntax identifierName => node,
+                                MemberAccessExpressionSyntax(kind: SyntaxKind.SimpleMemberAccessExpression) { Expression: (kind: SyntaxKind.ThisExpression), Name: IdentifierNameSyntax } => node,
+                                _ => null,
+                            };
+
+                            if (nodeToReplace != null)
+                            {
+                                documentEditor.ReplaceNode(
+                                    nodeToReplace,
+                                    parameterNameNode.WithTriviaFrom(nodeToReplace));
+                            }
+                        }
+                    }
                 }
             }
         }
