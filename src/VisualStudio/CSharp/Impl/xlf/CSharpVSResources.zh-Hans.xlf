@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
-        <target state="translated">允许在构造函数初始值设定项中的冒号后面使用空白行</target>
+        <target state="new">Allow blank line after colon in constructor initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -404,7 +404,7 @@
       </trans-unit>
       <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
         <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">在方法名称与其左括号之间插入空格</target>
+        <target state="new">Insert space between method name and its opening parenthesis</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
@@ -414,7 +414,7 @@
       </trans-unit>
       <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
         <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">在方法名称与其左括号之间插入空格</target>
+        <target state="new">Insert space between method name and its opening parenthesis</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parameter_list_parentheses">

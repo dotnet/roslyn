@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
-        <target state="translated">Oluşturucu başlatıcıda iki noktadan sonra boş satıra izin ver</target>
+        <target state="new">Allow blank line after colon in constructor initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -404,7 +404,7 @@
       </trans-unit>
       <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
         <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Metot adı ile metodun açma ayracı arasına boşluk ekle</target>
+        <target state="new">Insert space between method name and its opening parenthesis</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
@@ -414,7 +414,7 @@
       </trans-unit>
       <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
         <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Metot adı ile metodun açma ayracı arasına boşluk ekle</target>
+        <target state="new">Insert space between method name and its opening parenthesis</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parameter_list_parentheses">
@@ -569,7 +569,7 @@
       </trans-unit>
       <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
         <source>_Insert * at the start of new lines when writing /* */ comments</source>
-        <target state="translated">_/* */ açıklamaları yazarken her yeni satırın başına * ekle</target>
+        <target state="translated">_/* */ açıklamaları yazarken her yeni satırın başına _ekle *</target>
         <note />
       </trans-unit>
       <trans-unit id="Optimize_for_solution_size">
