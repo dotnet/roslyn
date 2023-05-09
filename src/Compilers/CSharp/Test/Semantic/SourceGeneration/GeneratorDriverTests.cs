@@ -2257,6 +2257,114 @@ class C { }
             Assert.Equal(compilation, compilationsCalledFor[0]);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67633")]
+        public void IncrementalGenerator_SyntaxProvider_InputRemoved()
+        {
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(static ctx =>
+            {
+                var invokedMethodsProvider = ctx.SyntaxProvider
+                    .CreateSyntaxProvider(
+                        static (node, _) => node is InvocationExpressionSyntax,
+                        static (ctx, ct) => ctx.SemanticModel.GetSymbolInfo(ctx.Node, ct).Symbol?.Name ?? "(method not found)")
+                    .Select((n, _) => n)
+                    .WithTrackingName("Select");
+
+                ctx.RegisterSourceOutput(invokedMethodsProvider, static (spc, invokedMethod) =>
+                {
+                    spc.AddSource(invokedMethod, "// " + invokedMethod);
+                });
+            }));
+
+            var source1 = """
+                System.Console.WriteLine();
+                System.Console.ReadLine();
+                """;
+
+            var source2 = """
+                class C {
+                    public void M()
+                    {
+                        System.Console.Clear();
+                        System.Console.Beep();
+                    }
+                }
+                """;
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugExeThrowing, parseOptions: parseOptions);
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            verify(ref driver, compilation, new[]
+            {
+                "// WriteLine",
+                "// ReadLine",
+                "// Clear",
+                "// Beep"
+            });
+
+            // edit part of source 1
+            replace(ref compilation, parseOptions, """
+                System.Console.WriteLine();
+                System.Console.Write(' ');
+                """);
+
+            verify(ref driver, compilation, new[]
+            {
+                "// WriteLine",
+                "// Write",
+                "// Clear",
+                "// Beep"
+            });
+
+            Assert.Equal(new (object, IncrementalStepRunReason)[]
+            {
+                ("WriteLine", IncrementalStepRunReason.Cached),
+                ("Write", IncrementalStepRunReason.Modified),
+                ("Clear", IncrementalStepRunReason.Cached),
+                ("Beep", IncrementalStepRunReason.Cached)
+            },
+            driver.GetRunResult().Results.Single().TrackedSteps["Select"].Select(r => r.Outputs.Single()));
+
+            // remove second line of source 1
+            replace(ref compilation, parseOptions, """
+                System.Console.WriteLine();
+                """);
+
+            verify(ref driver, compilation, new[]
+            {
+                "// WriteLine",
+                "// Clear",
+                "// Beep"
+            });
+
+            Assert.Equal(new (object, IncrementalStepRunReason)[]
+            {
+                ("WriteLine", IncrementalStepRunReason.Cached),
+                ("Write", IncrementalStepRunReason.Removed),
+                ("Clear", IncrementalStepRunReason.Cached),
+                ("Beep", IncrementalStepRunReason.Cached)
+            },
+            driver.GetRunResult().Results.Single().TrackedSteps["Select"].Select(r => r.Outputs.Single()));
+
+            static void verify(ref GeneratorDriver driver, Compilation compilation, string[] generatedContent)
+            {
+                driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+                outputCompilation.VerifyDiagnostics();
+                generatorDiagnostics.Verify();
+                var trees = driver.GetRunResult().GeneratedTrees;
+                Assert.Equal(generatedContent.Length, trees.Length);
+                for (int i = 0; i < generatedContent.Length; i++)
+                {
+                    AssertEx.EqualOrDiff(generatedContent[i], trees[i].ToString());
+                }
+            }
+
+            static void replace(ref Compilation compilation, CSharpParseOptions parseOptions, string source)
+            {
+                compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.First(), CSharpSyntaxTree.ParseText(source, parseOptions));
+            }
+        }
+
         [Fact]
         public void IncrementalGenerator_PostInit_Source_Is_Cached()
         {
