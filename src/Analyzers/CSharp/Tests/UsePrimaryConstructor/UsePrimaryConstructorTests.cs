@@ -57,6 +57,23 @@ public partial class UsePrimaryConstructorTests
     }
 
     [Fact]
+    public async Task TestNotWithNonPublicConstructor()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private C(int i)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestStruct()
     {
         await new VerifyCS.Test
@@ -195,6 +212,193 @@ public partial class UsePrimaryConstructorTests
                 {
                     public C() : this(0)
                     {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithBadExpressionBody()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public C(int i)
+                        => System.Console.WriteLine(i);
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithBadBlockBody()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public C(int i)
+                    {
+                        System.Console.WriteLine(i);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithExpressionBodyAssignmentToField1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int i;
+
+                    public [|C|](int i)
+                        => this.i = i;
+                }
+                """,
+            FixedCode = """
+                class C(int i)
+                {
+                    private int i = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithExpressionBodyAssignmentToField2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int i;
+
+                    public [|C|](int j)
+                        => this.i = j;
+                }
+                """,
+            FixedCode = """
+                class C(int j)
+                {
+                    private int i = j;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithExpressionBodyAssignmentToField3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int i;
+
+                    public [|C|](int j)
+                        => i = j;
+                }
+                """,
+            FixedCode = """
+                class C(int j)
+                {
+                    private int i = j;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithAssignmentToBaseField1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class B
+                {
+                    public int i;
+                }
+
+                class C : B
+                {
+                    public C(int i)
+                        => this.i = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithAssignmentToBaseField2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class B
+                {
+                    public int i;
+                }
+
+                class C : B
+                {
+                    public C(int i)
+                        => base.i = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithCompoundAssignmentToField()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int i;
+
+                    public C(int i)
+                        => this.i += i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithTwoWritesToTheSameMember()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int i;
+
+                    public C(int i, int j)
+                    {
+                        this.i = i;
+                        this.i = j;
                     }
                 }
                 """,
