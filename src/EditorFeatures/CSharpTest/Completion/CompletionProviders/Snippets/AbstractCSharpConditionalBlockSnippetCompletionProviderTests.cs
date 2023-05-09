@@ -406,5 +406,66 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfFact]
+        public async Task InsertInlineSnippetForCorrectTypeTest()
+        {
+            var markupBeforeCommit = """
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                        arg.$$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                        {{ItemToCommit}} (arg)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task NoInlineSnippetForIncorrectTypeTest()
+        {
+            var markupBeforeCommit = """
+                class Program
+                {
+                    void M(int arg)
+                    {
+                        arg.$$
+                    }
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
+
+        [WpfFact]
+        public async Task NoInlineSnippetWhenNotDirectlyExpressionStatementTest()
+        {
+            var markupBeforeCommit = """
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                        System.Console.WriteLine(arg.$$);
+                    }
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
     }
 }

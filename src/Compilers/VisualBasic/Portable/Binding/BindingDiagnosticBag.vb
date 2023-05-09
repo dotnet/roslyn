@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Module BindingDiagnosticBadExtensions
+    Friend Module BindingDiagnosticBagExtensions
         <Extension>
         Friend Function IsEmpty(diagnosticBag As BindingDiagnosticBag) As Boolean
             Return (diagnosticBag.DiagnosticBag Is Nothing OrElse diagnosticBag.DiagnosticBag.IsEmptyWithoutResolution) AndAlso diagnosticBag.DependenciesBag.IsNullOrEmpty()
