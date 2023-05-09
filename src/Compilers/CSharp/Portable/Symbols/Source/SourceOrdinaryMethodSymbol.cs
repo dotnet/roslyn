@@ -79,7 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
-            _typeParameterInfo = TypeParameterInfo.Create(MakeTypeParameters(syntax, diagnostics));
+            // Compute the type parameters.  If empty (the common case), directly point at the singleton to reduce the
+            // amount of pointers-to-arrays this type needs to store.
+            var typeParameters = MakeTypeParameters(syntax, diagnostics);
+            _typeParameterInfo = typeParameters.IsEmpty
+                ? TypeParameterInfo.Empty
+                : new TypeParameterInfo(typeParameters);
 
             _explicitInterfaceType = explicitInterfaceType;
 

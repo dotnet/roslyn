@@ -30,24 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static readonly TypeParameterInfo Empty = new TypeParameterInfo(
             ImmutableArray<TypeParameterSymbol>.Empty, ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty, ImmutableArray<TypeParameterConstraintKind>.Empty);
 
-        public TypeParameterInfo() : this(default, default, default)
-        {
-        }
-
-        private TypeParameterInfo(
-            ImmutableArray<TypeParameterSymbol> typeParameters,
-            ImmutableArray<ImmutableArray<TypeWithAnnotations>> typeParameterConstraintTypes,
-            ImmutableArray<TypeParameterConstraintKind> typeParameterConstraintKinds)
+        public TypeParameterInfo(
+            ImmutableArray<TypeParameterSymbol> typeParameters = default,
+            ImmutableArray<ImmutableArray<TypeWithAnnotations>> typeParameterConstraintTypes = default,
+            ImmutableArray<TypeParameterConstraintKind> typeParameterConstraintKinds = default)
         {
             LazyTypeParameters = typeParameters;
             LazyTypeParameterConstraintTypes = typeParameterConstraintTypes;
             LazyTypeParameterConstraintKinds = typeParameterConstraintKinds;
-        }
-
-        public static TypeParameterInfo Create(ImmutableArray<TypeParameterSymbol> typeParameters)
-        {
-            // If we have no type parameters (common case), we can just point at the singleton empty instance.
-            return typeParameters.IsEmpty ? Empty : new TypeParameterInfo(typeParameters, default, default);
         }
     }
 }
