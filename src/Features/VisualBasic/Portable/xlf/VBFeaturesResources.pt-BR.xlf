@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
-        <target state="translated">Variável temporária embutida</target>
+        <target state="new">Inline temporary variable</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -1459,7 +1459,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Make_0_an_Async_Function">
         <source>Make {0} an Async Function.</source>
-        <target state="translated">Tornar {0} uma Função Assíncrona.</target>
+        <target state="new">Make {0} an Async Function.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
@@ -1744,12 +1744,12 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Make_Async_Function">
         <source>Make Async Function</source>
-        <target state="translated">Tornar a função assíncrona</target>
+        <target state="new">Make Async Function</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
-        <target state="translated">Tornar Sub Assíncrona</target>
+        <target state="new">Make Async Sub</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
