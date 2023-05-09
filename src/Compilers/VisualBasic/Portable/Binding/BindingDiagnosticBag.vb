@@ -12,20 +12,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared ReadOnly Discarded As New BindingDiagnosticBag(Nothing, Nothing)
 
+        Private Shared ReadOnly s_reportUseSiteDiagnostic As Func(Of DiagnosticInfo, DiagnosticBag, Location, Boolean) =
+            Function(diagnosticInfo, diagnosticBag, location) As Boolean
+                Debug.Assert(diagnosticInfo.Severity = DiagnosticSeverity.Error)
+                diagnosticBag.Add(New VBDiagnostic(diagnosticInfo, location))
+                Return True
+            End Function
+
         Public Sub New()
-            MyBase.New(usePool:=False)
+            MyBase.New(usePool:=False, s_reportUseSiteDiagnostic)
         End Sub
 
         Private Sub New(usePool As Boolean)
-            MyBase.New(usePool)
+            MyBase.New(usePool, s_reportUseSiteDiagnostic)
         End Sub
 
         Public Sub New(diagnosticBag As DiagnosticBag)
-            MyBase.New(diagnosticBag, dependenciesBag:=Nothing)
+            MyBase.New(diagnosticBag, dependenciesBag:=Nothing, s_reportUseSiteDiagnostic)
         End Sub
 
         Public Sub New(diagnosticBag As DiagnosticBag, dependenciesBag As ICollection(Of AssemblySymbol))
-            MyBase.New(diagnosticBag, dependenciesBag)
+            MyBase.New(diagnosticBag, dependenciesBag, s_reportUseSiteDiagnostic)
         End Sub
 
         Friend Shared Function GetInstance() As BindingDiagnosticBag
@@ -75,12 +82,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return (DiagnosticBag Is Nothing OrElse DiagnosticBag.IsEmptyWithoutResolution) AndAlso DependenciesBag.IsNullOrEmpty()
             End Get
         End Property
-
-        Protected Overrides Function ReportUseSiteDiagnostic(diagnosticInfo As DiagnosticInfo, diagnosticBag As DiagnosticBag, location As Location) As Boolean
-            Debug.Assert(diagnosticInfo.Severity = DiagnosticSeverity.Error)
-            diagnosticBag.Add(New VBDiagnostic(diagnosticInfo, location))
-            Return True
-        End Function
 
         Friend Overloads Function Add(node As BoundNode, useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Return Add(node.Syntax.Location, useSiteInfo)

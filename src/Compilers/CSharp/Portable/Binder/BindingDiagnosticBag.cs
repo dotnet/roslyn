@@ -16,21 +16,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static readonly BindingDiagnosticBag Discarded = new BindingDiagnosticBag(null, null);
 
+        private static readonly Func<DiagnosticInfo, DiagnosticBag, Location, bool> s_reportUseSiteDiagnostic = Symbol.ReportUseSiteDiagnostic;
+
         public BindingDiagnosticBag()
             : this(usePool: false)
         { }
 
         private BindingDiagnosticBag(bool usePool)
-            : base(usePool)
+            : base(usePool, s_reportUseSiteDiagnostic)
         { }
 
         public BindingDiagnosticBag(DiagnosticBag? diagnosticBag)
-            : base(diagnosticBag, dependenciesBag: null)
+            : base(diagnosticBag, dependenciesBag: null, s_reportUseSiteDiagnostic)
         {
         }
 
         public BindingDiagnosticBag(DiagnosticBag? diagnosticBag, ICollection<AssemblySymbol>? dependenciesBag)
-            : base(diagnosticBag, dependenciesBag)
+            : base(diagnosticBag, dependenciesBag, s_reportUseSiteDiagnostic)
         {
         }
 
@@ -146,11 +148,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-        }
-
-        protected override bool ReportUseSiteDiagnostic(DiagnosticInfo diagnosticInfo, DiagnosticBag diagnosticBag, Location location)
-        {
-            return Symbol.ReportUseSiteDiagnostic(diagnosticInfo, diagnosticBag, location);
         }
 
         internal CSDiagnosticInfo Add(ErrorCode code, Location location)
