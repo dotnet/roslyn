@@ -351,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
                                                                 StateFlags.ReportedVarianceDiagnostics,
                                                                 0,
-                                                                If(diagnostics IsNot Nothing, diagnostics, Nothing))
+                                                                diagnostics)
 
             diagnostics.Free()
 
