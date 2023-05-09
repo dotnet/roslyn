@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
+        private static readonly ObjectPool<ConcurrentSet<ISymbol>> s_concurrentSetPool = new(() => new());
+
         public CSharpUsePrimaryConstructorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UsePrimaryConstructorDiagnosticId,
                    EnforceOnBuildValues.UsePrimaryConstructor,
@@ -104,11 +106,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             return true;
         }
 
+        /// <summary>
+        /// Helper type we create that encapsulates all the state we need while processing.
+        /// </summary>
         private sealed class Analyzer
         {
             private readonly CSharpUsePrimaryConstructorDiagnosticAnalyzer _diagnosticAnalyzer;
 
-            private readonly INamedTypeSymbol _namedType;
             private readonly CodeStyleOption2<bool> _styleOption;
 
             private readonly IMethodSymbol _primaryConstructor;
@@ -116,18 +120,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
             private readonly PooledDictionary<ISymbol, IParameterSymbol> _candidateMembersToRemove;
 
-            private readonly PooledHashSet<ISymbol> _membersThatCannotBeRemoved = PooledHashSet<ISymbol>.GetInstance();
+            /// <summary>
+            /// Needs to be concurrent as we can process members in parallel in <see
+            /// cref="AnalyzeFieldOrPropertyReference"/>.
+            /// </summary>
+            private readonly ConcurrentSet<ISymbol> _membersThatCannotBeRemoved = s_concurrentSetPool.Allocate();
 
             public Analyzer(
                 CSharpUsePrimaryConstructorDiagnosticAnalyzer diagnosticAnalyzer,
-                INamedTypeSymbol namedType,
                 CodeStyleOption2<bool> styleOption,
                 IMethodSymbol primaryConstructor,
                 ConstructorDeclarationSyntax primaryConstructorDeclaration,
                 PooledDictionary<ISymbol, IParameterSymbol> candidateMembersToRemove)
             {
                 _diagnosticAnalyzer = diagnosticAnalyzer;
-                _namedType = namedType;
                 _styleOption = styleOption;
                 _primaryConstructor = primaryConstructor;
                 _primaryConstructorDeclaration = primaryConstructorDeclaration;
@@ -151,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 }
 
                 _candidateMembersToRemove.Free();
-                _membersThatCannotBeRemoved.Free();
+                s_concurrentSetPool.ClearAndFree(_membersThatCannotBeRemoved);
             }
 
             public static void AnalyzeNamedTypeStart(
@@ -211,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     return;
                 }
 
-                var analyzer = new Analyzer(diagnosticAnalyzer, namedType, styleOption, primaryConstructor, primaryConstructorDeclaration, candidateMembersToRemove);
+                var analyzer = new Analyzer(diagnosticAnalyzer, styleOption, primaryConstructor, primaryConstructorDeclaration, candidateMembersToRemove);
                 context.RegisterSymbolEndAction(analyzer.OnSymbolEnd);
 
                 // Look to see if we have trivial `_x = x` or `this.x = x` assignments.  If so, then the field/prop
