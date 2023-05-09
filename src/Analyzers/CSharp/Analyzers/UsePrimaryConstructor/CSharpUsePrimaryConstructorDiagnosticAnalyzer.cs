@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             {
                 // "x is not Type y" is only available in C# 9.0 and above. Don't offer this refactoring
                 // in projects targeting a lesser version.
-                if (context.Compilation.LanguageVersion().IsCSharp12OrAbove())
+                if (!context.Compilation.LanguageVersion().IsCSharp12OrAbove())
                     return;
 
                 var analyzer = new Analyzer(this);
@@ -176,6 +176,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
                 Contract.ThrowIfNull(_primaryConstructor);
                 Contract.ThrowIfNull(_primaryConstructorDeclaration);
+
+                if (_primaryConstructor.Parameters.Length == 0)
+                    return;
+
+                if (_primaryConstructor.DeclaredAccessibility != Accessibility.Public)
+                    return;
 
                 // Constructor has to have a real body (can't be extern/etc.).
                 if (_primaryConstructorDeclaration is { Body: null, ExpressionBody: null })
