@@ -98,10 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             // typedecl and move it there.
             await MoveBaseConstructorArgumentsAsync().ConfigureAwait(false);
 
-            // Then remove the constructor itself.
-            var constructorDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
-            constructorDocumentEditor.RemoveNode(constructorDeclaration);
-
             // Then take all the assignments in the constructor, and place them directly on the field/property initializers.
             if (constructorDeclaration.ExpressionBody is not null)
             {
@@ -115,6 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 foreach (var statement in constructorDeclaration.Body.Statements)
                     await ProcessAssignmentAsync((AssignmentExpressionSyntax)((ExpressionStatementSyntax)statement).Expression).ConfigureAwait(false);
             }
+
+            // Then remove the constructor itself.
+            var constructorDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+            constructorDocumentEditor.RemoveNode(constructorDeclaration);
 
             // Finally move the constructors parameter list to the type declaration.
             constructorDocumentEditor.ReplaceNode(
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     if (current.BaseList is not { Types: [SimpleBaseTypeSyntax baseType, ..] })
                         continue;
 
-                    if (semanticModel.GetSymbolInfo(baseType, cancellationToken).GetAnySymbol() is not INamedTypeSymbol { TypeKind: TypeKind.Class })
+                    if (semanticModel.GetSymbolInfo(baseType.Type, cancellationToken).GetAnySymbol() is not INamedTypeSymbol { TypeKind: TypeKind.Class })
                         continue;
 
                     var document = solution.GetRequiredDocument(baseType.SyntaxTree);
@@ -168,7 +168,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
                     documentEditor.ReplaceNode(
                         baseType,
-                        PrimaryConstructorBaseType(baseType.Type, constructorDeclaration.Initializer.ArgumentList));
+                        PrimaryConstructorBaseType(baseType.Type.WithoutTrailingTrivia(), constructorDeclaration.Initializer.ArgumentList.WithoutLeadingTrivia())
+                            .WithTrailingTrivia(baseType.GetTrailingTrivia()));
                     return;
                 }
             }
