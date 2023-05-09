@@ -540,6 +540,240 @@ struct Buffer
             Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
         }
 
+        [Fact]
+        public void InlineArrayType_19()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray((short)10)]
+struct Buffer
+{
+    private int _element0;
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_20()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(Length)]
+struct Buffer
+{
+    [System.Obsolete(""yes"")]
+    public const int Length = 10;
+
+    private int _element0;
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics(
+                // (2,46): warning CS0618: 'Buffer.Length' is obsolete: 'yes'
+                // [System.Runtime.CompilerServices.InlineArray(Length)]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Length").WithArguments("Buffer.Length", "yes").WithLocation(2, 46)
+                );
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_21()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(Length)]
+struct Buffer
+{
+    [System.Obsolete(""yes"", true)]
+    public const int Length = 10;
+
+    private int _element0;
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            comp.VerifyDiagnostics(
+                // (2,46): error CS0619: 'Buffer.Length' is obsolete: 'yes'
+                // [System.Runtime.CompilerServices.InlineArray(Length)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Length").WithArguments("Buffer.Length", "yes").WithLocation(2, 46)
+                );
+
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+        }
+
+        [Fact]
+        public void InlineArrayType_22()
+        {
+            var src = @"
+#pragma warning disable CS0169 // The field 'Buffer._element0' is never used
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+struct Buffer
+{
+    private int _element0;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
+    public sealed class InlineArrayAttribute : Attribute
+    {
+        public InlineArrayAttribute (long length)
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+
+                Assert.False(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(0, length);
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_23()
+        {
+            var src = @"
+#pragma warning disable CS0169 // The field 'Buffer._element0' is never used
+
+[System.Runtime.CompilerServices.InlineArray(Buffer.Length)]
+struct Buffer
+{
+    public const int Length = 10;
+    private int _element0;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
+    public sealed class InlineArrayAttribute : Attribute
+    {
+        public InlineArrayAttribute (int length)
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_24()
+        {
+            var src = @"
+#pragma warning disable CS0169 // The field 'Buffer._element0' is never used
+
+[System.Runtime.CompilerServices.InlineArray(Buffer<int>.Length)]
+struct Buffer<T>
+{
+    public const int Length = 10;
+    private int _element0;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
+    public sealed class InlineArrayAttribute : Attribute
+    {
+        public InlineArrayAttribute (int length)
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_25()
+        {
+            var src = @"
+#pragma warning disable CS0169 // The field 'Buffer._element0' is never used
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+struct Buffer
+{
+    private int _element0;
+}
+
+[System.Diagnostics.ConditionalAttribute(nameof(C1.Field))]
+class C1 : System.Attribute
+{
+    public Buffer Field = default;
+}
+
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
+    public sealed class InlineArrayAttribute : Attribute
+    {
+        public InlineArrayAttribute (int length)
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+
+                Assert.Equal("Field", m.GlobalNamespace.GetTypeMember("C1").GetAppliedConditionalSymbols().Single());
+            }
+        }
+
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ElementAccess_Variable_01()
         {
@@ -8574,8 +8808,157 @@ class Program
                 );
         }
 
-        // PROTOTYPE(InlineArrays):
-        [Fact(Skip = "Test host process crashed : Stack overflow.")]
+        [Fact]
+        public void AttributeDefaultValueArgument()
+        {
+            var source =
+@"using System;
+ 
+namespace AttributeTest
+{
+    [A(3, X = 6)]
+    public class A : Attribute
+    {
+        public int X;
+        public A(int x, int y = 4, object a = default(A)) { }
+    
+        static void Main()
+        {
+            typeof(A).GetCustomAttributes(false);
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+
+            var a = compilation.GlobalNamespace.GetMember<MethodSymbol>("AttributeTest.A..ctor");
+            // The following was causing a reentrancy into DefaultSyntaxValue on the same thread,
+            // effectively blocking the thread indefinitely instead of causing a stack overflow.
+            // DefaultSyntaxValue starts binding the syntax, that triggers attribute binding,
+            // that asks for a default value for the same parameter and we are back where we started.
+            Assert.Null(a.Parameters[2].ExplicitDefaultValue);
+            Assert.True(a.Parameters[2].HasExplicitDefaultValue);
+
+            compilation.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void DefaultSyntaxValueReentrancy_01()
+        {
+            var source =
+@"
+#nullable enable
+
+[A(3, X = 6)]
+public struct A
+{
+    public int X;
+
+    public A(int x, System.Span<int> a = default(A)) { }
+}
+";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            // The following was causing a reentrancy into DefaultSyntaxValue on the same thread,
+            // effectively blocking the thread indefinitely instead of causing a stack overflow.
+            // DefaultSyntaxValue starts binding the syntax, that triggers attribute binding,
+            // that asks for a default value for the same parameter and we are back where we started.
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (4,2): error CS0616: 'A' is not an attribute class
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(4, 2),
+                // (4,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A(3, X = 6)").WithLocation(4, 2),
+                // (9,38): error CS1750: A value of type 'A' cannot be used as a default parameter because there are no standard conversions to type 'Span<int>'
+                //     public A(int x, System.Span<int> a = default(A)) { }
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "a").WithArguments("A", "System.Span<int>").WithLocation(9, 38)
+                );
+        }
+
+        [Fact]
+        public void DefaultSyntaxValueReentrancy_02()
+        {
+            var source =
+@"
+#nullable enable
+
+[A(3, X = 6)]
+public struct A
+{
+    public int X;
+
+    public A(int x, int a = default(A)[0]) { }
+}
+";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            // The following was causing a reentrancy into DefaultSyntaxValue on the same thread,
+            // effectively blocking the thread indefinitely instead of causing a stack overflow.
+            // DefaultSyntaxValue starts binding the syntax, that triggers attribute binding,
+            // that asks for a default value for the same parameter and we are back where we started.
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (4,2): error CS0616: 'A' is not an attribute class
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(4, 2),
+                // (4,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A(3, X = 6)").WithLocation(4, 2),
+                // (9,29): error CS0021: Cannot apply indexing with [] to an expression of type 'A'
+                //     public A(int x, int a = default(A)[0]) { }
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "default(A)[0]").WithArguments("A").WithLocation(9, 29)
+                );
+        }
+
+        [Fact]
+        public void CycleThroughAttributes_00()
+        {
+            var source =
+@"
+#pragma warning disable CS0169 // The field 'Buffer10._element0' is never used
+
+class C
+{
+    public static Buffer10 F = default;
+}
+ 
+[System.Runtime.CompilerServices.InlineArray(default(Buffer10))]
+public struct Buffer10
+{
+    private int _element0;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
+    public sealed class InlineArrayAttribute : Attribute
+    {
+        public InlineArrayAttribute (System.Span<int> length)
+        {
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            compilation.VerifyDiagnostics(
+                // (9,46): error CS1503: Argument 1: cannot convert from 'Buffer10' to 'System.Span<int>'
+                // [System.Runtime.CompilerServices.InlineArray(default(Buffer10))]
+                Diagnostic(ErrorCode.ERR_BadArgType, "default(Buffer10)").WithArguments("1", "Buffer10", "System.Span<int>").WithLocation(9, 46)
+                );
+        }
+
+        [Fact]
         public void CycleThroughAttributes_01()
         {
             var source =
@@ -8595,11 +8978,14 @@ public struct Buffer10
 " + InlineArrayAttributeDefinition;
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (8,4): error CS1503: Argument 1: cannot convert from 'Buffer10' to 'System.Span<int>'
+                // [A(default(Buffer10))]
+                Diagnostic(ErrorCode.ERR_BadArgType, "default(Buffer10)").WithArguments("1", "Buffer10", "System.Span<int>").WithLocation(8, 4)
+                );
         }
 
-        // PROTOTYPE(InlineArrays):
-        [Fact(Skip = "Test host process crashed : Stack overflow.")]
+        [Fact]
         public void CycleThroughAttributes_02()
         {
             var source =
@@ -8619,15 +9005,19 @@ public struct Buffer10
 " + InlineArrayAttributeDefinition;
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (8,4): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10'
+                // [A(default(Buffer10)[0])]
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "default(Buffer10)[0]").WithArguments("Buffer10").WithLocation(8, 4)
+                );
         }
 
-        // PROTOTYPE(InlineArrays):
-        [Fact(Skip = "Test host process crashed : Stack overflow.")]
+        [Fact]
         public void CycleThroughAttributes_03()
         {
             var source =
-@"using System;
+@"
+#pragma warning disable CS0169 // The field 'Buffer10._element0' is never used
 
 class C
 {
@@ -8642,15 +9032,19 @@ public struct Buffer10
 " + InlineArrayAttributeDefinition;
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (9,47): error CS0030: Cannot convert type 'Buffer10' to 'System.Span<int>'
+                // [System.Runtime.CompilerServices.InlineArray(((System.Span<int>)C.F)[0])]
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(System.Span<int>)C.F").WithArguments("Buffer10", "System.Span<int>").WithLocation(9, 47)
+                );
         }
 
-        // PROTOTYPE(InlineArrays):
-        [Fact(Skip = "Test host process crashed : Stack overflow.")]
+        [Fact]
         public void CycleThroughAttributes_04()
         {
             var source =
-@"using System;
+@"
+#pragma warning disable CS0169 // The field 'Buffer10._element0' is never used
 
 class C
 {
@@ -8665,7 +9059,11 @@ public struct Buffer10
 " + InlineArrayAttributeDefinition;
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (9,46): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10'
+                // [System.Runtime.CompilerServices.InlineArray(C.F[0])]
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "C.F[0]").WithArguments("Buffer10").WithLocation(9, 46)
+                );
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]

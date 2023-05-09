@@ -7982,9 +7982,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics = BindingDiagnosticBag.Discarded;
             }
 
-            if (expr.Type.HasInlineArrayAttribute(out _) && analyzedArguments.Arguments.Count == 1 && expr.Type.TryGetInlineArrayElementType() is { HasType: true } elementType &&
-                tryImplicitConversionToInlineArrayIndex(node, analyzedArguments.Arguments[0], diagnostics, out WellKnownType indexOrRangeWellknownType) is { } convertedIndex &&
-                allowInlineArrayElementAccess) // PROTOTYPE(InlineArrays): Check this first after conflicting PRs are merged
+            if (allowInlineArrayElementAccess &&
+                !InAttributeArgument && !InParameterDefaultValue && // These checks prevent cycles caused by attribute binding when HasInlineArrayAttribute check triggers that.
+                expr.Type.HasInlineArrayAttribute(out _) && analyzedArguments.Arguments.Count == 1 && expr.Type.TryGetInlineArrayElementType() is { HasType: true } elementType &&
+                tryImplicitConversionToInlineArrayIndex(node, analyzedArguments.Arguments[0], diagnostics, out WellKnownType indexOrRangeWellknownType) is { } convertedIndex)
             {
                 return bindInlineArrayElementAccess(node, expr, analyzedArguments, convertedIndex, indexOrRangeWellknownType, elementType, diagnostics);
             }

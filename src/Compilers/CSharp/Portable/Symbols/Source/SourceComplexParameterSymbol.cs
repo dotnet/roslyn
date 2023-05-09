@@ -370,11 +370,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MessageID.IDS_FeatureOptionalParameter.CheckFeatureAvailability(diagnostics, defaultSyntax.EqualsToken);
 
             binder = GetDefaultParameterValueBinder(defaultSyntax);
-            Binder binderForDefault = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
-            Debug.Assert(binderForDefault.InParameterDefaultValue);
-            Debug.Assert(binderForDefault.ContainingMemberOrLambda == ContainingSymbol);
+            binder = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
+            Debug.Assert(binder.InParameterDefaultValue);
+            Debug.Assert(binder.ContainingMemberOrLambda == ContainingSymbol);
 
-            parameterEqualsValue = binderForDefault.BindParameterDefaultValue(defaultSyntax, this, diagnostics, out var valueBeforeConversion);
+            parameterEqualsValue = binder.BindParameterDefaultValue(defaultSyntax, this, diagnostics, out var valueBeforeConversion);
             if (valueBeforeConversion.HasErrors)
             {
                 return ConstantValue.Bad;
