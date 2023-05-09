@@ -893,17 +893,29 @@ internal static class Extensions
 
     public static ImmutableArray<Symbol> BindCref(this Microsoft.CodeAnalysis.CSharp.Binder binder, CrefSyntax syntax, out Symbol ambiguityWinner, DiagnosticBag diagnostics)
     {
-        return binder.BindCref(syntax, out ambiguityWinner, new Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag(diagnostics));
+        var bindingDiagnostics = Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+        var result = binder.BindCref(syntax, out ambiguityWinner, bindingDiagnostics);
+        diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+        bindingDiagnostics.Free();
+        return result;
     }
 
     public static BoundBlock BindEmbeddedBlock(this Microsoft.CodeAnalysis.CSharp.Binder binder, BlockSyntax node, DiagnosticBag diagnostics)
     {
-        return binder.BindEmbeddedBlock(node, new Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag(diagnostics));
+        var bindingDiagnostics = Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+        var result = binder.BindEmbeddedBlock(node, bindingDiagnostics);
+        diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+        bindingDiagnostics.Free();
+        return result;
     }
 
     public static BoundExpression BindExpression(this Microsoft.CodeAnalysis.CSharp.Binder binder, ExpressionSyntax node, DiagnosticBag diagnostics)
     {
-        return binder.BindExpression(node, new Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag(diagnostics));
+        var bindingDiagnostics = Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+        var result = binder.BindExpression(node, bindingDiagnostics);
+        diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+        bindingDiagnostics.Free();
+        return result;
     }
 
     public static void Verify(this ImmutableBindingDiagnostic<AssemblySymbol> actual, params Microsoft.CodeAnalysis.Test.Utilities.DiagnosticDescription[] expected)

@@ -72,11 +72,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and <paramref name="filterSpanWithinTree"/> is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
         public static void CheckCompliance(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
         {
-            var queue = new BindingDiagnosticBag(diagnostics.DiagnosticBag, diagnostics.AccumulatesDependencies ? new ConcurrentSet<AssemblySymbol>() : null);
+            var queue = diagnostics.AccumulatesDependencies ? BindingDiagnosticBag.GetConcurrentInstance() : BindingDiagnosticBag.GetInstance(withDiagnostics: diagnostics.AccumulatesDiagnostics, withDependencies: false);
             var checker = new ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken);
             checker.Visit(compilation.Assembly);
             checker.WaitForWorkers();
+
+            if (diagnostics.AccumulatesDiagnostics)
+            {
+                diagnostics.AddRange(queue.DiagnosticBag);
+            }
+
             diagnostics.AddDependencies(queue);
+            queue.Free();
         }
 
         public override void VisitAssembly(AssemblySymbol symbol)

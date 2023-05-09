@@ -260,30 +260,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return debuggingSession.GetAdjustedActiveStatementSpansAsync(mappedDocument, activeStatementSpanProvider, cancellationToken);
         }
 
-        public ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(DebuggingSessionId sessionId, Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            // It is allowed to call this method before entering or after exiting break mode. In fact, the VS debugger does so.
-            // We return null since there the concept of active statement only makes sense during break mode.
-            var debuggingSession = TryGetDebuggingSession(sessionId);
-            if (debuggingSession == null)
-            {
-                return ValueTaskFactory.FromResult<LinePositionSpan?>(null);
-            }
-
-            return debuggingSession.GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instructionId, cancellationToken);
-        }
-
-        public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(DebuggingSessionId sessionId, Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            var debuggingSession = TryGetDebuggingSession(sessionId);
-            if (debuggingSession == null)
-            {
-                return ValueTaskFactory.FromResult<bool?>(null);
-            }
-
-            return debuggingSession.IsActiveStatementInExceptionRegionAsync(solution, instructionId, cancellationToken);
-        }
-
         internal TestAccessor GetTestAccessor()
             => new(this);
 

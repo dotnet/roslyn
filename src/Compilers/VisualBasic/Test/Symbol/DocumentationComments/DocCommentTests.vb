@@ -41,7 +41,7 @@ End Class
             Using (new EnsureEnglishUICulture())
 
                 Dim comp = CreateCompilationWithMscorlib40(sources)
-                Dim diags = New DiagnosticBag()
+                Dim diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
                 Dim badStream = New BrokenStream()
                 badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite
 
@@ -49,10 +49,10 @@ End Class
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=badStream,
-                    diagnostics:=New BindingDiagnosticBag(diags),
+                    diagnostics:=diags,
                     cancellationToken:=Nothing)
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC37258: Error writing to XML documentation file: I/O error occurred.
                                    ]]></errors>)
@@ -12520,64 +12520,64 @@ End Class
             Using (New EnsureEnglishUICulture())
 
                 Dim comp = CreateCompilationWithMscorlib40(sources, parseOptions:=s_optionsDiagnoseDocComments)
-                Dim diags = DiagnosticBag.GetInstance()
+                Dim diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=New BindingDiagnosticBag(diags),
+                    diagnostics:=diags,
                     cancellationToken:=Nothing,
                     filterTree:=comp.SyntaxTrees(0))
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC42312: XML documentation comments must precede member or type declarations.
 ''' <summary> a.vb
    ~~~~~~~~~~~~~~~~
                                    ]]></errors>)
 
-                diags = DiagnosticBag.GetInstance()
+                diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=New BindingDiagnosticBag(diags),
+                    diagnostics:=diags,
                     cancellationToken:=Nothing,
                     filterTree:=comp.SyntaxTrees(0),
                     filterSpanWithinTree:=New Text.TextSpan(0, 0))
 
-                Assert.Empty(diags.ToReadOnlyAndFree())
+                Assert.Empty(diags.ToReadOnlyAndFree().Diagnostics)
 
-                diags = DiagnosticBag.GetInstance()
+                diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=New BindingDiagnosticBag(diags),
+                    diagnostics:=diags,
                     cancellationToken:=Nothing,
                     filterTree:=comp.SyntaxTrees(1))
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC42312: XML documentation comments must precede member or type declarations.
 ''' <summary> b.vb
    ~~~~~~~~~~~~~~~~
                                    ]]></errors>)
 
-                diags = DiagnosticBag.GetInstance()
+                diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=New BindingDiagnosticBag(diags),
+                    diagnostics:=diags,
                     cancellationToken:=Nothing,
                     filterTree:=Nothing)
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC42312: XML documentation comments must precede member or type declarations.
 ''' <summary> a.vb
@@ -12587,18 +12587,18 @@ BC42312: XML documentation comments must precede member or type declarations.
    ~~~~~~~~~~~~~~~~
                                    ]]></errors>)
 
-                diags = DiagnosticBag.GetInstance()
+                diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=New BindingDiagnosticBag(diags),
+                    diagnostics:=diags,
                     cancellationToken:=Nothing,
                     filterTree:=Nothing,
                     filterSpanWithinTree:=New Text.TextSpan(0, 0))
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC42312: XML documentation comments must precede member or type declarations.
 ''' <summary> a.vb

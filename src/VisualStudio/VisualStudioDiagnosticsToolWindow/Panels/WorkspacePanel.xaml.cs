@@ -88,7 +88,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var snapshotText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var snapshotText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var snapshotChecksum = snapshotText.GetChecksum();
 
                 using var fileStream = File.OpenRead(document.FilePath);
