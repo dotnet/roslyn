@@ -102,13 +102,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            expressionPlaceholder As BoundValuePlaceholderBase,
                            draftSubstitute As BoundExpression,
                            draftInitializers As ImmutableArray(Of BoundExpression),
-                           diagnostics As BindingDiagnosticBag)
+                           diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol))
 
                 Debug.Assert(originalExpression IsNot Nothing)
                 Debug.Assert(expressionPlaceholder IsNot Nothing AndAlso (expressionPlaceholder.Kind = BoundKind.WithLValueExpressionPlaceholder OrElse expressionPlaceholder.Kind = BoundKind.WithRValueExpressionPlaceholder))
                 Debug.Assert(draftSubstitute IsNot Nothing)
                 Debug.Assert(Not draftInitializers.IsDefault)
-                Debug.Assert(diagnostics IsNot Nothing)
 
                 Me.OriginalExpression = originalExpression
                 Me.ExpressionPlaceholder = expressionPlaceholder
@@ -124,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly ExpressionPlaceholder As BoundValuePlaceholderBase
 
             ''' <summary> Diagnostics produced while binding the expression </summary>
-            Public ReadOnly Diagnostics As BindingDiagnosticBag
+            Public ReadOnly Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
 
             ''' <summary> 
             ''' Draft initializers for With statement, is based on initial binding tree 
@@ -203,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Me._withBlockInfo Is Nothing Then
                 ' Because we cannot guarantee that diagnostics will be freed we 
                 ' don't allocate this diagnostics bag from a pool
-                Dim diagnostics As New BindingDiagnosticBag()
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
 
                 ' Bind the expression as a value
                 Dim boundExpression As BoundExpression = Me.ContainingBinder.BindValue(Me.Expression, diagnostics)
@@ -235,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' so if the following call fails we can just drop the bound node and diagnostics on the floor
                 Interlocked.CompareExchange(Me._withBlockInfo,
                                             New WithBlockInfo(boundExpression, placeholder,
-                                                              result.Expression, result.Initializers, diagnostics),
+                                                              result.Expression, result.Initializers, diagnostics.ToReadOnlyAndFree()),
                                             Nothing)
             End If
 
