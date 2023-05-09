@@ -774,7 +774,7 @@
       </trans-unit>
       <trans-unit id="Namespaces_have_been_updated">
         <source>Namespaces have been updated.</source>
-        <target state="translated">命名空间已更新。</target>
+        <target state="new">Namespaces have been updated.</target>
         <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
@@ -924,7 +924,7 @@
       </trans-unit>
       <trans-unit id="Navigate_asynchronously_exerimental">
         <source>Navigate asynchronously (experimental)</source>
-        <target state="translated">异步导航（实验性）</target>
+        <target state="translated">异步导航 (实验性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_to_0">
