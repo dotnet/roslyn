@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' can be Nothing if no xmlns imports
             Public ReadOnly XmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition)
 
-            Public ReadOnly Diagnostics As BindingDiagnosticBag
+            Public ReadOnly Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
 
             Public Sub New(memberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
                            memberImportsInfo As ImmutableArray(Of GlobalImportInfo),
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                            aliasImports As ImmutableArray(Of AliasAndImportsClausePosition),
                            aliasImportsInfo As ImmutableArray(Of GlobalImportInfo),
                            xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition),
-                           diags As BindingDiagnosticBag)
+                           diags As ImmutableBindingDiagnostic(Of AssemblySymbol))
                 Me.MemberImports = memberImports
                 Me.MemberImportsInfo = memberImportsInfo
                 Me.AliasImportsMap = aliasImportsMap
