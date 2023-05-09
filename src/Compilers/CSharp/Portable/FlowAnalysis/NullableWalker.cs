@@ -3505,6 +3505,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitCollectionLiteralDictionaryElement(BoundCollectionLiteralDictionaryElement node)
+        {
+            base.VisitCollectionLiteralDictionaryElement(node);
+            SetResultType(node, type: default);
+            return null;
+        }
+
         private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node)
         {
             Debug.Assert(!IsConditionalState);

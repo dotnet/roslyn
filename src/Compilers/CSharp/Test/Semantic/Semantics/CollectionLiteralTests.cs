@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private const string s_collectionExtensions = """
             using System;
             using System.Collections;
+            using System.Collections.Generic;
             using System.Linq;
             using System.Text;
             static partial class CollectionExtensions
@@ -50,6 +51,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     var builder = new StringBuilder();
                     Append(builder, isFirst: true, o);
                     if (includeType) Console.Write(GetTypeName(o.GetType()));
+                    Console.Write(builder.ToString());
+                    Console.Write(", ");
+                }
+                internal static void Report<TKey, TValue>(this IEnumerable<KeyValuePair<TKey, TValue>> e)
+                {
+                    var builder = new StringBuilder();
+                    e = e.OrderBy<KeyValuePair<TKey, TValue>, TKey>(p => p.Key);
+                    builder.Append("[");
+                    bool isFirst = true;
+                    foreach (var p in e)
+                    {
+                        if (!isFirst) builder.Append(", ");
+                        builder.AppendFormat("{0}:{1}", p.Key, p.Value);
+                        isFirst = false;
+                    }
+                    builder.Append("]");
                     Console.Write(builder.ToString());
                     Console.Write(", ");
                 }
@@ -3273,7 +3290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void DictionaryElement_01()
+        public void Dictionary_01()
         {
             string source = """
                 using System.Collections.Generic;
@@ -3283,20 +3300,392 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         Dictionary<int, int> d;
                         d = [];
+                        d.Report();
+                        d = [1:2, 3:4];
+                        d.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[], [1:2, 3:4], ");
+        }
+
+        [Fact]
+        public void Dictionary_02()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Dictionary<int, int> d;
+                        d = [new()];
                         d = [new KeyValuePair<int, int>(1, 2)];
-                        d = [3:4];
+                        d = [default];
                     }
                 }
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (8,14): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'Dictionary<int, int>.Add(int, int)'
+                // (7,14): error CS9502: A dictionary collection literal can contain key-value pairs and spread elements only.
+                //         d = [new()];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralKeyValueOrSpreadExpected, "new()").WithLocation(7, 14),
+                // (8,14): error CS9502: A dictionary collection literal can contain key-value pairs and spread elements only.
                 //         d = [new KeyValuePair<int, int>(1, 2)];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new KeyValuePair<int, int>(1, 2)").WithArguments("value", "System.Collections.Generic.Dictionary<int, int>.Add(int, int)").WithLocation(8, 14),
-                // (9,14): error CS9502: Support for collection literal dictionary and spread elements has not been implemented.
-                //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralElementNotImplemented, "3:4").WithLocation(9, 14));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralKeyValueOrSpreadExpected, "new KeyValuePair<int, int>(1, 2)").WithLocation(8, 14),
+                // (9,14): error CS9502: A dictionary collection literal can contain key-value pairs and spread elements only.
+                //         d = [default];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralKeyValueOrSpreadExpected, "default").WithLocation(9, 14));
         }
+
+        [Theory]
+        [CombinatorialData]
+        public void Dictionary_03(
+            [CombinatorialValues("IEnumerable<KeyValuePair<int, int>>", "IDictionary<int, int>", "IReadOnlyCollection<KeyValuePair<int, int>>", "IReadOnlyDictionary<int, int>", "Dictionary<int, int>")] string spreadType,
+            [CombinatorialValues("IDictionary<int, int>", "IReadOnlyDictionary<int, int>", "Dictionary<int, int>")] string collectionType)
+        {
+            string source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Dictionary<int, int> d = [1:2, 3:4];
+                        F(d).Report();
+                    }
+                    static {{collectionType}} F({{spreadType}} s) => [..s];
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: "[1:2, 3:4], ");
+
+            // Verify some of the cases.
+            string expectedIL = (spreadType, collectionType) switch
+            {
+                ("IEnumerable<KeyValuePair<int, int>>", "IDictionary<int, int>") =>
+                    """
+                    {
+                      // Code size       64 (0x40)
+                      .maxstack  3
+                      .locals init (System.Collections.Generic.Dictionary<int, int> V_0,
+                                    System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<int, int>> V_1,
+                                    System.Collections.Generic.KeyValuePair<int, int> V_2)
+                      IL_0000:  newobj     "System.Collections.Generic.Dictionary<int, int>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldarg.0
+                      IL_0007:  callvirt   "System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<int, int>> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, int>>.GetEnumerator()"
+                      IL_000c:  stloc.1
+                      .try
+                      {
+                        IL_000d:  br.s       IL_002a
+                        IL_000f:  ldloc.1
+                        IL_0010:  callvirt   "System.Collections.Generic.KeyValuePair<int, int> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<int, int>>.Current.get"
+                        IL_0015:  stloc.2
+                        IL_0016:  ldloc.0
+                        IL_0017:  ldloca.s   V_2
+                        IL_0019:  call       "int System.Collections.Generic.KeyValuePair<int, int>.Key.get"
+                        IL_001e:  ldloca.s   V_2
+                        IL_0020:  call       "int System.Collections.Generic.KeyValuePair<int, int>.Value.get"
+                        IL_0025:  callvirt   "void System.Collections.Generic.Dictionary<int, int>.this[int].set"
+                        IL_002a:  ldloc.1
+                        IL_002b:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                        IL_0030:  brtrue.s   IL_000f
+                        IL_0032:  leave.s    IL_003e
+                      }
+                      finally
+                      {
+                        IL_0034:  ldloc.1
+                        IL_0035:  brfalse.s  IL_003d
+                        IL_0037:  ldloc.1
+                        IL_0038:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_003d:  endfinally
+                      }
+                      IL_003e:  ldloc.0
+                      IL_003f:  ret
+                    }
+                    """,
+                ("IReadOnlyDictionary<int, int>", "IReadOnlyDictionary<int, int>") =>
+                    """
+                    {
+                      // Code size       64 (0x40)
+                      .maxstack  3
+                      .locals init (System.Collections.Generic.Dictionary<int, int> V_0,
+                                    System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<int, int>> V_1,
+                                    System.Collections.Generic.KeyValuePair<int, int> V_2)
+                      IL_0000:  newobj     "System.Collections.Generic.Dictionary<int, int>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldarg.0
+                      IL_0007:  callvirt   "System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<int, int>> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, int>>.GetEnumerator()"
+                      IL_000c:  stloc.1
+                      .try
+                      {
+                        IL_000d:  br.s       IL_002a
+                        IL_000f:  ldloc.1
+                        IL_0010:  callvirt   "System.Collections.Generic.KeyValuePair<int, int> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<int, int>>.Current.get"
+                        IL_0015:  stloc.2
+                        IL_0016:  ldloc.0
+                        IL_0017:  ldloca.s   V_2
+                        IL_0019:  call       "int System.Collections.Generic.KeyValuePair<int, int>.Key.get"
+                        IL_001e:  ldloca.s   V_2
+                        IL_0020:  call       "int System.Collections.Generic.KeyValuePair<int, int>.Value.get"
+                        IL_0025:  callvirt   "void System.Collections.Generic.Dictionary<int, int>.this[int].set"
+                        IL_002a:  ldloc.1
+                        IL_002b:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                        IL_0030:  brtrue.s   IL_000f
+                        IL_0032:  leave.s    IL_003e
+                      }
+                      finally
+                      {
+                        IL_0034:  ldloc.1
+                        IL_0035:  brfalse.s  IL_003d
+                        IL_0037:  ldloc.1
+                        IL_0038:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_003d:  endfinally
+                      }
+                      IL_003e:  ldloc.0
+                      IL_003f:  ret
+                    }
+                    """,
+                ("Dictionary<int, int>", "Dictionary<int, int>") =>
+                    """
+                    {
+                      // Code size       70 (0x46)
+                      .maxstack  3
+                      .locals init (System.Collections.Generic.Dictionary<int, int> V_0,
+                                    System.Collections.Generic.Dictionary<int, int>.Enumerator V_1,
+                                    System.Collections.Generic.KeyValuePair<int, int> V_2)
+                      IL_0000:  newobj     "System.Collections.Generic.Dictionary<int, int>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldarg.0
+                      IL_0007:  callvirt   "System.Collections.Generic.Dictionary<int, int>.Enumerator System.Collections.Generic.Dictionary<int, int>.GetEnumerator()"
+                      IL_000c:  stloc.1
+                      .try
+                      {
+                        IL_000d:  br.s       IL_002b
+                        IL_000f:  ldloca.s   V_1
+                        IL_0011:  call       "System.Collections.Generic.KeyValuePair<int, int> System.Collections.Generic.Dictionary<int, int>.Enumerator.Current.get"
+                        IL_0016:  stloc.2
+                        IL_0017:  ldloc.0
+                        IL_0018:  ldloca.s   V_2
+                        IL_001a:  call       "int System.Collections.Generic.KeyValuePair<int, int>.Key.get"
+                        IL_001f:  ldloca.s   V_2
+                        IL_0021:  call       "int System.Collections.Generic.KeyValuePair<int, int>.Value.get"
+                        IL_0026:  callvirt   "void System.Collections.Generic.Dictionary<int, int>.this[int].set"
+                        IL_002b:  ldloca.s   V_1
+                        IL_002d:  call       "bool System.Collections.Generic.Dictionary<int, int>.Enumerator.MoveNext()"
+                        IL_0032:  brtrue.s   IL_000f
+                        IL_0034:  leave.s    IL_0044
+                      }
+                      finally
+                      {
+                        IL_0036:  ldloca.s   V_1
+                        IL_0038:  constrained. "System.Collections.Generic.Dictionary<int, int>.Enumerator"
+                        IL_003e:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_0043:  endfinally
+                      }
+                      IL_0044:  ldloc.0
+                      IL_0045:  ret
+                    }
+                    """,
+                _ => null
+            };
+            if (expectedIL is { })
+            {
+                verifier.VerifyIL("Program.F", expectedIL);
+            }
+        }
+
+        [Fact]
+        public void Dictionary_04()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Dictionary<int, int> a = [1:2, 3:4];
+                        Dictionary<long, long?> b = F1(a);
+                        b.Report();
+                        Dictionary<object, object> c = F2<int, object>(a);
+                        c.Report();
+                    }
+                    static Dictionary<long, long?> F1(Dictionary<int, int> d) => [..d];
+                    static Dictionary<U, U> F2<T, U>(Dictionary<T, T> d) where T : U => [..d];
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1:2, 3:4], [1:2, 3:4], ");
+            verifier.VerifyIL("Program.F1",
+                """
+                {
+                  // Code size       77 (0x4d)
+                  .maxstack  3
+                  .locals init (System.Collections.Generic.Dictionary<long, long?> V_0,
+                                System.Collections.Generic.Dictionary<int, int>.Enumerator V_1,
+                                System.Collections.Generic.KeyValuePair<int, int> V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<long, long?>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "System.Collections.Generic.Dictionary<int, int>.Enumerator System.Collections.Generic.Dictionary<int, int>.GetEnumerator()"
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0032
+                    IL_000f:  ldloca.s   V_1
+                    IL_0011:  call       "System.Collections.Generic.KeyValuePair<int, int> System.Collections.Generic.Dictionary<int, int>.Enumerator.Current.get"
+                    IL_0016:  stloc.2
+                    IL_0017:  ldloc.0
+                    IL_0018:  ldloca.s   V_2
+                    IL_001a:  call       "int System.Collections.Generic.KeyValuePair<int, int>.Key.get"
+                    IL_001f:  conv.i8
+                    IL_0020:  ldloca.s   V_2
+                    IL_0022:  call       "int System.Collections.Generic.KeyValuePair<int, int>.Value.get"
+                    IL_0027:  conv.i8
+                    IL_0028:  newobj     "long?..ctor(long)"
+                    IL_002d:  callvirt   "void System.Collections.Generic.Dictionary<long, long?>.this[long].set"
+                    IL_0032:  ldloca.s   V_1
+                    IL_0034:  call       "bool System.Collections.Generic.Dictionary<int, int>.Enumerator.MoveNext()"
+                    IL_0039:  brtrue.s   IL_000f
+                    IL_003b:  leave.s    IL_004b
+                  }
+                  finally
+                  {
+                    IL_003d:  ldloca.s   V_1
+                    IL_003f:  constrained. "System.Collections.Generic.Dictionary<int, int>.Enumerator"
+                    IL_0045:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_004a:  endfinally
+                  }
+                  IL_004b:  ldloc.0
+                  IL_004c:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.F2<T, U>",
+                """
+                {
+                  // Code size       90 (0x5a)
+                  .maxstack  3
+                  .locals init (System.Collections.Generic.Dictionary<U, U> V_0,
+                                System.Collections.Generic.Dictionary<T, T>.Enumerator V_1,
+                                System.Collections.Generic.KeyValuePair<T, T> V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<U, U>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "System.Collections.Generic.Dictionary<T, T>.Enumerator System.Collections.Generic.Dictionary<T, T>.GetEnumerator()"
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_003f
+                    IL_000f:  ldloca.s   V_1
+                    IL_0011:  call       "System.Collections.Generic.KeyValuePair<T, T> System.Collections.Generic.Dictionary<T, T>.Enumerator.Current.get"
+                    IL_0016:  stloc.2
+                    IL_0017:  ldloc.0
+                    IL_0018:  ldloca.s   V_2
+                    IL_001a:  call       "T System.Collections.Generic.KeyValuePair<T, T>.Key.get"
+                    IL_001f:  box        "T"
+                    IL_0024:  unbox.any  "U"
+                    IL_0029:  ldloca.s   V_2
+                    IL_002b:  call       "T System.Collections.Generic.KeyValuePair<T, T>.Value.get"
+                    IL_0030:  box        "T"
+                    IL_0035:  unbox.any  "U"
+                    IL_003a:  callvirt   "void System.Collections.Generic.Dictionary<U, U>.this[U].set"
+                    IL_003f:  ldloca.s   V_1
+                    IL_0041:  call       "bool System.Collections.Generic.Dictionary<T, T>.Enumerator.MoveNext()"
+                    IL_0046:  brtrue.s   IL_000f
+                    IL_0048:  leave.s    IL_0058
+                  }
+                  finally
+                  {
+                    IL_004a:  ldloca.s   V_1
+                    IL_004c:  constrained. "System.Collections.Generic.Dictionary<T, T>.Enumerator"
+                    IL_0052:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0057:  endfinally
+                  }
+                  IL_0058:  ldloc.0
+                  IL_0059:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Dictionary_05()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Dictionary<int, int> d = [1:2, 3:4];
+                        IEnumerable e1 = new object[0];
+                        d = [..e1];
+                        IEnumerable<object> e2 = new object[0];
+                        d = [..e2];
+                        IEnumerable<KeyValuePair<int, int>> e3 = d;
+                        d = [..e3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,13): error CS9503: A dictionary collection literal spread must be a collection of 'System.Collections.Generic.KeyValuePair<,>'.
+                //         d = [..e1];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralDictionarySpreadUnexpectedType, "[..e1]").WithLocation(9, 13),
+                // (11,13): error CS9503: A dictionary collection literal spread must be a collection of 'System.Collections.Generic.KeyValuePair<,>'.
+                //         d = [..e2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralDictionarySpreadUnexpectedType, "[..e2]").WithLocation(11, 13));
+        }
+
+        // Construction should use indexer rather than Add().
+        [Fact]
+        public void Dictionary_06()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Dictionary<string, int> d1 = ["A":1, "B":2];
+                        Dictionary<string, int> d2 = ["A":3, ..d1];
+                        Dictionary<string, int> d3 = [..d1, "B":4];
+                        d2.Report();
+                        d3.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[A:1, B:2], [A:1, B:4], ");
+        }
+
+        [Fact]
+        public void Dictionary_07()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        KeyValuePair<int, int> p = new();
+                        KeyValuePair<int, int>[] a = [p, 1:2];
+                        IEnumerable<KeyValuePair<int, int>> e = [3:4, p];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,42): error CS9504: A dictionary element can only be used in a dictionary collection literal.
+                //         KeyValuePair<int, int>[] a = [p, 1:2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralDictionaryTargetExpected, "1:2").WithLocation(7, 42),
+                // (8,50): error CS9504: A dictionary element can only be used in a dictionary collection literal.
+                //         IEnumerable<KeyValuePair<int, int>> e = [3:4, p];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralDictionaryTargetExpected, "3:4").WithLocation(8, 50));
+        }
+
+        // PROTOTYPE: Test target types for all interfaces implemented by Dictionary<TKey, TValue>, including the IEnumerable<KeyValuePair<TKey, TValue>>, etc.
+        // PROTOTYPE: Test spreads of IEnumerable<dynamic>, IEnumerable<KeyValuePair<dynamic, TValue>>, IEnumerable<KeyValuePair<TKey, dynamic>>.
 
         [ConditionalTheory(typeof(CoreClrOnly))]
         [CombinatorialData]
@@ -4027,6 +4416,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3, 4], ");
+        }
+
+        [Fact]
+        public void SpreadElement_11()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        object[] x = [..new()];
+                        List<object> y = [..new()];
+                        Dictionary<object, object> z = [..new()];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,25): error CS8754: There is no target type for 'new()'
+                //         object[] x = [..new()];
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 25),
+                // (7,29): error CS8754: There is no target type for 'new()'
+                //         List<object> y = [..new()];
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(7, 29),
+                // (8,43): error CS8754: There is no target type for 'new()'
+                //         Dictionary<object, object> z = [..new()];
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(8, 43));
         }
 
         [Theory]

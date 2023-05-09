@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitArrayOrSpanCollectionLiteralExpression(node, elementType);
                 case CollectionLiteralTypeKind.ListInterface:
                     return VisitListInterfaceCollectionLiteralExpression(node);
+                case CollectionLiteralTypeKind.DictionaryOrInterface:
+                    return VisitDictionaryCollectionLiteralExpression(node);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
             }
@@ -152,27 +154,68 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _factory.Convert(node.Type, list);
         }
 
-        private BoundExpression MakeCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement initializer)
+        private BoundExpression VisitDictionaryCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
-            var enumeratorInfo = initializer.EnumeratorInfoOpt;
-            var addElementPlaceholder = initializer.AddElementPlaceholder;
+            Debug.Assert(!_inExpressionLambda);
+            Debug.Assert(node.Type is { });
+
+            var rewrittenReceiver = VisitExpression(node.CollectionCreation);
+            Debug.Assert(rewrittenReceiver is { });
+
+            // Create a temp for the collection.
+            BoundAssignmentOperator assignmentToTemp;
+            BoundLocal temp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+            var elements = node.Elements;
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
+            sideEffects.Add(assignmentToTemp);
+
+            AddPlaceholderReplacement(node.Placeholder, temp);
+
+            foreach (var element in elements)
+            {
+                var rewrittenElement = element switch
+                {
+                    BoundCollectionLiteralDictionaryElement dictionaryElement => VisitExpression(dictionaryElement.SetValue),
+                    BoundCollectionLiteralSpreadElement spreadElement => MakeCollectionLiteralSpreadElement(spreadElement),
+                    _ => throw ExceptionUtilities.UnexpectedValue(element)
+                };
+                if (rewrittenElement != null)
+                {
+                    sideEffects.Add(rewrittenElement);
+                }
+            }
+
+            RemovePlaceholderReplacement(node.Placeholder);
+
+            return new BoundSequence(
+                node.Syntax,
+                ImmutableArray.Create(temp.LocalSymbol),
+                sideEffects.ToImmutableAndFree(),
+                temp,
+                node.Type);
+        }
+
+        private BoundExpression MakeCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement spreadElement)
+        {
+            var enumeratorInfo = spreadElement.EnumeratorInfoOpt;
+            var addElementPlaceholder = spreadElement.AddElementPlaceholder;
 
             Debug.Assert(enumeratorInfo is { });
             Debug.Assert(addElementPlaceholder is { });
             Debug.Assert(addElementPlaceholder.Type is { });
 
-            var syntax = (CSharpSyntaxNode)initializer.Syntax;
+            var syntax = (CSharpSyntaxNode)spreadElement.Syntax;
             var iterationVariable = _factory.SynthesizedLocal(addElementPlaceholder.Type, syntax);
-            var convertedExpression = (BoundConversion)initializer.Expression;
+            var convertedExpression = (BoundConversion)spreadElement.Expression;
 
             AddPlaceholderReplacement(addElementPlaceholder, _factory.Local(iterationVariable));
 
-            var rewrittenBody = VisitStatement(initializer.AddMethodInvocation);
+            var rewrittenBody = VisitStatement(spreadElement.AddOrSetElement);
             Debug.Assert(rewrittenBody is { });
 
             RemovePlaceholderReplacement(addElementPlaceholder);
 
-            var elementPlaceholder = initializer.ElementPlaceholder;
+            var elementPlaceholder = spreadElement.ElementPlaceholder; // PROTOTYPE: Why does elementPlaceholder need to be created here in the caller? Where is the replacement created?
             var iterationVariables = ImmutableArray.Create(iterationVariable);
             var breakLabel = new GeneratedLabelSymbol("break");
             var continueLabel = new GeneratedLabelSymbol("continue");
@@ -183,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (arrayType.IsSZArray)
                 {
                     statement = RewriteSingleDimensionalArrayForEachEnumerator(
-                        initializer,
+                        spreadElement,
                         convertedExpression.Operand,
                         elementPlaceholder,
                         elementConversion: null,
@@ -196,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     statement = RewriteMultiDimensionalArrayForEachEnumerator(
-                        initializer,
+                        spreadElement,
                         convertedExpression.Operand,
                         elementPlaceholder,
                         elementConversion: null,
@@ -210,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 statement = RewriteForEachEnumerator(
-                    initializer,
+                    spreadElement,
                     convertedExpression,
                     enumeratorInfo,
                     elementPlaceholder,

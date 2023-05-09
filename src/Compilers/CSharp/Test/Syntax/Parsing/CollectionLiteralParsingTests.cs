@@ -5184,4 +5184,136 @@ class C
         }
         EOF();
     }
+
+    [Fact]
+    public void KeyValuePair_01()
+    {
+        UsingExpression("[a:b, (c:d)]",
+            // (1,11): error CS8124: Tuple must contain at least two elements.
+            // [a:b, (c:d)]
+            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 11));
+
+        N(SyntaxKind.CollectionCreationExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.DictionaryElement);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            N(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.TupleExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NameColon);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "d");
+                        }
+                    }
+                    M(SyntaxKind.CommaToken);
+                    M(SyntaxKind.Argument);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void KeyValuePair_02()
+    {
+        UsingExpression("[() => k:v]");
+
+        N(SyntaxKind.CollectionCreationExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.DictionaryElement);
+            {
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "k");
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "v");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void KeyValuePair_03()
+    {
+        UsingExpression("[b ? e : k:v]");
+
+        N(SyntaxKind.CollectionCreationExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.DictionaryElement);
+            {
+                N(SyntaxKind.ConditionalExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "k");
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "v");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
 }

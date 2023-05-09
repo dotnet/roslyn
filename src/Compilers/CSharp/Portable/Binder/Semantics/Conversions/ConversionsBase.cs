@@ -1604,14 +1604,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return CollectionLiteralTypeKind.ReadOnlySpan;
             }
+            else if (isListInterface(compilation, destination, out elementType))
+            {
+                return CollectionLiteralTypeKind.ListInterface;
+            }
+            else if (isDictionaryOrInterface(compilation, destination))
+            {
+                return CollectionLiteralTypeKind.DictionaryOrInterface;
+            }
             else if (implementsIEnumerable(compilation, destination))
             {
                 elementType = null;
                 return CollectionLiteralTypeKind.CollectionInitializer;
-            }
-            else if (isListInterface(compilation, destination, out elementType))
-            {
-                return CollectionLiteralTypeKind.ListInterface;
             }
 
             elementType = null;
@@ -1665,7 +1669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Is the interface implemented by List<T>?
                         if (areEqual(listInterface.OriginalDefinition, definition) &&
                             // Is the implementation with type argument T?
-                            areEqual(listType.TypeParameters[0], listInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type))
+                            areTypeParametersAndTypeArgumentsEqual(listType.TypeParameters, listInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics))
                         {
                             elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
                             return true;
@@ -1674,6 +1678,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 elementType = null;
                 return false;
+            }
+
+            static bool isDictionaryOrInterface(CSharpCompilation compilation, TypeSymbol targetType)
+            {
+                if (targetType is NamedTypeSymbol { Arity: 2 } namedType)
+                {
+                    var definition = namedType.OriginalDefinition;
+                    var dictionaryType = compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV);
+                    switch (targetType.TypeKind)
+                    {
+                        case TypeKind.Class:
+                            if (areEqual(dictionaryType, definition))
+                            {
+                                return true;
+                            }
+                            break;
+                        case TypeKind.Interface:
+                            foreach (var dictionaryInterface in dictionaryType.AllInterfacesNoUseSiteDiagnostics)
+                            {
+                                // Is the interface implemented by Dictionary<TKey, TValue>?
+                                if (areEqual(dictionaryInterface.OriginalDefinition, definition) &&
+                                    // Is the implementation with type arguments TKey, TValue?
+                                    areTypeParametersAndTypeArgumentsEqual(dictionaryType.TypeParameters, dictionaryInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics))
+                                {
+                                    return true;
+                                }
+                            }
+                            break;
+                    }
+                }
+                return false;
+            }
+
+            static bool areTypeParametersAndTypeArgumentsEqual(ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeWithAnnotations> typeArguments)
+            {
+                if (typeParameters.Length != typeArguments.Length)
+                {
+                    return false;
+                }
+                for (int i = 0; i < typeParameters.Length; i++)
+                {
+                    if (!areEqual(typeParameters[i], typeArguments[i].Type))
+                    {
+                        return false;
+                    }
+                }
+                return true;
             }
 
             static bool areEqual(TypeSymbol a, TypeSymbol b)

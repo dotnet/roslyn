@@ -4577,10 +4577,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression bindDictionaryElement(DictionaryElementSyntax syntax, BindingDiagnosticBag diagnostics)
             {
-                _ = BindValue(syntax.KeyExpression, diagnostics, BindValueKind.RValue);
-                _ = BindValue(syntax.ValueExpression, diagnostics, BindValueKind.RValue);
-                Error(diagnostics, ErrorCode.ERR_CollectionLiteralElementNotImplemented, syntax);
-                return BadExpression(syntax);
+                var key = BindValue(syntax.KeyExpression, diagnostics, BindValueKind.RValue);
+                var value = BindValue(syntax.ValueExpression, diagnostics, BindValueKind.RValue);
+                return new BoundCollectionLiteralDictionaryElement(syntax, key, value, setValue: null);
             }
 
             BoundExpression bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics)
@@ -4597,7 +4596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         enumeratorInfoOpt: null,
                         elementPlaceholder: null,
                         addElementPlaceholder: null,
-                        addMethodInvocation: null,
+                        addOrSetElement: null,
                         type: CreateErrorType(),
                         hasErrors);
                 }
@@ -4616,7 +4615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     enumeratorInfo,
                     elementPlaceholder: elementPlaceholder,
                     addElementPlaceholder: null,
-                    addMethodInvocation: null,
+                    addOrSetElement: null,
                     type: enumeratorInfo.CollectionType,
                     hasErrors: false)
                 { WasCompilerGenerated = true };
@@ -5724,6 +5723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var enumeratorInfo = element.EnumeratorInfoOpt;
             if (enumeratorInfo is null)
             {
+                // PROTOTYPE: What is the case? Have we reported an error?
                 return element;
             }
 

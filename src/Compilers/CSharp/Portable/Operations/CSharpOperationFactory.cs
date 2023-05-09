@@ -1234,6 +1234,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 case CollectionLiteralTypeKind.ReadOnlySpan:
                     Debug.Assert(elementType is { });
                     return CreateBoundArrayOrSpanCollectionLiteralExpression(boundCollectionLiteralExpression);
+                case CollectionLiteralTypeKind.DictionaryOrInterface:
+                    return CreateBoundDictionaryCollectionLiteralExpression(boundCollectionLiteralExpression);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
             }
@@ -1343,6 +1345,16 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 return new InvalidOperation(ImmutableArray.Create<IOperation>(initializer), _semanticModel, syntax, collectionType, constantValue: null, isImplicit);
             }
+        }
+
+        private IOperation CreateBoundDictionaryCollectionLiteralExpression(BoundCollectionLiteralExpression boundCollectionLiteralExpression)
+        {
+            SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
+            ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
+            Debug.Assert(collectionType is { });
+            bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
+            // PROTOTYPE: Handle dictionaries.
+            return new InvalidOperation(ImmutableArray<IOperation>.Empty, _semanticModel, syntax, collectionType, constantValue: null, isImplicit);
         }
 
         private IOperation CreateBoundUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression boundCollectionLiteralExpression)

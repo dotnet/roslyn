@@ -3988,6 +3988,20 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type
+
+                // System_Collections_Generic_KeyValuePair_KV__get_Key
+                (byte)MemberFlags.PropertyGet,                                                            // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_KeyValuePair_KV - WellKnownType.ExtSentinel),            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type
+
+                // System_Collections_Generic_KeyValuePair_KV__get_Value
+                (byte)MemberFlags.PropertyGet,                                                            // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_KeyValuePair_KV - WellKnownType.ExtSentinel),            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeParameter, 1, // Return Type
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -4484,6 +4498,8 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_MissingMethodException__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute
                 "ToArray",                                  // System_Collections_Generic_List_T__ToArray
+                "get_Key",                                  // System_Collections_Generic_KeyValuePair_KV__get_Key
+                "get_Value",                                // System_Collections_Generic_KeyValuePair_KV__get_Value
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

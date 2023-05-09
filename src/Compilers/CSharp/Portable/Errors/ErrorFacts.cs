@@ -2313,7 +2313,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny:
                 case ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible:
                 case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
-                case ErrorCode.ERR_CollectionLiteralElementNotImplemented:
+                case ErrorCode.ERR_CollectionLiteralKeyValueOrSpreadExpected:
+                case ErrorCode.ERR_CollectionLiteralDictionarySpreadUnexpectedType:
+                case ErrorCode.ERR_CollectionLiteralDictionaryTargetExpected:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

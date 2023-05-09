@@ -442,6 +442,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case CollectionLiteralTypeKind.ListInterface:
                     collectionLiteral = BindListInterfaceCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, elementType!, diagnostics);
                     break;
+                case CollectionLiteralTypeKind.DictionaryOrInterface:
+                    collectionLiteral = BindDictionaryCollectionLiteral(node, (NamedTypeSymbol)targetType, wasCompilerGenerated: wasCompilerGenerated, diagnostics);
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
             }
@@ -495,7 +498,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
             foreach (var element in elements)
             {
-                builder.Add(convertArrayElement(element, elementType, diagnostics));
+                var result = element switch
+                {
+                    BoundCollectionLiteralSpreadElement spreadElement => throw ExceptionUtilities.UnexpectedValue(spreadElement),
+                    BoundCollectionLiteralDictionaryElement => ReportUnexpectedDictionaryElement(element.Syntax, diagnostics),
+                    _ => convertArrayElement(element, elementType, diagnostics),
+                };
+                builder.Add(result);
             }
             return new BoundCollectionLiteralExpression(
                 syntax,
@@ -530,6 +539,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result.WasCompilerGenerated = true;
                 return result;
             }
+        }
+
+        private BoundExpression ReportUnexpectedDictionaryElement(SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        {
+            diagnostics.Add(ErrorCode.ERR_CollectionLiteralDictionaryTargetExpected, syntax);
+            return BadExpression(syntax);
         }
 
         private BoundCollectionLiteralExpression BindCollectionInitializerCollectionLiteral(
@@ -580,6 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             collectionInitializerAddMethodBinder,
                             implicitReceiver,
                             diagnostics),
+                    BoundCollectionLiteralDictionaryElement => ReportUnexpectedDictionaryElement(element.Syntax, diagnostics),
                     _ => BindCollectionInitializerElementAddMethod(
                         (ExpressionSyntax)element.Syntax,
                         ImmutableArray.Create(element),
@@ -615,6 +631,230 @@ namespace Microsoft.CodeAnalysis.CSharp
                 wasCompilerGenerated: wasCompilerGenerated,
                 diagnostics);
             return result.Update(result.Placeholder, result.CollectionCreation, result.Elements, targetType);
+        }
+
+        private BoundCollectionLiteralExpression BindDictionaryCollectionLiteral(
+            BoundUnconvertedCollectionLiteralExpression node,
+            NamedTypeSymbol targetType,
+            bool wasCompilerGenerated,
+            BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(targetType.IsInterface
+                || targetType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV), TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(targetType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length == 2);
+
+            var syntax = node.Syntax;
+            var collectionType = targetType.IsInterface
+                ? GetWellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV, diagnostics, syntax).Construct(targetType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
+                : targetType;
+
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+            // PROTOTYPE: Should we use Dictionary<TKey, TValue>(int capacity) constructor when the size is known?
+            var collectionCreation = BindClassCreationExpression(syntax, collectionType.Name, syntax, collectionType, analyzedArguments, diagnostics);
+            collectionCreation.WasCompilerGenerated = true;
+            analyzedArguments.Free();
+
+            ImmutableArray<BoundExpression> elements;
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, collectionType) { WasCompilerGenerated = true };
+
+            if (node.Elements.Length == 0)
+            {
+                elements = ImmutableArray<BoundExpression>.Empty;
+            }
+            else
+            {
+                // PROTOTYPE: Test with missing indexer, multiple indexers, readonly indexer, etc.
+                var lookupResult = LookupResult.GetInstance();
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                // PROTOTYPE: Should we use the well-known Dictionary<TKey, TValue>.this[TKey] { get; set; }
+                // member rather than relying on lookup?
+                LookupMembersWithFallback(lookupResult, collectionType, WellKnownMemberNames.Indexer, arity: 0, useSiteInfo: ref useSiteInfo);
+                diagnostics.Add(syntax, useSiteInfo);
+                var indexer = lookupResult.SingleSymbolOrDefault as PropertySymbol;
+                Debug.Assert(indexer is { }); // PROTOTYPE: Handle ...
+                lookupResult.Free();
+
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(node.Elements.Length);
+                foreach (var element in node.Elements)
+                {
+                    var result = element switch
+                    {
+                        BoundBadExpression => element,
+                        BoundCollectionLiteralSpreadElement spreadElement => convertSpreadElement(syntax, spreadElement, implicitReceiver, indexer, targetType, diagnostics),
+                        BoundCollectionLiteralDictionaryElement dictionaryElement => convertDictionaryElement(dictionaryElement, implicitReceiver, indexer, targetType, diagnostics),
+                        _ => convertUnexpectedElement(element, diagnostics),
+                    }; ;
+                    result.WasCompilerGenerated = true;
+                    builder.Add(result);
+                }
+                elements = builder.ToImmutableAndFree();
+            }
+
+            return new BoundCollectionLiteralExpression(
+                syntax,
+                implicitReceiver,
+                collectionCreation,
+                elements,
+                targetType)
+            { WasCompilerGenerated = wasCompilerGenerated };
+
+            BoundExpression convertUnexpectedElement(BoundExpression element, BindingDiagnosticBag diagnostics)
+            {
+                diagnostics.Add(ErrorCode.ERR_CollectionLiteralKeyValueOrSpreadExpected, element.Syntax);
+                return BindToNaturalType(element, diagnostics, reportNoTargetType: false);
+            }
+
+            BoundExpression convertDictionaryElement(
+                BoundCollectionLiteralDictionaryElement dictionaryElement,
+                BoundObjectOrCollectionValuePlaceholder receiver,
+                PropertySymbol indexer,
+                NamedTypeSymbol targetType,
+                BindingDiagnosticBag diagnostics)
+            {
+                var typeArgs = targetType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                Debug.Assert(typeArgs.Length == 2);
+
+                var key = convertExpression(dictionaryElement.Key, typeArgs[0].Type, diagnostics);
+                var value = convertExpression(dictionaryElement.Value, typeArgs[1].Type, diagnostics);
+
+                return dictionaryElement.Update(
+                    key,
+                    value,
+                    setValue(dictionaryElement.Syntax, receiver, indexer, key, value));
+            }
+
+            BoundExpression convertSpreadElement(
+                SyntaxNode syntax,
+                BoundCollectionLiteralSpreadElement element,
+                BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+                PropertySymbol indexer,
+                NamedTypeSymbol targetType,
+                BindingDiagnosticBag diagnostics)
+            {
+                var typeArgs = targetType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                Debug.Assert(typeArgs.Length == 2);
+
+                var enumeratorInfo = element.EnumeratorInfoOpt;
+                if (enumeratorInfo is null)
+                {
+                    // PROTOTYPE: What is the case? Have we reported an error?
+                    return element;
+                }
+
+                Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
+
+                if (!enumeratorInfo.ElementType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV), TypeCompareKind.AllIgnoreOptions))
+                {
+                    diagnostics.Add(ErrorCode.ERR_CollectionLiteralDictionarySpreadUnexpectedType, syntax);
+                    return BadExpression(syntax);
+                }
+
+                var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
+
+                var key = convertExpression(
+                    getPropertyValue(syntax, addElementPlaceholder, WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics),
+                    typeArgs[0].Type,
+                    diagnostics);
+                var value = convertExpression(
+                    getPropertyValue(syntax, addElementPlaceholder, WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics),
+                    typeArgs[1].Type,
+                    diagnostics);
+
+                var statement = new BoundExpressionStatement(
+                    syntax,
+                    setValue(syntax, implicitReceiver, indexer, key, value))
+                { WasCompilerGenerated = true };
+
+                return element.Update(
+                    element.Expression,
+                    enumeratorInfo,
+                    element.ElementPlaceholder,
+                    addElementPlaceholder,
+                    addOrSetElement: statement,
+                    element.Type);
+            }
+
+            BoundExpression convertExpression(BoundExpression expr, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
+            {
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var conversion = Conversions.ClassifyImplicitConversionFromExpression(expr, targetType, ref useSiteInfo);
+                diagnostics.Add(expr.Syntax, useSiteInfo);
+                bool hasErrors = !conversion.IsValid;
+                if (hasErrors)
+                {
+                    GenerateImplicitConversionError(diagnostics, expr.Syntax, conversion, expr, targetType);
+                    // Suppress any additional diagnostics
+                    diagnostics = BindingDiagnosticBag.Discarded;
+                }
+                var result = CreateConversion(
+                    expr.Syntax,
+                    expr,
+                    conversion,
+                    isCast: false,
+                    conversionGroupOpt: null,
+                    wasCompilerGenerated: true,
+                    destination: targetType,
+                    diagnostics,
+                    hasErrors: hasErrors);
+                result.WasCompilerGenerated = true;
+                return result;
+            }
+
+            BoundExpression getPropertyValue(SyntaxNode syntax, BoundExpression receiver, WellKnownMember getMember, BindingDiagnosticBag diagnostics)
+            {
+                Debug.Assert(receiver.Type is { });
+                Debug.Assert(receiver.Type.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV), TypeCompareKind.AllIgnoreOptions));
+
+                var method = (MethodSymbol)GetWellKnownTypeMember(getMember, diagnostics, syntax: syntax);
+                if (method is null)
+                {
+                    // PROTOTYPE: Test missing property.
+                    return BadExpression(syntax, childNode: receiver);
+                }
+
+                method = method.AsMember((NamedTypeSymbol)receiver.Type);
+                return new BoundCall(
+                    syntax,
+                    receiver,
+                    method,
+                    arguments: ImmutableArray<BoundExpression>.Empty,
+                    argumentNamesOpt: default,
+                    argumentRefKindsOpt: default,
+                    isDelegateCall: false,
+                    expanded: false,
+                    invokedAsExtensionMethod: false,
+                    argsToParamsOpt: default,
+                    defaultArguments: default,
+                    resultKind: LookupResultKind.Viable,
+                    type: method.ReturnType)
+                { WasCompilerGenerated = true };
+            }
+
+            static BoundExpression setValue(
+                SyntaxNode syntax,
+                BoundObjectOrCollectionValuePlaceholder receiver,
+                PropertySymbol indexer,
+                BoundExpression key,
+                BoundExpression value)
+            {
+                var indexerAccess = new BoundIndexerAccess(
+                    syntax,
+                    receiver,
+                    indexer,
+                    ImmutableArray.Create(key),
+                    argumentNamesOpt: default,
+                    argumentRefKindsOpt: default,
+                    expanded: false,
+                    argsToParamsOpt: default,
+                    defaultArguments: default,
+                    type: indexer.Type);
+                return new BoundAssignmentOperator(
+                    syntax,
+                    left: indexerAccess,
+                    right: value,
+                    type: indexer.Type)
+                { WasCompilerGenerated = true };
+            }
         }
 
         /// <summary>

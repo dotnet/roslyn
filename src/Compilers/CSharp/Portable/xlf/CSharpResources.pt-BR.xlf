@@ -392,9 +392,19 @@
         <target state="translated">'{0}' não implementa o membro de interface '{1}'. '{2}' não pode implementar '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CollectionLiteralElementNotImplemented">
-        <source>Support for collection literal dictionary and spread elements has not been implemented.</source>
-        <target state="new">Support for collection literal dictionary and spread elements has not been implemented.</target>
+      <trans-unit id="ERR_CollectionLiteralDictionarySpreadUnexpectedType">
+        <source>A dictionary collection literal spread must be a collection of 'System.Collections.Generic.KeyValuePair&lt;,&gt;'.</source>
+        <target state="new">A dictionary collection literal spread must be a collection of 'System.Collections.Generic.KeyValuePair&lt;,&gt;'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralDictionaryTargetExpected">
+        <source>A dictionary element can only be used in a dictionary collection literal.</source>
+        <target state="new">A dictionary element can only be used in a dictionary collection literal.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralKeyValueOrSpreadExpected">
+        <source>A dictionary collection literal can contain key-value pairs and spread elements only.</source>
+        <target state="new">A dictionary collection literal can contain key-value pairs and spread elements only.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
