@@ -1099,7 +1099,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public interface IA { }
                     public interface IB<T> { }
                     public interface IC<T> { }
-                    public class List<T> : IEnumerable, IA, IB<T>, IC<object>
+                    public interface ID<T1, T2> { }
+                    public class List<T> : IEnumerable, IA, IB<T>, IC<object>, ID<T, object>
                     {
                         public void Add(T t) { }
                     }
@@ -1115,6 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         IA a = [2];
                         IB<object> b = [3];
                         IC<object> c = [4];
+                        ID<object, object> d = [5];
                     }
                 }
                 """;
@@ -1127,7 +1129,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("System.Collections.Generic.IA").WithLocation(7, 16),
                 // 1.cs(9,24): error CS9500: Cannot initialize type 'IC<object>' with a collection literal because the type is not constructible.
                 //         IC<object> c = [4];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[4]").WithArguments("System.Collections.Generic.IC<object>").WithLocation(9, 24));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[4]").WithArguments("System.Collections.Generic.IC<object>").WithLocation(9, 24),
+                // 1.cs(10,32): error CS9500: Cannot initialize type 'ID<object, object>' with a collection literal because the type is not constructible.
+                //         ID<object, object> d = [5];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[5]").WithArguments("System.Collections.Generic.ID<object, object>").WithLocation(10, 32));
         }
 
         [Fact]
@@ -1180,6 +1185,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // 1.cs(8,29): error CS9500: Cannot initialize type 'IEquatable<int>' with a collection literal because the type is not constructible.
                 //         IEquatable<int> e = [2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("System.IEquatable<int>").WithLocation(8, 29));
+        }
+
+        [Fact]
+        public void ListInterfaces_NoInterfaces()
+        {
+            string sourceA = """
+                namespace System
+                {
+                    public class Object { }
+                    public abstract class ValueType { }
+                    public class String { }
+                    public class Type { }
+                    public struct Void { }
+                    public struct Boolean { }
+                    public struct Int32 { }
+                }
+                namespace System.Collections.Generic
+                {
+                    public interface IEnumerable<T> { }
+                    public class List<T>
+                    {
+                        public void Add(T t) { }
+                    }
+                }
+                """;
+            string sourceB = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        List<int> l = [1];
+                        IEnumerable<int> e = [2];
+                    }
+                }
+                """;
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // 1.cs(7,23): error CS9500: Cannot initialize type 'List<int>' with a collection literal because the type is not constructible.
+                //         List<int> l = [1];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1]").WithArguments("System.Collections.Generic.List<int>").WithLocation(7, 23),
+                // 1.cs(8,30): error CS9500: Cannot initialize type 'IEnumerable<int>' with a collection literal because the type is not constructible.
+                //         IEnumerable<int> e = [2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(8, 30));
         }
 
         [Fact]

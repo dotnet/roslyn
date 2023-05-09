@@ -1620,7 +1620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool isSpanType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
             {
                 if (targetType is NamedTypeSymbol { Arity: 1 } namedType
-                    && TypeSymbol.Equals(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType), TypeCompareKind.AllIgnoreOptions))
+                    && areEqual(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
                 {
                     elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
                     return true;
@@ -1651,7 +1651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE: Perhaps adjust the behavior of Binder.CollectionInitializerTypeImplementsIEnumerable()
                 // and use that method instead.
                 var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
-                return allInterfaces.Any(static (a, b) => a.Equals(b, TypeCompareKind.AllIgnoreOptions), ienumerableType);
+                return allInterfaces.Any(static (a, b) => areEqual(a, b), ienumerableType);
             }
 
             static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)
@@ -1663,9 +1663,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var listInterface in listType.AllInterfacesNoUseSiteDiagnostics)
                     {
                         // Is the interface implemented by List<T>?
-                        if (listInterface.OriginalDefinition.Equals(definition, TypeCompareKind.AllIgnoreOptions) &&
+                        if (areEqual(listInterface.OriginalDefinition, definition) &&
                             // Is the implementation with type argument T?
-                            listType.TypeParameters[0].Equals(listInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type, TypeCompareKind.AllIgnoreOptions))
+                            areEqual(listType.TypeParameters[0], listInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type))
                         {
                             elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
                             return true;
@@ -1674,6 +1674,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 elementType = null;
                 return false;
+            }
+
+            static bool areEqual(TypeSymbol a, TypeSymbol b)
+            {
+                return a.Equals(b, TypeCompareKind.AllIgnoreOptions);
             }
         }
 #nullable disable
