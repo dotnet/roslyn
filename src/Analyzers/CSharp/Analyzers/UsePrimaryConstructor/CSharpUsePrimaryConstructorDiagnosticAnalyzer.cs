@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 {
                     return _primaryConstructorDeclaration switch
                     {
-                        { ExpressionBody.Expression: AssignmentExpressionSyntax assignmentExpression } => IsAssignmentToInstanceMember(assignmentExpression),
+                        { ExpressionBody.Expression: AssignmentExpressionSyntax assignmentExpression } => IsAssignmentToInstanceMember(assignmentExpression, out _),
                         { Body: { } body } => AnalyzeBlockBody(body),
                         _ => false,
                     };
@@ -222,20 +223,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     if (!block.Statements.All(static s => s is ExpressionStatementSyntax { Expression: AssignmentExpressionSyntax }))
                         return false;
 
+                    using var _ = PooledHashSet<ISymbol>.GetInstance(out var assignedMembers);
+
                     foreach (var statement in block.Statements)
                     {
                         if (statement is not ExpressionStatementSyntax { Expression: AssignmentExpressionSyntax assignmentExpression } ||
-                            !IsAssignmentToInstanceMember(assignmentExpression))
+                            !IsAssignmentToInstanceMember(assignmentExpression, out var member))
                         {
                             return false;
                         }
+
+                        // Only allow a single write to the same member
+                        if (!assignedMembers.Add(member))
+                            return false;
                     }
 
                     return true;
                 }
 
-                bool IsAssignmentToInstanceMember(AssignmentExpressionSyntax assignmentExpression)
+                bool IsAssignmentToInstanceMember(
+                    AssignmentExpressionSyntax assignmentExpression, [NotNullWhen(true)] out ISymbol? member)
                 {
+                    member = null;
+
                     // has to be of the form:
                     //
                     // x = ...      // or
@@ -255,14 +265,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                         return false;
 
                     // Has to bind to a field/prop on this type.
-                    var leftSymbol = semanticModel.GetSymbolInfo(leftIdentifier, cancellationToken).GetAnySymbol();
-                    if (leftSymbol is not IFieldSymbol and not IPropertySymbol)
+                    member = semanticModel.GetSymbolInfo(leftIdentifier, cancellationToken).GetAnySymbol()?.OriginalDefinition;
+                    if (member is not IFieldSymbol and not IPropertySymbol)
                         return false;
 
-                    if (leftSymbol.IsStatic)
+                    if (member.IsStatic)
                         return false;
 
-                    if (!_namedType.Equals(leftSymbol.ContainingType))
+                    if (!_namedType.Equals(member.ContainingType))
                         return false;
 
                     // Left side looks good.  Now check the right side.  It cannot reference 'this' (as that is not
@@ -277,10 +287,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     // Looks good, both the left and right sides are legal.
 
                     // If we have an assignment of the form `private_member = param`, then that member can be a candidate for removal.
-                    if (leftSymbol.DeclaredAccessibility == Accessibility.Private &&
+                    if (member.DeclaredAccessibility == Accessibility.Private &&
                         semanticModel.GetSymbolInfo(assignmentExpression.Right, cancellationToken).GetAnySymbol() is IParameterSymbol parameter)
                     {
-                        _candidateMembersToRemove[leftSymbol.OriginalDefinition] = parameter;
+                        _candidateMembersToRemove[member] = parameter;
                     }
 
                     return true;

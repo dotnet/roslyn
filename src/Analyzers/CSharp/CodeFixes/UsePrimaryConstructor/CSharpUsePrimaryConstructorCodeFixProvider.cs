@@ -83,6 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 {
                     var currentTypeDeclaration = (TypeDeclarationSyntax)current;
 
+                    // Move the whitespace that is current after the name (or type args) to after the parameter list.
+
                     var typeParameterList = currentTypeDeclaration.TypeParameterList;
                     var triviaAfterName = typeParameterList != null
                         ? typeParameterList.GetTrailingTrivia()
@@ -91,7 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     return currentTypeDeclaration
                         .WithIdentifier(typeParameterList != null ? currentTypeDeclaration.Identifier : currentTypeDeclaration.Identifier.WithoutTrailingTrivia())
                         .WithTypeParameterList(typeParameterList?.WithoutTrailingTrivia())
-                        .WithParameterList(constructorDeclaration.ParameterList.WithTrailingTrivia(triviaAfterName));
+                        .WithParameterList(constructorDeclaration.ParameterList
+                            .WithoutLeadingTrivia()
+                            .WithTrailingTrivia(triviaAfterName));
                 });
 
             // TODO: reconcile doc comments.
