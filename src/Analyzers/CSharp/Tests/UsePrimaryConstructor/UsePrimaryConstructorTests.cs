@@ -405,4 +405,57 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestWithComplexRightSide1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int i;
+
+                    public [|C|](int i)
+                        => this.i = i * 2;
+                }
+                """,
+            FixedCode = """
+                class C(int i)
+                {
+                    private int i = i * 2;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestBlockWithMultipleAssignments1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int i;
+                    public int j;
+
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                    public int i = i;
+                    public int j = j;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }
