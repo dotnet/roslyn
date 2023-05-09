@@ -44,6 +44,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
         }
 
         session.Start();
+        session.RegisterForReliabilityEvent();
 
         _telemetrySession = session;
     }
