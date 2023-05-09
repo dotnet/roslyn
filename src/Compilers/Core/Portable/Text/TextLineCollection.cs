@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -62,6 +63,11 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int GetPosition(LinePosition position)
         {
+            if (position.Line >= this.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(position.Line), string.Format(CodeAnalysisResources.LineCannotBeGreaterThanEnd, position.Line, this.Count));
+            }
+
             return this[position.Line].Start + position.Character;
         }
 

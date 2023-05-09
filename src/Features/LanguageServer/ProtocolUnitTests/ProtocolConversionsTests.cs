@@ -65,24 +65,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         }
 
         [Fact]
-        public void RangeToTextSpanEndOfDocumentExclusive()
-        {
-            var markup = GetTestMarkup();
-            var sourceText = SourceText.From(markup);
-
-            // LSP documentation on range indicates:
-            // "End position is exclusive.If you want to specify a range that contains a line including the
-            // line ending character(s) then use an end position denoting the start of the next line."
-            //
-            // Specifying one line past the end of the document is an allowed range. 
-            var range = new Range() { Start = new Position(0, 0), End = new Position(sourceText.Lines.Count, 0) };
-            var textSpan = ProtocolConversions.RangeToTextSpan(range, sourceText);
-
-            Assert.Equal(0, textSpan.Start);
-            Assert.Equal(30, textSpan.End);
-        }
-
-        [Fact]
         public void RangeToTextSpanLineEndOfDocumentWithEndOfLineChars()
         {
             var markup =
@@ -103,24 +85,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         }
 
         [Fact]
-        public void RangeToTextSpanEndOfDocumentCharacterError()
+        public void RangeToTextSpanLineOutOfRangeError()
         {
             var markup = GetTestMarkup();
             var sourceText = SourceText.From(markup);
 
-            // Ensure that requesting a character on the line that doesn't exist throws an error
-            var range = new Range() { Start = new Position(0, 0), End = new Position(4, 1) };
+            var range = new Range() { Start = new Position(0, 0), End = new Position(sourceText.Lines.Count, 0) };
             Assert.Throws<ArgumentException>(() => ProtocolConversions.RangeToTextSpan(range, sourceText));
         }
 
         [Fact]
-        public void RangeToTextSpanEndOfDocumentStartError()
+        public void RangeToTextSpanEndAfterStartError()
         {
             var markup = GetTestMarkup();
             var sourceText = SourceText.From(markup);
 
-            // Start position beyond the end of the document is not valid
-            var range = new Range() { Start = new Position(sourceText.Lines.Count, 0), End = new Position(sourceText.Lines.Count, 0) };
+            // This start position will be beyond the end position
+            var range = new Range() { Start = new Position(2, 20), End = new Position(3, 0) };
             Assert.Throws<ArgumentException>(() => ProtocolConversions.RangeToTextSpan(range, sourceText));
         }
 

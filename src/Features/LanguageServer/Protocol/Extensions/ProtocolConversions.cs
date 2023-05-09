@@ -198,39 +198,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
         {
+            var linePositionSpan = new LinePositionSpan(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
+
             try
             {
                 try
                 {
-                    LinePositionSpan linePositionSpan;
-
-                    // Per LSP spec, LSP.Range end position is exclusive. If you want to specify a range that 
-                    // includes the line ending characters then use an end position denoting the start of the next line.
-                    //
-                    // The TextLines will throw a ArgumentException if asked for the line after the last line,
-                    // despite the call being valid call per the LSP spec. If the end of the input range is one
-                    // beyond the end of the file, edit the end character position of the last line in the file.
-                    if (text.Lines.Count == range.End.Line && range.End.Character == 0)
-                    {
-                        var indexOfLastLine = text.Lines.Count - 1;
-                        var lastLineOfText = text.Lines[indexOfLastLine];
-                        // Number of characters in the line (inclusive of line ending characters) are the start to the end of line break
-                        var endLineCharacterPosition = lastLineOfText.EndIncludingLineBreak - lastLineOfText.Start;
-
-                        var newEndLinePosition = new LinePosition(indexOfLastLine, endLineCharacterPosition);
-                        linePositionSpan = new LinePositionSpan(PositionToLinePosition(range.Start), newEndLinePosition);
-                    }
-                    else
-                    {
-                        linePositionSpan = new LinePositionSpan(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
-                    }
-
                     return text.Lines.GetTextSpan(linePositionSpan);
                 }
-                catch (ArgumentException)
+                catch (ArgumentException ex)
                 {
                     // Create a custom error for this so we can examine the data we're getting.
-                    throw new ArgumentException($"Range={RangeToString(range)}. text.Length={text.Length}. text.Lines.Count={text.Lines.Count}");
+                    throw new ArgumentException($"Range={RangeToString(range)}. text.Length={text.Length}. text.Lines.Count={text.Lines.Count}", ex);
                 }
             }
             // Temporary exception reporting to investigate https://github.com/dotnet/roslyn/issues/66258.
