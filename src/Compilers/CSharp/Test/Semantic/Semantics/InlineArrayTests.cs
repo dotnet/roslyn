@@ -1268,8 +1268,15 @@ class Program
         System.Console.Write(M1(x).Result);
     }
 
-    static async Task<int> M1(C x) => x.F[await Task.FromResult(0)];
-    static async Task M2(C x) => x.F[await Task.FromResult(0)] = 111;
+    static async Task<int> M1(C x) => x.F[await FromResult(0)];
+    static async Task M2(C x) => x.F[await FromResult(0)] = 111;
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
@@ -1298,7 +1305,7 @@ class Program
     IL_000c:  ldfld      ""C Program.<M1>d__1.x""
     IL_0011:  stfld      ""C Program.<M1>d__1.<>7__wrap1""
     IL_0016:  ldc.i4.0
-    IL_0017:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0017:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
     IL_001c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0021:  stloc.3
     IL_0022:  ldloca.s   V_3
@@ -1390,7 +1397,7 @@ class Program
     IL_000c:  ldfld      ""C Program.<M2>d__2.x""
     IL_0011:  stfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_0016:  ldc.i4.0
-    IL_0017:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0017:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
     IL_001c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0021:  stloc.2
     IL_0022:  ldloca.s   V_2
@@ -1485,8 +1492,15 @@ class Program
         System.Console.Write(M1(x).Result);
     }
 
-    static async Task<int> M1(C x) => x.F[await Task.FromResult(^10)];
-    static async Task M2(C x) => x.F[await Task.FromResult(^10)] = 111;
+    static async Task<int> M1(C x) => x.F[await FromResult(^10)];
+    static async Task M2(C x) => x.F[await FromResult(^10)] = 111;
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
@@ -1517,7 +1531,7 @@ class Program
     IL_0016:  ldc.i4.s   10
     IL_0018:  ldc.i4.1
     IL_0019:  newobj     ""System.Index..ctor(int, bool)""
-    IL_001e:  call       ""System.Threading.Tasks.Task<System.Index> System.Threading.Tasks.Task.FromResult<System.Index>(System.Index)""
+    IL_001e:  call       ""System.Threading.Tasks.Task<System.Index> Program.FromResult<System.Index>(System.Index)""
     IL_0023:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<System.Index> System.Threading.Tasks.Task<System.Index>.GetAwaiter()""
     IL_0028:  stloc.3
     IL_0029:  ldloca.s   V_3
@@ -1613,7 +1627,7 @@ class Program
     IL_0016:  ldc.i4.s   10
     IL_0018:  ldc.i4.1
     IL_0019:  newobj     ""System.Index..ctor(int, bool)""
-    IL_001e:  call       ""System.Threading.Tasks.Task<System.Index> System.Threading.Tasks.Task.FromResult<System.Index>(System.Index)""
+    IL_001e:  call       ""System.Threading.Tasks.Task<System.Index> Program.FromResult<System.Index>(System.Index)""
     IL_0023:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<System.Index> System.Threading.Tasks.Task<System.Index>.GetAwaiter()""
     IL_0028:  stloc.2
     IL_0029:  ldloca.s   V_2
@@ -1710,8 +1724,15 @@ class Program
         System.Console.Write(M1(x).Result);
     }
 
-    static async Task<int> M1(C x) => x.F[await Task.FromResult(^10)];
-    static async Task M2(C x) => x.F[^await Task.FromResult(10)] = 111;
+    static async Task<int> M1(C x) => x.F[^await FromResult(10)];
+    static async Task M2(C x) => x.F[^await FromResult(10)] = 111;
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
@@ -1720,12 +1741,12 @@ class Program
             verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
-  // Code size      204 (0xcc)
+  // Code size      193 (0xc1)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
-                System.Index V_2,
-                System.Runtime.CompilerServices.TaskAwaiter<System.Index> V_3,
+                int V_2,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
                 System.Span<int> V_4,
                 System.Exception V_5)
   IL_0000:  ldarg.0
@@ -1734,83 +1755,81 @@ class Program
   .try
   {
     IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_0052
+    IL_0008:  brfalse.s  IL_004c
     IL_000a:  ldarg.0
     IL_000b:  ldarg.0
     IL_000c:  ldfld      ""C Program.<M1>d__1.x""
     IL_0011:  stfld      ""C Program.<M1>d__1.<>7__wrap1""
     IL_0016:  ldc.i4.s   10
-    IL_0018:  ldc.i4.1
-    IL_0019:  newobj     ""System.Index..ctor(int, bool)""
-    IL_001e:  call       ""System.Threading.Tasks.Task<System.Index> System.Threading.Tasks.Task.FromResult<System.Index>(System.Index)""
-    IL_0023:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<System.Index> System.Threading.Tasks.Task<System.Index>.GetAwaiter()""
-    IL_0028:  stloc.3
-    IL_0029:  ldloca.s   V_3
-    IL_002b:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<System.Index>.IsCompleted.get""
-    IL_0030:  brtrue.s   IL_006e
-    IL_0032:  ldarg.0
-    IL_0033:  ldc.i4.0
-    IL_0034:  dup
-    IL_0035:  stloc.0
-    IL_0036:  stfld      ""int Program.<M1>d__1.<>1__state""
-    IL_003b:  ldarg.0
-    IL_003c:  ldloc.3
-    IL_003d:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<System.Index> Program.<M1>d__1.<>u__1""
-    IL_0042:  ldarg.0
-    IL_0043:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
-    IL_0048:  ldloca.s   V_3
-    IL_004a:  ldarg.0
-    IL_004b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<System.Index>, Program.<M1>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<System.Index>, ref Program.<M1>d__1)""
-    IL_0050:  leave.s    IL_00cb
-    IL_0052:  ldarg.0
-    IL_0053:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<System.Index> Program.<M1>d__1.<>u__1""
-    IL_0058:  stloc.3
-    IL_0059:  ldarg.0
-    IL_005a:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<System.Index> Program.<M1>d__1.<>u__1""
-    IL_005f:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<System.Index>""
-    IL_0065:  ldarg.0
-    IL_0066:  ldc.i4.m1
-    IL_0067:  dup
-    IL_0068:  stloc.0
-    IL_0069:  stfld      ""int Program.<M1>d__1.<>1__state""
-    IL_006e:  ldloca.s   V_3
-    IL_0070:  call       ""System.Index System.Runtime.CompilerServices.TaskAwaiter<System.Index>.GetResult()""
-    IL_0075:  stloc.2
-    IL_0076:  ldarg.0
-    IL_0077:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
-    IL_007c:  ldflda     ""Buffer10<int> C.F""
-    IL_0081:  ldc.i4.s   10
-    IL_0083:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-    IL_0088:  stloc.s    V_4
-    IL_008a:  ldloca.s   V_4
-    IL_008c:  ldloca.s   V_2
-    IL_008e:  ldc.i4.s   10
-    IL_0090:  call       ""int System.Index.GetOffset(int)""
-    IL_0095:  call       ""ref int System.Span<int>.this[int].get""
-    IL_009a:  ldind.i4
-    IL_009b:  stloc.1
-    IL_009c:  leave.s    IL_00b7
+    IL_0018:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
+    IL_001d:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0022:  stloc.3
+    IL_0023:  ldloca.s   V_3
+    IL_0025:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_002a:  brtrue.s   IL_0068
+    IL_002c:  ldarg.0
+    IL_002d:  ldc.i4.0
+    IL_002e:  dup
+    IL_002f:  stloc.0
+    IL_0030:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_0035:  ldarg.0
+    IL_0036:  ldloc.3
+    IL_0037:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_003c:  ldarg.0
+    IL_003d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+    IL_0042:  ldloca.s   V_3
+    IL_0044:  ldarg.0
+    IL_0045:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<M1>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<M1>d__1)""
+    IL_004a:  leave.s    IL_00c0
+    IL_004c:  ldarg.0
+    IL_004d:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_0052:  stloc.3
+    IL_0053:  ldarg.0
+    IL_0054:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_0059:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_005f:  ldarg.0
+    IL_0060:  ldc.i4.m1
+    IL_0061:  dup
+    IL_0062:  stloc.0
+    IL_0063:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_0068:  ldloca.s   V_3
+    IL_006a:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_006f:  stloc.2
+    IL_0070:  ldarg.0
+    IL_0071:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
+    IL_0076:  ldflda     ""Buffer10<int> C.F""
+    IL_007b:  ldc.i4.s   10
+    IL_007d:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_0082:  stloc.s    V_4
+    IL_0084:  ldloca.s   V_4
+    IL_0086:  ldc.i4.s   10
+    IL_0088:  ldloc.2
+    IL_0089:  sub
+    IL_008a:  call       ""ref int System.Span<int>.this[int].get""
+    IL_008f:  ldind.i4
+    IL_0090:  stloc.1
+    IL_0091:  leave.s    IL_00ac
   }
   catch System.Exception
   {
-    IL_009e:  stloc.s    V_5
-    IL_00a0:  ldarg.0
-    IL_00a1:  ldc.i4.s   -2
-    IL_00a3:  stfld      ""int Program.<M1>d__1.<>1__state""
-    IL_00a8:  ldarg.0
-    IL_00a9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
-    IL_00ae:  ldloc.s    V_5
-    IL_00b0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_00b5:  leave.s    IL_00cb
+    IL_0093:  stloc.s    V_5
+    IL_0095:  ldarg.0
+    IL_0096:  ldc.i4.s   -2
+    IL_0098:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_009d:  ldarg.0
+    IL_009e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+    IL_00a3:  ldloc.s    V_5
+    IL_00a5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_00aa:  leave.s    IL_00c0
   }
-  IL_00b7:  ldarg.0
-  IL_00b8:  ldc.i4.s   -2
-  IL_00ba:  stfld      ""int Program.<M1>d__1.<>1__state""
-  IL_00bf:  ldarg.0
-  IL_00c0:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
-  IL_00c5:  ldloc.1
-  IL_00c6:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_00cb:  ret
+  IL_00ac:  ldarg.0
+  IL_00ad:  ldc.i4.s   -2
+  IL_00af:  stfld      ""int Program.<M1>d__1.<>1__state""
+  IL_00b4:  ldarg.0
+  IL_00b5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+  IL_00ba:  ldloc.1
+  IL_00bb:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00c0:  ret
 }
 ");
 
@@ -1836,7 +1855,7 @@ class Program
     IL_000c:  ldfld      ""C Program.<M2>d__2.x""
     IL_0011:  stfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_0016:  ldc.i4.s   10
-    IL_0018:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0018:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
     IL_001d:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0022:  stloc.2
     IL_0023:  ldloca.s   V_2
@@ -1924,13 +1943,20 @@ class Program
         System.Console.Write(M2().Result);
     }
 
-    static async Task<int> M2() => M3()[await Task.FromResult(0)];
+    static async Task<int> M2() => M3()[await FromResult(0)];
 
     static Buffer10<int> M3()
     {
         var b = new Buffer10<int>();
         b[0] = 111;
         return b;
+    }
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
     }
 }
 ";
@@ -1959,7 +1985,7 @@ class Program
     IL_000b:  call       ""Buffer10<int> Program.M3()""
     IL_0010:  stfld      ""Buffer10<int> Program.<M2>d__1.<>7__wrap1""
     IL_0015:  ldc.i4.0
-    IL_0016:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0016:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
     IL_001b:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0020:  stloc.3
     IL_0021:  ldloca.s   V_3
@@ -2042,13 +2068,20 @@ class Program
         System.Console.Write(M2().Result);
     }
 
-    static async Task<int> M2() => M3()[await Task.FromResult(^10)];
+    static async Task<int> M2() => M3()[await FromResult(^10)];
 
     static Buffer10<int> M3()
     {
         var b = new Buffer10<int>();
         b[0] = 111;
         return b;
+    }
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
     }
 }
 ";
@@ -2079,7 +2112,7 @@ class Program
     IL_0015:  ldc.i4.s   10
     IL_0017:  ldc.i4.1
     IL_0018:  newobj     ""System.Index..ctor(int, bool)""
-    IL_001d:  call       ""System.Threading.Tasks.Task<System.Index> System.Threading.Tasks.Task.FromResult<System.Index>(System.Index)""
+    IL_001d:  call       ""System.Threading.Tasks.Task<System.Index> Program.FromResult<System.Index>(System.Index)""
     IL_0022:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<System.Index> System.Threading.Tasks.Task<System.Index>.GetAwaiter()""
     IL_0027:  stloc.3
     IL_0028:  ldloca.s   V_3
@@ -2164,13 +2197,20 @@ class Program
         System.Console.Write(M2().Result);
     }
 
-    static async Task<int> M2() => M3()[^await Task.FromResult(10)];
+    static async Task<int> M2() => M3()[^await FromResult(10)];
 
     static Buffer10<int> M3()
     {
         var b = new Buffer10<int>();
         b[0] = 111;
         return b;
+    }
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
     }
 }
 ";
@@ -2199,7 +2239,7 @@ class Program
     IL_000b:  call       ""Buffer10<int> Program.M3()""
     IL_0010:  stfld      ""Buffer10<int> Program.<M2>d__1.<>7__wrap1""
     IL_0015:  ldc.i4.s   10
-    IL_0017:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0017:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
     IL_001c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0021:  stloc.3
     IL_0022:  ldloca.s   V_3
@@ -2295,7 +2335,14 @@ class Program
         System.Console.Write(M1(x).Result);
     }
 
-    static async Task<int> M1(C x) => x.F[await Task.FromResult(0)];
+    static async Task<int> M1(C x) => x.F[await FromResult(0)];
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
@@ -2324,7 +2371,7 @@ class Program
     IL_000c:  ldfld      ""C Program.<M1>d__1.x""
     IL_0011:  stfld      ""C Program.<M1>d__1.<>7__wrap1""
     IL_0016:  ldc.i4.0
-    IL_0017:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0017:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
     IL_001c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0021:  stloc.3
     IL_0022:  ldloca.s   V_3
@@ -2412,9 +2459,16 @@ class Program
         System.Console.Write(x[0][0]);
     }
 
-    static async Task M2(Buffer10<int>[] x) => x[Get01()][Get02()] = await Task.FromResult(111);
+    static async Task M2(Buffer10<int>[] x) => x[Get01()][Get02()] = await FromResult(111);
     static int Get01() => 0;
     static int Get02() => 0;
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
@@ -2454,7 +2508,7 @@ class Program
     IL_0034:  call       ""int Program.Get02()""
     IL_0039:  stfld      ""int Program.<M2>d__1.<>7__wrap1""
     IL_003e:  ldc.i4.s   111
-    IL_0040:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0040:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
     IL_0045:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_004a:  stloc.2
     IL_004b:  ldloca.s   V_2
@@ -2549,7 +2603,7 @@ class Program
         System.Console.Write(M1(x).Result);
     }
 
-    static async Task<int> M1(C x) => GetC(x).F[Get01()][await Task.FromResult(Get02(x))];
+    static async Task<int> M1(C x) => GetC(x).F[Get01()][await FromResult(Get02(x))];
 
     static C GetC(C x) => x;
     static int Get01() => 0;
@@ -2557,6 +2611,13 @@ class Program
     {
         System.Runtime.CompilerServices.Unsafe.AsRef(in c.F)[0][0] = 111;
         return 0;
+    }
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
     }
 }
 ";
@@ -2593,7 +2654,7 @@ class Program
     IL_0026:  ldarg.0
     IL_0027:  ldfld      ""C Program.<M1>d__1.x""
     IL_002c:  call       ""int Program.Get02(C)""
-    IL_0031:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0031:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
     IL_0036:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_003b:  stloc.3
     IL_003c:  ldloca.s   V_3
@@ -2697,7 +2758,7 @@ class Program
                 ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(
                         ref Unsafe.AsRef(in GetC(x).F)),
                 10)
-           [Get01()][await Task.FromResult(Get02(x))];
+           [Get01()][await FromResult(Get02(x))];
 
     static C GetC(C x) => x;
     static int Get01() => 0;
@@ -2706,13 +2767,20 @@ class Program
         Unsafe.AsRef(in c.F)[0][0] = 111;
         return 0;
     }
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // (24,22): error CS4007: 'await' cannot be used in an expression containing the type 'System.ReadOnlySpan<Buffer10<int>>'
-                //            [Get01()][await Task.FromResult(Get02(x))];
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await Task.FromResult(Get02(x))").WithArguments("System.ReadOnlySpan<Buffer10<int>>").WithLocation(24, 22)
+                //            [Get01()][await FromResult(Get02(x))];
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await FromResult(Get02(x))").WithArguments("System.ReadOnlySpan<Buffer10<int>>").WithLocation(24, 22)
                 );
         }
 
@@ -2742,7 +2810,7 @@ class Program
                 ref Unsafe.As<Buffer10<int>, int>(
                         ref Unsafe.AsRef(in GetC(x).F[Get01()])),
                 10)
-           [await Task.FromResult(Get02(x))];
+           [await FromResult(Get02(x))];
 
     static C GetC(C x) => x;
     static int Get01() => 0;
@@ -2751,13 +2819,20 @@ class Program
         Unsafe.AsRef(in c.F)[0][0] = 111;
         return 0;
     }
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
                     // (24,13): error CS4007: 'await' cannot be used in an expression containing the type 'System.ReadOnlySpan<int>'
-                    //            [await Task.FromResult(Get02(x))];
-                    Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await Task.FromResult(Get02(x))").WithArguments("System.ReadOnlySpan<int>").WithLocation(24, 13)
+                    //            [await FromResult(Get02(x))];
+                    Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await FromResult(Get02(x))").WithArguments("System.ReadOnlySpan<int>").WithLocation(24, 13)
                 );
         }
 
@@ -2783,7 +2858,7 @@ class Program
     }
 
     static async Task<int> M1(C x)
-        => GetItem(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(ref Unsafe.AsRef(in GetC(x).F)),10), Get01())[await Task.FromResult(Get02(x))];
+        => GetItem(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(ref Unsafe.AsRef(in GetC(x).F)),10), Get01())[await FromResult(Get02(x))];
 
     static C GetC(C x) => x;
     static int Get01() => 0;
@@ -2794,12 +2869,19 @@ class Program
     }
 
     static ref readonly Buffer10<int> GetItem(System.ReadOnlySpan<Buffer10<int>> span, int index) => ref span[index];  
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // (20,12): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.GetItem(ReadOnlySpan<Buffer10<int>>, int)' because it returns by reference
-                //         => GetItem(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(ref Unsafe.AsRef(in GetC(x).F)),10), Get01())[await Task.FromResult(Get02(x))];
+                //         => GetItem(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(ref Unsafe.AsRef(in GetC(x).F)),10), Get01())[await FromResult(Get02(x))];
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "GetItem(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(ref Unsafe.AsRef(in GetC(x).F)),10), Get01())").WithArguments("Program.GetItem(System.ReadOnlySpan<Buffer10<int>>, int)").WithLocation(20, 12)
                 );
         }
@@ -2817,13 +2899,20 @@ class Program
         System.Console.Write(M2().Result);
     }
 
-    static async Task<int> M2() => M3()[await Task.FromResult(0)];
+    static async Task<int> M2() => M3()[await FromResult(0)];
 
     static Buffer10 M3()
     {
         var b = new Buffer10();
         b[0] = 111;
         return b;
+    }
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
     }
 }
 
@@ -2836,8 +2925,8 @@ public ref struct Buffer10
             var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // (11,41): error CS4007: 'await' cannot be used in an expression containing the type 'Buffer10'
-                //     static async Task<int> M2() => M3()[await Task.FromResult(0)];
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await Task.FromResult(0)").WithArguments("Buffer10").WithLocation(11, 41)
+                //     static async Task<int> M2() => M3()[await FromResult(0)];
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await FromResult(0)").WithArguments("Buffer10").WithLocation(11, 41)
                 );
         }
 
@@ -3727,7 +3816,14 @@ class Program
     }
 
     static int M1(C x) => x.F[0];
-    static async Task M2(C x) => x.F[..await Task.FromResult(5)][0] = 111;
+    static async Task M2(C x) => x.F[..await FromResult(5)][0] = 111;
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
@@ -3755,7 +3851,7 @@ class Program
     IL_000c:  ldfld      ""C Program.<M2>d__2.x""
     IL_0011:  stfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_0016:  ldc.i4.5
-    IL_0017:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0017:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
     IL_001c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0021:  stloc.2
     IL_0022:  ldloca.s   V_2
@@ -3856,7 +3952,14 @@ class Program
     }
 
     static int M1(C x) => x.F[0];
-    static async Task M2(C x) => x.F[await Task.FromResult(0)..5][0] = 111;
+    static async Task M2(C x) => x.F[await FromResult(0)..5][0] = 111;
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
@@ -3891,7 +3994,7 @@ class Program
     IL_001e:  ldfld      ""Buffer10<int> C.F""
     IL_0023:  pop
     IL_0024:  ldc.i4.0
-    IL_0025:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0025:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
     IL_002a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_002f:  stloc.3
     IL_0030:  ldloca.s   V_3
@@ -3994,7 +4097,14 @@ class Program
     }
 
     static int M1(C x) => x.F[0];
-    static async Task M2(C x) => x.F[await Task.FromResult(..5)][0] = 111;
+    static async Task M2(C x) => x.F[await FromResult(..5)][0] = 111;
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
@@ -4034,7 +4144,7 @@ class Program
     IL_0024:  ldc.i4.5
     IL_0025:  call       ""System.Index System.Index.op_Implicit(int)""
     IL_002a:  call       ""System.Range System.Range.EndAt(System.Index)""
-    IL_002f:  call       ""System.Threading.Tasks.Task<System.Range> System.Threading.Tasks.Task.FromResult<System.Range>(System.Range)""
+    IL_002f:  call       ""System.Threading.Tasks.Task<System.Range> Program.FromResult<System.Range>(System.Range)""
     IL_0034:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<System.Range> System.Threading.Tasks.Task<System.Range>.GetAwaiter()""
     IL_0039:  stloc.s    V_5
     IL_003b:  ldloca.s   V_5
@@ -4151,11 +4261,18 @@ class Program
     }
 
     static int M1(C x) => x.F[0];
-    static async Task M2(C x) => GetC(x).F[Get01()..Get5()][Get02()] = await Task.FromResult(111);
+    static async Task M2(C x) => GetC(x).F[Get01()..Get5()][Get02()] = await FromResult(111);
     static C GetC(C x) => x;
     static int Get01() => 0;
     static int Get5() => 5;
     static int Get02() => 0;
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
@@ -4202,7 +4319,7 @@ class Program
     IL_0042:  call       ""int Program.Get02()""
     IL_0047:  stfld      ""int Program.<M2>d__2.<>7__wrap3""
     IL_004c:  ldc.i4.s   111
-    IL_004e:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_004e:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
     IL_0053:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0058:  stloc.3
     IL_0059:  ldloca.s   V_3
@@ -4302,7 +4419,7 @@ class Program
         System.Console.Write(M1(x).Result);
     }
 
-    static async Task<int> M1(C x) => GetC(x).F[GetRange()][await Task.FromResult(Get01(x))];
+    static async Task<int> M1(C x) => GetC(x).F[GetRange()][await FromResult(Get01(x))];
 
     static C GetC(C x) => x;
     static System.Range GetRange() => 0..5;
@@ -4310,6 +4427,13 @@ class Program
     {
         System.Runtime.CompilerServices.Unsafe.AsRef(in c.F)[0] = 111;
         return 0;
+    }
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
     }
 }
 ";
@@ -4374,7 +4498,7 @@ class Program
     IL_0068:  ldarg.0
     IL_0069:  ldfld      ""C Program.<M1>d__1.x""
     IL_006e:  call       ""int Program.Get01(C)""
-    IL_0073:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0073:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
     IL_0078:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_007d:  stloc.s    V_7
     IL_007f:  ldloca.s   V_7
@@ -10607,8 +10731,15 @@ class Program
         System.Console.Write(M1(x).Result);
     }
 
-    static async Task<int> M1(C x) => ((System.ReadOnlySpan<int>)x.F)[await Task.FromResult(0)];
-    static async Task M2(C x) => ((System.Span<int>)x.F)[await Task.FromResult(0)] = 111;
+    static async Task<int> M1(C x) => ((System.ReadOnlySpan<int>)x.F)[await FromResult(0)];
+    static async Task M2(C x) => ((System.Span<int>)x.F)[await FromResult(0)] = 111;
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
@@ -10637,7 +10768,7 @@ class Program
     IL_000c:  ldfld      ""C Program.<M1>d__1.x""
     IL_0011:  stfld      ""C Program.<M1>d__1.<>7__wrap1""
     IL_0016:  ldc.i4.0
-    IL_0017:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0017:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
     IL_001c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0021:  stloc.3
     IL_0022:  ldloca.s   V_3
@@ -10729,7 +10860,7 @@ class Program
     IL_000c:  ldfld      ""C Program.<M2>d__2.x""
     IL_0011:  stfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_0016:  ldc.i4.0
-    IL_0017:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0017:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
     IL_001c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0021:  stloc.2
     IL_0022:  ldloca.s   V_2
