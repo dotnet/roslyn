@@ -2067,7 +2067,7 @@ class Program
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void ElementAccess_ObjectInitializer_Int()
+        public void ElementAccess_ObjectInitializer_Int_01()
         {
             var src = @"
 class C
@@ -2087,22 +2087,212 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
 
-            // PROTOTYPE(InlineArrays): Should work?
+            // According to the language specification: "an argument_list enclosed in square brackets shall specify arguments for an accessible indexer on the object being initialized"
+            // Buffer10<int> doesn't have an indexer.
             comp.VerifyDiagnostics(
-                // (14,37): error CS1913: Member '[0]' cannot be initialized. It is not a field or property.
+                // (14,37): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10<int>'
                 //     static C M2() => new C() { F = {[0] = 111} };
-                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "[0]").WithArguments("[0]").WithLocation(14, 37)
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0]").WithArguments("Buffer10<int>").WithLocation(14, 37)
                 );
 
 #if false // PROTOTYPE(InlineArrays):
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
+            var m2Operation = model.GetOperation(m2);
+            VerifyOperationTree(comp, m2Operation,
+@"
+");
+#endif
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void ElementAccess_ObjectInitializer_Int_02()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(M2().F[0]);
+    }
+
+    static C M2() => new C() { F = {[0] = 111} };
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+public struct Buffer10<T>
+{
+    private T _element0;
+
+    public T this[int i]
+    {
+        get => this[i];
+        set => this[i] = value;
+    }
+}
+" + InlineArrayAttributeDefinition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
+  // Code size       20 (0x14)
+  .maxstack  4
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldflda     ""Buffer10<int> C.F""
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.s   111
+  IL_000e:  call       ""void Buffer10<int>.this[int].set""
+  IL_0013:  ret
 }
 ");
+
+#if false // PROTOTYPE(InlineArrays):
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
+            var m2Operation = model.GetOperation(m2);
+            VerifyOperationTree(comp, m2Operation,
+@"
+");
 #endif
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void ElementAccess_ObjectInitializer_Index_01()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(M2().F[0]);
+    }
+
+    static C M2() => new C() { F = {[^10] = 111} };
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+
+            // According to the language specification: "an argument_list enclosed in square brackets shall specify arguments for an accessible indexer on the object being initialized"
+            // Buffer10<int> doesn't have an indexer.
+            comp.VerifyDiagnostics(
+                // (14,37): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10<int>'
+                //     static C M2() => new C() { F = {[^10] = 111} };
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[^10]").WithArguments("Buffer10<int>").WithLocation(14, 37)
+                );
+
+#if false // PROTOTYPE(InlineArrays):
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
+            var m2Operation = model.GetOperation(m2);
+            VerifyOperationTree(comp, m2Operation,
+@"
+");
+#endif
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void ElementAccess_ObjectInitializer_Index_02()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(M2().F[0]);
+    }
+
+    static C M2() => new C() { F = {[^10] = 111} };
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+public struct Buffer10<T>
+{
+    private T _element0;
+
+    public T this[int i]
+    {
+        get => this[i];
+        set => this[i] = value;
+    }
+
+    public int Length => 10;
+}
+" + InlineArrayAttributeDefinition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+
+            // This scenario fails due to https://github.com/dotnet/roslyn/issues/67533
+            comp.VerifyDiagnostics(
+                // (14,37): error CS1913: Member '[^10]' cannot be initialized. It is not a field or property.
+                //     static C M2() => new C() { F = {[^10] = 111} };
+                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "[^10]").WithArguments("[^10]").WithLocation(14, 37)
+                );
+
+#if false // PROTOTYPE(InlineArrays):
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
+            var m2Operation = model.GetOperation(m2);
+            VerifyOperationTree(comp, m2Operation,
+@"
+");
+#endif
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void ElementAccess_ObjectInitializer_Range_01()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(M2().F[0]);
+    }
+
+    static C M2() => new C() { F = {[0..1] = 111} };
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+
+            // According to the language specification: "an argument_list enclosed in square brackets shall specify arguments for an accessible indexer on the object being initialized"
+            // Buffer10<int> doesn't have an indexer.
+            comp.VerifyDiagnostics(
+                // (14,37): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10<int>'
+                //     static C M2() => new C() { F = {[0..1] = 111} };
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0..1]").WithArguments("Buffer10<int>").WithLocation(14, 37)
+                );
 
 #if false // PROTOTYPE(InlineArrays):
             var tree = comp.SyntaxTrees.First();
@@ -8390,6 +8580,231 @@ public struct Buffer10
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             compilation.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void ElementAccess_IndexerIsIgnored_01()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Console.Write(M1(x));
+        M2(x);
+        System.Console.Write(' ');
+        System.Console.Write(M1(x));
+    }
+
+    static int M1(C x) => x.F[0];
+    static void M2(C x) => x.F[0] = 111;
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+public struct Buffer10<T>
+{
+    private T _element0;
+
+    public T this[int i]
+    {
+        get => this[i];
+        set => this[i] = value;
+    }
+}
+" + InlineArrayAttributeDefinition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M1",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldc.i4.0
+  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0016:  ldind.i4
+  IL_0017:  ret
+}
+");
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldc.i4.0
+  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0016:  ldc.i4.s   111
+  IL_0018:  stind.i4
+  IL_0019:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void ElementAccess_Index_IndexerIsIgnored_01()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Console.Write(M1(x));
+        M2(x);
+        System.Console.Write(' ');
+        System.Console.Write(M1(x));
+    }
+
+    static int M1(C x) => x.F[^10];
+    static void M2(C x) => x.F[^10] = 111;
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+public struct Buffer10<T>
+{
+    private T _element0;
+
+    public T this[int i]
+    {
+        get => this[i];
+        set => this[i] = value;
+    }
+
+    public int Length => 10;
+}
+" + InlineArrayAttributeDefinition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M1",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldc.i4.0
+  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0016:  ldind.i4
+  IL_0017:  ret
+}
+");
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldc.i4.0
+  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0016:  ldc.i4.s   111
+  IL_0018:  stind.i4
+  IL_0019:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Slice_SliceMethodIsIgnored_01()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Console.Write(M1(x));
+        M2(x)[0] = 111;
+        System.Console.Write(' ');
+        System.Console.Write(M1(x));
+    }
+
+    static int M1(C x) => x.F[0];
+    static System.Span<int> M2(C x) => x.F[..5];
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+public struct Buffer10<T>
+{
+    private T _element0;
+
+    public T this[int i]
+    {
+        get => this[i];
+        set => this[i] = value;
+    }
+
+    public int Length => 10;
+    public System.Span<int> Slice(int start, int length) => throw null;
+}
+" + InlineArrayAttributeDefinition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldc.i4.5
+  IL_0012:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
+  IL_0017:  ret
+}
+");
         }
     }
 }
