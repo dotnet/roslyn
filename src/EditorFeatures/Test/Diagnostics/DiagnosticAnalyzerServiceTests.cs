@@ -1096,37 +1096,59 @@ class B
         int x = 1;
     }
 }";
+            var additionalText = @"This is an additional file!";
+
             using var workspace = TestWorkspace.CreateCSharp(source);
+            var project = workspace.CurrentSolution.Projects.Single();
+            project = project.AddAdditionalDocument("additional.txt", additionalText).Project;
 
             var analyzer = new FilterSpanTestAnalyzer(kind);
             var analyzerId = analyzer.GetAnalyzerId();
             var analyzerIdsToRequestDiagnostics = new[] { analyzerId };
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+            project = project.AddAnalyzerReference(analyzerReference);
 
-            var project = workspace.CurrentSolution.Projects.Single();
+            workspace.TryApplyChanges(project.Solution);
+
+            project = workspace.CurrentSolution.Projects.Single();
             var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
             var document = project.Documents.Single();
+            var additionalDocument = project.AdditionalDocuments.Single();
 
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
             var localDeclaration = root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax>().First();
-
+            var filterSpan = kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile
+                ? new TextSpan(0, 1)
+                : localDeclaration.Span;
             // Invoke "GetDiagnosticsAsync" for a sub-span and then
             // for the entire document span and verify FilterSpan/FilterTree on the callback context.
             Assert.Null(analyzer.CallbackFilterSpan);
             Assert.Null(analyzer.CallbackFilterTree);
-            await VerifyCallbackSpanAsync(filterSpan: localDeclaration.Span);
+            await VerifyCallbackSpanAsync(filterSpan);
             await VerifyCallbackSpanAsync(filterSpan: null);
 
             async Task VerifyCallbackSpanAsync(TextSpan? filterSpan)
             {
                 var analysisKind = kind == FilterSpanTestAnalyzer.AnalysisKind.SyntaxTree ? AnalysisKind.Syntax : AnalysisKind.Semantic;
+                var documentToAnalyze = kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile ? additionalDocument : document;
                 _ = await DiagnosticComputer.GetDiagnosticsAsync(
-                    document, project, Checksum.Null, ideAnalyzerOptions, filterSpan, analyzerIdsToRequestDiagnostics,
+                    documentToAnalyze, project, Checksum.Null, ideAnalyzerOptions, filterSpan, analyzerIdsToRequestDiagnostics,
                     analysisKind, new DiagnosticAnalyzerInfoCache(), workspace.Services,
                     isExplicit: false, reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
                     CancellationToken.None);
                 Assert.Equal(filterSpan, analyzer.CallbackFilterSpan);
+                if (kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile)
+                {
+                    var expectedText = additionalDocument.GetTextSynchronously(CancellationToken.None).ToString();
+                    var actualText = analyzer.CallbackFilterFile.GetText().ToString();
+                    Assert.Equal(expectedText, actualText);
+                    Assert.Null(analyzer.CallbackFilterTree);
+                }
+                else
+                {
+                    Assert.Equal(root.SyntaxTree, analyzer.CallbackFilterTree);
+                    Assert.Null(analyzer.CallbackFilterFile);
+                }
                 Assert.Equal(root.SyntaxTree, analyzer.CallbackFilterTree);
             }
         }
