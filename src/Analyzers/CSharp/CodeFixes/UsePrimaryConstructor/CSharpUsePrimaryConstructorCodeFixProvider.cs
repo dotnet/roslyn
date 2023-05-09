@@ -280,20 +280,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                             if (location.IsImplicit)
                                 continue;
 
-                            var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) as ExpressionSyntax;
-                            var nodeToReplace = node switch
-                            {
-                                IdentifierNameSyntax identifierName => node,
-                                MemberAccessExpressionSyntax(kind: SyntaxKind.SimpleMemberAccessExpression) { Expression: (kind: SyntaxKind.ThisExpression), Name: IdentifierNameSyntax } => node,
-                                _ => null,
-                            };
+                            var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) as IdentifierNameSyntax;
+                            if (node is null)
+                                continue;
 
-                            if (nodeToReplace != null)
-                            {
-                                documentEditor.ReplaceNode(
-                                    nodeToReplace,
-                                    parameterNameNode.WithTriviaFrom(nodeToReplace));
-                            }
+                            var nodeToReplace = node.IsRightSideOfDot() ? node.GetRequiredParent() : node;
+                            documentEditor.ReplaceNode(
+                                nodeToReplace,
+                                parameterNameNode.WithTriviaFrom(nodeToReplace));
                         }
                     }
                 }
