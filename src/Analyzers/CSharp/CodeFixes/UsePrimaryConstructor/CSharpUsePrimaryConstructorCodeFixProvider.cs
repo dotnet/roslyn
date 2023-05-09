@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             bool removeMembers,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var typeDeclaration = (TypeDeclarationSyntax)constructorDeclaration.GetRequiredParent();
             var namedType = semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
 
@@ -89,8 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
             using var _1 = PooledHashSet<ISymbol>.GetInstance(out var removedMembers);
 
-            // If we're removing members, first go through and update all references to that member to use the parameter name
-            var namedTypeDocuments = namedType.DeclaringSyntaxReferences.Select(r => r.SyntaxTree).Distinct().Select(solution.GetRequiredDocument).ToImmutableHashSet();
+            // If we're removing members, first go through and update all references to that member to use the parameter name.
+            var typeDeclarationNodes = namedType.DeclaringSyntaxReferences.Select(r => (TypeDeclarationSyntax)r.GetSyntax(cancellationToken));
+            var namedTypeDocuments = typeDeclarationNodes.Select(r => solution.GetRequiredDocument(r.SyntaxTree)).ToImmutableHashSet();
             await RemoveMembersAsync().ConfigureAwait(false);
 
             // Now, remove the constructor itself.
@@ -120,6 +121,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                             .WithAdditionalAnnotations(Formatter.Annotation));
                 });
 
+            // If the constructor has a base-initializer, then go find the base-type in the inheritance list for the
+            // typedecl and move it there.
+            await MoveBaseConstructorArgumentsAsync().ConfigureAwait(false);
+
             // Now, take all the assignments in the constructor, and place them directly on the field/property initializers.
             if (constructorDeclaration.ExpressionBody is not null)
             {
@@ -143,6 +148,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             //          to parameter comments.
 
             return solutionEditor.GetChangedSolution();
+
+            async ValueTask MoveBaseConstructorArgumentsAsync()
+            {
+                if (constructorDeclaration.Initializer is null)
+                    return;
+
+                foreach (var current in typeDeclarationNodes)
+                {
+                    // only need to check the first type in the list, the rest must be interfaces.
+                    if (current.BaseList is not { Types: [SimpleBaseTypeSyntax baseType, ..] })
+                        continue;
+
+                    if (semanticModel.GetSymbolInfo(baseType, cancellationToken).GetAnySymbol() is not INamedTypeSymbol { TypeKind: TypeKind.Class })
+                        continue;
+
+                    var document = solution.GetRequiredDocument(baseType.SyntaxTree);
+                    var documentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+
+                    documentEditor.ReplaceNode(
+                        baseType,
+                        PrimaryConstructorBaseType(baseType.Type, constructorDeclaration.Initializer.ArgumentList));
+                    return;
+                }
+            }
 
             async ValueTask ProcessAssignmentAsync(AssignmentExpressionSyntax assignmentExpression)
             {

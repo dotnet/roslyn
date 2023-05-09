@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// Ignore Spelling: kvp
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -196,9 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 if (!AnalyzeConstructorBody())
                 {
                     // Anything else is invalid.  Clear this out so that OnSymbolEnd knows to do nothing.
-                    _primaryConstructor = null!;
-                    _primaryConstructorDeclaration = null!;
-
+                    _primaryConstructor = null;
+                    _primaryConstructorDeclaration = null;
                     return;
                 }
 
@@ -215,6 +216,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 {
                     var constructors = _namedType.InstanceConstructors;
 
+                    IMethodSymbol? primaryConstructor = null;
+                    ConstructorDeclarationSyntax? primaryConstructorDeclaration = null;
+
                     foreach (var constructor in constructors)
                     {
                         // Needs to just have a single declaration
@@ -227,11 +231,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                         if (constructorDeclaration.Initializer is null or (kind: SyntaxKind.BaseConstructorInitializer))
                         {
                             // Can only have one candidate
-                            if (_primaryConstructor != null)
+                            if (primaryConstructor != null)
                                 return false;
 
-                            _primaryConstructor = constructor;
-                            _primaryConstructorDeclaration = constructorDeclaration;
+                            primaryConstructor = constructor;
+                            primaryConstructorDeclaration = constructorDeclaration;
                         }
                         else
                         {
@@ -239,6 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                         }
                     }
 
+                    _primaryConstructor = primaryConstructor;
+                    _primaryConstructorDeclaration = primaryConstructorDeclaration;
                     return _primaryConstructor != null;
                 }
 
