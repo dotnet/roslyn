@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
                     var tabSize = context.LineFormattingOptions.TabSize;
 
-                    var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                     var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpans, tabSize);
                     var textRunsOfSpan = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, text.GetSubText(s.TextSpan).ToString(), ClassifiedTextRunStyle.UseClassificationFont)).ToList();
                     if (textRunsOfSpan.Count > 0)

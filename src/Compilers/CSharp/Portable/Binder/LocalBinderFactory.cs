@@ -647,6 +647,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = new ForEachLoopBinder(patternBinder, node);
             AddToMap(node, binder);
 
+            if (node is ForEachVariableStatementSyntax forEachVariable && !forEachVariable.Variable.IsDeconstructionLeft())
+            {
+                // We will bind this expression for error recovery, anything could be there
+                Visit(forEachVariable.Variable, binder);
+            }
+
             VisitPossibleEmbeddedStatement(node.Statement, binder);
         }
 

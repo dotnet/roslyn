@@ -183,7 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returned bound expression is guaranteed to have a non-null type, except when <paramref name="expr"/> is an unbound lambda.
         /// If <paramref name="expr"/> already has errors and meets the above type requirements, then it is returned unchanged.
         /// Otherwise, if <paramref name="expr"/> is a BoundBadExpression, then it is updated with the <paramref name="resultKind"/> and non-null type.
-        /// Otherwise, a new <see cref="BoundBadExpression"/> wrapping <paramref name="expr"/> is returned. 
+        /// Otherwise, a new <see cref="BoundBadExpression"/> wrapping <paramref name="expr"/> is returned.
+        /// The returned expression has not been converted if needed, so callers need to make sure that the expression is converted before being put into the
+        /// bound tree. Make sure to test with unconverted constructs such as switch expressions, target-typed new, or interpolated strings.
         /// </summary>
         /// <remarks>
         /// Returned expression need not be a <see cref="BoundBadExpression"/>, but is guaranteed to have HasErrors set to true.
@@ -2030,17 +2032,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Alias:
                     {
                         var alias = (AliasSymbol)symbol;
-                        symbol = alias.Target;
-                        switch (symbol.Kind)
+                        return alias.Target switch
                         {
-                            case SymbolKind.NamedType:
-                            case SymbolKind.ErrorType:
-                                return new BoundTypeExpression(node, alias, (NamedTypeSymbol)symbol, hasErrors: isError);
-                            case SymbolKind.Namespace:
-                                return new BoundNamespaceExpression(node, (NamespaceSymbol)symbol, alias, hasErrors: isError);
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
-                        }
+                            TypeSymbol typeSymbol => new BoundTypeExpression(node, alias, typeSymbol, hasErrors: isError),
+                            NamespaceSymbol namespaceSymbol => new BoundNamespaceExpression(node, namespaceSymbol, alias, hasErrors: isError),
+                            _ => throw ExceptionUtilities.UnexpectedValue(alias.Target.Kind),
+                        };
                     }
 
                 case SymbolKind.RangeVariable:
@@ -2736,10 +2733,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindCastCore(node, operand, targetTypeWithAnnotations, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
             }
 
-            var bag = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), diagnostics.DependenciesBag);
+            var bag = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
             try
             {
                 var underlyingExpr = BindCastCore(node, operand, underlyingTargetTypeWithAnnotations, wasCompilerGenerated: false, diagnostics: bag);
+                diagnostics.AddDependencies(bag);
 
                 // It's possible for the S -> T conversion to produce a 'better' constant value.  If this 
                 // constant value is produced place it in the tree so that it gets emitted.  This maintains 
@@ -2767,7 +2765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             finally
             {
-                bag.DiagnosticBag.Free();
+                bag.Free();
             }
         }
 
@@ -4965,7 +4963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var boundExpression = BindValue(memberInitializer, diagnostics, BindValueKind.RValue);
             Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, memberInitializer);
-            return ToBadExpression(boundExpression, LookupResultKind.NotAValue);
+            return BindToTypeForErrorRecovery(ToBadExpression(boundExpression, LookupResultKind.NotAValue));
         }
 
         // returns BadBoundExpression or BoundObjectInitializerMember
@@ -5206,6 +5204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindValueKind valueKind,
             bool suppressErrors)
         {
+            Debug.Assert(!boundMember.NeedsToBeConverted());
             if (!suppressErrors)
             {
                 string member;
@@ -6438,7 +6437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: a member of the type E in both cases. In other words, the rule simply permits access to the 
             // SPEC: static members and nested types of E where a compile-time error would otherwise have occurred. 
 
-            var valueDiagnostics = BindingDiagnosticBag.Create(diagnostics);
+            var valueDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
             var boundValue = BindIdentifier(left, invoked: false, indexed: false, diagnostics: valueDiagnostics);
 
             Symbol leftSymbol;
@@ -6468,7 +6467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var leftName = left.Identifier.ValueText;
                         if (leftType.Name == leftName || IsUsingAliasInScope(leftName))
                         {
-                            var typeDiagnostics = BindingDiagnosticBag.Create(diagnostics);
+                            var typeDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                             var boundType = BindNamespaceOrType(left, typeDiagnostics);
                             if (TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.AllIgnoreOptions))
                             {
@@ -6478,8 +6477,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
                                 boundValue = BindToNaturalType(boundValue, valueDiagnostics);
                                 return new BoundTypeOrValueExpression(left,
-                                    new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics, boundType, typeDiagnostics), leftType);
+                                    new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics.ToReadOnlyAndFree(), boundType, typeDiagnostics.ToReadOnlyAndFree()), leftType);
                             }
+
+                            typeDiagnostics.Free();
                         }
 
                         Debug.Assert(!IsPotentialColorColorReceiver(left, leftType));
@@ -6491,7 +6492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Not a Color Color case; return the bound member.
             // NOTE: it is up to the caller to call CheckValue on the result.
-            diagnostics.AddRange(valueDiagnostics);
+            diagnostics.AddRangeAndFree(valueDiagnostics);
             return boundValue;
         }
 

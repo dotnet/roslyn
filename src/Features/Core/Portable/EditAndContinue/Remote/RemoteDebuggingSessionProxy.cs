@@ -212,39 +212,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                return await GetLocalService().GetCurrentActiveStatementPositionAsync(_sessionId, solution, activeStatementSpanProvider, instructionId, cancellationToken).ConfigureAwait(false);
-            }
-
-            var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, LinePositionSpan?>(
-                solution,
-                (service, solutionInfo, callbackId, cancellationToken) => service.GetCurrentActiveStatementPositionAsync(solutionInfo, callbackId, _sessionId, instructionId, cancellationToken),
-                callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
-                cancellationToken).ConfigureAwait(false);
-
-            return result.HasValue ? result.Value : null;
-        }
-
-        public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                return await GetLocalService().IsActiveStatementInExceptionRegionAsync(_sessionId, solution, instructionId, cancellationToken).ConfigureAwait(false);
-            }
-
-            var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, bool?>(
-                solution,
-                (service, solutionInfo, cancellationToken) => service.IsActiveStatementInExceptionRegionAsync(solutionInfo, _sessionId, instructionId, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-
-            return result.HasValue ? result.Value : null;
-        }
-
         public async ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);

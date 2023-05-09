@@ -91,7 +91,7 @@ public sealed class GlobalOptionsTest : AbstractIntegrationTest
                 await vsSettingsPersister.PersistAsync(storage, key, differentValue);
 
                 // make sure we fetch the value from the storage:
-                globalOptions.ClearCachedValues();
+                globalOptions.GetTestAccessor().ClearCachedValues();
 
                 object? updatedValue;
                 try

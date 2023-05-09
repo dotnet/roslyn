@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  bool isExplicit,
                  CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var stateSets = owner._stateManager
                                      .GetOrCreateStateSets(document.Project).Where(s => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(s.Analyzer, document.Project, owner.GlobalOptions));
 

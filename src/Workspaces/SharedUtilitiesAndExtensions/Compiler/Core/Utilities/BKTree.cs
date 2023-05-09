@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Utilities;
 using System;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Roslyn.Utilities
 {
@@ -23,7 +24,7 @@ namespace Roslyn.Utilities
     /// Pages 230-236 
     /// http://dl.acm.org/citation.cfm?doid=362003.362025
     /// </summary>
-    internal partial class BKTree
+    internal readonly partial struct BKTree
     {
         public static readonly BKTree Empty = new(
             Array.Empty<char>(),
@@ -68,25 +69,19 @@ namespace Roslyn.Utilities
         public static BKTree Create(IEnumerable<string> values)
             => new Builder(values).Create();
 
-        public IList<string> Find(string value, int? threshold = null)
+        public void Find(ref TemporaryArray<string> result, string value, int? threshold = null)
         {
             if (_nodes.Length == 0)
-            {
-                return SpecializedCollections.EmptyList<string>();
-            }
+                return;
 
             var lowerCaseCharacters = ArrayPool<char>.GetArray(value.Length);
             try
             {
                 for (var i = 0; i < value.Length; i++)
-                {
                     lowerCaseCharacters[i] = CaseInsensitiveComparison.ToLower(value[i]);
-                }
 
                 threshold ??= WordSimilarityChecker.GetThreshold(value);
-                var result = new List<string>();
-                Lookup(_nodes[0], lowerCaseCharacters, value.Length, threshold.Value, result, recursionCount: 0);
-                return result;
+                Lookup(_nodes[0], lowerCaseCharacters, value.Length, threshold.Value, ref result, recursionCount: 0);
             }
             finally
             {
@@ -99,7 +94,7 @@ namespace Roslyn.Utilities
             char[] queryCharacters,
             int queryLength,
             int threshold,
-            List<string> result,
+            ref TemporaryArray<string> result,
             int recursionCount)
         {
             // Don't bother recursing too deeply in the case of pathological trees.
@@ -141,7 +136,7 @@ namespace Roslyn.Utilities
                 if (min <= childEditDistance && childEditDistance <= max)
                 {
                     Lookup(_nodes[_edges[i].ChildNodeIndex],
-                        queryCharacters, queryLength, threshold, result,
+                        queryCharacters, queryLength, threshold, ref result,
                         recursionCount + 1);
                 }
             }

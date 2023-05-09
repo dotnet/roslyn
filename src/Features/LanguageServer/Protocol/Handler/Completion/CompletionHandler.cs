@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var completionOptions = GetCompletionOptions(document);
             var completionService = document.GetRequiredLanguageService<CompletionService>();
-            var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var completionListResult = await GetFilteredCompletionListAsync(request, context, documentText, document, completionOptions, completionService, cancellationToken).ConfigureAwait(false);
             if (completionListResult == null)
