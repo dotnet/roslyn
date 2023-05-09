@@ -548,4 +548,201 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestRemoveMembersUpdateReferencesWithRename1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                class C
+                {
+                    private int _i;
+                    private int _j;
+
+                    public [|C|](int i, int j)
+                    {
+                        _i = i;
+                        _j = j;
+                    }
+
+                    void M()
+                    {
+                        Console.WriteLine(_i + _j);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                class C(int i, int j)
+                {
+                    void M()
+                    {
+                        Console.WriteLine(i + j);
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembersOnlyPrivateMembers()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                class C
+                {
+                    private int _i;
+                    public int _j;
+
+                    public [|C|](int i, int j)
+                    {
+                        _i = i;
+                        _j = j;
+                    }
+
+                    void M()
+                    {
+                        Console.WriteLine(_i + _j);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                class C(int i, int j)
+                {
+                    public int _j = j;
+
+                    void M()
+                    {
+                        Console.WriteLine(i + _j);
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembersAccessedOffThis()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                class C
+                {
+                    private int _i;
+                    private int _j;
+
+                    public [|C|](int i, int j)
+                    {
+                        _i = i;
+                        _j = j;
+                    }
+
+                    void M(C c)
+                    {
+                        Console.WriteLine(_i);
+                        Console.WriteLine(_j == c._j);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                class C(int i, int j)
+                {
+                    private int _j = j;
+
+                    void M(C c)
+                    {
+                        Console.WriteLine(i);
+                        Console.WriteLine(_j == c._j);
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWhenRightSideReferencesThis1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int x;
+
+                    public C(int i)
+                    {
+                        x = M(i);
+                    }
+
+                    int M(int y) => y;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWhenRightSideReferencesThis2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int x;
+
+                    public C(int i)
+                    {
+                        x = this.M(i);
+                    }
+
+                    int M(int y) => y;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWhenRightSideDoesNotReferenceThis()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int x;
+
+                    public [|C|](int i)
+                    {
+                        x = M(i);
+                    }
+
+                    static int M(int y) => y;
+                }
+                """,
+            FixedCode = """
+                class C(int i)
+                {
+                    private int x = M(i);
+
+                    static int M(int y) => y;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }
