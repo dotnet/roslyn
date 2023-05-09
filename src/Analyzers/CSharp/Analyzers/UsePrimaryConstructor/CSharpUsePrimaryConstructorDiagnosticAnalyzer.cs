@@ -246,6 +246,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 {
                     member = null;
 
+                    if (assignmentExpression.Kind() != SyntaxKind.SimpleAssignmentExpression)
+                        return false;
+
                     // has to be of the form:
                     //
                     // x = ...      // or
@@ -266,13 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
                     // Has to bind to a field/prop on this type.
                     member = semanticModel.GetSymbolInfo(leftIdentifier, cancellationToken).GetAnySymbol()?.OriginalDefinition;
-                    if (member is not IFieldSymbol and not IPropertySymbol)
-                        return false;
-
-                    if (member.IsStatic)
-                        return false;
-
-                    if (!_namedType.Equals(member.ContainingType))
+                    if (!IsViableMemberToAssignTo(_namedType, member, out _, cancellationToken))
                         return false;
 
                     // Left side looks good.  Now check the right side.  It cannot reference 'this' (as that is not
@@ -295,6 +292,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
                     return true;
                 }
+            }
+
+            public static bool IsViableMemberToAssignTo(
+                INamedTypeSymbol namedType,
+                [NotNullWhen(true)] ISymbol? member,
+                [NotNullWhen(true)] out SyntaxNode? nodeToRemove,
+                CancellationToken cancellationToken)
+            {
+                nodeToRemove = null;
+                if (member is not IFieldSymbol and not IPropertySymbol)
+                    return false;
+
+                if (member.IsImplicitlyDeclared)
+                    return false;
+
+                if (member.IsStatic)
+                    return false;
+
+                if (!namedType.Equals(member.ContainingType))
+                    return false;
+
+                if (member.DeclaringSyntaxReferences is not [var memberReference, ..])
+                    return false;
+
+                nodeToRemove = memberReference.GetSyntax(cancellationToken);
+                if (nodeToRemove is not VariableDeclaratorSyntax and not PropertyDeclarationSyntax)
+                    return false;
+
+                return true;
             }
 
             private void AnalyzeFieldOrPropertyReference(OperationAnalysisContext context)
