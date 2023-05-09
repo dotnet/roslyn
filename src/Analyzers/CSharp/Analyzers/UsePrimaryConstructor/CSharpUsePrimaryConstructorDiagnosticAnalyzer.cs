@@ -151,6 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 if (_primaryConstructorDeclaration is { Body: null, ExpressionBody: null })
                     return;
 
+                if (_primaryConstructorDeclaration.Parent is not TypeDeclarationSyntax)
+                    return;
+
                 // Now ensure the constructor body is something that could be converted to a primary constructor (i.e.
                 // only assignments to instance fields/props on this).
                 var semanticModel = context.Compilation.GetSemanticModel(_primaryConstructorDeclaration.SyntaxTree);
@@ -254,6 +257,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     // Has to bind to a field/prop on this type.
                     var leftSymbol = semanticModel.GetSymbolInfo(leftIdentifier, cancellationToken).GetAnySymbol();
                     if (leftSymbol is not IFieldSymbol and not IPropertySymbol)
+                        return false;
+
+                    if (leftSymbol.IsStatic)
                         return false;
 
                     if (!_namedType.Equals(leftSymbol.ContainingType))
