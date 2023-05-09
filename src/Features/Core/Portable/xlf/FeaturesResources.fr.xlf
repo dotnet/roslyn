@@ -52,7 +52,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
-        <target state="translated">Ajouter le nom du membre</target>
+        <target state="new">Add member name</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
@@ -67,7 +67,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
-        <target state="translated">Ajouter un paramètre à '{0}' (et aux remplacements/implémentations)</target>
+        <target state="new">Add parameter to '{0}' (and overrides/implementations)</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameter_to_constructor">
@@ -542,7 +542,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Add_to_0">
         <source>Add to '{0}'</source>
-        <target state="translated">Ajouter à '{0}'</target>
+        <target state="new">Add to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_class">
@@ -2477,7 +2477,7 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
-        <target state="translated">Les signatures de méthode associées dans les métadonnées ne sont pas mises à jour.</target>
+        <target state="new">Related method signatures found in metadata will not be updated.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removal_of_document_not_supported">
@@ -2487,7 +2487,7 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       </trans-unit>
       <trans-unit id="Remove_async_modifier">
         <source>Remove 'async' modifier</source>
-        <target state="translated">Supprimer le modificateur 'async'</target>
+        <target state="new">Remove 'async' modifier</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
@@ -4420,7 +4420,7 @@ Si le spécificateur de format "K" est utilisé sans autres spécificateurs de f
       </trans-unit>
       <trans-unit id="Make_method_synchronous">
         <source>Make method synchronous</source>
-        <target state="translated">Rendre la méthode synchrone</target>
+        <target state="new">Make method synchronous</target>
         <note />
       </trans-unit>
       <trans-unit id="from_0">
@@ -4587,12 +4587,12 @@ Version utilisée dans : {2}</target>
       </trans-unit>
       <trans-unit id="Remove_tag">
         <source>Remove tag</source>
-        <target state="translated">Supprimer une étiquette</target>
+        <target state="new">Remove tag</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_missing_param_nodes">
         <source>Add missing param nodes</source>
-        <target state="translated">Ajouter les nœuds de paramètre manquants</target>
+        <target state="new">Add missing param nodes</target>
         <note />
       </trans-unit>
       <trans-unit id="paren_Unknown_paren">
@@ -4652,22 +4652,22 @@ Version utilisée dans : {2}</target>
       </trans-unit>
       <trans-unit id="Take_0">
         <source>Take '{0}'</source>
-        <target state="translated">Prendre '{0}'</target>
+        <target state="new">Take '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Take_both">
         <source>Take both</source>
-        <target state="translated">Prendre les deux</target>
+        <target state="new">Take both</target>
         <note />
       </trans-unit>
       <trans-unit id="Take_bottom">
         <source>Take bottom</source>
-        <target state="translated">Prendre le bas</target>
+        <target state="new">Take bottom</target>
         <note />
       </trans-unit>
       <trans-unit id="Take_top">
         <source>Take top</source>
-        <target state="translated">Prendre le haut</target>
+        <target state="new">Take top</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variable">
@@ -4712,7 +4712,7 @@ Version utilisée dans : {2}</target>
       </trans-unit>
       <trans-unit id="Add_parameter_to_0">
         <source>Add parameter to '{0}'</source>
-        <target state="translated">Ajouter un paramètre à '{0}'</target>
+        <target state="new">Add parameter to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor">
