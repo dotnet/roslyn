@@ -150,6 +150,10 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             FixedCode = """
+                class B(int i)
+                {
+                }
+
                 class C(int i) : B(i)
                 {
                     public C() : this(0)
@@ -183,6 +187,10 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             FixedCode = """
+                class B(int i)
+                {
+                }
+
                 class C(int i) : B(i * i)
                 {
                     public C() : this(0)

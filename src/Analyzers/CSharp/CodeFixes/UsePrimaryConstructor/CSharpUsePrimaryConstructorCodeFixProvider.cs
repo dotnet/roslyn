@@ -94,11 +94,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             var namedTypeDocuments = typeDeclarationNodes.Select(r => solution.GetRequiredDocument(r.SyntaxTree)).ToImmutableHashSet();
             await RemoveMembersAsync().ConfigureAwait(false);
 
-            // Now, remove the constructor itself.
+            // If the constructor has a base-initializer, then go find the base-type in the inheritance list for the
+            // typedecl and move it there.
+            await MoveBaseConstructorArgumentsAsync().ConfigureAwait(false);
+
+            // Then remove the constructor itself.
             var constructorDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
             constructorDocumentEditor.RemoveNode(constructorDeclaration);
 
-            // Then move its parameter list to the type declaration.
+            // Then take all the assignments in the constructor, and place them directly on the field/property initializers.
+            if (constructorDeclaration.ExpressionBody is not null)
+            {
+                // Validated by analyzer.
+                await ProcessAssignmentAsync((AssignmentExpressionSyntax)constructorDeclaration.ExpressionBody.Expression).ConfigureAwait(false);
+            }
+            else
+            {
+                // Validated by analyzer.
+                Contract.ThrowIfNull(constructorDeclaration.Body);
+                foreach (var statement in constructorDeclaration.Body.Statements)
+                    await ProcessAssignmentAsync((AssignmentExpressionSyntax)((ExpressionStatementSyntax)statement).Expression).ConfigureAwait(false);
+            }
+
+            // Finally move the constructors parameter list to the type declaration.
             constructorDocumentEditor.ReplaceNode(
                 typeDeclaration,
                 (current, generator) =>
@@ -120,24 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                             .WithTrailingTrivia(triviaAfterName)
                             .WithAdditionalAnnotations(Formatter.Annotation));
                 });
-
-            // If the constructor has a base-initializer, then go find the base-type in the inheritance list for the
-            // typedecl and move it there.
-            await MoveBaseConstructorArgumentsAsync().ConfigureAwait(false);
-
-            // Now, take all the assignments in the constructor, and place them directly on the field/property initializers.
-            if (constructorDeclaration.ExpressionBody is not null)
-            {
-                // Validated by analyzer.
-                await ProcessAssignmentAsync((AssignmentExpressionSyntax)constructorDeclaration.ExpressionBody.Expression).ConfigureAwait(false);
-            }
-            else
-            {
-                // Validated by analyzer.
-                Contract.ThrowIfNull(constructorDeclaration.Body);
-                foreach (var statement in constructorDeclaration.Body.Statements)
-                    await ProcessAssignmentAsync((AssignmentExpressionSyntax)((ExpressionStatementSyntax)statement).Expression).ConfigureAwait(false);
-            }
 
             // TODO: reconcile doc comments.
             // 1. If we are not removing members and the constructor had parameter doc comments, we likely want to move
