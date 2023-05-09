@@ -55,4 +55,142 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.CSharp11,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestStruct()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct C
+                {
+                    public [|C|](int i)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                struct C(int i)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithUnchainedConstructor()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public C(int i)
+                    {
+                    }
+
+                    public C()
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithThisChainedConstructor()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public [|C|](int i)
+                    {
+                    }
+
+                    public C() : this(0)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i)
+                {
+                    public C() : this(0)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithBaseChainedConstructor1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class B(int i)
+                {
+                }
+
+                class C : B
+                {
+                    public [|C|](int i) : base(i)
+                    {
+                    }
+
+                    public C() : this(0)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i) : B(i)
+                {
+                    public C() : this(0)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithBaseChainedConstructor2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class B(int i)
+                {
+                }
+
+                class C : B
+                {
+                    public [|C|](int i) : base(i * i)
+                    {
+                    }
+
+                    public C() : this(0)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i) : B(i * i)
+                {
+                    public C() : this(0)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }
