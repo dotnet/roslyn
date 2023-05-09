@@ -13252,7 +13252,7 @@ expectedOutput: "-100");
 }";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithConcurrentBuild(false));
             var options = compilation.Options;
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             var assembly = (SourceAssemblySymbol)compilation.Assembly;
             var module = new PEAssemblyBuilder(
@@ -13268,7 +13268,7 @@ expectedOutput: "-100");
                 emittingPdb: false,
                 hasDeclarationErrors: false,
                 emitMethodBodies: true,
-                diagnostics: new BindingDiagnosticBag(diagnostics),
+                diagnostics: diagnostics,
                 filterOpt: null,
                 entryPointOpt: null,
                 cancellationToken: CancellationToken.None);
@@ -13281,7 +13281,7 @@ expectedOutput: "-100");
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             methodBodyCompiler.Visit(type);
 
-            Assert.Equal(1, diagnostics.AsEnumerable().Count());
+            Assert.Equal(1, diagnostics.DiagnosticBag.AsEnumerable().Count());
             diagnostics.Free();
         }
 
@@ -17224,6 +17224,40 @@ True
                     [MoveNext]: TypedReference not supported in .NET Core
                     """
             }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void BoxingReceiver()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write(Test(new C()).ToString());
+    }
+
+    static System.Type Test(C c) => c.GetInt().GetType();
+
+    int GetInt() => 1;
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "System.Int32").VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  callvirt   ""int C.GetInt()""
+  IL_0006:  box        ""int""
+  IL_000b:  call       ""System.Type object.GetType()""
+  IL_0010:  ret
+}
+");
         }
     }
 }

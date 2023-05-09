@@ -32,6 +32,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Configuration
         }
 
         [Theory, CombinatorialData]
+        public async Task VerifyNoRequestToClientWithoutCapability(bool mutatingLspWorkspace)
+        {
+            var markup = @"
+public class B { }";
+
+            var clientCapabilities = new ClientCapabilities()
+            {
+                Workspace = new WorkspaceClientCapabilities()
+                {
+                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true },
+                    Configuration = false
+                }
+            };
+
+            var clientCallbackTarget = new ClientCallbackTarget();
+            var initializationOptions = new InitializationOptions()
+            {
+                CallInitialized = true,
+                ClientCapabilities = clientCapabilities,
+                ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+                ClientTarget = clientCallbackTarget,
+            };
+
+            await CreateTestLspServerAsync(
+                markup, mutatingLspWorkspace, initializationOptions);
+            Assert.False(clientCallbackTarget.ReceivedWorkspaceConfigurationRequest);
+        }
+
+        [Theory, CombinatorialData]
         public async Task VerifyWorkflow(bool mutatingLspWorkspace)
         {
             var markup = @"
@@ -41,7 +70,8 @@ public class A { }";
             {
                 Workspace = new WorkspaceClientCapabilities()
                 {
-                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true }
+                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true },
+                    Configuration = true
                 }
             };
 
@@ -107,6 +137,7 @@ public class A { }";
             public bool WorkspaceDidChangeConfigurationRegistered { get; private set; } = false;
             public List<ConfigurationItem> ReceivedConfigurationItems { get; } = new();
             public List<string> MockClientSideValues { get; } = new();
+            public bool ReceivedWorkspaceConfigurationRequest { get; private set; } = false;
 
             [JsonRpcMethod(Methods.ClientRegisterCapabilityName, UseSingleObjectParameterDeserialization = true)]
             public void ClientRegisterCapability(RegistrationParams @registrationParams, CancellationToken _)
@@ -124,6 +155,7 @@ public class A { }";
             [JsonRpcMethod(Methods.WorkspaceConfigurationName, UseSingleObjectParameterDeserialization = true)]
             public JArray WorkspaceConfigurationName(ConfigurationParams configurationParams, CancellationToken _)
             {
+                ReceivedWorkspaceConfigurationRequest = true;
                 var expectConfigurationItemsNumber = DidChangeConfigurationNotificationHandler.SupportedOptions.Sum(option => option is IPerLanguageValuedOption ? 2 : 1);
                 Assert.Equal(expectConfigurationItemsNumber, configurationParams!.Items.Length);
                 Assert.Equal(expectConfigurationItemsNumber, MockClientSideValues.Count);

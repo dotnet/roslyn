@@ -493,13 +493,13 @@ class A
 
             var defaultRange = new LSP.Range
             {
-                Start = new LSP.Position { Line = 5, Character = 20 },
+                Start = new LSP.Position { Line = 5, Character = 21 },
                 End = new LSP.Position { Line = 5, Character = 21 }
             };
 
             var expected = await CreateCompletionItemAsync(
                 label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document,
-                sortText: "0000").ConfigureAwait(false);
+                sortText: "0000", vsResolveTextEditOnCommit: true).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -530,13 +530,13 @@ class A
 
             var defaultRange = new LSP.Range
             {
-                Start = new LSP.Position { Line = 5, Character = 23 },
+                Start = new LSP.Position { Line = 5, Character = 25 },
                 End = new LSP.Position { Line = 5, Character = 25 }
             };
 
             var expected = await CreateCompletionItemAsync(
-                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, insertText: @"\\A",
-                sortText: "0000").ConfigureAwait(false);
+                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document,
+                sortText: "0000", vsResolveTextEditOnCommit: true).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());

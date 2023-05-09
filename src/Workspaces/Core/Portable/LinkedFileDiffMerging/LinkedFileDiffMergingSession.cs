@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    mergedText = await _newSolution.GetDocument(linkedDocumentsWithChanges.Single()).GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    mergedText = await _newSolution.GetDocument(linkedDocumentsWithChanges.Single()).GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 foreach (var documentId in allLinkedDocuments)
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var originalDocument = _oldSolution.GetDocument(linkedDocumentGroup.First());
-            var originalSourceText = await originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var originalSourceText = await originalDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Add comments in source explaining diffs that could not be merged
 

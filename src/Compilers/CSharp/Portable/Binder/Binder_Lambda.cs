@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (syntax is LambdaExpressionSyntax lambdaSyntax)
             {
-                MessageID.IDS_FeatureLambda.CheckFeatureAvailability(diagnostics, syntax, lambdaSyntax.ArrowToken.GetLocation());
+                MessageID.IDS_FeatureLambda.CheckFeatureAvailability(diagnostics, lambdaSyntax.ArrowToken);
 
                 checkAttributes(syntax, lambdaSyntax.AttributeLists, diagnostics);
             }
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // delegate (int x) { }
                     // delegate { }
                     var anon = (AnonymousMethodExpressionSyntax)syntax;
-                    MessageID.IDS_FeatureAnonDelegates.CheckFeatureAvailability(diagnostics, anon, anon.DelegateKeyword.GetLocation());
+                    MessageID.IDS_FeatureAnonDelegates.CheckFeatureAvailability(diagnostics, anon.DelegateKeyword);
 
                     hasSignature = anon.ParameterList != null;
                     if (hasSignature)
@@ -105,12 +105,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (modifier.IsKind(SyntaxKind.AsyncKeyword))
                 {
-                    MessageID.IDS_FeatureAsync.CheckFeatureAvailability(diagnostics, syntax, modifier.GetLocation());
+                    MessageID.IDS_FeatureAsync.CheckFeatureAvailability(diagnostics, modifier);
                     isAsync = true;
                 }
                 else if (modifier.IsKind(SyntaxKind.StaticKeyword))
                 {
-                    MessageID.IDS_FeatureStaticAnonymousFunction.CheckFeatureAvailability(diagnostics, syntax, modifier.GetLocation());
+                    MessageID.IDS_FeatureStaticAnonymousFunction.CheckFeatureAvailability(diagnostics, modifier);
                     isStatic = true;
                 }
             }
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            MessageID.IDS_FeatureLambdaOptionalParameters.CheckFeatureAvailability(diagnostics, syntax, p.Default.EqualsToken.GetLocation());
+                            MessageID.IDS_FeatureLambdaOptionalParameters.CheckFeatureAvailability(diagnostics, p.Default.EqualsToken);
                         }
                     }
 

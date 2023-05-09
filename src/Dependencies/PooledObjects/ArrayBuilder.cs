@@ -322,6 +322,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return tmp.ToImmutableAndFree();
         }
 
+        public ImmutableArray<U> ToDowncastedImmutableAndFree<U>() where U : T
+        {
+            var result = ToDowncastedImmutable<U>();
+            this.Free();
+            return result;
+        }
+
         /// <summary>
         /// Realizes the array and disposes the builder in one operation.
         /// </summary>

@@ -103,10 +103,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
         {
             int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
             {
-                (4, ExecutionConfiguration.Debug) => 520, // 510
-                (4, ExecutionConfiguration.Release) => 1400, // 1310
-                (8, ExecutionConfiguration.Debug) => 250, // 225,
-                (8, ExecutionConfiguration.Release) => 700, // 620
+                (4, ExecutionConfiguration.Debug) => 4000,
+                (4, ExecutionConfiguration.Release) => 4000,
+                (8, ExecutionConfiguration.Debug) => 4000,
+                (8, ExecutionConfiguration.Release) => 4000,
                 _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}")
             };
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
         @"class C {
     C M(string x) { return this; }
     void M2() {
-        new C()
+        global::C.GetC()
 ");
                 for (int i = 0; i < depth; i++)
                 {
@@ -137,7 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
                 builder.AppendLine(
                    @"            .M(""test"");
     }
-}");
+
+    static C GetC() => new C();
+}
+");
 
                 var source = builder.ToString();
                 RunInThread(() =>

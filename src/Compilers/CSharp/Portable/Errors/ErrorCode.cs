@@ -2190,6 +2190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_BadCaseInSwitchArm = 9134,
         ERR_ConstantValueOfTypeExpected = 9135,
+        ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
 
         #endregion
 

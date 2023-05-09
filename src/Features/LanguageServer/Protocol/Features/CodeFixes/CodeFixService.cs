@@ -101,12 +101,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var (allDiagnostics, upToDate) = await _diagnosticService.TryGetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                includeSuppressedDiagnostics: false, priorityProvider, cancellationToken: cancellationToken).ConfigureAwait(false);
+                includeSuppressedDiagnostics: false, priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
             allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var spanToDiagnostics = ConvertToMap(text, allDiagnostics);
 
             using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -178,8 +178,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // user-invoked diagnostic requests, for example, user invoked Ctrl + Dot operation for lightbulb.
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                includeCompilerDiagnostics: true, includeSuppressedDiagnostics: includeSuppressionFixes, priorityProvider: priorityProvider,
-                addOperationScope: addOperationScope, isExplicit: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                includeCompilerDiagnostics: true, includeSuppressedDiagnostics: includeSuppressionFixes, priorityProvider,
+                addOperationScope, DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
             var buildOnlyDiagnostics = buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id);
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (!diagnostics.IsEmpty)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var spanToDiagnostics = ConvertToMap(text, diagnostics);
 
                 // 'CodeActionRequestPriority.Lowest' is used when the client only wants suppression/configuration fixes.
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 // For build-only diagnostics, we support configuration/suppression fixes.
                 diagnostics = diagnostics.AddRange(buildOnlyDiagnostics);
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var spanToDiagnostics = ConvertToMap(text, diagnostics);
 
                 // Ensure that we do not register duplicate configuration fixes.
@@ -259,7 +259,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             cancellationToken.ThrowIfCancellationRequested();
 
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
-                document, range, diagnosticId, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document, range, diagnosticId, includeSuppressedDiagnostics: false, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+                addOperationScope: null, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
             diagnostics = diagnostics.WhereAsArray(d => d.Severity.IsMoreSevereThanOrEqualTo(minimumSeverity));
             if (!diagnostics.Any())
                 return null;
@@ -299,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = new TextSpan(0, text.Length);
 
             var fixCollection = await GetDocumentFixAllForIdInSpanAsync(

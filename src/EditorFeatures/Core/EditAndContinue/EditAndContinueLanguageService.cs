@@ -25,6 +25,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class EditAndContinueLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
+        private sealed class NoSessionException : InvalidOperationException
+        {
+            public NoSessionException()
+                : base("Internal error: no session.")
+            {
+                // unique enough HResult to distinguish from other exceptions
+                HResult = unchecked((int)0x801315087);
+            }
+        }
+
         private readonly PdbMatchingSourceTextProvider _sourceTextProvider;
         private readonly Lazy<IManagedHotReloadService> _debuggerService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
@@ -85,11 +95,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private RemoteDebuggingSessionProxy GetDebuggingSession()
-        {
-            var debuggingSession = _debuggingSession;
-            Contract.ThrowIfNull(debuggingSession);
-            return debuggingSession;
-        }
+            => _debuggingSession ?? throw new NoSessionException();
 
         private IActiveStatementTrackingService GetActiveStatementTrackingService()
             => WorkspaceProvider.Value.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
@@ -341,38 +347,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
             return new ManagedHotReloadUpdates(moduleUpdates.Updates.FromContract(), diagnostics.FromContract());
-        }
-
-        public async ValueTask<SourceSpan?> GetCurrentActiveStatementPositionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var solution = GetCurrentCompileTimeSolution();
-                var activeStatementTrackingService = GetActiveStatementTrackingService();
-
-                var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, filePath, cancellationToken) =>
-                    activeStatementTrackingService.GetSpansAsync(solution, documentId, filePath, cancellationToken));
-
-                var span = await GetDebuggingSession().GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instruction.ToContract(), cancellationToken).ConfigureAwait(false);
-                return span?.ToSourceSpan().FromContract();
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                return null;
-            }
-        }
-
-        public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var solution = GetCurrentCompileTimeSolution();
-                return await GetDebuggingSession().IsActiveStatementInExceptionRegionAsync(solution, instruction.ToContract(), cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                return null;
-            }
         }
     }
 }

@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim textChange = New TextChange(caseGenerationLocation, str)
             Dim typeSpan = New TextSpan(caseGenerationLocation.Start + "Case ".Length, fullyQualifiedTypeName.Length)
 
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+            Dim text = Await document.GetValueTextAsync(cancellationToken).ConfigureAwait(False)
             Dim documentWithCaseAdded = document.WithText(text.WithChanges(textChange))
 
             Return (documentWithCaseAdded, typeSpan)

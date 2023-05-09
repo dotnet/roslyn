@@ -14,25 +14,9 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         public static NodeOperations Empty = new();
 
-        public List<IndentBlockOperation> IndentBlockOperation { get; }
-        public List<SuppressOperation> SuppressOperation { get; }
-        public List<AlignTokensOperation> AlignmentOperation { get; }
-        public List<AnchorIndentationOperation> AnchorIndentationOperations { get; }
-
-        public NodeOperations(List<IndentBlockOperation> indentBlockOperation, List<SuppressOperation> suppressOperation, List<AnchorIndentationOperation> anchorIndentationOperations, List<AlignTokensOperation> alignmentOperation)
-        {
-            this.IndentBlockOperation = indentBlockOperation;
-            this.SuppressOperation = suppressOperation;
-            this.AlignmentOperation = alignmentOperation;
-            this.AnchorIndentationOperations = anchorIndentationOperations;
-        }
-
-        private NodeOperations()
-        {
-            this.IndentBlockOperation = new List<IndentBlockOperation>();
-            this.SuppressOperation = new List<SuppressOperation>();
-            this.AlignmentOperation = new List<AlignTokensOperation>();
-            this.AnchorIndentationOperations = new List<AnchorIndentationOperation>();
-        }
+        public List<IndentBlockOperation> IndentBlockOperation { get; } = new();
+        public List<SuppressOperation> SuppressOperation { get; } = new();
+        public List<AlignTokensOperation> AlignmentOperation { get; } = new();
+        public List<AnchorIndentationOperation> AnchorIndentationOperations { get; } = new();
     }
 }

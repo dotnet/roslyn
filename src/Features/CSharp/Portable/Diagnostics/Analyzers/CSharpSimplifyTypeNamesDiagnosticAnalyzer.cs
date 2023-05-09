@@ -58,15 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return simplifier.Diagnostics;
         }
 
-        protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree)
+        protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree)
         {
-            var semanticModel = context.SemanticModel;
-            var cancellationToken = context.CancellationToken;
-
             var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
-            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-
-            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: codeBlockIntervalTree, cancellationToken);
+            var simplifier = new TypeSyntaxSimplifierWalker(this, context.SemanticModel, options, ignoredSpans: codeBlockIntervalTree, context.CancellationToken);
             simplifier.Visit(root);
             return simplifier.Diagnostics;
         }
