@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Fix_Name_Violation_colon_0">
         <source>Fix Name Violation: {0}</source>
-        <target state="translated">Ad İhlalini Düzelt: {0}</target>
+        <target state="new">Fix Name Violation: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_occurrences_in">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Suppress_or_Configure_issues">
         <source>Suppress or Configure issues</source>
-        <target state="translated">Sorunları Gizle veya Yapılandır</target>
+        <target state="new">Suppress or Configure issues</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">
