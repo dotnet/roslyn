@@ -458,4 +458,94 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestRemoveMembers1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int i;
+                    private int j;
+
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestDoNotRemovePublicMembers1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int i;
+                    public int j;
+
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembersUpdateReferences1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                class C
+                {
+                    private int i;
+                    private int j;
+
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+
+                    void M()
+                    {
+                        Console.WriteLine(this.i + this.j);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                class C(int i, int j)
+                {
+                    void M()
+                    {
+                        Console.WriteLine(i + j);
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }

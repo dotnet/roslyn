@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 // it's either `this.field` or just `field`.  We can replace with a reference to 'paramName' *if* that
                 // name in the current location doesn't bind to something else.
                 var symbols = semanticModel.LookupSymbols(operation.Syntax.SpanStart, name: parameter.Name);
-                if (symbols.Length > 0)
+                if (symbols.Any(s => !Equals(s, parameter)))
                 {
                     _membersThatCannotBeRemoved.Add(member);
                     return;
