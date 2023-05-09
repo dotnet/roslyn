@@ -98,7 +98,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         var cancellationToken = context.CancellationToken;
 
         var location = GetDiagnosticLocation(context.OwningSymbol, cancellationToken, out var additionalLocation);
-        if (location == null)
+        if (location == null || !context.ShouldAnalyzeSpan(location.SourceSpan))
             return;
 
         foreach (var blockOperation in context.OperationBlocks)

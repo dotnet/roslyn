@@ -117,13 +117,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         }
 
                         // If we are analyzing a specific filter span, skip operation blocks outside the filter span.
-                        if (symbolStartAnalyzer._symbolStartAnalysisContext.FilterSpan.HasValue)
+                        if (context.FilterSpan.HasValue)
                         {
+                            Contract.ThrowIfFalse(context.FilterSpan != symbolStartAnalyzer._symbolStartAnalysisContext.FilterSpan);
                             Contract.ThrowIfNull(symbolStartAnalyzer._symbolStartAnalysisContext.FilterTree);
                             var root = firstBlock.Syntax.SyntaxTree.GetRoot(context.CancellationToken);
                             var spanStart = firstBlock.Syntax.SpanStart;
                             var memberDecl = symbolStartAnalyzer._compilationAnalyzer.SyntaxFacts.GetContainingMemberDeclaration(root, spanStart, useFullSpan: false);
-                            if (memberDecl != null && !symbolStartAnalyzer._symbolStartAnalysisContext.ShouldAnalyzeSpan(memberDecl.Span, memberDecl.SyntaxTree))
+                            if (memberDecl != null && !context.ShouldAnalyzeSpan(memberDecl.Span))
                                 return false;
                         }
 

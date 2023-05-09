@@ -244,14 +244,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         /// <summary>
         /// Gets the node in the given <paramref name="syntaxTree"/> corresponding to the given <paramref name="span"/>.
-        /// If the <paramref name="span"/> is <code>null</code>, then returns the root node of the tree.
+        /// If the <paramref name="span"/> is <see langword="null"/>, then returns the root node of the tree.
         /// </summary>
         public static SyntaxNode GetNodeForSpan(this SyntaxTree syntaxTree, TextSpan? span, bool findInTrivia, bool getInnermostNodeForTie, CancellationToken cancellationToken)
         {
             var root = syntaxTree.GetRoot(cancellationToken);
-            return span.HasValue
-                ? root.FindNode(span.Value, findInTrivia, getInnermostNodeForTie)
-                : root;
+            return root.GetNodeForSpan(span, findInTrivia, getInnermostNodeForTie);
         }
     }
 }

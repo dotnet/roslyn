@@ -181,6 +181,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return;
             }
 
+            // If the local variable only has one declarator, then report the suggestion on the whole
+            // declaration.  Otherwise, return the suggestion only on the single declarator.
+            var reportNode = localDeclaration.Variables.Count == 1
+                ? (SyntaxNode)localDeclaration
+                : localDeclarator;
+
+            // Bail out early if the reportNode is outside the context's analysis span.
+            if (!context.ShouldAnalyzeSpan(reportNode.Span))
+                return;
+
             if (argumentExpression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
             {
                 // out-vars are not allowed inside expression-trees.  So don't offer to
@@ -232,12 +242,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 localDeclarator.GetLocation(),
                 identifierName.GetLocation(),
                 invocationOrCreation.GetLocation());
-
-            // If the local variable only has one declarator, then report the suggestion on the whole
-            // declaration.  Otherwise, return the suggestion only on the single declarator.
-            var reportNode = localDeclaration.Variables.Count == 1
-                ? (SyntaxNode)localDeclaration
-                : localDeclarator;
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,

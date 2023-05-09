@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if the given <paramref name="span"/> should be analyzed for the given <paramref name="context"/>,
         /// i.e. either of the following is true:
-        ///  - <see cref="SyntaxTreeAnalysisContext.FilterSpan"/> is <code>null</code> (we are analyzing the entire tree)
+        ///  - <see cref="SyntaxTreeAnalysisContext.FilterSpan"/> is <see langword="null"/> (we are analyzing the entire tree)
         ///  OR
         ///  - <paramref name="span"/> intersects with <see cref="SyntaxTreeAnalysisContext.FilterSpan"/>.
         /// </summary>
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if the given <paramref name="span"/> should be analyzed for the given <paramref name="context"/>,
         /// i.e. either of the following is true:
-        ///  - <see cref="SemanticModelAnalysisContext.FilterSpan"/> is <code>null</code> (we are analyzing the entire tree)
+        ///  - <see cref="SemanticModelAnalysisContext.FilterSpan"/> is <see langword="null"/> (we are analyzing the entire tree)
         ///  OR
         ///  - <paramref name="span"/> intersects with <see cref="SemanticModelAnalysisContext.FilterSpan"/>.
         /// </summary>
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if the given <paramref name="span"/> should be analyzed for the given <paramref name="context"/>,
         /// i.e. either of the following is true:
-        ///  - <see cref="SymbolStartAnalysisContext.FilterSpan"/> is <code>null</code> (we are analyzing the entire tree)
+        ///  - <see cref="SymbolStartAnalysisContext.FilterSpan"/> is <see langword="null"/> (we are analyzing the entire tree)
         ///  OR
         ///  - <paramref name="span"/> intersects with <see cref="SymbolStartAnalysisContext.FilterSpan"/>.
         /// </summary>
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if the given <paramref name="location"/> should be analyzed for the given <paramref name="context"/>,
         /// i.e. either of the following is true:
-        ///  - <see cref="SymbolStartAnalysisContext.FilterSpan"/> is <code>null</code> (we are analyzing the entire tree)
+        ///  - <see cref="SymbolStartAnalysisContext.FilterSpan"/> is <see langword="null"/> (we are analyzing the entire tree)
         ///  OR
         ///  - <paramref name="location"/> intersects with <see cref="SymbolStartAnalysisContext.FilterSpan"/>.
         /// </summary>
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if the given <paramref name="span"/> should be analyzed for the given <paramref name="context"/>,
         /// i.e. either of the following is true:
-        ///  - <see cref="SymbolAnalysisContext.FilterSpan"/> is <code>null</code> (we are analyzing the entire tree)
+        ///  - <see cref="SymbolAnalysisContext.FilterSpan"/> is <see langword="null"/> (we are analyzing the entire tree)
         ///  OR
         ///  - <paramref name="span"/> intersects with <see cref="SymbolAnalysisContext.FilterSpan"/>.
         /// </summary>
@@ -67,12 +67,82 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if the given <paramref name="location"/> should be analyzed for the given <paramref name="context"/>,
         /// i.e. either of the following is true:
-        ///  - <see cref="SymbolAnalysisContext.FilterSpan"/> is <code>null</code> (we are analyzing the entire tree)
+        ///  - <see cref="SymbolAnalysisContext.FilterSpan"/> is <see langword="null"/> (we are analyzing the entire tree)
         ///  OR
         ///  - <paramref name="location"/> intersects with <see cref="SymbolAnalysisContext.FilterSpan"/>.
         /// </summary>
         public static bool ShouldAnalyzeLocation(this SymbolAnalysisContext context, Location location)
             => location.SourceTree != null && context.ShouldAnalyzeSpan(location.SourceSpan, location.SourceTree);
+
+        /// <summary>
+        /// Returns true if the given <paramref name="span"/> should be analyzed for the given <paramref name="context"/>,
+        /// i.e. either of the following is true:
+        ///  - <see cref="AdditionalFileAnalysisContext.FilterSpan"/> is <see langword="null"/> (we are analyzing the entire file)
+        ///  OR
+        ///  - <paramref name="span"/> intersects with <see cref="AdditionalFileAnalysisContext.FilterSpan"/>.
+        /// </summary>
+        public static bool ShouldAnalyzeSpan(this AdditionalFileAnalysisContext context, TextSpan span)
+            => ShouldAnalyze(context.FilterSpan, span);
+
+        /// <summary>
+        /// Returns true if the given <paramref name="span"/> should be analyzed for the given <paramref name="context"/>,
+        /// i.e. either of the following is true:
+        ///  - <see cref="OperationBlockStartAnalysisContext.FilterSpan"/> is <see langword="null"/> (we are analyzing the entire tree)
+        ///  OR
+        ///  - <paramref name="span"/> intersects with <see cref="OperationBlockStartAnalysisContext.FilterSpan"/>.
+        /// </summary>
+        public static bool ShouldAnalyzeSpan(this OperationBlockStartAnalysisContext context, TextSpan span)
+            => ShouldAnalyze(context.FilterSpan, span);
+
+        /// <summary>
+        /// Returns true if the given <paramref name="span"/> should be analyzed for the given <paramref name="context"/>,
+        /// i.e. either of the following is true:
+        ///  - <see cref="OperationBlockAnalysisContext.FilterSpan"/> is <see langword="null"/> (we are analyzing the entire tree)
+        ///  OR
+        ///  - <paramref name="span"/> intersects with <see cref="OperationBlockAnalysisContext.FilterSpan"/>.
+        /// </summary>
+        public static bool ShouldAnalyzeSpan(this OperationBlockAnalysisContext context, TextSpan span)
+            => ShouldAnalyze(context.FilterSpan, span);
+
+        /// <summary>
+        /// Returns true if the given <paramref name="span"/> should be analyzed for the given <paramref name="context"/>,
+        /// i.e. either of the following is true:
+        ///  - <see cref="OperationAnalysisContext.FilterSpan"/> is <see langword="null"/> (we are analyzing the entire tree)
+        ///  OR
+        ///  - <paramref name="span"/> intersects with <see cref="OperationAnalysisContext.FilterSpan"/>.
+        /// </summary>
+        public static bool ShouldAnalyzeSpan(this OperationAnalysisContext context, TextSpan span)
+            => ShouldAnalyze(context.FilterSpan, span);
+
+        /// <summary>
+        /// Returns true if the given <paramref name="span"/> should be analyzed for the given <paramref name="context"/>,
+        /// i.e. either of the following is true:
+        ///  - <see cref="SyntaxNodeAnalysisContext.FilterSpan"/> is <see langword="null"/> (we are analyzing the entire tree)
+        ///  OR
+        ///  - <paramref name="span"/> intersects with <see cref="SyntaxNodeAnalysisContext.FilterSpan"/>.
+        /// </summary>
+        public static bool ShouldAnalyzeSpan(this SyntaxNodeAnalysisContext context, TextSpan span)
+            => ShouldAnalyze(context.FilterSpan, span);
+
+        /// <summary>
+        /// Returns true if the given <paramref name="span"/> should be analyzed for the given <paramref name="context"/>,
+        /// i.e. either of the following is true:
+        ///  - <see cref="CodeBlockStartAnalysisContext{TSytnaxKind}.FilterSpan"/> is <see langword="null"/> (we are analyzing the entire tree)
+        ///  OR
+        ///  - <paramref name="span"/> intersects with <see cref="CodeBlockStartAnalysisContext{TSytnaxKind}.FilterSpan"/>.
+        /// </summary>
+        public static bool ShouldAnalyzeSpan<TSytnaxKind>(this CodeBlockStartAnalysisContext<TSytnaxKind> context, TextSpan span) where TSytnaxKind : struct
+            => ShouldAnalyze(context.FilterSpan, span);
+
+        /// <summary>
+        /// Returns true if the given <paramref name="span"/> should be analyzed for the given <paramref name="context"/>,
+        /// i.e. either of the following is true:
+        ///  - <see cref="CodeBlockAnalysisContext.FilterSpan"/> is <see langword="null"/> (we are analyzing the entire tree)
+        ///  OR
+        ///  - <paramref name="span"/> intersects with <see cref="CodeBlockAnalysisContext.FilterSpan"/>.
+        /// </summary>
+        public static bool ShouldAnalyzeSpan(this CodeBlockAnalysisContext context, TextSpan span)
+            => ShouldAnalyze(context.FilterSpan, span);
 
         /// <summary>
         /// Gets the root node in the analysis span for the given <paramref name="context"/>.
@@ -97,5 +167,53 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfFalse(context.FilterSpan.HasValue);
             return context.FilterTree.GetNodeForSpan(context.FilterSpan, findInTrivia, getInnermostNodeForTie, context.CancellationToken);
         }
+
+        /// <summary>
+        /// Gets the root node in the analysis span for the given <paramref name="context"/>.
+        /// NOTE: This method expects <see cref="SymbolAnalysisContext.FilterTree"/>
+        /// and <see cref="SymbolAnalysisContext.FilterSpan"/> to be non-null. 
+        /// </summary>
+        public static SyntaxNode GetAnalysisRoot(this SymbolAnalysisContext context, bool findInTrivia, bool getInnermostNodeForTie = false)
+        {
+            Contract.ThrowIfNull(context.FilterTree);
+            Contract.ThrowIfFalse(context.FilterSpan.HasValue);
+            return context.FilterTree.GetNodeForSpan(context.FilterSpan, findInTrivia, getInnermostNodeForTie, context.CancellationToken);
+        }
+
+        /// <summary>
+        /// Gets the root node in the analysis span for the given <paramref name="context"/>.
+        /// </summary>
+        public static SyntaxNode GetAnalysisRoot(this OperationBlockStartAnalysisContext context, IOperation operationBlock, bool findInTrivia, bool getInnermostNodeForTie = false)
+            => operationBlock.Syntax.GetNodeForSpan(context.FilterSpan, findInTrivia, getInnermostNodeForTie);
+
+        /// <summary>
+        /// Gets the root node in the analysis span for the given <paramref name="context"/>.
+        /// </summary>
+        public static SyntaxNode GetAnalysisRoot(this OperationBlockAnalysisContext context, IOperation operationBlock, bool findInTrivia, bool getInnermostNodeForTie = false)
+            => operationBlock.Syntax.GetNodeForSpan(context.FilterSpan, findInTrivia, getInnermostNodeForTie);
+
+        /// <summary>
+        /// Gets the root node in the analysis span for the given <paramref name="context"/>.
+        /// </summary>
+        public static SyntaxNode GetAnalysisRoot(this OperationAnalysisContext context, bool findInTrivia, bool getInnermostNodeForTie = false)
+            => context.Operation.Syntax.GetNodeForSpan(context.FilterSpan, findInTrivia, getInnermostNodeForTie);
+
+        /// <summary>
+        /// Gets the root node in the analysis span for the given <paramref name="context"/>.
+        /// </summary>
+        public static SyntaxNode GetAnalysisRoot(this SyntaxNodeAnalysisContext context, bool findInTrivia, bool getInnermostNodeForTie = false)
+            => context.Node.GetNodeForSpan(context.FilterSpan, findInTrivia, getInnermostNodeForTie);
+
+        /// <summary>
+        /// Gets the root node in the analysis span for the given <paramref name="context"/>.
+        /// </summary>
+        public static SyntaxNode GetAnalysisRoot<TSyntaxKind>(this CodeBlockStartAnalysisContext<TSyntaxKind> context, bool findInTrivia, bool getInnermostNodeForTie = false) where TSyntaxKind : struct
+            => context.CodeBlock.GetNodeForSpan(context.FilterSpan, findInTrivia, getInnermostNodeForTie);
+
+        /// <summary>
+        /// Gets the root node in the analysis span for the given <paramref name="context"/>.
+        /// </summary>
+        public static SyntaxNode GetAnalysisRoot(this CodeBlockAnalysisContext context, bool findInTrivia, bool getInnermostNodeForTie = false)
+            => context.CodeBlock.GetNodeForSpan(context.FilterSpan, findInTrivia, getInnermostNodeForTie);
     }
 }

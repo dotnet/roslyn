@@ -113,6 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
+            // Bail out if the potential diagnostic location is outside the analysis span.
+            var diagnosticLocation = localStatement.GetLocation();
+            if (!syntaxContext.ShouldAnalyzeSpan(diagnosticLocation.SourceSpan))
+                return;
+
             // Don't convert if the as is part of a using statement
             // eg using (var x = y as MyObject) { }
             if (localStatement is UsingStatementSyntax)
@@ -264,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // Put a diagnostic with the appropriate severity on the declaration-statement itself.
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
-                localStatement.GetLocation(),
+                diagnosticLocation,
                 styleOption.Notification.Severity,
                 additionalLocations,
                 properties: null));
