@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 createSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsSpanExists(node.Syntax, spanType, (NamedTypeSymbol)getItemOrSliceHelper.Parameters[0].Type, _diagnostics.DiagnosticBag);
             }
 
-            createSpan = createSpan.Construct(node.Expression.Type, node.Expression.Type.TryGetInlineArrayElementType().Type);
+            createSpan = createSpan.Construct(node.Expression.Type, node.Expression.Type.TryGetInlineArrayElementField()!.Type);
 
             getItemOrSliceHelper = getItemOrSliceHelper.AsMember((NamedTypeSymbol)createSpan.ReturnType);
 

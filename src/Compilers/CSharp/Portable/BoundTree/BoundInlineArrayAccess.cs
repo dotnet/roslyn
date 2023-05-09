@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                  );
 #pragma warning restore format
 
-                Debug.Assert(((NamedTypeSymbol)Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Equals(Expression.Type!.TryGetInlineArrayElementType(), TypeCompareKind.ConsiderEverything));
+                Debug.Assert(((NamedTypeSymbol)Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Equals(Expression.Type?.TryGetInlineArrayElementField()?.TypeWithAnnotations ?? default, TypeCompareKind.ConsiderEverything));
             }
             else
             {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 WellKnownMember.System_ReadOnlySpan_T__get_Item or
                                 WellKnownMember.System_Span_T__get_Item);
 
-                Debug.Assert(Type.Equals(Expression.Type!.TryGetInlineArrayElementType().Type, TypeCompareKind.ConsiderEverything));
+                Debug.Assert(Type.Equals(Expression.Type?.TryGetInlineArrayElementField()?.Type, TypeCompareKind.ConsiderEverything));
             }
 #endif
         }

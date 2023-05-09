@@ -2469,31 +2469,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool HasInlineArrayAttribute(out int length);
 
-        internal TypeWithAnnotations TryGetInlineArrayElementType()
+#nullable enable
+        internal FieldSymbol? TryGetInlineArrayElementField()
         {
             Debug.Assert(HasInlineArrayAttribute(out var length) && length > 0);
 
-            TypeWithAnnotations elementType = default;
+            FieldSymbol? elementField = null;
 
             if (this.TypeKind == TypeKind.Struct)
             {
-                foreach (Symbol member in GetMembers())
+                foreach (FieldSymbol field in ((NamedTypeSymbol)this).OriginalDefinition.GetFieldsToEmit())
                 {
-                    if (member is FieldSymbol { IsStatic: false } field)
+                    if (!field.IsStatic)
                     {
-                        if (field.RefKind != RefKind.None || elementType.HasType)
+                        if (field.RefKind != RefKind.None || elementField is not null)
                         {
-                            return default;
+                            return null;
                         }
                         else
                         {
-                            elementType = field.TypeWithAnnotations;
+                            elementField = field;
                         }
                     }
                 }
             }
 
-            return elementType;
+            if (elementField is not null && elementField.ContainingType.IsGenericType)
+            {
+                elementField = elementField.AsMember((NamedTypeSymbol)this);
+            }
+
+            return elementField;
         }
     }
 }

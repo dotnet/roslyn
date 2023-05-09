@@ -4436,7 +4436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitRvalue(node.Argument);
 
-            TypeWithAnnotations type = expressionType.TryGetInlineArrayElementType();
+            TypeWithAnnotations type = expressionType.TryGetInlineArrayElementField()!.TypeWithAnnotations;
 
             if (node.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int or WellKnownMember.System_Span_T__Slice_Int_Int)
             {
@@ -7405,7 +7405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     if (!_binder.InAttributeArgument && !_binder.InParameterDefaultValue && // These checks prevent cycles caused by attribute binding when HasInlineArrayAttribute check triggers that.
                         value.Type.HasInlineArrayAttribute(out _) == true &&
-                        value.Type.TryGetInlineArrayElementType() is { HasType: true })
+                        value.Type.TryGetInlineArrayElementField() is not null)
                     {
                         return true;
                     }
