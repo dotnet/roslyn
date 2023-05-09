@@ -18,20 +18,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService, IExportedBrokeredService
 {
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
+    private readonly ProjectInitializationHandler _projectInitializationHandler;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public WorkspaceProjectFactoryService(LanguageServerWorkspaceFactory workspaceFactory)
+    public WorkspaceProjectFactoryService(LanguageServerWorkspaceFactory workspaceFactory, ProjectInitializationHandler projectInitializationHandler)
     {
         _workspaceFactory = workspaceFactory;
+        _projectInitializationHandler = projectInitializationHandler;
     }
 
     ServiceRpcDescriptor IExportedBrokeredService.Descriptor => WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor;
 
-    Task IExportedBrokeredService.InitializeAsync(CancellationToken cancellationToken)
+    async Task IExportedBrokeredService.InitializeAsync(CancellationToken cancellationToken)
     {
-        // There's nothing to initialize
-        return Task.CompletedTask;
+        await _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
     }
 
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken _)

@@ -11,6 +11,7 @@ using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
+using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
@@ -97,6 +98,10 @@ internal sealed class LanguageServerProjectSystem
 
                 _projectsToLoadAndReload.AddWork(project.AbsolutePath);
             }
+
+            // Wait for the in progress batch to complete and send a project initialized notification to the client.
+            await _projectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
+            await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
         }
     }
 

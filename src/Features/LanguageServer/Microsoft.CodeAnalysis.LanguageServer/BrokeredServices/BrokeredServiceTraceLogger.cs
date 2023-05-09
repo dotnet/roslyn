@@ -21,7 +21,7 @@ internal class BrokeredServiceTraceListener : TraceListener
     public BrokeredServiceTraceListener(ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger(nameof(BrokeredServiceTraceListener));
-        Source = new TraceSource("ServiceBroker", SourceLevels.ActivityTracing);
+        Source = new TraceSource("ServiceBroker", SourceLevels.All);
         Source.Listeners.Add(this);
     }
 
