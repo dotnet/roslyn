@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             return Task.CompletedTask;
         }
 
-        private async Task<Solution> UsePrimaryConstructorAsync(
+        private static async Task<Solution> UsePrimaryConstructorAsync(
             Document document,
             ConstructorDeclarationSyntax constructorDeclaration,
             ImmutableDictionary<string, string?> properties,
