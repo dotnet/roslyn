@@ -410,7 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (conversion.IsInlineArray)
                 {
-                    // PROTOTYPE(InlineArrays): Check language version and runtime support
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInlineArrays, diagnostics);
+
                     // PROTOTYPE(InlineArrays): Report use site errors for the field, it might have some custom modifiers that we do not like.
 
                     if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))

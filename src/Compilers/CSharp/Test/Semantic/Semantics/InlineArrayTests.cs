@@ -563,8 +563,9 @@ class Program
     static int M1(C x) => x.F[0];
     static void M2(C x) => x.F[0] = 111;
 }
-";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M1",
@@ -605,6 +606,20 @@ class Program
   IL_0019:  ret
 }
 ");
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (18,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static int M1(C x) => x.F[0];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[0]").WithArguments("inline arrays").WithLocation(18, 27),
+                // (19,28): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static void M2(C x) => x.F[0] = 111;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[0]").WithArguments("inline arrays").WithLocation(19, 28)
+                );
+
 #if false // PROTOTYPE(InlineArrays):
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -1254,8 +1269,9 @@ class Program
     static int M1(C x) => x.F[^10];
     static void M2(C x) => x.F[^10] = 111;
 }
-";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M1",
@@ -1296,6 +1312,18 @@ class Program
   IL_0019:  ret
 }
 ");
+            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (18,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static int M1(C x) => x.F[^10];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[^10]").WithArguments("inline arrays").WithLocation(18, 27),
+                // (19,28): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static void M2(C x) => x.F[^10] = 111;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[^10]").WithArguments("inline arrays").WithLocation(19, 28)
+                );
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
@@ -1385,8 +1413,9 @@ class Program
     static int M1(C x) => x.F[0];
     static System.Span<int> M2(C x) => x.F[..5];
 }
-";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -1407,6 +1436,20 @@ class Program
   IL_0017:  ret
 }
 ");
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (18,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static int M1(C x) => x.F[0];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[0]").WithArguments("inline arrays").WithLocation(18, 27),
+                // (19,40): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static System.Span<int> M2(C x) => x.F[..5];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[..5]").WithArguments("inline arrays").WithLocation(19, 40)
+                );
+
 #if false // PROTOTYPE(InlineArrays):
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -2326,8 +2369,9 @@ class Program
 
     static int? M2(C c) => c?.F[0];
 }
-";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -2356,6 +2400,19 @@ class Program
   IL_0029:  ret
 }
 ");
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (12,9): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         c.F[0] = 111;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c.F[0]").WithArguments("inline arrays").WithLocation(12, 9),
+                // (16,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static int? M2(C c) => c?.F[0];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ".F[0]").WithArguments("inline arrays").WithLocation(16, 30)
+                );
 
 #if false // PROTOTYPE(InlineArrays):
             var tree = comp.SyntaxTrees.First();
@@ -6719,8 +6776,9 @@ class Program
     static System.ReadOnlySpan<int> M1(C x) => x.F;
     static System.Span<int> M2(C x) => x.F;
 }
-";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M1",
@@ -6748,6 +6806,20 @@ class Program
   IL_000d:  ret
 }
 ");
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (18,48): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static System.ReadOnlySpan<int> M1(C x) => x.F;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F").WithArguments("inline arrays").WithLocation(18, 48),
+                // (19,40): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static System.Span<int> M2(C x) => x.F;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F").WithArguments("inline arrays").WithLocation(19, 40)
+                );
+
 #if false // PROTOTYPE(InlineArrays):
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -8246,9 +8318,23 @@ class Program
         System.Console.Write(((C)b).F);
     }
 }
-";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (14,9): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         b[0] = 111;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "b[0]").WithArguments("inline arrays").WithLocation(14, 9),
+                // (15,34): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write(((C)b).F);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "b").WithArguments("inline arrays").WithLocation(15, 34)
+                );
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]

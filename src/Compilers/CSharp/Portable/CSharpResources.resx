@@ -7517,4 +7517,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InlineArrayConversionToReadOnlySpanNotSupported" xml:space="preserve">
     <value>Cannot convert expression to '{0}' because it may not be passed or returned by reference</value>
   </data>
+  <data name="IDS_FeatureInlineArrays" xml:space="preserve">
+    <value>inline arrays</value>
+  </data>
 </root>
