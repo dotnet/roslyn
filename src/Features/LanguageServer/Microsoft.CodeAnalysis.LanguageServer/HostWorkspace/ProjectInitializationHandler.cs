@@ -21,6 +21,7 @@ internal class ProjectInitializationHandler : IDisposable
 {
     private const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
 
+    private readonly IServiceBroker _serviceBroker;
     private readonly ServiceBrokerClient _serviceBrokerClient;
     private readonly ILogger _logger;
 
@@ -33,7 +34,8 @@ internal class ProjectInitializationHandler : IDisposable
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ProjectInitializationHandler([Import(typeof(SVsFullAccessServiceBroker))] IServiceBroker serviceBroker, ILoggerFactory loggerFactory)
     {
-        serviceBroker.AvailabilityChanged += AvailabilityChanged;
+        _serviceBroker = serviceBroker;
+        _serviceBroker.AvailabilityChanged += AvailabilityChanged;
         _serviceBrokerClient = new ServiceBrokerClient(serviceBroker, joinableTaskFactory: null);
 
         _logger = loggerFactory.CreateLogger<ProjectInitializationHandler>();
@@ -80,6 +82,7 @@ internal class ProjectInitializationHandler : IDisposable
 
     public void Dispose()
     {
+        _serviceBroker.AvailabilityChanged -= AvailabilityChanged;
         _subscription?.Dispose();
         _serviceBrokerClient.Dispose();
     }
@@ -112,6 +115,5 @@ internal class ProjectInitializationHandler : IDisposable
             _ = SendProjectInitializationCompleteNotificationAsync().ReportNonFatalErrorAsync();
         }
     }
-
 }
 #pragma warning restore RS0030 // Do not used banned APIs
