@@ -299,9 +299,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                        ISymbol owningSymbol,
                                                        SemanticModel semanticModel,
                                                        AnalyzerOptions options,
+                                                       TextSpan? filterSpan, 
                                                        bool isGeneratedCode,
                                                        CancellationToken cancellationToken)
-            : base(codeBlock, owningSymbol, semanticModel, options, isGeneratedCode, cancellationToken)
+            : base(codeBlock, owningSymbol, semanticModel, options, filterSpan, isGeneratedCode, cancellationToken)
         {
             _analyzer = analyzer;
             _scope = scope;
@@ -335,9 +336,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                             Compilation compilation,
                                                             AnalyzerOptions options,
                                                             Func<IOperation, ControlFlowGraph> getControlFlowGraph,
+                                                            TextSpan? filterSpan,
                                                             bool isGeneratedCode,
                                                             CancellationToken cancellationToken)
-            : base(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph, isGeneratedCode, cancellationToken)
+            : base(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph, filterSpan, isGeneratedCode, cancellationToken)
         {
             _analyzer = analyzer;
             _scope = scope;

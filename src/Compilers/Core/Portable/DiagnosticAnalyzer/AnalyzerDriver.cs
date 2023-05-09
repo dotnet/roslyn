@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Execute actions for a given analyzer sequentially.
-                    AnalyzerExecutor.ExecuteAdditionalFileActions(additionalFileActions, analyzer, file, cancellationToken);
+                    AnalyzerExecutor.ExecuteAdditionalFileActions(additionalFileActions, analyzer, file, analysisScope.FilterSpanOpt, cancellationToken);
                 }
             }
         }
@@ -2561,7 +2561,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     AnalyzerExecutor.ExecuteSyntaxNodeActions(
                         filteredNodesToAnalyze, groupedActionsForAnalyzer.NodeActionsByAnalyzerAndKind,
                         analyzer, semanticModel, _getKind, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan,
-                        symbol, isInGeneratedCode, hasCodeBlockStartOrSymbolStartActions: groupedActionsForAnalyzer.HasCodeBlockStartActions || arePerSymbolActions,
+                        symbol, analysisScope.FilterSpanOpt, isInGeneratedCode, hasCodeBlockStartOrSymbolStartActions: groupedActionsForAnalyzer.HasCodeBlockStartActions || arePerSymbolActions,
                         cancellationToken);
                 }
             }
@@ -2670,7 +2670,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     AnalyzerExecutor.ExecuteOperationActions(filteredOperationsToAnalyze, operationActionsByKind,
                         analyzer, semanticModel, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan,
-                        symbol, isInGeneratedCode, hasOperationBlockStartOrSymbolStartActions: groupedActionsForAnalyzer.HasOperationBlockStartActions || arePerSymbolActions,
+                        symbol, analysisScope.FilterSpanOpt, isInGeneratedCode, hasOperationBlockStartOrSymbolStartActions: groupedActionsForAnalyzer.HasOperationBlockStartActions || arePerSymbolActions,
                         cancellationToken);
                 }
             }
@@ -2699,7 +2699,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     AnalyzerExecutor.ExecuteOperationBlockActions(
                         analyzerActions.OperationBlockStartActions, analyzerActions.OperationBlockActions,
                         analyzerActions.OperationBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
-                        operationBlocksToAnalyze, operationsToAnalyze, semanticModel, isInGeneratedCode, cancellationToken);
+                        operationBlocksToAnalyze, operationsToAnalyze, semanticModel, analysisScope.FilterSpanOpt, isInGeneratedCode, cancellationToken);
                 }
             }
 
@@ -2727,7 +2727,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     AnalyzerExecutor.ExecuteCodeBlockActions(
                         analyzerActions.CodeBlockStartActions, analyzerActions.CodeBlockActions,
                         analyzerActions.CodeBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
-                        executableCodeBlocks, semanticModel, _getKind, isInGeneratedCode, cancellationToken);
+                        executableCodeBlocks, semanticModel, _getKind, analysisScope.FilterSpanOpt, isInGeneratedCode, cancellationToken);
                 }
             }
 

@@ -2891,9 +2891,16 @@ namespace Microsoft.CodeAnalysis
             public enum AnalysisKind
             {
                 SyntaxTree,
+                AdditionalFile,
                 SemanticModel,
                 Symbol,
-                SymbolStart
+                SymbolStart,
+                Operation,
+                OperationBlockStart,
+                OperationBlock,
+                SyntaxNode,
+                CodeBlockStart,
+                CodeBlock,
             }
 
             private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
@@ -2913,6 +2920,7 @@ namespace Microsoft.CodeAnalysis
 
             public TextSpan? CallbackFilterSpan { get; private set; }
             public SyntaxTree CallbackFilterTree { get; private set; }
+            public AdditionalText CallbackFilterFile { get; private set; }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
 
@@ -2925,6 +2933,14 @@ namespace Microsoft.CodeAnalysis
                         {
                             CallbackFilterSpan = context.FilterSpan;
                             CallbackFilterTree = context.Tree;
+                        });
+                        break;
+
+                    case AnalysisKind.AdditionalFile:
+                        context.RegisterAdditionalFileAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterFile = context.AdditionalFile;
                         });
                         break;
 
@@ -2958,7 +2974,78 @@ namespace Microsoft.CodeAnalysis
                                 if (startContext.FilterSpan != endContext.FilterSpan)
                                     throw new InvalidOperationException("Mismatched FilterSpan");
                             });
-                        }, SymbolKind.NamedType); break;
+                        }, SymbolKind.NamedType);
+                        break;
+
+                    case AnalysisKind.Operation:
+                        context.RegisterOperationAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.Operation.Syntax.SyntaxTree;
+                        }, OperationKind.VariableDeclarationGroup);
+                        break;
+
+                    case AnalysisKind.OperationBlockStart:
+                        context.RegisterOperationBlockStartAction(startContext =>
+                        {
+                            CallbackFilterSpan = startContext.FilterSpan;
+                            var filterTree = startContext.OperationBlocks.First().Syntax.SyntaxTree;
+                            CallbackFilterTree = filterTree;
+
+                            startContext.RegisterOperationBlockEndAction(endContext =>
+                            {
+                                if (filterTree != endContext.OperationBlocks.First().Syntax.SyntaxTree)
+                                    throw new InvalidOperationException("Mismatched FilterTree");
+
+                                if (startContext.FilterSpan != endContext.FilterSpan)
+                                    throw new InvalidOperationException("Mismatched FilterSpan");
+                            });
+                        });
+                        break;
+
+                    case AnalysisKind.OperationBlock:
+                        context.RegisterOperationBlockAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.OperationBlocks.First().Syntax.SyntaxTree;
+                        });
+                        break;
+
+                    case AnalysisKind.SyntaxNode:
+                        context.RegisterSyntaxNodeAction<SyntaxKind>(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.Node.SyntaxTree;
+                        }, SyntaxKind.LocalDeclarationStatement);
+                        break;
+
+                    case AnalysisKind.CodeBlockStart:
+                        context.RegisterCodeBlockStartAction<SyntaxKind>(startContext =>
+                        {
+                            CallbackFilterSpan = startContext.FilterSpan;
+                            CallbackFilterTree = startContext.CodeBlock.SyntaxTree;
+
+                            startContext.RegisterCodeBlockEndAction(endContext =>
+                            {
+                                if (startContext.CodeBlock.SyntaxTree != endContext.CodeBlock.SyntaxTree)
+                                    throw new InvalidOperationException("Mismatched FilterTree");
+
+                                if (startContext.FilterSpan != endContext.FilterSpan)
+                                    throw new InvalidOperationException("Mismatched FilterSpan");
+                            });
+                        });
+                        break;
+
+                    case AnalysisKind.CodeBlock:
+                        context.RegisterCodeBlockAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.CodeBlock.SyntaxTree;
+                        });
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(_analysisKind);
                 }
             }
         }

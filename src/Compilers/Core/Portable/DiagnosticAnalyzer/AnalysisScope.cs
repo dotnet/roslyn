@@ -147,10 +147,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(!filterSpan.HasValue || filterFile.HasValue);
 
-            if (filterSpan.HasValue)
+            if (filterSpan.HasValue && filterFile.GetValueOrDefault().SourceTree != null)
             {
                 Debug.Assert(filterFile.HasValue);
-                Debug.Assert(filterFile.GetValueOrDefault().SourceTree != null);
 
                 // PERF: Clear out filter span if the span length is equal to the entire tree span, and the filter span starts at 0.
                 //       We are basically analyzing the entire tree, and clearing out the filter span

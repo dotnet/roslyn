@@ -1,15 +1,24 @@
 *REMOVED*static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SyntaxList<TNode!>(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
 Microsoft.CodeAnalysis.Compilation.SupportsRuntimeCapability(Microsoft.CodeAnalysis.RuntimeCapability capability) -> bool
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.AdditionalText! file, Microsoft.CodeAnalysis.Text.TextSpan? filterSpan, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult!>!
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.AdditionalText! file, Microsoft.CodeAnalysis.Text.TextSpan? filterSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult!>!
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.SyntaxTree! tree, Microsoft.CodeAnalysis.Text.TextSpan? filterSpan, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult!>!
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.SyntaxTree! tree, Microsoft.CodeAnalysis.Text.TextSpan? filterSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult!>!
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(Microsoft.CodeAnalysis.SyntaxTree! tree, Microsoft.CodeAnalysis.Text.TextSpan? filterSpan, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(Microsoft.CodeAnalysis.SyntaxTree! tree, Microsoft.CodeAnalysis.Text.TextSpan? filterSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
 Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
 Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
 Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree?
 Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
 Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree?
+Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
 Microsoft.CodeAnalysis.Emit.MethodInstrumentation
 Microsoft.CodeAnalysis.Emit.MethodInstrumentation.Kinds.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Emit.InstrumentationKind>

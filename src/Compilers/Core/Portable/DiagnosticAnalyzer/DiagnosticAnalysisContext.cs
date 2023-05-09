@@ -985,6 +985,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options { get { return _options; } }
 
         /// <summary>
+        /// Optional filter span for which to compute diagnostics.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Indicates if the <see cref="CodeBlock"/> is generated code.
         /// </summary>
         public bool IsGeneratedCode { get; }
@@ -996,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [Obsolete("Use CompilationWithAnalyzers instead. See https://github.com/dotnet/roslyn/issues/63440 for more details.")]
         protected CodeBlockStartAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
-            : this(codeBlock, owningSymbol, semanticModel, options, isGeneratedCode: false, cancellationToken)
+            : this(codeBlock, owningSymbol, semanticModel, options, filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -1005,6 +1010,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ISymbol owningSymbol,
             SemanticModel semanticModel,
             AnalyzerOptions options,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -1012,6 +1018,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _owningSymbol = owningSymbol;
             _semanticModel = semanticModel;
             _options = options;
+            FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
@@ -1080,6 +1087,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options { get { return _options; } }
 
         /// <summary>
+        /// Optional filter span for which to compute diagnostics.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Indicates if the <see cref="CodeBlock"/> is generated code.
         /// </summary>
         public bool IsGeneratedCode { get; }
@@ -1091,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [Obsolete("Use CompilationWithAnalyzers instead. See https://github.com/dotnet/roslyn/issues/63440 for more details.")]
         public CodeBlockAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-            : this(codeBlock, owningSymbol, semanticModel, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), isGeneratedCode: false, cancellationToken)
+            : this(codeBlock, owningSymbol, semanticModel, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -1102,6 +1114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -1111,6 +1124,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
@@ -1175,6 +1189,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
+        /// Optional filter span for which to compute diagnostics.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Indicates if the <see cref="OperationBlocks"/> is generated code.
         /// </summary>
         public bool IsGeneratedCode { get; }
@@ -1191,7 +1210,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Compilation compilation,
             AnalyzerOptions options,
             CancellationToken cancellationToken)
-            : this(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph: null, isGeneratedCode: false, cancellationToken)
+            : this(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph: null, filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -1201,6 +1220,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Compilation compilation,
             AnalyzerOptions options,
             Func<IOperation, ControlFlowGraph>? getControlFlowGraph,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -1209,6 +1229,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilation = compilation;
             _options = options;
             _getControlFlowGraph = getControlFlowGraph;
+            FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
@@ -1300,6 +1321,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
+        /// Optional filter span for which to compute diagnostics.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Indicates if the <see cref="OperationBlocks"/> is generated code.
         /// </summary>
         public bool IsGeneratedCode { get; }
@@ -1318,7 +1344,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
-            : this(operationBlocks, owningSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), getControlFlowGraph: null, isGeneratedCode: false, cancellationToken)
+            : this(operationBlocks, owningSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), getControlFlowGraph: null, filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -1330,6 +1356,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
             Func<IOperation, ControlFlowGraph>? getControlFlowGraph,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -1340,6 +1367,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _getControlFlowGraph = getControlFlowGraph;
+            FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
@@ -1477,6 +1505,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options { get; }
 
         /// <summary>
+        /// Optional filter span for which to compute diagnostics.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken { get; }
@@ -1492,6 +1525,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
             Compilation compilation,
+            TextSpan? filterSpan,
             CancellationToken cancellationToken)
         {
             AdditionalFile = additionalFile;
@@ -1499,6 +1533,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             Compilation = compilation;
+            FilterSpan = filterSpan;
             CancellationToken = cancellationToken;
         }
 
@@ -1557,6 +1592,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
+        /// Optional filter span for which to compute diagnostics.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Indicates if the <see cref="Node"/> is generated code.
         /// </summary>
         public bool IsGeneratedCode { get; }
@@ -1568,13 +1608,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [Obsolete("Use CompilationWithAnalyzers instead. See https://github.com/dotnet/roslyn/issues/63440 for more details.")]
         public SyntaxNodeAnalysisContext(SyntaxNode node, ISymbol? containingSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-            : this(node, containingSymbol, semanticModel, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), isGeneratedCode: false, cancellationToken)
+            : this(node, containingSymbol, semanticModel, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
         [Obsolete("Use CompilationWithAnalyzers instead. See https://github.com/dotnet/roslyn/issues/63440 for more details.")]
         public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-           : this(node, null, semanticModel, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), isGeneratedCode: false, cancellationToken)
+           : this(node, null, semanticModel, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -1585,6 +1625,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -1594,6 +1635,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
@@ -1648,6 +1690,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
+        /// Optional filter span for which to compute diagnostics.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Indicates if the <see cref="Operation"/> is generated code.
         /// </summary>
         public bool IsGeneratedCode { get; }
@@ -1666,7 +1713,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
-            : this(operation, containingSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), getControlFlowGraph: null, isGeneratedCode: false, cancellationToken)
+            : this(operation, containingSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), getControlFlowGraph: null, filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -1678,6 +1725,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
             Func<IOperation, ControlFlowGraph>? getControlFlowGraph,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -1688,6 +1736,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _getControlFlowGraph = getControlFlowGraph;
+            FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
