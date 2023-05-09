@@ -659,7 +659,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">Não há suporte para o uso de um tipo de ponteiro de função em um 'typeof' em um atributo.</target>
+        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -1004,7 +1004,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single record partial declaration may have a parameter list</source>
-        <target state="translated">Apenas uma declaração parcial de registro único pode ter uma lista de parâmetros</target>
+        <target state="new">Only a single record partial declaration may have a parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1279,7 +1279,7 @@
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="translated">Um construtor declarado em uma 'estrutura de registro' com lista de parâmetros deve ter um inicializador 'este' que chama o construtor primário ou um construtor declarado explicitamente.</target>
+        <target state="new">A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1619,7 +1619,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
         <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
-        <target state="translated">UnscopedRefAttribute não pode ser aplicado a este item porque não tem escopo por padrão.</target>
+        <target state="new">UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -2324,7 +2324,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
         <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
-        <target state="translated">Um construtor declarado em um registro com a lista de parâmetros precisa ter o inicializador de construtor 'this'.</target>
+        <target state="new">A constructor declared in a record with parameter list must have 'this' constructor initializer.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVarianceStaticMember">
@@ -5238,7 +5238,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
         <source>A property or indexer may not be passed as an out or ref parameter</source>
-        <target state="translated">Talvez uma propriedade ou um indexador não possa ser passado como um parâmetro out ou ref</target>
+        <target state="new">A property or indexer may not be passed as an out or ref parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -8446,7 +8446,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
         <source>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</source>
-        <target state="translated">Como este é um método assíncrono, a expressão de retorno deve ser do tipo "{0}" em vez de "Task&lt;{0}&gt;"</target>
+        <target state="new">Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -9609,7 +9609,7 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
         <source>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">Como "{0}" é um método assíncrono que retorna "Task", uma palavra-chave return não deve ser seguida por uma expressão de objeto. Você pretendia retornar "Task&lt;T&gt;"?</target>
+        <target state="new">Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -10146,22 +10146,22 @@ Você pode suprimir o aviso se tiver certeza de que não vai querer aguardar a c
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat">
         <source>The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</source>
-        <target state="translated">A cadeia de caracteres de versão especificada não está de acordo com o formato necessário - major[.minor [.build[.revision]]]</target>
+        <target state="new">The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
-        <target state="translated">A cadeia de caracteres da versão especificada contém curingas, que não são compatíveis com o determinismo. Remova os curingas da cadeia de caracteres da versão ou desabilite o determinismo da compilação</target>
+        <target state="new">The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
         <source>The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</source>
-        <target state="translated">A cadeia de caracteres da versão especificada não está em conformidade com o formato necessário – major.minor.build.revision (sem curingas)</target>
+        <target state="new">The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat">
         <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">A cadeia de caracteres de versão especificada não está de acordo com o formato recomendado - major.minor.build.revision</target>
+        <target state="new">The specified version string does not conform to the recommended format - major.minor.build.revision</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat_Title">
@@ -11039,7 +11039,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
         <source>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">Expressão lambda assíncrona convertida a um representante de retorno "Task" não pode retornar um valor. Você pretendia retornar "Task&lt;T&gt;"?</target>
+        <target state="new">Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">

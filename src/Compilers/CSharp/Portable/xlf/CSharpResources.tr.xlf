@@ -659,7 +659,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">Öznitelikte bir 'typeof' içinde işlev işaretçisi türü kullanılması desteklenmez.</target>
+        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -1004,7 +1004,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single record partial declaration may have a parameter list</source>
-        <target state="translated">Yalnızca tek kaydın kısmi bildiriminde parametre listesi olabilir</target>
+        <target state="new">Only a single record partial declaration may have a parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1279,7 +1279,7 @@
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="translated">Parametre listesiyle bir “kayıt yapısı”nda bildirilen bir oluşturucu, birincil oluşturucuyu veya açıkça bildirilen bir oluşturucuyu çağıran bir “this” başlatıcısına sahip olmalıdır.</target>
+        <target state="new">A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1619,7 +1619,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
         <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
-        <target state="translated">UnscopedRefAttribute varsayılan olarak kapsam dışı olduğundan bu öğeye uygulanamaz.</target>
+        <target state="new">UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -2324,7 +2324,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
         <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
-        <target state="translated">Parametre listesi içeren bir kayıtta bildirilen bir oluşturucu, 'this' oluşturucu başlatıcısına sahip olmalıdır.</target>
+        <target state="new">A constructor declared in a record with parameter list must have 'this' constructor initializer.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVarianceStaticMember">
@@ -5238,7 +5238,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
         <source>A property or indexer may not be passed as an out or ref parameter</source>
-        <target state="translated">Bir özellik veya dizin erişimcisi, out veya ref parametresi olarak geçilemez</target>
+        <target state="new">A property or indexer may not be passed as an out or ref parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -8446,7 +8446,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
         <source>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</source>
-        <target state="translated">Bu zaman uyumsuz bir yöntem olduğundan, dönüş ifadesi 'Task&lt;{0}&gt;' yerine '{0}' türünde olmalıdır</target>
+        <target state="new">Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -9609,7 +9609,7 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
         <source>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">'{0}' 'Task' döndüren zaman uyumsuz bir yöntem olduğundan, dönüş anahtar sözcüğü bir nesne ifadesi tarafından izlenmemelidir. 'Task&lt;T&gt;' döndürmek mi istiyordunuz?</target>
+        <target state="new">Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -10146,22 +10146,22 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat">
         <source>The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</source>
-        <target state="translated">Belirtilen sürüm dizesi gereken biçime uymuyor - major[.minor[.build[.revision]]]</target>
+        <target state="new">The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
-        <target state="translated">Belirtilen sürüm dizesi gerekircilikle uyumlu olmayan joker karakterler içeriyor. Joker karakterleri sürüm dizesinden kaldırın veya bu derleme için gerekirciliği devre dışı bırakın</target>
+        <target state="new">The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
         <source>The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</source>
-        <target state="translated">Belirtilen sürüm dizesi gerekli biçime uygun değil - ana.ikincil.derleme.düzeltme (joker karakter olmadan)</target>
+        <target state="new">The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat">
         <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">Belirtilen sürüm dizesi önerilen biçime uymuyor - major.minor.build.revision</target>
+        <target state="new">The specified version string does not conform to the recommended format - major.minor.build.revision</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat_Title">
@@ -11039,7 +11039,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
         <source>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">Bir 'Task' döndüren temsilciye dönüştürülmüş zaman uyumsuz lambda ifadesi bir değer döndüremez. 'Task&lt;T&gt;' döndürmek mi istiyordunuz?</target>
+        <target state="new">Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">
