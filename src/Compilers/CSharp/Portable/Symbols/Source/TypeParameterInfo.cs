@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Wrapper around type-parameter/constraints/constraint-kind info.  We wrap this information (instead of inlining
     /// directly within type/method symbols) as most types/methods are not generic.  As such, all those non-generic
-    /// types can point at the singleton sentivel <see cref="Empty"/> value, and avoid two pointers of overhead.
+    /// types can point at the singleton sentinel <see cref="Empty"/> value, and avoid two pointers of overhead.
     /// </summary>
     internal sealed class TypeParameterInfo
     {
