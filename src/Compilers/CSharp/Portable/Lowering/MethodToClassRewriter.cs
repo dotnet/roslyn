@@ -613,7 +613,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (method.ContainingType is null)
             {
-                Debug.Assert(method is SynthesizedGlobalMethodSymbol);
+                Debug.Assert(method.OriginalDefinition is SynthesizedGlobalMethodSymbol);
+
+                // PROTOTYPE(InlineArrays): Visit type arguments and construct, if necessary. Check for other similar places. 
                 return method;
             }
             else if (method.ContainingType.IsAnonymousType)

@@ -410,6 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (conversion.IsInlineArray)
                 {
+                    // PROTOTYPE(InlineArrays): Check runtime support
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInlineArrays, diagnostics);
 
                     // PROTOTYPE(InlineArrays): Report use site errors for the field, it might have some custom modifiers that we do not like.

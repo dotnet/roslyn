@@ -8088,6 +8088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ = GetWellKnownTypeMember(createSpanHelper, diagnostics, syntax: node);
                 _ = GetWellKnownTypeMember(getItemOrSliceHelper, diagnostics, syntax: node);
 
+                // PROTOTYPE(InlineArrays): Check runtime support
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureInlineArrays, diagnostics);
 
                 // PROTOTYPE(InlineArrays): Verify constraints for the elementType (can be used as a type argument)
