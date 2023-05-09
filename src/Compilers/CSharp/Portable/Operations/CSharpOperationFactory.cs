@@ -1227,6 +1227,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 case ConstructibleCollectionTypeKind.None:
                 case ConstructibleCollectionTypeKind.CollectionInitializer:
+                case ConstructibleCollectionTypeKind.ListInterface:
                     return CreateBoundCollectionInitializerCollectionLiteralExpression(boundCollectionLiteralExpression);
                 case ConstructibleCollectionTypeKind.Array:
                 case ConstructibleCollectionTypeKind.Span:
