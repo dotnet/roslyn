@@ -31,10 +31,6 @@ using static SyntaxFactory;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePrimaryConstructor), Shared]
 internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvider
 {
-    private const string s_summaryTagName = "summary";
-    private const string s_remarksTagName = "remarks";
-    private const string s_paramTagName = "param";
-
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpUsePrimaryConstructorCodeFixProvider()
