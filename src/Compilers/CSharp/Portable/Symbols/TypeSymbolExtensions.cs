@@ -1434,27 +1434,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return checkedTypes.Add(type);
         }
 
-        internal static bool IsUnsafe(this TypeSymbol type)
-        {
-            while (true)
-            {
-                switch (type.TypeKind)
-                {
-                    case TypeKind.Pointer:
-                    case TypeKind.FunctionPointer:
-                        return true;
-                    case TypeKind.Array:
-                        type = ((ArrayTypeSymbol)type).ElementType;
-                        break;
-                    default:
-                        // NOTE: we could consider a generic type with unsafe type arguments to be unsafe,
-                        // but that's already an error, so there's no reason to report it.  Also, this
-                        // matches Type::isUnsafe in Dev10.
-                        return false;
-                }
-            }
-        }
-
         internal static bool IsVoidPointer(this TypeSymbol type)
         {
             return type is PointerTypeSymbol p && p.PointedAtType.IsVoidType();
