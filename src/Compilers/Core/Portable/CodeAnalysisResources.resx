@@ -757,6 +757,6 @@
     <value>Invalid instrumentation kind: {0}</value>
   </data>
   <data name="LineCannotBeGreaterThanEnd" xml:space="preserve">
-    <value>The requested line number {0} is greater than the number of lines {1}.</value>
+    <value>The requested line number {0} must be less than the number of lines {1}.</value>
   </data>
 </root>
