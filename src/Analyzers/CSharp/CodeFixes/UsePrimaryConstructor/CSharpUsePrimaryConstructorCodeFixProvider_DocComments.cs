@@ -35,7 +35,10 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
         => trivia.LastOrDefault(t => t.IsSingleLineDocComment());
 
     private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxNode node)
-        => GetDocCommentStructure(GetDocComment(node));
+        => GetDocCommentStructure(node.GetLeadingTrivia());
+
+    private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxTriviaList trivia)
+        => GetDocCommentStructure(GetDocComment(trivia));
 
     private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxTrivia trivia)
         => (DocumentationCommentTriviaSyntax?)trivia.GetStructure();
@@ -71,7 +74,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
         }
 
         static XmlElementSyntax WithNameAttribute(XmlElementSyntax element, string parameterName)
-            => element.ReplaceNode(element.StartTag, element.StartTag.AddAttributes(XmlNameAttribute(parameterName)));
+            => element.ReplaceNode(element, element.AddStartTagAttributes(XmlNameAttribute(parameterName)));
 
         static IEnumerable<XmlNodeSyntax> ConvertSummaryToRemarks(IEnumerable<XmlNodeSyntax> nodes)
         {
@@ -180,30 +183,52 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                     docCommentsToMove.Add((parameterName, removedMemberDocComment)!);
             }
 
-            var existingTypeDeclarationDocComment = GetDocComment(typeDeclarationLeadingTrivia);
-
-            // Simple case, no doc comments on either
-            if (typeDeclarationLeadingTrivia == default && docCommentsToMove.Count == 0)
+            if (docCommentsToMove.Count == 0)
                 return typeDeclarationLeadingTrivia;
 
-            if (existingTypeDeclarationDocComment == default)
+            using var _2 = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var allContent);
+
+            var existingTypeDeclarationDocComment = GetDocCommentStructure(typeDeclarationLeadingTrivia);
+            if (existingTypeDeclarationDocComment == null)
             {
                 // type doesn't have doc comment, create a fresh one from all the doc comments removed.
-                using var _2 = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var allContent);
                 foreach (var (parameterName, commentToMove) in docCommentsToMove)
                     allContent.AddRange(ConvertSummaryToParam(commentToMove.Content, parameterName));
+            }
+            else
+            {
+                // type already has a doc comments.  Move the member doc comments over, unless we see an existing
+                // `<param>` node for the item.  This was we don't duplicate things.
+                allContent.AddRange(existingTypeDeclarationDocComment.Content);
 
-                var insertionIndex = typeDeclarationLeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)]
-                    ? typeDeclarationLeadingTrivia.Count - 1
-                    : typeDeclarationLeadingTrivia.Count;
+                using var _3 = PooledHashSet<string>.GetInstance(out var existingParamNodeNames);
+                foreach (var node in existingTypeDeclarationDocComment.Content)
+                {
+                    if (IsXmlElement(node, s_paramTagName, out var paramElement))
+                    {
+                        foreach (var attribute in paramElement.StartTag.Attributes)
+                        {
+                            if (attribute is XmlNameAttributeSyntax nameAttribute)
+                                existingParamNodeNames.Add(nameAttribute.Identifier.Identifier.ValueText);
+                        }
+                    }
+                }
 
-                var newDocComment = Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(allContent)));
-                return typeDeclarationLeadingTrivia.Insert(
-                    insertionIndex,
-                    newDocComment.WithAdditionalAnnotations(Formatter.Annotation));
+                foreach (var (parameterName, commentToMove) in docCommentsToMove)
+                {
+                    if (!existingParamNodeNames.Contains(parameterName))
+                        allContent.AddRange(ConvertSummaryToParam(commentToMove.Content, parameterName));
+                }
             }
 
-            return typeDeclarationLeadingTrivia;
+            var insertionIndex = typeDeclarationLeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)]
+                ? typeDeclarationLeadingTrivia.Count - 1
+                : typeDeclarationLeadingTrivia.Count;
+
+            var newDocComment = Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(allContent)));
+            return typeDeclarationLeadingTrivia.Insert(
+                insertionIndex,
+                newDocComment.WithAdditionalAnnotations(Formatter.Annotation));
         }
     }
 }
