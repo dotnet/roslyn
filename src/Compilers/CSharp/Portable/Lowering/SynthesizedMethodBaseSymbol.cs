@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 returnsVoid: baseMethod.ReturnsVoid,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: false,
-                isMetadataVirtualIgnoringModifiers: false);
+                isMetadataVirtualIgnoringModifiers: false,
+                isExpressionBodied: false);
         }
 
         protected void AssignTypeMapAndTypeParameters(TypeMap typeMap, ImmutableArray<TypeParameterSymbol> typeParameters)
@@ -225,11 +226,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool IsImplicitlyDeclared
         {
             get { return true; }
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get { return false; }
         }
     }
 }

@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
         private const TypeCompareKind ComparisonForUserDefinedOperators = TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
         private readonly string _name;
-        private readonly bool _isExpressionBodied;
 #nullable enable
         private readonly TypeSymbol? _explicitInterfaceType;
 #nullable disable
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _explicitInterfaceType = explicitInterfaceType;
             _name = name;
-            _isExpressionBodied = isExpressionBodied;
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
 
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // assume that the return type is non-void; when we do the lazy initialization
             // of the parameters and return type we will update the flag if necessary.
 
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (this.ContainingType.IsInterface &&
                 !(IsAbstract || IsVirtual) && !IsExplicitInterfaceImplementation &&
@@ -793,11 +791,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override RefKind RefKind
         {
             get { return RefKind.None; }
-        }
-
-        internal sealed override bool IsExpressionBodied
-        {
-            get { return _isExpressionBodied; }
         }
 
         protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
