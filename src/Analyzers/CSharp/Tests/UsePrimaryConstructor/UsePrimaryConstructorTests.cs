@@ -630,6 +630,49 @@ public partial class UsePrimaryConstructorTests
     }
 
     [Fact]
+    public async Task TestRemoveMembersOnlyMembersWithoutAttributes()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            class C
+            {
+                private int _i;
+                [CLSCompliant(true)]
+                private int _j;
+
+                public [|C|](int i, int j)
+                {
+                    _i = i;
+                    _j = j;
+                }
+
+                void M()
+                {
+                    Console.WriteLine(_i + _j);
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+            class C(int i, int j)
+            {
+                [CLSCompliant(true)]
+                private int _j = j;
+
+                void M()
+                {
+                    Console.WriteLine(i + _j);
+                }
+            }
+            """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestRemoveMembersAccessedOffThis()
     {
         await new VerifyCS.Test
