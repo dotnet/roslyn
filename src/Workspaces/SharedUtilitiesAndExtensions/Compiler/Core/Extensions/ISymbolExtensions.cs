@@ -726,12 +726,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         /// <summary>
         /// Returns true for symbols whose name starts with an underscore and
-        /// are optionally followed by an integer, such as '_', '_1', '_2', etc.
+        /// are optionally followed by an integer or other underscores, such as '_', '_1', '_2', '__', '___', etc.
         /// These are treated as special discard symbol names.
         /// </summary>
         public static bool IsSymbolWithSpecialDiscardName(this ISymbol symbol)
             => symbol.Name.StartsWith("_") &&
-               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name[1..], out _));
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name[1..], out _) || symbol.Name.All(n => n.Equals('_')));
 
         /// <summary>
         /// Returns <see langword="true"/>, if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.
