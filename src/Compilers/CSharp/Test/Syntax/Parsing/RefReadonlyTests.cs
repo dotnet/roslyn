@@ -413,9 +413,9 @@ class Test
     {
     }
 }").VerifyDiagnostics(
-                // (4,12): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
+                // (4,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     void M(readonly ref int p)
-                Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(4, 12));
         }
 
         [Fact]
@@ -451,19 +451,6 @@ class Test
                 // (4,5): error CS1519: Invalid token 'in' in class, record, struct, or interface member declaration
                 //     in int M() => throw null;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "in").WithArguments("in").WithLocation(4, 5));
-        }
-
-        [Fact]
-        public void RefReadOnlyNotAllowedInParameters()
-        {
-            CreateCompilation(@"
-class Test
-{
-    void M(ref readonly int p) => throw null;
-}").VerifyDiagnostics(
-                // (4,16): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
-                //     void M(ref readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(4, 16));
         }
 
         [Fact, WorkItem(25264, "https://github.com/dotnet/roslyn/issues/25264")]
@@ -510,5 +497,211 @@ class Test
             EOF();
         }
 
+        [Fact]
+        public void RefReadonly_Declaration()
+        {
+            var source = "void M(ref readonly int p);";
+            UsingDeclaration(source, TestOptions.Regular11);
+            verifyNodes();
+
+            UsingDeclaration(source, TestOptions.RegularNext);
+            verifyNodes();
+
+            UsingDeclaration(source);
+            verifyNodes();
+
+            void verifyNodes()
+            {
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "p");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void RefReadonly_Compilation()
+        {
+            var source = """
+                class C
+                {
+                    void M(ref readonly int p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void M(ref readonly int p);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16));
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadonlyWithoutRef()
+        {
+            var source = """
+                class C
+                {
+                    void M(readonly int p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,12): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void M(readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 12),
+                // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                //     void M(readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 12));
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                //     void M(readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 12)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ReadonlyWithParams()
+        {
+            var source = """
+                class C
+                {
+                    void M(readonly params int[] p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,12): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void M(readonly params int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 12),
+                // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                //     void M(readonly params int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 12));
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                //     void M(readonly params int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 12)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefReadonlyWithParams()
+        {
+            var source = """
+                class C
+                {
+                    void M(params ref readonly int[] p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,19): error CS1611: The params parameter cannot be declared as ref
+                //     void M(params ref readonly int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(3, 19),
+                // (3,23): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void M(params ref readonly int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 23),
+                // (3,23): error CS1611: The params parameter cannot be declared as readonly
+                //     void M(params ref readonly int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "readonly").WithArguments("readonly").WithLocation(3, 23));
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,19): error CS1611: The params parameter cannot be declared as ref
+                //     void M(params ref readonly int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(3, 19),
+                // (3,23): error CS1611: The params parameter cannot be declared as readonly
+                //     void M(params ref readonly int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "readonly").WithArguments("readonly").WithLocation(3, 23)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ReadonlyWithIn()
+        {
+            var source = """
+                class C
+                {
+                    void M(in readonly int[] p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,15): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void M(in readonly int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 15),
+                // (3,15): error CS8328:  The parameter modifier 'readonly' cannot be used with 'in'
+                //     void M(in readonly int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "in").WithLocation(3, 15));
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,15): error CS8328:  The parameter modifier 'readonly' cannot be used with 'in'
+                //     void M(in readonly int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "in").WithLocation(3, 15)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ReadonlyWithOut()
+        {
+            var source = """
+                class C
+                {
+                    void M(out readonly int[] p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void M(out readonly int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+                // (3,16): error CS8328:  The parameter modifier 'readonly' cannot be used with 'out'
+                //     void M(out readonly int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "out").WithLocation(3, 16));
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,16): error CS8328:  The parameter modifier 'readonly' cannot be used with 'out'
+                //     void M(out readonly int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "out").WithLocation(3, 16)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        }
     }
 }

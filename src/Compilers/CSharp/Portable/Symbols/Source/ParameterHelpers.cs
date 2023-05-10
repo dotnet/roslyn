@@ -409,6 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var seenParams = false;
             var seenIn = false;
             bool seenScoped = false;
+            bool seenReadonly = false;
 
             foreach (var modifier in parameter.Modifiers)
             {
@@ -493,6 +494,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             addERR_BadParameterModifiers(diagnostics, modifier, SyntaxKind.InKeyword);
                         }
+                        else if (seenReadonly)
+                        {
+                            addERR_BadParameterModifiers(diagnostics, modifier, SyntaxKind.ReadOnlyKeyword);
+                        }
                         else
                         {
                             seenOut = true;
@@ -523,6 +528,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else if (seenOut)
                         {
                             addERR_BadParameterModifiers(diagnostics, modifier, SyntaxKind.OutKeyword);
+                        }
+                        else if (seenReadonly)
+                        {
+                            addERR_BadParameterModifiers(diagnostics, modifier, SyntaxKind.ReadOnlyKeyword);
                         }
                         else
                         {
@@ -559,6 +568,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             addERR_ParamsCantBeWithModifier(diagnostics, modifier, SyntaxKind.InKeyword);
                         }
+                        else if (seenReadonly)
+                        {
+                            addERR_BadParameterModifiers(diagnostics, modifier, SyntaxKind.ReadOnlyKeyword);
+                        }
                         else
                         {
                             seenIn = true;
@@ -576,7 +589,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.ReadOnlyKeyword:
-                        diagnostics.Add(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, modifier.GetLocation());
+                        Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefReadonlyParameters, diagnostics);
+
+                        if (seenReadonly)
+                        {
+                            addERR_DupParamMod(diagnostics, modifier);
+                        }
+                        else if (seenOut)
+                        {
+                            addERR_BadParameterModifiers(diagnostics, modifier, SyntaxKind.OutKeyword);
+                        }
+                        else if (seenIn)
+                        {
+                            addERR_BadParameterModifiers(diagnostics, modifier, SyntaxKind.InKeyword);
+                        }
+                        else if (seenParams)
+                        {
+                            addERR_ParamsCantBeWithModifier(diagnostics, modifier, SyntaxKind.ReadOnlyKeyword);
+                        }
+                        else if (!seenRef)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_RefReadOnlyInverted, modifier);
+                        }
+                        else
+                        {
+                            seenReadonly = true;
+                        }
                         break;
 
                     case SyntaxKind.ParamsKeyword when parsingFunctionPointerParams:
