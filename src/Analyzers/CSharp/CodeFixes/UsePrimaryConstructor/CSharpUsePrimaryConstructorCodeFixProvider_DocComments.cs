@@ -34,6 +34,12 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
     private static SyntaxTrivia GetDocComment(SyntaxTriviaList trivia)
         => trivia.LastOrDefault(t => t.IsSingleLineDocComment());
 
+    private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxNode node)
+        => GetDocCommentStructure(GetDocComment(node));
+
+    private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxTrivia trivia)
+        => (DocumentationCommentTriviaSyntax?)trivia.GetStructure();
+
     private static SyntaxTriviaList CreateFinalTypeDeclarationLeadingTrivia(
         TypeDeclarationSyntax typeDeclaration,
         ConstructorDeclarationSyntax constructorDeclaration,
@@ -42,55 +48,9 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
         Dictionary<ISymbol, SyntaxNode> removedMembers)
     {
         var typeDeclarationLeadingTrivia = MergeTypeDeclarationAndConstructorDocComments(typeDeclaration, constructorDeclaration);
+        var finalLeadingTrivia = MergeTypeDeclarationAndRemovedMembersDocComments(constructor, properties, removedMembers, typeDeclarationLeadingTrivia);
 
-        // now, if we're removing any members, and they had doc comments, and we don't already have doc comments for
-        // that parameter in our final doc comment, then move them to there, converting from `<summary>` doc comments to
-        // `<param name="x">` doc comments.
-
-        // Keep the <param> tags ordered by the order they are in the constructor parameters.
-        var orderedKVPs = properties.OrderBy(kvp => constructor.Parameters.FirstOrDefault(p => p.Name == kvp.Value)?.Ordinal);
-
-        using var _1 = ArrayBuilder<(string parameterName, DocumentationCommentTriviaSyntax docComment)>.GetInstance(out var docCommentsToMove);
-
-        foreach (var (memberName, parameterName) in orderedKVPs)
-        {
-            var (removedMember, memberDeclaration) = removedMembers.FirstOrDefault(kvp => kvp.Key.Name == memberName);
-            if (removedMember is null)
-                continue;
-
-            var removedMemberDocComment = GetDocCommentStructure(
-                memberDeclaration is VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax field } ? field : memberDeclaration);
-            if (removedMemberDocComment != null)
-                docCommentsToMove.Add((parameterName, removedMemberDocComment)!);
-        }
-
-        var existingTypeDeclarationDocComment = GetDocComment(typeDeclarationLeadingTrivia);
-
-        // Simple case, no doc comments on either
-        if (typeDeclarationLeadingTrivia == default && docCommentsToMove.Count == 0)
-            return typeDeclarationLeadingTrivia;
-
-        if (existingTypeDeclarationDocComment == default)
-        {
-            // type doesn't have doc comment, create a fresh one from all the doc comments removed.
-            using var _2 = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var allContent);
-            foreach (var (parameterName, commentToMove) in docCommentsToMove)
-                allContent.AddRange(ConvertSummaryToParam(commentToMove.Content, parameterName));
-
-            var insertionIndex = typeDeclarationLeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)]
-                ? typeDeclarationLeadingTrivia.Count - 1
-                : typeDeclarationLeadingTrivia.Count;
-
-            var newDocComment = Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(allContent)));
-            return typeDeclarationLeadingTrivia.Insert(
-                insertionIndex,
-                newDocComment.WithAdditionalAnnotations(Formatter.Annotation));
-        }
-
-        return typeDeclarationLeadingTrivia;
-
-        static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxNode node)
-            => (DocumentationCommentTriviaSyntax?)GetDocComment(node).GetStructure();
+        return finalLeadingTrivia;
 
         static bool IsXmlElement(XmlNodeSyntax node, string name, [NotNullWhen(true)] out XmlElementSyntax? element)
         {
@@ -172,8 +132,8 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
 
         static SyntaxTrivia MergeDocComments(SyntaxTrivia typeDeclarationDocComment, SyntaxTrivia constructorDocComment)
         {
-            var typeStructure = (DocumentationCommentTriviaSyntax)typeDeclarationDocComment.GetStructure()!;
-            var constructorStructure = (DocumentationCommentTriviaSyntax)constructorDocComment.GetStructure()!;
+            var typeStructure = GetDocCommentStructure(typeDeclarationDocComment)!;
+            var constructorStructure = GetDocCommentStructure(constructorDocComment)!;
 
             using var _ = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var content);
 
@@ -193,6 +153,57 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                 SyntaxKind.SingleLineDocumentationCommentTrivia,
                 List(content),
                 typeStructure.EndOfComment));
+        }
+
+        static SyntaxTriviaList MergeTypeDeclarationAndRemovedMembersDocComments(
+            IMethodSymbol constructor,
+            ImmutableDictionary<string, string?> properties,
+            Dictionary<ISymbol, SyntaxNode> removedMembers,
+            SyntaxTriviaList typeDeclarationLeadingTrivia)
+        {
+            // now, if we're removing any members, and they had doc comments, and we don't already have doc comments for
+            // that parameter in our final doc comment, then move them to there, converting from `<summary>` doc comments to
+            // `<param name="x">` doc comments.
+
+            // Keep the <param> tags ordered by the order they are in the constructor parameters.
+            var orderedKVPs = properties.OrderBy(kvp => constructor.Parameters.FirstOrDefault(p => p.Name == kvp.Value)?.Ordinal);
+            using var _1 = ArrayBuilder<(string parameterName, DocumentationCommentTriviaSyntax docComment)>.GetInstance(out var docCommentsToMove);
+            foreach (var (memberName, parameterName) in orderedKVPs)
+            {
+                var (removedMember, memberDeclaration) = removedMembers.FirstOrDefault(kvp => kvp.Key.Name == memberName);
+                if (removedMember is null)
+                    continue;
+
+                var removedMemberDocComment = GetDocCommentStructure(
+                    memberDeclaration is VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax field } ? field : memberDeclaration);
+                if (removedMemberDocComment != null)
+                    docCommentsToMove.Add((parameterName, removedMemberDocComment)!);
+            }
+
+            var existingTypeDeclarationDocComment = GetDocComment(typeDeclarationLeadingTrivia);
+
+            // Simple case, no doc comments on either
+            if (typeDeclarationLeadingTrivia == default && docCommentsToMove.Count == 0)
+                return typeDeclarationLeadingTrivia;
+
+            if (existingTypeDeclarationDocComment == default)
+            {
+                // type doesn't have doc comment, create a fresh one from all the doc comments removed.
+                using var _2 = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var allContent);
+                foreach (var (parameterName, commentToMove) in docCommentsToMove)
+                    allContent.AddRange(ConvertSummaryToParam(commentToMove.Content, parameterName));
+
+                var insertionIndex = typeDeclarationLeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)]
+                    ? typeDeclarationLeadingTrivia.Count - 1
+                    : typeDeclarationLeadingTrivia.Count;
+
+                var newDocComment = Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(allContent)));
+                return typeDeclarationLeadingTrivia.Insert(
+                    insertionIndex,
+                    newDocComment.WithAdditionalAnnotations(Formatter.Annotation));
+            }
+
+            return typeDeclarationLeadingTrivia;
         }
     }
 }
