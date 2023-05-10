@@ -2613,7 +2613,7 @@ public class Derived : Base
     /// {
     ///     public required int P { get; set; }
     /// }
-    /// public class Derived
+    /// public class Derived : Base
     /// {
     ///     public new required int P { get; set; }
     /// }
@@ -2774,7 +2774,7 @@ class Derived2 : Derived
         // {
         //     public required int P { get; set; }
         // }
-        // [RequiredMember]public class Derived
+        // [RequiredMember]public class Derived : Base
         // {
         //     public new int P { get; set; }
         // }
@@ -2903,7 +2903,7 @@ class Derived3 : Derived { }";
         // {
         //     public required int P { get; set; }
         // }
-        // public class Derived
+        // public class Derived : Base
         // {
         //     public new int P { get; set; }
         // }
@@ -3421,7 +3421,7 @@ record DerivedDerived1 : Derived
         // {
         //     public required int P { get; set; }
         // }
-        // public class Derived
+        // public class Derived : Base
         // {
         //     public new required int P { get; set; }
         //     public Derived() {}
@@ -3558,7 +3558,7 @@ record DerivedDerived1 : Derived
         // {
         //     public required int P { get; set; }
         // }
-        // [RequiredMember] public class Derived
+        // [RequiredMember] public class Derived : Base
         // {
         //     public new int P { get; set; }
         //     public Derived() {}
@@ -3692,7 +3692,7 @@ record DerivedDerived1 : Derived
         // {
         //     public required int P { get; set; }
         // }
-        // public class Derived
+        // public class Derived : Base
         // {
         //     public new int P { get; set; }
         //     public Derived() {}
