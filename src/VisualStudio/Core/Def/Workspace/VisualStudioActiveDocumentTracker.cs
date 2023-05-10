@@ -316,9 +316,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 _documentTracker.AssertIsForeground();
 
-                if (ErrorHandler.Succeeded(Frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocCookie, out var boxedDocCookie)) && boxedDocCookie is int docCookie)
+                if (ErrorHandler.Succeeded(Frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocCookie, out var boxedDocCookie)))
                 {
-                    var flags = (_VSRDTFLAGS)_runningDocumentTable.GetDocumentFlags((uint)docCookie);
+                    uint docCookie;
+
+                    if (boxedDocCookie is int docCookieInt)
+                    {
+                        docCookie = (uint)docCookieInt;
+                    }
+                    else if (boxedDocCookie is uint docCookieUint)
+                    {
+                        docCookie = docCookieUint;
+                    }
+                    else
+                    {
+                        // Return if we failed to unbox the cookie. We'll try again on the next OnShow event.
+                        return;
+                    }
+
+                    var flags = (_VSRDTFLAGS)_runningDocumentTable.GetDocumentFlags(docCookie);
                     if ((flags & (_VSRDTFLAGS)_VSRDTFLAGS4.RDT_PendingInitialization) != 0)
                     {
                         // This document is not yet initialized. Defer initialization to the next OnShow event.
