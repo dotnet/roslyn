@@ -995,4 +995,100 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestMoveConstructorParamDocCommentsIntoTypeDocComments1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    /// <summary>
+                    /// Existing doc comment
+                    /// </summary>
+                    class C
+                    {
+                        private int i;
+                        private int j;
+
+                        /// <summary>Constructor comment
+                        /// On multiple lines</summary>
+                        /// <param name="i">Doc about i</param>
+                        /// <param name="i">Doc about j</param>
+                        public [|C|](int i, int j)
+                        {
+                            this.i = i;
+                            this.j = j;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    /// <summary>
+                    /// Existing doc comment
+                    /// </summary>
+                    /// <remarks>Constructor comment
+                    /// On multiple lines</remarks>
+                    /// <param name="i">Doc about i</param>
+                    /// <param name="i">Doc about j</param>
+                    class C(int i, int j)
+                    {
+                        private int i = i;
+                        private int j = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorParamDocCommentsIntoTypeDocComments2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    /// <summary>Existing doc comment</summary>
+                    class C
+                    {
+                        private int i;
+                        private int j;
+
+                        /// <summary>Constructor comment</summary>
+                        /// <param name="i">Doc about
+                        /// i</param>
+                        /// <param name="i">Doc about
+                        /// j</param>
+                        public [|C|](int i, int j)
+                        {
+                            this.i = i;
+                            this.j = j;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    /// <summary>Existing doc comment</summary>
+                    /// <remarks>Constructor comment</remarks>
+                    /// <param name="i">Doc about
+                    /// i</param>
+                    /// <param name="i">Doc about
+                    /// j</param>
+                    class C(int i, int j)
+                    {
+                        private int i = i;
+                        private int j = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }

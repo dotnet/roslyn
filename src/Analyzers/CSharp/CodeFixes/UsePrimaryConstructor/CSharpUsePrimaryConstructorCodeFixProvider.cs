@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -31,6 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePrimaryConstructor), Shared]
     internal class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvider
     {
+        private const string s_summaryTagName = "summary";
+        private const string s_remarksTagName = "remarks";
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpUsePrimaryConstructorCodeFixProvider()
@@ -184,7 +188,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                         existingConstructorDocComment.WithAdditionalAnnotations(Formatter.Annotation));
                 }
 
+                if (existingConstructorDocComment != default)
+                {
+                    // Both the type and the constructor have doc comments.  Want to move the constructor parameter
+                    // pieces into the type decl doc comment.
+                    return typeDeclarationLeadingTrivia.Replace(
+                        existingTypeDeclarationDocComment,
+                        MergeDocComments(existingTypeDeclarationDocComment, existingConstructorDocComment).WithAdditionalAnnotations(Formatter.Annotation));
+                }
+
                 return typeDeclarationLeadingTrivia;
+            }
+
+            static SyntaxTrivia MergeDocComments(SyntaxTrivia typeDeclarationDocComment, SyntaxTrivia constructorDocComment)
+            {
+                var typeStructure = (DocumentationCommentTriviaSyntax)typeDeclarationDocComment.GetStructure()!;
+                var constructorStructure = (DocumentationCommentTriviaSyntax)constructorDocComment.GetStructure()!;
+
+                using var _ = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var content);
+
+                // Add all the type decl comments first.
+                content.AddRange(typeStructure.Content);
+
+                // then add the constructor comments.  If the type decl already had a summary tag then convert the
+                // constructor's summary tag to a 'remarks' tag to keep around the info while not stomping on the
+                // existing summary.
+                var constructorContents = typeStructure.Content.Any(n => n is XmlElementSyntax { StartTag.Name.LocalName.ValueText: s_summaryTagName })
+                    ? ConvertSummaryToRemarks(constructorStructure.Content)
+                    : constructorStructure.Content;
+
+                content.AddRange(constructorContents);
+
+                return Trivia(DocumentationCommentTrivia(
+                    SyntaxKind.SingleLineDocumentationCommentTrivia,
+                    List(content),
+                    typeStructure.EndOfComment));
+            }
+
+            static IEnumerable<XmlNodeSyntax> ConvertSummaryToRemarks(IEnumerable<XmlNodeSyntax> nodes)
+            {
+                foreach (var node in nodes)
+                {
+                    if (node is XmlElementSyntax { StartTag.Name.LocalName.ValueText: s_summaryTagName } xmlElement)
+                    {
+                        yield return xmlElement.ReplaceTokens(
+                            new[] { xmlElement.StartTag.Name.LocalName, xmlElement.EndTag.Name.LocalName },
+                            (token, _) => Identifier(s_remarksTagName).WithTriviaFrom(token));
+                    }
+                    else
+                    {
+                        yield return node;
+                    }
+                }
             }
 
             async ValueTask MoveBaseConstructorArgumentsAsync()
