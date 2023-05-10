@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal enum ConstructibleCollectionTypeKind
+    internal enum CollectionLiteralTypeKind
     {
         None = 0,
         Array,

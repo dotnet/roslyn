@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var collectionTypeKind = ConversionsBase.GetConstructibleCollectionType(_compilation, node.Type, out var elementType);
             switch (collectionTypeKind)
             {
-                case ConstructibleCollectionTypeKind.CollectionInitializer:
+                case CollectionLiteralTypeKind.CollectionInitializer:
                     return VisitCollectionInitializerCollectionLiteralExpression(node);
-                case ConstructibleCollectionTypeKind.Array:
-                case ConstructibleCollectionTypeKind.Span:
-                case ConstructibleCollectionTypeKind.ReadOnlySpan:
+                case CollectionLiteralTypeKind.Array:
+                case CollectionLiteralTypeKind.Span:
+                case CollectionLiteralTypeKind.ReadOnlySpan:
                     Debug.Assert(elementType is { });
                     return VisitArrayOrSpanCollectionLiteralExpression(node, elementType);
-                case ConstructibleCollectionTypeKind.ListInterface:
+                case CollectionLiteralTypeKind.ListInterface:
                     Debug.Assert(elementType is { });
                     return VisitListInterfaceCollectionLiteralExpression(node, elementType);
                 default:

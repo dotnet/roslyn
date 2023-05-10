@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.ObjectCreation;
 
                 case BoundKind.UnconvertedCollectionLiteralExpression:
-                    if (GetConstructibleCollectionType(Compilation, destination, out _) != ConstructibleCollectionTypeKind.None)
+                    if (GetConstructibleCollectionType(Compilation, destination, out _) != CollectionLiteralTypeKind.None)
                     {
                         return Conversion.CollectionLiteral;
                     }
@@ -1584,7 +1584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
         }
 
-        internal static ConstructibleCollectionTypeKind GetConstructibleCollectionType(CSharpCompilation compilation, TypeSymbol destination, out TypeSymbol? elementType)
+        internal static CollectionLiteralTypeKind GetConstructibleCollectionType(CSharpCompilation compilation, TypeSymbol destination, out TypeSymbol? elementType)
         {
             Debug.Assert(compilation is { });
 
@@ -1593,29 +1593,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (arrayType.IsSZArray)
                 {
                     elementType = arrayType.ElementType;
-                    return ConstructibleCollectionTypeKind.Array;
+                    return CollectionLiteralTypeKind.Array;
                 }
             }
             else if (isSpanType(compilation, destination, WellKnownType.System_Span_T, out elementType))
             {
-                return ConstructibleCollectionTypeKind.Span;
+                return CollectionLiteralTypeKind.Span;
             }
             else if (isSpanType(compilation, destination, WellKnownType.System_ReadOnlySpan_T, out elementType))
             {
-                return ConstructibleCollectionTypeKind.ReadOnlySpan;
+                return CollectionLiteralTypeKind.ReadOnlySpan;
             }
             else if (implementsIEnumerable(compilation, destination))
             {
                 elementType = null;
-                return ConstructibleCollectionTypeKind.CollectionInitializer;
+                return CollectionLiteralTypeKind.CollectionInitializer;
             }
             else if (isListInterface(compilation, destination, out elementType))
             {
-                return ConstructibleCollectionTypeKind.ListInterface;
+                return CollectionLiteralTypeKind.ListInterface;
             }
 
             elementType = null;
-            return ConstructibleCollectionTypeKind.None;
+            return CollectionLiteralTypeKind.None;
 
             static bool isSpanType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
             {

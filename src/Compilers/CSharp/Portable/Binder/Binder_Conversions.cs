@@ -431,15 +431,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var collectionTypeKind = ConversionsBase.GetConstructibleCollectionType(Compilation, targetType, out elementType);
             switch (collectionTypeKind)
             {
-                case ConstructibleCollectionTypeKind.CollectionInitializer:
+                case CollectionLiteralTypeKind.CollectionInitializer:
                     collectionLiteral = BindCollectionInitializerCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, diagnostics);
                     break;
-                case ConstructibleCollectionTypeKind.Array:
-                case ConstructibleCollectionTypeKind.Span:
-                case ConstructibleCollectionTypeKind.ReadOnlySpan:
+                case CollectionLiteralTypeKind.Array:
+                case CollectionLiteralTypeKind.Span:
+                case CollectionLiteralTypeKind.ReadOnlySpan:
                     collectionLiteral = BindArrayOrSpanCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, collectionTypeKind, elementType!, diagnostics);
                     break;
-                case ConstructibleCollectionTypeKind.ListInterface:
+                case CollectionLiteralTypeKind.ListInterface:
                     collectionLiteral = BindListInterfaceCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, elementType!, diagnostics);
                     break;
                 default:
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundUnconvertedCollectionLiteralExpression node,
             TypeSymbol targetType,
             bool wasCompilerGenerated,
-            ConstructibleCollectionTypeKind collectionTypeKind,
+            CollectionLiteralTypeKind collectionTypeKind,
             TypeSymbol elementType,
             BindingDiagnosticBag diagnostics)
         {
@@ -469,10 +469,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (collectionTypeKind)
             {
-                case ConstructibleCollectionTypeKind.Span:
+                case CollectionLiteralTypeKind.Span:
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor_Array, diagnostics, syntax: syntax);
                     break;
-                case ConstructibleCollectionTypeKind.ReadOnlySpan:
+                case CollectionLiteralTypeKind.ReadOnlySpan:
                     _ = GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics, syntax: syntax);
                     break;
             }
