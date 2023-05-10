@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arrayType = collectionType as ArrayTypeSymbol;
             if (arrayType is null)
             {
+                Debug.Assert(collectionType.Name is "Span" or "ReadOnlySpan");
                 // We're constructing a Span<T> or ReadOnlySpan<T> rather than T[].
                 var spanType = (NamedTypeSymbol)collectionType;
                 arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]);

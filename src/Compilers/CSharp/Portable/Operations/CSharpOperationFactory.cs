@@ -1271,6 +1271,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else
             {
+                Debug.Assert(collectionType.Name is "Span" or "ReadOnlySpan");
                 var spanConstructor = (IMethodSymbol?)_semanticModel.Compilation.CommonGetWellKnownTypeMember(collectionType.Name == "Span" ? WellKnownMember.System_Span_T__ctor_Array : WellKnownMember.System_ReadOnlySpan_T__ctor_Array)?.GetISymbol();
                 // PROTOTYPE: Decide public API shape. Will we always initialize the span
                 // with an array, and is it reasonable to expose this in the IOperation?
