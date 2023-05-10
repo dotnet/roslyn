@@ -4033,6 +4033,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me._lazyAnyMemberHasAttributes.Value()
             End Get
         End Property
+
+        Friend NotOverridable Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 
     Friend Class EqualsIgnoringComparer
