@@ -129,6 +129,11 @@
         <target state="translated">Le paramètre '{0}' doit être un symbole de cette compilation ou un assembly référencé.</target>
         <note />
       </trans-unit>
+      <trans-unit id="LineCannotBeGreaterThanEnd">
+        <source>The requested line number {0} must be less than the number of lines {1}.</source>
+        <target state="new">The requested line number {0} must be less than the number of lines {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
         <target state="translated">Symbole de méthode attendu</target>

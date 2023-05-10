@@ -92,4 +92,19 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="LanguageServerResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LanguageServerResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="LanguageServerResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.LanguageServer">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>LanguageServerResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>
