@@ -45,6 +45,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ProtocolConversions.GetUriFromFilePath(path);
         }
 
+        /// <summary>
+        /// Generate the Uri of a document based on the name and the project path of the document.
+        /// </summary>
+        public static Uri GetUriFromProjectPath(this TextDocument document)
+        {
+            Contract.ThrowIfNull(document.Name);
+            Contract.ThrowIfNull(document.Project.FilePath);
+            var directoryName = Path.GetDirectoryName(document.Project.FilePath);
+            Contract.ThrowIfNull(directoryName);
+
+            var path = Path.Combine(directoryName, document.Name);
+            return ProtocolConversions.GetUriFromFilePath(path);
+        }
+
         public static Uri? TryGetURI(this TextDocument document, RequestContext? context = null)
             => ProtocolConversions.TryGetUriFromFilePath(document.FilePath, context);
 

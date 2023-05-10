@@ -249,19 +249,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // NOTE: This method depends on MakeNameToMembersMap() on creating a proper
                 // NOTE: type of the array, see comments in MakeNameToMembersMap() for details
-                Interlocked.CompareExchange(ref _nameToTypeMembersMap, getTypesFromMemberMap(GetNameToMembersMap()), null);
+                Interlocked.CompareExchange(
+                    ref _nameToTypeMembersMap,
+                    ImmutableArrayExtensions.GetTypesFromMemberMap<NamespaceOrTypeSymbol, NamedTypeSymbol>(GetNameToMembersMap(), StringOrdinalComparer.Instance),
+                    comparand: null);
             }
 
             return _nameToTypeMembersMap;
-
-            static Dictionary<string, ImmutableArray<NamedTypeSymbol>> getTypesFromMemberMap(Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> map)
-            {
-#if DEBUG
-                return ImmutableArrayExtensions.GetTypesFromMemberMap<NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(map, StringOrdinalComparer.Instance);
-#else
-                return ImmutableArrayExtensions.GetTypesFromMemberMap<NamespaceOrTypeSymbol, NamedTypeSymbol>(map, StringOrdinalComparer.Instance);
-#endif
-            }
         }
 
         private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(BindingDiagnosticBag diagnostics)

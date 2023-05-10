@@ -17225,5 +17225,39 @@ True
                     """
             }).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void BoxingReceiver()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write(Test(new C()).ToString());
+    }
+
+    static System.Type Test(C c) => c.GetInt().GetType();
+
+    int GetInt() => 1;
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "System.Int32").VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  callvirt   ""int C.GetInt()""
+  IL_0006:  box        ""int""
+  IL_000b:  call       ""System.Type object.GetType()""
+  IL_0010:  ret
+}
+");
+        }
     }
 }
