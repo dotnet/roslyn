@@ -278,6 +278,30 @@ public partial class UsePrimaryConstructorTests
     }
 
     [Fact]
+    public async Task TestWithExpressionBodyAssignmentToProperty1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int I { get; }
+
+                    public [|C|](int i)
+                        => this.I = i;
+                }
+                """,
+            FixedCode = """
+                class C(int i)
+                {
+                    private int I { get; } = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestWithExpressionBodyAssignmentToField2()
     {
         await new VerifyCS.Test
@@ -474,6 +498,34 @@ public partial class UsePrimaryConstructorTests
                     {
                         this.i = i;
                         this.j = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembers2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int I { get; }
+                    private int J { get; }
+
+                    public [|C|](int i, int j)
+                    {
+                        this.I = i;
+                        this.J = j;
                     }
                 }
                 """,

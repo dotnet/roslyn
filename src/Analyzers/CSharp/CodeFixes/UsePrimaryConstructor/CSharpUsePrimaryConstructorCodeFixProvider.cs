@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// Ignore Spelling: loc kvp
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -83,6 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             return Task.CompletedTask;
         }
 
+        private static SyntaxTrivia GetDocComment(SyntaxNode node)
+            => GetDocComment(node.GetLeadingTrivia());
+
+        private static SyntaxTrivia GetDocComment(SyntaxTriviaList trivia)
+            => trivia.LastOrDefault(t => t.IsSingleLineDocComment());
+
         private static async Task<Solution> UsePrimaryConstructorAsync(
             Document document,
             ConstructorDeclarationSyntax constructorDeclaration,
@@ -92,12 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var typeDeclaration = (TypeDeclarationSyntax)constructorDeclaration.GetRequiredParent();
+
             var namedType = semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
+            var constructor = semanticModel.GetRequiredDeclaredSymbol(constructorDeclaration, cancellationToken);
 
             var solution = document.Project.Solution;
             var solutionEditor = new SolutionEditor(solution);
 
-            using var _1 = PooledHashSet<ISymbol>.GetInstance(out var removedMembers);
+            using var _1 = PooledDictionary<ISymbol, SyntaxNode>.GetInstance(out var removedMembers);
 
             // If we're removing members, first go through and update all references to that member to use the parameter name.
             var typeDeclarationNodes = namedType.DeclaringSyntaxReferences.Select(r => (TypeDeclarationSyntax)r.GetSyntax(cancellationToken));
@@ -112,14 +122,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             if (constructorDeclaration.ExpressionBody is not null)
             {
                 // Validated by analyzer.
-                await ProcessAssignmentAsync((AssignmentExpressionSyntax)constructorDeclaration.ExpressionBody.Expression).ConfigureAwait(false);
+                await ProcessAssignmentAsync((AssignmentExpressionSyntax)constructorDeclaration.ExpressionBody.Expression, expressionStatement: null).ConfigureAwait(false);
             }
             else
             {
-                // Validated by analyzer.
                 Contract.ThrowIfNull(constructorDeclaration.Body);
                 foreach (var statement in constructorDeclaration.Body.Statements)
-                    await ProcessAssignmentAsync((AssignmentExpressionSyntax)((ExpressionStatementSyntax)statement).Expression).ConfigureAwait(false);
+                {
+                    // Validated by analyzer.
+                    var expressionStatement = (ExpressionStatementSyntax)statement;
+                    await ProcessAssignmentAsync((AssignmentExpressionSyntax)expressionStatement.Expression, expressionStatement).ConfigureAwait(false);
+                }
             }
 
             // Then remove the constructor itself.
@@ -164,11 +177,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
             SyntaxTriviaList CreateFinalTypeDeclarationLeadingTrivia()
             {
+                var typeDeclarationLeadingTrivia = MergeTypeDeclarationAndConstructorDocComments();
+
+                // now, if we're removing any members, and they had doc comments, and we don't already have doc comments
+                // for that parameter in our final doc comment, then move them to there, converting from `<summary>` doc comments to
+                // `<param name="x">` doc comments.
+
+                // Keep the <param> tags ordered by the order they are in the constructor parameters.
+                var orderedKVPs = properties.OrderBy(kvp => constructor.Parameters.FirstOrDefault(p => p.Name == kvp.Value)?.Ordinal);
+
+                using var _ = ArrayBuilder<(string parameterName, DocumentationCommentTriviaSyntax docComment)>.GetInstance(out var docCommentsToMove);
+
+                foreach (var (memberName, parameterName) in orderedKVPs)
+                {
+                    var (removedMember, memberDeclaration) = removedMembers.FirstOrDefault(kvp => kvp.Key.Name == memberName);
+                    if (removedMember is null)
+                        continue;
+
+                    var removedMemberDocComment = (DocumentationCommentTriviaSyntax?)GetDocComment(memberDeclaration).GetStructure();
+                    if (removedMemberDocComment != null)
+                        docCommentsToMove.Add((parameterName, removedMemberDocComment)!);
+                }
+
+                var existingTypeDeclarationDocComment = GetDocComment(typeDeclarationLeadingTrivia);
+
+                // Simple case, no doc comments on either
+                if (typeDeclarationLeadingTrivia == default && docCommentsToMove.Count == 0)
+                    return typeDeclarationLeadingTrivia;
+
+                if (existingTypeDeclarationDocComment == default)
+                {
+                    // type doesn't have doc comment, create a fresh one from all the doc comments removed.
+                }
+
+                return typeDeclarationLeadingTrivia;
+            }
+
+            SyntaxTriviaList MergeTypeDeclarationAndConstructorDocComments()
+            {
                 var typeDeclarationLeadingTrivia = typeDeclaration.GetLeadingTrivia();
 
                 // TODO: add support for `/** */` style doc comments if customer demand is there.
-                var existingTypeDeclarationDocComment = typeDeclarationLeadingTrivia.LastOrDefault(t => t.IsSingleLineDocComment());
-                var existingConstructorDocComment = constructorDeclaration.GetLeadingTrivia().LastOrDefault(t => t.IsSingleLineDocComment());
+                var existingTypeDeclarationDocComment = GetDocComment(typeDeclarationLeadingTrivia);
+                var existingConstructorDocComment = GetDocComment(constructorDeclaration);
 
                 // Simple case, no doc comments on either
                 if (existingTypeDeclarationDocComment == default && existingConstructorDocComment == default)
@@ -267,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 }
             }
 
-            async ValueTask ProcessAssignmentAsync(AssignmentExpressionSyntax assignmentExpression)
+            async ValueTask ProcessAssignmentAsync(AssignmentExpressionSyntax assignmentExpression, ExpressionStatementSyntax? expressionStatement)
             {
                 var member = semanticModel.GetSymbolInfo(assignmentExpression.Left, cancellationToken).GetAnySymbol()?.OriginalDefinition;
 
@@ -275,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 Contract.ThrowIfFalse(member is IFieldSymbol or IPropertySymbol);
 
                 // no point updating the member if it's going to be removed.
-                if (removedMembers.Contains(member))
+                if (removedMembers.ContainsKey(member))
                     return;
 
                 var declaration = member.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
@@ -284,10 +335,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
                 declarationDocumentEditor.ReplaceNode(
                     declaration,
-                    UpdateDeclaration(declaration, assignmentExpression).WithAdditionalAnnotations(Formatter.Annotation));
+                    UpdateDeclaration(declaration, assignmentExpression, expressionStatement).WithAdditionalAnnotations(Formatter.Annotation));
             }
 
-            SyntaxNode UpdateDeclaration(SyntaxNode declaration, AssignmentExpressionSyntax assignmentExpression)
+            SyntaxNode UpdateDeclaration(SyntaxNode declaration, AssignmentExpressionSyntax assignmentExpression, ExpressionStatementSyntax? expressionStatement)
             {
                 var newLeadingTrivia = assignmentExpression.Left.GetTrailingTrivia();
                 var initializer = EqualsValueClause(assignmentExpression.OperatorToken, assignmentExpression.Right);
@@ -300,7 +351,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 else if (declaration is PropertyDeclarationSyntax propertyDeclaration)
                 {
                     return propertyDeclaration
-                        .WithInitializer(initializer.WithLeadingTrivia(newLeadingTrivia));
+                        .WithoutTrailingTrivia()
+                        .WithInitializer(initializer.WithLeadingTrivia(newLeadingTrivia))
+                        .WithSemicolonToken(
+                            // Use existing semicolon if we have it.  Otherwise create a fresh one and place existing
+                            // trailing trivia after it.
+                            expressionStatement?.SemicolonToken
+                            ?? Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(propertyDeclaration.GetTrailingTrivia()));
                 }
                 else
                 {
@@ -314,7 +371,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     return;
 
                 Contract.ThrowIfTrue(properties.IsEmpty);
-                using var _2 = PooledHashSet<SyntaxNode>.GetInstance(out var nodesToRemove);
 
                 // Go through each pair of member/parameterName.  Update all references to member to now refer to
                 // parameterName. This is safe as the analyzer ensured that all existing locations would safely be able
@@ -327,13 +383,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     if (member is null)
                         continue;
 
-                    removedMembers.Add(member);
-                    nodesToRemove.Add(nodeToRemove);
-
+                    removedMembers[member] = nodeToRemove;
                     await ReplaceReferencesToMemberWithParameterAsync(member, parameterName).ConfigureAwait(false);
                 }
 
-                foreach (var group in nodesToRemove.GroupBy(n => n.SyntaxTree))
+                foreach (var group in removedMembers.Values.GroupBy(n => n.SyntaxTree))
                 {
                     var syntaxTree = group.Key;
                     var memberDocument = solution.GetRequiredDocument(syntaxTree);
