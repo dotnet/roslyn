@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceConstructorSymbol : SourceConstructorSymbolBase
     {
+        private readonly bool _isExpressionBodied;
         private readonly bool _hasThisInitializer;
 
         public static SourceConstructorSymbol CreateConstructorSymbol(
@@ -34,14 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
              base(containingType, location, syntax, SyntaxFacts.HasYieldOperations(syntax))
         {
             bool hasBlockBody = syntax.Body != null;
-            bool isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            bool hasBody = hasBlockBody || isExpressionBodied;
+            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            bool hasBody = hasBlockBody || _isExpressionBodied;
 
             _hasThisInitializer = syntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer;
 
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, hasBody, location, diagnostics, out modifierErrors);
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (syntax.Identifier.ValueText != containingType.Name)
             {
@@ -160,6 +161,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
             return OneOrMany.Create(((ConstructorDeclarationSyntax)this.SyntaxNode).AttributeLists);
+        }
+
+        internal override bool IsExpressionBodied
+        {
+            get
+            {
+                return _isExpressionBodied;
+            }
         }
 
         internal override bool IsNullableAnalysisEnabled()

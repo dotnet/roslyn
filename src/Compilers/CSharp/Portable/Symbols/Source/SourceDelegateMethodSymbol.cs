@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(delegateType, syntax.GetReference(), location: syntax.Identifier.GetLocation(), isIterator: false)
         {
             _returnType = returnType;
-            this.MakeFlags(
-                methodKind, declarationModifiers, _returnType.IsVoidType(), isExpressionBodied: false, isExtensionMethod: false, isNullableAnalysisEnabled: false);
+            this.MakeFlags(methodKind, declarationModifiers, _returnType.IsVoidType(), isExtensionMethod: false, isNullableAnalysisEnabled: false);
         }
 
         internal sealed override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
@@ -175,6 +174,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
+        }
+
+        internal override bool IsExpressionBodied
+        {
+            get { return false; }
         }
 
         internal override bool GenerateDebugInfo
