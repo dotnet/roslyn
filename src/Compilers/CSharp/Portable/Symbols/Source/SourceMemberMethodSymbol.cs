@@ -191,9 +191,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     | ReturnsVoidIsSetBit;
             }
 
+            /// <summary>
+            /// Only allowed to be called in constructors of SourceMemberMethodSymbol (and derived constructors), so
+            /// does not need ThreadSafe operations.
+            /// </summary>
             public void SetOrdinaryMethodFlags(RefKind refKind, bool hasAnyBody)
             {
-                // Only set in the constructor of SourceOrdinaryMethodSymbol, so does not need ThreadSafe operations.
                 _flags |= ((int)refKind & RefKindMask) << RefKindOffset;
                 _flags |= hasAnyBody ? HasAnyBodyBit : 0;
             }
