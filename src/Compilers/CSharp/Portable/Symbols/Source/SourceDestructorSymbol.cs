@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceDestructorSymbol : SourceMemberMethodSymbol
     {
         private TypeWithAnnotations _lazyReturnType;
+        private readonly bool _isExpressionBodied;
 
         internal SourceDestructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
@@ -27,18 +28,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             var declarationModifiers = MakeModifiers(syntax.Modifiers, location, diagnostics, out modifierErrors);
-
-            bool hasBlockBody = syntax.Body != null;
-            bool isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (syntax.Identifier.ValueText != containingType.Name)
             {
                 diagnostics.Add(ErrorCode.ERR_BadDestructorName, syntax.Identifier.GetLocation());
             }
 
-            if (hasBlockBody || isExpressionBodied)
+            bool hasBlockBody = syntax.Body != null;
+            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+
+            if (hasBlockBody || _isExpressionBodied)
             {
                 if (IsExtern)
                 {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!modifierErrors && !hasBlockBody && !isExpressionBodied && !IsExtern)
+            if (!modifierErrors && !hasBlockBody && !_isExpressionBodied && !IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -140,6 +140,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override string Name
         {
             get { return WellKnownMemberNames.DestructorName; }
+        }
+
+        internal override bool IsExpressionBodied
+        {
+            get
+            {
+                return _isExpressionBodied;
+            }
         }
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
