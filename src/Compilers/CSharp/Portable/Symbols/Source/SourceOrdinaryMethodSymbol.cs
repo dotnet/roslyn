@@ -85,20 +85,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                  hasBody: syntax.Body != null || syntax.ExpressionBody != null,
                  isExpressionBodied: syntax is { Body: null, ExpressionBody: not null },
                  isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                 diagnostics)
+                 diagnostics,
+                 refKind: syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics))
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
             _explicitInterfaceType = explicitInterfaceType;
 
             Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
-
-            bool hasBlockBody = syntax.Body != null;
-            bool isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            bool hasAnyBody = hasBlockBody || isExpressionBodied;
-            var refKind = syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics);
-
-            flags.SetOrdinaryMethodFlags(refKind, hasAnyBody);
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);

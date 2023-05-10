@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasBody,
             bool isExpressionBodied,
             bool isNullableAnalysisEnabled,
-            BindingDiagnosticBag diagnostics) :
+            BindingDiagnosticBag diagnostics,
+            RefKind refKind = RefKind.None) :
             base(containingType,
                  syntax.GetReference(),
                  location,
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var isMetadataVirtualIgnoringModifiers = isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0;
 
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExpressionBodied: isExpressionBodied, isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
+            flags.SetOrdinaryMethodFlags(refKind, hasBody);
 
             _typeParameters = MakeTypeParameters(syntax, diagnostics);
 
