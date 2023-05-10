@@ -484,6 +484,33 @@ public partial class UsePrimaryConstructorTests
     }
 
     [Fact]
+    public async Task TestBlockWithMultipleAssignments2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int i, j;
+
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                    public int i = i, j = j;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestRemoveMembers1()
     {
         await new VerifyCS.Test
