@@ -788,4 +788,180 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="i"></param>
+    void M(int i)
+    {
+
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorDocCommentWhenNothingOnType_SingleLine_1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    class C
+                    {
+                        private int i;
+
+                        /// <summary>Doc comment on single line</summary>
+                        /// <param name="i">Doc about i single line</param>
+                        public [|C|](int i)
+                        {
+                            this.i = i;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    /// <summary>Doc comment on single line</summary>
+                    /// <param name="i">Doc about i single line</param>
+                    class C(int i)
+                    {
+                        private int i = i;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    class C
+                    {
+                        private int i;
+
+                        /// <summary>
+                        /// Doc comment
+                        /// On multiple lines
+                        /// </summary>
+                        /// <param name="i">Doc about i
+                        /// on multiple lines
+                        /// </param>
+                        public [|C|](int i)
+                        {
+                            this.i = i;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    /// <summary>
+                    /// Doc comment
+                    /// On multiple lines
+                    /// </summary>
+                    /// <param name="i">
+                    /// Doc about i
+                    /// on multiple lines
+                    /// </param>
+                    class C(int i)
+                    {
+                        private int i = i;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    class C
+                    {
+                        private int i;
+
+                        /// <summary>
+                        /// Doc comment
+                        /// On multiple lines</summary>
+                        /// <param name="i">
+                        /// Doc about i
+                        /// on multiple lines</param>
+                        public [|C|](int i)
+                        {
+                            this.i = i;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    /// <summary>
+                    /// Doc comment
+                    /// On multiple lines</summary>
+                    /// <param name="i">
+                    /// Doc about i
+                    /// on multiple lines</param>
+                    class C(int i)
+                    {
+                        private int i = i;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    class C
+                    {
+                        private int i;
+
+                        /// <summary>Doc comment
+                        /// On multiple lines</summary>
+                        /// <param name="i">Doc about i
+                        /// on multiple lines</param>
+                        public [|C|](int i)
+                        {
+                            this.i = i;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    /// <summary>Doc comment
+                    /// On multiple lines</summary>
+                    /// <param name="i">Doc about i
+                    /// on multiple lines</param>
+                    class C(int i)
+                    {
+                        private int i = i;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }
