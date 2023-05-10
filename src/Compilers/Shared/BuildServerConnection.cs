@@ -13,6 +13,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
 
@@ -31,6 +32,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal static bool IsCompilerServerSupported => GetPipeName("") is object;
 
+        /// <summary>
+        /// Create a build request for processing on the server. 
+        /// </summary>
+        /// <remarks>
+        /// Even though compilation itself does not specifically require a temporary directory to be successful
+        /// this API deliberately requires <paramref name="tempDirectory"/> to have a value. The reason for this is
+        /// that the server itself requires a temporary directory to startup and it uses the same logic as the client
+        /// to calculate it.
+        /// 
+        /// That means if the client can't calculate the temporary directory the server won't be able to either and 
+        /// hence won't be able to start. So creating <see cref="BuildRequest"/> instances isn't useful cause it's 
+        /// wasting time trying to start a server that won't be able to start.
+        /// </remarks>
         internal static BuildRequest CreateBuildRequest(
             Guid requestId,
             RequestLanguage language,
@@ -588,51 +602,61 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         /// <summary>
-        /// Gets the value of the temporary path for the current environment assuming the working directory
-        /// is <paramref name="workingDir"/>.  This function must emulate <see cref="Path.GetTempPath"/> as 
-        /// closely as possible.
+        /// Gets the value of the temporary path for the provided environment settings. This behavior
+        /// is OS specific: 
+        ///   - On Windows it seeks to emulate Path.GetTempPath as closely as possible with 
+        ///     provided working directory.
+        ///   - On Unix it returns a directory under $XDG_RUNTIME_DIR if it is set using appropriate fall backs
+        ///     as necessary. https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
         /// </summary>
         internal static string? GetTempPath(string? workingDir)
         {
-            if (PlatformInformation.IsUnix)
+            return PlatformInformation.IsUnix
+                ? GetTempPathLinux()
+                : GetTempPathWindows(workingDir);
+
+            static string? GetTempPathLinux()
             {
                 // Unix temp path is fine: it does not use the working directory
                 // (it uses ${TMPDIR} if set, otherwise, it returns /tmp)
                 return Path.GetTempPath();
             }
 
-            var tmp = Environment.GetEnvironmentVariable("TMP");
-            if (Path.IsPathRooted(tmp))
+            static string? GetTempPathWindows(string? workingDir)
             {
-                return tmp;
-            }
-
-            var temp = Environment.GetEnvironmentVariable("TEMP");
-            if (Path.IsPathRooted(temp))
-            {
-                return temp;
-            }
-
-            if (!string.IsNullOrEmpty(workingDir))
-            {
-                if (!string.IsNullOrEmpty(tmp))
+                var tmp = Environment.GetEnvironmentVariable("TMP");
+                if (Path.IsPathRooted(tmp))
                 {
-                    return Path.Combine(workingDir, tmp);
+                    return tmp;
                 }
 
-                if (!string.IsNullOrEmpty(temp))
+                var temp = Environment.GetEnvironmentVariable("TEMP");
+                if (Path.IsPathRooted(temp))
                 {
-                    return Path.Combine(workingDir, temp);
+                    return temp;
                 }
-            }
 
-            var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
-            if (Path.IsPathRooted(userProfile))
-            {
-                return userProfile;
-            }
+                if (!string.IsNullOrEmpty(workingDir))
+                {
+                    if (!string.IsNullOrEmpty(tmp))
+                    {
+                        return Path.Combine(workingDir, tmp);
+                    }
 
-            return Environment.GetEnvironmentVariable("SYSTEMROOT");
+                    if (!string.IsNullOrEmpty(temp))
+                    {
+                        return Path.Combine(workingDir, temp);
+                    }
+                }
+
+                var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
+                if (Path.IsPathRooted(userProfile))
+                {
+                    return userProfile;
+                }
+
+                return Environment.GetEnvironmentVariable("SYSTEMROOT");
+            }
         }
     }
 

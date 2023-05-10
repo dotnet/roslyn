@@ -42,11 +42,16 @@ namespace Microsoft.CodeAnalysis
         /// a temporary file must be created on disk (at the last possible moment), emitted to, signed on disk
         /// and then copied back to the original <see cref="Stream"/>. Only when legacy signing is enabled though.
         /// </summary>
+        /// <remarks>
+        /// The <see cref="Stream"/> returned here should not be disposed by the caller. It is either owned by 
+        /// this type or the provided <see cref="EmitStreamProvider"/>.
+        /// </remarks>
         internal sealed class EmitStream
         {
             private readonly EmitStreamProvider _emitStreamProvider;
             private readonly EmitStreamSignKind _emitStreamSignKind;
             private readonly StrongNameProvider? _strongNameProvider;
+            private readonly StrongNameKeys _strongNameKeys;
             private (Stream tempStream, string tempFilePath)? _tempInfo;
 
             /// <summary>
@@ -60,6 +65,7 @@ namespace Microsoft.CodeAnalysis
             internal EmitStream(
                 EmitStreamProvider emitStreamProvider,
                 EmitStreamSignKind emitStreamSignKind,
+                StrongNameKeys strongNameKeys,
                 StrongNameProvider? strongNameProvider)
             {
                 RoslynDebug.Assert(emitStreamProvider != null);
@@ -67,17 +73,18 @@ namespace Microsoft.CodeAnalysis
                 _emitStreamProvider = emitStreamProvider;
                 _emitStreamSignKind = emitStreamSignKind;
                 _strongNameProvider = strongNameProvider;
+                _strongNameKeys = strongNameKeys;
             }
 
-            internal Func<Stream?> GetCreateStreamFunc(DiagnosticBag diagnostics)
+            internal Func<Stream?> GetCreateStreamFunc(CommonMessageProvider messageProvider, DiagnosticBag diagnostics)
             {
-                return () => CreateStream(diagnostics);
+                return () => CreateStream(messageProvider, diagnostics);
             }
 
             internal void Close()
             {
-                // The _stream value is deliberately excluded from being disposed here. That value is not 
-                // owned by this type.
+                // The _stream value is deliberately excluded from being disposed here. This value is 
+                // owned by the EmitStreamProvider and should not be disposed by this type.
                 _stream = null;
 
                 if (_tempInfo.HasValue)
@@ -106,18 +113,12 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Create the stream which should be used for Emit. This should only be called one time.
             /// </summary>
-            private Stream? CreateStream(DiagnosticBag diagnostics)
+            private Stream? CreateStream(CommonMessageProvider messageProvider, DiagnosticBag diagnostics)
             {
                 RoslynDebug.Assert(_stream == null);
                 RoslynDebug.Assert(diagnostics != null);
 
                 if (diagnostics.HasAnyErrors())
-                {
-                    return null;
-                }
-
-                _stream = _emitStreamProvider.GetOrCreateStream(diagnostics);
-                if (_stream == null)
                 {
                     return null;
                 }
@@ -130,14 +131,30 @@ namespace Microsoft.CodeAnalysis
                 {
                     RoslynDebug.Assert(_strongNameProvider != null);
 
+                    var fileSystem = _strongNameProvider.FileSystem;
+                    var tempDir = fileSystem.GetSigningTempPath();
+                    if (tempDir is null)
+                    {
+                        diagnostics.Add(StrongNameKeys.GetError(
+                            _strongNameKeys.KeyFilePath,
+                            _strongNameKeys.KeyContainer,
+                            new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.SigningTempPathUnavailable)),
+                            messageProvider));
+                        return null;
+                    }
+
+                    _stream = _emitStreamProvider.GetOrCreateStream(diagnostics);
+                    if (_stream is null)
+                    {
+                        return null;
+                    }
+
                     Stream tempStream;
                     string tempFilePath;
                     try
                     {
-                        var fileSystem = _strongNameProvider.FileSystem;
                         Func<string, Stream> streamConstructor = path => fileSystem.CreateFileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
 
-                        var tempDir = fileSystem.GetTempPath();
                         tempFilePath = Path.Combine(tempDir, Guid.NewGuid().ToString("N"));
                         tempStream = FileUtilities.CreateFileStreamChecked(streamConstructor, tempFilePath);
                     }
@@ -151,22 +168,22 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
+                    _stream = _emitStreamProvider.GetOrCreateStream(diagnostics);
                     return _stream;
                 }
             }
 
-            internal bool Complete(StrongNameKeys strongNameKeys, CommonMessageProvider messageProvider, DiagnosticBag diagnostics)
+            internal bool Complete(CommonMessageProvider messageProvider, DiagnosticBag diagnostics)
             {
                 RoslynDebug.Assert(_stream != null);
                 RoslynDebug.Assert(_emitStreamSignKind != EmitStreamSignKind.SignedWithFile || _tempInfo.HasValue);
 
                 try
                 {
-                    if (_tempInfo.HasValue)
+                    if (_tempInfo is (Stream tempStream, string tempFilePath))
                     {
                         RoslynDebug.Assert(_emitStreamSignKind == EmitStreamSignKind.SignedWithFile);
                         RoslynDebug.Assert(_strongNameProvider is object);
-                        var (tempStream, tempFilePath) = _tempInfo.GetValueOrDefault();
 
                         try
                         {
@@ -174,7 +191,7 @@ namespace Microsoft.CodeAnalysis
                             // disk.
                             tempStream.Dispose();
 
-                            _strongNameProvider.SignFile(strongNameKeys, tempFilePath);
+                            _strongNameProvider.SignFile(_strongNameKeys, tempFilePath);
 
                             using (var tempFileStream = new FileStream(tempFilePath, FileMode.Open))
                             {
@@ -183,13 +200,13 @@ namespace Microsoft.CodeAnalysis
                         }
                         catch (DesktopStrongNameProvider.ClrStrongNameMissingException)
                         {
-                            diagnostics.Add(StrongNameKeys.GetError(strongNameKeys.KeyFilePath, strongNameKeys.KeyContainer,
+                            diagnostics.Add(StrongNameKeys.GetError(_strongNameKeys.KeyFilePath, _strongNameKeys.KeyContainer,
                                 new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported)), messageProvider));
                             return false;
                         }
                         catch (IOException ex)
                         {
-                            diagnostics.Add(StrongNameKeys.GetError(strongNameKeys.KeyFilePath, strongNameKeys.KeyContainer, ex.Message, messageProvider));
+                            diagnostics.Add(StrongNameKeys.GetError(_strongNameKeys.KeyFilePath, _strongNameKeys.KeyContainer, ex.Message, messageProvider));
                             return false;
                         }
                     }
