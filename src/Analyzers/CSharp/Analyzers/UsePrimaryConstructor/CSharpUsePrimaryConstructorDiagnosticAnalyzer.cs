@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
     internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         // Deliberately using names that could not be actual field/property names in the properties dictionary.
-        public static readonly string AllFieldsName = "<>AllFields";
-        public static readonly string AllPropertiesName = "<>AllProperties";
+        public const string AllFieldsName = "<>AllFields";
+        public const string AllPropertiesName = "<>AllProperties";
 
         private static readonly ObjectPool<ConcurrentSet<ISymbol>> s_concurrentSetPool = new(() => new());
 
