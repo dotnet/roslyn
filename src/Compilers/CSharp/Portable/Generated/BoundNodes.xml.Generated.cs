@@ -6279,29 +6279,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnconvertedCollectionLiteralExpression : BoundExpression
     {
-        public BoundUnconvertedCollectionLiteralExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> initializers, Binder binder, bool hasErrors = false)
-            : base(BoundKind.UnconvertedCollectionLiteralExpression, syntax, null, hasErrors || initializers.HasErrors())
+        public BoundUnconvertedCollectionLiteralExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> elements, Binder binder, bool hasErrors = false)
+            : base(BoundKind.UnconvertedCollectionLiteralExpression, syntax, null, hasErrors || elements.HasErrors())
         {
 
-            RoslynDebug.Assert(!initializers.IsDefault, "Field 'initializers' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(binder is object, "Field 'binder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
-            this.Initializers = initializers;
+            this.Elements = elements;
             this.Binder = binder;
         }
 
         public new TypeSymbol? Type => base.Type;
-        public ImmutableArray<BoundExpression> Initializers { get; }
+        public ImmutableArray<BoundExpression> Elements { get; }
         public Binder Binder { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedCollectionLiteralExpression(this);
 
-        public BoundUnconvertedCollectionLiteralExpression Update(ImmutableArray<BoundExpression> initializers, Binder binder)
+        public BoundUnconvertedCollectionLiteralExpression Update(ImmutableArray<BoundExpression> elements, Binder binder)
         {
-            if (initializers != this.Initializers || binder != this.Binder)
+            if (elements != this.Elements || binder != this.Binder)
             {
-                var result = new BoundUnconvertedCollectionLiteralExpression(this.Syntax, initializers, binder, this.HasErrors);
+                var result = new BoundUnconvertedCollectionLiteralExpression(this.Syntax, elements, binder, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6311,32 +6311,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionLiteralExpression : BoundExpression
     {
-        public BoundCollectionLiteralExpression(SyntaxNode syntax, BoundObjectOrCollectionValuePlaceholder placeholder, BoundExpression? collectionCreation, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.CollectionLiteralExpression, syntax, type, hasErrors || placeholder.HasErrors() || collectionCreation.HasErrors() || initializers.HasErrors())
+        public BoundCollectionLiteralExpression(SyntaxNode syntax, BoundObjectOrCollectionValuePlaceholder placeholder, BoundExpression? collectionCreation, ImmutableArray<BoundExpression> elements, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.CollectionLiteralExpression, syntax, type, hasErrors || placeholder.HasErrors() || collectionCreation.HasErrors() || elements.HasErrors())
         {
 
             RoslynDebug.Assert(placeholder is object, "Field 'placeholder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-            RoslynDebug.Assert(!initializers.IsDefault, "Field 'initializers' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Placeholder = placeholder;
             this.CollectionCreation = collectionCreation;
-            this.Initializers = initializers;
+            this.Elements = elements;
         }
 
         public new TypeSymbol Type => base.Type!;
         public BoundObjectOrCollectionValuePlaceholder Placeholder { get; }
         public BoundExpression? CollectionCreation { get; }
-        public ImmutableArray<BoundExpression> Initializers { get; }
+        public ImmutableArray<BoundExpression> Elements { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionLiteralExpression(this);
 
-        public BoundCollectionLiteralExpression Update(BoundObjectOrCollectionValuePlaceholder placeholder, BoundExpression? collectionCreation, ImmutableArray<BoundExpression> initializers, TypeSymbol type)
+        public BoundCollectionLiteralExpression Update(BoundObjectOrCollectionValuePlaceholder placeholder, BoundExpression? collectionCreation, ImmutableArray<BoundExpression> elements, TypeSymbol type)
         {
-            if (placeholder != this.Placeholder || collectionCreation != this.CollectionCreation || initializers != this.Initializers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (placeholder != this.Placeholder || collectionCreation != this.CollectionCreation || elements != this.Elements || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCollectionLiteralExpression(this.Syntax, placeholder, collectionCreation, initializers, type, this.HasErrors);
+                var result = new BoundCollectionLiteralExpression(this.Syntax, placeholder, collectionCreation, elements, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10249,12 +10249,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
         {
-            this.VisitList(node.Initializers);
+            this.VisitList(node.Elements);
             return null;
         }
         public override BoundNode? VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
-            this.VisitList(node.Initializers);
+            this.VisitList(node.Elements);
             return null;
         }
         public override BoundNode? VisitCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement node)
@@ -11510,17 +11510,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
         {
-            ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
+            ImmutableArray<BoundExpression> elements = this.VisitList(node.Elements);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(initializers, node.Binder);
+            return node.Update(elements, node.Binder);
         }
         public override BoundNode? VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
             BoundObjectOrCollectionValuePlaceholder placeholder = node.Placeholder;
             BoundExpression? collectionCreation = node.CollectionCreation;
-            ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
+            ImmutableArray<BoundExpression> elements = this.VisitList(node.Elements);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(placeholder, collectionCreation, initializers, type);
+            return node.Update(placeholder, collectionCreation, elements, type);
         }
         public override BoundNode? VisitCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement node)
         {
@@ -13713,17 +13713,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
         {
-            ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
+            ImmutableArray<BoundExpression> elements = this.VisitList(node.Elements);
             BoundUnconvertedCollectionLiteralExpression updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(initializers, node.Binder);
+                updatedNode = node.Update(elements, node.Binder);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(initializers, node.Binder);
+                updatedNode = node.Update(elements, node.Binder);
             }
             return updatedNode;
         }
@@ -13732,17 +13732,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundObjectOrCollectionValuePlaceholder placeholder = node.Placeholder;
             BoundExpression? collectionCreation = node.CollectionCreation;
-            ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
+            ImmutableArray<BoundExpression> elements = this.VisitList(node.Elements);
             BoundCollectionLiteralExpression updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(placeholder, collectionCreation, initializers, infoAndType.Type!);
+                updatedNode = node.Update(placeholder, collectionCreation, elements, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(placeholder, collectionCreation, initializers, node.Type);
+                updatedNode = node.Update(placeholder, collectionCreation, elements, node.Type);
             }
             return updatedNode;
         }
@@ -16112,7 +16112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node, object? arg) => new TreeDumperNode("unconvertedCollectionLiteralExpression", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("initializers", null, from x in node.Initializers select Visit(x, null)),
+            new TreeDumperNode("elements", null, from x in node.Elements select Visit(x, null)),
             new TreeDumperNode("binder", node.Binder, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
@@ -16123,7 +16123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("placeholder", null, new TreeDumperNode[] { Visit(node.Placeholder, null) }),
             new TreeDumperNode("collectionCreation", null, new TreeDumperNode[] { Visit(node.CollectionCreation, null) }),
-            new TreeDumperNode("initializers", null, from x in node.Initializers select Visit(x, null)),
+            new TreeDumperNode("elements", null, from x in node.Elements select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

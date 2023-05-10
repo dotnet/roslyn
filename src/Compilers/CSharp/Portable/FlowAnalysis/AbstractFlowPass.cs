@@ -1926,9 +1926,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
-            foreach (var initializer in node.Initializers)
+            foreach (var element in node.Elements)
             {
-                VisitRvalue(initializer);
+                VisitRvalue(element);
             }
             return null;
         }

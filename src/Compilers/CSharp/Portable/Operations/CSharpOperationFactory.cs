@@ -1248,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
             var initializer = new ArrayInitializerOperation(
-                CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Initializers),
+                CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Elements),
                 _semanticModel,
                 syntax,
                 isImplicit: true);
@@ -1256,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 _semanticModel,
                 syntax,
                 _semanticModel.Compilation.GetSpecialType(SpecialType.System_Int32),
-                ConstantValue.Create(boundCollectionLiteralExpression.Initializers.Length),
+                ConstantValue.Create(boundCollectionLiteralExpression.Elements.Length),
                 isImplicit: true));
 
             if (collectionType.TypeKind == TypeKind.Array)
@@ -1309,7 +1309,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
             bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
             var initializer = new ObjectOrCollectionInitializerOperation(
-                CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Initializers),
+                CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Elements),
                 _semanticModel,
                 syntax,
                 collectionType,
@@ -1341,7 +1341,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
             ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
             bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
-            var children = CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Initializers);
+            var children = CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Elements);
             return new InvalidOperation(children, _semanticModel, syntax, collectionType, constantValue: null, isImplicit);
         }
 

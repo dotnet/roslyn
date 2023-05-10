@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            var elements = node.Initializers;
+            var elements = node.Elements;
             if (elements.Any(e => e is BoundCollectionLiteralSpreadElement))
             {
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, syntax).Construct(elementType),
                     wasCompilerGenerated: wasCompilerGenerated,
                     diagnostics);
-                return result.Update(result.Placeholder, result.CollectionCreation, result.Initializers, targetType);
+                return result.Update(result.Placeholder, result.CollectionCreation, result.Elements, targetType);
             }
 
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
@@ -564,8 +564,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE: When generating a List<T>, should we use the well-known
             // member List<T>.Add() rather than relying on lookup?
             var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
-            var builder = ArrayBuilder<BoundExpression>.GetInstance(node.Initializers.Length);
-            foreach (var element in node.Initializers)
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(node.Elements.Length);
+            foreach (var element in node.Elements)
             {
                 var result = element switch
                 {
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, node.Syntax).Construct(elementType),
                 wasCompilerGenerated: wasCompilerGenerated,
                 diagnostics);
-            return result.Update(result.Placeholder, result.CollectionCreation, result.Initializers, targetType);
+            return result.Update(result.Placeholder, result.CollectionCreation, result.Elements, targetType);
         }
 
         /// <summary>

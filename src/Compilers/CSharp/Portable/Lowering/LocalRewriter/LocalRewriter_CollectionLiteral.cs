@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionType.Name == "Span" ? WellKnownMember.System_Span_T__ctor_Array : WellKnownMember.System_ReadOnlySpan_T__ctor_Array)!).AsMember(spanType);
             }
 
-            var initializers = node.Initializers;
+            var elements = node.Elements;
             BoundExpression array;
 
-            if (initializers.Any(i => i is BoundCollectionLiteralSpreadElement))
+            if (elements.Any(i => i is BoundCollectionLiteralSpreadElement))
             {
                 // The array initializer includes at least one spread element, and if any spread element
                 // has an unknown length (at runtime), we'll create an intermediate List<T> instance.
@@ -70,14 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                int arrayLength = initializers.Length;
+                int arrayLength = elements.Length;
                 // PROTOTYPE: Should [] be emitted as Array.Empty<T>()?
                 var initialization = (arrayLength == 0)
                     ? null
                     : new BoundArrayInitialization(
                         syntax,
                         isInferred: false,
-                        initializers.SelectAsArray(e => VisitExpression(e)));
+                        elements.SelectAsArray(e => VisitExpression(e)));
                 array = new BoundArrayCreation(
                     syntax,
                     ImmutableArray.Create<BoundExpression>(
@@ -110,24 +110,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Create a temp for the collection.
             BoundAssignmentOperator assignmentToTemp;
             BoundLocal temp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
-            var initializers = node.Initializers;
-            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(initializers.Length + 1);
+            var elements = node.Elements;
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
             sideEffects.Add(assignmentToTemp);
 
             AddPlaceholderReplacement(node.Placeholder, temp);
 
-            foreach (var initializer in initializers)
+            foreach (var element in elements)
             {
-                var rewrittenInitializer = initializer switch
+                var rewrittenElement = element switch
                 {
-                    BoundCollectionElementInitializer collectionElement => MakeCollectionInitializer(temp, collectionElement),
-                    BoundDynamicCollectionElementInitializer dynamicElement => MakeDynamicCollectionInitializer(temp, dynamicElement),
+                    BoundCollectionElementInitializer collectionInitializer => MakeCollectionInitializer(temp, collectionInitializer),
+                    BoundDynamicCollectionElementInitializer dynamicInitializer => MakeDynamicCollectionInitializer(temp, dynamicInitializer),
                     BoundCollectionLiteralSpreadElement spreadElement => MakeCollectionLiteralSpreadElement(spreadElement),
-                    _ => throw ExceptionUtilities.UnexpectedValue(initializer)
+                    _ => throw ExceptionUtilities.UnexpectedValue(element)
                 };
-                if (rewrittenInitializer != null)
+                if (rewrittenElement != null)
                 {
-                    sideEffects.Add(rewrittenInitializer);
+                    sideEffects.Add(rewrittenElement);
                 }
             }
 

@@ -3471,13 +3471,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE: Test nullability of elements when the collection literal is target typed
             // and the inferred target type has distinct element type nullability.
-            foreach (var initializer in node.Initializers)
+            foreach (var element in node.Elements)
             {
-                switch (initializer)
+                switch (element)
                 {
-                    case BoundCollectionElementInitializer element:
-                        var collectionType = element.AddMethod.ContainingType;
-                        var completion = VisitCollectionElementInitializer(element, collectionType, delayCompletionForType);
+                    case BoundCollectionElementInitializer initializer:
+                        var collectionType = initializer.AddMethod.ContainingType;
+                        var completion = VisitCollectionElementInitializer(initializer, collectionType, delayCompletionForType);
                         if (completion is { })
                         {
                             // PROTOTYPE: Complete the analysis later.
@@ -3485,7 +3485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     default:
-                        VisitRvalue(initializer);
+                        VisitRvalue(element);
                         break;
                 }
             }
@@ -3496,9 +3496,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
         {
-            foreach (var initializer in node.Initializers)
+            foreach (var element in node.Elements)
             {
-                VisitRvalue(initializer);
+                VisitRvalue(element);
             }
 
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
