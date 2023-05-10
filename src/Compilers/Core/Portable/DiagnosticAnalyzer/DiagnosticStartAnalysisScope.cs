@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                        ISymbol owningSymbol,
                                                        SemanticModel semanticModel,
                                                        AnalyzerOptions options,
-                                                       TextSpan? filterSpan, 
+                                                       TextSpan? filterSpan,
                                                        bool isGeneratedCode,
                                                        CancellationToken cancellationToken)
             : base(codeBlock, owningSymbol, semanticModel, options, filterSpan, isGeneratedCode, cancellationToken)
