@@ -224,28 +224,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                return await GetService().IsActiveStatementInExceptionRegionAsync(sessionId, solution, instructionId, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
-
-        /// <summary>
-        /// Remote API.
-        /// </summary>
-        public ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                return await GetService().GetCurrentActiveStatementPositionAsync(sessionId, solution, CreateActiveStatementSpanProvider(callbackId), instructionId, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
-
-        /// <summary>
-        /// Remote API.
-        /// </summary>
         public ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>

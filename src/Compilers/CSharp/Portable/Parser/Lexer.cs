@@ -1932,7 +1932,7 @@ LoopExit:
                     Debug.Assert(string.Equals(info.Text.Substring(0, objectAddressOffset + 1), "@0x", StringComparison.OrdinalIgnoreCase));
                     var valueText = TextWindow.Intern(_identBuffer, objectAddressOffset, _identLen - objectAddressOffset);
                     // Verify valid hex value.
-                    if ((valueText.Length == 0) || !valueText.All(IsValidHexDigit))
+                    if ((valueText.Length == 0) || !valueText.All(SyntaxFacts.IsHexDigit))
                     {
                         goto Fail;
                     }
@@ -1953,16 +1953,6 @@ Fail:
             info.StringValue = null;
             TextWindow.Reset(start);
             return false;
-        }
-
-        private static bool IsValidHexDigit(char c)
-        {
-            if ((c >= '0') && (c <= '9'))
-            {
-                return true;
-            }
-            c = char.ToLower(c);
-            return (c >= 'a') && (c <= 'f');
         }
 
         /// <summary>

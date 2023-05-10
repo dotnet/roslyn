@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var tokenTypesToIndex = SemanticTokensSchema.GetSchema(capabilities).TokenTypeToIndex;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // By default we calculate the tokens for the full document span, although the user 
             // can pass in a range if they wish.

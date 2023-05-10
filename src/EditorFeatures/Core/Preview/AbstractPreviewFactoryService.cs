@@ -752,8 +752,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             cancellationToken.ThrowIfCancellationRequested();
 
             // Get the text that's actually in the editor.
-            var oldText = oldDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var newText = newDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var oldText = oldDocument.GetTextSynchronously(cancellationToken);
+            var newText = newDocument.GetTextSynchronously(cancellationToken);
 
             // Defer to the editor to figure out what changes the client made.
             var diffService = _differenceSelectorService.GetTextDifferencingService(

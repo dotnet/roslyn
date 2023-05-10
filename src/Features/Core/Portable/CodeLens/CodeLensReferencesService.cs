@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             var longName = langServices.GetDisplayName(semanticModel, node);
 
             // get the full line of source text on the line that contains this position
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // get the actual span of text for the line containing reference
             var textLine = text.Lines.GetLineFromPosition(position);
