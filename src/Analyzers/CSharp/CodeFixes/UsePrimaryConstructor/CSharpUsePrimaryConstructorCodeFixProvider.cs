@@ -160,7 +160,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
             SyntaxTriviaList CreateFinalTypeDeclarationLeadingTrivia()
             {
-                return typeDeclaration.GetLeadingTrivia();
+                var typeDeclarationLeadingTrivia = typeDeclaration.GetLeadingTrivia();
+
+                // TODO: add support for `/** */` style doc comments if customer demand is there.
+                var existingTypeDeclarationDocComment = typeDeclarationLeadingTrivia.LastOrDefault(t => t.IsSingleLineDocComment());
+                var existingConstructorDocComment = constructorDeclaration.GetLeadingTrivia().LastOrDefault(t => t.IsSingleLineDocComment());
+
+                // Simple case, no doc comments on either
+                if (existingTypeDeclarationDocComment == default && existingConstructorDocComment == default)
+                    return typeDeclarationLeadingTrivia;
+
+                if (existingTypeDeclarationDocComment == default)
+                {
+                    // type doesn't have doc comment, but constructor does.  Move constructor doc comment to type decl.
+                    // note: the doc comment always ends with a newline.  so we want to place the new one before the
+                    // final leading spaces of the type decl trivia.
+                    var insertionIndex = typeDeclarationLeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)]
+                        ? typeDeclarationLeadingTrivia.Count - 1
+                        : typeDeclarationLeadingTrivia.Count;
+
+                    return typeDeclarationLeadingTrivia.Insert(
+                        insertionIndex,
+                        existingConstructorDocComment.WithAdditionalAnnotations(Formatter.Annotation));
+                }
+
+                return typeDeclarationLeadingTrivia;
             }
 
             async ValueTask MoveBaseConstructorArgumentsAsync()

@@ -835,6 +835,36 @@ public partial class UsePrimaryConstructorTests
     }
 
     [Fact]
+    public async Task TestMoveConstructorDocCommentWhenNothingOnType_SingleLine_2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int i;
+
+                    /// <summary>Doc comment on single line</summary>
+                    /// <param name="i">Doc about i single line</param>
+                    public [|C|](int i)
+                    {
+                        this.i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                /// <summary>Doc comment on single line</summary>
+                /// <param name="i">Doc about i single line</param>
+                class C(int i)
+                {
+                    private int i = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_1()
     {
         await new VerifyCS.Test
@@ -850,7 +880,8 @@ public partial class UsePrimaryConstructorTests
                         /// Doc comment
                         /// On multiple lines
                         /// </summary>
-                        /// <param name="i">Doc about i
+                        /// <param name="i">
+                        /// Doc about i
                         /// on multiple lines
                         /// </param>
                         public [|C|](int i)
