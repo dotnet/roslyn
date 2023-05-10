@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Utilities.ServiceBroker;
+using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 
@@ -17,6 +18,16 @@ internal class Descriptors
 
     public static readonly ServiceRpcDescriptor RemoteHelloWorldService = CreateDescriptor(new("helloServiceHubDotNetHost", new Version("0.1")));
     public static readonly ServiceRpcDescriptor RemoteModelService = CreateDescriptor(new("vs-intellicode-base-models", new Version("0.1")));
+
+    /// <summary>
+    /// See https://devdiv.visualstudio.com/DevDiv/_git/CPS?path=/src/Microsoft.VisualStudio.ProjectSystem.Server/BrokerServices/ProjectInitializationStatusServiceDescriptor.cs
+    /// </summary>
+    public static readonly ServiceRpcDescriptor RemoteProjectInitializationStatusService = new ServiceJsonRpcDescriptor(
+        new("Microsoft.VisualStudio.ProjectSystem.ProjectInitializationStatusService", new Version(0, 1)),
+        clientInterface: null,
+        ServiceJsonRpcDescriptor.Formatters.MessagePack,
+        ServiceJsonRpcDescriptor.MessageDelimiters.BigEndianInt32LengthHeader,
+        new MultiplexingStream.Options { ProtocolMajorVersion = 3 });
 
     // Descriptors for local services.
 
@@ -33,6 +44,7 @@ internal class Descriptors
     {
         { Descriptors.RemoteHelloWorldService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { Descriptors.RemoteModelService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { Descriptors.RemoteProjectInitializationStatusService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
     }.ToImmutableDictionary();
 
     public static ServiceJsonRpcDescriptor CreateDescriptor(ServiceMoniker serviceMoniker) => new(
