@@ -73,11 +73,6 @@ steps:
       publishArgs='--publish'
     fi
 
-    assetManifestFileName=SourceBuild_RidSpecific.xml
-    if [ '${{ parameters.platform.name }}' != '' ]; then
-      assetManifestFileName=SourceBuild_${{ parameters.platform.name }}.xml
-    fi
-
     ${{ coalesce(parameters.platform.buildScript, './build.sh') }} --ci \
       --configuration $buildConfig \
       --restore --build --pack $publishArgs -bl \
@@ -87,8 +82,7 @@ steps:
       $targetRidArgs \
       $runtimeOsArgs \
       /p:SourceBuildNonPortable=${{ parameters.platform.nonPortable }} \
-      /p:ArcadeBuildFromSource=true \
-      /p:AssetManifestFileName=$assetManifestFileName
+      /p:ArcadeBuildFromSource=true
   displayName: Build
 
 # Upload build logs for diagnosis.
