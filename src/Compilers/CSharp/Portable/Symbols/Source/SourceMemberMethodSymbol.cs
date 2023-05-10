@@ -145,7 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public bool IsVarArg
             {
                 get { return (_flags & IsVarArgBit) != 0; }
-                set { ThreadSafeFlagOperations.Set(ref _flags, value ? IsVarArgBit : 0); }
             }
 
 #if DEBUG
@@ -195,10 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// Only allowed to be called in constructors of SourceMemberMethodSymbol (and derived constructors), so
             /// does not need ThreadSafe operations.
             /// </summary>
-            public void SetOrdinaryMethodFlags(RefKind refKind, bool hasAnyBody)
+            public void SetOrdinaryMethodFlags(RefKind refKind, bool hasAnyBody, bool isVarArg)
             {
                 _flags |= ((int)refKind & RefKindMask) << RefKindOffset;
                 _flags |= hasAnyBody ? HasAnyBodyBit : 0;
+                _flags |= isVarArg ? IsVarArgBit : 0;
             }
 
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
