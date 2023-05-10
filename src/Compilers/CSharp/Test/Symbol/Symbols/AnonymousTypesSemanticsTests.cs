@@ -1879,15 +1879,26 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             var source = """
 unsafe class C
 {
-    static int*[] M()
+    static unsafe void Main()
     {
-        var a = new { F = new int*[0] };
-        return a.F;
+        var array = new int*[0];
+        var result = C.M(array);
+        if (array == result)
+        {
+            System.Console.Write("RAN");
+        }
+    }
+
+    static int*[] M(int*[] a)
+    {
+        var b = new { F = a };
+        return b.F;
     }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe);
             comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN", verify: Verification.FailsPEVerify);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
