@@ -1129,7 +1129,9 @@ class B
 
             async Task VerifyCallbackSpanAsync(TextSpan? filterSpan)
             {
-                var analysisKind = kind == FilterSpanTestAnalyzer.AnalysisKind.SyntaxTree ? AnalysisKind.Syntax : AnalysisKind.Semantic;
+                var analysisKind = kind is FilterSpanTestAnalyzer.AnalysisKind.SyntaxTree or FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile
+                    ? AnalysisKind.Syntax
+                    : AnalysisKind.Semantic;
                 var documentToAnalyze = kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile ? additionalDocument : document;
                 _ = await DiagnosticComputer.GetDiagnosticsAsync(
                     documentToAnalyze, project, Checksum.Null, ideAnalyzerOptions, filterSpan, analyzerIdsToRequestDiagnostics,
@@ -1149,7 +1151,6 @@ class B
                     Assert.Equal(root.SyntaxTree, analyzer.CallbackFilterTree);
                     Assert.Null(analyzer.CallbackFilterFile);
                 }
-                Assert.Equal(root.SyntaxTree, analyzer.CallbackFilterTree);
             }
         }
 
