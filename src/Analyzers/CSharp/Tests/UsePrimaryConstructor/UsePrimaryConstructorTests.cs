@@ -1170,4 +1170,88 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    class C
+                    {
+                        /// <summary>Docs for i.</summary>
+                        private int i;
+                        /// <summary>
+                        /// Docs for j.
+                        /// </summary>
+                        private int j;
+
+                        public [|C|](int i, int j)
+                        {
+                            this.i = i;
+                            this.j = j;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    /// <param name="i">Docs for i.</param>
+                    /// <param name="j">
+                    /// Docs for j.
+                    /// </param>
+                    class C(int i, int j)
+                    {
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments_MembersWithDifferentNames1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    class C
+                    {
+                        /// <summary>Docs for x.</summary>
+                        private int x;
+                        /// <summary>
+                        /// Docs for y.
+                        /// </summary>
+                        private int y;
+
+                        public [|C|](int i, int j)
+                        {
+                            this.x = i;
+                            this.y = j;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    /// <param name="i">Docs for x.</param>
+                    /// <param name="j">
+                    /// Docs for y.
+                    /// </param>
+                    class C(int i, int j)
+                    {
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }

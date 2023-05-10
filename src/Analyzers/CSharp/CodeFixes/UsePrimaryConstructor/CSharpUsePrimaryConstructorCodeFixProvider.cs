@@ -8,12 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
     {
         private const string s_summaryTagName = "summary";
         private const string s_remarksTagName = "remarks";
+        private const string s_paramTagName = "param";
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -84,6 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
             return Task.CompletedTask;
         }
+
+        private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxNode node)
+            => (DocumentationCommentTriviaSyntax?)GetDocComment(node).GetStructure();
 
         private static SyntaxTrivia GetDocComment(SyntaxNode node)
             => GetDocComment(node.GetLeadingTrivia());
@@ -186,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 // Keep the <param> tags ordered by the order they are in the constructor parameters.
                 var orderedKVPs = properties.OrderBy(kvp => constructor.Parameters.FirstOrDefault(p => p.Name == kvp.Value)?.Ordinal);
 
-                using var _ = ArrayBuilder<(string parameterName, DocumentationCommentTriviaSyntax docComment)>.GetInstance(out var docCommentsToMove);
+                using var _1 = ArrayBuilder<(string parameterName, DocumentationCommentTriviaSyntax docComment)>.GetInstance(out var docCommentsToMove);
 
                 foreach (var (memberName, parameterName) in orderedKVPs)
                 {
@@ -194,7 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     if (removedMember is null)
                         continue;
 
-                    var removedMemberDocComment = (DocumentationCommentTriviaSyntax?)GetDocComment(memberDeclaration).GetStructure();
+                    var removedMemberDocComment = GetDocCommentStructure(
+                        memberDeclaration is VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax field } ? field : memberDeclaration);
                     if (removedMemberDocComment != null)
                         docCommentsToMove.Add((parameterName, removedMemberDocComment)!);
                 }
@@ -208,10 +215,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 if (existingTypeDeclarationDocComment == default)
                 {
                     // type doesn't have doc comment, create a fresh one from all the doc comments removed.
+                    using var _2 = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var allContent);
+                    foreach (var (parameterName, commentToMove) in docCommentsToMove)
+                        allContent.AddRange(ConvertSummaryToParam(commentToMove.Content, parameterName));
+
+                    var insertionIndex = typeDeclarationLeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)]
+                        ? typeDeclarationLeadingTrivia.Count - 1
+                        : typeDeclarationLeadingTrivia.Count;
+
+                    var newDocComment = Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(allContent)));
+                    return typeDeclarationLeadingTrivia.Insert(
+                        insertionIndex,
+                        newDocComment.WithAdditionalAnnotations(Formatter.Annotation));
                 }
 
                 return typeDeclarationLeadingTrivia;
             }
+
+            static IEnumerable<XmlNodeSyntax> ConvertSummaryToParam(IEnumerable<XmlNodeSyntax> content, string parameterName)
+            {
+                foreach (var node in content)
+                {
+                    yield return IsXmlElement(node, s_summaryTagName, out var xmlElement)
+                        ? WithNameAttribute(ConvertXmlElementName(xmlElement, s_paramTagName), parameterName)
+                        : node;
+                }
+            }
+
+            static XmlElementSyntax WithNameAttribute(XmlElementSyntax element, string parameterName)
+                => element.ReplaceNode(element.StartTag, element.StartTag.AddAttributes(XmlNameAttribute(parameterName)));
 
             SyntaxTriviaList MergeTypeDeclarationAndConstructorDocComments()
             {
@@ -280,17 +312,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             {
                 foreach (var node in nodes)
                 {
-                    if (node is XmlElementSyntax { StartTag.Name.LocalName.ValueText: s_summaryTagName } xmlElement)
-                    {
-                        yield return xmlElement.ReplaceTokens(
-                            new[] { xmlElement.StartTag.Name.LocalName, xmlElement.EndTag.Name.LocalName },
-                            (token, _) => Identifier(s_remarksTagName).WithTriviaFrom(token));
-                    }
-                    else
-                    {
-                        yield return node;
-                    }
+                    yield return IsXmlElement(node, s_summaryTagName, out var xmlElement)
+                        ? ConvertXmlElementName(xmlElement, s_remarksTagName)
+                        : node;
                 }
+            }
+
+            static bool IsXmlElement(XmlNodeSyntax node, string name, [NotNullWhen(true)] out XmlElementSyntax? element)
+            {
+                element = node is XmlElementSyntax { StartTag.Name.LocalName.ValueText: var elementName } xmlElement && elementName == name
+                    ? xmlElement
+                    : null;
+                return element != null;
+            }
+
+            static XmlElementSyntax ConvertXmlElementName(XmlElementSyntax xmlElement, string name)
+            {
+                return xmlElement.ReplaceTokens(
+                    new[] { xmlElement.StartTag.Name.LocalName, xmlElement.EndTag.Name.LocalName },
+                    (token, _) => Identifier(name).WithTriviaFrom(token));
             }
 
             async ValueTask MoveBaseConstructorArgumentsAsync()
