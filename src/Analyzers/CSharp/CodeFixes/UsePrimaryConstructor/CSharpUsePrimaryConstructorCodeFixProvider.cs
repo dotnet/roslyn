@@ -122,6 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             var constructorDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
             constructorDocumentEditor.RemoveNode(constructorDeclaration);
 
+            var finalTrivia = CreateFinalTypeDeclarationLeadingTrivia();
+
             // Finally move the constructors parameter list to the type declaration.
             constructorDocumentEditor.ReplaceNode(
                 typeDeclaration,
@@ -137,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                         : currentTypeDeclaration.Identifier.GetAllTrailingTrivia();
 
                     return currentTypeDeclaration
+                        .WithLeadingTrivia(finalTrivia)
                         .WithIdentifier(typeParameterList != null ? currentTypeDeclaration.Identifier : currentTypeDeclaration.Identifier.WithoutTrailingTrivia())
                         .WithTypeParameterList(typeParameterList?.WithoutTrailingTrivia())
                         .WithParameterList(constructorDeclaration.ParameterList
@@ -154,6 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             //          to parameter comments.
 
             return solutionEditor.GetChangedSolution();
+
+            SyntaxTriviaList CreateFinalTypeDeclarationLeadingTrivia()
+            {
+                return typeDeclaration.GetLeadingTrivia();
+            }
 
             async ValueTask MoveBaseConstructorArgumentsAsync()
             {
@@ -236,8 +244,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 {
                     Contract.ThrowIfNull(parameterName);
 
-                    // Validated by analyzer.
                     var (member, nodeToRemove) = GetMemberToRemove(memberName);
+                    if (member is null)
+                        continue;
+
                     removedMembers.Add(member);
                     nodesToRemove.Add(nodeToRemove);
 
@@ -255,15 +265,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 }
             }
 
-            (ISymbol member, SyntaxNode nodeToRemove) GetMemberToRemove(string memberName)
+            (ISymbol? member, SyntaxNode nodeToRemove) GetMemberToRemove(string memberName)
             {
                 foreach (var member in namedType.GetMembers(memberName))
                 {
-                    if (CSharpUsePrimaryConstructorDiagnosticAnalyzer.IsViableMemberToAssignTo(namedType, member, out var nodeToRemove, cancellationToken))
+                    if (IsViableMemberToAssignTo(namedType, member, out var nodeToRemove, cancellationToken))
                         return (member, nodeToRemove);
                 }
 
-                throw ExceptionUtilities.Unreachable();
+                return default;
             }
 
             async ValueTask ReplaceReferencesToMemberWithParameterAsync(ISymbol member, string parameterName)
