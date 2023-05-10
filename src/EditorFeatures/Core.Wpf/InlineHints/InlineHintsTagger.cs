@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 }
 
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                var classify = document != null && _taggerProvider.EditorOptionsService.GlobalOptions.GetOption(InlineHintsViewOptions.ColorHints, document.Project.Language);
+                var classify = document != null && _taggerProvider.EditorOptionsService.GlobalOptions.GetOption(InlineHintsViewOptionsStorage.ColorHints, document.Project.Language);
 
                 var selectedSpans = new List<ITagSpan<IntraTextAdornmentTag>>();
                 for (var i = 0; i < _cache.Count; i++)

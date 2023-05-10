@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.Options
 
         #endregion
 
-        public event EventHandler<OptionChangedEventArgs>? OptionChanged;
+        private readonly WeakEvent<OptionChangedEventArgs> _optionChanged = new();
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GlobalOptionService(
             [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService,
             [ImportMany] IEnumerable<Lazy<IOptionPersisterProvider>> optionPersisters)
@@ -236,27 +236,46 @@ namespace Microsoft.CodeAnalysis.Options
             return true;
         }
 
+        public void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+        {
+            _optionChanged.AddHandler(target, handler);
+        }
+
+        public void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+        {
+            _optionChanged.RemoveHandler(target, handler);
+        }
+
         private void RaiseOptionChangedEvent(List<OptionChangedEventArgs> changedOptions)
         {
             Debug.Assert(changedOptions.Count > 0);
 
-            // Raise option changed events.
-            var optionChanged = OptionChanged;
-            if (optionChanged != null)
+            foreach (var changedOption in changedOptions)
             {
-                foreach (var changedOption in changedOptions)
-                {
-                    optionChanged(this, changedOption);
-                }
+                _optionChanged.RaiseEvent(this, changedOption);
             }
         }
 
-        // for testing
-        public void ClearCachedValues()
+        internal TestAccessor GetTestAccessor()
         {
-            lock (_gate)
+            return new TestAccessor(this);
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly GlobalOptionService _instance;
+
+            internal TestAccessor(GlobalOptionService instance)
             {
-                _currentValues = ImmutableDictionary.Create<OptionKey2, object?>();
+                _instance = instance;
+            }
+
+            public void ClearCachedValues()
+            {
+                lock (_instance._gate)
+                {
+                    _instance._currentValues = ImmutableDictionary.Create<OptionKey2, object?>();
+                }
             }
         }
     }

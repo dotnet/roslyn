@@ -33,6 +33,7 @@ param (
   # Options
   [switch]$bootstrap,
   [string]$bootstrapConfiguration = "Release",
+  [string]$bootstrapToolset = "",
   [switch][Alias('bl')]$binaryLog,
   [string]$binaryLogName = "",
   [switch]$ci,
@@ -204,6 +205,10 @@ function Process-Arguments() {
     $script:restore = $true
   }
 
+  if ($sourceBuild) {
+    $script:msbuildEngine = "dotnet"
+  }
+
   foreach ($property in $properties) {
     if (!$property.StartsWith("/p:", "InvariantCultureIgnoreCase")) {
       Write-Host "Invalid argument: $property"
@@ -229,12 +234,6 @@ function BuildSolution() {
 
   }
 
-  if ($ci) {
-    ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
-    ${env:MSBUILDDEBUGCOMM} = 1
-    ${env:MSBUILDDEBUGPATH} = Join-Path $LogDir "MSbuild.Comm.log"
-  }
-
   $projects = Join-Path $RepoRoot $solution
   $toolsetBuildProj = InitializeToolset
 
@@ -256,11 +255,11 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
-  # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
+ # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
   # in our CI builds
   # https://github.com/NuGet/Home/issues/12373
   $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
-
+  
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -292,8 +291,6 @@ function BuildSolution() {
   }
   finally {
     ${env:ROSLYNCOMMANDLINELOGFILE} = $null
-    ${env:MSBUILDDEBUGCOMM} = 0
-    ${env:MSBUILDDEBUGPATH} = $null
   }
 }
 
@@ -576,6 +573,7 @@ function Deploy-VsixViaTool() {
   $orderedVsixFileNames = @(
     "Roslyn.Compilers.Extension.vsix",
     "Roslyn.VisualStudio.Setup.vsix",
+    "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
     "Roslyn.VisualStudio.Setup.Dependencies.vsix",
     "ExpressionEvaluatorPackage.vsix",
     "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
@@ -749,8 +747,7 @@ try {
   try
   {
     if ($bootstrap) {
-      $force32 = $testArch -eq "x86"
-      $bootstrapDir = Make-BootstrapBuild -force32:$force32
+      $bootstrapDir = Make-BootstrapBuild $bootstrapToolset
     }
   }
   catch

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics)
             : base(@event,
                    syntax.GetReference(),
-                   ImmutableArray.Create(syntax.Keyword.GetLocation()), explicitlyImplementedEventOpt, aliasQualifierOpt,
+                   syntax.Keyword.GetLocation(), explicitlyImplementedEventOpt, aliasQualifierOpt,
                    isAdder: syntax.Kind() == SyntaxKind.AddAccessorDeclaration,
                    isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                    isNullableAnalysisEnabled: isNullableAnalysisEnabled)
@@ -62,6 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(syntaxReferenceOpt != null);
             return (AccessorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+        }
+
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
+        {
+            return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
         public override Accessibility DeclaredAccessibility

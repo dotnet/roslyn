@@ -32,25 +32,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
         private class SVsSettingsPersistenceManager { };
 
         private readonly ISettingsManager? _settingManager;
-        private readonly ILegacyGlobalOptionService _legacyGlobalOptions;
+        private readonly Action<OptionKey2, object?> _refreshOption;
         private readonly ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> _readFallbacks;
 
         /// <summary>
-        /// Options that have been been fetched from <see cref="_settingManager"/>, by key. We track this so
-        /// if a later change happens, we know to refresh that value.
+        /// Storage keys that have been been fetched from <see cref="_settingManager"/>.
+        /// We track this so if a later change happens, we know to refresh that value.
         /// </summary>
-        private ImmutableDictionary<string, (OptionKey2 optionKey, Type storageType)> _optionsToMonitorForChanges
-            = ImmutableDictionary<string, (OptionKey2 optionKey, Type storageType)>.Empty;
+        private ImmutableDictionary<string, (OptionKey2 primaryOptionKey, string primaryStorageKey)> _storageKeysToMonitorForChanges
+            = ImmutableDictionary<string, (OptionKey2, string)>.Empty;
 
         /// <remarks>
         /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.InitializeAsync"/>
         /// </remarks>
-        public VisualStudioSettingsOptionPersister(ILegacyGlobalOptionService globalOptionService, ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> readFallbacks, ISettingsManager? settingsManager)
+        public VisualStudioSettingsOptionPersister(Action<OptionKey2, object?> refreshOption, ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> readFallbacks, ISettingsManager? settingsManager)
         {
-            Contract.ThrowIfNull(globalOptionService);
-
             _settingManager = settingsManager;
-            _legacyGlobalOptions = globalOptionService;
+            _refreshOption = refreshOption;
             _readFallbacks = readFallbacks;
 
             // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
@@ -65,29 +63,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
 
         private Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
         {
-            var storageKey = args.PropertyName;
-            if (_optionsToMonitorForChanges.TryGetValue(storageKey, out var entry))
+            Contract.ThrowIfNull(_settingManager);
+
+            if (_storageKeysToMonitorForChanges.TryGetValue(args.PropertyName, out var entry) &&
+                TryFetch(entry.primaryOptionKey, entry.primaryStorageKey, out var newValue))
             {
-                var optionValue = TryReadOptionValue(entry.optionKey, storageKey, entry.storageType);
-                if (optionValue.HasValue && _legacyGlobalOptions.GlobalOptions.RefreshOption(entry.optionKey, optionValue.Value))
-                {
-                    // We may be updating the values of internally defined public options.
-                    // Update solution snapshots of all workspaces to reflect the new values.
-                    _legacyGlobalOptions.UpdateRegisteredWorkspaces();
-                }
+                _refreshOption(entry.primaryOptionKey, newValue);
             }
 
             return Task.CompletedTask;
         }
 
-        private void RecordObservedValueToWatchForChanges(OptionKey2 optionKey, string storageKey, Type storageType)
-        {
-            ImmutableInterlocked.GetOrAdd(ref _optionsToMonitorForChanges, storageKey, _ => (optionKey, storageType));
-        }
-
         public bool TryFetch(OptionKey2 optionKey, string storageKey, out object? value)
         {
-            var result = TryReadOptionValue(optionKey, storageKey, optionKey.Option.Type);
+            var result = TryReadAndMonitorOptionValue(optionKey, storageKey, storageKey, optionKey.Option.Type, optionKey.Option.DefaultValue);
             if (result.HasValue)
             {
                 value = result.Value;
@@ -96,7 +85,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
 
             if (_readFallbacks.TryGetValue(optionKey.Option.Definition.ConfigName, out var lazyReadFallback))
             {
-                var fallbackResult = lazyReadFallback.Value.TryRead(optionKey.Language, (storageKey, storageType) => TryReadOptionValue(optionKey, storageKey, storageType));
+                var fallbackResult = lazyReadFallback.Value.TryRead(
+                    optionKey.Language,
+                    (altStorageKey, altStorageType, altDefaultValue) => TryReadAndMonitorOptionValue(optionKey, storageKey, altStorageKey, altStorageType, altDefaultValue));
+
                 if (fallbackResult.HasValue)
                 {
                     value = fallbackResult.Value;
@@ -108,98 +100,135 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
             return false;
         }
 
-        public Optional<object?> TryReadOptionValue(OptionKey2 optionKey, string storageKey, Type storageType)
+        public Optional<object?> TryReadAndMonitorOptionValue(OptionKey2 primaryOptionKey, string primaryStorageKey, string storageKey, Type storageType, object? defaultValue)
         {
             Contract.ThrowIfNull(_settingManager);
+            ImmutableInterlocked.GetOrAdd(ref _storageKeysToMonitorForChanges, storageKey, static (_, arg) => arg, factoryArgument: (primaryOptionKey, primaryStorageKey));
+            return TryReadOptionValue(_settingManager, storageKey, storageType, defaultValue);
+        }
 
-            RecordObservedValueToWatchForChanges(optionKey, storageKey, storageType);
+        internal static Optional<object?> TryReadOptionValue(ISettingsManager manager, string storageKey, Type storageType, object? defaultValue)
+        {
+            if (storageType == typeof(bool))
+                return Read<bool>();
 
-            if (storageType == typeof(bool) && _settingManager.TryGetValue(storageKey, out bool boolValue) == GetValueResult.Success)
-            {
-                return boolValue;
-            }
+            if (storageType == typeof(string))
+                return Read<string>();
 
-            if (storageType == typeof(bool?) && _settingManager.TryGetValue(storageKey, out bool? nullableBoolValue) == GetValueResult.Success)
-            {
-                return nullableBoolValue;
-            }
+            if (storageType == typeof(int))
+                return Read<int>();
 
-            if (storageType == typeof(int) && _settingManager.TryGetValue(storageKey, out int intValue) == GetValueResult.Success)
-            {
-                return intValue;
-            }
+            if (storageType.IsEnum)
+                return manager.TryGetValue(storageKey, out int value) == GetValueResult.Success ? Enum.ToObject(storageType, value) : default(Optional<object?>);
 
-            if (storageType.IsEnum && _settingManager.TryGetValue(storageKey, out int enumValue) == GetValueResult.Success)
-            {
-                return Enum.ToObject(storageType, enumValue);
-            }
+            var underlyingType = Nullable.GetUnderlyingType(storageType);
+            if (underlyingType?.IsEnum == true)
+                return manager.TryGetValue(storageKey, out int? value) == GetValueResult.Success ? (value.HasValue ? Enum.ToObject(underlyingType, value.Value) : null) : default(Optional<object?>);
 
             if (storageType == typeof(NamingStylePreferences))
             {
-                if (_settingManager.TryGetValue(storageKey, out string stringValue) == GetValueResult.Success)
+                if (manager.TryGetValue(storageKey, out string value) == GetValueResult.Success)
                 {
                     try
                     {
-                        return NamingStylePreferences.FromXElement(XElement.Parse(stringValue));
+                        return NamingStylePreferences.FromXElement(XElement.Parse(value));
                     }
                     catch
                     {
                         return default;
                     }
                 }
+
+                return default;
             }
 
-            if (optionKey.Option.DefaultValue is ICodeStyleOption2 codeStyle)
+            if (defaultValue is ICodeStyleOption2 codeStyle)
             {
-                if (_settingManager.TryGetValue(storageKey, out string stringValue) == GetValueResult.Success)
+                if (manager.TryGetValue(storageKey, out string value) == GetValueResult.Success)
                 {
                     try
                     {
-                        return new Optional<object?>(codeStyle.FromXElement(XElement.Parse(stringValue)));
+                        return new Optional<object?>(codeStyle.FromXElement(XElement.Parse(value)));
                     }
                     catch
                     {
                         return default;
                     }
                 }
+
+                return default;
             }
 
-            if (storageType == typeof(ImmutableArray<string>) && _settingManager.TryGetValue(storageKey, out string[] stringArray) == GetValueResult.Success)
-            {
-                return stringArray.ToImmutableArray();
-            }
+            if (storageType == typeof(long))
+                return Read<long>();
 
-            if (_settingManager.TryGetValue(storageKey, out object? value) == GetValueResult.Success &&
-                (value is null || value.GetType() == storageType))
-            {
-                return value;
-            }
+            if (storageType == typeof(bool?))
+                return Read<bool?>();
 
-            return default;
+            if (storageType == typeof(int?))
+                return Read<int?>();
+
+            if (storageType == typeof(long?))
+                return Read<long?>();
+
+            if (storageType == typeof(ImmutableArray<bool>))
+                return ReadImmutableArray<bool>();
+
+            if (storageType == typeof(ImmutableArray<string>))
+                return ReadImmutableArray<string>();
+
+            if (storageType == typeof(ImmutableArray<int>))
+                return ReadImmutableArray<int>();
+
+            if (storageType == typeof(ImmutableArray<long>))
+                return ReadImmutableArray<long>();
+
+            throw ExceptionUtilities.UnexpectedValue(storageType);
+
+            Optional<object?> Read<T>()
+                => manager.TryGetValue(storageKey, out T value) == GetValueResult.Success ? value : default(Optional<object?>);
+
+            Optional<object?> ReadImmutableArray<T>()
+                => manager.TryGetValue(storageKey, out T[] value) == GetValueResult.Success ? (value is null ? default : value.ToImmutableArray()) : default(Optional<object?>);
         }
 
-        public Task PersistAsync(OptionKey2 optionKey, string storageKey, object? value)
+        public Task PersistAsync(string storageKey, object? value)
         {
             Contract.ThrowIfNull(_settingManager);
-
-            RecordObservedValueToWatchForChanges(optionKey, storageKey, optionKey.Option.Type);
 
             if (value is ICodeStyleOption codeStyleOption)
             {
                 // We store these as strings, so serialize
                 value = codeStyleOption.ToXElement().ToString();
             }
-            else if (optionKey.Option.Type == typeof(NamingStylePreferences))
+            else if (value is NamingStylePreferences namingStyle)
             {
                 // We store these as strings, so serialize
-                if (value is NamingStylePreferences valueToSerialize)
-                {
-                    value = valueToSerialize.CreateXElement().ToString();
-                }
+                value = namingStyle.CreateXElement().ToString();
             }
             else if (value is ImmutableArray<string> stringArray)
             {
                 value = stringArray.IsDefault ? null : stringArray.ToArray();
+            }
+            else if (value is ImmutableArray<bool> boolArray)
+            {
+                value = boolArray.IsDefault ? null : boolArray.ToArray();
+            }
+            else if (value is ImmutableArray<int> intArray)
+            {
+                value = intArray.IsDefault ? null : intArray.ToArray();
+            }
+            else if (value is ImmutableArray<long> longArray)
+            {
+                value = longArray.IsDefault ? null : longArray.ToArray();
+            }
+            else if (value != null)
+            {
+                var type = value.GetType();
+                if (type.IsEnum || Nullable.GetUnderlyingType(type)?.IsEnum == true)
+                {
+                    value = (int)value;
+                }
             }
 
             return _settingManager.SetValueAsync(storageKey, value, isMachineLocal: false);

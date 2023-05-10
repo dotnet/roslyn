@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -58,6 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isAttributeNameContext As Boolean,
             isAwaitKeywordContext As Boolean,
             isCustomEventContext As Boolean,
+            isEnumBaseListContext As Boolean,
             isEnumTypeMemberAccessContext As Boolean,
             isAnyExpressionContext As Boolean,
             isGenericConstraintContext As Boolean,
@@ -73,6 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isPossibleTupleContext As Boolean,
             isPreProcessorDirectiveContext As Boolean,
             isPreProcessorExpressionContext As Boolean,
+            isRightAfterUsingOrImportDirective As Boolean,
             isRightOfNameSeparator As Boolean,
             isRightSideOfNumericType As Boolean,
             isStatementContext As Boolean,
@@ -91,6 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAtStartOfPattern:=False,
                 isAttributeNameContext:=isAttributeNameContext,
                 isAwaitKeywordContext:=isAwaitKeywordContext,
+                isEnumBaseListContext:=isEnumBaseListContext,
                 isEnumTypeMemberAccessContext:=isEnumTypeMemberAccessContext,
                 isGenericConstraintContext:=isGenericConstraintContext,
                 isGlobalStatementContext:=isGlobalStatementContext,
@@ -104,6 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isPossibleTupleContext:=isPossibleTupleContext,
                 isPreProcessorDirectiveContext:=isPreProcessorDirectiveContext,
                 isPreProcessorExpressionContext:=isPreProcessorExpressionContext,
+                isRightAfterUsingOrImportDirective:=isRightAfterUsingOrImportDirective,
                 isRightOfNameSeparator:=isRightOfNameSeparator,
                 isRightSideOfNumericType:=isRightSideOfNumericType,
                 isStatementContext:=isStatementContext,
@@ -171,6 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAttributeNameContext:=syntaxTree.IsAttributeNameContext(position, targetToken, cancellationToken),
                 isAwaitKeywordContext:=ComputeIsAwaitKeywordContext(targetToken, isAnyExpressionContext, isInQuery, isStatementContext),
                 isCustomEventContext:=targetToken.GetAncestor(Of EventBlockSyntax)() IsNot Nothing,
+                isEnumBaseListContext:=ComputeIsEnumBaseListContext(targetToken),
                 isEnumTypeMemberAccessContext:=syntaxTree.IsEnumTypeMemberAccessContext(position, targetToken, semanticModel, cancellationToken),
                 isGenericConstraintContext:=targetToken.Parent.IsKind(SyntaxKind.TypeParameterSingleConstraintClause, SyntaxKind.TypeParameterMultipleConstraintClause),
                 isGlobalStatementContext:=syntaxTree.IsGlobalStatementContext(position, cancellationToken),
@@ -185,6 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isPossibleTupleContext:=syntaxTree.IsPossibleTupleContext(targetToken, position),
                 isPreProcessorDirectiveContext:=syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken),
                 isPreProcessorExpressionContext:=syntaxTree.IsInPreprocessorExpressionContext(position, cancellationToken),
+                isRightAfterUsingOrImportDirective:=ComputeIsRightAfterUsingOrImportDirective(targetToken),
                 isRightOfNameSeparator:=syntaxTree.IsRightOfDot(position, cancellationToken),
                 isRightSideOfNumericType:=False,
                 isStatementContext:=isStatementContext,
@@ -274,6 +279,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return targetToken.Kind = SyntaxKind.None OrElse
                 targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
                 (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective())
+        End Function
+
+        Private Shared Function ComputeIsEnumBaseListContext(targetToken As SyntaxToken) As Boolean
+            Dim enumDeclaration = targetToken.GetAncestor(Of EnumStatementSyntax)()
+            Return enumDeclaration IsNot Nothing AndAlso
+               enumDeclaration.UnderlyingType IsNot Nothing AndAlso
+               targetToken = enumDeclaration.UnderlyingType.AsKeyword
+        End Function
+
+        Private Shared Function ComputeIsRightAfterUsingOrImportDirective(targetToken As SyntaxToken) As Boolean
+            Dim importStatement = targetToken.GetAncestor(Function(n) n.IsKind(SyntaxKind.ImportsStatement))
+            Dim lastToken = importStatement?.GetLastToken()
+            Return lastToken.HasValue AndAlso lastToken.Value = targetToken
         End Function
 
         Public Function IsFollowingParameterListOrAsClauseOfMethodDeclaration() As Boolean

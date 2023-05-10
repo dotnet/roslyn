@@ -4,7 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -133,7 +133,6 @@ End Module", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("End Sub", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Input.SendAsync(" ", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "TestZ.vb", open: true, cancellationToken: HangMitigatingCancellationToken); // Cause focus lost
-            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "TestZ.vb", HangMitigatingCancellationToken); // Work around https://github.com/dotnet/roslyn/issues/18488
             await TestServices.Input.SendAsync("                  ", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.CloseCodeFileAsync(ProjectName, "TestZ.vb", saveFile: false, cancellationToken: HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(@"Module M
@@ -146,7 +145,7 @@ End Module", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationTo
         public async Task CommitOnFocusLostDoesNotFormatWithPrettyListingOff()
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, false);
+            globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic, false);
 
             await TestServices.Editor.SetTextAsync(@"Module M
     Sub M()
@@ -156,7 +155,6 @@ End Module", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("End Sub", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Input.SendAsync(" ", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "TestZ.vb", open: true, cancellationToken: HangMitigatingCancellationToken); // Cause focus lost
-            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "TestZ.vb", HangMitigatingCancellationToken); // Work around https://github.com/dotnet/roslyn/issues/18488
             await TestServices.Input.SendAsync("                  ", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.CloseCodeFileAsync(ProjectName, "TestZ.vb", saveFile: false, HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(@"Module M

@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                location = method.Locations[0];
+                location = method.GetFirstLocation();
                 return true;
             }
         }
@@ -1286,16 +1286,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetUnreachable();
             }
 
-            VisitReceiverBeforeCall(node.ReceiverOpt, node.Method);
-            VisitArgumentsBeforeCall(node.Arguments, node.ArgumentRefKindsOpt);
-
-            if (node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
+            if (node.ReceiverOpt is BoundCall receiver1)
             {
-                VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
-            }
+                var calls = ArrayBuilder<BoundCall>.GetInstance();
 
-            VisitArgumentsAfterCall(node.Arguments, node.ArgumentRefKindsOpt, node.Method);
-            VisitReceiverAfterCall(node.ReceiverOpt, node.Method);
+                calls.Push(node);
+
+                node = receiver1;
+                while (node.ReceiverOpt is BoundCall receiver2)
+                {
+                    calls.Push(node);
+                    node = receiver2;
+                }
+
+                VisitReceiverBeforeCall(node.ReceiverOpt, node.Method);
+
+                do
+                {
+                    visitArgumentsAndCompleteAnalysis(node);
+                }
+                while (calls.TryPop(out node));
+
+                calls.Free();
+            }
+            else
+            {
+                VisitReceiverBeforeCall(node.ReceiverOpt, node.Method);
+                visitArgumentsAndCompleteAnalysis(node);
+            }
 
             if (callsAreOmitted)
             {
@@ -1303,6 +1321,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+
+            void visitArgumentsAndCompleteAnalysis(BoundCall node)
+            {
+                VisitArgumentsBeforeCall(node.Arguments, node.ArgumentRefKindsOpt);
+
+                if (node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
+                {
+                    VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
+                }
+
+                VisitArgumentsAfterCall(node.Arguments, node.ArgumentRefKindsOpt, node.Method);
+                VisitReceiverAfterCall(node.ReceiverOpt, node.Method);
+            }
         }
 
         protected void VisitLocalFunctionUse(LocalFunctionSymbol symbol, SyntaxNode syntax, bool isCall)
@@ -1583,7 +1614,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitLocalId(BoundLocalId node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitParameterId(BoundParameterId node)
+        {
+            return null;
+        }
+
         public override BoundNode VisitMethodDefIndex(BoundMethodDefIndex node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitStateMachineInstanceId(BoundStateMachineInstanceId node)
         {
             return null;
         }

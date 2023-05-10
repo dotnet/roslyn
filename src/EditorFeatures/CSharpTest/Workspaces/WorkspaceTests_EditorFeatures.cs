@@ -587,7 +587,7 @@ class D { }
             var classCy = classDy.BaseType;
             Assert.NotEqual(TypeKind.Error, classCy.TypeKind);
 
-            // Make the second document active so that the background compiler processes its project automatically.
+            // Make the second document active.  As there is no automatic background compiler, no changes will be seen as long as we keep asking for frozen-partial semantics.
             trackingService.SetActiveDocument(document2.Id);
 
             workspace.OpenDocument(document1.Id);
@@ -598,7 +598,7 @@ class D { }
             buffer1.Replace(new Span(13, 1), "X");
 
             var foundTheError = false;
-            for (var iter = 0; iter < 10; iter++)
+            for (var iter = 0; iter < 5 && !foundTheError; iter++)
             {
                 WaitHelper.WaitForDispatchedOperationsToComplete(System.Windows.Threading.DispatcherPriority.ApplicationIdle);
                 Thread.Sleep(1000);
@@ -617,13 +617,32 @@ class D { }
                     var classCz = classDz.BaseType;
 
                     if (classCz.TypeKind == TypeKind.Error)
-                    {
                         foundTheError = true;
-                        break;
-                    }
                 }
             }
 
+            // Should never find this since we're using partial semantics.
+            Assert.False(foundTheError, "Did find error");
+
+            {
+                // the current solution should eventually have the change
+                var cs = workspace.CurrentSolution;
+                var doc1Z = cs.GetDocument(document1.Id);
+                var hasX = (await doc1Z.GetTextAsync()).ToString().Contains("X");
+
+                if (hasX)
+                {
+                    var doc2Z = cs.GetDocument(document2.Id);
+                    var compilation2Z = await doc2Z.Project.GetCompilationAsync();
+                    var classDz = compilation2Z.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
+                    var classCz = classDz.BaseType;
+
+                    if (classCz.TypeKind == TypeKind.Error)
+                        foundTheError = true;
+                }
+            }
+
+            // Should find now that we're going a normal compilation.
             Assert.True(foundTheError, "Did not find error");
         }
 
@@ -1094,7 +1113,7 @@ class D { }
             Assert.NotEqual(oldVersion, await doc.Project.GetSemanticVersionAsync());
         }
 
-        [Fact, WorkItem(31540, "https://github.com/dotnet/roslyn/issues/31540")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31540")]
         public void TestAdditionalFile_OpenClose()
         {
             using var workspace = CreateWorkspace();
@@ -1280,7 +1299,7 @@ class D { }
             Assert.Equal("original.config", workspace.CurrentSolution.GetProject(project1.Id).AnalyzerConfigDocuments.Single().Name);
         }
 
-        [Fact, WorkItem(31540, "https://github.com/dotnet/roslyn/issues/31540")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31540")]
         public void TestAdditionalFile_GetDocumentIdsWithFilePath()
         {
             using var workspace = CreateWorkspace();
@@ -1319,7 +1338,7 @@ class D { }
             Assert.Equal(analyzerConfigDoc.Id, documentIdsWithFilePath.Single());
         }
 
-        [Fact, WorkItem(209299, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299")]
         public async Task TestLinkedFilesStayInSync()
         {
             var originalText = "class Program1 { }";
@@ -1363,7 +1382,7 @@ class D { }
             Assert.Equal(updatedText, (await eventArgs[1].NewSolution.GetDocument(originalDocumentId).GetTextAsync().ConfigureAwait(false)).ToString());
         }
 
-        [Fact, WorkItem(31928, "https://github.com/dotnet/roslyn/issues/31928")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31928")]
         public void TestVersionStamp_Local()
         {
             // only Utc is allowed
@@ -1385,7 +1404,7 @@ class D { }
             Assert.Equal(version5, version4);
         }
 
-        [Fact, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19284")]
         public void TestSolutionWithOptions()
         {
             using var workspace1 = CreateWorkspace();
@@ -1413,7 +1432,7 @@ class D { }
         }
 
         [Obsolete]
-        [Fact, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19284")]
         public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged()
         {
             using var primaryWorkspace = CreateWorkspace();
@@ -1434,7 +1453,7 @@ class D { }
             Assert.Equal(FormattingOptions2.IndentStyle.Smart, secondaryWorkspace.Options.GetOption(optionKey));
 
             // Hook up the option changed event handler.
-            primaryWorkspace.GlobalOptions.OptionChanged += OptionService_OptionChanged;
+            primaryWorkspace.GlobalOptions.AddOptionChangedHandler(this, OptionService_OptionChanged);
 
             // Change workspace options through primary workspace
             primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block);
@@ -1446,7 +1465,7 @@ class D { }
             Assert.Equal(FormattingOptions2.IndentStyle.Block, primaryWorkspace.Options.GetOption(optionKey));
             Assert.Equal(FormattingOptions2.IndentStyle.Block, secondaryWorkspace.Options.GetOption(optionKey));
 
-            primaryWorkspace.GlobalOptions.OptionChanged -= OptionService_OptionChanged;
+            primaryWorkspace.GlobalOptions.RemoveOptionChangedHandler(this, OptionService_OptionChanged);
             return;
 
             void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)

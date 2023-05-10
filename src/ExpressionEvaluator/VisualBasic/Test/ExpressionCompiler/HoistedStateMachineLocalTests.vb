@@ -256,7 +256,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1101888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101888")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101888")>
         Public Sub Repro1101888()
             Const source = "
 Imports System.Collections.Generic
@@ -323,7 +323,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub AsyncLambda_Instance_CaptureNothing()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "1")
             Dim comp = CreateCompilation(source)
@@ -363,7 +363,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub AsyncLambda_Instance_CaptureLocal()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "x")
             Dim comp = CreateCompilation(source)
@@ -418,7 +418,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub AsyncLambda_Instance_CaptureParameter()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "u1.GetHashCode()")
             Dim comp = CreateCompilation(source)
@@ -473,7 +473,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub AsyncLambda_Instance_CaptureLambdaParameter()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "ch.GetHashCode()")
             Dim comp = CreateCompilation(source)
@@ -513,7 +513,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub AsyncLambda_Instance_CaptureThis()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "t1.GetHashCode()")
             Dim comp = CreateCompilation(source)
@@ -568,7 +568,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub AsyncLambda_Instance_CaptureThisAndLocal()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "x + t1.GetHashCode()")
             Dim comp = CreateCompilation(source)
@@ -639,7 +639,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub AsyncLambda_Static_CaptureNothing()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "1")
             Dim comp = CreateCompilation(source)
@@ -679,7 +679,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub AsyncLambda_Static_CaptureLocal()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "x")
             Dim comp = CreateCompilation(source)
@@ -734,7 +734,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub AsyncLambda_Static_CaptureParameter()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "u1.GetHashCode()")
             Dim comp = CreateCompilation(source)
@@ -788,7 +788,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub AsyncLambda_Static_CaptureLambdaParameter()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "ch.GetHashCode()")
             Dim comp = CreateCompilation(source)
@@ -828,7 +828,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub GenericAsyncLambda_Instance_CaptureNothing()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "1")
             Dim comp = CreateCompilation(source)
@@ -874,7 +874,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub GenericAsyncLambda_Instance_CaptureLocal()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "x")
             Dim comp = CreateCompilation(source)
@@ -935,7 +935,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub GenericAsyncLambda_Instance_CaptureParameter()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "u1.GetHashCode()")
             Dim comp = CreateCompilation(source)
@@ -996,7 +996,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub GenericAsyncLambda_Instance_CaptureLambdaParameter()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "ch.GetHashCode()")
             Dim comp = CreateCompilation(source)
@@ -1042,7 +1042,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub GenericAsyncLambda_Instance_CaptureThis()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "t1.GetHashCode()")
             Dim comp = CreateCompilation(source)
@@ -1103,7 +1103,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub GenericAsyncLambda_Instance_CaptureThisAndLocal()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "x + t1.GetHashCode()")
             Dim comp = CreateCompilation(source)
@@ -1180,7 +1180,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub GenericAsyncLambda_Static_CaptureNothing()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "1")
             Dim comp = CreateCompilation(source)
@@ -1226,7 +1226,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub GenericAsyncLambda_Static_CaptureLocal()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "x")
             Dim comp = CreateCompilation(source)
@@ -1287,7 +1287,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub GenericAsyncLambda_Static_CaptureParameter()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "u1.GetHashCode()")
             Dim comp = CreateCompilation(source)
@@ -1348,7 +1348,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub GenericAsyncLambda_Static_CaptureLambdaParameter()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "ch.GetHashCode()")
             Dim comp = CreateCompilation(source)
@@ -1394,7 +1394,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1134746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1134746")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1134746")>
         Public Sub CacheInvalidation()
             Const source = "
 Imports System.Collections.Generic

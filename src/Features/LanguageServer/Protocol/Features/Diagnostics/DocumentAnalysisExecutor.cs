@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly CompilationWithAnalyzers? _compilationWithAnalyzers;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
+        private readonly bool _isExplicit;
         private readonly bool _logPerformanceInfo;
         private readonly Action? _onAnalysisException;
 
@@ -39,12 +40,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DocumentAnalysisScope analysisScope,
             CompilationWithAnalyzers? compilationWithAnalyzers,
             InProcOrRemoteHostAnalyzerRunner diagnosticAnalyzerRunner,
+            bool isExplicit,
             bool logPerformanceInfo,
             Action? onAnalysisException = null)
         {
             AnalysisScope = analysisScope;
             _compilationWithAnalyzers = compilationWithAnalyzers;
             _diagnosticAnalyzerRunner = diagnosticAnalyzerRunner;
+            _isExplicit = isExplicit;
             _logPerformanceInfo = logPerformanceInfo;
             _onAnalysisException = onAnalysisException;
 
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DocumentAnalysisScope AnalysisScope { get; }
 
         public DocumentAnalysisExecutor With(DocumentAnalysisScope analysisScope)
-            => new(analysisScope, _compilationWithAnalyzers, _diagnosticAnalyzerRunner, _logPerformanceInfo, _onAnalysisException);
+            => new(analysisScope, _compilationWithAnalyzers, _diagnosticAnalyzerRunner, _isExplicit, _logPerformanceInfo, _onAnalysisException);
 
         /// <summary>
         /// Return all local diagnostics (syntax, semantic) that belong to given document for the given analyzer by calculating them.
@@ -158,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (span.HasValue && document != null)
             {
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // TODO: Unclear if using the unmapped span here is correct.  It does feel somewhat appropriate as the
                 // caller should be asking about diagnostics in an actual document, and not where they were remapped to.
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             try
             {
                 var resultAndTelemetry = await _diagnosticAnalyzerRunner.AnalyzeDocumentAsync(analysisScope, _compilationWithAnalyzers,
-                    _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
+                    _isExplicit, _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
                 return resultAndTelemetry.AnalysisResult;
             }
             catch when (_onAnalysisException != null)

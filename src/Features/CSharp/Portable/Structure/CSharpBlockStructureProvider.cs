@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<FileScopedNamespaceDeclarationSyntax, FileScopedNamespaceDeclarationStructureProvider>();
             builder.Add<IndexerDeclarationSyntax, IndexerDeclarationStructureProvider>();
             builder.Add<InitializerExpressionSyntax, InitializerExpressionStructureProvider>();
+            builder.Add<AnonymousObjectCreationExpressionSyntax, AnonymousObjectCreationExpressionStructureProvider>();
             builder.Add<InterfaceDeclarationSyntax, TypeDeclarationStructureProvider>();
             builder.Add<MethodDeclarationSyntax, MethodDeclarationStructureProvider>();
             builder.Add<NamespaceDeclarationSyntax, NamespaceDeclarationStructureProvider>();
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<SwitchStatementSyntax, SwitchStatementStructureProvider>();
             builder.Add<LiteralExpressionSyntax, StringLiteralExpressionStructureProvider>();
             builder.Add<InterpolatedStringExpressionSyntax, InterpolatedStringExpressionStructureProvider>();
+            builder.Add<IfDirectiveTriviaSyntax, IfDirectiveTriviaStructureProvider>();
 
             return builder.ToImmutable();
         }

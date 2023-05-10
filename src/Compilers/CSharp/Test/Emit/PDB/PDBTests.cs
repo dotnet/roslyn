@@ -1027,6 +1027,87 @@ class C
 </symbols>");
         }
 
+        [Fact]
+        public void ConstructorsWithSharedInitializers()
+        {
+            var source = @"
+class B
+{
+    public B(int z) {}
+}
+
+class C : B
+{
+    int a = 1;
+    bool b = true;
+
+    C(int x)
+        : base(3)
+    {
+        a = x;
+    }
+    
+    C(bool y)
+        : base(4)
+    {
+        b = y;
+    }
+}
+
+";
+
+            var c = CompileAndVerify(source);
+
+            c.VerifyMethodBody("C..ctor(int)", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  // sequence point: int a = 1;
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int C.a""
+  // sequence point: bool b = true;
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""bool C.b""
+  // sequence point: base(3)
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.3
+  IL_0010:  call       ""B..ctor(int)""
+  // sequence point: a = x;
+  IL_0015:  ldarg.0
+  IL_0016:  ldarg.1
+  IL_0017:  stfld      ""int C.a""
+  // sequence point: }
+  IL_001c:  ret
+}
+");
+            c.VerifyMethodBody("C..ctor(bool)", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  // sequence point: int a = 1;
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int C.a""
+  // sequence point: bool b = true;
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""bool C.b""
+  // sequence point: base(4)
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.4
+  IL_0010:  call       ""B..ctor(int)""
+  // sequence point: b = y;
+  IL_0015:  ldarg.0
+  IL_0016:  ldarg.1
+  IL_0017:  stfld      ""bool C.b""
+  // sequence point: }
+  IL_001c:  ret
+}
+");
+        }
+
         /// <summary>
         /// Although the debugging info attached to DebuggerHidden method is not used by the debugger 
         /// (the debugger doesn't ever stop in the method) Dev11 emits the info and so do we.

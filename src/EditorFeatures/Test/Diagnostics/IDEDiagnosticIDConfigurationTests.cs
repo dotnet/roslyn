@@ -83,6 +83,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                 return;
             }
 
+            if (diagnosticId == "EnableGenerateDocumentationFile")
+            {
+                Assert.Equal("https://github.com/dotnet/roslyn/issues/41640", helpLinkUri);
+                return;
+            }
+
             if (helpLinkUri != $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
             {
                 Assert.True(false, $"Invalid help link for {diagnosticId}");
@@ -442,6 +448,9 @@ dotnet_diagnostic.IDE0241.severity = %value%
 
 # IDE0250
 dotnet_diagnostic.IDE0250.severity = %value%
+
+# IDE0251
+dotnet_diagnostic.IDE0251.severity = %value%
 
 # IDE0260
 dotnet_diagnostic.IDE0260.severity = %value%
@@ -854,6 +863,7 @@ dotnet_diagnostic.JSON002.severity = %value%
                 ("IDE0240", null, null),
                 ("IDE0241", null, null),
                 ("IDE0250", "csharp_style_prefer_readonly_struct", "true"),
+                ("IDE0251", "csharp_style_prefer_readonly_struct_member", "true"),
                 ("IDE0260", "csharp_style_pattern_matching_over_as_with_null_check", "true"),
                 ("IDE0270", "dotnet_style_coalesce_expression", "true"),
                 ("IDE0280", null, null),

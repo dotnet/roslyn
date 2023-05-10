@@ -11,11 +11,11 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <summary>
-/// A placeholder type to help handle Notification messages.
+/// A placeholder type to help handle parameterless messages and messages with no return value.
 /// </summary>
-internal record VoidReturn
+internal sealed class NoValue
 {
-    public static VoidReturn Instance = new();
+    public static NoValue Instance = new();
 }
 
 internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TRequestContext>
@@ -119,32 +119,38 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
                 _logger.LogWarning($"Could not get request context for {MethodName}");
                 _completionSource.TrySetException(new InvalidOperationException($"Unable to create request context for {MethodName}"));
             }
+            else if (_handler is IRequestHandler<TRequest, TResponse, TRequestContext> requestHandler)
+            {
+                var result = await requestHandler.HandleRequestAsync(_request, context, cancellationToken).ConfigureAwait(false);
+
+                _completionSource.TrySetResult(result);
+            }
+            else if (_handler is IRequestHandler<TResponse, TRequestContext> parameterlessRequestHandler)
+            {
+                var result = await parameterlessRequestHandler.HandleRequestAsync(context, cancellationToken).ConfigureAwait(false);
+
+                _completionSource.TrySetResult(result);
+            }
+            else if (_handler is INotificationHandler<TRequest, TRequestContext> notificationHandler)
+            {
+                await notificationHandler.HandleNotificationAsync(_request, context, cancellationToken).ConfigureAwait(false);
+
+                // We know that the return type of <see cref="INotificationHandler{TRequestType, RequestContextType}"/> will always be <see cref="VoidReturn" /> even if the compiler doesn't.
+                _completionSource.TrySetResult((TResponse)(object)NoValue.Instance);
+            }
+            else if (_handler is INotificationHandler<TRequestContext> parameterlessNotificationHandler)
+            {
+                await parameterlessNotificationHandler.HandleNotificationAsync(context, cancellationToken).ConfigureAwait(false);
+
+                // We know that the return type of <see cref="INotificationHandler{TRequestType, RequestContextType}"/> will always be <see cref="VoidReturn" /> even if the compiler doesn't.
+                _completionSource.TrySetResult((TResponse)(object)NoValue.Instance);
+            }
             else
             {
-                if (_handler is IRequestHandler<TRequest, TResponse, TRequestContext> requestHandler)
-                {
-                    var result = await requestHandler.HandleRequestAsync(_request, context, cancellationToken).ConfigureAwait(false);
-
-                    _completionSource.TrySetResult(result);
-                }
-                else if (_handler is INotificationHandler<TRequest, TRequestContext> notificationHandler)
-                {
-                    await notificationHandler.HandleNotificationAsync(_request, context, cancellationToken).ConfigureAwait(false);
-
-                    // We know that the return type of <see cref="INotificationHandler{TRequestType, RequestContextType}"/> will always be <see cref="VoidReturn" /> even if the compiler doesn't.
-                    _completionSource.TrySetResult((TResponse)(object)VoidReturn.Instance);
-                }
-                else if (_handler is INotificationHandler<TRequestContext> parameterlessNotificationHandler)
-                {
-                    await parameterlessNotificationHandler.HandleNotificationAsync(context, cancellationToken).ConfigureAwait(false);
-
-                    // We know that the return type of <see cref="INotificationHandler{TRequestType, RequestContextType}"/> will always be <see cref="VoidReturn" /> even if the compiler doesn't.
-                    _completionSource.TrySetResult((TResponse)(object)VoidReturn.Instance);
-                }
-                else
-                {
-                    throw new NotImplementedException($"Unrecognized {nameof(IMethodHandler)} implementation {_handler.GetType().Name}");
-                }
+                throw new NotImplementedException(
+                    $"Unrecognized {nameof(IMethodHandler)} implementation {_handler.GetType()}. " +
+                    $"TRequest is {typeof(TRequest)}. " +
+                    $"TResponse is {typeof(TResponse)}.");
             }
         }
         catch (OperationCanceledException ex)

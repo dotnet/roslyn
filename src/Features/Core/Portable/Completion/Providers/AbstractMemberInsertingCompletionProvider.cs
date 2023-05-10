@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             // TODO: pass fallback options: https://github.com/dotnet/roslyn/issues/60786
-            var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
-            var fallbackOptions = globalOptions?.CleanCodeGenerationOptionsProvider ?? CodeActionOptions.DefaultProvider;
+            var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
+            var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
 
             var newDocument = await DetermineNewDocumentAsync(document, item, fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             int? newPosition = null;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // The span we're going to replace
             var line = text.Lines[MemberInsertionCompletionItem.GetLine(completionItem)];

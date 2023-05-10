@@ -81,8 +81,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             // If the assembly wants to suppress decompilation we respect that
             if (useDecompiler)
             {
+#pragma warning disable SYSLIB0025  // 'SuppressIldasmAttribute' is obsolete: 'SuppressIldasmAttribute has no effect in .NET 6.0+.'
                 useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(static attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
                     && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
+#pragma warning restore SYSLIB0025
             }
 
             var refInfo = GetReferenceInfo(compilation, symbol.ContainingAssembly);
@@ -151,7 +153,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
 
                 // We have the content, so write it out to disk
-                var text = await temporaryDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await temporaryDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
                 // to retry this a few times.

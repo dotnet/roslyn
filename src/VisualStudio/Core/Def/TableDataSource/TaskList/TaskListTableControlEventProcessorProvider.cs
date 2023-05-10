@@ -13,13 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     [Export(typeof(ITableControlEventProcessorProvider))]
     [DataSourceType(StandardTableDataSources.CommentTableDataSource)]
-    [DataSource(VisualStudioTaskListTableWorkspaceEventListener.IdentifierString)]
-    [Name(Name)]
+    [DataSource(VisualStudioTaskListTable.IdentifierString)]
+    [Name("Task List Table Control Event Processor")]
     [Order(Before = "default")]
     internal sealed class TaskListTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<TaskListTableItem>
     {
-        internal const string Name = "Task List Table Control Event Processor";
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TaskListTableControlEventProcessorProvider()

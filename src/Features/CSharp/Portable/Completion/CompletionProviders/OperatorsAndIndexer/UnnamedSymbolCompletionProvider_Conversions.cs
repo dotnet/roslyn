@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: symbols,
                 rules: s_conversionRules,
                 contextPosition: position,
-                properties: properties));
+                properties: properties,
+                isComplexTextEdit: true));
         }
 
         private static (ImmutableArray<ISymbol> symbols, ImmutableDictionary<string, string> properties) GetConversionSymbolsAndProperties(
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var (dotToken, _) = GetDotAndExpressionStart(root, position, cancellationToken);
 
@@ -141,10 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (item.Properties.ContainsKey(RehydrateName))
             {
                 var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-                if (symbols.Length == 3 &&
-                    symbols[0] is INamedTypeSymbol containingType &&
-                    symbols[1] is ITypeSymbol fromType &&
-                    symbols[2] is ITypeSymbol toType)
+                if (symbols is [INamedTypeSymbol containingType, ITypeSymbol fromType, ITypeSymbol toType])
                 {
                     return CodeGenerationSymbolFactory.CreateConversionSymbol(
                         toType: toType,

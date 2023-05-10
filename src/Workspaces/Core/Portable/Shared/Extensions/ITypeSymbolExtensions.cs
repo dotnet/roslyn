@@ -211,22 +211,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new UnnamedErrorTypeRemover(compilation));
         }
 
-        public static IList<ITypeParameterSymbol> GetReferencedMethodTypeParameters(
-            this ITypeSymbol? type, IList<ITypeParameterSymbol>? result = null)
-        {
-            result ??= new List<ITypeParameterSymbol>();
-            type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: true));
-            return result;
-        }
-
-        public static IList<ITypeParameterSymbol> GetReferencedTypeParameters(
-            this ITypeSymbol? type, IList<ITypeParameterSymbol>? result = null)
-        {
-            result ??= new List<ITypeParameterSymbol>();
-            type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: false));
-            return result;
-        }
-
         [return: NotNullIfNotNull(parameterName: nameof(type))]
         public static ITypeSymbol? SubstituteTypes<TType1, TType2>(
             this ITypeSymbol? type,
@@ -248,5 +232,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return type?.Accept(new SubstituteTypesVisitor<TType1, TType2>(mapping, typeGenerator));
         }
+
+        public static bool CanBeEnumerated(this ITypeSymbol type)
+            => type.AllInterfaces.Any(s => s.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable);
+
     }
 }

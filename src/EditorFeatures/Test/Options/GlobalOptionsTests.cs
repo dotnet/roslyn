@@ -77,10 +77,6 @@ public class GlobalOptionsTests
 
         #region Unused
 
-#pragma warning disable CS0067
-        public event EventHandler<OptionChangedEventArgs>? OptionChanged;
-#pragma warning restore
-
         public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey2> optionKeys)
             => throw new NotImplementedException();
 
@@ -97,6 +93,12 @@ public class GlobalOptionsTests
             => throw new NotImplementedException();
 
         public bool SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
+            => throw new NotImplementedException();
+
+        public void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+            => throw new NotImplementedException();
+
+        public void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
             => throw new NotImplementedException();
 
         #endregion
@@ -119,7 +121,7 @@ public class GlobalOptionsTests
                     // default value for the option -- may be different then default(T):
                     var defaultValue = property.GetValue(defaultOptions);
 
-                    if (OptionsTestHelpers.IsOptionValueType(property.PropertyType))
+                    if (OptionDefinition.IsSupportedOptionType(property.PropertyType))
                     {
                         if (IsStoredInGlobalOptions(property, language))
                         {
@@ -128,7 +130,7 @@ public class GlobalOptionsTests
                     }
                     else
                     {
-                        var propertyType = OptionsTestHelpers.GetNonNullableType(property.PropertyType);
+                        var propertyType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
 
                         if (propertyType != property.PropertyType)
                         {

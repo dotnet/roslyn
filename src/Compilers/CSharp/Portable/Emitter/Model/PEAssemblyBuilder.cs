@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if (userDefinedAttribute is not null)
             {
-                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
+                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.GetFirstLocation(), description.FullName);
             }
         }
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AliasAmbiguousType
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAliasAmbiguousTypeCodeFixProvider());
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
@@ -132,7 +130,7 @@ namespace Test
         }
 
         [Fact]
-        public async Task TestAmbiguousClassObjectCreationGenericsDontOfferDiagnostic()
+        public async Task TestAmbiguousClassObjectCreationGenericsDoNotOfferDiagnostic()
         {
             var genericAmbiguousClassDefinition = GetAmbiguousDefinition("public class Ambiguous<T> { }");
             await TestMissingAsync(@"
@@ -579,7 +577,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, WorkItem(30838, "https://github.com/dotnet/roslyn/issues/30838")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30838")]
         public async Task TestSortSystemFirst1()
         {
             var classDef = GetAmbiguousDefinition("public class Ambiguous { }", "Microsoft", "System");
@@ -630,7 +628,7 @@ namespace Test
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, index: 1);
         }
 
-        [Fact, WorkItem(30838, "https://github.com/dotnet/roslyn/issues/30838")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30838")]
         public async Task TestSortSystemFirst2()
         {
             var classDef = GetAmbiguousDefinition("public class Ambiguous { }", "Microsoft", "System");

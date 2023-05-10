@@ -3,11 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -21,7 +18,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
-using static Humanizer.In;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
@@ -66,11 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return isAfterIfStatement && await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
 
-        protected override Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var elseClause = SyntaxFactory.ElseClause(SyntaxFactory.Block());
-
-            return Task.FromResult(ImmutableArray.Create(new TextChange(TextSpan.FromBounds(position, position), elseClause.ToFullString())));
+            return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), elseClause.ToFullString()));
         }
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
@@ -104,7 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
-            var elseClauseSyntax = (ElseClauseSyntax)snippet;
+
+            if (snippet is not ElseClauseSyntax elseClauseSyntax)
+                return document;
 
             var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
             var indentationString = GetIndentationString(document, elseClauseSyntax, syntaxFormattingOptions, cancellationToken);

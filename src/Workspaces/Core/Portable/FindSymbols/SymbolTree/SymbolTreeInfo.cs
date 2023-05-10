@@ -170,8 +170,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task<ImmutableArray<ISymbol>> FuzzyFindAsync(
             AsyncLazy<IAssemblySymbol?> lazyAssembly, string name, CancellationToken cancellationToken)
         {
-            var similarNames = _spellChecker.FindSimilarWords(name, substringsAreSimilar: false);
-            var result = ArrayBuilder<ISymbol>.GetInstance();
+            using var similarNames = TemporaryArray<string>.Empty;
+            using var result = TemporaryArray<ISymbol>.Empty;
+
+            _spellChecker.FindSimilarWords(ref similarNames.AsRef(), name, substringsAreSimilar: false);
 
             foreach (var similarName in similarNames)
             {
@@ -179,7 +181,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 result.AddRange(symbols);
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutableAndClear();
+        }
+
+        /// <summary>
+        /// Returns <see langword="true"/> if this index contains some symbol that whose name matches <paramref
+        /// name="name"/> case <em>sensitively</em>. <see langword="false"/> otherwise.
+        /// </summary>
+        public bool ContainsSymbolWithName(string name)
+        {
+            var (startIndexInclusive, endIndexExclusive) = FindCaseInsensitiveNodeIndices(_nodes, name);
+
+            for (var index = startIndexInclusive; index < endIndexExclusive; index++)
+            {
+                var node = _nodes[index];
+
+                // The find-operation found the case-insensitive range of results.  So since the caller caller wants
+                // case-sensitive, then actually check that the node matches case-sensitively
+                if (StringComparer.Ordinal.Equals(name, node.Name))
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -23,6 +24,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal static partial class DependentProjectsFinder
     {
+        /// <summary>
+        /// Cache from the <see cref="MetadataId"/> for a particular <see cref="PortableExecutableReference"/> to the
+        /// name of the <see cref="IAssemblySymbol"/> defined by it.
+        /// </summary>
+        private static ImmutableDictionary<MetadataId, string> s_metadataIdToAssemblyName = ImmutableDictionary<MetadataId, string>.Empty;
+
         public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
             Solution solution, ImmutableArray<ISymbol> symbols, IImmutableSet<Project> projects, CancellationToken cancellationToken)
         {
@@ -276,28 +283,70 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Contract.ThrowIfFalse(project.SupportsCompilation);
 
-            if (!project.TryGetCompilation(out var compilation))
-            {
-                // WORKAROUND:
-                // perf check metadata reference using newly created empty compilation with only metadata references.
-                compilation = project.Services.GetRequiredService<ICompilationFactoryService>().CreateCompilation(
-                    project.AssemblyName, project.CompilationOptions!);
+            // Do two passes.  One that attempts to find a result without ever realizing a Compilation, and one that
+            // tries again, but which is willing to create the Compilation if necessary.
 
-                compilation = compilation.AddReferences(project.MetadataReferences);
-            }
+            using var _ = ArrayBuilder<(PortableExecutableReference reference, MetadataId metadataId)>.GetInstance(out var uncomputedReferences);
 
             foreach (var reference in project.MetadataReferences)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol symbol &&
-                    symbol.Name == assemblyName)
+                if (reference is not PortableExecutableReference peReference)
+                    continue;
+
+                var metadataId = SymbolTreeInfo.GetMetadataIdNoThrow(peReference);
+                if (metadataId is null)
+                    continue;
+
+                if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
                 {
-                    return true;
+                    uncomputedReferences.Add((peReference, metadataId));
+                    continue;
                 }
+
+                if (name == assemblyName)
+                    return true;
+            }
+
+            if (uncomputedReferences.Count == 0)
+                return false;
+
+            Compilation? compilation = null;
+
+            foreach (var (peReference, metadataId) in uncomputedReferences)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
+                {
+                    // Defer creating the compilation till needed.
+                    CreateCompilation(project, ref compilation);
+                    if (compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol { Name: string metadataAssemblyName })
+                        name = ImmutableInterlocked.GetOrAdd(ref s_metadataIdToAssemblyName, metadataId, metadataAssemblyName);
+                }
+
+                if (name == assemblyName)
+                    return true;
             }
 
             return false;
+
+            static void CreateCompilation(Project project, [NotNull] ref Compilation? compilation)
+            {
+                if (compilation != null)
+                    return;
+
+                // Use the project's compilation if it has one.
+                if (project.TryGetCompilation(out compilation))
+                    return;
+
+                // Perf: check metadata reference using newly created empty compilation with only metadata references.
+                var factory = project.Services.GetRequiredService<ICompilationFactoryService>();
+                compilation = factory
+                    .CreateCompilation(project.AssemblyName, project.CompilationOptions!)
+                    .AddReferences(project.MetadataReferences);
+            }
         }
     }
 }

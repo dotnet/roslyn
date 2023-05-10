@@ -289,12 +289,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, BindingDiagnosticBag diagnostics)
         {
-            symbol.CheckUnsafeModifier(modifiers, symbol.Locations[0], diagnostics);
+            symbol.CheckUnsafeModifier(modifiers, symbol.GetFirstLocation(), diagnostics);
         }
 
         internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, Location errorLocation, BindingDiagnosticBag diagnostics)
+            => CheckUnsafeModifier(symbol, modifiers, errorLocation, diagnostics.DiagnosticBag);
+
+        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, Location errorLocation, DiagnosticBag? diagnostics)
         {
-            if (((modifiers & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe) && !symbol.CompilationAllowsUnsafe())
+            if (diagnostics != null &&
+                (modifiers & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
+                !symbol.CompilationAllowsUnsafe())
             {
                 RoslynDebug.Assert(errorLocation != null);
                 diagnostics.Add(ErrorCode.ERR_IllegalUnsafe, errorLocation);

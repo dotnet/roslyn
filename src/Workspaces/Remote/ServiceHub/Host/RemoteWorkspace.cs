@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.Remote
             return new AssetProvider(solutionChecksum, assetCache, assetSource, serializerService);
         }
 
+        protected internal override bool PartialSemanticsEnabled => true;
+
         /// <summary>
         /// Syncs over the solution corresponding to <paramref name="solutionChecksum"/> and sets it as the current
         /// solution for <see langword="this"/> workspace.  This will also end up updating <see
@@ -310,9 +312,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // 'attached' to this workspace.
                 (_, newSolution) = this.SetCurrentSolution(
                     _ => newSolution,
-                    changeKind: static (oldSolution, newSolution) => IsAddingSolution(oldSolution, newSolution)
-                        ? WorkspaceChangeKind.SolutionAdded
-                        : WorkspaceChangeKind.SolutionChanged,
+                    changeKind: static (oldSolution, newSolution) =>
+                        (IsAddingSolution(oldSolution, newSolution) ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
                     onBeforeUpdate: (oldSolution, newSolution) =>
                     {
                         if (IsAddingSolution(oldSolution, newSolution))

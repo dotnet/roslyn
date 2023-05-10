@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,6 +20,29 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     public static class Classifier
     {
+        internal static PooledObject<SegmentedList<ClassifiedSpan>> GetPooledList(out SegmentedList<ClassifiedSpan> classifiedSpans)
+        {
+            var pooledObject = new PooledObject<SegmentedList<ClassifiedSpan>>(
+                SharedPools.Default<SegmentedList<ClassifiedSpan>>(),
+                static p =>
+                {
+                    var result = p.Allocate();
+                    result.Clear();
+                    return result;
+                },
+                static (p, list) =>
+                {
+                    // Deliberately do not call ClearAndFree for the set as we can easily have a set that goes past the
+                    // threshold simply with a single classified screen.  This allows reuse of those sets without causing
+                    // lots of **garbage.**
+                    list.Clear();
+                    p.Free(list);
+                });
+
+            classifiedSpans = pooledObject.Object;
+            return pooledObject;
+        }
+
         public static async Task<IEnumerable<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document,
             TextSpan textSpan,
@@ -68,8 +91,8 @@ namespace Microsoft.CodeAnalysis.Classification
             var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(syntaxClassifiers, c => c.SyntaxNodeTypes);
             var getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(syntaxClassifiers, c => c.SyntaxTokenKinds);
 
-            using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var syntacticClassifications);
-            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var semanticClassifications);
+            using var _1 = GetPooledList(out var syntacticClassifications);
+            using var _2 = GetPooledList(out var semanticClassifications);
 
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 

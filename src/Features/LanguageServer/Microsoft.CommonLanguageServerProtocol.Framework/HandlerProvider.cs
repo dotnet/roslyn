@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -40,9 +40,8 @@ internal class HandlerProvider : IHandlerProvider
         {
             throw new InvalidOperationException($"Missing handler for {requestHandlerMetadata.MethodName}");
         }
-        var handler = lazyHandler.Value;
 
-        return handler;
+        return lazyHandler.Value;
     }
 
     public ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
@@ -52,43 +51,41 @@ internal class HandlerProvider : IHandlerProvider
     }
 
     private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
-    {
-        if (_requestHandlers is null)
-        {
-            _requestHandlers = CreateMethodToHandlerMap(_lspServices);
-        }
-
-        return _requestHandlers;
-    }
+        => _requestHandlers ??= CreateMethodToHandlerMap(_lspServices);
 
     private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> CreateMethodToHandlerMap(ILspServices lspServices)
     {
         var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IMethodHandler>>();
 
+        var methodHash = new HashSet<string>();
+
         if (lspServices.SupportsGetRegisteredServices())
         {
-            var requestHandlerTypes = lspServices.GetRegisteredServices().Where(type => IsTypeRequestHandler(type));
+            var requestHandlerTypes = lspServices.GetRegisteredServices().Where(type => typeof(IMethodHandler).IsAssignableFrom(type));
 
             foreach (var handlerType in requestHandlerTypes)
             {
-                var (requestType, responseType, requestContext) = ConvertHandlerTypeToRequestResponseTypes(handlerType);
-                var method = GetRequestHandlerMethod(handlerType);
+                var requestResponseTypes = ConvertHandlerTypeToRequestResponseTypes(handlerType);
+                foreach (var requestResponseType in requestResponseTypes)
+                {
+                    var method = GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContext, requestResponseType.ResponseType);
 
-                // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
-                // and then lookup the correct handler for the specified method.
+                    // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
+                    // and then lookup the correct handler for the specified method.
 
-                CheckForDuplicates(method, handlerType, requestHandlerDictionary);
+                    CheckForDuplicates(method, methodHash);
 
-                requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestType, responseType), new Lazy<IMethodHandler>(() =>
-                    {
-                        var lspService = lspServices.TryGetService(handlerType);
-                        if (lspService is null)
+                    requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestResponseType.RequestType, requestResponseType.ResponseType), new Lazy<IMethodHandler>(() =>
                         {
-                            throw new InvalidOperationException($"{handlerType} could not be retrieved from service");
-                        }
+                            var lspService = lspServices.TryGetService(handlerType);
+                            if (lspService is null)
+                            {
+                                throw new InvalidOperationException($"{handlerType} could not be retrieved from service");
+                            }
 
-                        return (IMethodHandler)lspService;
-                    }));
+                            return (IMethodHandler)lspService;
+                        }));
+                }
             }
         }
 
@@ -97,37 +94,63 @@ internal class HandlerProvider : IHandlerProvider
         foreach (var handler in handlers)
         {
             var handlerType = handler.GetType();
-            var (requestType, responseType, requestContext) = ConvertHandlerTypeToRequestResponseTypes(handlerType);
-            var method = GetRequestHandlerMethod(handlerType);
-            CheckForDuplicates(method, handlerType, requestHandlerDictionary);
+            var requestResponseTypes = ConvertHandlerTypeToRequestResponseTypes(handlerType);
+            foreach (var requestResponseType in requestResponseTypes)
+            {
+                var method = GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContext, requestResponseType.ResponseType);
+                CheckForDuplicates(method, methodHash);
 
-            requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestType, responseType), new Lazy<IMethodHandler>(() => handler));
+                requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestResponseType.RequestType, requestResponseType.ResponseType), new Lazy<IMethodHandler>(() => handler));
+            }
         }
 
         VerifyHandlers(requestHandlerDictionary.Keys);
 
         return requestHandlerDictionary.ToImmutable();
 
-        static void CheckForDuplicates(string methodName, Type handlerType, ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>.Builder handlerDict)
+        static void CheckForDuplicates(string methodName, HashSet<string> existingMethods)
         {
-            var dupHandlers = handlerDict.Where(kvp => string.Equals(kvp.Key.MethodName, methodName, StringComparison.InvariantCulture));
-            if (dupHandlers.Any())
+            if (!existingMethods.Add(methodName))
             {
-                throw new InvalidOperationException($"Method {methodName} was implemented by both {handlerType} and {dupHandlers.First().Key}");
+                throw new InvalidOperationException($"Method {methodName} was implemented more than once.");
             }
         }
 
-        static string GetRequestHandlerMethod(Type handlerType)
+        static string GetRequestHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
         {
             // Get the LSP method name from the handler's method name attribute.
-            var methodAttribute = GetMethodAttribute(handlerType);
+            var methodAttribute = GetMethodAttributeFromClassOrInterface(handlerType);
             if (methodAttribute is null)
             {
-                throw new InvalidOperationException($"{handlerType.FullName} is missing {nameof(LanguageServerEndpointAttribute)}");
+                methodAttribute = GetMethodAttributeFromHandlerMethod(handlerType, requestType, contextType, responseType);
+
+                if (methodAttribute is null)
+                {
+                    throw new InvalidOperationException($"{handlerType.FullName} is missing {nameof(LanguageServerEndpointAttribute)}");
+                }
             }
+
             return methodAttribute.Method;
 
-            static LanguageServerEndpointAttribute? GetMethodAttribute(Type type)
+            static LanguageServerEndpointAttribute? GetMethodAttributeFromHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
+            {
+                var methodInfo = (requestType != null, responseType != null) switch
+                {
+                    (true, true) => handlerType.GetMethod(nameof(IRequestHandler<object, object, object>.HandleRequestAsync), new Type[] { requestType!, contextType, typeof(CancellationToken) }),
+                    (false, true) => handlerType.GetMethod(nameof(IRequestHandler<object, object>.HandleRequestAsync), new Type[] { contextType, typeof(CancellationToken) }),
+                    (true, false) => handlerType.GetMethod(nameof(INotificationHandler<object, object>.HandleNotificationAsync), new Type[] { requestType!, contextType, typeof(CancellationToken) }),
+                    (false, false) => handlerType.GetMethod(nameof(INotificationHandler<object>.HandleNotificationAsync), new Type[] { contextType, typeof(CancellationToken) })
+                };
+
+                if (methodInfo is null)
+                {
+                    throw new InvalidOperationException("Somehow we are missing the method for our registered handler");
+                }
+
+                return methodInfo.GetCustomAttribute<LanguageServerEndpointAttribute>();
+            }
+
+            static LanguageServerEndpointAttribute? GetMethodAttributeFromClassOrInterface(Type type)
             {
                 var attribute = Attribute.GetCustomAttribute(type, typeof(LanguageServerEndpointAttribute)) as LanguageServerEndpointAttribute;
                 if (attribute is null)
@@ -135,7 +158,7 @@ internal class HandlerProvider : IHandlerProvider
                     var interfaces = type.GetInterfaces();
                     foreach (var @interface in interfaces)
                     {
-                        attribute = GetMethodAttribute(@interface);
+                        attribute = GetMethodAttributeFromClassOrInterface(@interface);
                         if (attribute is not null)
                         {
                             break;
@@ -147,15 +170,10 @@ internal class HandlerProvider : IHandlerProvider
             }
         }
 
-        static bool IsTypeRequestHandler(Type type)
-        {
-            return type.GetInterfaces().Contains(typeof(IMethodHandler));
-        }
-
         static void VerifyHandlers(IEnumerable<RequestHandlerMetadata> requestHandlerKeys)
         {
             var missingMethods = requestHandlerKeys.Where(meta => RequiredMethods.All(method => method == meta.MethodName));
-            if (missingMethods.Count() > 0)
+            if (missingMethods.Any())
             {
                 throw new InvalidOperationException($"Language Server is missing required methods {string.Join(",", missingMethods)}");
             }
@@ -164,62 +182,58 @@ internal class HandlerProvider : IHandlerProvider
 
     private static readonly IReadOnlyList<string> RequiredMethods = new List<string> { "initialize", "initialized", "shutdown", "exit" };
 
+    private record HandlerTypes(Type? RequestType, Type? ResponseType, Type RequestContext);
+
     /// <summary>
     /// Retrieves the generic argument information from the request handler type without instantiating it.
     /// </summary>
-    private static (Type? requestType, Type? responseType, Type requestContext) ConvertHandlerTypeToRequestResponseTypes(Type handlerType)
+    private static List<HandlerTypes> ConvertHandlerTypeToRequestResponseTypes(Type handlerType)
     {
-        var requestHandlerGenericType = handlerType.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequestHandler<,,>)).SingleOrDefault();
-        var parameterlessNotificationHandlerGenericType = handlerType.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(INotificationHandler<>)).SingleOrDefault();
-        var notificationHandlerGenericType = handlerType.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(INotificationHandler<,>)).SingleOrDefault();
+        var handlerList = new List<HandlerTypes>();
 
-        Type? requestType;
-        Type? responseType;
-        Type requestContext;
-        if (requestHandlerGenericType is not null)
+        foreach (var interfaceType in handlerType.GetInterfaces())
         {
-            var genericArguments = requestHandlerGenericType.GetGenericArguments();
-
-            if (genericArguments.Length != 3)
+            if (!interfaceType.IsGenericType)
             {
-                throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not have exactly three generic arguments");
+                continue;
             }
 
-            requestType = genericArguments[0];
-            responseType = genericArguments[1];
-            requestContext = genericArguments[2];
-        }
-        else if (parameterlessNotificationHandlerGenericType is not null)
-        {
-            var genericArguments = parameterlessNotificationHandlerGenericType.GetGenericArguments();
+            var genericDefinition = interfaceType.GetGenericTypeDefinition();
 
-            if (genericArguments.Length != 1)
+            HandlerTypes types;
+            if (genericDefinition == typeof(IRequestHandler<,,>))
             {
-                throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not have exactly 1 generic argument");
+                var genericArguments = interfaceType.GetGenericArguments();
+                types = new HandlerTypes(RequestType: genericArguments[0], ResponseType: genericArguments[1], RequestContext: genericArguments[2]);
+            }
+            else if (genericDefinition == typeof(IRequestHandler<,>))
+            {
+                var genericArguments = interfaceType.GetGenericArguments();
+                types = new HandlerTypes(RequestType: null, ResponseType: genericArguments[0], RequestContext: genericArguments[1]);
+            }
+            else if (genericDefinition == typeof(INotificationHandler<,>))
+            {
+                var genericArguments = interfaceType.GetGenericArguments();
+                types = new HandlerTypes(RequestType: genericArguments[0], ResponseType: null, RequestContext: genericArguments[1]);
+            }
+            else if (genericDefinition == typeof(INotificationHandler<>))
+            {
+                var genericArguments = interfaceType.GetGenericArguments();
+                types = new HandlerTypes(RequestType: null, ResponseType: null, RequestContext: genericArguments[0]);
+            }
+            else
+            {
+                continue;
             }
 
-            requestType = null;
-            responseType = null;
-            requestContext = genericArguments[0];
+            handlerList.Add(types);
         }
-        else if (notificationHandlerGenericType is not null)
+
+        if (handlerList.Count == 0)
         {
-            var genericArguments = notificationHandlerGenericType.GetGenericArguments();
-
-            if (genericArguments.Length != 2)
-            {
-                throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not have exactly 2 generic arguments");
-            }
-
-            requestType = genericArguments[0];
-            responseType = null;
-            requestContext = genericArguments[1];
-        }
-        else
-        {
-            throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not implement {typeof(IRequestHandler<,,>).Name}, {typeof(INotificationHandler<>).Name} or {typeof(INotificationHandler<,>).Name}");
+            throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not implement {nameof(IMethodHandler)}");
         }
 
-        return (requestType, responseType, requestContext);
+        return handlerList;
     }
 }

@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     CancellationToken cancellationToken)
                 {
                     // REVIEW: for now, we keep document here due to open file case, otherwise, we need to create new SpanMappingService for every char user types.
-                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                     // _primary buffer (in this case razor html files) is not in roslyn snapshot, so mapping from roslyn snapshot to razor document
                     // always just map to current snapshot which have potential to have a race since content could have changed while we are doing this.
@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 public async Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, ClassificationOptions classificationOptions, CancellationToken cancellationToken)
                 {
                     // REVIEW: for now, we keep document here due to open file case, otherwise, we need to create new DocumentExcerpter for every char user types.
-                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                     var primarySnapshot = (IProjectionSnapshot)_primaryBuffer.CurrentSnapshot;
 
@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     // anything based on content is starting from 0
                     var startPositionOnContentSpan = GetNonWhitespaceStartPositionOnContent(contentSpanOnPrimarySnapshot);
 
-                    using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var list);
+                    using var _1 = Classifier.GetPooledList(out var list);
 
                     foreach (var roslynSpan in primarySnapshot.MapToSourceSnapshots(contentSpanOnPrimarySnapshot.Span))
                     {
@@ -228,7 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     //
                     // the EditorClassifier call above fills all the gaps for the span it is called with, but we are combining
                     // multiple spans with html code, so we need to fill those gaps
-                    using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var builder);
+                    using var _2 = Classifier.GetPooledList(out var builder);
                     ClassifierHelper.FillInClassifiedSpanGaps(startPositionOnContentSpan, list, builder);
 
                     // add html after roslyn content if there is any
@@ -246,7 +246,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         }
                     }
 
-                    return builder.ToImmutable();
+                    return builder.ToImmutableArray();
                 }
 
                 private static int GetNonWhitespaceStartPositionOnContent(SnapshotSpan spanOnPrimarySnapshot)

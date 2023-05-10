@@ -9,13 +9,12 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
-    internal partial class BKTree
+    internal readonly partial struct BKTree
     {
-        private class Builder
+        private readonly struct Builder
         {
             // The number of edges we pre-allocate space for for each node in _compactEdges.
             //
@@ -290,7 +289,7 @@ namespace Roslyn.Utilities
                 public int EdgeCount;
                 public Dictionary<int, int>? SpilloverEdges;
 
-                public BuilderNode(TextSpan characterSpan) : this()
+                public BuilderNode(TextSpan characterSpan)
                     => this.CharacterSpan = characterSpan;
             }
         }

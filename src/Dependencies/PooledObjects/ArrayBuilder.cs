@@ -7,6 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
+#if COMPILERCORE
+using Roslyn.Utilities;
+#endif
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
     [DebuggerDisplay("Count = {Count,nq}")]
@@ -316,6 +320,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             }
 
             return tmp.ToImmutableAndFree();
+        }
+
+        public ImmutableArray<U> ToDowncastedImmutableAndFree<U>() where U : T
+        {
+            var result = ToDowncastedImmutable<U>();
+            this.Free();
+            return result;
         }
 
         /// <summary>
