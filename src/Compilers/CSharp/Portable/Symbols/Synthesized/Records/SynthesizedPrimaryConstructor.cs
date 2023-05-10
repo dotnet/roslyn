@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodKind.Constructor,
                 containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public,
                 returnsVoid: true,
+                isExpressionBodied: false,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
         }
@@ -68,8 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public new SourceMemberContainerTypeSymbol ContainingType => (SourceMemberContainerTypeSymbol)base.ContainingType;
 
         protected override bool AllowRefOrOut => !(ContainingType is { IsRecord: true } or { IsRecordStruct: true });
-
-        internal override bool IsExpressionBodied => false;
 
         internal override bool IsNullableAnalysisEnabled()
         {

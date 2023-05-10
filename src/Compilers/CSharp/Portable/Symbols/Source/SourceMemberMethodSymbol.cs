@@ -24,9 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |              |n|vvv|yy|s|r|q|z|wwwww|
+            // |              |a|b|e|n|vvv|yy|s|r|q|z|kk|wwwww|
             // 
             // w = method kind.  5 bits.
+            // k = ref kind.  2 bits.
             // z = isExtensionMethod. 1 bit.
             // q = isMetadataVirtualIgnoringInterfaceChanges. 1 bit.
             // r = isMetadataVirtual. 1 bit. (At least as true as isMetadataVirtualIgnoringInterfaceChanges.)
@@ -34,12 +35,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // y = ReturnsVoid. 2 bits.
             // v = NullableContext. 3 bits.
             // n = IsNullableAnalysisEnabled. 1 bit.
+            // e = IsExpressionBody. 1 bit.
+            // b = HasAnyBody. 1 bit.
+            // a = IsVarArg. 1 bit
             private int _flags;
 
             private const int MethodKindOffset = 0;
             private const int MethodKindSize = 5;
+            private const int MethodKindMask = (1 << MethodKindSize) - 1;
 
-            private const int IsExtensionMethodOffset = MethodKindOffset + MethodKindSize;
+            private const int RefKindOffset = MethodKindOffset + MethodKindSize;
+            private const int RefKindSize = 2;
+            private const int RefKindMask = (1 << RefKindSize) - 1;
+
+            private const int IsExtensionMethodOffset = RefKindOffset + RefKindSize;
             private const int IsExtensionMethodSize = 1;
 
             private const int IsMetadataVirtualIgnoringInterfaceChangesOffset = IsExtensionMethodOffset + IsExtensionMethodSize;
@@ -56,23 +65,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private const int NullableContextOffset = ReturnsVoidOffset + ReturnsVoidSize;
             private const int NullableContextSize = 3;
+            private const int NullableContextMask = (1 << NullableContextSize) - 1;
 
             private const int IsNullableAnalysisEnabledOffset = NullableContextOffset + NullableContextSize;
-#pragma warning disable IDE0051 // Remove unused private members
             private const int IsNullableAnalysisEnabledSize = 1;
+
+            private const int IsExpressionBodiedOffset = IsNullableAnalysisEnabledOffset + IsNullableAnalysisEnabledSize;
+            private const int IsExpressionBodiedSize = 1;
+
+            private const int HasAnyBodyOffset = IsExpressionBodiedOffset + IsExpressionBodiedSize;
+            private const int HasAnyBodySize = 1;
+
+            private const int IsVarArgOffset = HasAnyBodyOffset + HasAnyBodySize;
+#pragma warning disable IDE0051 // Remove unused private members
+            private const int IsVarArgSize = 1;
 #pragma warning restore IDE0051 // Remove unused private members
 
-            private const int MethodKindMask = (1 << MethodKindSize) - 1;
-
+            private const int HasAnyBodyBit = 1 << HasAnyBodyOffset;
+            private const int IsExpressionBodiedBit = 1 << IsExpressionBodiedOffset;
             private const int IsExtensionMethodBit = 1 << IsExtensionMethodOffset;
             private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << IsMetadataVirtualIgnoringInterfaceChangesOffset;
             private const int IsMetadataVirtualBit = 1 << IsMetadataVirtualIgnoringInterfaceChangesOffset;
             private const int IsMetadataVirtualLockedBit = 1 << IsMetadataVirtualLockedOffset;
+            private const int IsVarArgBit = 1 << IsVarArgOffset;
 
             private const int ReturnsVoidBit = 1 << ReturnsVoidOffset;
             private const int ReturnsVoidIsSetBit = 1 << ReturnsVoidOffset + 1;
-
-            private const int NullableContextMask = (1 << NullableContextSize) - 1;
 
             private const int IsNullableAnalysisEnabledBit = 1 << IsNullableAnalysisEnabledOffset;
 
@@ -93,9 +111,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return (MethodKind)((_flags >> MethodKindOffset) & MethodKindMask); }
             }
 
+            public RefKind RefKind
+            {
+                get { return (RefKind)((_flags >> RefKindOffset) & RefKindMask); }
+            }
+
+            public bool HasAnyBody
+            {
+                get { return (_flags & HasAnyBodyBit) != 0; }
+            }
+
+            public bool IsExpressionBodied
+            {
+                get { return (_flags & IsExpressionBodiedBit) != 0; }
+            }
+
             public bool IsExtensionMethod
             {
                 get { return (_flags & IsExtensionMethodBit) != 0; }
+                set { ThreadSafeFlagOperations.Set(ref _flags, value ? IsExtensionMethodBit : 0); }
             }
 
             public bool IsNullableAnalysisEnabled
@@ -108,11 +142,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return (_flags & IsMetadataVirtualLockedBit) != 0; }
             }
 
+            public bool IsVarArg
+            {
+                get { return (_flags & IsVarArgBit) != 0; }
+                set { ThreadSafeFlagOperations.Set(ref _flags, value ? IsVarArgBit : 0); }
+            }
+
 #if DEBUG
             static Flags()
             {
                 // Verify masks are sufficient for values.
                 Debug.Assert(EnumUtilities.ContainsAllValues<MethodKind>(MethodKindMask));
+                Debug.Assert(EnumUtilities.ContainsAllValues<RefKind>(RefKindMask));
                 Debug.Assert(EnumUtilities.ContainsAllValues<NullableContextKind>(NullableContextMask));
             }
 #endif
@@ -126,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodKind methodKind,
                 DeclarationModifiers declarationModifiers,
                 bool returnsVoid,
+                bool isExpressionBodied,
                 bool isExtensionMethod,
                 bool isNullableAnalysisEnabled,
                 bool isMetadataVirtualIgnoringModifiers = false)
@@ -133,18 +175,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool isMetadataVirtual = isMetadataVirtualIgnoringModifiers || ModifiersRequireMetadataVirtual(declarationModifiers);
 
                 int methodKindInt = ((int)methodKind & MethodKindMask) << MethodKindOffset;
+                int isExpressionBodyInt = isExpressionBodied ? IsExpressionBodiedBit : 0;
                 int isExtensionMethodInt = isExtensionMethod ? IsExtensionMethodBit : 0;
                 int isNullableAnalysisEnabledInt = isNullableAnalysisEnabled ? IsNullableAnalysisEnabledBit : 0;
                 int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
 
                 _flags = methodKindInt
+                    | isExpressionBodyInt
                     | isExtensionMethodInt
                     | isNullableAnalysisEnabledInt
                     | isMetadataVirtualIgnoringInterfaceImplementationChangesInt
                     | isMetadataVirtualInt
                     | (returnsVoid ? ReturnsVoidBit : 0)
                     | ReturnsVoidIsSetBit;
+            }
+
+            /// <summary>
+            /// Only allowed to be called in constructors of SourceMemberMethodSymbol (and derived constructors), so
+            /// does not need ThreadSafe operations.
+            /// </summary>
+            public void SetOrdinaryMethodFlags(RefKind refKind, bool hasAnyBody)
+            {
+                _flags |= ((int)refKind & RefKindMask) << RefKindOffset;
+                _flags |= hasAnyBody ? HasAnyBodyBit : 0;
             }
 
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
@@ -292,12 +346,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodKind methodKind,
             DeclarationModifiers declarationModifiers,
             bool returnsVoid,
+            bool isExpressionBodied,
             bool isExtensionMethod,
             bool isNullableAnalysisEnabled,
             bool isMetadataVirtualIgnoringModifiers = false)
         {
             DeclarationModifiers = declarationModifiers;
-            this.flags = new Flags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers);
+            this.flags = new Flags(methodKind, declarationModifiers, returnsVoid, isExpressionBodied, isExtensionMethod, isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers);
         }
 
         protected void SetReturnsVoid(bool returnsVoid)
@@ -1003,7 +1058,7 @@ done:
         /// If the method has both block body and an expression body
         /// present, this is not treated as expression-bodied.
         /// </remarks>
-        internal abstract bool IsExpressionBodied { get; }
+        internal bool IsExpressionBodied => flags.IsExpressionBodied;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

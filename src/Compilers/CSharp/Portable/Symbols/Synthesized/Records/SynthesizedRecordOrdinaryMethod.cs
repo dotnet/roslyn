@@ -22,14 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected SynthesizedRecordOrdinaryMethod(SourceMemberContainerTypeSymbol containingType, string name, bool isReadOnly, bool hasBody, int memberOffset, BindingDiagnosticBag diagnostics)
             : base(containingType, name, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(), MethodKind.Ordinary,
-                   isIterator: false, isExtensionMethod: false, isReadOnly: isReadOnly, hasBody: hasBody, isNullableAnalysisEnabled: false, diagnostics)
+                   isIterator: false, isExtensionMethod: false, isReadOnly: isReadOnly, hasBody: hasBody, isExpressionBodied: false, isNullableAnalysisEnabled: false, diagnostics)
         {
             _memberOffset = memberOffset;
         }
 
         protected sealed override bool HasAnyBody => true;
-
-        internal sealed override bool IsExpressionBodied => false;
 
         public sealed override bool IsImplicitlyDeclared => true;
 

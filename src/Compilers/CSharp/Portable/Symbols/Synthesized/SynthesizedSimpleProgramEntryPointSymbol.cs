@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodKind.Ordinary,
                 DeclarationModifiers.Static | DeclarationModifiers.Private | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None),
                 returnsVoid: !hasAwait && !hasReturnWithExpression,
+                isExpressionBodied: false,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: false);
@@ -197,8 +198,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
         }
-
-        internal override bool IsExpressionBodied => false;
 
         public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
             => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
