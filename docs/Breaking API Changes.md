@@ -71,3 +71,11 @@ All property setters now throw an exception.
 
 The `Workspace` and `DocumentId` parameters of `TextLoader.LoadTextAndVersionAsync(Workspace, DocumentId, CancellationToken)` are deprecated.
 The method now receives `null` `Workspace` and `DocumentId`.
+
+# Unreleased
+
+### Changed `IncrementalStepRunReason` when a modified input produced a new output
+
+`IncrementalGeneratorRunStep.Outputs` previously contained `IncrementalStepRunReason.Modified` as `Reason`
+when the input to the step was modified in a way that produced a new output.
+Now the reason will be reported more accurately as `IncrementalStepRunReason.New`.
