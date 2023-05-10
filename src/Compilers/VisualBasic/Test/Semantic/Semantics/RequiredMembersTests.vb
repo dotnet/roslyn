@@ -499,6 +499,37 @@ End Module", {originalBasic.ToMetadataReference(), retargetedC.EmitToImageRefere
             comp.AssertNoDiagnostics()
         End Sub
 
+        <Fact>
+        Public Sub EnforcedRequiredMembers_ThroughRetargeting_RequiredMemberAdded()
+            Dim codeWithRequired = GetCDefinition(hasSetsRequiredMembers:=False)
+            Dim codeWithoutRequired = codeWithRequired.Replace("required ", "")
+
+            Dim originalC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(1, 0, 0, 0), isRetargetable:=True), codeWithoutRequired, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+
+            Dim originalBasic = CreateCompilation("
+Public Class Derived
+    Inherits C
+End Class", {originalC.EmitToImageReference()})
+
+            Dim retargetedC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True), codeWithRequired, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+
+            Dim comp = CreateCompilation("
+Module M
+    Public Sub Main()
+        Dim b As New Derived()
+    End Sub
+End Module", {originalBasic.ToMetadataReference(), retargetedC.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public Field As Integer' must be set in the object initializer or attribute arguments.
+        Dim b As New Derived()
+                     ~~~~~~~
+BC37321: Required member 'Public Overloads Property Prop As Integer' must be set in the object initializer or attribute arguments.
+        Dim b As New Derived()
+                     ~~~~~~~
+                                        </expected>)
+        End Sub
+
         <Theory>
         <CombinatorialData>
         Public Sub EnforcedRequiredMembers_ThroughMetadataAndSource(<CombinatorialValues("As New Derived()", " = new Derived()")> constructor As String)

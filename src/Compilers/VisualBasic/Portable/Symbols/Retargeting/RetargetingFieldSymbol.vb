@@ -208,7 +208,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Public Overrides ReadOnly Property IsRequired As Boolean
             Get
-                Return _underlyingField.IsRequired
+                Debug.Assert(Not _underlyingField.IsRequired)
+                Return False
             End Get
         End Property
 
