@@ -50,6 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
+        // Deliberately using names that could not be actual field/property names in the properties dictionary.
+        public static readonly string AllFieldsName = "<>AllFields";
+        public static readonly string AllPropertiesName = "<>AllProperties";
+
         private static readonly ObjectPool<ConcurrentSet<ISymbol>> s_concurrentSetPool = new(() => new());
 
         public CSharpUsePrimaryConstructorDiagnosticAnalyzer()
@@ -146,14 +150,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 if (_primaryConstructor is not null)
                 {
                     // Pass along a mapping of field/property name to the constructor parameter name that will replace it.
+                    var properties = _candidateMembersToRemove
+                        .Where(kvp => !_membersThatCannotBeRemoved.Contains(kvp.Key))
+                        .ToImmutableDictionary(static kvp => kvp.Key.Name, static kvp => (string?)kvp.Value.Name);
+
+                    if (_candidateMembersToRemove.All(kvp => kvp.Key is IFieldSymbol))
+                    {
+                        properties = properties.Add(AllFieldsName, AllFieldsName);
+                    }
+                    else if (_candidateMembersToRemove.All(kvp => kvp.Key is IPropertySymbol))
+                    {
+                        properties = properties.Add(AllPropertiesName, AllPropertiesName);
+                    }
+
                     context.ReportDiagnostic(DiagnosticHelper.Create(
                         _diagnosticAnalyzer.Descriptor,
                         _primaryConstructorDeclaration.Identifier.GetLocation(),
                         _styleOption.Notification.Severity,
                         ImmutableArray.Create(_primaryConstructorDeclaration.GetLocation()),
-                        _candidateMembersToRemove
-                            .Where(kvp => !_membersThatCannotBeRemoved.Contains(kvp.Key))
-                            .ToImmutableDictionary(static kvp => kvp.Key.Name, static kvp => (string?)kvp.Value.Name)));
+                        properties));
                 }
 
                 _candidateMembersToRemove.Free();

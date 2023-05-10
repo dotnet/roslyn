@@ -26,6 +26,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 {
     using static SyntaxFactory;
+    using static CSharpUsePrimaryConstructorDiagnosticAnalyzer;
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePrimaryConstructor), Shared]
     internal class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvider
@@ -61,11 +62,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
                 if (diagnostic.Properties.Count > 0)
                 {
+                    var (resource, equivalenceKey) =
+                        diagnostic.Properties.ContainsKey(AllFieldsName) ? (CSharpCodeFixesResources.Use_primary_constructor_and_remove_fields, nameof(CSharpCodeFixesResources.Use_primary_constructor_and_remove_fields)) :
+                        diagnostic.Properties.ContainsKey(AllPropertiesName) ? (CSharpCodeFixesResources.Use_primary_constructor_and_remove_properties, nameof(CSharpCodeFixesResources.Use_primary_constructor_and_remove_properties)) :
+                        (CSharpCodeFixesResources.Use_primary_constructor_and_remove_members, nameof(CSharpCodeFixesResources.Use_primary_constructor_and_remove_members));
+
                     context.RegisterCodeFix(
                         CodeAction.Create(
-                            CSharpCodeFixesResources.Use_primary_constructor_and_remove_members,
+                            resource,
                             cancellationToken => UsePrimaryConstructorAsync(document, constructorDeclaration, properties, removeMembers: true, cancellationToken),
-                            nameof(CSharpCodeFixesResources.Use_primary_constructor_and_remove_members)),
+                            equivalenceKey),
                         diagnostic);
                 }
             }
