@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isGetMethod = (syntax.Kind() == SyntaxKind.GetAccessorDeclaration);
             var methodKind = isGetMethod ? MethodKind.PropertyGet : MethodKind.PropertySet;
 
-            GetBodyInfo(syntax.Body, syntax.ExpressionBody, out var hasBlockBody, out var hasExpressionBody, out _);
+            GetBodyInfo(syntax.Body, syntax.ExpressionBody, out var hasBlockBody, out var isExpressionBodied, out _);
             bool isNullableAnalysisEnabled = containingType.DeclaringCompilation.IsNullableAnalysisEnabledIn(syntax);
             CheckForBlockAndExpressionBody(syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Keyword.GetLocation(),
                 syntax,
                 hasBlockBody,
-                hasExpressionBody,
+                isExpressionBodied,
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                 syntax.Modifiers,
                 methodKind,
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location,
                 syntax,
                 hasBlockBody: false,
-                hasExpressionBody: false,
+                isExpressionBodied: false,
                 isIterator: false,
                 modifiers: default,
                 methodKind,
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             CSharpSyntaxNode syntax,
             bool hasBlockBody,
-            bool hasExpressionBody,
+            bool isExpressionBodied,
             bool isIterator,
             SyntaxTokenList modifiers,
             MethodKind methodKind,
@@ -190,8 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _property = property;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
-            var isExpressionBodied = !hasBlockBody && hasExpressionBody;
-            var hasAnyBody = hasBlockBody || hasExpressionBody;
+            var hasAnyBody = hasBlockBody || isExpressionBodied;
             _usesInit = usesInit;
             if (_usesInit)
             {
