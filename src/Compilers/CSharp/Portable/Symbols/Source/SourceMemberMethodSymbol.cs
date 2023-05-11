@@ -1062,6 +1062,10 @@ done:
         /// present, this is not treated as expression-bodied.
         /// </remarks>
         internal bool IsExpressionBodied => flags.IsExpressionBodied;
+        protected bool HasAnyBody => flags.HasAnyBody;
+
+        public sealed override RefKind RefKind => this.flags.RefKind;
+        public sealed override bool IsVararg => this.flags.IsVararg;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
@@ -1088,9 +1092,5 @@ done:
 
             return localPosition - bodySyntax.SpanStart;
         }
-
-        public sealed override RefKind RefKind => this.flags.RefKind;
-        public sealed override bool IsVararg => this.flags.IsVararg;
-        protected bool HasAnyBody => flags.HasAnyBody;
     }
 }
