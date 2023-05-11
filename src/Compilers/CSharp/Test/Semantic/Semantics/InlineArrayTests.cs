@@ -944,6 +944,143 @@ unsafe struct Buffer
                 );
         }
 
+        [Fact]
+        public void InlineArrayType_31_Nested()
+        {
+            var src = @"
+
+public class Enclosing
+{
+    [System.Runtime.CompilerServices.InlineArray(10)]
+    public struct Buffer
+    {
+        private int _element0;
+    }
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Enclosing").GetTypeMember("Buffer");
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal("System.Int32 Enclosing.Buffer._element0", buffer.TryGetInlineArrayElementField().ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_32_Generic()
+        {
+            var src = @"
+
+public class Enclosing<T>
+{
+    [System.Runtime.CompilerServices.InlineArray(10)]
+    public struct Buffer
+    {
+        private T _element0;
+    }
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Enclosing").Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32)).GetTypeMember("Buffer");
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal("System.Int32 Enclosing<System.Int32>.Buffer._element0", buffer.TryGetInlineArrayElementField().ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_33_Generic()
+        {
+            var src = @"
+
+public class Enclosing
+{
+    [System.Runtime.CompilerServices.InlineArray(10)]
+    public struct Buffer<T>
+    {
+        private T _element0;
+    }
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Enclosing").GetTypeMember("Buffer").Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32));
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal("System.Int32 Enclosing.Buffer<System.Int32>._element0", buffer.TryGetInlineArrayElementField().ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_34_Generic()
+        {
+            var src = @"
+
+public class Enclosing<T>
+{
+    [System.Runtime.CompilerServices.InlineArray(10)]
+    public struct Buffer<U>
+    {
+        private T _element0;
+    }
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Enclosing").Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32)).
+                    GetTypeMember("Buffer").Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_String));
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal("System.Int32 Enclosing<System.Int32>.Buffer<System.String>._element0", buffer.TryGetInlineArrayElementField().ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_35_Generic()
+        {
+            var src = @"
+
+public class Enclosing<T>
+{
+    [System.Runtime.CompilerServices.InlineArray(10)]
+    public struct Buffer<U>
+    {
+        private U _element0;
+    }
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Enclosing").Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32)).
+                    GetTypeMember("Buffer").Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_String));
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal("System.String Enclosing<System.Int32>.Buffer<System.String>._element0", buffer.TryGetInlineArrayElementField().ToTestDisplayString());
+            }
+        }
+
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ElementAccess_Variable_01()
         {
