@@ -166,6 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract void CompleteAsyncMethodChecksBetweenStartAndFinish();
 
+        public abstract override ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
+
         public abstract override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
 
         public override string Name
