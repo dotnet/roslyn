@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 int methodKindInt = ((int)methodKind & MethodKindMask) << MethodKindOffset;
                 int refKindInt = ((int)refKind & RefKindMask) << RefKindOffset;
-                int hasAnyBodyInt = hasAnyBody? HasAnyBodyBit : 0;
+                int hasAnyBodyInt = hasAnyBody ? HasAnyBodyBit : 0;
                 int isExpressionBodyInt = isExpressionBodied ? IsExpressionBodiedBit : 0;
                 int isExtensionMethodInt = isExtensionMethod ? IsExtensionMethodBit : 0;
                 int isNullableAnalysisEnabledInt = isNullableAnalysisEnabled ? IsNullableAnalysisEnabledBit : 0;
