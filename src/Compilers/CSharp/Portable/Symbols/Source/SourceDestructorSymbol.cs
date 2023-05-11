@@ -30,8 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool hasBlockBody = syntax.Body != null;
             bool isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            bool hasBody = hasBlockBody || isExpressionBodied;
 
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
+            this.MakeFlags(
+                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, hasAnyBody: hasBody, isExpressionBodied: isExpressionBodied, isExtensionMethod: false,
+                isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (syntax.Identifier.ValueText != containingType.Name)
             {
@@ -84,11 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
-        public override bool IsVararg
-        {
-            get { return false; }
-        }
-
         internal override int ParameterCount
         {
             get { return 0; }
@@ -109,11 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
             => ImmutableArray<TypeParameterConstraintKind>.Empty;
-
-        public override RefKind RefKind
-        {
-            get { return RefKind.None; }
-        }
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
