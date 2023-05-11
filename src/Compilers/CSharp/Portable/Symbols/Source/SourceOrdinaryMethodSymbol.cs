@@ -344,15 +344,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyTypeParameterConstraintKinds;
         }
 
-        public override bool IsVararg
-        {
-            get
-            {
-                LazyMethodChecks();
-                return flags.IsVarArg;
-            }
-        }
-
         protected override int GetParameterCountFromSyntax() => GetSyntax().ParameterList.ParameterCount;
 
         public override RefKind RefKind

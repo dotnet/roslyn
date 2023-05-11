@@ -443,5 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
             }
         }
+
+        public sealed override bool IsVararg => flags.IsVarArg;
     }
 }
