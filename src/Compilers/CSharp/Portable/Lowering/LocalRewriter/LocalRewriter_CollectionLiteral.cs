@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
 
-            var collectionTypeKind = ConversionsBase.GetConstructibleCollectionType(_compilation, node.Type, out var elementType);
+            var collectionTypeKind = ConversionsBase.GetCollectionLiteralTypeKind(_compilation, node.Type, out var elementType);
             switch (collectionTypeKind)
             {
                 case CollectionLiteralTypeKind.CollectionInitializer:

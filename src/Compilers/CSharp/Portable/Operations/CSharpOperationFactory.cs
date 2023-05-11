@@ -1222,7 +1222,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundCollectionLiteralExpression(BoundCollectionLiteralExpression boundCollectionLiteralExpression)
         {
-            var collectionTypeKind = ConversionsBase.GetConstructibleCollectionType((CSharpCompilation)_semanticModel.Compilation, boundCollectionLiteralExpression.Type, out var elementType);
+            var collectionTypeKind = ConversionsBase.GetCollectionLiteralTypeKind((CSharpCompilation)_semanticModel.Compilation, boundCollectionLiteralExpression.Type, out var elementType);
             switch (collectionTypeKind)
             {
                 case CollectionLiteralTypeKind.None:

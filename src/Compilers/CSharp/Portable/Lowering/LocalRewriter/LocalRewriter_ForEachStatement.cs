@@ -144,7 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodArgumentInfo getEnumeratorInfo = enumeratorInfo.GetEnumeratorInfo;
             TypeSymbol enumeratorType = getEnumeratorInfo.Method.ReturnType;
-            TypeSymbol elementType = enumeratorInfo.ElementType;
 
             // E e
             LocalSymbol enumeratorVar = _factory.SynthesizedLocal(enumeratorType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachEnumerator);

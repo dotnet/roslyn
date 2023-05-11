@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.ObjectCreation;
 
                 case BoundKind.UnconvertedCollectionLiteralExpression:
-                    if (GetConstructibleCollectionType(Compilation, destination, out _) != CollectionLiteralTypeKind.None)
+                    if (GetCollectionLiteralTypeKind(Compilation, destination, out _) != CollectionLiteralTypeKind.None)
                     {
                         return Conversion.CollectionLiteral;
                     }
@@ -1584,7 +1584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
         }
 
-        internal static CollectionLiteralTypeKind GetConstructibleCollectionType(CSharpCompilation compilation, TypeSymbol destination, out TypeSymbol? elementType)
+        internal static CollectionLiteralTypeKind GetCollectionLiteralTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeSymbol? elementType)
         {
             Debug.Assert(compilation is { });
 

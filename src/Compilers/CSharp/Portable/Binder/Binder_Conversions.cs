@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol? elementType;
             BoundCollectionLiteralExpression collectionLiteral;
-            var collectionTypeKind = ConversionsBase.GetConstructibleCollectionType(Compilation, targetType, out elementType);
+            var collectionTypeKind = ConversionsBase.GetCollectionLiteralTypeKind(Compilation, targetType, out elementType);
             switch (collectionTypeKind)
             {
                 case CollectionLiteralTypeKind.CollectionInitializer:

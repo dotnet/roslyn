@@ -622,7 +622,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // type (i.e. builder.CollectionType) will be available in the binding API.
             Debug.Assert(!collectionConversionClassification.IsUserDefined);
 
-            BoundExpression convertedCollectionExpression = CreateConversion(collectionExpr.Syntax, collectionExpr, collectionConversionClassification, isCast: false, conversionGroupOpt: null, collectionType, diagnostics);
+            BoundExpression convertedCollectionExpression = CreateConversion(
+                collectionExpr.Syntax,
+                collectionExpr,
+                collectionConversionClassification,
+                isCast: false,
+                conversionGroupOpt: null,
+                collectionType,
+                diagnostics);
 
             if ((convertedCollectionExpression as BoundConversion)?.Operand != (object)collectionExpr)
             {
@@ -643,7 +650,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return convertedCollectionExpression;
         }
 
-        protected bool GetEnumeratorInfoAndInferCollectionElementType(SyntaxNode syntax, ExpressionSyntax collectionSyntax, ref ForEachEnumeratorInfo.Builder builder, ref BoundExpression collectionExpr, bool isAsync, BindingDiagnosticBag diagnostics, out TypeWithAnnotations inferredType)
+        protected bool GetEnumeratorInfoAndInferCollectionElementType(
+            SyntaxNode syntax,
+            ExpressionSyntax collectionSyntax,
+            ref ForEachEnumeratorInfo.Builder builder,
+            ref BoundExpression collectionExpr, bool isAsync,
+            BindingDiagnosticBag diagnostics,
+            out TypeWithAnnotations inferredType)
         {
             bool gotInfo = GetEnumeratorInfo(syntax, collectionSyntax, ref builder, ref collectionExpr, isAsync, diagnostics);
 
