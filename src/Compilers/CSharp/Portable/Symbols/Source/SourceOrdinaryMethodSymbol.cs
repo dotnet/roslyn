@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 _explicitInterfaceType = explicitInterfaceType;
 
-                _typeParameterInfo = TypeParameterInfo.Create(MakeTypeParameters(syntax, diagnostics));
-
+                _typeParameterInfo = new TypeParameterInfo { LazyTypeParameters = MakeTypeParameters(syntax, diagnostics) };
             }
 
             protected sealed override TypeSymbol ExplicitInterfaceType => _explicitInterfaceType;

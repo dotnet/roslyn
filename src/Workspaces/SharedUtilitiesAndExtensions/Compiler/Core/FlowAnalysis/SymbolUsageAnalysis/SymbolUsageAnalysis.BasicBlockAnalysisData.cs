@@ -237,7 +237,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 #if NET
                         values.EnsureCapacity(values.Count + operations.Count);
 #endif
-                        values.AddRange(operations);
+
+                        // Enumerate explicitly, instead of calling AddRange, to avoid unnecessary expensive IEnumerator allocation.
+                        foreach (var operation in operations)
+                            values.Add(operation);
                     }
                 }
             }
