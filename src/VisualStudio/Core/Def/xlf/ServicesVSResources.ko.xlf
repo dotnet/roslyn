@@ -1137,6 +1137,11 @@
         <target state="translated">네임스페이스 및 폴더 일치 구조 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_primary_constructors">
+        <source>Prefer primary constructors</source>
+        <target state="new">Prefer primary constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">범위 연산자 선호</target>

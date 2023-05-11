@@ -1137,6 +1137,11 @@
         <target state="translated">Ad alanı ve klasör eşleşme yapısını tercih et</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_primary_constructors">
+        <source>Prefer primary constructors</source>
+        <target state="new">Prefer primary constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">Aralık işlecini tercih et</target>

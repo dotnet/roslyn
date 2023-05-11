@@ -1137,6 +1137,11 @@
         <target state="translated">優先使用命名空間和資料夾相符結構</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_primary_constructors">
+        <source>Prefer primary constructors</source>
+        <target state="new">Prefer primary constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">優先使用範圍運算子</target>
