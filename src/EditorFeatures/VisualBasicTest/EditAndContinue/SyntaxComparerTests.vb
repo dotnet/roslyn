@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 Enumerable.Range(0, 10000).Select(Function(i) If(i < 2000, t1, t3)))
 
             ' long sequences are indistinguishable if they have common prefix shorter then threshold
-            Assert.Equal(0, distance)
+            Assert.Equal(0.0, distance)
         End Sub
     End Class
 End Namespace
