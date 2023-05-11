@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // n = IsNullableAnalysisEnabled. 1 bit.
             // e = IsExpressionBody. 1 bit.
             // b = HasAnyBody. 1 bit.
-            // a = IsVarArg. 1 bit
+            // a = IsVararg. 1 bit
             private int _flags;
 
             private const int MethodKindOffset = 0;
