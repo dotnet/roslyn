@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 declarationModifiers: declarationModifiers,
                 returnsVoid: baseMethod.ReturnsVoid,
                 hasAnyBody: false,
+                isExpressionBodied: false,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: false,
                 isVarArg: baseMethod.IsVararg,
-                isMetadataVirtualIgnoringModifiers: false,
-                isExpressionBodied: false);
+                isMetadataVirtualIgnoringModifiers: false);
         }
 
         protected void AssignTypeMapAndTypeParameters(TypeMap typeMap, ImmutableArray<TypeParameterSymbol> typeParameters)
