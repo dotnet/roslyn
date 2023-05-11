@@ -5,7 +5,6 @@
 // Ignore Spelling: loc kvp
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -13,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -47,47 +45,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
         => WellKnownFixAllProviders.BatchFixer;
 #else
         => new CSharpUsePrimaryConstructorFixAllProvider();
-#endif
 
-#if !CODE_STYLE
-    private sealed class CSharpUsePrimaryConstructorFixAllProvider : FixAllProvider
-    {
-        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-        {
-            return DefaultFixAllProviderHelpers.GetFixAsync(
-                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
-        }
-
-        private static async Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalContext, ImmutableArray<FixAllContext> contexts)
-        {
-            var cancellationToken = originalContext.CancellationToken;
-            var equivalenceKey = originalContext.CodeActionEquivalenceKey;
-            var removeMembers = equivalenceKey
-                is nameof(CSharpCodeFixesResources.Use_primary_constructor_and_remove_fields)
-                or nameof(CSharpCodeFixesResources.Use_primary_constructor_and_remove_properties)
-                or nameof(CSharpCodeFixesResources.Use_primary_constructor_and_remove_members);
-
-            var solutionEditor = new SolutionEditor(originalContext.Solution);
-
-            foreach (var currentContext in contexts)
-            {
-                var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(currentContext).ConfigureAwait(false);
-                foreach (var (document, diagnostics) in documentToDiagnostics)
-                {
-                    foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
-                    {
-                        if (diagnostic.Location.FindNode(cancellationToken) is not ConstructorDeclarationSyntax constructorDeclaration)
-                            continue;
-
-                        await UsePrimaryConstructorAsync(
-                            solutionEditor, document, constructorDeclaration, diagnostic.Properties, removeMembers, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-            }
-
-            return solutionEditor.GetChangedSolution();
-        }
-    }
 #endif
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
