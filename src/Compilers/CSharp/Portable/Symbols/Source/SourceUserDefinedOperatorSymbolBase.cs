@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             CSharpSyntaxNode syntax,
             DeclarationModifiers declarationModifiers,
-            bool hasBlockBody,
+            bool hasAnyBody,
             bool isExpressionBodied,
             bool isIterator,
             bool isNullableAnalysisEnabled,
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // of the parameters and return type we will update the flag if necessary.
 
             this.MakeFlags(
-                methodKind, RefKind.None, declarationModifiers, returnsVoid: false, hasAnyBody: hasBody, isExpressionBodied: isExpressionBodied,
+                methodKind, RefKind.None, declarationModifiers, returnsVoid: false, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (this.ContainingType.IsInterface &&
