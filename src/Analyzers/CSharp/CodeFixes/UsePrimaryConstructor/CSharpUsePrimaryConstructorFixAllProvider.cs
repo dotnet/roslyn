@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 
 internal partial class CSharpUsePrimaryConstructorCodeFixProvider
 {
-#if !CODE_STYLE
+#if !CODE_STYLE // Currently depends on helpers only available in workspace layer.
     private sealed class CSharpUsePrimaryConstructorFixAllProvider : FixAllProvider
     {
         public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
@@ -58,4 +58,5 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider
             return solutionEditor.GetChangedSolution();
         }
     }
+#endif
 }

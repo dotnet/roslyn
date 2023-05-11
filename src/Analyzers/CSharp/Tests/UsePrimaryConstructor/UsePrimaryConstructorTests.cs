@@ -1477,4 +1477,175 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestFixAll1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public [|C|](int i)
+                    {
+                    }
+                }
+
+                class D
+                {
+                    public [|D|](int j)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i)
+                {
+                }
+
+                class D(int j)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestFixAll2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public [|C|](int i)
+                    {
+                    }
+                
+                    class D
+                    {
+                        public [|D|](int j)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i)
+                {
+                    class D(int j)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestFixAll3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int i;
+
+                    public [|C|](int i)
+                    {
+                        this.i = i;
+                    }
+                
+                    class D
+                    {
+                        private int J { get; }
+
+                        public [|D|](int j)
+                        {
+                            this.J = j;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i)
+                {
+                    private int i = i;
+
+                    class D(int j)
+                    {
+                        private int J { get; } = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestFixAll4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                class C
+                {
+                    private int i;
+
+                    public [|C|](int i)
+                    {
+                        this.i = i;
+                    }
+
+                    void M()
+                    {
+                        Console.WriteLine(i);
+                    }
+                
+                    class D
+                    {
+                        private int J { get; }
+
+                        public [|D|](int j)
+                        {
+                            this.J = j;
+                        }
+                
+                        void N()
+                        {
+                            Console.WriteLine(J);
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                class C(int i)
+                {
+                    void M()
+                    {
+                        Console.WriteLine(i);
+                    }
+
+                    class D(int j)
+                    {
+                        void N()
+                        {
+                            Console.WriteLine(j);
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            CodeActionIndex = 1,
+#if CODE_STYLE
+            NumberOfFixAllIterations = 2,
+#else
+            NumberOfFixAllIterations = 1,
+#endif
+        }.RunAsync();
+    }
 }
