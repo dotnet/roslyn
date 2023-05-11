@@ -366,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
-            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
             Dim reportedNamespaceMismatch As Boolean = False
 
             ' Check for a few issues with namespace declaration.
@@ -379,11 +379,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim node As VisualBasicSyntaxNode = syntaxRef.GetVisualBasicSyntax(cancellationToken)
                 Select Case node.Kind
                     Case SyntaxKind.IdentifierName
-                        ValidateNamespaceNameSyntax(DirectCast(node, IdentifierNameSyntax), diagnostics, reportedNamespaceMismatch)
+                        ValidateNamespaceNameSyntax(DirectCast(node, IdentifierNameSyntax), diagnostics.DiagnosticBag, reportedNamespaceMismatch)
                     Case SyntaxKind.QualifiedName
-                        ValidateNamespaceNameSyntax(DirectCast(node, QualifiedNameSyntax).Right, diagnostics, reportedNamespaceMismatch)
+                        ValidateNamespaceNameSyntax(DirectCast(node, QualifiedNameSyntax).Right, diagnostics.DiagnosticBag, reportedNamespaceMismatch)
                     Case SyntaxKind.GlobalName
-                        ValidateNamespaceGlobalSyntax(DirectCast(node, GlobalNameSyntax), diagnostics)
+                        ValidateNamespaceGlobalSyntax(DirectCast(node, GlobalNameSyntax), diagnostics.DiagnosticBag)
                     Case SyntaxKind.CompilationUnit
                         ' nothing to validate
                     Case Else
@@ -393,7 +393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 cancellationToken.ThrowIfCancellationRequested()
             Next
 
-            If _containingModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.DeclarationValidated, 0, New BindingDiagnosticBag(diagnostics)) Then
+            If _containingModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.DeclarationValidated, 0, diagnostics) Then
                 DeclaringCompilation.SymbolDeclaredEvent(Me)
             End If
             diagnostics.Free()
