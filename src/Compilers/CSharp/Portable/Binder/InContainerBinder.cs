@@ -85,6 +85,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override bool SupportsExtensionTypes => true;
+
+        internal override void GetImplicitExtensionTypes(ArrayBuilder<TypeSymbol> extensions, Binder originalBinder)
+        {
+            switch (_container)
+            {
+                case NamespaceSymbol ns:
+                    ns.GetImplicitExtensionTypes(extensions);
+                    break;
+                case NamedTypeSymbol type:
+                    type.GetImplicitExtensionTypes(extensions);
+                    break;
+            }
+        }
+
         internal override TypeWithAnnotations GetIteratorElementType()
         {
             if (IsScriptClass)

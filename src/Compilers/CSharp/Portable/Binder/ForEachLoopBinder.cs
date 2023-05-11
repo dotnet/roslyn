@@ -1157,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodName,
                 arity: 0,
                 basesBeingResolved: null,
-                options: LookupOptions.Default,
+                options: LookupOptions.SearchInExtensionTypes,
                 originalBinder: this,
                 diagnose: false,
                 useSiteInfo: ref useSiteInfo);
@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CurrentPropertyName,
                     arity: 0,
                     basesBeingResolved: null,
-                    options: LookupOptions.Default, // properties are not invocable - their accessors are
+                    options: LookupOptions.SearchInExtensionTypes, // properties are not invokable - their accessors are
                     originalBinder: this,
                     diagnose: false,
                     useSiteInfo: ref useSiteInfo);
@@ -1652,6 +1652,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lookupResult.Clear();
 
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                    // We don't need to consider extension types for error reporting,
+                    // since the extension member lookups either succeed (then we wouldn't be here)
+                    // or their errors are ignored anyways.
                     this.LookupMembersInType(
                         lookupResult,
                         patternType,

@@ -1849,7 +1849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // bind to "this.x" in the "Print". (In C++ the local does not come
                             // into scope until its declaration.)
                             //
-                            FieldSymbol possibleField = null;
+                            FieldSymbol possibleField;
                             var lookupResult = LookupResult.GetInstance();
                             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                             this.LookupMembersInType(
@@ -6653,7 +6653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
             try
             {
-                LookupOptions options = LookupOptions.AllMethodsOnArityZero;
+                LookupOptions options = LookupOptions.AllMethodsOnArityZero | LookupOptions.SearchInExtensionTypes;
                 if (invoked)
                 {
                     options |= LookupOptions.MustBeInvocableIfMember;
@@ -6764,7 +6764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // then the result is that namespace.
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                this.LookupMembersWithFallback(lookupResult, ns, rightName, rightArity, ref useSiteInfo, options: options);
+                this.LookupMembersWithExtensionsAndFallback(lookupResult, ns, rightName, rightArity, ref useSiteInfo, options: options);
                 diagnostics.Add(right, useSiteInfo);
 
                 ArrayBuilder<Symbol> symbols = lookupResult.Symbols;
@@ -6838,7 +6838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (leftType.TypeKind == TypeKind.TypeParameter)
                 {
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options | LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstractOrVirtual);
+                    this.LookupMembersWithExtensionsAndFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options | LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstractOrVirtual);
                     diagnostics.Add(right, useSiteInfo);
                     if (lookupResult.IsMultiViable)
                     {
@@ -6859,7 +6859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
+                    this.LookupMembersWithExtensionsAndFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
                     diagnostics.Add(right, useSiteInfo);
                     if (lookupResult.IsMultiViable)
                     {
@@ -7002,7 +7002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void LookupInstanceMember(LookupResult lookupResult, TypeSymbol leftType, bool leftIsBaseReference, string rightName, int rightArity, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            LookupOptions options = LookupOptions.AllMethodsOnArityZero;
+            LookupOptions options = LookupOptions.AllMethodsOnArityZero | LookupOptions.SearchInExtensionTypes;
             if (invoked)
             {
                 options |= LookupOptions.MustBeInvocableIfMember;
@@ -7013,7 +7013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.UseBaseReferenceAccessibility;
             }
 
-            this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
+            this.LookupMembersWithExtensionsAndFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
         }
 
         private void BindMemberAccessReportError(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
@@ -8321,8 +8321,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupResult lookupResult = LookupResult.GetInstance();
             LookupOptions lookupOptions = expr.Kind == BoundKind.BaseReference ? LookupOptions.UseBaseReferenceAccessibility : LookupOptions.Default;
+            lookupOptions |= LookupOptions.SearchInExtensionTypes;
+
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            this.LookupMembersWithFallback(lookupResult, expr.Type, WellKnownMemberNames.Indexer, arity: 0, useSiteInfo: ref useSiteInfo, options: lookupOptions);
+
+            this.LookupMembersWithExtensionsAndFallback(lookupResult, expr.Type, WellKnownMemberNames.Indexer, arity: 0,
+                useSiteInfo: ref useSiteInfo, options: lookupOptions);
+
             diagnostics.Add(node, useSiteInfo);
 
             // Store, rather than return, so that we can release resources.
@@ -8733,7 +8738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownMemberNames.Indexer,
                         arity: 0,
                         basesBeingResolved: null,
-                        LookupOptions.Default,
+                        LookupOptions.SearchInExtensionTypes,
                         originalBinder: this,
                         diagnose: false,
                         ref useSiteInfo);
@@ -8788,7 +8793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownMemberNames.SliceMethodName,
                         arity: 0,
                         basesBeingResolved: null,
-                        LookupOptions.Default,
+                        LookupOptions.SearchInExtensionTypes,
                         originalBinder: this,
                         diagnose: false,
                         ref useSiteInfo);
@@ -8894,7 +8899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     propertyName,
                     arity: 0,
                     basesBeingResolved: null,
-                    LookupOptions.Default,
+                    LookupOptions.SearchInExtensionTypes,
                     originalBinder: this,
                     diagnose: false,
                     useSiteInfo: ref useSiteInfo);
@@ -9183,6 +9188,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node)
         {
+            // PROTOTYPE How should extension types affect the natural type of method groups?
+            //           Spec says "A method group has a natural type if all candidate methods
+            //           in the method group have a common signature.
+            //           (If the method group may include extension methods, the candidates
+            //           include the containing type and all extension method scopes.)
             MethodSymbol? method = null;
             foreach (var m in node.Methods)
             {
@@ -9222,6 +9232,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodGroup.Free();
                 }
             }
+            // PROTOTYPE: We'll likely want to collect all methods from compatible extension types
+            //            (for member access only, not for simple name, like we do for extension methods).
+            //            Need to spec.
             if (method is null)
             {
                 return null;

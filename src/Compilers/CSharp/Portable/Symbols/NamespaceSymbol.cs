@@ -365,6 +365,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal void GetImplicitExtensionTypes(ArrayBuilder<TypeSymbol> extensions)
+        {
+            // PROTOTYPE needs optimizing (see GetExtensionMethods)
+            foreach (var type in this.GetTypeMembersUnordered())
+            {
+                if (type.IsExtension && !type.IsExplicitExtension)
+                {
+                    extensions.Add(type);
+                }
+            }
+        }
+
         internal string QualifiedName
         {
             get

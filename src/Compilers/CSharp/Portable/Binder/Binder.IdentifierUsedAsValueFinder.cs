@@ -244,6 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return memberAccessNode is not null && enclosingBinder.IsPotentialColorColorReceiver(id, type);
             }
 
+            // TODO2 test a scenario that call this
             /// <summary>
             /// Follows the logic of <see cref="Binder.BindInstanceMemberAccess"/> and <see cref="Binder.BindMemberOfType"/>
             /// </summary>

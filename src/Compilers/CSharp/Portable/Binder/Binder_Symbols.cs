@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = LookupResult.GetInstance();
-            LookupOptions options = GetSimpleNameLookupOptions(node, node.Identifier.IsVerbatimIdentifier());
+            LookupOptions options = GetSimpleNameLookupOptions(node, node.Identifier.IsVerbatimIdentifier(), qualifierOpt);
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
@@ -1062,8 +1062,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Gets the name lookup options for simple generic or non-generic name.
-        private static LookupOptions GetSimpleNameLookupOptions(NameSyntax node, bool isVerbatimIdentifier)
+        private static LookupOptions GetSimpleNameLookupOptions(NameSyntax node, bool isVerbatimIdentifier, NamespaceOrTypeSymbol qualifierOpt)
         {
+            LookupOptions result;
             if (SyntaxFacts.IsAttributeName(node))
             {
                 //  SPEC:   By convention, attribute classes are named with a suffix of Attribute.
@@ -1073,12 +1074,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  SPEC:   such that its right-most identifier is a verbatim identifier (§2.4.2), then only
                 //  SPEC:   an attribute without a suffix is matched, thus enabling such an ambiguity to be resolved.
 
-                return isVerbatimIdentifier ? LookupOptions.VerbatimNameAttributeTypeOnly : LookupOptions.AttributeTypeOnly;
+                result = isVerbatimIdentifier ? LookupOptions.VerbatimNameAttributeTypeOnly : LookupOptions.AttributeTypeOnly;
             }
             else
             {
-                return LookupOptions.NamespacesOrTypesOnly;
+                result = LookupOptions.NamespacesOrTypesOnly;
             }
+
+            if (qualifierOpt is not null)
+            {
+                // Extension member lookup comes into play for member access (ie. with a qualified),
+                // but not for simple names (ie. without a qualifier).
+                result |= LookupOptions.SearchInExtensionTypes;
+            }
+
+            return result;
         }
 
         private static Symbol UnwrapAliasNoDiagnostics(Symbol symbol, ConsList<TypeSymbol> basesBeingResolved = null)
@@ -1204,7 +1214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<TypeSyntax> typeArguments = node.TypeArgumentList.Arguments;
 
             bool isUnboundTypeExpr = node.IsUnboundGenericName;
-            LookupOptions options = GetSimpleNameLookupOptions(node, isVerbatimIdentifier: false);
+            LookupOptions options = GetSimpleNameLookupOptions(node, isVerbatimIdentifier: false, qualifierOpt);
 
             NamedTypeSymbol unconstructedType = LookupGenericTypeName(
                 diagnostics, basesBeingResolved, qualifierOpt, node, plainName, node.Arity, options);

@@ -110,6 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Do not consider symbols that are parameters.
         /// </summary>
         MustNotBeParameter = 1 << 16,
+
+        /// <summary>
+        /// Broaden the lookup to include members from extension types.
+        /// </summary>
+        SearchInExtensionTypes = 1 << 17,
     }
 
     internal static class LookupOptionExtensions
