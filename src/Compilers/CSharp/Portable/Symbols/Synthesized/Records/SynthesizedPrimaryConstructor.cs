@@ -28,10 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.MakeFlags(
                 MethodKind.Constructor,
+                RefKind.None,
                 containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public,
                 returnsVoid: true,
+                hasAnyBody: false,
                 isExpressionBodied: false,
                 isExtensionMethod: false,
+                isVarArg: false,
                 isNullableAnalysisEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
         }
 

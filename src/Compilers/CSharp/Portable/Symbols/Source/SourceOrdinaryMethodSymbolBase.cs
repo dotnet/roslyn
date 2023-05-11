@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var isMetadataVirtualIgnoringModifiers = isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0;
 
             this.MakeFlags(
-                methodKind, refKind, declarationModifiers, returnsVoid, hasBody: hasBody, isExpressionBodied: isExpressionBodied,
+                methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody: hasBody, isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isVarArg: isVarArg,
                 isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
             flags.SetOrdinaryMethodFlags(refKind, hasBody, isVarArg);
