@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics);
 
-        protected abstract bool HasAnyBody { get; }
+        protected bool HasAnyBody => flags.HasAnyBody;
 
         protected sealed override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
         {

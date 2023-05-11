@@ -276,8 +276,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override TypeSymbol ExplicitInterfaceType => _explicitInterfaceType;
 
-        protected override bool HasAnyBody => flags.HasAnyBody;
-
         internal MethodDeclarationSyntax GetSyntax()
         {
             Debug.Assert(syntaxReferenceOpt != null);

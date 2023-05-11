@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _memberOffset = memberOffset;
         }
 
-        protected sealed override bool HasAnyBody => true;
-
         public sealed override bool IsImplicitlyDeclared => true;
 
         protected sealed override Location ReturnTypeLocation => GetFirstLocation();
