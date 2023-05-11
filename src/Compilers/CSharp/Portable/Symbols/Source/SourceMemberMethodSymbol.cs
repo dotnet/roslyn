@@ -198,14 +198,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     | ReturnsVoidIsSetBit;
             }
 
-            /// <summary>
-            /// Only allowed to be called in constructors of SourceMemberMethodSymbol (and derived constructors), so
-            /// does not need ThreadSafe operations.
-            /// </summary>
-            public void SetOrdinaryMethodFlags(RefKind refKind, bool hasAnyBody, bool isVarArg)
-            {
-            }
-
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
             {
                 // This flag is immutable, so there's no reason to set a lock bit, as we do below.
@@ -1103,5 +1095,7 @@ done:
         {
             get { return this.flags.IsVarArg; }
         }
+
+        protected bool HasAnyBody => flags.HasAnyBody;
     }
 }

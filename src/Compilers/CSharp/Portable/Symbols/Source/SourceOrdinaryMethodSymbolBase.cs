@@ -67,7 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody: hasBody, isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isVarArg: isVarArg,
                 isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
-            flags.SetOrdinaryMethodFlags(refKind, hasBody, isVarArg);
 
             _typeParameters = MakeTypeParameters(syntax, diagnostics);
 
@@ -136,8 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable disable
 
         protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics);
-
-        protected bool HasAnyBody => flags.HasAnyBody;
 
         protected sealed override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
         {
@@ -317,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckModifiers(bool isExplicitInterfaceImplementation, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
         {
-            bool isVararg = flags.IsVarArg;
+            bool isVararg = this.IsVararg;
 
             Debug.Assert(!IsStatic || !IsOverride); // Otherwise should have been reported and cleared earlier.
             Debug.Assert(!IsStatic || ContainingType.IsInterface || (!IsAbstract && !IsVirtual)); // Otherwise should have been reported and cleared earlier.
