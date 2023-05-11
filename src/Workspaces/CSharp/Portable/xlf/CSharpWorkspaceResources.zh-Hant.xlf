@@ -9,12 +9,12 @@
       </trans-unit>
       <trans-unit id="No_available_location_found_to_add_statements_to">
         <source>No available location found to add statements to.</source>
-        <target state="translated">找不到能加入陳述式的可用位置。</target>
+        <target state="new">No available location found to add statements to.</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_can_not_be_added_in_this_destination">
         <source>Namespace can not be added in this destination.</source>
-        <target state="translated">無法將命名空間加入此目的地。</target>
+        <target state="new">Namespace can not be added in this destination.</target>
         <note />
       </trans-unit>
       <trans-unit id="Node_does_not_descend_from_root">
