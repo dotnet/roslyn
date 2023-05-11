@@ -282,6 +282,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _location = location;
         }
 
+#nullable enable
+        protected static void GetBodyInfo(BlockSyntax? block, ArrowExpressionClauseSyntax? expressionBody, out bool hasBlockBody, out bool hasExpressionBody, out bool hasAnyBody)
+        {
+            hasBlockBody = block != null;
+            hasExpressionBody = !hasBlockBody && expressionBody != null;
+            hasAnyBody = hasBlockBody || hasExpressionBody;
+        }
+#nullable disable
+
         protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
         {
             if (this.DeclaredAccessibility <= Accessibility.Private || MethodKind == MethodKind.ExplicitInterfaceImplementation)

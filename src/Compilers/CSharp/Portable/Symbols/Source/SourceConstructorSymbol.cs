@@ -24,13 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new SourceConstructorSymbol(containingType, syntax.Identifier.GetLocation(), syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
         }
 
-        protected static void GetBodyInfo(BlockSyntax? block, ArrowExpressionClauseSyntax? expressionBody, out bool hasBlockBody, out bool hasExpressionBody, out bool hasAnyBody)
-        {
-            hasBlockBody = block != null;
-            hasExpressionBody = expressionBody != null;
-            hasAnyBody = hasBlockBody || hasExpressionBody;
-        }
-
         private SourceConstructorSymbol(
              SourceMemberContainerTypeSymbol containingType,
              Location location,
