@@ -868,15 +868,6 @@ public partial class UsePrimaryConstructorTests
         }.RunAsync();
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="i"></param>
-    void M(int i)
-    {
-
-    }
-
     [Fact]
     public async Task TestMoveConstructorDocCommentWhenNothingOnType_SingleLine_1()
     {
@@ -907,6 +898,46 @@ public partial class UsePrimaryConstructorTests
                     {
                         private int i = i;
                     }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorDocCommentWhenNothingOnType_IfDef1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                #if true
+                    class C
+                    {
+                        private int i;
+
+                        /// <summary>Doc comment on single line</summary>
+                        /// <param name="i">Doc about i single line</param>
+                        public [|C|](int i)
+                        {
+                            this.i = i;
+                        }
+                    }
+                #endif
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                #if true
+                    /// <summary>Doc comment on single line</summary>
+                    /// <param name="i">Doc about i single line</param>
+                    class C(int i)
+                    {
+                        private int i = i;
+                    }
+                #endif
                 }
                 """,
             LanguageVersion = LanguageVersion.Preview,
@@ -1292,6 +1323,150 @@ public partial class UsePrimaryConstructorTests
                     /// <param name="i">Docs for i.</param>
                     /// <param name="j">
                     /// Docs for j.
+                    /// </param>
+                    class C(int i, int j)
+                    {
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembersKeepConstructorDocs1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    /// <summary>
+                    /// C docs
+                    /// </summary>
+                    class C
+                    {
+                        /// <summary>Field docs for i.</summary>
+                        private int i;
+                        /// <summary>
+                        /// Field docs for j.
+                        /// </summary>
+                        private int j;
+
+                        /// <param name="i">Param docs for i</param>
+                        /// <param name="j">Param docs for j</param>
+                        public [|C|](int i, int j)
+                        {
+                            this.i = i;
+                            this.j = j;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    /// <summary>
+                    /// C docs
+                    /// </summary>
+                    /// <param name="i">Param docs for i</param>
+                    /// <param name="j">Param docs for j</param>
+                    class C(int i, int j)
+                    {
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembersKeepConstructorDocs2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    /// <summary>
+                    /// C docs
+                    /// </summary>
+                    class C
+                    {
+                        /// <summary>Field docs for i.</summary>
+                        private int i;
+                        /// <summary>
+                        /// Field docs for j.
+                        /// </summary>
+                        private int j;
+
+                        /// <param name="j">Param docs for j</param>
+                        public [|C|](int i, int j)
+                        {
+                            this.i = i;
+                            this.j = j;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    /// <summary>
+                    /// C docs
+                    /// </summary>
+                    /// <param name="j">Param docs for j</param>
+                    /// <param name="i">Field docs for i.</param>
+                    class C(int i, int j)
+                    {
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembersKeepConstructorDocs3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    /// <summary>
+                    /// C docs
+                    /// </summary>
+                    class C
+                    {
+                        /// <summary>Field docs for i.</summary>
+                        private int i;
+                        /// <summary>
+                        /// Field docs for j.
+                        /// </summary>
+                        private int j;
+
+                        /// <param name="i">Param docs for i</param>
+                        public [|C|](int i, int j)
+                        {
+                            this.i = i;
+                            this.j = j;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    /// <summary>
+                    /// C docs
+                    /// </summary>
+                    /// <param name="i">Param docs for i</param>
+                    /// <param name="j">
+                    /// Field docs for j.
                     /// </param>
                     class C(int i, int j)
                     {

@@ -28,6 +28,8 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
     private const string s_remarksTagName = "remarks";
     private const string s_paramTagName = "param";
 
+    // trivial helpers for working xml doc comments nodes/trivia
+
     private static SyntaxTrivia GetDocComment(SyntaxNode node)
         => GetDocComment(node.GetLeadingTrivia());
 
@@ -43,6 +45,21 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
     private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxTrivia trivia)
         => (DocumentationCommentTriviaSyntax?)trivia.GetStructure();
 
+    private static bool IsXmlElement(XmlNodeSyntax node, string name, [NotNullWhen(true)] out XmlElementSyntax? element)
+    {
+        element = node is XmlElementSyntax { StartTag.Name.LocalName.ValueText: var elementName } xmlElement && elementName == name
+            ? xmlElement
+            : null;
+        return element != null;
+    }
+
+    private static XmlElementSyntax ConvertXmlElementName(XmlElementSyntax xmlElement, string name)
+    {
+        return xmlElement.ReplaceTokens(
+            new[] { xmlElement.StartTag.Name.LocalName, xmlElement.EndTag.Name.LocalName },
+            (token, _) => Identifier(name).WithTriviaFrom(token));
+    }
+
     private static SyntaxTriviaList CreateFinalTypeDeclarationLeadingTrivia(
         TypeDeclarationSyntax typeDeclaration,
         ConstructorDeclarationSyntax constructorDeclaration,
@@ -50,31 +67,23 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
         ImmutableDictionary<string, string?> properties,
         Dictionary<ISymbol, SyntaxNode> removedMembers)
     {
+        // First, take the constructor doc comments and merge those into the type's doc comments.
+        // Then, take any removed fields/properties and merge their comments into the type's doc comments.
+
         var typeDeclarationLeadingTrivia = MergeTypeDeclarationAndConstructorDocComments(typeDeclaration, constructorDeclaration);
         var finalLeadingTrivia = MergeTypeDeclarationAndRemovedMembersDocComments(constructor, properties, removedMembers, typeDeclarationLeadingTrivia);
 
         return finalLeadingTrivia;
-
-        static bool IsXmlElement(XmlNodeSyntax node, string name, [NotNullWhen(true)] out XmlElementSyntax? element)
-        {
-            element = node is XmlElementSyntax { StartTag.Name.LocalName.ValueText: var elementName } xmlElement && elementName == name
-                ? xmlElement
-                : null;
-            return element != null;
-        }
 
         static IEnumerable<XmlNodeSyntax> ConvertSummaryToParam(IEnumerable<XmlNodeSyntax> content, string parameterName)
         {
             foreach (var node in content)
             {
                 yield return IsXmlElement(node, s_summaryTagName, out var xmlElement)
-                    ? WithNameAttribute(ConvertXmlElementName(xmlElement, s_paramTagName), parameterName)
+                    ? ConvertXmlElementName(xmlElement, s_paramTagName).AddStartTagAttributes(XmlNameAttribute(parameterName))
                     : node;
             }
         }
-
-        static XmlElementSyntax WithNameAttribute(XmlElementSyntax element, string parameterName)
-            => element.ReplaceNode(element, element.AddStartTagAttributes(XmlNameAttribute(parameterName)));
 
         static IEnumerable<XmlNodeSyntax> ConvertSummaryToRemarks(IEnumerable<XmlNodeSyntax> nodes)
         {
@@ -84,13 +93,6 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                     ? ConvertXmlElementName(xmlElement, s_remarksTagName)
                     : node;
             }
-        }
-
-        static XmlElementSyntax ConvertXmlElementName(XmlElementSyntax xmlElement, string name)
-        {
-            return xmlElement.ReplaceTokens(
-                new[] { xmlElement.StartTag.Name.LocalName, xmlElement.EndTag.Name.LocalName },
-                (token, _) => Identifier(name).WithTriviaFrom(token));
         }
 
         static SyntaxTriviaList MergeTypeDeclarationAndConstructorDocComments(

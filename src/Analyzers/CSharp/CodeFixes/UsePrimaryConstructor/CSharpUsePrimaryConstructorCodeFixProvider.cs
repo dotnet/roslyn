@@ -154,14 +154,6 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                         .WithAdditionalAnnotations(Formatter.Annotation));
             });
 
-        // TODO: reconcile doc comments.
-        // 1. If we are not removing members and the constructor had parameter doc comments, we likely want to move
-        //    those to the type declaration.
-        // 2. if we are removing members and the members had doc comments:
-        //      2a. if the constructor had parameter doc comments, choose which to win (probably parameter)
-        //      2b. if the constructor did not have parameter doc comments, take the member doc comments and convert
-        //          to parameter comments.
-
         return solutionEditor.GetChangedSolution();
 
         async ValueTask MoveBaseConstructorArgumentsAsync()
