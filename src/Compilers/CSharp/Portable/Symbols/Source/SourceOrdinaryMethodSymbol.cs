@@ -346,14 +346,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override int GetParameterCountFromSyntax() => GetSyntax().ParameterList.ParameterCount;
 
-        public override RefKind RefKind
-        {
-            get
-            {
-                return flags.RefKind;
-            }
-        }
-
         internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation)
         {
             Debug.Assert(definition.IsPartialDefinition);

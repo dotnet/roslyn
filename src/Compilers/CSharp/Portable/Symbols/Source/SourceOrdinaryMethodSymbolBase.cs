@@ -445,5 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public sealed override bool IsVararg => flags.IsVarArg;
+
+        public sealed override RefKind RefKind => flags.RefKind;
     }
 }

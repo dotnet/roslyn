@@ -74,8 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default) => null;
 
-        public sealed override RefKind RefKind => RefKind.None;
-
         internal sealed override bool GenerateDebugInfo => false;
 
         internal sealed override bool SynthesizesLoweredBoundBody => true;
