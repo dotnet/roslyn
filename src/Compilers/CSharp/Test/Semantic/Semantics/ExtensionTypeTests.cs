@@ -74,11 +74,6 @@ public class ExtensionTypeTests : CompilingTestBase
             VerifyExtension<TypeSymbol>(namedType.OriginalDefinition, isExplicit);
         }
 
-        foreach (var baseExtension in namedType.BaseExtensionsNoUseSiteDiagnostics)
-        {
-            checkBaseExtension(baseExtension);
-        }
-
         foreach (var baseExtension in namedType.AllBaseExtensionsNoUseSiteDiagnostics)
         {
             checkBaseExtension(baseExtension);
@@ -2337,15 +2332,15 @@ public static explicit extension R4 for C : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE: should report use-site diagnostics for R1 instead
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R3' has underlying type 'C' but a base extension has underlying type 'C'.
+            // (1,27): error CS9216: Extension 'R3' extends 'C' but base extension 'R1' extends 'C'.
             // public explicit extension R3 for C : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C", "C").WithLocation(1, 27),
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C", "R1", "C").WithLocation(1, 27),
             // (1,34): error CS9206: Instance extension 'R3' cannot extend type 'C' because it is static.
             // public explicit extension R3 for C : R1 { }
             Diagnostic(ErrorCode.ERR_StaticBaseTypeOnInstanceExtension, "C").WithArguments("R3", "C").WithLocation(1, 34),
-            // (2,34): error CS9216: Extension 'R4' has underlying type 'C' but a base extension has underlying type 'C'.
+            // (2,34): error CS9216: Extension 'R4' extends 'C' but base extension 'R1' extends 'C'.
             // public static explicit extension R4 for C : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "C", "C").WithLocation(2, 34)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "C", "R1", "C").WithLocation(2, 34)
             );
 
         var r1 = (PENamedTypeSymbol)comp.GlobalNamespace.GetTypeMember("R1");
@@ -2385,9 +2380,9 @@ public explicit extension E2 for C : E1 { }
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70,
             references: new[] { comp2.ToMetadataReference(), comp1Updated.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'E2' has underlying type 'C' but a base extension has underlying type 'C'.
+            // (1,27): error CS9216: Extension 'E2' extends 'C' but base extension 'E1' extends 'C'.
             // public explicit extension E2 for C : E1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E2").WithArguments("E2", "C", "C").WithLocation(1, 27),
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E2").WithArguments("E2", "C", "E1", "C").WithLocation(1, 27),
             // (1,34): error CS9206: Instance extension 'E2' cannot extend type 'C' because it is static.
             // public explicit extension E2 for C : E1 { }
             Diagnostic(ErrorCode.ERR_StaticBaseTypeOnInstanceExtension, "C").WithArguments("E2", "C").WithLocation(1, 34)
@@ -2458,9 +2453,9 @@ public explicit extension E4 for E0 : E2 { }
             // (1,27): error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // public explicit extension E3 for E1 : E2 { }
             Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "E3").WithArguments("first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 27),
-            // (1,27): error CS9216: Extension 'E3' has underlying type 'E1' but a base extension has underlying type 'E0'.
+            // (1,27): error CS9216: Extension 'E3' extends 'E1' but base extension 'E2' extends 'E0'.
             // public explicit extension E3 for E1 : E2 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E3").WithArguments("E3", "E1", "E0").WithLocation(1, 27),
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E3").WithArguments("E3", "E1", "E2", "E0").WithLocation(1, 27),
             // (2,27): error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // public explicit extension E4 for E0 : E2 { }
             Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "E4").WithArguments("first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 27),
@@ -2777,9 +2772,9 @@ explicit extension R3 for System.IntPtr : R { }
 """;
         var comp3 = CreateCompilation(src3, references: new[] { AsReference(comp, useImageReference) });
         comp3.VerifyDiagnostics(
-            // (1,20): error CS9216: Extension 'R3' has underlying type 'IntPtr' but a base extension has underlying type 'nint'.
+            // (1,20): error CS9216: Extension 'R3' extends 'IntPtr' but base extension 'R' extends 'nint'.
             // explicit extension R3 for System.IntPtr : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "System.IntPtr", "nint").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "System.IntPtr", "R", "nint").WithLocation(1, 20)
             );
 
         return;
@@ -2819,9 +2814,9 @@ explicit extension R3 for C<System.IntPtr> : R { }
 """;
         var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Mscorlib45);
         comp3.VerifyDiagnostics(
-            // (1,20): error CS9216: Extension 'R3' has underlying type 'C<IntPtr>' but a base extension has underlying type 'C<nint>'.
+            // (1,20): error CS9216: Extension 'R3' extends 'C<IntPtr>' but base extension 'R' extends 'C<nint>'.
             // explicit extension R3 for C<System.IntPtr> : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<System.IntPtr>", "C<nint>").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<System.IntPtr>", "R", "C<nint>").WithLocation(1, 20)
             );
 
         return;
@@ -2859,9 +2854,9 @@ explicit extension R3 for C<object> : R { }
 """;
         var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp3.VerifyDiagnostics(
-            // (1,20): error CS9216: Extension 'R3' has underlying type 'C<object>' but a base extension has underlying type 'C<dynamic>'.
+            // (1,20): error CS9216: Extension 'R3' extends 'C<object>' but base extension 'R' extends 'C<dynamic>'.
             // explicit extension R3 for C<object> : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "C<dynamic>").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "R", "C<dynamic>").WithLocation(1, 20)
             );
 
         return;
@@ -2903,9 +2898,9 @@ explicit extension R3 for C<object> : R { }
         // PROTOTYPE this should at most be a nullability warning
         var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp3.VerifyDiagnostics(
-            // (2,20): error CS9216: Extension 'R3' has underlying type 'C<object>' but a base extension has underlying type 'C<object?>'.
+            // (2,20): error CS9216: Extension 'R3' extends 'C<object>' but base extension 'R' extends 'C<object?>'.
             // explicit extension R3 for C<object> : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "C<object?>").WithLocation(2, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "R", "C<object?>").WithLocation(2, 20)
             );
 
         var src4 = """
@@ -2914,9 +2909,9 @@ explicit extension R3 for C<object> : R { }
         // PROTOTYPE the nullability warning should be silenced here (oblivious context)
         var comp4 = CreateCompilation(src4, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp4.VerifyDiagnostics(
-            // (1,20): error CS9216: Extension 'R3' has underlying type 'C<object>' but a base extension has underlying type 'C<object?>'.
+            // (1,20): error CS9216: Extension 'R3' extends 'C<object>' but base extension 'R' extends 'C<object?>'.
             // explicit extension R3 for C<object> : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "C<object?>").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "R", "C<object?>").WithLocation(1, 20)
             );
 
         return;
@@ -2958,9 +2953,9 @@ explicit extension R3 for C<object?> : R { }
         // PROTOTYPE this should at most be a nullability warning
         var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp3.VerifyDiagnostics(
-            // (2,20): error CS9216: Extension 'R3' has underlying type 'C<object?>' but a base extension has underlying type 'C<object>'.
+            // (2,20): error CS9216: Extension 'R3' extends 'C<object?>' but base extension 'R' extends 'C<object>'.
             // explicit extension R3 for C<object?> : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object?>", "C<object>").WithLocation(2, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object?>", "R", "C<object>").WithLocation(2, 20)
             );
 
         var src4 = """
@@ -2969,9 +2964,9 @@ explicit extension R3 for C<object> : R { }
         // PROTOTYPE the nullability warning should be silenced here (oblivious context)
         var comp4 = CreateCompilation(src4, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp4.VerifyDiagnostics(
-            // (1,20): error CS9216: Extension 'R3' has underlying type 'C<object>' but a base extension has underlying type 'C<object>'.
+            // (1,20): error CS9216: Extension 'R3' extends 'C<object>' but base extension 'R' extends 'C<object>'.
             // explicit extension R3 for C<object> : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "C<object>").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "R", "C<object>").WithLocation(1, 20)
             );
 
         return;
@@ -3017,9 +3012,9 @@ explicit extension R3 for (int, int) : R { }
         // PROTOTYPE consider warning instead, when revisiting rules for variance of underlying types
         var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp3.VerifyDiagnostics(
-            // (1,20): error CS9216: Extension 'R3' has underlying type '(int, int)' but a base extension has underlying type '(int a, int b)'.
+            // (1,20): error CS9216: Extension 'R3' extends '(int, int)' but base extension 'R' extends '(int a, int b)'.
             // explicit extension R3 for (int, int) : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "(int, int)", "(int a, int b)").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "(int, int)", "R", "(int a, int b)").WithLocation(1, 20)
             );
 
         var src4 = """
@@ -3027,9 +3022,9 @@ explicit extension R4 for (int a, int other) : R { }
 """;
         var comp4 = CreateCompilation(src4, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp4.VerifyDiagnostics(
-            // (1,20): error CS9216: Extension 'R4' has underlying type '(int a, int other)' but a base extension has underlying type '(int a, int b)'.
+            // (1,20): error CS9216: Extension 'R4' extends '(int a, int other)' but base extension 'R' extends '(int a, int b)'.
             // explicit extension R4 for (int a, int other) : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "(int a, int other)", "(int a, int b)").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "(int a, int other)", "R", "(int a, int b)").WithLocation(1, 20)
             );
 
         return;
@@ -3845,6 +3840,11 @@ public explicit extension One<T> for object : One<int>.Two
             // public explicit extension One<T> for object : One<int>.Two
             Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "One").WithArguments("One<T>", "One<int>.Two").WithLocation(1, 27)
             );
+
+        var one = comp.GlobalNamespace.GetTypeMember("One");
+        var two = one.BaseExtensionsNoUseSiteDiagnostics.Single();
+        Assert.Equal("One<System.Int32>.Two", two.ToTestDisplayString());
+        Assert.True(two.IsErrorType());
     }
 
     [Fact]
@@ -4105,12 +4105,12 @@ public explicit extension R9 for R2 { }
             targetFramework: TargetFramework.Net70);
         // PROTOTYPE we should report use-site errors for the uses of R1 and R2
         comp6.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R6' has underlying type 'object' but a base extension has underlying type 'R2'.
+            // (1,27): error CS9216: Extension 'R6' extends 'object' but base extension 'R1' extends 'R2'.
             // public explicit extension R6 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R6").WithArguments("R6", "object", "R2").WithLocation(1, 27),
-            // (2,27): error CS9216: Extension 'R7' has underlying type 'object' but a base extension has underlying type 'R1'.
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R6").WithArguments("R6", "object", "R1", "R2").WithLocation(1, 27),
+            // (2,27): error CS9216: Extension 'R7' extends 'object' but base extension 'R2' extends 'R1'.
             // public explicit extension R7 for object : R2 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R7").WithArguments("R7", "object", "R1").WithLocation(2, 27),
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R7").WithArguments("R7", "object", "R2", "R1").WithLocation(2, 27),
             // (3,34): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // public explicit extension R8 for R1 { }
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "R1").WithLocation(3, 34),
@@ -4173,6 +4173,28 @@ explicit extension R2 for (R2.Nested, int) : R
         Assert.Equal("(R2.Nested, System.Int32)", r2.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Equal(new[] { "R" }, r2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
         Assert.Equal(new[] { "R" }, r2.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void TypeDepends_CircularityViaUnderlyingTypeAndBaseExtensions()
+    {
+        var src = """
+explicit extension E1 for object : E2 { }
+explicit extension E2 for E2 : E2 { }
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,20): error CS9211: Base extension 'E2' causes a cycle in the extension hierarchy of 'E2'.
+            // explicit extension E2 for E2 : E2 { }
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "E2").WithArguments("E2", "E2").WithLocation(2, 20),
+            // (2,27): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
+            // explicit extension E2 for E2 : E2 { }
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "E2").WithLocation(2, 27)
+            );
+        var e2 = comp.GlobalNamespace.GetTypeMember("E2");
+        Assert.True(e2.IsExtension);
+        Assert.Null(e2.ExtendedTypeNoUseSiteDiagnostics);
+        Assert.Equal("E2", e2.BaseExtensionsNoUseSiteDiagnostics.Single().ToTestDisplayString());
     }
 
     [Fact]
@@ -4278,9 +4300,9 @@ public explicit extension R3 for object : R1 { }
         // PROTOTYPE expecting some use-site diagnostics (bad metadata, as underlying type cannot be an extension)
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R3' has underlying type 'object' but a base extension has underlying type 'R2'.
+            // (1,27): error CS9216: Extension 'R3' extends 'object' but base extension 'R1' extends 'R2'.
             // public explicit extension R3 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "object", "R2").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "object", "R1", "R2").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -5126,21 +5148,21 @@ explicit extension R11 for C<string> { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (2,20): error CS9216: Extension 'R2' has underlying type 'long' but a base extension has underlying type 'int'.
+            // (2,20): error CS9216: Extension 'R2' extends 'long' but base extension 'R1' extends 'int'.
             // explicit extension R2 for long : R1 { } // 1
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "long", "int").WithLocation(2, 20),
-            // (6,20): error CS9216: Extension 'R4' has underlying type 'C<dynamic>' but a base extension has underlying type 'C<object>'.
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "long", "R1", "int").WithLocation(2, 20),
+            // (6,20): error CS9216: Extension 'R4' extends 'C<dynamic>' but base extension 'R3' extends 'C<object>'.
             // explicit extension R4 for C<dynamic> : R3 { } // 2
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "C<dynamic>", "C<object>").WithLocation(6, 20),
-            // (9,20): error CS9216: Extension 'R6' has underlying type '(int, int)' but a base extension has underlying type '(int i, int j)'.
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "C<dynamic>", "R3", "C<object>").WithLocation(6, 20),
+            // (9,20): error CS9216: Extension 'R6' extends '(int, int)' but base extension 'R5' extends '(int i, int j)'.
             // explicit extension R6 for (int, int) : R5 { } // 3
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R6").WithArguments("R6", "(int, int)", "(int i, int j)").WithLocation(9, 20),
-            // (19,20): error CS9216: Extension 'R10' has underlying type 'C<string>' but a base extension has underlying type 'C<string>'.
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R6").WithArguments("R6", "(int, int)", "R5", "(int i, int j)").WithLocation(9, 20),
+            // (19,20): error CS9216: Extension 'R10' extends 'C<string>' but base extension 'R9' extends 'C<string>'.
             // explicit extension R10 for C<string> : R9 { } // 4
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R10").WithArguments("R10", "C<string>", "C<string>").WithLocation(19, 20),
-            // (21,20): error CS9216: Extension 'R12' has underlying type 'C<string>' but a base extension has underlying type 'C<string>'.
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R10").WithArguments("R10", "C<string>", "R9", "C<string>").WithLocation(19, 20),
+            // (21,20): error CS9216: Extension 'R12' extends 'C<string>' but base extension 'R11' extends 'C<string>'.
             // explicit extension R12 for C<string> : R11 { } // 5
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R12").WithArguments("R12", "C<string>", "C<string>").WithLocation(21, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R12").WithArguments("R12", "C<string>", "R11", "C<string>").WithLocation(21, 20)
             );
     }
 
@@ -5213,12 +5235,12 @@ public explicit extension R4 for C : R2 { }
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R3' has underlying type 'object' but a base extension has underlying type 'C'.
+            // (1,27): error CS9216: Extension 'R3' extends 'object' but base extension 'R2' extends 'C'.
             // public explicit extension R3 for object : R2 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "object", "C").WithLocation(1, 27),
-            // (2,27): error CS9216: Extension 'R4' has underlying type 'C' but a base extension has underlying type 'object'.
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "object", "R2", "C").WithLocation(1, 27),
+            // (2,27): error CS9216: Extension 'R4' extends 'C' but base extension 'R1' extends 'object'.
             // public explicit extension R4 for C : R2 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "C", "object").WithLocation(2, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "C", "R1", "object").WithLocation(2, 27)
             );
 
         var r2 = (PENamedTypeSymbol)comp.GlobalNamespace.GetTypeMember("R2");
@@ -5266,9 +5288,9 @@ explicit extension E4 for object : E2 { }
             // (2,20): error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // explicit extension E4 for object : E2 { }
             Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "E4").WithArguments("first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 20),
-            // (2,20): error CS9216: Extension 'E4' has underlying type 'object' but a base extension has underlying type 'C'.
+            // (2,20): error CS9216: Extension 'E4' extends 'object' but base extension 'E2' extends 'C'.
             // explicit extension E4 for object : E2 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E4").WithArguments("E4", "object", "C").WithLocation(2, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E4").WithArguments("E4", "object", "E2", "C").WithLocation(2, 20)
             );
 
         var e2 = (RetargetingNamedTypeSymbol)comp.GlobalNamespace.GetTypeMember("E2");
@@ -6747,9 +6769,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have an error like "Extension marker method on type '...' is malformed" instead
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type 'Object'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends 'Object'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "System.Object").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "System.Object").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -6785,9 +6807,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have an error like "Extension marker method on type '...' is malformed" instead (if we keep an error)
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type '?'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends '?'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "?").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -6819,9 +6841,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have an error like "Extension marker method on type '...' is malformed" instead
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type '?'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends '?'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "?").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -6851,9 +6873,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have an error like "Extension marker method on type '...' is malformed" instead (if we keep an error)
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type 'Object'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends 'Object'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "System.Object").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "System.Object").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -6889,9 +6911,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have an error like "Extension marker method on type '...' is malformed" instead
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type 'Object'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends 'Object'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "System.Object").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "System.Object").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7188,9 +7210,9 @@ public explicit extension R2 for object : R1 { }
         // PROTOTYPE should have a use-site error too
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type 'dynamic'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends 'dynamic'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "dynamic").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "dynamic").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7237,9 +7259,9 @@ public explicit extension R2 for object : R1 { }
         // PROTOTYPE should have an error like "Extension marker method on type '...' is malformed" instead
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type 'R0'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends 'R0'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R0").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "R0").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7277,9 +7299,9 @@ public explicit extension R2 for object : R1 { }
         // PROTOTYPE should have a use-site error too
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type 'R1'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends 'R1'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "R1").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7745,9 +7767,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have a use-site error too
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type '?'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends '?'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "?").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7780,9 +7802,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have a use-site error too
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type '?'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends '?'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "?").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7845,9 +7867,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have a use-site error too
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type '?'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends '?'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "?").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7880,9 +7902,9 @@ public explicit extension R2 for object : R1 { }
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type '?'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends '?'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "?").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7915,9 +7937,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have a use-site error too
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type '?'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends '?'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "?").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -8498,10 +8520,12 @@ public explicit extension E for object : Base1, Base2 { }
         var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
         Assert.Equal("E.M()", invocation.ToString());
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Empty(model.GetSymbolInfo(invocation).CandidateSymbols);
 
         var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
         Assert.Equal("E.Property", property.ToString());
         Assert.Null(model.GetSymbolInfo(property).Symbol);
+        Assert.Empty(model.GetSymbolInfo(property).CandidateSymbols);
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -9166,6 +9190,7 @@ public explicit extension D for object : C<string>
     public void MemberLookup_MethodsFromObject()
     {
         var src = """
+#pragma warning disable CS8321 // unused local function
 void M(A a)
 {
     A.ToString();
@@ -9177,15 +9202,12 @@ public explicit extension A for object { }
         // PROTOTYPE methods from System.Object will come from member access (not from member lookup)
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,6): warning CS8321: The local function 'M' is declared but never used
-            // void M(A a)
-            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(1, 6),
-            // (3,7): error CS0117: 'A' does not contain a definition for 'ToString'
+            // (4,7): error CS0117: 'A' does not contain a definition for 'ToString'
             //     A.ToString();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "ToString").WithArguments("A", "ToString").WithLocation(3, 7),
-            // (4,7): error CS1061: 'A' does not contain a definition for 'ToString' and no accessible extension method 'ToString' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "ToString").WithArguments("A", "ToString").WithLocation(4, 7),
+            // (5,7): error CS1061: 'A' does not contain a definition for 'ToString' and no accessible extension method 'ToString' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
             //     a.ToString();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToString").WithArguments("A", "ToString").WithLocation(4, 7)
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToString").WithArguments("A", "ToString").WithLocation(5, 7)
             );
     }
 
@@ -9207,6 +9229,7 @@ explicit extension E for object : Base
 
 namespace N
 {
+#pragma warning disable CS8019 // unnecessary using
     using Alias1 = E.Member;
     using Alias2 = E.BaseMember;
     using Alias3 = E.HidingMember;
@@ -9214,17 +9237,7 @@ namespace N
 """;
         // PROTOTYPE should warn for hiding
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (15,5): hidden CS8019: Unnecessary using directive.
-            //     using Alias1 = E.Member;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Alias1 = E.Member;").WithLocation(15, 5),
-            // (16,5): hidden CS8019: Unnecessary using directive.
-            //     using Alias2 = E.BaseMember;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Alias2 = E.BaseMember;").WithLocation(16, 5),
-            // (17,5): hidden CS8019: Unnecessary using directive.
-            //     using Alias3 = E.HidingMember;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Alias3 = E.HidingMember;").WithLocation(17, 5)
-            );
+        comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);

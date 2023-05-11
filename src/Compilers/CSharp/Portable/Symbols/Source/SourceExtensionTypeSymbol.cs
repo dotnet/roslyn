@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var baseUnderlyingType = baseExtension.ExtendedTypeNoUseSiteDiagnostics;
                     if (AreExtendedTypesIncompatible(underlyingType, baseUnderlyingType))
                     {
-                        diagnostics.Add(ErrorCode.ERR_UnderlyingTypesMismatch, location, this, underlyingType, baseUnderlyingType);
+                        diagnostics.Add(ErrorCode.ERR_UnderlyingTypesMismatch, location, this, underlyingType, baseExtension, baseUnderlyingType);
                     }
 
                     if (!ReferenceEquals(referenceBaseExtension, baseExtension))
