@@ -24,6 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new SourceConstructorSymbol(containingType, syntax.Identifier.GetLocation(), syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
         }
 
+        protected static void GetBodyInfo(BlockSyntax? block, ArrowExpressionClauseSyntax? expressionBody, out bool hasBlockBody, out bool hasExpressionBody, out bool hasAnyBody)
+        {
+            hasBlockBody = block != null;
+            hasExpressionBody = expressionBody != null;
+            hasAnyBody = hasBlockBody || hasExpressionBody;
+        }
+
         private SourceConstructorSymbol(
              SourceMemberContainerTypeSymbol containingType,
              Location location,
@@ -33,16 +40,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
              BindingDiagnosticBag diagnostics) :
              base(containingType, location, syntax, SyntaxFacts.HasYieldOperations(syntax))
         {
-            bool hasBlockBody = syntax.Body != null;
-            bool isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            bool hasBody = hasBlockBody || isExpressionBodied;
+            GetBodyInfo(syntax.Body, syntax.ExpressionBody, out var hasBlockBody, out var isExpressionBodied, out var hasAnyBody);
 
             _hasThisInitializer = syntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer;
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, hasBody, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, hasAnyBody, location, diagnostics, out modifierErrors);
             this.MakeFlags(
-                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, hasAnyBody: hasBody, isExpressionBodied: isExpressionBodied,
+                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: false, isVarArg: syntax.ParameterList.Parameters.Any(static p => p.IsArgList), isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (syntax.Identifier.ValueText != containingType.Name)
@@ -58,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_ExternHasConstructorInitializer, location, this);
                 }
 
-                if (hasBody)
+                if (hasAnyBody)
                 {
                     diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
                 }
@@ -66,14 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (methodKind == MethodKind.StaticConstructor)
             {
-                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
+                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasAnyBody, diagnostics);
             }
 
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false, diagnostics, location);
 
             if (!modifierErrors)
             {
-                this.CheckModifiers(methodKind, hasBody, location, diagnostics);
+                this.CheckModifiers(methodKind, hasAnyBody, location, diagnostics);
             }
 
             CheckForBlockAndExpressionBody(
