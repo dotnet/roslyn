@@ -935,10 +935,15 @@ done:
             return builder.MostCommonValue;
         }
 
-        internal override bool IsNullableAnalysisEnabled()
+        internal sealed override bool IsNullableAnalysisEnabled()
+        {
+            return IsNullableAnalysisEnabled(flags.IsNullableAnalysisEnabled);
+        }
+
+        protected virtual bool IsNullableAnalysisEnabled(bool isNullableAnalysisEnabledFlag)
         {
             Debug.Assert(!this.IsConstructor()); // Constructors should use IsNullableEnabledForConstructorsAndInitializers() instead.
-            return flags.IsNullableAnalysisEnabled;
+            return isNullableAnalysisEnabledFlag;
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)

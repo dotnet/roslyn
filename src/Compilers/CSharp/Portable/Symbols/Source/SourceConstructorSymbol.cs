@@ -164,10 +164,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OneOrMany.Create(((ConstructorDeclarationSyntax)this.SyntaxNode).AttributeLists);
         }
 
-        internal override bool IsNullableAnalysisEnabled()
+        protected override bool IsNullableAnalysisEnabled(bool isNullableAnalysisEnabledFlag)
         {
             return _hasThisInitializer ?
-                flags.IsNullableAnalysisEnabled :
+                isNullableAnalysisEnabledFlag :
                 ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
         }
 
