@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this.Kind.Localize(), this);
             }
-            else if (hasBody && (IsExtern || IsAbstract))
+            else if (hasAnyBody && (IsExtern || IsAbstract))
             {
                 Debug.Assert(!(IsAbstract && IsExtern));
                 if (IsExtern)
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_AbstractHasBody, location, this);
                 }
             }
-            else if (!hasBody && !IsExtern && !IsAbstract && !IsPartial)
+            else if (!hasAnyBody && !IsExtern && !IsAbstract && !IsPartial)
             {
                 // Do not report that the body is missing if the operator is marked as
                 // partial or abstract; we will already have given an error for that so
