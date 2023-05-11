@@ -103,34 +103,34 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
             var existingTypeDeclarationDocComment = GetDocComment(typeDeclarationLeadingTrivia);
             var existingConstructorDocComment = GetDocComment(constructorDeclaration);
 
-            // Simple case, no doc comments on either
-            if (existingTypeDeclarationDocComment == default && existingConstructorDocComment == default)
+            if (existingConstructorDocComment == default)
                 return typeDeclarationLeadingTrivia;
 
-            if (existingTypeDeclarationDocComment == default)
-            {
-                // type doesn't have doc comment, but constructor does.  Move constructor doc comment to type decl.
-                // note: the doc comment always ends with a newline.  so we want to place the new one before the
-                // final leading spaces of the type decl trivia.
-                var insertionIndex = typeDeclarationLeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)]
-                    ? typeDeclarationLeadingTrivia.Count - 1
-                    : typeDeclarationLeadingTrivia.Count;
+            // If both type and the constructor have doc comments then merge them.  Otherwise, just move the constructor
+            // docs to the type level.
+            return InsertOrReplaceDocComments(
+                typeDeclarationLeadingTrivia,
+                existingTypeDeclarationDocComment == default
+                    ? existingConstructorDocComment
+                    : MergeDocComments(existingTypeDeclarationDocComment, existingConstructorDocComment));
+        }
 
-                return typeDeclarationLeadingTrivia.Insert(
-                    insertionIndex,
-                    existingConstructorDocComment.WithAdditionalAnnotations(Formatter.Annotation));
-            }
+        static SyntaxTriviaList InsertOrReplaceDocComments(SyntaxTriviaList leadingTrivia, SyntaxTrivia newDocComment)
+        {
+            newDocComment = newDocComment.WithAdditionalAnnotations(Formatter.Annotation);
 
-            if (existingConstructorDocComment != default)
-            {
-                // Both the type and the constructor have doc comments.  Want to move the constructor parameter
-                // pieces into the type decl doc comment.
-                return typeDeclarationLeadingTrivia.Replace(
-                    existingTypeDeclarationDocComment,
-                    MergeDocComments(existingTypeDeclarationDocComment, existingConstructorDocComment).WithAdditionalAnnotations(Formatter.Annotation));
-            }
+            var existingDocComment = GetDocComment(leadingTrivia);
+            if (existingDocComment != default)
+                return leadingTrivia.Replace(existingDocComment, newDocComment);
 
-            return typeDeclarationLeadingTrivia;
+            // type doesn't have doc comment, but constructor does.  Move constructor doc comment to type decl.
+            // note: the doc comment always ends with a newline.  so we want to place the new one before the
+            // final leading spaces of the type decl trivia.
+            var insertionIndex = leadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)]
+                ? leadingTrivia.Count - 1
+                : leadingTrivia.Count;
+
+            return leadingTrivia.Insert(insertionIndex, newDocComment);
         }
 
         static SyntaxTrivia MergeDocComments(SyntaxTrivia typeDeclarationDocComment, SyntaxTrivia constructorDocComment)
@@ -186,22 +186,14 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
             if (docCommentsToMove.Count == 0)
                 return typeDeclarationLeadingTrivia;
 
-            using var _2 = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var allContent);
+            using var _2 = PooledHashSet<string>.GetInstance(out var existingParamNodeNames);
+            using var _3 = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var allContent);
 
             var existingTypeDeclarationDocComment = GetDocCommentStructure(typeDeclarationLeadingTrivia);
-            if (existingTypeDeclarationDocComment == null)
+            if (existingTypeDeclarationDocComment != null)
             {
-                // type doesn't have doc comment, create a fresh one from all the doc comments removed.
-                foreach (var (parameterName, commentToMove) in docCommentsToMove)
-                    allContent.AddRange(ConvertSummaryToParam(commentToMove.Content, parameterName));
-            }
-            else
-            {
-                // type already has a doc comments.  Move the member doc comments over, unless we see an existing
-                // `<param>` node for the item.  This was we don't duplicate things.
                 allContent.AddRange(existingTypeDeclarationDocComment.Content);
 
-                using var _3 = PooledHashSet<string>.GetInstance(out var existingParamNodeNames);
                 foreach (var node in existingTypeDeclarationDocComment.Content)
                 {
                     if (IsXmlElement(node, s_paramTagName, out var paramElement))
@@ -213,22 +205,17 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                         }
                     }
                 }
-
-                foreach (var (parameterName, commentToMove) in docCommentsToMove)
-                {
-                    if (!existingParamNodeNames.Contains(parameterName))
-                        allContent.AddRange(ConvertSummaryToParam(commentToMove.Content, parameterName));
-                }
             }
 
-            var insertionIndex = typeDeclarationLeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)]
-                ? typeDeclarationLeadingTrivia.Count - 1
-                : typeDeclarationLeadingTrivia.Count;
+            foreach (var (parameterName, commentToMove) in docCommentsToMove)
+            {
+                if (!existingParamNodeNames.Contains(parameterName))
+                    allContent.AddRange(ConvertSummaryToParam(commentToMove.Content, parameterName));
+            }
 
-            var newDocComment = Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(allContent)));
-            return typeDeclarationLeadingTrivia.Insert(
-                insertionIndex,
-                newDocComment.WithAdditionalAnnotations(Formatter.Annotation));
+            return InsertOrReplaceDocComments(
+                typeDeclarationLeadingTrivia,
+                Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(allContent))));
         }
     }
 }

@@ -1254,4 +1254,52 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestRemoveMembersMoveDocComments_WhenTypeDocComments1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    /// <summary>
+                    /// C docs
+                    /// </summary>
+                    class C
+                    {
+                        /// <summary>Docs for i.</summary>
+                        private int i;
+                        /// <summary>
+                        /// Docs for j.
+                        /// </summary>
+                        private int j;
+
+                        public [|C|](int i, int j)
+                        {
+                            this.i = i;
+                            this.j = j;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    /// <summary>
+                    /// C docs
+                    /// </summary>
+                    /// <param name="i">Docs for i.</param>
+                    /// <param name="j">
+                    /// Docs for j.
+                    /// </param>
+                    class C(int i, int j)
+                    {
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }
