@@ -20,6 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 internal partial class CSharpUsePrimaryConstructorCodeFixProvider
 {
 #if !CODE_STYLE // Currently depends on helpers only available in workspace layer.
+
+    /// <summary>
+    /// Specialized fix-all provider.  Needed because the fix ends up needing to invoke 'find references' to update
+    /// references to removed members to point at parameters.  This allows us to do all that work across all documents
+    /// and diagnostics using a single <see cref="SolutionEditor"/> that aggregates the results efficiently.
+    /// </summary>
     private sealed class CSharpUsePrimaryConstructorFixAllProvider : FixAllProvider
     {
         public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
