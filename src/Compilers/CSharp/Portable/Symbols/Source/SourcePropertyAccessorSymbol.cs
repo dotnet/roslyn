@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isGetMethod = (syntax.Kind() == SyntaxKind.GetAccessorDeclaration);
             var methodKind = isGetMethod ? MethodKind.PropertyGet : MethodKind.PropertySet;
 
-            bool hasBody = syntax.Body is object;
+            bool hasBlockBody = syntax.Body is object;
             bool hasExpressionBody = syntax.ExpressionBody is object;
             bool isNullableAnalysisEnabled = containingType.DeclaringCompilation.IsNullableAnalysisEnabledIn(syntax);
             CheckForBlockAndExpressionBody(syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 propertyModifiers,
                 syntax.Keyword.GetLocation(),
                 syntax,
-                hasBody,
+                hasBlockBody,
                 hasExpressionBody,
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                 syntax.Modifiers,
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 propertyModifiers,
                 location,
                 syntax,
-                hasBody: false,
+                hasBlockBody: false,
                 hasExpressionBody: false,
                 isIterator: false,
                 modifiers: default,
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers propertyModifiers,
             Location location,
             CSharpSyntaxNode syntax,
-            bool hasBody,
+            bool hasBlockBody,
             bool hasExpressionBody,
             bool isIterator,
             SyntaxTokenList modifiers,
@@ -191,7 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _property = property;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
-            var isExpressionBodied = !hasBody && hasExpressionBody;
+            var isExpressionBodied = !hasBlockBody && hasExpressionBody;
+            var hasAnyBody = hasBlockBody || hasExpressionBody;
             _usesInit = usesInit;
             if (_usesInit)
             {
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             bool isExplicitInterfaceImplementation = property.IsExplicitInterfaceImplementation;
-            var declarationModifiers = this.MakeModifiers(modifiers, isExplicitInterfaceImplementation, hasBody || hasExpressionBody, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(modifiers, isExplicitInterfaceImplementation, hasAnyBody, location, diagnostics, out modifierErrors);
 
             // Include some modifiers from the containing property, but not the accessibility modifiers.
             declarationModifiers |= GetAccessorModifiers(propertyModifiers) & ~DeclarationModifiers.AccessibilityMask;

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             CSharpSyntaxNode syntax,
             DeclarationModifiers declarationModifiers,
-            bool hasBody,
+            bool hasBlockBody,
             bool isExpressionBodied,
             bool isIterator,
             bool isNullableAnalysisEnabled,
