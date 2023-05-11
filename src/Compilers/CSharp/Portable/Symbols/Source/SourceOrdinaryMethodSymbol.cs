@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                  location,
                  syntax,
                  methodKind,
+                 refKind: syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                  isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                  isExtensionMethod: syntax.ParameterList.Parameters.FirstOrDefault() is ParameterSyntax firstParam &&
                                     !firstParam.IsArgList &&
@@ -85,9 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                  hasBody: syntax.Body != null || syntax.ExpressionBody != null,
                  isExpressionBodied: syntax is { Body: null, ExpressionBody: not null },
                  isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                 diagnostics,
-                 refKind: syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
-                 isVarArg: syntax.ParameterList.Parameters.Any(p => p.IsArgList))
+                 isVarArg: syntax.ParameterList.Parameters.Any(p => p.IsArgList),
+                 diagnostics)
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
 

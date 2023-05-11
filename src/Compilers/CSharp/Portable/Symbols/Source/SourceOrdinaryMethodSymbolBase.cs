@@ -32,15 +32,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             CSharpSyntaxNode syntax,
             MethodKind methodKind,
+            RefKind refKind,
             bool isIterator,
             bool isExtensionMethod,
             bool isReadOnly,
             bool hasBody,
             bool isExpressionBodied,
             bool isNullableAnalysisEnabled,
-            BindingDiagnosticBag diagnostics,
-            RefKind refKind = RefKind.None,
-            bool isVarArg = false) :
+            bool isVarArg,
+            BindingDiagnosticBag diagnostics) :
             base(containingType,
                  syntax.GetReference(),
                  location,
