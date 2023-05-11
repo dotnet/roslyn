@@ -574,6 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
         }
 
+        // Overload resolution should choose array over interface.
         [Fact]
         public void OverloadResolution_01()
         {
@@ -594,10 +595,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should these calls be ambiguous?
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Int32[][], System.Int32[][1, 2], ");
         }
 
+        // Overload resolution should choose collection initializer type over interface.
         [Fact]
         public void OverloadResolution_02()
         {
@@ -618,7 +619,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should these calls be ambiguous?
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[1, 2], ");
         }
 
@@ -1051,6 +1051,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         ListBase<int> x = [];
                         ListBase<int> y = [1, 2];
+                        ListBase<string> z = ["a", "b"];
                     }
                 }
                 """;
@@ -3540,7 +3541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: ERR_AnonMethGrpInForEach is misleading since there is no 'foreach' in source.
+            // PROTOTYPE: Should spread elements support target type? (Should we infer IEnumerable<int>?)
             comp.VerifyEmitDiagnostics(
                 // (6,21): error CS0446: Foreach cannot operate on a 'collection literals'. Did you intend to invoke the 'collection literals'?
                 //         a = [..a, ..[]];
@@ -3559,7 +3560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should we infer List<string> rather than reporting an error?
+            // PROTOTYPE: Should spread elements support target type? (Should we infer IEnumerable<string>?)
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (5,26): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection literals' and 'collection literals'
@@ -3816,36 +3817,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 targetFramework: TargetFramework.Net70,
                 verify: Verification.Skipped,
                 expectedOutput: "[1, 2, 3], [1, 2, 3], ");
-        }
-
-        [Fact]
-        public void SpreadElement_10()
-        {
-            string source = """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        int[] a;
-                        bool b = args.Length > 0;
-                        a = [..[]];
-                        a = [..[default]];
-                        a = [..b ? [] : [default]];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            // PROTOTYPE: Should spread elements support target type?
-            comp.VerifyEmitDiagnostics(
-                // (7,16): error CS0446: Foreach cannot operate on a 'collection literals'. Did you intend to invoke the 'collection literals'?
-                //         a = [..[]];
-                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "[]").WithArguments("collection literals").WithLocation(7, 16),
-                // (8,16): error CS0446: Foreach cannot operate on a 'collection literals'. Did you intend to invoke the 'collection literals'?
-                //         a = [..[default]];
-                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "[default]").WithArguments("collection literals").WithLocation(8, 16),
-                // (9,16): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection literals' and 'collection literals'
-                //         a = [..b ? [] : [default]];
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [] : [default]").WithArguments("collection literals", "collection literals").WithLocation(9, 16));
         }
 
         [Theory(Skip = "PROTOTYPE: RuntimeBinderException : Cannot implicitly convert type 'void' to 'object'")]

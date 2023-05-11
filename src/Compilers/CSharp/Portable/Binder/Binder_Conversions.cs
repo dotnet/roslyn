@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundBadExpression => element,
                     // PROTOTYPE: Should spread elements support target type?
                     // string[] a = [..b ? [null] : []];
-                    // See CollectionLiteralTests.SpreadElement_10.
+                    // See CollectionLiteralTests.SpreadElement_05, _06.
                     BoundCollectionLiteralSpreadElement spreadElement => BindCollectionInitializerSpreadElementAddMethod(
                             (SpreadElementSyntax)spreadElement.Syntax,
                             spreadElement,

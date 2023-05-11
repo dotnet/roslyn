@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // The array initializer includes at least one spread element, and if any spread element
                 // has an unknown length (at runtime), we'll create an intermediate List<T> instance.
+                // PROTOTYPE: Use Enumerable.TryGetNonEnumeratedCount() at runtime.
                 var listType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(elementType);
                 var listToArray = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)!).AsMember(listType);
                 var list = VisitCollectionInitializerCollectionLiteralExpression(node);
