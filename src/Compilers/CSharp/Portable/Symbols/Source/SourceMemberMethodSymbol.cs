@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SourceMemberMethodSymbol : LocalFunctionOrSourceMemberMethodSymbol, IAttributeTargetSymbol
     {
         // The flags type is used to compact many different bits of information.
-        protected struct Flags
+        private struct Flags
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // n = IsNullableAnalysisEnabled. 1 bit.
             // e = IsExpressionBody. 1 bit.
             // b = HasAnyBody. 1 bit.
-            // a = IsVarArg. 1 bit
+            // a = IsVararg. 1 bit
             private int _flags;
 
             private const int MethodKindOffset = 0;
@@ -87,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << IsMetadataVirtualIgnoringInterfaceChangesOffset;
             private const int IsMetadataVirtualBit = 1 << IsMetadataVirtualIgnoringInterfaceChangesOffset;
             private const int IsMetadataVirtualLockedBit = 1 << IsMetadataVirtualLockedOffset;
-            private const int IsVarArgBit = 1 << IsVarArgOffset;
+            private const int IsVarargBit = 1 << IsVarArgOffset;
 
             private const int ReturnsVoidBit = 1 << ReturnsVoidOffset;
             private const int ReturnsVoidIsSetBit = 1 << ReturnsVoidOffset + 1;
@@ -141,9 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return (_flags & IsMetadataVirtualLockedBit) != 0; }
             }
 
-            public bool IsVarArg
+            public bool IsVararg
             {
-                get { return (_flags & IsVarArgBit) != 0; }
+                get { return (_flags & IsVarargBit) != 0; }
             }
 
 #if DEBUG
@@ -170,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool isExpressionBodied,
                 bool isExtensionMethod,
                 bool isNullableAnalysisEnabled,
-                bool isVarArg,
+                bool isVararg,
                 bool isMetadataVirtualIgnoringModifiers = false)
             {
                 bool isMetadataVirtual = isMetadataVirtualIgnoringModifiers || ModifiersRequireMetadataVirtual(declarationModifiers);
@@ -181,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int isExpressionBodyInt = isExpressionBodied ? IsExpressionBodiedBit : 0;
                 int isExtensionMethodInt = isExtensionMethod ? IsExtensionMethodBit : 0;
                 int isNullableAnalysisEnabledInt = isNullableAnalysisEnabled ? IsNullableAnalysisEnabledBit : 0;
-                int isVarArgInt = isVarArg ? IsVarArgBit : 0;
+                int isVarArgInt = isVararg ? IsVarargBit : 0;
                 int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
 
@@ -242,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected SymbolCompletionState state;
 
         protected DeclarationModifiers DeclarationModifiers;
-        protected Flags flags;
+        private Flags flags;
 
         private readonly NamedTypeSymbol _containingType;
         private ParameterSymbol _lazyThisParameter;
@@ -1091,16 +1089,8 @@ done:
             return localPosition - bodySyntax.SpanStart;
         }
 
-        public sealed override RefKind RefKind
-        {
-            get { return this.flags.RefKind; }
-        }
-
-        public sealed override bool IsVararg
-        {
-            get { return this.flags.IsVarArg; }
-        }
-
+        public sealed override RefKind RefKind => this.flags.RefKind;
+        public sealed override bool IsVararg => this.flags.IsVararg;
         protected bool HasAnyBody => flags.HasAnyBody;
     }
 }
