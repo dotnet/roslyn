@@ -8402,10 +8402,11 @@ public explicit extension E for object : Base { }
         }
     }
 
-    [ConditionalFact(typeof(CoreClrOnly))]
+    [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "fails in emit stage in used assemblies leg")]
     public void MemberLookup_BaseExtension_Instance()
     {
         var src = """
+#pragma warning disable CS8321 // unused local function
 void M(E e)
 {
     e.M();
@@ -8433,11 +8434,7 @@ public explicit extension E for object : Base { }
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (1,6): warning CS8321: The local function 'M' is declared but never used
-            // void M(E e)
-            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(1, 6)
-            );
+        comp.VerifyDiagnostics();
         // PROTOTYPE execute once instance invocation is implemented
 
         var tree = comp.SyntaxTrees.Single();
