@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  bool isExplicit,
                  CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var stateSets = owner._stateManager
                                      .GetOrCreateStateSets(document.Project).Where(s => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(s.Analyzer, document.Project, owner.GlobalOptions));
 
@@ -297,6 +297,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // based on 'shouldIncludeDiagnostic' predicate. More specifically, TS has special document
                     // analyzer which report 0 supported diagnostics, but we always want to execute it.
                     if (analyzer is DocumentDiagnosticAnalyzer)
+                        return true;
+
+                    // Special case GeneratorDiagnosticsPlaceholderAnalyzer to never skip it based on
+                    // 'shouldIncludeDiagnostic' predicate. More specifically, this is a placeholder analyzer
+                    // for threading through all source generator reported diagnostics, but this special analyzer
+                    // reports 0 supported diagnostics, and we always want to execute it.
+                    if (analyzer is GeneratorDiagnosticsPlaceholderAnalyzer)
                         return true;
 
                     // Skip analyzer if none of its reported diagnostics should be included.

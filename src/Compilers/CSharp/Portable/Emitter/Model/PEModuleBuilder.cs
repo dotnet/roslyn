@@ -1946,7 +1946,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public sealed override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
         {
-            return GetEmbeddedTypes(new BindingDiagnosticBag(diagnostics));
+            var bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+
+            var result = GetEmbeddedTypes(bindingDiagnostics);
+
+            diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+            bindingDiagnostics.Free();
+            return result;
         }
 
         internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(BindingDiagnosticBag diagnostics)

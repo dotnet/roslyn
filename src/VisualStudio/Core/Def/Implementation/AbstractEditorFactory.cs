@@ -349,7 +349,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
 
             // Format document
-            var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
+            var unformattedText = await addedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(true);
             var formattedRoot = Formatter.Format(rootToFormat, workspace.Services.SolutionServices, cleanupOptions.FormattingOptions, cancellationToken);
             var formattedText = formattedRoot.GetText(unformattedText.Encoding, unformattedText.ChecksumAlgorithm);
 

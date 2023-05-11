@@ -25,20 +25,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public static Contracts.ManagedHotReloadAvailability ToContract(this ManagedHotReloadAvailability value)
             => new((Contracts.ManagedHotReloadAvailabilityStatus)value.Status, value.LocalizedMessage);
 
-        public static ManagedHotReloadUpdate FromContract(this ModuleUpdate update)
+        public static ManagedHotReloadUpdate FromContract(this Contracts.ManagedHotReloadUpdate update)
             => new(
                 module: update.Module,
+                moduleName: update.ModuleName,
                 ilDelta: update.ILDelta,
                 metadataDelta: update.MetadataDelta,
                 pdbDelta: update.PdbDelta,
                 updatedTypes: update.UpdatedTypes,
-                requiredCapabilities: update.RequiredCapabilities.ToStringArray(),
+                requiredCapabilities: update.RequiredCapabilities,
                 updatedMethods: update.UpdatedMethods,
                 sequencePoints: update.SequencePoints.SelectAsArray(FromContract),
                 activeStatements: update.ActiveStatements.SelectAsArray(FromContract),
                 exceptionRegions: update.ExceptionRegions.SelectAsArray(FromContract));
 
-        public static ImmutableArray<ManagedHotReloadUpdate> FromContract(this ImmutableArray<ModuleUpdate> diagnostics)
+        public static ImmutableArray<ManagedHotReloadUpdate> FromContract(this ImmutableArray<Contracts.ManagedHotReloadUpdate> diagnostics)
             => diagnostics.SelectAsArray(FromContract);
 
         public static SequencePointUpdates FromContract(this Contracts.SequencePointUpdates updates)

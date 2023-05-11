@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _underlyingLocal.GetConstantValueDiagnostics(boundInitValue);
         internal override SyntaxNode GetDeclaratorSyntax() =>
             _underlyingLocal.GetDeclaratorSyntax();
+        internal override bool HasSourceLocation
+            => _underlyingLocal.HasSourceLocation;
         internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
             SynthesizedLocalKind kind, SyntaxNode syntax
 #if DEBUG
