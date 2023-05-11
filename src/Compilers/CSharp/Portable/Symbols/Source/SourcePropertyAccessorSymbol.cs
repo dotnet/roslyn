@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isGetMethod = (syntax.Kind() == SyntaxKind.GetAccessorDeclaration);
             var methodKind = isGetMethod ? MethodKind.PropertyGet : MethodKind.PropertySet;
 
-            bool hasBlockBody = syntax.Body is object;
-            bool hasExpressionBody = syntax.ExpressionBody is object;
+            GetBodyInfo(syntax.Body, syntax.ExpressionBody, out var hasBlockBody, out var hasExpressionBody, out _);
             bool isNullableAnalysisEnabled = containingType.DeclaringCompilation.IsNullableAnalysisEnabledIn(syntax);
             CheckForBlockAndExpressionBody(syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
 
