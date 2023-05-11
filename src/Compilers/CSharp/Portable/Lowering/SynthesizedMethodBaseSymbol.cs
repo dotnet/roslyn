@@ -46,10 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.MakeFlags(
                 methodKind: MethodKind.Ordinary,
+                refKind: baseMethod.RefKind,
                 declarationModifiers: declarationModifiers,
                 returnsVoid: baseMethod.ReturnsVoid,
+                hasAnyBody: false,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: false,
+                isVarArg: baseMethod.IsVararg,
                 isMetadataVirtualIgnoringModifiers: false,
                 isExpressionBodied: false);
         }

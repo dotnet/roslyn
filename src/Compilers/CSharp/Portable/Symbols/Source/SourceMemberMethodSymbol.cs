@@ -163,26 +163,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public Flags(
                 MethodKind methodKind,
+                RefKind refKind,
                 DeclarationModifiers declarationModifiers,
                 bool returnsVoid,
+                bool hasAnyBody,
                 bool isExpressionBodied,
                 bool isExtensionMethod,
                 bool isNullableAnalysisEnabled,
+                bool isVarArg,
                 bool isMetadataVirtualIgnoringModifiers = false)
             {
                 bool isMetadataVirtual = isMetadataVirtualIgnoringModifiers || ModifiersRequireMetadataVirtual(declarationModifiers);
 
                 int methodKindInt = ((int)methodKind & MethodKindMask) << MethodKindOffset;
+                int refKindInt = ((int)refKind & RefKindMask) << RefKindOffset;
+                int hasAnyBodyInt = hasAnyBody? HasAnyBodyBit : 0;
                 int isExpressionBodyInt = isExpressionBodied ? IsExpressionBodiedBit : 0;
                 int isExtensionMethodInt = isExtensionMethod ? IsExtensionMethodBit : 0;
                 int isNullableAnalysisEnabledInt = isNullableAnalysisEnabled ? IsNullableAnalysisEnabledBit : 0;
+                int isVarArgInt = isVarArg ? IsVarArgBit : 0;
                 int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
 
                 _flags = methodKindInt
+                    | refKindInt
+                    | hasAnyBodyInt
                     | isExpressionBodyInt
                     | isExtensionMethodInt
                     | isNullableAnalysisEnabledInt
+                    | isVarArgInt
                     | isMetadataVirtualIgnoringInterfaceImplementationChangesInt
                     | isMetadataVirtualInt
                     | (returnsVoid ? ReturnsVoidBit : 0)
@@ -195,9 +204,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             public void SetOrdinaryMethodFlags(RefKind refKind, bool hasAnyBody, bool isVarArg)
             {
-                _flags |= ((int)refKind & RefKindMask) << RefKindOffset;
-                _flags |= hasAnyBody ? HasAnyBodyBit : 0;
-                _flags |= isVarArg ? IsVarArgBit : 0;
             }
 
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
@@ -343,15 +349,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void MakeFlags(
             MethodKind methodKind,
+            RefKind refKind,
             DeclarationModifiers declarationModifiers,
             bool returnsVoid,
+            bool hasAnyBody,
             bool isExpressionBodied,
             bool isExtensionMethod,
             bool isNullableAnalysisEnabled,
+            bool isVarArg,
             bool isMetadataVirtualIgnoringModifiers = false)
         {
             DeclarationModifiers = declarationModifiers;
-            this.flags = new Flags(methodKind, declarationModifiers, returnsVoid, isExpressionBodied, isExtensionMethod, isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers);
+            this.flags = new Flags(methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody, isExpressionBodied, isExtensionMethod, isNullableAnalysisEnabled, isVarArg, isMetadataVirtualIgnoringModifiers);
         }
 
         protected void SetReturnsVoid(bool returnsVoid)
