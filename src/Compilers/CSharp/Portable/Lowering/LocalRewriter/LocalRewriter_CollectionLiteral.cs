@@ -148,7 +148,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type is { });
 
             // PROTOTYPE: Improve perf. For instance, emit [] as Array.Empty<T>() rather than a List<T>.
-            var listType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(elementType);
             var list = VisitCollectionInitializerCollectionLiteralExpression(node);
             return _factory.Convert(node.Type, list);
         }
