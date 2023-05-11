@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(elementType is { });
                     return VisitArrayOrSpanCollectionLiteralExpression(node, elementType);
                 case CollectionLiteralTypeKind.ListInterface:
-                    Debug.Assert(elementType is { });
-                    return VisitListInterfaceCollectionLiteralExpression(node, elementType);
+                    return VisitListInterfaceCollectionLiteralExpression(node);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
             }
@@ -142,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Type);
         }
 
-        private BoundExpression VisitListInterfaceCollectionLiteralExpression(BoundCollectionLiteralExpression node, TypeSymbol elementType)
+        private BoundExpression VisitListInterfaceCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });

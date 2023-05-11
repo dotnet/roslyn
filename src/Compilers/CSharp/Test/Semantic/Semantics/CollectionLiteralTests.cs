@@ -3140,7 +3140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expectedOutput: "[1, 2, 3], ");
 
             // Verify some of the cases.
-            // PROTOTYPE: Verify more cases.
             string expectedIL = (spreadType, collectionType) switch
             {
                 ("IEnumerable<int>", "IEnumerable<int>") =>
