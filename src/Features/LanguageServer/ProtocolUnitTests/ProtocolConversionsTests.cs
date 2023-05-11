@@ -105,6 +105,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             Assert.Throws<ArgumentException>(() => ProtocolConversions.RangeToTextSpan(range, sourceText));
         }
 
+        [Fact]
+        public void RangeToTextSpanNegativeValueError()
+        {
+            var markup = GetTestMarkup();
+            var sourceText = SourceText.From(markup);
+
+            var range = new Range() { Start = new Position(-1, 0), End = new Position(0, 0) };
+            Assert.Throws<ArgumentOutOfRangeException>(() => ProtocolConversions.RangeToTextSpan(range, sourceText));
+        }
+
         private static string GetTestMarkup()
         {
             // Markup is 31 characters long. Line break (\n) is 2 characters 

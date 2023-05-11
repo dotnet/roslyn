@@ -206,6 +206,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
                 catch (ArgumentException ex)
                 {
+                    // Remove after ArgumentException investigation - https://github.com/dotnet/roslyn/issues/66258
                     // Create a custom error for this so we can examine the data we're getting.
                     throw new ArgumentException($"Range={RangeToString(range)}. text.Length={text.Length}. text.Lines.Count={text.Lines.Count}", ex);
                 }
