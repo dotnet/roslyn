@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && !flags.HasAnyBody && !HasExternModifier;
+                return this.IsPartial && !HasAnyBody && !HasExternModifier;
             }
         }
 
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && (flags.HasAnyBody || HasExternModifier);
+                return this.IsPartial && (HasAnyBody || HasExternModifier);
             }
         }
 
