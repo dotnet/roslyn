@@ -779,7 +779,7 @@
       </trans-unit>
       <trans-unit id="Namespaces_have_been_updated">
         <source>Namespaces have been updated.</source>
-        <target state="translated">Namespace öğeleri güncelleştirildi.</target>
+        <target state="new">Namespaces have been updated.</target>
         <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
