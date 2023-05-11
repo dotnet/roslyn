@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         [Fact]
-        public void ComputeDistance1()
+        public void ComputeDistance_Nodes()
         {
             var distance = SyntaxComparer.ComputeDistance(
                 new[] { MakeLiteral(0), MakeLiteral(1), MakeLiteral(2) },
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         [Fact]
-        public void ComputeDistance3()
+        public void ComputeDistance_Tokens()
         {
             var distance = SyntaxComparer.ComputeDistance(
                 new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword) },

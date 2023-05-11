@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
     Friend NotInheritable Class SyntaxComparer
-
         Inherits AbstractSyntaxComparer
 
         Friend Shared ReadOnly TopLevel As SyntaxComparer = New SyntaxComparer(Nothing, Nothing, Nothing, Nothing, compareStatementSyntax:=False)
@@ -1405,7 +1404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         ''' </remarks>
         Public Overloads Shared Function ComputeDistance(oldTokens As IEnumerable(Of SyntaxToken), newTokens As IEnumerable(Of SyntaxToken)) As Double
-            Return ComputeDistance(CreateArrayForDistanceCalculation(oldTokens), CreateArrayForDistanceCalculation(newTokens))
+            Return LcsTokens.Instance.ComputeDistance(CreateArrayForDistanceCalculation(oldTokens), CreateArrayForDistanceCalculation(newTokens))
         End Function
 
         ''' <summary>
@@ -1415,7 +1414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         ''' </remarks>
         Public Overloads Shared Function ComputeDistance(oldTokens As IEnumerable(Of SyntaxNode), newTokens As IEnumerable(Of SyntaxNode)) As Double
-            Return ComputeDistance(CreateArrayForDistanceCalculation(oldTokens), CreateArrayForDistanceCalculation(newTokens))
+            Return LcsNodes.Instance.ComputeDistance(CreateArrayForDistanceCalculation(oldTokens), CreateArrayForDistanceCalculation(newTokens))
         End Function
 
         ''' <summary>
