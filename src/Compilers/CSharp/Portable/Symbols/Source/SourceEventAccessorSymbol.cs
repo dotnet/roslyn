@@ -55,11 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.MakeFlags(
                 isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
+                RefKind.None,
                 @event.Modifiers,
                 returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
+                hasAnyBody: false,
                 isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                isVarArg: false,
                 isMetadataVirtualIgnoringModifiers: @event.IsExplicitInterfaceImplementation && (@event.Modifiers & DeclarationModifiers.Static) == 0);
 
             _name = GetOverriddenAccessorName(@event, isAdder) ?? name;
@@ -165,11 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override RefKind RefKind
-        {
-            get { return RefKind.None; }
-        }
-
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
@@ -196,11 +194,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!_lazyParameters.IsDefault);
                 return _lazyParameters;
             }
-        }
-
-        public sealed override bool IsVararg
-        {
-            get { return false; }
         }
 
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters

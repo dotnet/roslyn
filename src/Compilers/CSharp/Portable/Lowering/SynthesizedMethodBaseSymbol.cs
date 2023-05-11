@@ -200,11 +200,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable disable
 
-        public sealed override RefKind RefKind
-        {
-            get { return this.BaseMethod.RefKind; }
-        }
-
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnTypeWithAnnotations); }
@@ -215,11 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => BaseMethod.ReturnNotNullIfParameterNotNull;
 
         public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
-
-        public sealed override bool IsVararg
-        {
-            get { return this.BaseMethod.IsVararg; }
-        }
 
         public sealed override string Name
         {

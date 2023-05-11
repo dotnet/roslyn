@@ -1093,5 +1093,15 @@ done:
 
             return localPosition - bodySyntax.SpanStart;
         }
+
+        public sealed override RefKind RefKind
+        {
+            get { return this.flags.RefKind; }
+        }
+
+        public sealed override bool IsVararg
+        {
+            get { return this.flags.IsVarArg; }
+        }
     }
 }
