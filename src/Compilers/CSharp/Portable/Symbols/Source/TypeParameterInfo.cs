@@ -27,17 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public ImmutableArray<TypeParameterConstraintKind> LazyTypeParameterConstraintKinds;
 
-        public static readonly TypeParameterInfo Empty = new TypeParameterInfo(
-            ImmutableArray<TypeParameterSymbol>.Empty, ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty, ImmutableArray<TypeParameterConstraintKind>.Empty);
-
-        public TypeParameterInfo(
-            ImmutableArray<TypeParameterSymbol> typeParameters = default,
-            ImmutableArray<ImmutableArray<TypeWithAnnotations>> typeParameterConstraintTypes = default,
-            ImmutableArray<TypeParameterConstraintKind> typeParameterConstraintKinds = default)
+        public static readonly TypeParameterInfo Empty = new TypeParameterInfo
         {
-            LazyTypeParameters = typeParameters;
-            LazyTypeParameterConstraintTypes = typeParameterConstraintTypes;
-            LazyTypeParameterConstraintKinds = typeParameterConstraintKinds;
-        }
+            LazyTypeParameters = ImmutableArray<TypeParameterSymbol>.Empty,
+            LazyTypeParameterConstraintTypes = ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty,
+            LazyTypeParameterConstraintKinds = ImmutableArray<TypeParameterConstraintKind>.Empty,
+        };
     }
 }

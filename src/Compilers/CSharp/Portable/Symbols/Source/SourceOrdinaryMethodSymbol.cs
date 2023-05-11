@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeParameters = MakeTypeParameters(syntax, diagnostics);
             _typeParameterInfo = typeParameters.IsEmpty
                 ? TypeParameterInfo.Empty
-                : new TypeParameterInfo(typeParameters);
+                : new TypeParameterInfo { LazyTypeParameters = typeParameters };
 
             _explicitInterfaceType = explicitInterfaceType;
 
