@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isAdder,
             bool isIterator,
             bool isNullableAnalysisEnabled,
+            bool hasAnyBody,
             bool isExpressionBodied)
             : base(@event.containingType, syntaxReference, location, isIterator)
         {
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind.None,
                 @event.Modifiers,
                 returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
-                hasAnyBody: false,
+                hasAnyBody: hasAnyBody,
                 isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
