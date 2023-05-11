@@ -3656,17 +3656,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         int[] a = [1, 2, 3];
-                        object[] b;
-                        b = F1(a);
+                        object[] b = F1(a);
                         b.Report();
-                        b = F2<int, object>(a);
-                        b.Report();
+                        long?[] c = F2(a);
+                        c.Report();
+                        object[] d = F3<int, object>(a);
+                        d.Report();
                     }
                     static object[] F1(int[] a) => [..a];
-                    static U[] F2<T, U>(T[] a) where T : U => [..a];
+                    static long?[] F2(int[] a) => [..a];
+                    static U[] F3<T, U>(T[] a) where T : U => [..a];
                 }
                 """;
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3], [1, 2, 3], ");
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3], [1, 2, 3], [1, 2, 3], ");
             verifier.VerifyIL("Program.F1",
                 """
                 {
@@ -3705,7 +3707,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_002c:  ret
                 }
                 """);
-            verifier.VerifyIL("Program.F2<T, U>",
+            verifier.VerifyIL("Program.F2",
+                """
+                {
+                  // Code size       46 (0x2e)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<long?> V_0,
+                                int[] V_1,
+                                int V_2,
+                                int V_3)
+                  IL_0000:  newobj     "System.Collections.Generic.List<long?>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  stloc.1
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stloc.2
+                  IL_000a:  br.s       IL_0021
+                  IL_000c:  ldloc.1
+                  IL_000d:  ldloc.2
+                  IL_000e:  ldelem.i4
+                  IL_000f:  stloc.3
+                  IL_0010:  ldloc.0
+                  IL_0011:  ldloc.3
+                  IL_0012:  conv.i8
+                  IL_0013:  newobj     "long?..ctor(long)"
+                  IL_0018:  callvirt   "void System.Collections.Generic.List<long?>.Add(long?)"
+                  IL_001d:  ldloc.2
+                  IL_001e:  ldc.i4.1
+                  IL_001f:  add
+                  IL_0020:  stloc.2
+                  IL_0021:  ldloc.2
+                  IL_0022:  ldloc.1
+                  IL_0023:  ldlen
+                  IL_0024:  conv.i4
+                  IL_0025:  blt.s      IL_000c
+                  IL_0027:  ldloc.0
+                  IL_0028:  callvirt   "long?[] System.Collections.Generic.List<long?>.ToArray()"
+                  IL_002d:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.F3<T, U>",
                 """
                 {
                   // Code size       54 (0x36)
@@ -3775,6 +3816,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 targetFramework: TargetFramework.Net70,
                 verify: Verification.Skipped,
                 expectedOutput: "[1, 2, 3], [1, 2, 3], ");
+        }
+
+        [Fact]
+        public void SpreadElement_10()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        int[] a;
+                        bool b = args.Length > 0;
+                        a = [..[]];
+                        a = [..[default]];
+                        a = [..b ? [] : [default]];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Should spread elements support target type?
+            comp.VerifyEmitDiagnostics(
+                // (7,16): error CS0446: Foreach cannot operate on a 'collection literals'. Did you intend to invoke the 'collection literals'?
+                //         a = [..[]];
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "[]").WithArguments("collection literals").WithLocation(7, 16),
+                // (8,16): error CS0446: Foreach cannot operate on a 'collection literals'. Did you intend to invoke the 'collection literals'?
+                //         a = [..[default]];
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "[default]").WithArguments("collection literals").WithLocation(8, 16),
+                // (9,16): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection literals' and 'collection literals'
+                //         a = [..b ? [] : [default]];
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [] : [default]").WithArguments("collection literals", "collection literals").WithLocation(9, 16));
         }
 
         [Theory(Skip = "PROTOTYPE: RuntimeBinderException : Cannot implicitly convert type 'void' to 'object'")]
