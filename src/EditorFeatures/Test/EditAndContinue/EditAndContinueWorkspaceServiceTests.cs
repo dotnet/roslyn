@@ -1857,6 +1857,48 @@ class C { int Y => 2; }
         }
 
         [Fact]
+        public async Task SourceGeneratorError()
+        {
+            var sourceV1 = @"
+/* GENERATE: class G { int X() => 1; } */
+
+class C { int Y => 1; }
+";
+            var sourceV2 = @"
+/* GENERATE: class G { int X() => 2; } */
+
+class C { int Y => 1; }
+";
+
+            var generator = new TestSourceGenerator()
+            {
+                ExecuteImpl = _ => throw new Exception("Source gen failed!")
+            };
+
+            using var _ = CreateWorkspace(out var solution, out var service);
+            (solution, var document) = AddDefaultTestProject(solution, sourceV1, generator: generator);
+
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+            EnterBreakState(debuggingSession);
+
+            // change the source:
+            var document1 = solution.Projects.Single().Documents.Single();
+            solution = solution.WithDocumentText(document1.Id, CreateText(sourceV2));
+
+            Assert.Empty(await solution.Projects.Single().GetSourceGeneratedDocumentsAsync());
+
+            var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+            Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+            Assert.Empty(updates.Updates);
+            AssertEx.Equal(new[]
+            {
+                "CS8785: " + string.Format(CSharpResources.WRN_GeneratorFailedDuringGeneration, "TestSourceGenerator", "Exception", "Source gen failed!"),
+                "CS8785: " + string.Format(CSharpResources.WRN_GeneratorFailedDuringGeneration, "TestSourceGenerator", "Exception", "Source gen failed!"),
+            }, emitDiagnostics.Select(d => $"{d.Id}: {d.Message}"));
+
+            EndDebuggingSession(debuggingSession);
+        }
+        [Fact]
         public async Task HasChanges()
         {
             using var _ = CreateWorkspace(out var solution, out var service);
@@ -1968,6 +2010,8 @@ class C { int Y => 2; }
 
             Assert.Equal(1, generatorExecutionCount);
             var changedOrAddedDocuments = new PooledObjects.ArrayBuilder<Document>();
+            var diagnostics = new PooledObjects.ArrayBuilder<ProjectDiagnostics>();
+            var log = new TraceLog(10, "Log", fileName: "test");
 
             //
             // Add document
@@ -1995,8 +2039,9 @@ class C { int Y => 2; }
             AssertEx.Equal(new[] { generatedDocumentId },
                 await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-            await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
+            await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, log, CancellationToken.None);
             AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId, generatedDocumentId } : new[] { generatedDocumentId }, changedOrAddedDocuments.Select(d => d.Id));
+            Assert.Empty(diagnostics);
 
             Assert.Equal(1, generatorExecutionCount);
 
@@ -2023,7 +2068,8 @@ class C { int Y => 2; }
             AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId } : Array.Empty<DocumentId>(),
                 await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-            await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
+            await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, log, CancellationToken.None);
+            Assert.Empty(diagnostics);
             Assert.Empty(changedOrAddedDocuments);
 
             Assert.Equal(1, generatorExecutionCount);
@@ -2047,8 +2093,9 @@ class C { int Y => 2; }
             AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId, generatedDocumentId } : new[] { generatedDocumentId },
                 await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-            await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
+            await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, log, CancellationToken.None);
             AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId, generatedDocumentId } : new[] { generatedDocumentId }, changedOrAddedDocuments.Select(d => d.Id));
+            Assert.Empty(diagnostics);
 
             Assert.Equal(1, generatorExecutionCount);
 
@@ -2073,8 +2120,9 @@ class C { int Y => 2; }
             AssertEx.Equal(new[] { generatedDocumentId },
                 await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-            await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
+            await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, log, CancellationToken.None);
             AssertEx.Equal(new[] { generatedDocumentId }, changedOrAddedDocuments.Select(d => d.Id));
+            Assert.Empty(diagnostics);
 
             Assert.Equal(1, generatorExecutionCount);
         }
