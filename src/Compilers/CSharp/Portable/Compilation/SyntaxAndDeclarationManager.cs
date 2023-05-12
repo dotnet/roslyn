@@ -609,7 +609,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var previousRootNamespaceDeclaration = declMapBuilder[oldTree];
                 if (previousRootNamespaceDeclaration.IsValueCreated)
                 {
-                    // we computed the last root.  It will have up to date member names.  So just return those if present.
+                    // we computed the last root.  It will have the most up to date member names, with the highest
+                    // change of being reusable after the last edit..  So just return those if present.
                     Stack<SingleNamespaceOrTypeDeclaration> stack = s_declarationStack.Allocate();
                     stack.Push(previousRootNamespaceDeclaration.Value);
 
@@ -643,7 +644,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return builder.ToOneOrManyAndFree();
                 }
 
-                // The previous root wasn't computed yet.  So just return whatever info we have from before.
+                // The previous root wasn't computed yet.  So just return whatever info we have from before.  Note: this
+                // may be from several edits prior.  As long as all the intervening edits have not touched member names,
+                // this will still allow us to reuse those sets.
                 if (lastComputedMemberNamesMap.TryGetValue(oldTree, out var lastComputedMemberNames))
                     return lastComputedMemberNames;
 
