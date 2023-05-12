@@ -944,10 +944,18 @@ unsafe struct Buffer
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void InlineArrayType_31_Nested()
         {
             var src = @"
+var c = new C();
+c.F[0] = 111;
+System.Console.WriteLine(c.F[0]);
+
+class C
+{
+    public Enclosing.Buffer F;
+}
 
 public class Enclosing
 {
@@ -958,12 +966,12 @@ public class Enclosing
     }
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Enclosing").GetTypeMember("Buffer");
+                var buffer = m.GlobalNamespace.GetMember<FieldSymbol>("C.F").Type;
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
@@ -971,10 +979,18 @@ public class Enclosing
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void InlineArrayType_32_Generic()
         {
             var src = @"
+var c = new C();
+c.F[0] = 111;
+System.Console.WriteLine(c.F[0]);
+
+class C
+{
+    public Enclosing<int>.Buffer F;
+}
 
 public class Enclosing<T>
 {
@@ -985,12 +1001,12 @@ public class Enclosing<T>
     }
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Enclosing").Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32)).GetTypeMember("Buffer");
+                var buffer = m.GlobalNamespace.GetMember<FieldSymbol>("C.F").Type;
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
@@ -998,10 +1014,18 @@ public class Enclosing<T>
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void InlineArrayType_33_Generic()
         {
             var src = @"
+var c = new C();
+c.F[0] = 111;
+System.Console.WriteLine(c.F[0]);
+
+class C
+{
+    public Enclosing.Buffer<int> F;
+}
 
 public class Enclosing
 {
@@ -1012,12 +1036,12 @@ public class Enclosing
     }
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Enclosing").GetTypeMember("Buffer").Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32));
+                var buffer = m.GlobalNamespace.GetMember<FieldSymbol>("C.F").Type;
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
@@ -1025,10 +1049,18 @@ public class Enclosing
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void InlineArrayType_34_Generic()
         {
             var src = @"
+var c = new C();
+c.F[0] = 111;
+System.Console.WriteLine(c.F[0]);
+
+class C
+{
+    public Enclosing<int>.Buffer<string> F;
+}
 
 public class Enclosing<T>
 {
@@ -1039,13 +1071,12 @@ public class Enclosing<T>
     }
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Enclosing").Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32)).
-                    GetTypeMember("Buffer").Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_String));
+                var buffer = m.GlobalNamespace.GetMember<FieldSymbol>("C.F").Type;
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
@@ -1053,10 +1084,18 @@ public class Enclosing<T>
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void InlineArrayType_35_Generic()
         {
             var src = @"
+var c = new C();
+c.F[0] = ""111"";
+System.Console.WriteLine(c.F[0]);
+
+class C
+{
+    public Enclosing<int>.Buffer<string> F;
+}
 
 public class Enclosing<T>
 {
@@ -1067,13 +1106,12 @@ public class Enclosing<T>
     }
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Enclosing").Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32)).
-                    GetTypeMember("Buffer").Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_String));
+                var buffer = m.GlobalNamespace.GetMember<FieldSymbol>("C.F").Type;
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
