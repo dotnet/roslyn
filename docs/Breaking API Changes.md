@@ -72,7 +72,16 @@ All property setters now throw an exception.
 The `Workspace` and `DocumentId` parameters of `TextLoader.LoadTextAndVersionAsync(Workspace, DocumentId, CancellationToken)` are deprecated.
 The method now receives `null` `Workspace` and `DocumentId`.
 
-# Unreleased
+# Version 4.5.0
+
+`SymbolDisplayFormat.CSharpErrorMessageFormat` and `CSharpShortErrorMessageFormat` now include parameter names by default if used on a standalone `IParameterSymbol`.
+For example, parameter `p` in `void M(ref int p)` was previously formatted as `"ref int"` and now it is formatted as `"ref int p"`.
+
+# Version 4.7.0
+
+### `SymbolDisplayFormat` includes parameter name when invoked on `IParameterSymbol`
+
+All `SymbolDisplayFormat`s (predefined and user-created) now include parameter names by default if used on a standalone `IParameterSymbol` for consistency with predefined formats (see the breaking change for version 4.5.0 above).
 
 ### Changed `IncrementalStepRunReason` when a modified input produced a new output
 
