@@ -1723,7 +1723,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Produce all inherited base extensions in topologically sorted order. We use
         /// TypeSymbol.BaseExtensionsNoUseSiteDiagnostics as the source of edge data,
-        /// Produce all base extensions in topologically sorted order. We use
         /// which has had cycles and infinitely long dependency cycles removed.
         /// Consequently, it is possible (and we do) use the simplest version
         /// of Tarjan's topological sorting algorithm.
