@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (previousRootNamespaceDeclaration.IsValueCreated)
                 {
                     // we computed the last root.  It will have the most up to date member names, with the highest
-                    // change of being reusable after the last edit..  So just return those if present.
+                    // change of being reusable after the last edit.  So just return those if present.
                     Stack<SingleNamespaceOrTypeDeclaration> stack = s_declarationStack.Allocate();
                     stack.Push(previousRootNamespaceDeclaration.Value);
 
