@@ -625,8 +625,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             stack.Push(current.Children[i]);
 
                         // Process any type we see before we process its nested types.
-                        if (current is SingleTypeDeclaration singleType && DeclarationTreeBuilder.CachesComputedMemberNames(singleType))
-                            builder.Add(singleType.MemberNames);
+                        if (current is not SingleTypeDeclaration singleType)
+                            continue;
+
+                        // Skip any types that don't cache member names.  This also allows us to coordinate with the
+                        // actual builder, which is keeping track of which caching-member-name type index it is on to
+                        // look back into the last-computed-member-names list.
+                        if (!DeclarationTreeBuilder.CachesComputedMemberNames(singleType))
+                            continue;
+
+                        builder.Add(singleType.MemberNames);
                     }
                     while (stack.Count > 0);
 
