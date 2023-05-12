@@ -620,7 +620,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var current = stack.Pop();
 
-                        // As we walk down, push children on in reverse order so we get a depth-first walk.
+                        // As we walk down, push children on in reverse order so we get a lexical ordering walk (the
+                        // same order as what the decl-tree-builder will perform).  This allows the decl-tree-builder to
+                        // keep track of what type it's on in lexical order and look back into this array to see if it
+                        // can reuse the prior member names for the corresponding type.
 
                         for (int i = current.Children.Length - 1; i >= 0; i--)
                             stack.Push(current.Children[i]);
