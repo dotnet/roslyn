@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lastComputedMemberNamesMap = state.LastComputedMemberNames.ToBuilder();
             var declTable = state.DeclarationTable;
 
-            var lastComputedMemberNames = tryGetLastComputedMemberNames();
+            OneOrMany<ImmutableSegmentedHashSet<string>> lastComputedMemberNames = tryGetLastComputedMemberNames();
 
             foreach (var tree in removeSet)
             {
