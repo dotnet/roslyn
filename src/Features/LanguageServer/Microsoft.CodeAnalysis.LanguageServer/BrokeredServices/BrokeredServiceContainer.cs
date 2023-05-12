@@ -37,14 +37,14 @@ internal class BrokeredServiceContainer : GlobalBrokeredServiceContainer
     {
         var traceListener = exportProvider.GetExportedValue<BrokeredServiceTraceListener>();
         var container = new BrokeredServiceContainer(traceListener.Source);
-        exportProvider.GetExportedValue<ServiceBrokerMefExport>().Container = container;
 
         container.ProfferIntrinsicService(
             FrameworkServices.Authorization,
             new ServiceRegistration(VisualStudio.Shell.ServiceBroker.ServiceAudience.Local, null, allowGuestClients: true),
             (moniker, options, serviceBroker, cancellationToken) => new(new NoOpAuthorizationService()));
 
-        var mefServiceBroker = exportProvider.GetExportedValue<MefServiceBroker>();
+        var mefServiceBroker = exportProvider.GetExportedValue<MefServiceBrokerOfExportedServices>();
+        mefServiceBroker.SetContainer(container);
 
         // Register local mef services.
         await mefServiceBroker.RegisterAndProfferServicesAsync(cancellationToken);

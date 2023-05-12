@@ -23,14 +23,14 @@ internal class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, I
         ServiceJsonRpcDescriptor.Formatters.UTF8,
         ServiceJsonRpcDescriptor.MessageDelimiters.HttpLikeHeaders);
 
-    private readonly BrokeredServiceContainer _container;
+    private readonly ServiceBrokerFactory _serviceBrokerFactory;
     private readonly ILogger _logger;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public BrokeredServiceBridgeManifest([Import("PrivateBrokeredServiceContainer")] BrokeredServiceContainer container, ILoggerFactory loggerFactory)
+    public BrokeredServiceBridgeManifest(ServiceBrokerFactory serviceBrokerFactory, ILoggerFactory loggerFactory)
     {
-        _container = container;
+        _serviceBrokerFactory = serviceBrokerFactory;
         _logger = loggerFactory.CreateLogger<BrokeredServiceBridgeManifest>();
     }
 
@@ -38,7 +38,7 @@ internal class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, I
 
     public ValueTask<IReadOnlyCollection<ServiceMoniker>> GetAvailableServicesAsync(CancellationToken cancellationToken)
     {
-        var services = (IReadOnlyCollection<ServiceMoniker>)_container.GetRegisteredServices()
+        var services = (IReadOnlyCollection<ServiceMoniker>)_serviceBrokerFactory.GetRequiredServiceBrokerContainer().GetRegisteredServices()
             .Select(s => s.Key)
             .Where(s => s.Name.StartsWith("Microsoft.CodeAnalysis.LanguageServer.", StringComparison.Ordinal) ||
                         s.Name.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal))

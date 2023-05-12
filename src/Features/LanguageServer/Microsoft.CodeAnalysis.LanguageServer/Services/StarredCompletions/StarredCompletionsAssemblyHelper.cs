@@ -5,6 +5,7 @@
 using System.Reflection;
 using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.Extensions.Logging;
@@ -26,8 +27,8 @@ internal static class StarredCompletionAssemblyHelper
     /// </summary>
     /// <param name="completionsAssemblyLocation">Location of dll for starred completion</param>
     /// <param name="loggerFactory">Factory for creating new logger</param>
-    /// <param name="serviceBroker">Service broker with access to necessary remote services</param>
-    internal static void InitializeInstance(string? completionsAssemblyLocation, ILoggerFactory loggerFactory, IServiceBroker serviceBroker)
+    /// <param name="serviceBrokerFactory">Service broker with access to necessary remote services</param>
+    internal static void InitializeInstance(string? completionsAssemblyLocation, ILoggerFactory loggerFactory, ServiceBrokerFactory serviceBrokerFactory)
     {
         if (string.IsNullOrEmpty(completionsAssemblyLocation))
         {
@@ -45,7 +46,7 @@ internal static class StarredCompletionAssemblyHelper
             var createCompletionProviderMethodInfo = alc.GetMethodInfo(CompletionsDllName, CompletionHelperClassFullName, CreateCompletionProviderMethodName);
             _completionProviderLazy = new AsyncLazy<CompletionProvider>(c => CreateCompletionProviderAsync(
                     createCompletionProviderMethodInfo,
-                    serviceBroker,
+                    serviceBrokerFactory.FullAccessServiceBroker,
                     completionsAssemblyLocation,
                     logger
                 ));

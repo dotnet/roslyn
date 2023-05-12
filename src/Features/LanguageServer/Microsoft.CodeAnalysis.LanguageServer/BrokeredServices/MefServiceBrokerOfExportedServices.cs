@@ -11,23 +11,24 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 
 [Export, Shared]
-internal class MefServiceBroker : ServiceBrokerOfExportedServices
+internal class MefServiceBrokerOfExportedServices : ServiceBrokerOfExportedServices
 {
-    private readonly BrokeredServiceContainer _container;
-
-    private Task<GlobalBrokeredServiceContainer>? containerTask;
+    private Task<GlobalBrokeredServiceContainer>? _containerTask;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public MefServiceBroker([Import("PrivateBrokeredServiceContainer")] BrokeredServiceContainer brokeredServiceContainer)
+    public MefServiceBrokerOfExportedServices()
     {
-        _container = brokeredServiceContainer;
+    }
+
+    public void SetContainer(GlobalBrokeredServiceContainer container)
+    {
+        _containerTask = Task.FromResult(container);
     }
 
     protected override Task<GlobalBrokeredServiceContainer> GetBrokeredServiceContainerAsync(CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(_container, $"{nameof(_container)} must be set first.");
-        this.containerTask ??= Task.FromResult((GlobalBrokeredServiceContainer)_container);
-        return this.containerTask;
+        Contract.ThrowIfNull(_containerTask, $"{nameof(SetContainer)} should have already been called.");
+        return _containerTask;
     }
 }
