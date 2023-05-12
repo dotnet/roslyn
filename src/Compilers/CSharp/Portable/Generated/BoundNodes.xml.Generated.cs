@@ -6346,7 +6346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionLiteralSpreadElement : BoundExpression
     {
-        public BoundCollectionLiteralSpreadElement(SyntaxNode syntax, BoundExpression expression, ForEachEnumeratorInfo? enumeratorInfoOpt, BoundValuePlaceholder? elementPlaceholder, BoundValuePlaceholder? addElementPlaceholder, BoundExpression? addMethodInvocation, TypeSymbol type, bool hasErrors = false)
+        public BoundCollectionLiteralSpreadElement(SyntaxNode syntax, BoundExpression expression, ForEachEnumeratorInfo? enumeratorInfoOpt, BoundValuePlaceholder? elementPlaceholder, BoundValuePlaceholder? addElementPlaceholder, BoundStatement? addMethodInvocation, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.CollectionLiteralSpreadElement, syntax, type, hasErrors || expression.HasErrors() || elementPlaceholder.HasErrors() || addElementPlaceholder.HasErrors() || addMethodInvocation.HasErrors())
         {
 
@@ -6365,12 +6365,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ForEachEnumeratorInfo? EnumeratorInfoOpt { get; }
         public BoundValuePlaceholder? ElementPlaceholder { get; }
         public BoundValuePlaceholder? AddElementPlaceholder { get; }
-        public BoundExpression? AddMethodInvocation { get; }
+        public BoundStatement? AddMethodInvocation { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionLiteralSpreadElement(this);
 
-        public BoundCollectionLiteralSpreadElement Update(BoundExpression expression, ForEachEnumeratorInfo? enumeratorInfoOpt, BoundValuePlaceholder? elementPlaceholder, BoundValuePlaceholder? addElementPlaceholder, BoundExpression? addMethodInvocation, TypeSymbol type)
+        public BoundCollectionLiteralSpreadElement Update(BoundExpression expression, ForEachEnumeratorInfo? enumeratorInfoOpt, BoundValuePlaceholder? elementPlaceholder, BoundValuePlaceholder? addElementPlaceholder, BoundStatement? addMethodInvocation, TypeSymbol type)
         {
             if (expression != this.Expression || enumeratorInfoOpt != this.EnumeratorInfoOpt || elementPlaceholder != this.ElementPlaceholder || addElementPlaceholder != this.AddElementPlaceholder || addMethodInvocation != this.AddMethodInvocation || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -11527,7 +11527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             BoundValuePlaceholder? elementPlaceholder = node.ElementPlaceholder;
             BoundValuePlaceholder? addElementPlaceholder = node.AddElementPlaceholder;
-            BoundExpression? addMethodInvocation = node.AddMethodInvocation;
+            BoundStatement? addMethodInvocation = node.AddMethodInvocation;
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(expression, node.EnumeratorInfoOpt, elementPlaceholder, addElementPlaceholder, addMethodInvocation, type);
         }
@@ -13752,7 +13752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             BoundValuePlaceholder? elementPlaceholder = node.ElementPlaceholder;
             BoundValuePlaceholder? addElementPlaceholder = node.AddElementPlaceholder;
-            BoundExpression? addMethodInvocation = node.AddMethodInvocation;
+            BoundStatement? addMethodInvocation = node.AddMethodInvocation;
             BoundCollectionLiteralSpreadElement updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))

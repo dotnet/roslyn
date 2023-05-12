@@ -5740,7 +5740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 enumeratorInfo,
                 element.ElementPlaceholder,
                 addElementPlaceholder,
-                addMethodInvocation,
+                new BoundExpressionStatement(syntax, addMethodInvocation) { WasCompilerGenerated = true },
                 element.Type);
         }
 #nullable disable

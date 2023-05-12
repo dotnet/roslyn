@@ -166,9 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var convertedExpression = (BoundConversion)initializer.Expression;
 
             AddPlaceholderReplacement(addElementPlaceholder, _factory.Local(iterationVariable));
-            var rewrittenAdd = VisitExpression(initializer.AddMethodInvocation);
-            Debug.Assert(rewrittenAdd is { });
-            var rewrittenBody = _factory.ExpressionStatement(rewrittenAdd);
+
+            var rewrittenBody = VisitStatement(initializer.AddMethodInvocation);
+            Debug.Assert(rewrittenBody is { });
+
             RemovePlaceholderReplacement(addElementPlaceholder);
 
             var elementPlaceholder = initializer.ElementPlaceholder;

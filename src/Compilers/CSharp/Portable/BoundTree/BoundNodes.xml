@@ -1896,7 +1896,7 @@
     <Field Name="EnumeratorInfoOpt" Type="ForEachEnumeratorInfo?"/>
     <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
     <Field Name="AddElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
-    <Field Name="AddMethodInvocation" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    <Field Name="AddMethodInvocation" Type="BoundStatement?" SkipInVisitor="true" Null="allow"/>
   </Node>
 
   <!-- 
