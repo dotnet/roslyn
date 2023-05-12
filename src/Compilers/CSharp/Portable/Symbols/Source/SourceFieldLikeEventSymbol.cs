@@ -113,10 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // Accessors will assume that Type is available.
-            // No body, as this was declared by a event-field, nothing that has an actual block or expression body.
-            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, hasAnyBody: false, isExpressionBodied: false);
-            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, hasAnyBody: false, isExpressionBodied: false);
+            // Accessors will assume that Type is available. We consider abstract field events to not have a body, but
+            // all other field events do have one.  hasAnyBody here effectively is just proxy for marking if something
+            // is abstract or not. Note: unclear if this should also apply to Extern events.
+            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, hasAnyBody: !IsAbstract, isExpressionBodied: false);
+            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, hasAnyBody: !IsAbstract, isExpressionBodied: false);
 
             if (declarationSyntax.Variables[0] == declaratorSyntax)
             {
