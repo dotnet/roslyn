@@ -699,7 +699,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public async Task<GraphNode?> CreateNodeAsync(Solution solution, INavigateToSearchResult result, CancellationToken cancellationToken)
         {
-            var document = await result.NavigableItem.Document.GetDocumentAsync(solution, cancellationToken).ConfigureAwait(false);
+            var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false);
             var project = document.Project;
 
             // If it doesn't belong to a document or project we can navigate to, then ignore entirely.

@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 RoslynDebug.AssertNotNull(context.Solution);
                 foreach (var item in items)
                 {
-                    var document = await item.Document.GetDocumentAsync(context.Solution, cancellationToken).ConfigureAwait(false);
+                    var document = await item.Document.GetRequiredDocumentAsync(context.Solution, cancellationToken).ConfigureAwait(false);
                     var location = await ProtocolConversions.TextSpanToLocationAsync(
                         document, item.SourceSpan, item.IsStale, cancellationToken).ConfigureAwait(false);
                     locations.AddIfNotNull(location);

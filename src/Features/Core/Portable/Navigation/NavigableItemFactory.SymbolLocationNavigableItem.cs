@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,6 +20,11 @@ namespace Microsoft.CodeAnalysis.Navigation
             private readonly Solution _solution;
             private readonly ISymbol _symbol;
             private readonly Location _location;
+
+            /// <summary>
+            /// Lazily-initialized backing field for <see cref="Document"/>.
+            /// </summary>
+            /// <seealso cref="LazyInitialization.EnsureInitialized{T, U}(ref StrongBox{T}, Func{U, T}, U)"/>
             private StrongBox<INavigableItem.NavigableDocument> _lazyDocument;
 
             public SymbolLocationNavigableItem(
