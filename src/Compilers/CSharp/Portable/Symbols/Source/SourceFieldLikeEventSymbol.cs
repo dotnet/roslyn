@@ -114,8 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Accessors will assume that Type is available.
-            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true);
-            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false);
+            // No body, as this was declared by a event-field, nothing that has an actual block or expression body.
+            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, hasAnyBody: false, isExpressionBodied: false);
+            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, hasAnyBody: false, isExpressionBodied: false);
 
             if (declarationSyntax.Variables[0] == declaratorSyntax)
             {
