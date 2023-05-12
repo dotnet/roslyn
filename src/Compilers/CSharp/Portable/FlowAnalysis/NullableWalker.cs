@@ -3463,7 +3463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        public override BoundNode? VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
             // PROTOTYPE: Do we need to call inferInitialObjectState() to set the initial state of the instance?
             int containerSlot = GetOrCreatePlaceholderSlot(node);
@@ -3471,29 +3471,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE: Test nullability of elements when the collection literal is target typed
             // and the inferred target type has distinct element type nullability.
-            foreach (var initializer in node.Initializers)
+            foreach (var element in node.Elements)
             {
-                switch (initializer)
+                switch (element)
                 {
-                    case BoundCollectionElementInitializer element:
-                        var completion = VisitCollectionElementInitializer(element, node.Type, delayCompletionForType);
+                    case BoundCollectionElementInitializer initializer:
+                        var collectionType = initializer.AddMethod.ContainingType;
+                        var completion = VisitCollectionElementInitializer(initializer, collectionType, delayCompletionForType);
                         if (completion is { })
                         {
                             // PROTOTYPE: Complete the analysis later.
-                            completion(containerSlot, node.Type);
+                            completion(containerSlot, collectionType);
                         }
                         break;
                     default:
-                        VisitRvalue(initializer);
+                        VisitRvalue(element);
                         break;
                 }
             }
 
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+            return null;
         }
 
         public override BoundNode? VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
         {
+            foreach (var element in node.Elements)
+            {
+                VisitRvalue(element);
+            }
+
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
             return null;
         }

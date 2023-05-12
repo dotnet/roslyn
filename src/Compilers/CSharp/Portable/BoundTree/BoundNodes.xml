@@ -1867,36 +1867,36 @@
   </Node>
   
   <!--
-  A target-typed collection literal expression.
+  An unconverted collection literal expression.
   It does not survive past initial binding.
   -->
   <Node Name="BoundUnconvertedCollectionLiteralExpression" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <!-- Collection literal elements. -->
-    <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="Elements" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="Binder" Type="Binder" Null="disallow"/>
   </Node>
 
-  <AbstractNode Name="BoundCollectionLiteralExpression" Base="BoundExpression">
+  <Node Name="BoundCollectionLiteralExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <!-- Natural type is preserved for the purpose of semantic model. Can be `null`. -->
-    <Field Name="NaturalTypeOpt" Type="TypeSymbol?" Null="allow"/>
-    <Field Name="WasTargetTyped" Type="bool" />
     <!-- An expression placeholder value representing the initialized collection. -->
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder" Null="disallow" SkipInVisitor="true"/>
+    <!-- Constructor call to create the empty collection type. -->
+    <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
     <!-- Collection literal elements. -->
-    <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-  </AbstractNode>
-
-  <Node Name="BoundArrayOrSpanCollectionLiteralExpression" Base="BoundCollectionLiteralExpression">
-    <!-- Constructor to create a span from an array. -->
-    <Field Name="SpanConstructor" Type="MethodSymbol?" Null="allow"/>
+    <Field Name="Elements" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
 
-  <Node Name="BoundCollectionInitializerCollectionLiteralExpression" Base="BoundCollectionLiteralExpression">
-    <Field Name="CollectionCreation" Type="BoundExpression" Null="disallow" SkipInVisitor="true"/>
+  <Node Name="BoundCollectionLiteralSpreadElement" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Expression" Type="BoundExpression"/>
+    <Field Name="EnumeratorInfoOpt" Type="ForEachEnumeratorInfo?"/>
+    <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <Field Name="AddElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <Field Name="AddMethodInvocation" Type="BoundStatement?" SkipInVisitor="true" Null="allow"/>
   </Node>
 
   <!-- 

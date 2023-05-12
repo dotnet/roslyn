@@ -2671,6 +2671,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GenerateImplicitConversionError(diagnostics, operand.Syntax, conversion, operand, targetType);
                         return;
                     }
+                case BoundKind.UnconvertedCollectionLiteralExpression:
+                    {
+                        if (operand.Type is null)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
+                            return;
+                        }
+                        break;
+                    }
                 case BoundKind.UnconvertedAddressOfOperator:
                     {
                         var errorCode = targetType.TypeKind switch
@@ -4543,6 +4552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private BoundExpression BindCollectionLiteralExpression(CollectionCreationExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureCollectionLiterals.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
@@ -4556,27 +4566,63 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
             {
-                switch (syntax)
+                return syntax switch
                 {
-                    case ExpressionElementSyntax expressionElementSyntax:
-                        return BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue);
+                    ExpressionElementSyntax expressionElementSyntax => BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
+                    DictionaryElementSyntax dictionaryElementSyntax => bindDictionaryElement(dictionaryElementSyntax, diagnostics),
+                    SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics),
+                    _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
+                };
+            }
 
-                    case DictionaryElementSyntax dictionaryElementSyntax:
-                        _ = BindValue(dictionaryElementSyntax.KeyExpression, diagnostics, BindValueKind.RValue);
-                        _ = BindValue(dictionaryElementSyntax.ValueExpression, diagnostics, BindValueKind.RValue);
-                        Error(diagnostics, ErrorCode.ERR_CollectionLiteralElementNotImplemented, syntax);
-                        return BadExpression(syntax);
+            BoundExpression bindDictionaryElement(DictionaryElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            {
+                _ = BindValue(syntax.KeyExpression, diagnostics, BindValueKind.RValue);
+                _ = BindValue(syntax.ValueExpression, diagnostics, BindValueKind.RValue);
+                Error(diagnostics, ErrorCode.ERR_CollectionLiteralElementNotImplemented, syntax);
+                return BadExpression(syntax);
+            }
 
-                    case SpreadElementSyntax spreadElementSyntax:
-                        _ = BindValue(spreadElementSyntax.Expression, diagnostics, BindValueKind.RValue);
-                        Error(diagnostics, ErrorCode.ERR_CollectionLiteralElementNotImplemented, syntax);
-                        return BadExpression(syntax);
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
+            BoundExpression bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            {
+                var expression = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
+                var builder = new ForEachEnumeratorInfo.Builder();
+                bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref builder, ref expression, isAsync: false, diagnostics, inferredType: out _) ||
+                    builder.IsIncomplete;
+                if (hasErrors)
+                {
+                    return new BoundCollectionLiteralSpreadElement(
+                        syntax,
+                        expression,
+                        enumeratorInfoOpt: null,
+                        elementPlaceholder: null,
+                        addElementPlaceholder: null,
+                        addMethodInvocation: null,
+                        type: CreateErrorType(),
+                        hasErrors);
                 }
+
+                var enumeratorInfo = builder.Build(location: default);
+                var collectionType = enumeratorInfo.CollectionType;
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var conversion = Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+                Debug.Assert(conversion.IsValid);
+                diagnostics.Add(syntax.Expression, useSiteInfo);
+                expression = ConvertForEachCollection(expression, conversion, collectionType, diagnostics);
+                var elementPlaceholder = new BoundValuePlaceholder(syntax.Expression, enumeratorInfo.ElementType);
+                return new BoundCollectionLiteralSpreadElement(
+                    syntax,
+                    expression,
+                    enumeratorInfo,
+                    elementPlaceholder: elementPlaceholder,
+                    addElementPlaceholder: null,
+                    addMethodInvocation: null,
+                    type: enumeratorInfo.CollectionType,
+                    hasErrors: false)
+                { WasCompilerGenerated = true };
             }
         }
+#nullable disable
 
         private BoundExpression BindDelegateCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, BindingDiagnosticBag diagnostics)
         {
@@ -5666,6 +5712,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return addMethodInvocation;
             }
         }
+
+#nullable enable
+        private BoundCollectionLiteralSpreadElement BindCollectionInitializerSpreadElementAddMethod(
+            SpreadElementSyntax syntax,
+            BoundCollectionLiteralSpreadElement element,
+            Binder collectionInitializerAddMethodBinder,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            BindingDiagnosticBag diagnostics)
+        {
+            var enumeratorInfo = element.EnumeratorInfoOpt;
+            if (enumeratorInfo is null)
+            {
+                return element;
+            }
+
+            Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
+            var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
+            var addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
+                syntax,
+                implicitReceiver,
+                methodName: WellKnownMemberNames.CollectionInitializerAddMethodName,
+                args: ImmutableArray.Create<BoundExpression>(addElementPlaceholder),
+                diagnostics);
+            return element.Update(
+                element.Expression,
+                enumeratorInfo,
+                element.ElementPlaceholder,
+                addElementPlaceholder,
+                new BoundExpressionStatement(syntax, addMethodInvocation) { WasCompilerGenerated = true },
+                element.Type);
+        }
+#nullable disable
 
         internal ImmutableArray<MethodSymbol> FilterInaccessibleConstructors(ImmutableArray<MethodSymbol> constructors, bool allowProtectedConstructorsOfBaseType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {

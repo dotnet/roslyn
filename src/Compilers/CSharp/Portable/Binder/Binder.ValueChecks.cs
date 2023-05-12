@@ -416,6 +416,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.UnconvertedCollectionLiteralExpression:
+                    if (valueKind == BindValueKind.RValue)
+                    {
+                        return expr;
+                    }
+                    break;
+
                 case BoundKind.PointerIndirectionOperator:
                     if ((valueKind & BindValueKind.RefersToLocation) == BindValueKind.RefersToLocation)
                     {
@@ -3828,8 +3835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var switchExpr = (BoundSwitchExpression)expr;
                     return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
 
-                case BoundKind.ArrayOrSpanCollectionLiteralExpression:
-                case BoundKind.CollectionInitializerCollectionLiteralExpression:
+                case BoundKind.CollectionLiteralExpression:
                     // PROTOTYPE: Revisit if spans may be optimized to avoid heap allocation.
                     return CallingMethodScope;
 
@@ -4315,8 +4321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return true;
 
-                case BoundKind.ArrayOrSpanCollectionLiteralExpression:
-                case BoundKind.CollectionInitializerCollectionLiteralExpression:
+                case BoundKind.CollectionLiteralExpression:
                     // PROTOTYPE: Revisit if spans may be optimized to avoid heap allocation.
                     return true;
 

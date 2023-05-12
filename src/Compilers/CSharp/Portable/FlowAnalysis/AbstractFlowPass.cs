@@ -1924,29 +1924,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitArrayOrSpanCollectionLiteralExpression(BoundArrayOrSpanCollectionLiteralExpression node)
+        public override BoundNode VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
-            VisitCollectionLiteralExpression(node);
-            return null;
-        }
-
-        public override BoundNode VisitCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression node)
-        {
-            VisitCollectionLiteralExpression(node);
-            return null;
-        }
-
-        protected virtual void VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
-        {
-            foreach (var initializer in node.Initializers)
+            foreach (var element in node.Elements)
             {
-                VisitRvalue(initializer);
+                VisitRvalue(element);
             }
+            return null;
         }
 
         public override BoundNode VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
         {
             // PROTOTYPE: How should unconverted collection literals be handled?
+            return null;
+        }
+
+        public override BoundNode VisitCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement node)
+        {
+            VisitRvalue(node.Expression);
             return null;
         }
 
