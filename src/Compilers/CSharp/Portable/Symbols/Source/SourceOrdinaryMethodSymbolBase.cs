@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SourceOrdinaryMethodSymbolBase : SourceOrdinaryMethodOrUserDefinedOperatorSymbol
     {
-        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly string _name;
 
         protected SourceOrdinaryMethodSymbolBase(
@@ -62,8 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
 
-            _typeParameters = MakeTypeParameters(syntax, diagnostics);
-
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
 
             if (hasBody)
@@ -73,8 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: isExplicitInterfaceImplementation, diagnostics, location);
         }
-
-        protected abstract ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics);
 
 #nullable enable
         protected override void MethodChecks(BindingDiagnosticBag diagnostics)
@@ -89,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 for (int i = 0; i < declaredConstraints.Length; i++)
                 {
-                    var typeParameter = _typeParameters[i];
+                    var typeParameter = this.TypeParameters[i];
                     ErrorCode report;
 
                     switch (declaredConstraints[i].Constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.Default))
@@ -171,10 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract void CompleteAsyncMethodChecksBetweenStartAndFinish();
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters
-        {
-            get { return _typeParameters; }
-        }
+        public abstract override ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
 
         public abstract override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
 

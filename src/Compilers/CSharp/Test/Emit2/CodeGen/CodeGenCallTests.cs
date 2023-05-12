@@ -30883,5 +30883,109 @@ Position Equals for item '1'
 }
 ");
         }
+
+        [Fact]
+        public void ChainedCalls()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    void GetName(int x);
+}
+
+class Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public void GetName(int x)
+    {
+        Console.WriteLine(""Position GetName for item '{0}'"", Name);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item {Name = ""1""};
+        Call1(new Program(), item1);
+
+        var item2 = new Item {Name = ""2""};
+        Call2(new Program(), item2);
+    }
+
+    static void Call1<T>(Program p, T item) where T : class, IMoveable
+    {
+        p.GetReceiver(ref item).GetName(GetOffset(ref item));
+    }
+
+    static void Call2<T>(Program p, T item) where T : IMoveable
+    {
+        p.GetReceiver(ref item).GetName(GetOffset(ref item));
+    }
+
+    ref T GetReceiver<T>(ref T x) => ref x;
+    
+    static int value = 0;
+    static int GetOffset<T>(ref T item)
+    {
+        item = (T)(IMoveable)new Item {Name = (--value).ToString()};
+        return 0;
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Fails, expectedOutput: @"
+Position GetName for item '1'
+Position GetName for item '2'
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Call1<T>",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarga.s   V_1
+  IL_0003:  callvirt   ""ref T Program.GetReceiver<T>(ref T)""
+  IL_0008:  ldobj      ""T""
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldarga.s   V_1
+  IL_0012:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_0017:  constrained. ""T""
+  IL_001d:  callvirt   ""void IMoveable.GetName(int)""
+  IL_0022:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Call2<T>",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarga.s   V_1
+  IL_0003:  callvirt   ""ref T Program.GetReceiver<T>(ref T)""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  initobj    ""T""
+  IL_0010:  ldloc.0
+  IL_0011:  box        ""T""
+  IL_0016:  brtrue.s   IL_0020
+  IL_0018:  ldobj      ""T""
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  ldarga.s   V_1
+  IL_0022:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_0027:  constrained. ""T""
+  IL_002d:  callvirt   ""void IMoveable.GetName(int)""
+  IL_0032:  ret
+}
+");
+        }
     }
 }

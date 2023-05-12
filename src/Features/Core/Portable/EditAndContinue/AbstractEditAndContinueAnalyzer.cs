@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static TraceLog Log
-            => EditAndContinueWorkspaceService.AnalysisLog;
+            => EditAndContinueService.AnalysisLog;
 
         internal abstract bool ExperimentalFeaturesEnabled(SyntaxTree tree);
 
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     oldTree = await oldDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     oldRoot = await oldTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                    oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(oldTree == null || oldTree.Options.Equals(newTree.Options));
 
                 var newRoot = await newTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 hasChanges = !oldText.ContentEquals(newText);
 
                 _testFaultInjector?.Invoke(newRoot);
@@ -2417,16 +2417,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             PooledDictionary<INamedTypeSymbol, ConstructorEdit>? instanceConstructorEdits = null;
             PooledDictionary<INamedTypeSymbol, ConstructorEdit>? staticConstructorEdits = null;
 
-            var oldModel = (oldDocument != null) ? await oldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false) : null;
-            var newModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var oldCompilation = oldModel?.Compilation ?? await oldProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var newCompilation = newModel.Compilation;
-
             using var _1 = PooledHashSet<ISymbol>.GetInstance(out var processedSymbols);
             using var _2 = ArrayBuilder<SemanticEditInfo>.GetInstance(out var semanticEdits);
 
             try
             {
+                var oldModel = (oldDocument != null) ? await oldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false) : null;
+                var newModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var oldCompilation = oldModel?.Compilation ?? await oldProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var newCompilation = newModel.Compilation;
+
                 INamedTypeSymbol? lazyLayoutAttribute = null;
 
                 foreach (var edit in editScript.Edits)
@@ -2833,7 +2833,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                                 // The old symbol's declaration syntax may be located in a different document than the old version of the current document.
                                                 var oldSyntaxDocument = oldProject.Solution.GetRequiredDocument(oldDeclaration.SyntaxTree);
                                                 var oldSyntaxModel = await oldSyntaxDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                                                var oldSyntaxText = await oldSyntaxDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                                                var oldSyntaxText = await oldSyntaxDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                                                 var newBody = TryGetDeclarationBody(newDeclaration);
 
                                                 // Skip analysis of active statements. We already report rude edit for removal of code containing
@@ -3310,6 +3310,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         diagnostics,
                         cancellationToken);
                 }
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable();
             }
             finally
             {
