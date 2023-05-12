@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool hasBlockBody = syntax.Body != null;
             bool isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            bool hasBody = hasBlockBody || isExpressionBodied;
+            bool hasAnyBody = hasBlockBody || isExpressionBodied;
 
             this.MakeFlags(
-                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, hasAnyBody: hasBody, isExpressionBodied: isExpressionBodied, isExtensionMethod: false,
+                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied, isExtensionMethod: false,
                 isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (syntax.Identifier.ValueText != containingType.Name)

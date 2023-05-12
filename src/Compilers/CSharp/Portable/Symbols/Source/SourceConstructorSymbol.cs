@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// Ignore Spelling: Nullable
+
 #nullable disable
 
 using System.Diagnostics;
@@ -35,14 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             bool hasBlockBody = syntax.Body != null;
             bool isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            bool hasBody = hasBlockBody || isExpressionBodied;
+            bool hasAnyBody = hasBlockBody || isExpressionBodied;
 
             _hasThisInitializer = syntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer;
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, hasBody, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, hasAnyBody, location, diagnostics, out modifierErrors);
             this.MakeFlags(
-                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, hasAnyBody: hasBody, isExpressionBodied: isExpressionBodied,
+                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: false, isVarArg: syntax.ParameterList.Parameters.Any(static p => p.IsArgList), isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (syntax.Identifier.ValueText != containingType.Name)
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_ExternHasConstructorInitializer, location, this);
                 }
 
-                if (hasBody)
+                if (hasAnyBody)
                 {
                     diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
                 }
@@ -66,14 +68,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (methodKind == MethodKind.StaticConstructor)
             {
-                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
+                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasAnyBody, diagnostics);
             }
 
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false, diagnostics, location);
 
             if (!modifierErrors)
             {
-                this.CheckModifiers(methodKind, hasBody, location, diagnostics);
+                this.CheckModifiers(methodKind, hasAnyBody, location, diagnostics);
             }
 
             CheckForBlockAndExpressionBody(

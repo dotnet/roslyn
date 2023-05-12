@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isIterator,
             bool isExtensionMethod,
             bool isReadOnly,
-            bool hasBody,
+            bool hasAnyBody,
             bool isExpressionBodied,
             bool isNullableAnalysisEnabled,
             bool isVarArg,
@@ -56,20 +56,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const bool returnsVoid = false;
 
             DeclarationModifiers declarationModifiers;
-            (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isReadOnly, hasBody, location, diagnostics);
+            (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isReadOnly, hasAnyBody, location, diagnostics);
 
             //explicit impls must be marked metadata virtual unless static
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
             var isMetadataVirtualIgnoringModifiers = isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0;
 
             this.MakeFlags(
-                methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody: hasBody, isExpressionBodied: isExpressionBodied,
+                methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isVarArg: isVarArg,
                 isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
 
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasAnyBody, diagnostics);
 
-            if (hasBody)
+            if (hasAnyBody)
             {
                 CheckModifiersForBody(location, diagnostics);
             }

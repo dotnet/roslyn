@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     !firstParam.IsArgList &&
                                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
                  isReadOnly: false,
-                 hasBody: syntax.Body != null || syntax.ExpressionBody != null,
+                 hasAnyBody: syntax.Body != null || syntax.ExpressionBody != null,
                  isExpressionBodied: syntax is { Body: null, ExpressionBody: not null },
                  isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                  isVarArg: syntax.ParameterList.Parameters.Any(p => p.IsArgList),
