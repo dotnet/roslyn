@@ -504,6 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 loadDirectiveMapBuilder.Remove(tree);
                 loadedSyntaxTreeMapBuilder.Remove(tree.FilePath);
+                lastComputedMemberNamesMap.Remove(tree);
                 RemoveSyntaxTreeFromDeclarationMapAndTable(tree, declMapBuilder, ref declTable);
             }
             removeSet.Free();
