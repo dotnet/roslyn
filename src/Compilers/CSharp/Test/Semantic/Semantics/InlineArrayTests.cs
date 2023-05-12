@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -84,7 +86,7 @@ struct Buffer
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementField().Type.SpecialType);
             }
         }
 
@@ -107,13 +109,13 @@ struct Buffer<T>
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.Equal("T", buffer.TryGetInlineArrayElementType().ToTestDisplayString());
+                Assert.Equal("T", buffer.TryGetInlineArrayElementField().Type.ToTestDisplayString());
 
                 var bufferOfInt = buffer.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32));
 
                 Assert.True(bufferOfInt.HasInlineArrayAttribute(out length));
                 Assert.Equal(10, length);
-                Assert.Equal(SpecialType.System_Int32, bufferOfInt.TryGetInlineArrayElementType().SpecialType);
+                Assert.Equal(SpecialType.System_Int32, bufferOfInt.TryGetInlineArrayElementField().Type.SpecialType);
             }
         }
 
@@ -151,7 +153,7 @@ namespace System.Runtime.CompilerServices
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementField().Type.SpecialType);
             }
         }
 
@@ -253,7 +255,7 @@ struct Buffer
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.False(buffer.TryGetInlineArrayElementType().HasType);
+                Assert.Null(buffer.TryGetInlineArrayElementField());
             }
         }
 
@@ -275,7 +277,7 @@ struct Buffer
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.False(buffer.TryGetInlineArrayElementType().HasType);
+                Assert.Null(buffer.TryGetInlineArrayElementField());
             }
         }
 
@@ -300,7 +302,7 @@ struct Buffer
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementField().Type.SpecialType);
             }
         }
 
@@ -323,7 +325,7 @@ struct Buffer
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.False(buffer.TryGetInlineArrayElementType().HasType);
+                Assert.Null(buffer.TryGetInlineArrayElementField());
             }
         }
 
@@ -360,7 +362,7 @@ namespace System.Runtime.CompilerServices
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.False(buffer.TryGetInlineArrayElementType().HasType);
+                Assert.Null(buffer.TryGetInlineArrayElementField());
             }
         }
 
@@ -397,7 +399,7 @@ namespace System.Runtime.CompilerServices
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.False(buffer.TryGetInlineArrayElementType().HasType);
+                Assert.Null(buffer.TryGetInlineArrayElementField());
             }
         }
 
@@ -431,7 +433,7 @@ namespace System.Runtime.CompilerServices
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.False(buffer.TryGetInlineArrayElementType().HasType);
+                Assert.Null(buffer.TryGetInlineArrayElementField());
             }
         }
 
@@ -470,7 +472,7 @@ namespace System.Runtime.CompilerServices
 
             Assert.True(buffer.HasInlineArrayAttribute(out int length));
             Assert.Equal(10, length);
-            Assert.False(buffer.TryGetInlineArrayElementType().HasType);
+            Assert.Null(buffer.TryGetInlineArrayElementField());
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
@@ -492,7 +494,7 @@ ref struct Buffer
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.False(buffer.TryGetInlineArrayElementType().HasType);
+                Assert.Null(buffer.TryGetInlineArrayElementField());
             }
         }
 
@@ -515,7 +517,7 @@ ref struct Buffer
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.False(buffer.TryGetInlineArrayElementType().HasType);
+                Assert.Null(buffer.TryGetInlineArrayElementField());
             }
         }
 
@@ -537,7 +539,7 @@ struct Buffer
             Assert.IsType<RetargetingNamedTypeSymbol>(buffer);
             Assert.True(buffer.HasInlineArrayAttribute(out int length));
             Assert.Equal(10, length);
-            Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementField().Type.SpecialType);
         }
 
         [Fact]
@@ -559,7 +561,7 @@ struct Buffer
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementField().Type.SpecialType);
             }
         }
 
@@ -589,7 +591,7 @@ struct Buffer
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementField().Type.SpecialType);
             }
         }
 
@@ -617,7 +619,7 @@ struct Buffer
 
             Assert.True(buffer.HasInlineArrayAttribute(out int length));
             Assert.Equal(10, length);
-            Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementField().Type.SpecialType);
         }
 
         [Fact]
@@ -688,7 +690,7 @@ namespace System.Runtime.CompilerServices
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementField().Type.SpecialType);
             }
         }
 
@@ -725,7 +727,7 @@ namespace System.Runtime.CompilerServices
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementField().Type.SpecialType);
             }
         }
 
@@ -768,9 +770,352 @@ namespace System.Runtime.CompilerServices
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
-                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementType().SpecialType);
+                Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementField().Type.SpecialType);
 
                 Assert.Equal("Field", m.GlobalNamespace.GetTypeMember("C1").GetAppliedConditionalSymbols().Single());
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_26()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+struct Buffer
+{
+    private int _element0;
+    public event System.Action E;
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Null(buffer.TryGetInlineArrayElementField());
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_27()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+struct Buffer
+{
+    private int _element0;
+    int E { get; set; }
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Null(buffer.TryGetInlineArrayElementField());
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_28()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+record struct Buffer(int p)
+{
+    private int _element0;
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Null(buffer.TryGetInlineArrayElementField());
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_29_UseSiteError()
+        {
+            // [System.Runtime.CompilerServices.InlineArray(10)]
+            // public struct Buffer
+            // {
+            //     private int _element0;
+            // }
+            var ilSource = @"
+.class public sequential ansi sealed beforefieldinit Buffer
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void System.Runtime.CompilerServices.InlineArrayAttribute::.ctor(int32) = (
+        01 00 0a 00 00 00 00 00
+    )
+
+    .field private int32 modreq(int32) _element0
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.InlineArrayAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 08 00 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 length
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var src = @"
+var x = new Buffer();
+x[0] = 111;
+_ = (System.Span<int>)x;
+";
+
+            var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.NetCoreApp);
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.Equal(SpecialType.System_Int32, buffer.TryGetInlineArrayElementField().Type.SpecialType);
+
+            comp.VerifyDiagnostics(
+                // (3,1): error CS0570: 'Buffer._element0' is not supported by the language
+                // x[0] = 111;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "x[0]").WithArguments("Buffer._element0").WithLocation(3, 1),
+                // (4,5): error CS0570: 'Buffer._element0' is not supported by the language
+                // _ = (System.Span<int>)x;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(System.Span<int>)x").WithArguments("Buffer._element0").WithLocation(4, 5)
+                );
+        }
+
+        [Fact]
+        public void InlineArrayType_30_UnsupportedElementType()
+        {
+            var src = @"
+unsafe class Program
+{
+    static void Test()
+    {
+        var x = new Buffer();
+        x[0] = null;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+unsafe struct Buffer
+{
+    private void* _element0;
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.Equal("System.Void*", buffer.TryGetInlineArrayElementField().Type.ToTestDisplayString());
+
+            comp.VerifyDiagnostics(
+                // (7,9): error CS0306: The type 'void*' may not be used as a type argument
+                //         x[0] = null;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x[0]").WithArguments("void*").WithLocation(7, 9)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void InlineArrayType_31_Nested()
+        {
+            var src = @"
+var c = new C();
+c.F[0] = 111;
+System.Console.WriteLine(c.F[0]);
+
+class C
+{
+    public Enclosing.Buffer F;
+}
+
+public class Enclosing
+{
+    [System.Runtime.CompilerServices.InlineArray(10)]
+    public struct Buffer
+    {
+        private int _element0;
+    }
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetMember<FieldSymbol>("C.F").Type;
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal("System.Int32 Enclosing.Buffer._element0", buffer.TryGetInlineArrayElementField().ToTestDisplayString());
+            }
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void InlineArrayType_32_Generic()
+        {
+            var src = @"
+var c = new C();
+c.F[0] = 111;
+System.Console.WriteLine(c.F[0]);
+
+class C
+{
+    public Enclosing<int>.Buffer F;
+}
+
+public class Enclosing<T>
+{
+    [System.Runtime.CompilerServices.InlineArray(10)]
+    public struct Buffer
+    {
+        private T _element0;
+    }
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetMember<FieldSymbol>("C.F").Type;
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal("System.Int32 Enclosing<System.Int32>.Buffer._element0", buffer.TryGetInlineArrayElementField().ToTestDisplayString());
+            }
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void InlineArrayType_33_Generic()
+        {
+            var src = @"
+var c = new C();
+c.F[0] = 111;
+System.Console.WriteLine(c.F[0]);
+
+class C
+{
+    public Enclosing.Buffer<int> F;
+}
+
+public class Enclosing
+{
+    [System.Runtime.CompilerServices.InlineArray(10)]
+    public struct Buffer<T>
+    {
+        private T _element0;
+    }
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetMember<FieldSymbol>("C.F").Type;
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal("System.Int32 Enclosing.Buffer<System.Int32>._element0", buffer.TryGetInlineArrayElementField().ToTestDisplayString());
+            }
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void InlineArrayType_34_Generic()
+        {
+            var src = @"
+var c = new C();
+c.F[0] = 111;
+System.Console.WriteLine(c.F[0]);
+
+class C
+{
+    public Enclosing<int>.Buffer<string> F;
+}
+
+public class Enclosing<T>
+{
+    [System.Runtime.CompilerServices.InlineArray(10)]
+    public struct Buffer<U>
+    {
+        private T _element0;
+    }
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetMember<FieldSymbol>("C.F").Type;
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal("System.Int32 Enclosing<System.Int32>.Buffer<System.String>._element0", buffer.TryGetInlineArrayElementField().ToTestDisplayString());
+            }
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void InlineArrayType_35_Generic()
+        {
+            var src = @"
+var c = new C();
+c.F[0] = ""111"";
+System.Console.WriteLine(c.F[0]);
+
+class C
+{
+    public Enclosing<int>.Buffer<string> F;
+}
+
+public class Enclosing<T>
+{
+    [System.Runtime.CompilerServices.InlineArray(10)]
+    public struct Buffer<U>
+    {
+        private U _element0;
+    }
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetMember<FieldSymbol>("C.F").Type;
+
+                Assert.True(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(10, length);
+                Assert.Equal("System.String Enclosing<System.Int32>.Buffer<System.String>._element0", buffer.TryGetInlineArrayElementField().ToTestDisplayString());
             }
         }
 

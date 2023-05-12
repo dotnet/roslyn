@@ -7985,10 +7985,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (allowInlineArrayElementAccess &&
                 !InAttributeArgument && !InParameterDefaultValue && // These checks prevent cycles caused by attribute binding when HasInlineArrayAttribute check triggers that.
-                expr.Type.HasInlineArrayAttribute(out _) && analyzedArguments.Arguments.Count == 1 && expr.Type.TryGetInlineArrayElementType() is { HasType: true } elementType &&
+                expr.Type.HasInlineArrayAttribute(out _) && analyzedArguments.Arguments.Count == 1 && expr.Type.TryGetInlineArrayElementField() is FieldSymbol elementField &&
                 tryImplicitConversionToInlineArrayIndex(node, analyzedArguments.Arguments[0], diagnostics, out WellKnownType indexOrRangeWellknownType) is { } convertedIndex)
             {
-                return bindInlineArrayElementAccess(node, expr, analyzedArguments, convertedIndex, indexOrRangeWellknownType, elementType, diagnostics);
+                return bindInlineArrayElementAccess(node, expr, analyzedArguments, convertedIndex, indexOrRangeWellknownType, elementField, diagnostics);
             }
 
             return BindElementAccessCore(node, expr, analyzedArguments, diagnostics);
@@ -8019,7 +8019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return convertedIndex;
             }
 
-            BoundExpression bindInlineArrayElementAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, BoundExpression convertedIndex, WellKnownType indexOrRangeWellknownType, TypeWithAnnotations elementType, BindingDiagnosticBag diagnostics)
+            BoundExpression bindInlineArrayElementAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, BoundExpression convertedIndex, WellKnownType indexOrRangeWellknownType, FieldSymbol elementField, BindingDiagnosticBag diagnostics)
             {
                 // Check required well-known members. They may not be needed
                 // during lowering, but it's simpler to always require them to prevent
@@ -8087,13 +8087,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: node);
                 _ = GetWellKnownTypeMember(createSpanHelper, diagnostics, syntax: node);
-                _ = GetWellKnownTypeMember(getItemOrSliceHelper, diagnostics, syntax: node);
+                var spanMethod = GetWellKnownTypeMember(getItemOrSliceHelper, diagnostics, syntax: node);
+
+                if (spanMethod is { ContainingType: { Kind: SymbolKind.NamedType } spanType })
+                {
+                    spanType.Construct(ImmutableArray.Create(elementField.TypeWithAnnotations)).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, node.GetLocation(), diagnostics));
+                }
 
                 // PROTOTYPE(InlineArrays): Check runtime support
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureInlineArrays, diagnostics);
-
-                // PROTOTYPE(InlineArrays): Verify constraints for the elementType (can be used as a type argument)
-                // PROTOTYPE(InlineArrays): Report use site errors for the field, it might have some custom modifiers that we do not like.
+                diagnostics.ReportUseSite(elementField, node);
 
                 TypeSymbol resultType;
 
@@ -8102,11 +8105,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // The symbols will be verified as return types of 'createSpanHelper', no need to check them again
                     resultType = Compilation.GetWellKnownType(
                         getItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int ? WellKnownType.System_ReadOnlySpan_T : WellKnownType.System_Span_T).
-                        Construct(ImmutableArray.Create(elementType));
+                        Construct(ImmutableArray.Create(elementField.TypeWithAnnotations));
                 }
                 else
                 {
-                    resultType = elementType.Type;
+                    resultType = elementField.Type;
                 }
 
                 return new BoundInlineArrayAccess(node, expr, convertedIndex, isValue, getItemOrSliceHelper, resultType);

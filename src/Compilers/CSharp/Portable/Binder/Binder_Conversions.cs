@@ -412,8 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // PROTOTYPE(InlineArrays): Check runtime support
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInlineArrays, diagnostics);
-
-                    // PROTOTYPE(InlineArrays): Report use site errors for the field, it might have some custom modifiers that we do not like.
+                    diagnostics.ReportUseSite(source.Type!.TryGetInlineArrayElementField(), syntax);
 
                     if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
                     {
