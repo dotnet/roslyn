@@ -703,5 +703,33 @@ class Test
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
+
+        [Fact]
+        public void ReadonlyWithThis()
+        {
+            var source = """
+                static class C
+                {
+                    public static void M(this readonly int p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,31): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void M(this readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 31),
+                // (3,31): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                //     public static void M(this readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 31));
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,31): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                //     public static void M(this readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 31)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        }
     }
 }
