@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeclarationKind.Namespace => throw ExceptionUtilities.Unreachable(),
 
                 // Delegates also do not cache any members names as the member names are always a known fixed set.
-                DeclarationKind.Namespace or DeclarationKind.Delegate => false,
+                DeclarationKind.Delegate => false,
 
                 DeclarationKind.Class or
                 DeclarationKind.Interface or
