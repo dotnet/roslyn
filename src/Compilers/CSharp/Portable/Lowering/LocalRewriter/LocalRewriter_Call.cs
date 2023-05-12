@@ -274,72 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-<<<<<<< HEAD
-            MethodSymbol method = node.Method;
-            ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
-            ImmutableArray<RefKind> argRefKindsOpt = node.ArgumentRefKindsOpt;
-            bool invokedAsExtensionMethod = node.InvokedAsExtensionMethod;
-
-            // Rewrite the receiver
-            BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
-
-            ArrayBuilder<LocalSymbol>? temps = null;
-            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
-                ref rewrittenReceiver,
-                captureReceiverMode: ReceiverCaptureMode.Default,
-                node.Arguments,
-                method,
-                argsToParamsOpt,
-                argRefKindsOpt,
-                storesOpt: null,
-                ref temps);
-
-            rewrittenArguments = MakeArguments(
-                node.Syntax,
-                rewrittenArguments,
-                method,
-                node.Expanded,
-                argsToParamsOpt,
-                ref argRefKindsOpt,
-                ref temps,
-                invokedAsExtensionMethod);
-
-            InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableLocation);
-            var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
-
-            if (Instrument)
-||||||| 2c5b998a222
-            // Rewrite the receiver
-            BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
-            var argRefKindsOpt = node.ArgumentRefKindsOpt;
-
-            ArrayBuilder<LocalSymbol>? temps = null;
-            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
-                ref rewrittenReceiver,
-                captureReceiverMode: ReceiverCaptureMode.Default,
-                node.Arguments,
-                node.Method,
-                node.ArgsToParamsOpt,
-                argRefKindsOpt,
-                storesOpt: null,
-                ref temps);
-
-            var rewrittenCall = MakeArgumentsAndCall(
-                syntax: node.Syntax,
-                rewrittenReceiver: rewrittenReceiver,
-                method: node.Method,
-                arguments: rewrittenArguments,
-                argumentRefKindsOpt: argRefKindsOpt,
-                expanded: node.Expanded,
-                invokedAsExtensionMethod: node.InvokedAsExtensionMethod,
-                argsToParamsOpt: node.ArgsToParamsOpt,
-                resultKind: node.ResultKind,
-                type: node.Type,
-                temps,
-                nodeOpt: node);
-
-            if (Instrument)
-=======
             BoundExpression rewrittenCall;
 
             if (node.ReceiverOpt is BoundCall receiver1)
@@ -368,7 +302,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 calls.Free();
             }
             else
->>>>>>> upstream/main
             {
                 // Rewrite the receiver
                 BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
@@ -379,32 +312,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression visitArgumentsAndFinishRewrite(BoundCall node, BoundExpression? rewrittenReceiver)
             {
-                var argRefKindsOpt = node.ArgumentRefKindsOpt;
+                MethodSymbol method = node.Method;
+                ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
+                ImmutableArray<RefKind> argRefKindsOpt = node.ArgumentRefKindsOpt;
+                bool invokedAsExtensionMethod = node.InvokedAsExtensionMethod;
 
                 ArrayBuilder<LocalSymbol>? temps = null;
                 var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                     ref rewrittenReceiver,
                     captureReceiverMode: ReceiverCaptureMode.Default,
                     node.Arguments,
-                    node.Method,
-                    node.ArgsToParamsOpt,
+                    method,
+                    argsToParamsOpt,
                     argRefKindsOpt,
                     storesOpt: null,
                     ref temps);
 
-                var rewrittenCall = MakeArgumentsAndCall(
-                    syntax: node.Syntax,
-                    rewrittenReceiver: rewrittenReceiver,
-                    method: node.Method,
-                    arguments: rewrittenArguments,
-                    argumentRefKindsOpt: argRefKindsOpt,
-                    expanded: node.Expanded,
-                    invokedAsExtensionMethod: node.InvokedAsExtensionMethod,
-                    argsToParamsOpt: node.ArgsToParamsOpt,
-                    resultKind: node.ResultKind,
-                    type: node.Type,
-                    temps,
-                    nodeOpt: node);
+                rewrittenArguments = MakeArguments(
+                    node.Syntax,
+                    rewrittenArguments,
+                    method,
+                    node.Expanded,
+                    argsToParamsOpt,
+                    ref argRefKindsOpt,
+                    ref temps,
+                    invokedAsExtensionMethod);
+
+                InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableLocation);
+                var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
 
                 if (Instrument)
                 {
