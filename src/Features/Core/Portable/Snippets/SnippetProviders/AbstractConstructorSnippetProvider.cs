@@ -33,11 +33,25 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var nodeAtPosition = root.FindNode(TextSpan.FromBounds(position, position));
             var containingType = nodeAtPosition.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
+
+            // Skip inner class in nested class if position is out of it.
+            //     For example "class Outer{\r\n ctor@ \r\n class Inner {} }"
+            // Accept even if "static class" (CS0710).
+            containingType = nodeAtPosition.FirstAncestorOrSelf<SyntaxNode>((node) =>
+            {
+                return syntaxFacts.IsTypeDeclaration(node)
+                    && IsConstructableTypeDeclaration(syntaxFacts, node)
+                    && node.Span.Contains(position);
+            });
+
             Contract.ThrowIfNull(containingType);
             var constructorDeclaration = generator.ConstructorDeclaration(
                 containingTypeName: syntaxFacts.GetIdentifierOfTypeDeclaration(containingType).ToString(),
                 accessibility: Accessibility.Public);
             return new TextChange(TextSpan.FromBounds(position, position), constructorDeclaration.NormalizeWhitespace().ToFullString());
         }
+
+        // Move this to ISyntaxFacts if approved.
+        protected abstract bool IsConstructableTypeDeclaration(ISyntaxFacts syntaxFacts, SyntaxNode node);
     }
 }

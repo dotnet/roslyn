@@ -168,5 +168,106 @@ $$";
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfTheory]
+        [InlineData("class")]
+        [InlineData("enum")]
+        [InlineData("interface")]
+        [InlineData("record")]
+        [InlineData("struct")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConstructorSnippetHasNestedTypeTest(string keyword)
+        {
+            var markupBeforeCommit =
+@"class Outer
+{
+    $$
+    %keyword% Inner
+    {
+    }
+}".Replace("%keyword%", keyword);
+
+            var expectedCodeAfterCommit =
+@"class Outer
+{
+    public Outer()
+    {
+        $$
+    }
+    %keyword% Inner
+    {
+    }
+}".Replace("%keyword%", keyword);
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConstructorSnippetHasNestedClassGluedOuterTest()
+        {
+            var markupBeforeCommit_GluedToOuter =
+@"class Outer
+{$$
+    class Inner
+    {
+    }
+}";
+            // The position ($$) is in a strange position because code does not format after insertion.
+            var expectedCodeAfterCommit_GluedToOuter =
+@"class Outer
+{    public Outer()
+    {
+        
+$$    }
+    class Inner
+    {
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit_GluedToOuter, ItemToCommit, expectedCodeAfterCommit_GluedToOuter);
+        }
+
+        [WpfTheory]
+        [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("struct")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConstructorSnippetInConstructableTypeTest(string keyword)
+        {
+            var markupBeforeCommit =
+@"%keyword% MyName
+{
+    $$
+}".Replace("%keyword%", keyword);
+
+            var expectedCodeAfterCommit =
+@"%keyword% MyName
+{
+    public MyName()
+    {
+        $$
+    }
+}".Replace("%keyword%", keyword);
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("enum")]
+        [InlineData("interface")]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConstructorSnippetInNotConstructableTypeTest(string keyword)
+        {
+            var markupBeforeCommit =
+@"%keyword% MyName
+{
+    $$
+}".Replace("%keyword%", keyword);
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
     }
 }

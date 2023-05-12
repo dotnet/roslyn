@@ -93,5 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var newRoot = root.ReplaceNode(constructorDeclaration, newConstructorDeclaration);
             return document.WithSyntaxRoot(newRoot);
         }
+
+        protected override bool IsConstructableTypeDeclaration(ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            return syntaxFacts.IsTypeDeclaration(node)
+                && SyntaxKindSet.ClassStructRecordTypeDeclarations.Contains(node.Kind());
+        }
     }
 }
