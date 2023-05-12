@@ -21923,36 +21923,12 @@ namespace System
                 parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
-                // (8,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //             (string I1,
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1,
-                string I2,
-                string I3,
-                string I4,
-                string I5,
-                string I6,
-                string I7,
-                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 13),
-                // (30,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //             (string I1,
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1,
-                string I2,
-                string I3,
-                string I4,
-                string I5,
-                string I6,
-                string I7,
-                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(30, 13),
-                // (52,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //             (string I1,
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1,
-                string I2,
-                string I3,
-                string I4,
-                string I5,
-                string I6,
-                string I7,
-                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(52, 13),
+                // (70,38): error CS0165: Use of unassigned local variable 'ss'
+                //             System.Console.WriteLine(ss); // should fail
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(70, 38)
+            );
+
+            comp.VerifyEmitDiagnostics(
                 // (70,38): error CS0165: Use of unassigned local variable 'ss'
                 //             System.Console.WriteLine(ss); // should fail
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(70, 38)
@@ -29821,6 +29797,80 @@ True
                 (DestType { N = 1 }, DestType { N = 2 }, DestType { N = 3 })
                 """);
             verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
+        [Fact]
+        public void ExplicitInterfaceImplementation_UnexpectedInterface()
+        {
+            var source = """
+                namespace System
+                {
+                    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> : System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)> where TRest : struct
+                    {
+                        public T1 Item1;
+                        public T2 Item2;
+                        public T3 Item3;
+                        public T4 Item4;
+                        public T5 Item5;
+                        public T6 Item6;
+                        public T7 Item7;
+                        public TRest Rest;
+                        object? System.Runtime.CompilerServices.ITuple.this[int index] { get { throw null; } }
+                    }
+                }
+                """;
+
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS0518: Predefined type 'System.ValueType' is not defined or imported
+                //     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> : System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)> where TRest : struct
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ValueTuple").WithArguments("System.ValueType").WithLocation(3, 19),
+                // (3,74): error CS0234: The type or namespace name 'IEquatable<>' does not exist in the namespace 'System' (are you missing an assembly reference?)
+                //     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> : System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)> where TRest : struct
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>").WithArguments("IEquatable<>", "System").WithLocation(3, 74),
+                // (3,85): error CS8179: Predefined type 'System.ValueTuple`1' is not defined or imported
+                //     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> : System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)> where TRest : struct
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(T1, T2, T3, T4, T5, T6, T7, TRest)").WithArguments("System.ValueTuple`1").WithLocation(3, 85),
+                // (13,9): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //         object? System.Runtime.CompilerServices.ITuple.this[int index] { get { throw null; } }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(13, 9),
+                // (13,9): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //         object? System.Runtime.CompilerServices.ITuple.this[int index] { get { throw null; } }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?").WithArguments("System.Nullable`1").WithLocation(13, 9),
+                // (13,17): error CS0518: Predefined type 'System.ValueType' is not defined or imported
+                //         object? System.Runtime.CompilerServices.ITuple.this[int index] { get { throw null; } }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "System").WithArguments("System.ValueType").WithLocation(13, 17),
+                // (13,17): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //         object? System.Runtime.CompilerServices.ITuple.this[int index] { get { throw null; } }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "System").WithArguments("System.Object").WithLocation(13, 17),
+                // (13,17): error CS0538: 'Runtime.CompilerServices.ITuple' in explicit interface declaration is not an interface
+                //         object? System.Runtime.CompilerServices.ITuple.this[int index] { get { throw null; } }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "System.Runtime.CompilerServices.ITuple").WithArguments("System.Runtime.CompilerServices.ITuple").WithLocation(13, 17),
+                // (13,24): error CS0234: The type or namespace name 'Runtime' does not exist in the namespace 'System' (are you missing an assembly reference?)
+                //         object? System.Runtime.CompilerServices.ITuple.this[int index] { get { throw null; } }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Runtime").WithArguments("Runtime", "System").WithLocation(13, 24),
+                // (13,61): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         object? System.Runtime.CompilerServices.ITuple.this[int index] { get { throw null; } }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(13, 61),
+                // (13,86): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //         object? System.Runtime.CompilerServices.ITuple.this[int index] { get { throw null; } }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "null").WithArguments("System.Exception").WithLocation(13, 86));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,67): error CS0535: 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' does not implement interface member 'IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>.Equals((T1, T2, T3, T4, T5, T6, T7, TRest))'
+                //     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> : System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)> where TRest : struct
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>.Equals((T1, T2, T3, T4, T5, T6, T7, TRest))").WithLocation(3, 67),
+                // (13,15): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //         object? System.Runtime.CompilerServices.ITuple.this[int index] { get { throw null; } }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 15),
+                // (13,17): error CS0538: 'ITuple' in explicit interface declaration is not an interface
+                //         object? System.Runtime.CompilerServices.ITuple.this[int index] { get { throw null; } }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "System.Runtime.CompilerServices.ITuple").WithArguments("System.Runtime.CompilerServices.ITuple").WithLocation(13, 17),
+                // (13,49): error CS0234: The type or namespace name 'ITuple' does not exist in the namespace 'System.Runtime.CompilerServices' (are you missing an assembly reference?)
+                //         object? System.Runtime.CompilerServices.ITuple.this[int index] { get { throw null; } }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "ITuple").WithArguments("ITuple", "System.Runtime.CompilerServices").WithLocation(13, 49));
         }
     }
 }
