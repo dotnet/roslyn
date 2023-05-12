@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 refKind: baseMethod.RefKind,
                 declarationModifiers: declarationModifiers,
                 returnsVoid: baseMethod.ReturnsVoid,
-                hasAnyBody: false,
+                // Consider synthesized methods to always have bodies.
+                hasAnyBody: true,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: false,
                 isVarArg: baseMethod.IsVararg,
