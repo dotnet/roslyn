@@ -610,12 +610,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (previousRootNamespaceDeclaration.IsValueCreated)
                 {
                     // we computed the last root.  It will have up to date member names.  So just return those if present.
-                    var stack = s_declarationStack.Allocate();
+                    Stack<SingleNamespaceOrTypeDeclaration> stack = s_declarationStack.Allocate();
                     stack.Push(previousRootNamespaceDeclaration.Value);
 
                     var builder = ArrayBuilder<ImmutableSegmentedHashSet<string>>.GetInstance();
 
-                    while (stack.Count > 0)
+                    do
                     {
                         var current = stack.Pop();
 
@@ -628,6 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (current is SingleTypeDeclaration singleType && DeclarationTreeBuilder.CachesComputedMemberNames(singleType))
                             builder.Add(singleType.MemberNames);
                     }
+                    while (stack.Count > 0);
 
                     s_declarationStack.Free(stack);
 
