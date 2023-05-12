@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (elements.Any(i => i is BoundCollectionLiteralSpreadElement))
             {
-                // The array initializer includes at least one spread element, and if any spread element
-                // has an unknown length (at runtime), we'll create an intermediate List<T> instance.
-                // PROTOTYPE: Use Enumerable.TryGetNonEnumeratedCount() at runtime.
+                // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
+                // PROTOTYPE: Avoid the intermediate list if the compile-time type of the spread element includes a length.
+                // PROTOTYPE: Use Enumerable.TryGetNonEnumeratedCount() at runtime for other cases.
                 var listType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(elementType);
                 var listToArray = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)!).AsMember(listType);
                 var list = VisitCollectionInitializerCollectionLiteralExpression(node);
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _factory.SpillSequence(
                 ImmutableArray<LocalSymbol>.Empty,
                 ImmutableArray.Create(statement),
-                result: _factory.Literal(0)); // PROTOTYPE: The result is unused. Can we avoid creating it entirely?
+                result: _factory.Literal(0)); // result is unused
         }
     }
 }

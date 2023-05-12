@@ -1013,6 +1013,194 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void MemberAccess_01()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [].GetHashCode();
+                        []?.GetHashCode();
+                        [][0].GetHashCode();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Unexpected parse errors.
+            comp.VerifyEmitDiagnostics(
+                // (5,12): error CS0117: 'collection literals' does not contain a definition for 'GetHashCode'
+                //         [].GetHashCode();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection literals", "GetHashCode").WithLocation(5, 12),
+                // (6,11): error CS0023: Operator '?' cannot be applied to operand of type 'collection literals'
+                //         []?.GetHashCode();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "collection literals").WithLocation(6, 11),
+                // (7,9): error CS7014: Attributes are not valid in this context.
+                //         [][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[]").WithLocation(7, 9),
+                // (7,10): error CS1001: Identifier expected
+                //         [][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(7, 10),
+                // (7,12): error CS1001: Identifier expected
+                //         [][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "0").WithLocation(7, 12),
+                // (7,12): error CS1003: Syntax error, ']' expected
+                //         [][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments("]").WithLocation(7, 12),
+                // (7,13): error CS1002: ; expected
+                //         [][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(7, 13),
+                // (7,13): error CS1513: } expected
+                //         [][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "]").WithLocation(7, 13),
+                // (7,15): error CS0120: An object reference is required for the non-static field, method, or property 'object.GetHashCode()'
+                //         [][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "GetHashCode").WithArguments("object.GetHashCode()").WithLocation(7, 15));
+        }
+
+        [Fact]
+        public void MemberAccess_02()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [1].GetHashCode();
+                        [2]?.GetHashCode();
+                        [3][0].GetHashCode();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Unexpected parse errors.
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS7014: Attributes are not valid in this context.
+                //         [1].GetHashCode();
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[").WithLocation(5, 9),
+                // (5,10): error CS1001: Identifier expected
+                //         [1].GetHashCode();
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "1").WithLocation(5, 10),
+                // (5,10): error CS1003: Syntax error, ']' expected
+                //         [1].GetHashCode();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments("]").WithLocation(5, 10),
+                // (5,11): error CS1002: ; expected
+                //         [1].GetHashCode();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(5, 11),
+                // (5,11): error CS1513: } expected
+                //         [1].GetHashCode();
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "]").WithLocation(5, 11),
+                // (5,13): error CS0120: An object reference is required for the non-static field, method, or property 'object.GetHashCode()'
+                //         [1].GetHashCode();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "GetHashCode").WithArguments("object.GetHashCode()").WithLocation(5, 13),
+                // (6,9): error CS7014: Attributes are not valid in this context.
+                //         [2]?.GetHashCode();
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[").WithLocation(6, 9),
+                // (6,10): error CS1001: Identifier expected
+                //         [2]?.GetHashCode();
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "2").WithLocation(6, 10),
+                // (6,10): error CS1003: Syntax error, ']' expected
+                //         [2]?.GetHashCode();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments("]").WithLocation(6, 10),
+                // (6,11): error CS1002: ; expected
+                //         [2]?.GetHashCode();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(6, 11),
+                // (6,11): error CS1513: } expected
+                //         [2]?.GetHashCode();
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "]").WithLocation(6, 11),
+                // (6,14): error CS0120: An object reference is required for the non-static field, method, or property 'object.GetHashCode()'
+                //         [2]?.GetHashCode();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "GetHashCode").WithArguments("object.GetHashCode()").WithLocation(6, 14),
+                // (7,9): error CS7014: Attributes are not valid in this context.
+                //         [3][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[").WithLocation(7, 9),
+                // (7,10): error CS1001: Identifier expected
+                //         [3][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "3").WithLocation(7, 10),
+                // (7,10): error CS1003: Syntax error, ']' expected
+                //         [3][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "3").WithArguments("]").WithLocation(7, 10),
+                // (7,11): error CS1002: ; expected
+                //         [3][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(7, 11),
+                // (7,11): error CS1513: } expected
+                //         [3][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "]").WithLocation(7, 11),
+                // (7,12): error CS7014: Attributes are not valid in this context.
+                //         [3][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[").WithLocation(7, 12),
+                // (7,13): error CS1001: Identifier expected
+                //         [3][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "0").WithLocation(7, 13),
+                // (7,13): error CS1003: Syntax error, ']' expected
+                //         [3][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments("]").WithLocation(7, 13),
+                // (7,14): error CS1002: ; expected
+                //         [3][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(7, 14),
+                // (7,14): error CS1513: } expected
+                //         [3][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "]").WithLocation(7, 14),
+                // (7,16): error CS0120: An object reference is required for the non-static field, method, or property 'object.GetHashCode()'
+                //         [3][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "GetHashCode").WithArguments("object.GetHashCode()").WithLocation(7, 16));
+        }
+
+        [Fact]
+        public void MemberAccess_03()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        _ = [].GetHashCode();
+                        _ = []?.GetHashCode();
+                        _ = [][0].GetHashCode();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,16): error CS0117: 'collection literals' does not contain a definition for 'GetHashCode'
+                //         _ = [].GetHashCode();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection literals", "GetHashCode").WithLocation(5, 16),
+                // (6,15): error CS0023: Operator '?' cannot be applied to operand of type 'collection literals'
+                //         _ = []?.GetHashCode();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "collection literals").WithLocation(6, 15),
+                // (7,13): error CS0021: Cannot apply indexing with [] to an expression of type 'collection literals'
+                //         _ = [][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[][0]").WithArguments("collection literals").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void MemberAccess_04()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        _ = [1].GetHashCode();
+                        _ = [2]?.GetHashCode();
+                        _ = [3][0].GetHashCode();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,17): error CS0117: 'collection literals' does not contain a definition for 'GetHashCode'
+                //         _ = [1].GetHashCode();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection literals", "GetHashCode").WithLocation(5, 17),
+                // (6,16): error CS0023: Operator '?' cannot be applied to operand of type 'collection literals'
+                //         _ = [2]?.GetHashCode();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "collection literals").WithLocation(6, 16),
+                // (7,13): error CS0021: Cannot apply indexing with [] to an expression of type 'collection literals'
+                //         _ = [3][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[3][0]").WithArguments("collection literals").WithLocation(7, 13));
+        }
+
+        [Fact]
         public void ListBase()
         {
             string sourceA = """
@@ -3537,6 +3725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         int[] a = [1, 2];
                         a = [..a, ..[]];
+                        a = [..[default]];
                     }
                 }
                 """;
@@ -3545,7 +3734,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // (6,21): error CS0446: Foreach cannot operate on a 'collection literals'. Did you intend to invoke the 'collection literals'?
                 //         a = [..a, ..[]];
-                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "[]").WithArguments("collection literals").WithLocation(6, 21));
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "[]").WithArguments("collection literals").WithLocation(6, 21),
+                // (7,16): error CS0446: Foreach cannot operate on a 'collection literals'. Did you intend to invoke the 'collection literals'?
+                //         a = [..[default]];
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "[default]").WithArguments("collection literals").WithLocation(7, 16));
         }
 
         [Fact]

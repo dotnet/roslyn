@@ -480,8 +480,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elements = node.Elements;
             if (elements.Any(e => e is BoundCollectionLiteralSpreadElement))
             {
+                // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
+                // PROTOTYPE: Avoid the intermediate list if the compile-time type of the spread element includes a length.
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
-
                 var result = BindCollectionInitializerCollectionLiteral(
                     node,
                     GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, syntax).Construct(elementType),
