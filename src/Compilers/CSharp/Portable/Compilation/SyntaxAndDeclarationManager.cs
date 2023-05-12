@@ -169,6 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AppendAllLoadedSyntaxTrees(treesBuilder, tree, scriptClassName, resolver, messageProvider, isSubmission, ordinalMapBuilder, loadDirectiveMapBuilder, loadedSyntaxTreeMapBuilder, declMapBuilder, lastComputedMemberNamesMap, ref declTable);
             }
 
+            // We're adding new trees, so passing in .Empty for lastComputedMemberNames as we do not have prior named
+            // computed for them.  Note: there is no correctness concern here either.  lastComputedMemberNames is simply
+            // used as a way to save on memory *if* items are present in it.  If not, we simply do the normal full work
+            // to compute the new member names.
             AddSyntaxTreeToDeclarationMapAndTable(
                 tree, scriptClassName, isSubmission, declMapBuilder,
                 lastComputedMemberNames: OneOrMany<ImmutableSegmentedHashSet<string>>.Empty, ref declTable);
