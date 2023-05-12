@@ -920,6 +920,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     anyRequiredMembers = true;
                 }
+
+                // Break early if we've hit all sorts of members.
+                if (anyNonTypeMembers && anyMethodHadExtensionSyntax && anyMemberHasAttributes && anyRequiredMembers)
+                {
+                    break;
+                }
             }
 
             if (anyMethodHadExtensionSyntax)
