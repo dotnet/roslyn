@@ -181,25 +181,29 @@ $$";
         public async Task InsertConstructorSnippetHasNestedTypeTest(string keyword)
         {
             var markupBeforeCommit =
-@"class Outer
+$$"""
+class Outer
 {
     $$
-    %keyword% Inner
+    {{keyword}} Inner
     {
     }
-}".Replace("%keyword%", keyword);
+}
+""";
 
             var expectedCodeAfterCommit =
-@"class Outer
+$$"""
+class Outer
 {
     public Outer()
     {
         $$
     }
-    %keyword% Inner
+    {{keyword}} Inner
     {
     }
-}".Replace("%keyword%", keyword);
+}
+""";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
@@ -238,19 +242,23 @@ $$    }
         public async Task InsertConstructorSnippetInConstructableTypeTest(string keyword)
         {
             var markupBeforeCommit =
-@"%keyword% MyName
+$$"""
+{{keyword}} MyName
 {
     $$
-}".Replace("%keyword%", keyword);
+}
+""";
 
             var expectedCodeAfterCommit =
-@"%keyword% MyName
+$$"""
+{{keyword}} MyName
 {
     public MyName()
     {
         $$
     }
-}".Replace("%keyword%", keyword);
+}
+""";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
@@ -262,10 +270,12 @@ $$    }
         public async Task InsertConstructorSnippetInNotConstructableTypeTest(string keyword)
         {
             var markupBeforeCommit =
-@"%keyword% MyName
+$$"""
+{{keyword}} MyName
 {
     $$
-}".Replace("%keyword%", keyword);
+}
+""";
 
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
