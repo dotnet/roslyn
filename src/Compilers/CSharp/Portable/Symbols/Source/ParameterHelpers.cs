@@ -411,6 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool seenScoped = false;
             bool seenReadonly = false;
 
+            SyntaxToken? previousModifier = null;
             foreach (var modifier in parameter.Modifiers)
             {
                 switch (modifier.Kind())
@@ -607,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             addERR_ParamsCantBeWithModifier(diagnostics, modifier, SyntaxKind.ReadOnlyKeyword);
                         }
-                        else if (!seenRef)
+                        else if (!seenRef || previousModifier?.Kind() != SyntaxKind.RefKeyword)
                         {
                             diagnostics.Add(ErrorCode.ERR_RefReadOnlyInverted, modifier);
                         }
@@ -625,6 +626,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     default:
                         throw ExceptionUtilities.UnexpectedValue(modifier.Kind());
                 }
+
+                previousModifier = modifier;
             }
 
             static void addERR_DupParamMod(BindingDiagnosticBag diagnostics, SyntaxToken modifier)
