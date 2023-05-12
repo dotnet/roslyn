@@ -8517,12 +8517,13 @@ public explicit extension E for object : Base1, Base2 { }
         var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
         Assert.Equal("E.M()", invocation.ToString());
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
-        Assert.Empty(model.GetSymbolInfo(invocation).CandidateSymbols);
+        Assert.Equal(new[] { "void Base1.M()", "void Base2.M()" }, model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
 
         var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
         Assert.Equal("E.Property", property.ToString());
         Assert.Null(model.GetSymbolInfo(property).Symbol);
-        Assert.Empty(model.GetSymbolInfo(property).CandidateSymbols);
+        Assert.Equal(new[] { "System.Int32 Base1.Property { get; }", "System.Int32 Base2.Property { get; }" },
+            model.GetSymbolInfo(property).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
