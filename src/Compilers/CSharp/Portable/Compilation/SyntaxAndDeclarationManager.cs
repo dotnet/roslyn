@@ -497,7 +497,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lastComputedMemberNamesMap = state.LastComputedMemberNames.ToBuilder();
             var declTable = state.DeclarationTable;
 
-            OneOrMany<ImmutableSegmentedHashSet<string>> lastComputedMemberNames = tryGetLastComputedMemberNames();
+            OneOrMany<ImmutableSegmentedHashSet<string>> lastComputedMemberNames = tryGetLastComputedMemberNames(
+                oldTree, declMapBuilder, lastComputedMemberNamesMap);
 
             foreach (var tree in removeSet)
             {
@@ -600,7 +601,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 state);
 
-            OneOrMany<ImmutableSegmentedHashSet<string>> tryGetLastComputedMemberNames()
+            static OneOrMany<ImmutableSegmentedHashSet<string>> tryGetLastComputedMemberNames(
+                SyntaxTree oldTree,
+                ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>>.Builder declMapBuilder,
+                ImmutableDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>>.Builder lastComputedMemberNamesMap)
             {
                 var previousRootNamespaceDeclaration = declMapBuilder[oldTree];
                 if (previousRootNamespaceDeclaration.IsValueCreated)
