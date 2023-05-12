@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var current = stack.Pop();
 
-                        // As we walk down, push children on in reverse order so we get a DFS walk.
+                        // As we walk down, push children on in reverse order so we get a depth-first walk.
 
                         for (int i = current.Children.Length - 1; i >= 0; i--)
                             stack.Push(current.Children[i]);
