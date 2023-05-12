@@ -92,7 +92,7 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
                 // TODO(cyrusn): This only works for normal documents currently.  We'll have to rethink how things work
                 // in the world if we ever support additionalfiles/editorconfig in our language server.
                 var document = w.CurrentSolution.GetDocument(documentId);
-                
+
                 // We assume that dynamic files don't exist on disk, so if we were to use the FileTextLoader we'd effectively
                 // be emptying out the document. This assumption is only valid for dynamic files because we further assume they're
                 // not user editable, and hence can't have "unsaved" changes that are expected to go away on close.
