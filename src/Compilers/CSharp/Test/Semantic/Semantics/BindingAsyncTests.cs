@@ -695,12 +695,62 @@ class Test
     unsafe async static Task M1(int* i) { }
 }";
             CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,38): error CS4005: Async methods cannot have unsafe parameters or return types
+                // (6,38): error CS4005: Async methods cannot have pointer type parameters
                 //     unsafe async static Task M1(int* i)
                 Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i"),
                 // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     unsafe async static Task M1(ref int* i)
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M1"));
+        }
+
+        [Fact]
+        public void UnsafeAsyncArgType_FunctionPointer()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class Test
+{
+    unsafe async static Task M1(delegate*<void> i) { }
+}";
+            CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,49): error CS4005: Async methods cannot have pointer type parameters
+                //     unsafe async static Task M1(delegate*<void> i) { }
+                Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i").WithLocation(6, 49),
+                // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     unsafe async static Task M1(delegate*<void> i) { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M1").WithLocation(6, 30)
+                );
+        }
+
+        [Fact]
+        public void UnsafeAsyncArgType_PointerArray()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class Test
+{
+    unsafe async static Task M1(int*[] i) { await Task.Yield(); } // 1
+    unsafe async static Task M2(delegate*<void>[] i) { await Task.Yield(); } // 2
+    async static Task M3(int*[] i) { await Task.Yield(); } // 3
+    async static Task M4(delegate*<void>[] i) { await Task.Yield(); } // 4
+}";
+            CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (6,45): error CS4004: Cannot await in an unsafe context
+                    //     unsafe async static Task M1(int*[] i) { await Task.Yield(); } // 1
+                    Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(6, 45),
+                    // (7,56): error CS4004: Cannot await in an unsafe context
+                    //     unsafe async static Task M2(delegate*<void>[] i) { await Task.Yield(); } // 2
+                    Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(7, 56),
+                    // (8,26): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //     async static Task M3(int*[] i) { await Task.Yield(); } // 3
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(8, 26),
+                    // (9,26): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //     async static Task M4(delegate*<void>[] i) { await Task.Yield(); } // 4
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(9, 26)
+                    );
         }
 
         [Fact]
