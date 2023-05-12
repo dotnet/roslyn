@@ -228,6 +228,13 @@
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Setup.ServiceHub\x64\Roslyn.VisualStudio.ServiceHub.Setup.x64.csproj">
+      <Name>VisualStudioServiceHubSetupX64</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX></IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Xaml\Impl\Microsoft.VisualStudio.LanguageServices.Xaml.csproj">
       <Name>XamlVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
