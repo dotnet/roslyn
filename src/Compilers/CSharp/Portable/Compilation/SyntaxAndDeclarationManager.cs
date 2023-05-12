@@ -581,7 +581,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ordinalMap = ordinalMap.Remove(oldTree);
                 ordinalMap = ordinalMap.SetItem(newTree, oldOrdinal);
 
-                lastComputedMemberNamesMap.Remove(oldTree);
                 lastComputedMemberNamesMap.Add(newTree, lastComputedMemberNames);
             }
 
