@@ -23,12 +23,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> RootNamespaces;
 
             /// <summary>
-            /// The last fully computed member names for all the types (in lexicographic order) for this file. Member
-            /// names often don't change for most edits, so being able to reuse the same set from the last time things
-            /// were computed saves on a lot of memory churn producing the new set, then GC'ing the last set (esp. for
-            /// very large types). The value is stored as a <see cref="OneOrMany"/> as the most common case for most
-            /// files is a single type declaration.
+            /// Mapping from a syntax tree to the last fully computed member names for each the types (in lexical order)
+            /// for this file.  Specifically, the key of the collection is the tree the data is cached for.  The <see
+            /// cref="OneOrMany"/> is a compact array of items, each of which corresponds to the prior type-declaration
+            /// in the tree that contributed members (in lexical order).  Each item in that compact array is then the
+            /// member names for that particular type declaration.
             /// </summary>
+            /// <remarks>
+            /// Member names often don't change for most edits, so being able to reuse the same set from the last time
+            /// things were computed saves on a lot of memory churn producing the new set, then GC'ing the last set
+            /// (esp. for very large types). The value is stored as a <see cref="OneOrMany"/> as the most common case
+            /// for most files is a single type declaration.
+            /// </remarks>
             internal readonly ImmutableDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>> LastComputedMemberNames;
             internal readonly DeclarationTable DeclarationTable;
 
