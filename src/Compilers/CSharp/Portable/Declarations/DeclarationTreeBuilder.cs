@@ -867,14 +867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
-            bool anyMemberHasAttributes = false;
-            foreach (var member in members)
-            {
-                if (!anyMemberHasAttributes && member.AttributeLists.Any())
-                {
-                    anyMemberHasAttributes = true;
-                }
-            }
+            bool anyMemberHasAttributes = members.Any(static m => m.AttributeLists.Any());
 
             if (anyMemberHasAttributes)
             {
