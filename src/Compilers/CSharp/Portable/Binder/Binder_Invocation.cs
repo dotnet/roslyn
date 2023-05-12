@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(node.Expression.Kind() is SyntaxKind.SimpleMemberAccessExpression);
                     var memberAccess = (MemberAccessExpressionSyntax)node.Expression;
                     analyzedArguments.Clear();
-                    VerifyUnchecked(nested, diagnostics, result); // BindExpression does this after calling BindExpressionInternal  
+                    CheckContextForPointerTypes(nested, diagnostics, result); // BindExpression does this after calling BindExpressionInternal
                     boundExpression = BindMemberAccessWithBoundLeft(memberAccess, result, memberAccess.Name, memberAccess.OperatorToken, invoked: true, indexed: false, diagnostics);
                 }
 
@@ -1149,7 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if the implied argument would have an unsafe type.  We need to check
             // the parameters explicitly, since there won't be bound nodes for the implied
             // arguments until lowering.
-            if (method.HasUnsafeParameter())
+            if (method.HasParameterContainingPointerType())
             {
                 // Don't worry about double reporting (i.e. for both the argument and the parameter)
                 // because only one unsafe diagnostic is allowed per scope - the others are suppressed.

@@ -11266,6 +11266,31 @@ class A<T>
                 // [AB]
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "AB").WithArguments("(int A, int B)").WithLocation(4, 2));
         }
+
+        [Fact]
+        public void GenericAttribute_Unsafe()
+        {
+            var source = @"
+[A<int*[]>] // 1
+class C
+{
+}
+
+[A<int*[]>]
+unsafe class D
+{
+}
+
+class A<T> : System.Attribute
+{
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (2,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 4));
+        }
         #endregion
     }
 }

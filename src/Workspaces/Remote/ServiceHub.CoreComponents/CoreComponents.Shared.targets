@@ -3,6 +3,11 @@
 <Project>
 
   <PropertyGroup>
+    <!--
+    The purpose of this project is to include all dependecies of Microsoft.CodeAnalysis.Remote.ServiceHub and C# and VB features layer targeting .Net Core.
+    -->
+    <IsShipping>false</IsShipping>
+
     <GenerateReadyToRun Condition="'$(GenerateReadyToRun)' == '' and '$(Configuration)' == 'Release' and '$(OfficialBuild)' == 'true'">true</GenerateReadyToRun>
     <MicrosoftNETCoreAppcrossgen2winx64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftNETCoreAppcrossgen2winx64Version>
   </PropertyGroup>  
