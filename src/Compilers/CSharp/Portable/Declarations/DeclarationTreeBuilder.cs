@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// allocations for common scenarios where compilations are created with the same trees used to create prior
         /// compilations.
         /// </summary>
+        /// <remarks>
+        /// This also has a helpful (but more minor) benefit that files with multiple types in it will be able to reuse
+        /// the member names for untouched types when others in the file are edited.
+        /// </remarks>
         private static readonly ConditionalWeakTable<GreenNode, StrongBox<ImmutableSegmentedHashSet<string>>> s_nodeToMemberNames
             = new ConditionalWeakTable<GreenNode, StrongBox<ImmutableSegmentedHashSet<string>>>();
 
