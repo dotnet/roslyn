@@ -32,12 +32,11 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var nodeAtPosition = root.FindNode(TextSpan.FromBounds(position, position));
-            var containingType = nodeAtPosition.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
 
             // Skip inner class in nested class if position is out of it.
             //     For example "class Outer{\r\n ctor@ \r\n class Inner {} }"
             // Accept even if "static class" (CS0710).
-            containingType = nodeAtPosition.FirstAncestorOrSelf<SyntaxNode>((node) =>
+            var containingType = nodeAtPosition.FirstAncestorOrSelf<SyntaxNode>((node) =>
             {
                 return syntaxFacts.IsTypeDeclaration(node)
                     && IsConstructableTypeDeclaration(syntaxFacts, node)
