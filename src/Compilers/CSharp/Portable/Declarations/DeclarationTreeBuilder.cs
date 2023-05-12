@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Lookup in the cache first.
                 var greenNode = parent.Green;
-                if (!s_nodeToMemberNames.TryGetValue(greenNode, out var memberNames))
+                if (!s_nodeToMemberNames.TryGetValue(greenNode, out StrongBox<ImmutableSegmentedHashSet<string>> memberNames))
                 {
                     // If not there, make a fresh set, and add all the member names to it.
                     var memberNamesBuilder = PooledHashSet<string>.GetInstance();
