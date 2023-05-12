@@ -34,14 +34,20 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        public const string Buffer10Definition =
+        public const string Buffer10RawDefinition =
 @"
 [System.Runtime.CompilerServices.InlineArray(10)]
 public struct Buffer10<T>
 {
     private T _element0;
 }
-" + InlineArrayAttributeDefinition;
+";
+
+        public const string Buffer10Definition =
+@$"
+{Buffer10RawDefinition}
+{InlineArrayAttributeDefinition}
+";
 
         [Fact]
         public void InlineArrayType_01_NoAttribute()
@@ -944,13 +950,15 @@ unsafe struct Buffer
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void InlineArrayType_31_Nested()
         {
             var src = @"
 var c = new C();
 c.F[0] = 111;
+c.F[1] = 42;
 System.Console.WriteLine(c.F[0]);
+System.Console.WriteLine(c.F[1]);
 
 class C
 {
@@ -966,8 +974,12 @@ public class Enclosing
     }
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            var output = """
+                111
+                42
+                """;
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: output, verify: Verification.Fails).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
