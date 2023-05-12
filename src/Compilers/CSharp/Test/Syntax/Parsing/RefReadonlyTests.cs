@@ -917,5 +917,429 @@ class Test
                 EOF();
             }
         }
+
+        [Fact]
+        public void RefReadonlyWithScoped_01()
+        {
+            var source = """
+                static class C
+                {
+                    public static void M(scoped ref readonly int p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,37): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void M(scoped ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 37));
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefReadonlyWithScoped_01_Nodes()
+        {
+            var source = "void M(scoped ref readonly int p);";
+            UsingDeclaration(source, TestOptions.Regular11);
+            verifyNodes();
+
+            UsingDeclaration(source, TestOptions.RegularNext);
+            verifyNodes();
+
+            UsingDeclaration(source);
+            verifyNodes();
+
+            void verifyNodes()
+            {
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.ScopedKeyword);
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "p");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void RefReadonlyWithScoped_02()
+        {
+            var source = """
+                static class C
+                {
+                    public static void M(ref scoped readonly int p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,30): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static void M(ref scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 30),
+                // (3,37): error CS1001: Identifier expected
+                //     public static void M(ref scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(3, 37),
+                // (3,37): error CS1003: Syntax error, ',' expected
+                //     public static void M(ref scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(3, 37),
+                // (3,37): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void M(ref scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 37),
+                // (3,37): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                //     public static void M(ref scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 37));
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,30): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static void M(ref scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 30),
+                // (3,37): error CS1001: Identifier expected
+                //     public static void M(ref scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(3, 37),
+                // (3,37): error CS1003: Syntax error, ',' expected
+                //     public static void M(ref scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(3, 37),
+                // (3,37): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                //     public static void M(ref scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 37)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefReadonlyWithScoped_03()
+        {
+            var source = """
+                static class C
+                {
+                    public static void M(readonly scoped ref int p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,26): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void M(readonly scoped ref int p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 26),
+                // (3,26): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                //     public static void M(readonly scoped ref int p) => throw null;
+                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 26),
+                // (3,35): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static void M(readonly scoped ref int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 35),
+                // (3,42): error CS1001: Identifier expected
+                //     public static void M(readonly scoped ref int p) => throw null;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(3, 42),
+                // (3,42): error CS1003: Syntax error, ',' expected
+                //     public static void M(readonly scoped ref int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(3, 42));
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,26): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                //     public static void M(readonly scoped ref int p) => throw null;
+                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 26),
+                // (3,35): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static void M(readonly scoped ref int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 35),
+                // (3,42): error CS1001: Identifier expected
+                //     public static void M(readonly scoped ref int p) => throw null;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(3, 42),
+                // (3,42): error CS1003: Syntax error, ',' expected
+                //     public static void M(readonly scoped ref int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(3, 42)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ReadonlyWithScoped()
+        {
+            var source = """
+                static class C
+                {
+                    public static void M(scoped readonly int p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static void M(scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 26),
+                // (3,33): error CS1001: Identifier expected
+                //     public static void M(scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(3, 33),
+                // (3,33): error CS1003: Syntax error, ',' expected
+                //     public static void M(scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(3, 33),
+                // (3,33): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void M(scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 33),
+                // (3,33): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                //     public static void M(scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 33));
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static void M(scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 26),
+                // (3,33): error CS1001: Identifier expected
+                //     public static void M(scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(3, 33),
+                // (3,33): error CS1003: Syntax error, ',' expected
+                //     public static void M(scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(3, 33),
+                // (3,33): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                //     public static void M(scoped readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 33)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefReadonly_ScopedParameterName()
+        {
+            var source = """
+                static class C
+                {
+                    public static void M(ref readonly int scoped) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void M(ref readonly int scoped) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 30));
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefReadonly_ScopedParameterName_Nodes()
+        {
+            var source = "void M(ref readonly int scoped);";
+            UsingDeclaration(source, TestOptions.Regular11);
+            verifyNodes();
+
+            UsingDeclaration(source, TestOptions.RegularNext);
+            verifyNodes();
+
+            UsingDeclaration(source);
+            verifyNodes();
+
+            void verifyNodes()
+            {
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void RefReadonly_ScopedTypeName()
+        {
+            var source = """
+                struct scoped { }
+                static class C
+                {
+                    public static void M(ref readonly scoped p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (1,8): error CS9062: Types and aliases cannot be named 'scoped'.
+                // struct scoped { }
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 8),
+                // (4,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void M(ref readonly scoped p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 30));
+
+            var expectedDiagnostics = new[]
+            {
+                // (1,8): error CS9062: Types and aliases cannot be named 'scoped'.
+                // struct scoped { }
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 8),
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,8): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // struct scoped { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 8),
+                // (4,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void M(ref readonly scoped p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 30));
+        }
+
+        [Fact]
+        public void RefReadonly_ScopedTypeName_Nodes()
+        {
+            var source = "void M(ref readonly scoped p);";
+            UsingDeclaration(source, TestOptions.Regular11);
+            verifyNodes();
+
+            UsingDeclaration(source, TestOptions.RegularNext);
+            verifyNodes();
+
+            UsingDeclaration(source);
+            verifyNodes();
+
+            void verifyNodes()
+            {
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.IdentifierToken, "p");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void RefReadonly_ScopedBothNames()
+        {
+            var source = """
+                struct scoped { }
+                static class C
+                {
+                    public static void M(ref readonly scoped scoped) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (1,8): error CS9062: Types and aliases cannot be named 'scoped'.
+                // struct scoped { }
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 8),
+                // (4,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void M(ref readonly scoped scoped) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 30));
+
+            var expectedDiagnostics = new[]
+            {
+                // (1,8): error CS9062: Types and aliases cannot be named 'scoped'.
+                // struct scoped { }
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 8),
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,8): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // struct scoped { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 8),
+                // (4,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void M(ref readonly scoped scoped) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 30));
+        }
+
+        [Fact]
+        public void RefReadonly_ScopedBothNames_Nodes()
+        {
+            var source = "void M(ref readonly scoped scoped);";
+            UsingDeclaration(source, TestOptions.Regular11);
+            verifyNodes();
+
+            UsingDeclaration(source, TestOptions.RegularNext);
+            verifyNodes();
+
+            UsingDeclaration(source, TestOptions.Regular9);
+            verifyNodes();
+
+            UsingDeclaration(source);
+            verifyNodes();
+
+            void verifyNodes()
+            {
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
     }
 }
