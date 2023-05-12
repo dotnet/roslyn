@@ -179,6 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             treesBuilder.Add(tree);
             ordinalMapBuilder.Add(tree, ordinalMapBuilder.Count);
+
+            // Fresh tree, so we have no computed names for it yet.
             lastComputedMemberNamesMap.Add(tree, OneOrMany<ImmutableSegmentedHashSet<string>>.Empty);
         }
 
