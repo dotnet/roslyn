@@ -847,6 +847,11 @@
         <target state="new">Cannot convert expression to '{0}' because it is not an assignable variable</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayIndexOutOfRange">
+        <source>Index is outside the bounds of the inline array</source>
+        <target state="new">Index is outside the bounds of the inline array</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">As propriedades da instância nas interfaces não podem ter inicializadores.</target>
