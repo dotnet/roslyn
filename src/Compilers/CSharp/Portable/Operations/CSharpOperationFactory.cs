@@ -1247,8 +1247,16 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(collectionType is { });
 
             bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
+            var elements = boundCollectionLiteralExpression.Elements;
+
+            if (elements.Any(i => i is BoundCollectionLiteralSpreadElement))
+            {
+                // PROTOTYPE: Handle intermediate List<T>.
+                return new InvalidOperation(ImmutableArray<IOperation>.Empty, _semanticModel, syntax, collectionType, constantValue: null, isImplicit);
+            }
+
             var initializer = new ArrayInitializerOperation(
-                CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Elements),
+                CreateFromArray<BoundExpression, IOperation>(elements),
                 _semanticModel,
                 syntax,
                 isImplicit: true);
@@ -1256,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 _semanticModel,
                 syntax,
                 _semanticModel.Compilation.GetSpecialType(SpecialType.System_Int32),
-                ConstantValue.Create(boundCollectionLiteralExpression.Elements.Length),
+                ConstantValue.Create(elements.Length),
                 isImplicit: true));
 
             if (collectionType.TypeKind == TypeKind.Array)

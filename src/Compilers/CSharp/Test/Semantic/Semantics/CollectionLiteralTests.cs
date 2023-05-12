@@ -5274,8 +5274,9 @@ Block[B4] - Exit
 ");
         }
 
+        // PROTOTYPE: Handle intermediate List<T> in IOperation.
         [Fact]
-        public void IOperation_SpreadElement()
+        public void IOperation_SpreadElement_01()
         {
             string source = """
                 class Program
@@ -5292,18 +5293,8 @@ Block[B4] - Exit
 
             VerifyOperationTreeForTest<CollectionCreationExpressionSyntax>(comp,
                 """
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: '[..a]')
-                  Dimension Sizes(1):
-                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '[..a]')
-                  Initializer:
-                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[..a]')
-                      Element Values(1):
-                          IInvalidOperation (OperationKind.Invalid, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
-                            Children(1):
-                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
-                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                  Operand:
-                                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
+                IInvalidOperation (OperationKind.Invalid, Type: System.Int32[]) (Syntax: '[..a]')
+                  Children(0)
                 """);
 
             var tree = comp.SyntaxTrees[0];
@@ -5321,19 +5312,81 @@ Block[B4] - Exit
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             (CollectionLiteral)
                           Operand:
-                            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: '[..a]')
-                              Dimension Sizes(1):
-                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '[..a]')
-                              Initializer:
-                                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[..a]')
-                                  Element Values(1):
-                                      IInvalidOperation (OperationKind.Invalid, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
-                                        Children(1):
-                                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
-                                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                                (ImplicitReference)
-                                              Operand:
-                                                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
+                            IInvalidOperation (OperationKind.Invalid, Type: System.Int32[]) (Syntax: '[..a]')
+                              Children(0)
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
+        }
+
+        [Fact]
+        public void IOperation_SpreadElement_02()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static List<int> Append(int[] a)
+                    {
+                        return /*<bind>*/[..a]/*</bind>*/;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyOperationTreeForTest<CollectionCreationExpressionSyntax>(comp,
+                """
+                IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[..a]')
+                  Arguments(0)
+                  Initializer:
+                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[..a]')
+                      Initializers(1):
+                          IInvalidOperation (OperationKind.Invalid, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                            Children(1):
+                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
+                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                  Operand:
+                                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
+                """);
+
+            var tree = comp.SyntaxTrees[0];
+            var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Append");
+            VerifyFlowGraph(comp, method,
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1}
+                .locals {R1}
+                {
+                    CaptureIds: [0]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (2)
+                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[..a]')
+                              Value:
+                                IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[..a]')
+                                  Arguments(0)
+                                  Initializer:
+                                    null
+                            IInvalidOperation (OperationKind.Invalid, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                              Children(1):
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
+                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                      (ImplicitReference)
+                                    Operand:
+                                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
+                        Next (Return) Block[B2]
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[..a]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionLiteral)
+                              Operand:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[..a]')
+                            Leaving: {R1}
+                }
                 Block[B2] - Exit
                     Predecessors: [B1]
                     Statements (0)
