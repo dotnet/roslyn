@@ -4011,6 +4011,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expectedOutput: "[1, 2, 3], [1, 2, 3], ");
         }
 
+        [Fact]
+        public void SpreadElement_10()
+        {
+            string source = """
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable a = new[] { 1, 2, 3 };
+                        object[] b = [..a, 4];
+                        b.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3, 4], ");
+        }
+
         [Theory]
         [InlineData("object[]")]
         [InlineData("List<object>")]

@@ -5727,7 +5727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return element;
             }
 
-            Debug.Assert(enumeratorInfo.ElementType is { });
+            Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
             var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
             var addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
                 syntax,
