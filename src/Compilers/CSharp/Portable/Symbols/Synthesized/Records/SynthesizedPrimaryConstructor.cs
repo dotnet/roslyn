@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasAnyBody: false,
                 isExpressionBodied: false,
                 isExtensionMethod: false,
-                isVarArg: false,
+                isVarArg: GetSyntax().ParameterList.Parameters.Any(static p => p.IsArgList),
                 isNullableAnalysisEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
         }
 
