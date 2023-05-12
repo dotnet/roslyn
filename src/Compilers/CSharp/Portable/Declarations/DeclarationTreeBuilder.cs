@@ -29,11 +29,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<GreenNode, StrongBox<ImmutableSegmentedHashSet<string>>> s_nodeToMemberNames
             = new ConditionalWeakTable<GreenNode, StrongBox<ImmutableSegmentedHashSet<string>>>();
 
+        private static readonly StrongBox<ImmutableSegmentedHashSet<string>> s_emptyMemberNames = new StrongBox<ImmutableSegmentedHashSet<string>>(ImmutableSegmentedHashSet<string>.Empty);
+
         private readonly SyntaxTree _syntaxTree;
         private readonly string _scriptClassName;
         private readonly bool _isSubmission;
 
-        private readonly OneOrMany<ImmutableSegmentedHashSet<string>> _previousMemberNames;
+        /// <summary>
+        /// Stored in lexical order for the types in this tree that had member names the last time we created decls for
+        /// the tree.
+        /// </summary>
+        private readonly OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>> _previousMemberNames;
 
         /// <summary>
         /// Any special attributes we may be referencing through a using alias in the file.
@@ -63,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTree syntaxTree,
             string scriptClassName,
             bool isSubmission,
-            OneOrMany<ImmutableSegmentedHashSet<string>> previousMemberNames)
+            OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>> previousMemberNames)
         {
             _syntaxTree = syntaxTree;
             _scriptClassName = scriptClassName;
@@ -75,9 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTree syntaxTree,
             string scriptClassName,
             bool isSubmission,
-            OneOrMany<ImmutableSegmentedHashSet<string>>? previousMemberNames = null)
+            OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>? previousMemberNames = null)
         {
-            var builder = new DeclarationTreeBuilder(syntaxTree, scriptClassName, isSubmission, previousMemberNames ?? OneOrMany<ImmutableSegmentedHashSet<string>>.Empty);
+            var builder = new DeclarationTreeBuilder(
+                syntaxTree, scriptClassName, isSubmission,
+                previousMemberNames ?? OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>.Empty);
             return (RootSingleNamespaceDeclaration)builder.Visit(syntaxTree.GetRoot());
         }
 
@@ -198,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return childrenBuilder.ToImmutableAndFree();
         }
 
-        private static SingleNamespaceOrTypeDeclaration CreateImplicitClass(ImmutableSegmentedHashSet<string> memberNames, SyntaxReference container, SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+        private static SingleNamespaceOrTypeDeclaration CreateImplicitClass(StrongBox<ImmutableSegmentedHashSet<string>> memberNames, SyntaxReference container, SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.ImplicitClass,
@@ -227,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                            SingleTypeDeclaration.TypeDeclarationFlags.IsSimpleProgram,
                 syntaxReference: firstGlobalStatement.SyntaxTree.GetReference(firstGlobalStatement.Parent),
                 nameLocation: new SourceLocation(firstGlobalStatement.GetFirstToken()),
-                memberNames: ImmutableSegmentedHashSet<string>.Empty,
+                memberNames: s_emptyMemberNames,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
                 diagnostics: diagnostics,
                 quickAttributes: QuickAttributes.None);
@@ -296,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SingleNamespaceOrTypeDeclaration CreateScriptClass(
             CompilationUnitSyntax parent,
             ImmutableArray<SingleTypeDeclaration> children,
-            ImmutableSegmentedHashSet<string> memberNames,
+            StrongBox<ImmutableSegmentedHashSet<string>> memberNames,
             SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             Debug.Assert(parent.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind != SourceCodeKind.Regular);
@@ -789,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags: declFlags,
                 syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
-                memberNames: ImmutableSegmentedHashSet<string>.Empty,
+                memberNames: s_emptyMemberNames,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
                 diagnostics: diagnostics.ToReadOnlyAndFree(),
                 _nonGlobalAliasedQuickAttributes | quickAttributes);
@@ -808,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations;
             }
 
-            ImmutableSegmentedHashSet<string> memberNames = GetEnumMemberNames(node, members, ref declFlags);
+            var memberNames = GetEnumMemberNames(node, members, ref declFlags);
 
             var diagnostics = DiagnosticBag.GetInstance();
             var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
@@ -847,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private ImmutableSegmentedHashSet<string> GetEnumMemberNames(
+        private StrongBox<ImmutableSegmentedHashSet<string>> GetEnumMemberNames(
             EnumDeclarationSyntax enumDeclaration,
             SeparatedSyntaxList<EnumMemberDeclarationSyntax> members,
             ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
@@ -883,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 members);
         }
 
-        private ImmutableSegmentedHashSet<string> GetNonTypeMemberNames(
+        private StrongBox<ImmutableSegmentedHashSet<string>> GetNonTypeMemberNames(
             CSharpSyntaxNode parent,
             CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members,
             ref SingleTypeDeclaration.TypeDeclarationFlags declFlags,
@@ -966,16 +974,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableSegmentedHashSet<string> GetOrComputeMemberNames<TData>(
+        private StrongBox<ImmutableSegmentedHashSet<string>> GetOrComputeMemberNames<TData>(
             SyntaxNode parent,
             Action<HashSet<string>, TData> addMemberNames,
             TData data)
         {
             // Try to obtain the prior member names computed for the corresponding type decl (in lexicographic order)
             // from the prior version of this tree.
-            var previousMemberNames = _currentTypeIndex < _previousMemberNames.Count
-                ? _previousMemberNames[_currentTypeIndex]
-                : ImmutableSegmentedHashSet<string>.Empty;
+            var previousMemberNames = _currentTypeIndex < _previousMemberNames.Count && _previousMemberNames[_currentTypeIndex].TryGetTarget(out var previousNames)
+                ? previousNames
+                : s_emptyMemberNames;
 
             _currentTypeIndex++;
 
@@ -988,30 +996,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 addMemberNames(memberNamesBuilder, data);
 
                 // If the members names are the same as the prior computed ones, then use that instead.
-                var result = previousMemberNames.Count == memberNamesBuilder.Count && previousMemberNames.SetEquals(memberNamesBuilder)
+                memberNames = previousMemberNames.Value.Count == memberNamesBuilder.Count && previousMemberNames.Value.SetEquals(memberNamesBuilder)
                     ? previousMemberNames
-                    : ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder);
+                    : memberNamesBuilder.Count == 0
+                        ? s_emptyMemberNames
+                        : new StrongBox<ImmutableSegmentedHashSet<string>>(ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder));
                 memberNamesBuilder.Free();
 
-                // Don't bother caching when there are no member names (common for most compilation units).
-                if (result.Count == 0)
-                    return result;
-
-                // Store the names in the cache to be found in the next compilation update.
-                memberNames = new StrongBox<ImmutableSegmentedHashSet<string>>(result);
-
-#if NET
-                s_nodeToMemberNames.AddOrUpdate(greenNode, memberNames);
-#else
-                lock (s_nodeToMemberNames)
+                // Store the names in the cache to be found in the next compilation update. But don't bother caching
+                // when there are no member names (common for most compilation units).
+                if (memberNames.Value.Count > 0)
                 {
-                    s_nodeToMemberNames.Remove(greenNode);
-                    s_nodeToMemberNames.Add(greenNode, memberNames);
-                }
+#if NET
+                    s_nodeToMemberNames.AddOrUpdate(greenNode, memberNames);
+#else
+                    lock (s_nodeToMemberNames)
+                    {
+                        s_nodeToMemberNames.Remove(greenNode);
+                        s_nodeToMemberNames.Add(greenNode, memberNames);
+                    }
 #endif
+                }
             }
 
-            return memberNames.Value;
+            return memberNames;
         }
 
         private static bool CheckMethodMemberForExtensionSyntax(Syntax.InternalSyntax.CSharpSyntaxNode member)

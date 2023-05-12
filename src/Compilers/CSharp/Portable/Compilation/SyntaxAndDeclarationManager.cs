@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loadDirectiveMapBuilder = PooledDictionary<SyntaxTree, ImmutableArray<LoadDirective>>.GetInstance();
             var loadedSyntaxTreeMapBuilder = PooledDictionary<string, SyntaxTree>.GetInstance();
             var declMapBuilder = PooledDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>>.GetInstance();
-            var lastComputedMemberNamesMap = PooledDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>>.GetInstance();
+            var lastComputedMemberNamesMap = PooledDictionary<SyntaxTree, OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>>.GetInstance();
             var declTable = DeclarationTable.Empty;
 
             foreach (var tree in externalSyntaxTrees)
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IDictionary<SyntaxTree, ImmutableArray<LoadDirective>> loadDirectiveMapBuilder,
             IDictionary<string, SyntaxTree> loadedSyntaxTreeMapBuilder,
             IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
-            IDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>> lastComputedMemberNamesMap,
+            IDictionary<SyntaxTree, OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>> lastComputedMemberNamesMap,
             ref DeclarationTable declTable)
         {
             var sourceCodeKind = tree.Options.Kind;
@@ -175,13 +176,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to compute the new member names.
             AddSyntaxTreeToDeclarationMapAndTable(
                 tree, scriptClassName, isSubmission, declMapBuilder,
-                lastComputedMemberNames: OneOrMany<ImmutableSegmentedHashSet<string>>.Empty, ref declTable);
+                lastComputedMemberNames: OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>.Empty, ref declTable);
 
             treesBuilder.Add(tree);
             ordinalMapBuilder.Add(tree, ordinalMapBuilder.Count);
 
             // Fresh tree, so we have no computed names for it yet.
-            lastComputedMemberNamesMap.Add(tree, OneOrMany<ImmutableSegmentedHashSet<string>>.Empty);
+            lastComputedMemberNamesMap.Add(tree, OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>.Empty);
         }
 
         private static void AppendAllLoadedSyntaxTrees(
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IDictionary<SyntaxTree, ImmutableArray<LoadDirective>> loadDirectiveMapBuilder,
             IDictionary<string, SyntaxTree> loadedSyntaxTreeMapBuilder,
             IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
-            IDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>> lastComputedMemberNamesMap,
+            IDictionary<SyntaxTree, OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>> lastComputedMemberNamesMap,
             ref DeclarationTable declTable)
         {
             ArrayBuilder<LoadDirective> loadDirectives = null;
@@ -292,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string scriptClassName,
             bool isSubmission,
             IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
-            OneOrMany<ImmutableSegmentedHashSet<string>> lastComputedMemberNames,
+            OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>> lastComputedMemberNames,
             ref DeclarationTable declTable)
         {
             var lazyRoot = new Lazy<RootSingleNamespaceDeclaration>(() => DeclarationTreeBuilder.ForTree(tree, scriptClassName, isSubmission, lastComputedMemberNames));
@@ -497,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lastComputedMemberNamesMap = state.LastComputedMemberNames.ToBuilder();
             var declTable = state.DeclarationTable;
 
-            OneOrMany<ImmutableSegmentedHashSet<string>> lastComputedMemberNames = tryGetLastComputedMemberNames(
+            OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>> lastComputedMemberNames = tryGetLastComputedMemberNames(
                 oldTree, declMapBuilder, lastComputedMemberNamesMap);
 
             foreach (var tree in removeSet)
@@ -601,10 +602,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 state);
 
-            static OneOrMany<ImmutableSegmentedHashSet<string>> tryGetLastComputedMemberNames(
+            static OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>> tryGetLastComputedMemberNames(
                 SyntaxTree oldTree,
                 ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>>.Builder declMapBuilder,
-                ImmutableDictionary<SyntaxTree, OneOrMany<ImmutableSegmentedHashSet<string>>>.Builder lastComputedMemberNamesMap)
+                ImmutableDictionary<SyntaxTree, OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>>.Builder lastComputedMemberNamesMap)
             {
                 var previousRootNamespaceDeclaration = declMapBuilder[oldTree];
                 if (previousRootNamespaceDeclaration.IsValueCreated)
@@ -614,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Stack<SingleNamespaceOrTypeDeclaration> stack = s_declarationStack.Allocate();
                     stack.Push(previousRootNamespaceDeclaration.Value);
 
-                    var builder = ArrayBuilder<ImmutableSegmentedHashSet<string>>.GetInstance();
+                    var builder = ArrayBuilder<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>.GetInstance();
 
                     do
                     {
@@ -638,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!DeclarationTreeBuilder.CachesComputedMemberNames(singleType))
                             continue;
 
-                        builder.Add(singleType.MemberNames);
+                        builder.Add(new WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>(singleType.MemberNames));
                     }
                     while (stack.Count > 0);
 
@@ -655,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Didn't have the current root, and didn't have any prior cached items.  No reuse of computed names
                 // possible here.
-                return OneOrMany<ImmutableSegmentedHashSet<string>>.Empty;
+                return OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>.Empty;
             }
         }
 
