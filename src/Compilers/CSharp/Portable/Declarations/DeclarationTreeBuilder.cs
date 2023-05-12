@@ -978,47 +978,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             Action<HashSet<string>, TData> addMemberNames,
             TData data)
         {
-            // Try to obtain the prior member names computed for the corresponding type decl (in lexicographic order)
-            // from the prior version of this tree.
-            var previousMemberNames = _currentTypeIndex < _previousMemberNames.Count && _previousMemberNames[_currentTypeIndex].TryGetTarget(out var previousNames)
-                ? previousNames
-                : s_emptyMemberNames;
-
+            // Compute the member names, then always ensure we move our current type index pointer forward.
+            var result = getOrComputeMemberNamesWorker();
             _currentTypeIndex++;
+            return result;
 
-            // Lookup in the cache first.
-            var greenNode = parent.Green;
-            if (!s_nodeToMemberNames.TryGetValue(greenNode, out var memberNames))
+            StrongBox<ImmutableSegmentedHashSet<string>> getOrComputeMemberNamesWorker()
             {
-                // If not there, make a fresh set, and add all the member names to it.
-                var memberNamesBuilder = PooledHashSet<string>.GetInstance();
-                addMemberNames(memberNamesBuilder, data);
-
-                // If the members names are the same as the prior computed ones, then use that instead.
-                memberNames = previousMemberNames.Value.Count == memberNamesBuilder.Count && previousMemberNames.Value.SetEquals(memberNamesBuilder)
-                    ? previousMemberNames
-                    : memberNamesBuilder.Count == 0
-                        ? s_emptyMemberNames
-                        : new StrongBox<ImmutableSegmentedHashSet<string>>(ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder));
-                memberNamesBuilder.Free();
-
-                // Store the names in the cache to be found in the next compilation update. But don't bother caching
-                // when there are no member names (common for most compilation units).
-                if (memberNames.Value.Count > 0)
+                // Lookup in the cache first.
+                var greenNode = parent.Green;
+                if (!s_nodeToMemberNames.TryGetValue(greenNode, out var memberNames))
                 {
-#if NET
-                    s_nodeToMemberNames.AddOrUpdate(greenNode, memberNames);
-#else
-                    lock (s_nodeToMemberNames)
-                    {
-                        s_nodeToMemberNames.Remove(greenNode);
-                        s_nodeToMemberNames.Add(greenNode, memberNames);
-                    }
-#endif
-                }
-            }
+                    // If not there, make a fresh set, and add all the member names to it.
+                    var memberNamesBuilder = PooledHashSet<string>.GetInstance();
+                    addMemberNames(memberNamesBuilder, data);
 
-            return memberNames;
+                    // Try to obtain the prior member names computed for the corresponding type decl (in lexicographic order)
+                    // from the prior version of this tree.
+                    var previousMemberNames = _currentTypeIndex < _previousMemberNames.Count && _previousMemberNames[_currentTypeIndex].TryGetTarget(out var previousNames)
+                        ? previousNames
+                        : s_emptyMemberNames;
+
+                    // If the members names are the same as the prior computed ones, then use that instead.
+                    memberNames = previousMemberNames.Value.Count == memberNamesBuilder.Count && previousMemberNames.Value.SetEquals(memberNamesBuilder)
+                        ? previousMemberNames
+                        : memberNamesBuilder.Count == 0
+                            ? s_emptyMemberNames
+                            : new StrongBox<ImmutableSegmentedHashSet<string>>(ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder));
+                    memberNamesBuilder.Free();
+
+                    // Store the names in the cache to be found in the next compilation update. But don't bother caching
+                    // when there are no member names (common for most compilation units).
+                    if (memberNames.Value.Count > 0)
+                    {
+#if NET
+                        s_nodeToMemberNames.AddOrUpdate(greenNode, memberNames);
+#else
+                        lock (s_nodeToMemberNames)
+                        {
+                            s_nodeToMemberNames.Remove(greenNode);
+                            s_nodeToMemberNames.Add(greenNode, memberNames);
+                        }
+#endif
+                    }
+                }
+
+                return memberNames;
+            }
         }
 
         private static bool CheckMethodMemberForExtensionSyntax(Syntax.InternalSyntax.CSharpSyntaxNode member)
