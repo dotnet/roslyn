@@ -635,6 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(collectionConversionClassification.IsIdentity);
                 Debug.Assert(convertedCollectionExpression == (object)collectionExpr);
+                Debug.Assert(collectionType.Equals(collectionExpr.Type, TypeCompareKind.AllIgnoreOptions)); // Should not create an Identity conversion that changes type.
 
                 convertedCollectionExpression = new BoundConversion(
                     collectionExpr.Syntax,
