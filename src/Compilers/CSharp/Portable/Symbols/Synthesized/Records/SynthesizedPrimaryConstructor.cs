@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(containingType.HasPrimaryConstructor);
             Debug.Assert(containingType is SourceNamedTypeSymbol);
             Debug.Assert(containingType is IAttributeTargetSymbol);
+            Debug.Assert(syntax.ParameterList != null);
 
             this.MakeFlags(
                 MethodKind.Constructor,
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasAnyBody: true,
                 isExpressionBodied: false,
                 isExtensionMethod: false,
-                isVarArg: syntax.ParameterList?.Parameters.Any(static p => p.IsArgList) ?? false,
+                isVarArg: syntax.ParameterList.Parameters.Any(static p => p.IsArgList),
                 isNullableAnalysisEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
         }
 
