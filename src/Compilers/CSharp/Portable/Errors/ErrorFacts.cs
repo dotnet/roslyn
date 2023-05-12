@@ -2310,7 +2310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadCaseInSwitchArm:
                 case ErrorCode.ERR_ConstantValueOfTypeExpected:
                 case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny:
-                case ErrorCode.ERR_RefReadOnlyInverted:
+                case ErrorCode.ERR_RefReadOnlyWrongOrdering:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

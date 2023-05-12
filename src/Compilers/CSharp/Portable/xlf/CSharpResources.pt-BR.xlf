@@ -1387,7 +1387,7 @@
         <target state="translated">O lado esquerdo de uma atribuição ref deve ser uma variável ref.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefReadOnlyInverted">
+      <trans-unit id="ERR_RefReadOnlyWrongOrdering">
         <source>'readonly' modifier must be specified after 'ref'.</source>
         <target state="new">'readonly' modifier must be specified after 'ref'.</target>
         <note />

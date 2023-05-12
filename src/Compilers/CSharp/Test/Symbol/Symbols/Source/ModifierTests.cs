@@ -192,7 +192,7 @@ public class Base {
 }").VerifyDiagnostics(
             // (3,19): error CS9501: 'readonly' modifier must be specified after 'ref'.
             //     public void M(readonly ref int X) {
-            Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 19));
+            Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 19));
         }
 
         [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
@@ -205,7 +205,7 @@ public class Base {
 }").VerifyDiagnostics(
                 // (3,19): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     public void M(readonly int X) {
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 19));
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 19));
         }
 
         [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
@@ -220,7 +220,7 @@ public class Base {
 }").VerifyDiagnostics(
                 // (5,18): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //         var v = (readonly int i) => { };
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(5, 18));
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(5, 18));
         }
 
         [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
@@ -247,7 +247,7 @@ public class Base {
 }").VerifyDiagnostics(
                 // (5,18): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //         var v = (readonly ref int i) => { };
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(5, 18));
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(5, 18));
         }
 
         [Fact]

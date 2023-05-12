@@ -549,7 +549,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(7, 19),
                 // (7,19): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //         delegate*<readonly ref string, void> p3,
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(7, 19),
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(7, 19),
                 // (8,22): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
                 //         delegate*<in out string, void> p4,
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "in").WithLocation(8, 22),

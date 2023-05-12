@@ -7409,7 +7409,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnscopedScoped" xml:space="preserve">
     <value>UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</value>
   </data>
-  <data name="ERR_RefReadOnlyInverted" xml:space="preserve">
+  <data name="ERR_RefReadOnlyWrongOrdering" xml:space="preserve">
     <value>'readonly' modifier must be specified after 'ref'.</value>
   </data>
   <data name="ERR_ScopedDiscard" xml:space="preserve">

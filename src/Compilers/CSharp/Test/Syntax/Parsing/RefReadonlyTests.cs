@@ -415,7 +415,7 @@ class Test
 }").VerifyDiagnostics(
                 // (4,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     void M(readonly ref int p)
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(4, 12));
         }
 
         [Fact]
@@ -573,13 +573,13 @@ class Test
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 12),
                 // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     void M(readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 12));
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12));
 
             var expectedDiagnostics = new[]
             {
                 // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     void M(readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 12)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12)
             };
 
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -601,13 +601,13 @@ class Test
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 12),
                 // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     void M(readonly params int[] p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 12));
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12));
 
             var expectedDiagnostics = new[]
             {
                 // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     void M(readonly params int[] p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 12)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12)
             };
 
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -719,13 +719,13 @@ class Test
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 31),
                 // (3,31): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     public static void M(this readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 31));
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 31));
 
             var expectedDiagnostics = new[]
             {
                 // (3,31): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     public static void M(this readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 31)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 31)
             };
 
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -809,13 +809,13 @@ class Test
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 35),
                 // (3,35): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     public static void M(ref this readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 35));
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 35));
 
             var expectedDiagnostics = new[]
             {
                 // (3,35): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     public static void M(ref this readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 35)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 35)
             };
 
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -1014,7 +1014,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 37),
                 // (3,37): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     public static void M(ref scoped readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 37));
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 37));
 
             var expectedDiagnostics = new[]
             {
@@ -1029,7 +1029,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(3, 37),
                 // (3,37): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     public static void M(ref scoped readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 37)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 37)
             };
 
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -1051,7 +1051,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 26),
                 // (3,26): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     public static void M(readonly scoped ref int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 26),
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 26),
                 // (3,35): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //     public static void M(readonly scoped ref int p) => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 35),
@@ -1066,7 +1066,7 @@ class Test
             {
                 // (3,26): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     public static void M(readonly scoped ref int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 26),
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 26),
                 // (3,35): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //     public static void M(readonly scoped ref int p) => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 35),
@@ -1106,7 +1106,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 33),
                 // (3,33): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     public static void M(scoped readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 33));
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 33));
 
             var expectedDiagnostics = new[]
             {
@@ -1121,7 +1121,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(3, 33),
                 // (3,33): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     public static void M(scoped readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyInverted, "readonly").WithLocation(3, 33)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 33)
             };
 
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);

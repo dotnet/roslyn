@@ -2192,7 +2192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConstantValueOfTypeExpected = 9135,
         ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
 
-        ERR_RefReadOnlyInverted = 9501, // PROTOTYPE: Pack numbers
+        ERR_RefReadOnlyWrongOrdering = 9501, // PROTOTYPE: Pack numbers
 
         #endregion
 

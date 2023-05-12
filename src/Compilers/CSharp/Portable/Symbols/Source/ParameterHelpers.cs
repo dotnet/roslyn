@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else if (!seenRef || previousModifier?.Kind() != SyntaxKind.RefKeyword)
                         {
-                            diagnostics.Add(ErrorCode.ERR_RefReadOnlyInverted, modifier);
+                            diagnostics.Add(ErrorCode.ERR_RefReadOnlyWrongOrdering, modifier);
                         }
                         else
                         {

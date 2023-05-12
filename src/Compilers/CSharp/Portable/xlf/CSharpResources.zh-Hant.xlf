@@ -1387,7 +1387,7 @@
         <target state="translated">參考指派的左側必須為 ref 變數。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefReadOnlyInverted">
+      <trans-unit id="ERR_RefReadOnlyWrongOrdering">
         <source>'readonly' modifier must be specified after 'ref'.</source>
         <target state="new">'readonly' modifier must be specified after 'ref'.</target>
         <note />
