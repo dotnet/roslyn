@@ -1016,19 +1016,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // when there are no member names (common for most compilation units).
                     if (memberNames.Value.Count > 0)
                     {
-#if NET
-                        s_nodeToMemberNames.AddOrUpdate(greenNode, memberNames);
-#else
-                        lock (s_nodeToMemberNames)
+#if NET7_0
+                        // Add the item to the cache, but use an existing item if another thread beat us.
+                        s_nodeToMemberNames.TryAdd(greenNode, memberNames);
+#elif NET6_0
+                        // TryAdd not available in net6.0.  First see if another thread beat us.  If so, use that value..
+                        // If not, add our item in.  There's a small race here (where another thread may still win, and
+                        // we're overwrite it). But without a lock, it's just a possibility we'll live with.
+                        if (!s_nodeToMemberNames.TryGetValue(greenNode, out _))
                         {
-                            s_nodeToMemberNames.Remove(greenNode);
-                            s_nodeToMemberNames.Add(greenNode, memberNames);
+                            s_nodeToMemberNames.AddOrUpdate(greenNode, memberNames);
+                        }
+#else
+                        // AddOrUpdate not available in netstandard2.0.
+
+                        // See if another thread already beat us here.  If so, use the values it added.
+                        if (!s_nodeToMemberNames.TryGetValue(greenNode, out _))
+                        {
+                            // Otherwise, attempt to add the items ourselves.  Do this in a local function to prevent a closure 
+                            // allocation if we don't need to go this path.
+                            tryAddMemberNamesToCache(greenNode, memberNames);
                         }
 #endif
+
+                        // Get the value that must be present in the cache at this point.
+                        var succeeded = s_nodeToMemberNames.TryGetValue(greenNode, out memberNames);
+                        Debug.Assert(succeeded);
                     }
                 }
 
                 return memberNames;
+
+#if !NET
+                static void tryAddMemberNamesToCache(GreenNode greenNode, StrongBox<ImmutableSegmentedHashSet<string>> memberNames)
+                {
+                    s_nodeToMemberNames.GetValue(greenNode, _ => memberNames);
+                }
+#endif
             }
         }
 
