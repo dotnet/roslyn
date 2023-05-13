@@ -1017,7 +1017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (memberNames.Value.Count > 0)
                     {
 #if NET7_0
-                        // Add the item to the cache, but use an existing item if another thread beat us.
+                        // Add the item to the cache, but keep whatever is there if another thread beat us.
                         s_nodeToMemberNames.TryAdd(greenNode, memberNames);
 #elif NET6_0
                         // TryAdd not available in net6.0.  First see if another thread beat us.  If so, use that value..
