@@ -37,11 +37,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider
         private static async Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalContext, ImmutableArray<FixAllContext> contexts)
         {
             var cancellationToken = originalContext.CancellationToken;
-            var equivalenceKey = originalContext.CodeActionEquivalenceKey;
-            var removeMembers = equivalenceKey
-                is nameof(CSharpCodeFixesResources.Use_primary_constructor_and_remove_fields)
-                or nameof(CSharpCodeFixesResources.Use_primary_constructor_and_remove_properties)
-                or nameof(CSharpCodeFixesResources.Use_primary_constructor_and_remove_members);
+            var removeMembers = originalContext.CodeActionEquivalenceKey == nameof(CSharpCodeFixesResources.Use_primary_constructor_and_remove_members);
 
             var solutionEditor = new SolutionEditor(originalContext.Solution);
 
