@@ -19,6 +19,8 @@ using CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    using BoxedMemberNames = StrongBox<ImmutableSegmentedHashSet<string>>;
+
     internal sealed class DeclarationTreeBuilder : CSharpSyntaxVisitor<SingleNamespaceOrTypeDeclaration>
     {
         /// <summary>
@@ -31,10 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// whole tree.  It allows files with multiple types in them to reuse the member names for untouched types when
         /// others in the file are edited.
         /// </remarks>
-        private static readonly ConditionalWeakTable<GreenNode, StrongBox<ImmutableSegmentedHashSet<string>>> s_nodeToMemberNames
-            = new ConditionalWeakTable<GreenNode, StrongBox<ImmutableSegmentedHashSet<string>>>();
+        private static readonly ConditionalWeakTable<GreenNode, BoxedMemberNames> s_nodeToMemberNames
+            = new ConditionalWeakTable<GreenNode, BoxedMemberNames>();
 
-        private static readonly StrongBox<ImmutableSegmentedHashSet<string>> s_emptyMemberNames = new StrongBox<ImmutableSegmentedHashSet<string>>(ImmutableSegmentedHashSet<string>.Empty);
+        private static readonly BoxedMemberNames s_emptyMemberNames = new BoxedMemberNames(ImmutableSegmentedHashSet<string>.Empty);
 
         private readonly SyntaxTree _syntaxTree;
         private readonly string _scriptClassName;
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Stored in lexical order for the types in this tree that had member names the last time we created decls for
         /// the tree.
         /// </summary>
-        private readonly OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>> _previousMemberNames;
+        private readonly OneOrMany<WeakReference<BoxedMemberNames>> _previousMemberNames;
 
         /// <summary>
         /// Any special attributes we may be referencing through a using alias in the file.
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTree syntaxTree,
             string scriptClassName,
             bool isSubmission,
-            OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>> previousMemberNames)
+            OneOrMany<WeakReference<BoxedMemberNames>> previousMemberNames)
         {
             _syntaxTree = syntaxTree;
             _scriptClassName = scriptClassName;
@@ -86,11 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTree syntaxTree,
             string scriptClassName,
             bool isSubmission,
-            OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>? previousMemberNames = null)
+            OneOrMany<WeakReference<BoxedMemberNames>>? previousMemberNames = null)
         {
             var builder = new DeclarationTreeBuilder(
                 syntaxTree, scriptClassName, isSubmission,
-                previousMemberNames ?? OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>.Empty);
+                previousMemberNames ?? OneOrMany<WeakReference<BoxedMemberNames>>.Empty);
             return (RootSingleNamespaceDeclaration)builder.Visit(syntaxTree.GetRoot());
         }
 
@@ -211,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return childrenBuilder.ToImmutableAndFree();
         }
 
-        private static SingleNamespaceOrTypeDeclaration CreateImplicitClass(StrongBox<ImmutableSegmentedHashSet<string>> memberNames, SyntaxReference container, SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+        private static SingleNamespaceOrTypeDeclaration CreateImplicitClass(BoxedMemberNames memberNames, SyntaxReference container, SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.ImplicitClass,
@@ -309,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SingleNamespaceOrTypeDeclaration CreateScriptClass(
             CompilationUnitSyntax parent,
             ImmutableArray<SingleTypeDeclaration> children,
-            StrongBox<ImmutableSegmentedHashSet<string>> memberNames,
+            BoxedMemberNames memberNames,
             SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             Debug.Assert(parent.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind != SourceCodeKind.Regular);
@@ -860,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private StrongBox<ImmutableSegmentedHashSet<string>> GetEnumMemberNames(
+        private BoxedMemberNames GetEnumMemberNames(
             EnumDeclarationSyntax enumDeclaration,
             SeparatedSyntaxList<EnumMemberDeclarationSyntax> members,
             ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
@@ -889,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 members);
         }
 
-        private StrongBox<ImmutableSegmentedHashSet<string>> GetNonTypeMemberNames(
+        private BoxedMemberNames GetNonTypeMemberNames(
             CSharpSyntaxNode parent,
             CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members,
             ref SingleTypeDeclaration.TypeDeclarationFlags declFlags,
@@ -978,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private StrongBox<ImmutableSegmentedHashSet<string>> GetOrComputeMemberNames<TData>(
+        private BoxedMemberNames GetOrComputeMemberNames<TData>(
             SyntaxNode parent,
             Action<HashSet<string>, TData> addMemberNames,
             TData data)
@@ -988,11 +990,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _currentTypeIndex++;
             return result;
 
-            StrongBox<ImmutableSegmentedHashSet<string>> getOrComputeMemberNamesWorker()
+            BoxedMemberNames getOrComputeMemberNamesWorker()
             {
                 // Lookup in the cache first.
                 var greenNode = parent.Green;
-                if (!s_nodeToMemberNames.TryGetValue(greenNode, out StrongBox<ImmutableSegmentedHashSet<string>> memberNames))
+                if (!s_nodeToMemberNames.TryGetValue(greenNode, out BoxedMemberNames memberNames))
                 {
                     // If not there, make a fresh set, and add all the member names to it.
                     var memberNamesBuilder = PooledHashSet<string>.GetInstance();
@@ -1009,50 +1011,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? previousMemberNames
                         : memberNamesBuilder.Count == 0
                             ? s_emptyMemberNames
-                            : new StrongBox<ImmutableSegmentedHashSet<string>>(ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder));
+                            : new BoxedMemberNames(ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder));
                     memberNamesBuilder.Free();
 
                     // Store the names in the cache to be found in the next compilation update. But don't bother caching
-                    // when there are no member names (common for most compilation units).
+                    // when there are no member names (common for most compilation units).  If another thread beat us to
+                    // this, then use their values instead.
                     if (memberNames.Value.Count > 0)
                     {
-#if NET7_0
-                        // Add the item to the cache, but keep whatever is there if another thread beat us.
-                        s_nodeToMemberNames.TryAdd(greenNode, memberNames);
-#elif NET6_0
-                        // TryAdd not available in net6.0.  First see if another thread beat us.  If so, use that value..
-                        // If not, add our item in.  There's a small race here (where another thread may still win, and
-                        // we're overwrite it). But without a lock, it's just a possibility we'll live with.
-                        if (!s_nodeToMemberNames.TryGetValue(greenNode, out _))
-                        {
-                            s_nodeToMemberNames.AddOrUpdate(greenNode, memberNames);
-                        }
-#else
-                        // AddOrUpdate not available in netstandard2.0.
-
-                        // See if another thread already beat us here.  If so, use the values it added.
-                        if (!s_nodeToMemberNames.TryGetValue(greenNode, out _))
-                        {
-                            // Otherwise, attempt to add the items ourselves.  Do this in a local function to prevent a closure 
-                            // allocation if we don't need to go this path.
-                            tryAddMemberNamesToCache(greenNode, memberNames);
-                        }
-#endif
-
-                        // Get the value that must be present in the cache at this point.
-                        var succeeded = s_nodeToMemberNames.TryGetValue(greenNode, out memberNames);
-                        Debug.Assert(succeeded);
+                        // Avoid unnecessary allocation (as CWT on NET6 and prior has no non-allocating way to try to
+                        // get an existing value, and only add if that particular KVP is not already present).
+                        using var _ = PooledDelegates.GetPooledCreateValueCallback(
+                            static (BoxedMemberNames memberNames, GreenNode _) => memberNames, memberNames, out var pooledCallback);
+                        memberNames = s_nodeToMemberNames.GetValue(greenNode, pooledCallback);
                     }
                 }
 
                 return memberNames;
-
-#if !NET
-                static void tryAddMemberNamesToCache(GreenNode greenNode, StrongBox<ImmutableSegmentedHashSet<string>> memberNames)
-                {
-                    s_nodeToMemberNames.GetValue(greenNode, _ => memberNames);
-                }
-#endif
             }
         }
 
