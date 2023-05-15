@@ -49,6 +49,56 @@ public struct Buffer10<T>
 {InlineArrayAttributeDefinition}
 ";
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void InlineArrayType_00_LayoutAtRuntime()
+        {
+            var src = @"
+var c = new C();
+c.F = new Enclosing.Buffer[2];
+c.F[0][0] = 111;
+c.F[0][1] = 42;
+c.F[0][2] = 43;
+c.F[0][3] = 44;
+c.F[1][0] = 45;
+c.F[1][1] = 46;
+c.F[1][2] = 47;
+c.F[1][3] = 48;
+System.Console.WriteLine(c.F[0][0]);
+System.Console.WriteLine(c.F[0][1]);
+System.Console.WriteLine(c.F[0][2]);
+System.Console.WriteLine(c.F[0][3]);
+System.Console.WriteLine(c.F[1][0]);
+System.Console.WriteLine(c.F[1][1]);
+System.Console.WriteLine(c.F[1][2]);
+System.Console.WriteLine(c.F[1][3]);
+class C
+{
+    public Enclosing.Buffer F;
+}
+
+public class Enclosing
+{
+    [System.Runtime.CompilerServices.InlineArray(4)]
+    public struct Buffer
+    {
+        private int _element0;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            var output = @"
+111
+42
+43
+44
+45
+46
+47
+48
+";
+            CompileAndVerify(comp, expectedOutput: output, verify: Verification.Fails).VerifyDiagnostics();
+        }
+
         [Fact]
         public void InlineArrayType_01_NoAttribute()
         {
@@ -950,15 +1000,13 @@ unsafe struct Buffer
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void InlineArrayType_31_Nested()
         {
             var src = @"
 var c = new C();
 c.F[0] = 111;
-c.F[1] = 42;
 System.Console.WriteLine(c.F[0]);
-System.Console.WriteLine(c.F[1]);
 
 class C
 {
@@ -974,12 +1022,8 @@ public class Enclosing
     }
 }
 ";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            var output = """
-                111
-                42
-                """;
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: output, verify: Verification.Fails).VerifyDiagnostics();
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
