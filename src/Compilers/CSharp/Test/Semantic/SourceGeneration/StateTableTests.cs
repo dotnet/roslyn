@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             values = ImmutableArray.Create(1, 2, 3);
 
-            // second time we'll see that the "Input" step is modified, but the outputs of the "SelectMany" step are modified.
+            // second time we'll see that the "Input" step is modified, but the outputs of the "SelectMany" step are new.
             dstBuilder = GetBuilder(dstBuilder.ToImmutable(), trackIncrementalGeneratorSteps: true);
             var table = dstBuilder.GetLatestStateTableForNode(transformNode);
 
@@ -1018,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             Assert.All(step.Outputs, output =>
             {
-                Assert.Equal(IncrementalStepRunReason.Modified, output.Reason);
+                Assert.Equal(IncrementalStepRunReason.New, output.Reason);
             });
         }
 

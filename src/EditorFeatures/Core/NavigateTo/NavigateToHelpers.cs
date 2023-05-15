@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigateTo
             if (document == null)
                 return;
 
-            var workspace = document.Project.Solution.Workspace;
+            var workspace = document.Workspace;
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
             // Document tabs opened by NavigateTo are carefully created as preview or regular tabs

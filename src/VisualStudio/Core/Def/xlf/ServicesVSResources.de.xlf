@@ -362,34 +362,9 @@
         <target state="translated">Dokumentgliederung</target>
         <note />
       </trans-unit>
-      <trans-unit id="Document_Outline_Collapse_All">
-        <source>Collapse All</source>
-        <target state="translated">Alle reduzieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_Outline_Expand_All">
-        <source>Expand All</source>
-        <target state="translated">Alle erweitern</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Document_Outline_Search">
         <source>Search Document Outline</source>
         <target state="translated">Dokumentgliederung durchsuchen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_Outline_Sort_Name">
-        <source>Sort By Name</source>
-        <target state="translated">Nach Namen sortieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_Outline_Sort_Order">
-        <source>Sort By Order</source>
-        <target state="translated">Nach Reihenfolge sortieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_Outline_Sort_Type">
-        <source>Sort By Type</source>
-        <target state="translated">Nach Typ sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
