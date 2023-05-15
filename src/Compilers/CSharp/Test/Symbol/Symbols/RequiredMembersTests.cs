@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6832,5 +6832,216 @@ public class Derived : Base
                                                                                         .Select(m => m.Key));
         Assert.All(tupleType.TupleElements, field => Assert.True(field.IsRequired));
         Assert.True(tupleType.GetMember<PropertySymbol>("Property").IsRequired);
+    }
+
+    [Fact]
+    public void IndexedPropertyCannotBeRequired()
+    {
+
+        // Equivalent to
+        // <RequiredMember>
+        // Public Class C
+        //     <RequiredMember>
+        //     Public Property P1(x As Integer) As Integer
+        //         Get
+        //             Return 0
+        //         End Get
+        //         Set
+        //         End Set
+        //     End Property
+        // End Class
+        var il = """
+            .class public auto ansi C
+                extends [mscorlib]System.Object
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .method public specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    ldarg.0
+                    call instance void [mscorlib]System.Object::.ctor()
+                    ret
+                }
+            
+                .method public specialname 
+                    instance int32 get_P1 (
+                        int32 x
+                    ) cil managed 
+                {
+                    ldc.i4.0
+                    ret
+                }
+            
+                .method public specialname 
+                    instance void set_P1 (
+                        int32 x,
+                        int32 Value
+                    ) cil managed 
+                {
+                    ret
+                }
+            
+                .property instance int32 P1(
+                    int32 x
+                )
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    .get instance int32 C::get_P1(int32)
+                    .set instance void C::set_P1(int32, int32)
+                }
+            
+            }
+            """;
+
+        var comp = CreateCompilationWithIL("_ = new C();", il, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9037: The required members list for 'C' is malformed and cannot be interpreted.
+            // _ = new C();
+            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "C").WithArguments("C").WithLocation(1, 9)
+        );
+    }
+
+    /// <summary>
+    /// Equivalent to
+    /// {RequiredMember}
+    /// Public Class C
+    ///     {RequiredMember}
+    ///     Public Property P1(x As Integer) As Integer
+    ///         Get
+    ///             Return 0
+    ///         End Get
+    ///         Set
+    ///         End Set
+    ///     End Property
+    /// End Class
+    /// </summary>
+    private const string IndexedPropertyOverloadWithRequiredMemberIL = """
+            .class public auto ansi C
+                extends [mscorlib]System.Object
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .field private int32 _P1
+            
+                .method public specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    ldarg.0
+                    call instance void [mscorlib]System.Object::.ctor()
+                    ret
+                }
+            
+                .method public hidebysig specialname 
+                    instance int32 get_P1 (
+                        int32 x
+                    ) cil managed 
+                {
+                    ldc.i4.0
+                    ret
+                }
+            
+                .method public hidebysig specialname 
+                    instance void set_P1 (
+                        int32 x,
+                        int32 Value
+                    ) cil managed 
+                {
+                    ret
+                }
+            
+                .method public hidebysig specialname 
+                    instance int32 get_P1 () cil managed 
+                {
+                    ldarg.0
+                    ldfld int32 C::_P1
+                    ret
+                }
+            
+                .method public hidebysig specialname 
+                    instance void set_P1 (
+                        int32 AutoPropertyValue
+                    ) cil managed 
+                {
+                    ldarg.0
+                    ldarg.1
+                    stfld int32 C::_P1
+                    ret
+                }
+            
+                .property instance int32 P1(
+                    int32 x
+                )
+                {
+                    .get instance int32 C::get_P1(int32)
+                    .set instance void C::set_P1(int32, int32)
+                }
+                .property instance int32 P1()
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    .get instance int32 C::get_P1()
+                    .set instance void C::set_P1(int32)
+                }
+            }
+            """;
+
+    [Fact]
+    public void IndexedPropertyOverload_NoneSet()
+    {
+
+        var il = IndexedPropertyOverloadWithRequiredMemberIL;
+
+        var comp = CreateCompilationWithIL("_ = new C();", il, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9035: Required member 'C.P1' must be set in the object initializer or attribute constructor.
+            // _ = new C();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.P1").WithLocation(1, 9)
+        );
+    }
+
+    [Fact]
+    public void IndexedPropertyOverload_AllSet()
+    {
+
+        var il = IndexedPropertyOverloadWithRequiredMemberIL;
+
+        var comp = CreateCompilationWithIL("_ = new C() { P1 = 1 };", il, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics(
+        );
+    }
+
+    [Fact]
+    public void IndexedPropertyOverload_InDerivedType()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            _ = new C2() { };
+            _ = new C2() { P1 = 1 };
+
+            public class C1
+            {
+                public required int P1 {get;set;}
+            }
+            
+            public class C2 : C1
+            {
+                [System.Runtime.CompilerServices.IndexerNameAttribute(nameof(P1))]
+                public int this[int x] => x;
+            }
+            """);
+
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9035: Required member 'C1.P1' must be set in the object initializer or attribute constructor.
+            // _ = new C2() { };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C2").WithArguments("C1.P1").WithLocation(1, 9)
+        );
     }
 }
