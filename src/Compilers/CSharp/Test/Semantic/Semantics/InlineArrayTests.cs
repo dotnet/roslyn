@@ -12465,6 +12465,11 @@ class Program
         _ = f[new System.Index(0, true)];
         _ = f[new System.Index(-1, true)];
         _ = f[new System.Index(int.MinValue, true)];
+
+        _ = f[new System.Index()];
+        _ = f[new System.Index(value: -1)];
+        _ = f[new System.Index(value: -1, fromEnd: false)];
+        _ = f[new System.Index(fromEnd: false, value: -1)];
     }
 }
 ";
@@ -12509,7 +12514,13 @@ class Program
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(25, 32),
                 // (26,32): error CS9503: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(int.MinValue, true)];
-                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "int.MinValue").WithLocation(26, 32)
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "int.MinValue").WithLocation(26, 32),
+                // (29,39): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(value: -1)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(29, 39),
+                // (30,39): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(value: -1, fromEnd: false)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(30, 39)
                 );
         }
 
