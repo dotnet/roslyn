@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -6506,5 +6507,324 @@ public class Derived : Base
             // _ = new D();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "D").WithArguments("D.Prop").WithLocation(1, 9)
         );
+    }
+
+    [Fact]
+    public void ProtectedParameterlessConstructorInStruct()
+    {
+
+        // Equivalent to
+        // public struct S
+        // {
+        //     protected S() {}
+        //     public required int Prop { get; set; }
+        // }
+        var il = """
+            .class public sequential ansi sealed beforefieldinit S
+                extends[mscorlib] System.ValueType
+                {
+                .custom instance void [mscorlib] System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .field private int32 f
+            
+                .method family hidebysig specialname rtspecialname
+                    instance void .ctor () cil managed
+                {
+                    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
+                        01 00 5f 43 6f 6e 73 74 72 75 63 74 6f 72 73 20
+                        6f 66 20 74 79 70 65 73 20 77 69 74 68 20 72 65
+                        71 75 69 72 65 64 20 6d 65 6d 62 65 72 73 20 61
+                        72 65 20 6e 6f 74 20 73 75 70 70 6f 72 74 65 64
+                        20 69 6e 20 74 68 69 73 20 76 65 72 73 69 6f 6e
+                        20 6f 66 20 79 6f 75 72 20 63 6f 6d 70 69 6c 65
+                        72 2e 01 00 00
+                    )
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+                        01 00 0f 52 65 71 75 69 72 65 64 4d 65 6d 62 65
+                        72 73 00 00
+                    )
+                    ret
+                }
+            
+                .method public hidebysig specialname
+                    instance int32 get_Prop() cil managed
+                {
+                    ldarg.0
+                    ldfld int32 S::f
+                    ret
+                }
+            
+                .method public hidebysig specialname
+                    instance void set_Prop(
+                        int32 'value'
+                    ) cil managed
+                {
+                    ldarg.0
+                    ldarg.1
+                    stfld int32 S::f
+                    ret
+                }
+            
+                .property instance int32 Prop()
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    .get instance int32 S::get_Prop()
+                    .set instance void S::set_Prop(int32)
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIL("_ = new S();", il, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS0122: 'S.S()' is inaccessible due to its protection level
+            // _ = new S();
+            Diagnostic(ErrorCode.ERR_BadAccess, "S").WithArguments("S.S()").WithLocation(1, 9)
+        );
+    }
+
+    private static string TupleWithRequiredMemberDefinition(bool setsRequiredMembers) => $$"""
+        namespace System
+        {
+            public struct ValueTuple<T1, T2>
+            {
+                public required T1 Item1;
+                public required T2 Item2;
+                public required int AnotherField;
+                public required int Property { get; set; }
+        
+                {{(setsRequiredMembers ? "[System.Diagnostics.CodeAnalysis.SetsRequiredMembers]" : "")}}
+                public ValueTuple(T1 item1, T2 item2)
+                {
+                    this.Item1 = item1;
+                    this.Item2 = item2;
+                }
+        
+                public static bool operator ==(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+                    => throw null;
+                public static bool operator !=(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+                    => throw null;
+        
+                public override bool Equals(object o)
+                    => throw null;
+                public override int GetHashCode()
+                    => throw null;
+            }
+        
+            public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> where TRest : struct
+            {
+                public T1 Item1;
+                public T2 Item2;
+                public T3 Item3;
+                public T4 Item4;
+                public T5 Item5;
+                public T6 Item6;
+                public T7 Item7;
+                public required TRest Rest;
+        
+                {{(setsRequiredMembers ? "[System.Diagnostics.CodeAnalysis.SetsRequiredMembers]" : "")}}
+                public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
+                {
+                    this.Item1 = item1;
+                    this.Item2 = item2;
+                    this.Item3 = item3;
+                    this.Item4 = item4;
+                    this.Item5 = item5;
+                    this.Item6 = item6;
+                    this.Item7 = item7;
+                    this.Rest = rest;
+                }
+        
+                public static bool operator ==(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> t1, ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> t2)
+                    => throw null;
+                public static bool operator !=(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> t1, ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> t2)
+                    => throw null;
+        
+                public override bool Equals(object o)
+                    => throw null;
+                public override int GetHashCode()
+                    => throw null;
+            }
+        
+            namespace Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+                public sealed class RequiredMemberAttribute : Attribute
+                {
+                    public RequiredMemberAttribute()
+                    {
+                    }
+                }
+        
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
+                public sealed class CompilerFeatureRequiredAttribute : Attribute
+                {
+                    public CompilerFeatureRequiredAttribute(string featureName)
+                    {
+                        FeatureName = featureName;
+                    }
+                    public string FeatureName { get; }
+                    public bool IsOptional { get; set; }
+                }
+            }
+            namespace Diagnostics.CodeAnalysis
+            {
+                [AttributeUsage(AttributeTargets.Constructor, Inherited = false, AllowMultiple = false)]
+                public sealed class SetsRequiredMembersAttribute : Attribute
+                {
+                    public SetsRequiredMembersAttribute()
+                    {
+                    }
+                }
+            }
+        }
+        """;
+
+    [Theory]
+    [CombinatorialData]
+    public void TupleWithRequiredFields(bool setsRequiredMembers)
+    {
+        var comp = CreateCompilation(new[] { """
+            #pragma warning disable CS0219 // Unused local
+            var t1 = new (int, int)(1, 2);
+            var t2 = new System.ValueTuple<int, int>(3, 4);
+            var t3 = new System.ValueTuple<int, int>();
+            (int, int) t4 = default;
+            System.ValueTuple<int, int> t5 = default;
+            var t6 = new System.ValueTuple<int, int>() {
+                Item1 = 1,
+                Item2 = 2,
+                Property = 3,
+                AnotherField = 4
+            };
+            """, TupleWithRequiredMemberDefinition(setsRequiredMembers) }, targetFramework: TargetFramework.Mscorlib461 /* Using 461 to get a framework without ValueTuple */);
+
+        if (setsRequiredMembers)
+        {
+            comp.VerifyDiagnostics(
+                // 0.cs(2,14): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                // var t1 = new (int, int)(1, 2);
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(2, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).Item2' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Item2").WithLocation(4, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).Item1' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Item1").WithLocation(4, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).AnotherField' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).AnotherField").WithLocation(4, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).Property' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Property").WithLocation(4, 14)
+            );
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // 0.cs(2,14): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                // var t1 = new (int, int)(1, 2);
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(2, 14),
+                // 0.cs(3,14): error CS9035: Required member '(int, int).Item2' must be set in the object initializer or attribute constructor.
+                // var t2 = new System.ValueTuple<int, int>(3, 4);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Item2").WithLocation(3, 14),
+                // 0.cs(3,14): error CS9035: Required member '(int, int).Item1' must be set in the object initializer or attribute constructor.
+                // var t2 = new System.ValueTuple<int, int>(3, 4);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Item1").WithLocation(3, 14),
+                // 0.cs(3,14): error CS9035: Required member '(int, int).AnotherField' must be set in the object initializer or attribute constructor.
+                // var t2 = new System.ValueTuple<int, int>(3, 4);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).AnotherField").WithLocation(3, 14),
+                // 0.cs(3,14): error CS9035: Required member '(int, int).Property' must be set in the object initializer or attribute constructor.
+                // var t2 = new System.ValueTuple<int, int>(3, 4);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Property").WithLocation(3, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).Item2' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Item2").WithLocation(4, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).Item1' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Item1").WithLocation(4, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).AnotherField' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).AnotherField").WithLocation(4, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).Property' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Property").WithLocation(4, 14)
+            );
+        }
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void TupleWithRequiredFields_TupleExpressonSyntax(bool setsRequiredMembers)
+    {
+        var comp = CreateCompilation(new[] { """
+            #pragma warning disable CS0219 // Unused local
+            var t1 = (1, 2);
+            (int, int) t2 = (1, default);
+            var t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+            """, TupleWithRequiredMemberDefinition(setsRequiredMembers) }, targetFramework: TargetFramework.Mscorlib461 /* Using 461 to get a framework without ValueTuple */);
+
+        if (setsRequiredMembers)
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(2,10): error CS9035: Required member '(int, int).Item2' must be set in the object initializer or attribute constructor.
+                // var t1 = (1, 2);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2)").WithArguments("(int, int).Item2").WithLocation(2, 10),
+                // 0.cs(2,10): error CS9035: Required member '(int, int).Item1' must be set in the object initializer or attribute constructor.
+                // var t1 = (1, 2);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2)").WithArguments("(int, int).Item1").WithLocation(2, 10),
+                // 0.cs(2,10): error CS9035: Required member '(int, int).AnotherField' must be set in the object initializer or attribute constructor.
+                // var t1 = (1, 2);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2)").WithArguments("(int, int).AnotherField").WithLocation(2, 10),
+                // 0.cs(2,10): error CS9035: Required member '(int, int).Property' must be set in the object initializer or attribute constructor.
+                // var t1 = (1, 2);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2)").WithArguments("(int, int).Property").WithLocation(2, 10),
+                // 0.cs(3,17): error CS9035: Required member '(int, int).Item2' must be set in the object initializer or attribute constructor.
+                // (int, int) t2 = (1, default);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, default)").WithArguments("(int, int).Item2").WithLocation(3, 17),
+                // 0.cs(3,17): error CS9035: Required member '(int, int).Item1' must be set in the object initializer or attribute constructor.
+                // (int, int) t2 = (1, default);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, default)").WithArguments("(int, int).Item1").WithLocation(3, 17),
+                // 0.cs(3,17): error CS9035: Required member '(int, int).AnotherField' must be set in the object initializer or attribute constructor.
+                // (int, int) t2 = (1, default);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, default)").WithArguments("(int, int).AnotherField").WithLocation(3, 17),
+                // 0.cs(3,17): error CS9035: Required member '(int, int).Property' must be set in the object initializer or attribute constructor.
+                // (int, int) t2 = (1, default);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, default)").WithArguments("(int, int).Property").WithLocation(3, 17),
+                // 0.cs(4,10): error CS9035: Required member '(int, int).Item2' must be set in the object initializer or attribute constructor.
+                // var t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int).Item2").WithLocation(4, 10),
+                // 0.cs(4,10): error CS9035: Required member '(int, int).Item1' must be set in the object initializer or attribute constructor.
+                // var t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int).Item1").WithLocation(4, 10),
+                // 0.cs(4,10): error CS9035: Required member '(int, int).AnotherField' must be set in the object initializer or attribute constructor.
+                // var t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int).AnotherField").WithLocation(4, 10),
+                // 0.cs(4,10): error CS9035: Required member '(int, int).Property' must be set in the object initializer or attribute constructor.
+                // var t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int).Property").WithLocation(4, 10),
+                // 0.cs(4,10): error CS9035: Required member 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Rest' must be set in the object initializer or attribute constructor.
+                // var t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Rest").WithLocation(4, 10)
+            );
+        }
+
+        var tree = comp.SyntaxTrees[0];
+        var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+        var model = comp.GetSemanticModel(tree);
+        var tupleType = model.GetTypeInfo(tuple).Type.GetSymbol<NamedTypeSymbol>()!;
+
+        Assert.True(tupleType.HasDeclaredRequiredMembers);
+        AssertEx.Equal(new[] { "AnotherField", "Item1", "Item2", "Property" }, tupleType.AllRequiredMembers
+                                                                                        .OrderBy(m => m.Key, StringComparer.InvariantCulture)
+                                                                                        .Select(m => m.Key));
+        Assert.All(tupleType.TupleElements, field => Assert.True(field.IsRequired));
+        Assert.True(tupleType.GetMember<PropertySymbol>("Property").IsRequired);
     }
 }
