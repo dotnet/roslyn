@@ -45,8 +45,16 @@ internal class ServiceBrokerFactory
         _bridgeCompletionTask = Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Returns a full-access service broker, but will throw if we haven't yet connected to the Dev Kit broker.
+    /// </summary>
     [Export(typeof(SVsFullAccessServiceBroker))]
     public IServiceBroker FullAccessServiceBroker => this.GetRequiredServiceBrokerContainer().GetFullAccessServiceBroker();
+
+    /// <summary>
+    /// Returns a full-access service broker, but will return null if we haven't yet connected to the Dev Kit broker.
+    /// </summary>
+    public IServiceBroker? TryGetFullAccessServiceBroker() => _container?.GetFullAccessServiceBroker();
 
     public BrokeredServiceContainer GetRequiredServiceBrokerContainer()
     {
