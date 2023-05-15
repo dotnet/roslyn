@@ -45,7 +45,6 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
         => WellKnownFixAllProviders.BatchFixer;
 #else
         => new CSharpUsePrimaryConstructorFixAllProvider();
-
 #endif
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
