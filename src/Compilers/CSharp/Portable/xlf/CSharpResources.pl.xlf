@@ -664,7 +664,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">Użycie typu wskaźnika funkcji w elemencie „typeof” w atrybucie nie jest obsługiwane.</target>
+        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -1014,7 +1014,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single record partial declaration may have a parameter list</source>
-        <target state="translated">Tylko pojedyncza częściowa deklaracja rekordu może mieć listę parametrów</target>
+        <target state="new">Only a single record partial declaration may have a parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1289,7 +1289,7 @@
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="translated">Konstruktor zadeklarowany w „strukturze rekordów” z listą parametrów musi mieć inicjator „this”, który wywołuje konstruktor podstawowy lub jawnie zadeklarowany konstruktor.</target>
+        <target state="new">A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -2399,7 +2399,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
         <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
-        <target state="translated">Konstruktor zadeklarowany w rekordzie z listą parametrów musi mieć inicjator konstruktora „this”.</target>
+        <target state="new">A constructor declared in a record with parameter list must have 'this' constructor initializer.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVarianceStaticMember">
@@ -10221,22 +10221,22 @@ Pominięcie ostrzeżenia należy wziąć pod uwagę tylko w sytuacji, gdy na pew
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat">
         <source>The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</source>
-        <target state="translated">Określony ciąg wersji jest niezgodny z wymaganym formatem — główna[.pomocnicza[.kompilacja[.poprawka]]]</target>
+        <target state="new">The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
-        <target state="translated">Określony ciąg wersji zawiera znaki wieloznaczne, które nie są zgodne z determinizmem. Usuń znaki wieloznaczne z ciągu wersji lub wyłącz determinizm dla tej kompilacji</target>
+        <target state="new">The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
         <source>The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</source>
-        <target state="translated">Określony ciąg wersji nie jest zgodny z wymaganym formatem — wersja_główna.wersja_pomocnicza.kompilacja.poprawka (bez znaków wieloznacznych).</target>
+        <target state="new">The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat">
         <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">Określony ciąg wersji nie jest zgodny z zalecanym formatem — wersja_główna.wersja_pomocnicza.kompilacja.poprawka</target>
+        <target state="new">The specified version string does not conform to the recommended format - major.minor.build.revision</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat_Title">
