@@ -194,9 +194,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static LinePosition PositionToLinePosition(LSP.Position position)
             => new LinePosition(position.Line, position.Character);
 
+        public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
+            => new(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
+
         public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
         {
-            var linePositionSpan = new LinePositionSpan(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
+            var linePositionSpan = RangeToLinePositionSpan(range);
 
             try
             {
