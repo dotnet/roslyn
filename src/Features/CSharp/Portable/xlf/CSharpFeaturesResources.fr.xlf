@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Allow_unsafe_code_in_this_project">
         <source>Allow unsafe code in this project</source>
-        <target state="translated">Autoriser du code unsafe dans ce projet</target>
+        <target state="new">Allow unsafe code in this project</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
@@ -129,12 +129,12 @@
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
-        <target state="translated">Assigner des paramètres 'out'</target>
+        <target state="new">Assign 'out' parameters</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Assign_out_parameters_at_start">
         <source>Assign 'out' parameters (at start)</source>
-        <target state="translated">Assigner des paramètres 'out' (au début)</target>
+        <target state="new">Assign 'out' parameters (at start)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
@@ -164,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_positional_record">
         <source>Convert to positional record</source>
-        <target state="translated">Convertir en record positionnel</target>
+        <target state="new">Convert to positional record</target>
         <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_raw_string">
@@ -219,17 +219,17 @@
       </trans-unit>
       <trans-unit id="Make_ref_struct">
         <source>Make 'ref struct'</source>
-        <target state="translated">Définir 'ref struct'</target>
+        <target state="new">Make 'ref struct'</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_in_keyword">
         <source>Remove 'in' keyword</source>
-        <target state="translated">Supprimer le mot clé 'in'</target>
+        <target state="new">Remove 'in' keyword</target>
         <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
-        <target state="translated">Supprimer le modificateur 'new'</target>
+        <target state="new">Remove 'new' modifier</target>
         <note />
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="Make_0_return_Task_instead_of_void">
         <source>Make {0} return Task instead of void.</source>
-        <target state="translated">{0} doit retourner Task au lieu de void.</target>
+        <target state="new">Make {0} return Task instead of void.</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
@@ -689,12 +689,12 @@
       </trans-unit>
       <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
         <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">Mettre à niveau ce projet vers la version de langage C# '{0}'</target>
+        <target state="new">Upgrade this project to C# language version '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
         <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">Mettre à niveau tous les projets C# vers la version de langage '{0}'</target>
+        <target state="new">Upgrade all C# projects to language version '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="class_name">
@@ -719,12 +719,12 @@
       </trans-unit>
       <trans-unit id="Make_method_async">
         <source>Make method async</source>
-        <target state="translated">Rendre la méthode async</target>
+        <target state="new">Make method async</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_async_remain_void">
         <source>Make method async (stay void)</source>
-        <target state="translated">Rendre la méthode asynchrone (rester void)</target>
+        <target state="new">Make method async (stay void)</target>
         <note />
       </trans-unit>
       <trans-unit id="Name">
@@ -744,12 +744,12 @@
       </trans-unit>
       <trans-unit id="Remove_unused_function">
         <source>Remove unused function</source>
-        <target state="translated">Supprimer la fonction inutilisée</target>
+        <target state="new">Remove unused function</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
         <source>Add parentheses</source>
-        <target state="translated">Ajouter des parenthèses</target>
+        <target state="new">Add parentheses</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_foreach">
@@ -769,7 +769,7 @@
       </trans-unit>
       <trans-unit id="Use_0">
         <source>Use '{0}'</source>
-        <target state="translated">Utiliser '{0}'</target>
+        <target state="new">Use '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">
