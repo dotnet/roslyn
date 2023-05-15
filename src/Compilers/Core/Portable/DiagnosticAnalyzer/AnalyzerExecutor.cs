@@ -876,7 +876,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var operationBlockScope = new HostOperationBlockStartAnalysisScope();
                         var operationStartContext = new AnalyzerOperationBlockStartAnalysisContext(startAction.Analyzer,
                             operationBlockScope, operationBlocks, declaredSymbol, semanticModel.Compilation, AnalyzerOptions,
-                            GetControlFlowGraph, filterSpan, isGeneratedCode, cancellationToken);
+                            GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
 
                         // Catch Exception from the start action.
                         ExecuteAndCatchIfThrows(
@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (operationBlockAction != null)
                     {
                         var context = new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, semanticModel.Compilation,
-                            AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, filterSpan, isGeneratedCode, cancellationToken);
+                            AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
 
                         ExecuteAndCatchIfThrows(
                             operationBlockAction.Analyzer,

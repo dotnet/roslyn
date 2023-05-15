@@ -2948,7 +2948,7 @@ namespace Microsoft.CodeAnalysis
                         context.RegisterSemanticModelAction(context =>
                         {
                             CallbackFilterSpan = context.FilterSpan;
-                            CallbackFilterTree = context.SemanticModel.SyntaxTree;
+                            CallbackFilterTree = context.FilterTree;
                         });
                         break;
 
@@ -2981,7 +2981,7 @@ namespace Microsoft.CodeAnalysis
                         context.RegisterOperationAction(context =>
                         {
                             CallbackFilterSpan = context.FilterSpan;
-                            CallbackFilterTree = context.Operation.Syntax.SyntaxTree;
+                            CallbackFilterTree = context.FilterTree;
                         }, OperationKind.VariableDeclarationGroup);
                         break;
 
@@ -2989,12 +2989,11 @@ namespace Microsoft.CodeAnalysis
                         context.RegisterOperationBlockStartAction(startContext =>
                         {
                             CallbackFilterSpan = startContext.FilterSpan;
-                            var filterTree = startContext.OperationBlocks.First().Syntax.SyntaxTree;
-                            CallbackFilterTree = filterTree;
+                            CallbackFilterTree = startContext.FilterTree;
 
                             startContext.RegisterOperationBlockEndAction(endContext =>
                             {
-                                if (filterTree != endContext.OperationBlocks.First().Syntax.SyntaxTree)
+                                if (startContext.FilterTree != endContext.FilterTree)
                                     throw new InvalidOperationException("Mismatched FilterTree");
 
                                 if (startContext.FilterSpan != endContext.FilterSpan)
@@ -3007,7 +3006,7 @@ namespace Microsoft.CodeAnalysis
                         context.RegisterOperationBlockAction(context =>
                         {
                             CallbackFilterSpan = context.FilterSpan;
-                            CallbackFilterTree = context.OperationBlocks.First().Syntax.SyntaxTree;
+                            CallbackFilterTree = context.FilterTree;
                         });
                         break;
 
@@ -3015,7 +3014,7 @@ namespace Microsoft.CodeAnalysis
                         context.RegisterSyntaxNodeAction<SyntaxKind>(context =>
                         {
                             CallbackFilterSpan = context.FilterSpan;
-                            CallbackFilterTree = context.Node.SyntaxTree;
+                            CallbackFilterTree = context.FilterTree;
                         }, SyntaxKind.LocalDeclarationStatement);
                         break;
 
@@ -3023,11 +3022,11 @@ namespace Microsoft.CodeAnalysis
                         context.RegisterCodeBlockStartAction<SyntaxKind>(startContext =>
                         {
                             CallbackFilterSpan = startContext.FilterSpan;
-                            CallbackFilterTree = startContext.CodeBlock.SyntaxTree;
+                            CallbackFilterTree = startContext.FilterTree;
 
                             startContext.RegisterCodeBlockEndAction(endContext =>
                             {
-                                if (startContext.CodeBlock.SyntaxTree != endContext.CodeBlock.SyntaxTree)
+                                if (startContext.FilterTree != endContext.FilterTree)
                                     throw new InvalidOperationException("Mismatched FilterTree");
 
                                 if (startContext.FilterSpan != endContext.FilterSpan)
@@ -3040,7 +3039,7 @@ namespace Microsoft.CodeAnalysis
                         context.RegisterCodeBlockAction(context =>
                         {
                             CallbackFilterSpan = context.FilterSpan;
-                            CallbackFilterTree = context.CodeBlock.SyntaxTree;
+                            CallbackFilterTree = context.FilterTree;
                         });
                         break;
 

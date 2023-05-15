@@ -696,7 +696,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
         /// <summary>
-        /// Optional filter span for which to compute diagnostics.
+        /// Syntax tree for the <see cref="SemanticModel"/> being analyzed.
+        /// </summary>
+        public SyntaxTree FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
         /// </summary>
         public TextSpan? FilterSpan { get; }
 
@@ -724,6 +731,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            FilterTree = semanticModel.SyntaxTree;
             FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
@@ -778,7 +786,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public SyntaxTree? FilterTree { get; }
 
         /// <summary>
-        /// Optional filter span within the <see cref="FilterTree"/> being analyzed.
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
         /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
         /// or the entire compilation.
         /// </summary>
@@ -874,7 +882,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public SyntaxTree? FilterTree { get; }
 
         /// <summary>
-        /// Optional filter span within the <see cref="FilterTree"/> being analyzed.
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
         /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
         /// or the entire compilation.
         /// </summary>
@@ -1030,7 +1038,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options { get { return _options; } }
 
         /// <summary>
-        /// Optional filter span for which to compute diagnostics.
+        /// Syntax tree corresponding to the code block being analyzed.
+        /// </summary>
+        public SyntaxTree FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
         /// </summary>
         public TextSpan? FilterSpan { get; }
 
@@ -1063,6 +1078,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _owningSymbol = owningSymbol;
             _semanticModel = semanticModel;
             _options = options;
+            FilterTree = codeBlock.SyntaxTree;
             FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
@@ -1132,7 +1148,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options { get { return _options; } }
 
         /// <summary>
-        /// Optional filter span for which to compute diagnostics.
+        /// Syntax tree for the code block being analyzed.
+        /// </summary>
+        public SyntaxTree FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
         /// </summary>
         public TextSpan? FilterSpan { get; }
 
@@ -1169,6 +1192,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            FilterTree = codeBlock.SyntaxTree;
             FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
@@ -1234,7 +1258,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
-        /// Optional filter span for which to compute diagnostics.
+        /// Syntax tree for the <see cref="OperationBlocks"/> being analyzed.
+        /// </summary>
+        public SyntaxTree FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
         /// </summary>
         public TextSpan? FilterSpan { get; }
 
@@ -1255,7 +1286,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Compilation compilation,
             AnalyzerOptions options,
             CancellationToken cancellationToken)
-            : this(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph: null, filterSpan: null, isGeneratedCode: false, cancellationToken)
+            : this(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph: null,
+                  filterTree: operationBlocks[0].Syntax.SyntaxTree, filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -1265,6 +1297,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Compilation compilation,
             AnalyzerOptions options,
             Func<IOperation, ControlFlowGraph>? getControlFlowGraph,
+            SyntaxTree filterTree,
             TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
@@ -1274,6 +1307,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilation = compilation;
             _options = options;
             _getControlFlowGraph = getControlFlowGraph;
+            FilterTree = filterTree;
             FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
@@ -1366,7 +1400,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
-        /// Optional filter span for which to compute diagnostics.
+        /// Syntax tree for the <see cref="OperationBlocks"/> being analyzed.
+        /// </summary>
+        public SyntaxTree FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
         /// </summary>
         public TextSpan? FilterSpan { get; }
 
@@ -1389,7 +1430,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
-            : this(operationBlocks, owningSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), getControlFlowGraph: null, filterSpan: null, isGeneratedCode: false, cancellationToken)
+            : this(operationBlocks, owningSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), getControlFlowGraph: null,
+                  filterTree: operationBlocks[0].Syntax.SyntaxTree, filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -1401,6 +1443,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
             Func<IOperation, ControlFlowGraph>? getControlFlowGraph,
+            SyntaxTree filterTree,
             TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
@@ -1412,6 +1455,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _getControlFlowGraph = getControlFlowGraph;
+            FilterTree = filterTree;
             FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
@@ -1474,7 +1518,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
-        /// Optional filter span for analysis.
+        /// Optional filter span within the <see cref="Tree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="Tree"/>
+        /// or the entire compilation.
         /// </summary>
         public TextSpan? FilterSpan { get; }
 
@@ -1550,7 +1596,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options { get; }
 
         /// <summary>
-        /// Optional filter span for which to compute diagnostics.
+        /// Optional filter span within the <see cref="AdditionalFile"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="AdditionalFile"/>
+        /// or the entire compilation.
         /// </summary>
         public TextSpan? FilterSpan { get; }
 
@@ -1637,7 +1685,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
-        /// Optional filter span for which to compute diagnostics.
+        /// Syntax tree for the <see cref="Node"/> being analyzed.
+        /// </summary>
+        public SyntaxTree FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
         /// </summary>
         public TextSpan? FilterSpan { get; }
 
@@ -1680,6 +1735,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            FilterTree = node.SyntaxTree;
             FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
@@ -1735,7 +1791,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
-        /// Optional filter span for which to compute diagnostics.
+        /// Syntax tree for the <see cref="Operation"/> being analyzed.
+        /// </summary>
+        public SyntaxTree FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
         /// </summary>
         public TextSpan? FilterSpan { get; }
 
@@ -1781,6 +1844,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _getControlFlowGraph = getControlFlowGraph;
+            FilterTree = operation.Syntax.SyntaxTree;
             FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
