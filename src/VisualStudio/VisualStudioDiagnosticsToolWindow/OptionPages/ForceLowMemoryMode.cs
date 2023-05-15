@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         {
             _globalOptions = globalOptions;
 
-            globalOptions.OptionChanged += Options_OptionChanged;
+            globalOptions.AddOptionChangedHandler(this, Options_OptionChanged);
 
             RefreshFromSettings();
         }

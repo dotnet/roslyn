@@ -82,8 +82,8 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
     protected IMethodHandler GetMethodHandler<TRequest, TResponse>(string methodName)
     {
-        var requestType = typeof(TRequest) == typeof(VoidReturn) ? null : typeof(TRequest);
-        var responseType = typeof(TResponse) == typeof(VoidReturn) ? null : typeof(TResponse);
+        var requestType = typeof(TRequest) == typeof(NoValue) ? null : typeof(TRequest);
+        var responseType = typeof(TResponse) == typeof(NoValue) ? null : typeof(TResponse);
 
         var handler = _handlerProvider.GetMethodHandler(methodName, requestType, responseType);
 

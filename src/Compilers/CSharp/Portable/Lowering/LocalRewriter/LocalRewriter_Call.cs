@@ -274,44 +274,80 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            MethodSymbol method = node.Method;
-            ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
-            ImmutableArray<RefKind> argRefKindsOpt = node.ArgumentRefKindsOpt;
-            bool invokedAsExtensionMethod = node.InvokedAsExtensionMethod;
+            BoundExpression rewrittenCall;
 
-            // Rewrite the receiver
-            BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
-
-            ArrayBuilder<LocalSymbol>? temps = null;
-            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
-                ref rewrittenReceiver,
-                captureReceiverMode: ReceiverCaptureMode.Default,
-                node.Arguments,
-                method,
-                argsToParamsOpt,
-                argRefKindsOpt,
-                storesOpt: null,
-                ref temps);
-
-            rewrittenArguments = MakeArguments(
-                node.Syntax,
-                rewrittenArguments,
-                method,
-                node.Expanded,
-                argsToParamsOpt,
-                ref argRefKindsOpt,
-                ref temps,
-                invokedAsExtensionMethod);
-
-            InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableLocation);
-            var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
-
-            if (Instrument)
+            if (node.ReceiverOpt is BoundCall receiver1)
             {
-                rewrittenCall = Instrumenter.InstrumentCall(node, rewrittenCall);
+                var calls = ArrayBuilder<BoundCall>.GetInstance();
+
+                calls.Push(node);
+                node = receiver1;
+
+                while (node.ReceiverOpt is BoundCall receiver2)
+                {
+                    calls.Push(node);
+                    node = receiver2;
+                }
+
+                // Rewrite the receiver
+                BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+
+                do
+                {
+                    rewrittenCall = visitArgumentsAndFinishRewrite(node, rewrittenReceiver);
+                    rewrittenReceiver = rewrittenCall;
+                }
+                while (calls.TryPop(out node!));
+
+                calls.Free();
+            }
+            else
+            {
+                // Rewrite the receiver
+                BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+                rewrittenCall = visitArgumentsAndFinishRewrite(node, rewrittenReceiver);
             }
 
             return rewrittenCall;
+
+            BoundExpression visitArgumentsAndFinishRewrite(BoundCall node, BoundExpression? rewrittenReceiver)
+            {
+                MethodSymbol method = node.Method;
+                ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
+                ImmutableArray<RefKind> argRefKindsOpt = node.ArgumentRefKindsOpt;
+                bool invokedAsExtensionMethod = node.InvokedAsExtensionMethod;
+
+                ArrayBuilder<LocalSymbol>? temps = null;
+                var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                    ref rewrittenReceiver,
+                    captureReceiverMode: ReceiverCaptureMode.Default,
+                    node.Arguments,
+                    method,
+                    argsToParamsOpt,
+                    argRefKindsOpt,
+                    storesOpt: null,
+                    ref temps);
+
+                rewrittenArguments = MakeArguments(
+                    node.Syntax,
+                    rewrittenArguments,
+                    method,
+                    node.Expanded,
+                    argsToParamsOpt,
+                    ref argRefKindsOpt,
+                    ref temps,
+                    invokedAsExtensionMethod);
+
+                InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableLocation);
+                var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
+
+                if (Instrument)
+                {
+                    rewrittenCall = Instrumenter.InstrumentCall(node, rewrittenCall);
+                }
+
+                return rewrittenCall;
+            }
         }
 
         private BoundExpression MakeArgumentsAndCall(
