@@ -113,9 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // Accessors will assume that Type is available. We consider abstract field events to not have a body, but
-            // all other field events do have one.  hasAnyBody here effectively is just proxy for marking if something
-            // is abstract or not. Note: unclear if this should also apply to Extern events.
+            // Accessors will assume that Type is available. We consider abstract/extern field events to not have a
+            // body, but all other field events do have one.
             var hasAnyBody = !IsAbstract && !IsExtern;
             _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, hasAnyBody: hasAnyBody, isExpressionBodied: false);
             _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, hasAnyBody: hasAnyBody, isExpressionBodied: false);
