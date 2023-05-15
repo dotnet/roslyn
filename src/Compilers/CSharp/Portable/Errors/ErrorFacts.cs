@@ -2313,6 +2313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny:
                 case ErrorCode.ERR_InlineArrayConversionToSpanNotSupported:
                 case ErrorCode.ERR_InlineArrayConversionToReadOnlySpanNotSupported:
+                case ErrorCode.ERR_InlineArrayIndexOutOfRange:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

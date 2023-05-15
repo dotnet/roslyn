@@ -7985,10 +7985,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (allowInlineArrayElementAccess &&
                 !InAttributeArgument && !InParameterDefaultValue && // These checks prevent cycles caused by attribute binding when HasInlineArrayAttribute check triggers that.
-                expr.Type.HasInlineArrayAttribute(out _) && analyzedArguments.Arguments.Count == 1 && expr.Type.TryGetInlineArrayElementField() is FieldSymbol elementField &&
+                expr.Type.HasInlineArrayAttribute(out int length) && analyzedArguments.Arguments.Count == 1 && expr.Type.TryGetInlineArrayElementField() is FieldSymbol elementField &&
                 tryImplicitConversionToInlineArrayIndex(node, analyzedArguments.Arguments[0], diagnostics, out WellKnownType indexOrRangeWellknownType) is { } convertedIndex)
             {
-                return bindInlineArrayElementAccess(node, expr, analyzedArguments, convertedIndex, indexOrRangeWellknownType, elementField, diagnostics);
+                return bindInlineArrayElementAccess(node, expr, length, analyzedArguments, convertedIndex, indexOrRangeWellknownType, elementField, diagnostics);
             }
 
             return BindElementAccessCore(node, expr, analyzedArguments, diagnostics);
@@ -8019,7 +8019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return convertedIndex;
             }
 
-            BoundExpression bindInlineArrayElementAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, BoundExpression convertedIndex, WellKnownType indexOrRangeWellknownType, FieldSymbol elementField, BindingDiagnosticBag diagnostics)
+            BoundExpression bindInlineArrayElementAccess(ExpressionSyntax node, BoundExpression expr, int length, AnalyzedArguments analyzedArguments, BoundExpression convertedIndex, WellKnownType indexOrRangeWellknownType, FieldSymbol elementField, BindingDiagnosticBag diagnostics)
             {
                 // Check required well-known members. They may not be needed
                 // during lowering, but it's simpler to always require them to prevent
@@ -8083,7 +8083,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                // PROTOTYPE(InlineArrays): Check bounds
+                // Check bounds
+                if (convertedIndex.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: int constIndex })
+                {
+                    checkInlineArrayBounds(convertedIndex.Syntax, constIndex, length, excludeEnd: true, diagnostics);
+                }
+                else if (indexOrRangeWellknownType == WellKnownType.System_Index)
+                {
+                    checkInlineArrayBoundsForSystemIndex(convertedIndex, length, excludeEnd: true, diagnostics);
+                }
+                else if (indexOrRangeWellknownType == WellKnownType.System_Range && convertedIndex is BoundRangeExpression rangeExpr)
+                {
+                    if (rangeExpr.LeftOperandOpt is BoundExpression left)
+                    {
+                        checkInlineArrayBoundsForSystemIndex(left, length, excludeEnd: false, diagnostics);
+                    }
+
+                    if (rangeExpr.RightOperandOpt is BoundExpression right)
+                    {
+                        checkInlineArrayBoundsForSystemIndex(right, length, excludeEnd: false, diagnostics);
+                    }
+                }
 
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: node);
                 _ = GetWellKnownTypeMember(createSpanHelper, diagnostics, syntax: node);
@@ -8113,6 +8133,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return new BoundInlineArrayAccess(node, expr, convertedIndex, isValue, getItemOrSliceHelper, resultType);
+            }
+
+            static void checkInlineArrayBounds(SyntaxNode location, int index, int end, bool excludeEnd, BindingDiagnosticBag diagnostics)
+            {
+                if (index < 0 || (excludeEnd ? index >= end : index > end))
+                {
+                    Error(diagnostics, ErrorCode.ERR_InlineArrayIndexOutOfRange, location);
+                }
+            }
+
+            void checkInlineArrayBoundsForSystemIndex(BoundExpression convertedIndex, int length, bool excludeEnd, BindingDiagnosticBag diagnostics)
+            {
+                if (!TypeSymbol.Equals(convertedIndex.Type, Compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.AllIgnoreOptions))
+                {
+                    return;
+                }
+
+                if (convertedIndex is BoundFromEndIndexExpression hatExpression)
+                {
+                    // `^index`
+                    if (hatExpression.Operand.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: int constIndex })
+                    {
+                        checkInlineArrayBounds(hatExpression.Syntax, length - constIndex, length, excludeEnd, diagnostics);
+                    }
+                }
+                else if (convertedIndex is BoundConversion { Operand: { ConstantValueOpt: { SpecialType: SpecialType.System_Int32, Int32Value: int constIndex } } operand })
+                {
+                    checkInlineArrayBounds(operand.Syntax, constIndex, length, excludeEnd, diagnostics);
+                }
+                else if (convertedIndex is BoundObjectCreationExpression { Constructor: MethodSymbol constructor, Arguments: { Length: 2 } arguments, ArgsToParamsOpt: { IsDefaultOrEmpty: true }, InitializerExpressionOpt: null } &&
+                         (object)constructor == Compilation.GetWellKnownTypeMember(WellKnownMember.System_Index__ctor) &&
+                         arguments[0] is { ConstantValueOpt: { SpecialType: SpecialType.System_Int32, Int32Value: int constIndex1 } } index &&
+                         arguments[1] is { ConstantValueOpt: { SpecialType: SpecialType.System_Boolean, BooleanValue: bool isFromEnd } })
+                {
+                    checkInlineArrayBounds(index.Syntax, isFromEnd ? length - constIndex1 : constIndex1, length, excludeEnd, diagnostics);
+                }
             }
         }
 

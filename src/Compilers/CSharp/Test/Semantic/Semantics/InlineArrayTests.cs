@@ -12326,5 +12326,419 @@ public struct Buffer10<T>
 }
 ");
         }
+
+        [Fact]
+        public void ElementAccess_Bounds_01()
+        {
+            var src = @"
+class Program
+{
+    static void Test(Buffer10<int> f)
+    {
+        _ = f[-2];
+        _ = f[-1];
+        _ = f[0];
+        _ = f[9];
+        _ = f[10];
+        _ = f[11];
+    }
+}
+";
+
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[-2];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-2").WithLocation(6, 15),
+                // (7,15): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[-1];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(7, 15),
+                // (10,15): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[10];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "10").WithLocation(10, 15),
+                // (11,15): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[11];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(11, 15)
+                );
+        }
+
+        [Fact]
+        public void ElementAccess_Bounds_02()
+        {
+            var src = @"
+class Program
+{
+    static void Test(Buffer10<int> f)
+    {
+        _ = f[(System.Index)(-2)];
+        _ = f[(System.Index)(-1)];
+        _ = f[(System.Index)0];
+        _ = f[(System.Index)9];
+        _ = f[(System.Index)10];
+        _ = f[(System.Index)11];
+    }
+}
+";
+
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[(System.Index)(-2)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-2").WithLocation(6, 30),
+                // (7,30): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[(System.Index)(-1)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(7, 30),
+                // (10,29): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[(System.Index)10];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "10").WithLocation(10, 29),
+                // (11,29): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[(System.Index)11];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(11, 29)
+                );
+        }
+
+        [Fact]
+        public void ElementAccess_Bounds_03()
+        {
+            var src = @"
+class Program
+{
+    static void Test(Buffer10<int> f)
+    {
+        _ = f[^12];
+        _ = f[^11];
+        _ = f[^10];
+        _ = f[^1];
+        _ = f[^0];
+        _ = f[^-1];
+        _ = f[^int.MinValue];
+    }
+}
+";
+
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[^12];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^12").WithLocation(6, 15),
+                // (7,15): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[^11];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^11").WithLocation(7, 15),
+                // (10,15): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[^0];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^0").WithLocation(10, 15),
+                // (11,15): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[^-1];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^-1").WithLocation(11, 15),
+                // (12,15): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[^int.MinValue];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^int.MinValue").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void ElementAccess_Bounds_04()
+        {
+            var src = @"
+class Program
+{
+    static void Test(Buffer10<int> f)
+    {
+        _ = f[new System.Index(-2, false)];
+        _ = f[new System.Index(-1, false)];
+        _ = f[new System.Index(0, false)];
+        _ = f[new System.Index(9, false)];
+        _ = f[new System.Index(10, false)];
+        _ = f[new System.Index(11, false)];
+
+        _ = f[new System.Index(-2)];
+        _ = f[new System.Index(-1)];
+        _ = f[new System.Index(0)];
+        _ = f[new System.Index(9)];
+        _ = f[new System.Index(10)];
+        _ = f[new System.Index(11)];
+
+        _ = f[new System.Index(12, true)];
+        _ = f[new System.Index(11, true)];
+        _ = f[new System.Index(10, true)];
+        _ = f[new System.Index(1, true)];
+        _ = f[new System.Index(0, true)];
+        _ = f[new System.Index(-1, true)];
+        _ = f[new System.Index(int.MinValue, true)];
+
+        _ = f[new System.Index()];
+        _ = f[new System.Index(value: -1)];
+        _ = f[new System.Index(value: -1, fromEnd: false)];
+        _ = f[new System.Index(fromEnd: false, value: -1)];
+    }
+}
+";
+
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(-2, false)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-2").WithLocation(6, 32),
+                // (7,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(-1, false)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(7, 32),
+                // (10,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(10, false)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "10").WithLocation(10, 32),
+                // (11,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(11, false)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(11, 32),
+                // (13,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(-2)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-2").WithLocation(13, 32),
+                // (14,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(-1)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(14, 32),
+                // (17,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(10)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "10").WithLocation(17, 32),
+                // (18,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(11)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(18, 32),
+                // (20,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(12, true)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "12").WithLocation(20, 32),
+                // (21,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(11, true)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(21, 32),
+                // (24,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(0, true)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "0").WithLocation(24, 32),
+                // (25,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(-1, true)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(25, 32),
+                // (26,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(int.MinValue, true)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "int.MinValue").WithLocation(26, 32),
+                // (29,39): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(value: -1)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(29, 39),
+                // (30,39): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(value: -1, fromEnd: false)];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(30, 39)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void ElementAccess_Bounds_05()
+        {
+            // PROTOTYPE(InlineArrays): Uncomment Test(f, 9) once testing against .Net 8.
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        Buffer10<int> f = default;
+        f[0] = 111;
+        Test(f, -1);
+        Test(f, 0);
+        //Test(f, 9);
+        Test(f, 10);
+    }
+
+    static void Test(Buffer10<int> f, int index)
+    {
+        System.Console.Write(' ');
+
+        try
+        {
+            System.Console.Write(f[index]);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            System.Console.Write(""Throw"");
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: " Throw 111 Throw", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Slice_Bounds_01()
+        {
+            var src = @"
+class Program
+{
+    static void Test(Buffer10<int> f)
+    {
+        _ = f[-2..];
+        _ = f[-1..];
+        _ = f[0..];
+        _ = f[9..];
+        _ = f[10..];
+        _ = f[11..];
+        _ = f[12..];
+    }
+}
+";
+
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[-2..];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-2").WithLocation(6, 15),
+                // (7,15): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[-1..];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(7, 15),
+                // (11,15): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[11..];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(11, 15),
+                // (12,15): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[12..];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "12").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void Slice_Bounds_02()
+        {
+            var src = @"
+class Program
+{
+    static void Test(Buffer10<int> f)
+    {
+        _ = f[..-2];
+        _ = f[..-1];
+        _ = f[..0];
+        _ = f[..9];
+        _ = f[..10];
+        _ = f[..11];
+        _ = f[..12];
+    }
+}
+";
+
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,17): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[..-2];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-2").WithLocation(6, 17),
+                // (7,17): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[..-1];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(7, 17),
+                // (11,17): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[..11];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(11, 17),
+                // (12,17): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[..12];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "12").WithLocation(12, 17)
+                );
+        }
+
+        [Fact]
+        public void Slice_Bounds_03()
+        {
+            var src = @"
+class Program
+{
+    static void Test(Buffer10<int> f)
+    {
+        _ = f[new System.Index(-2)..];
+        _ = f[new System.Index(-1)..];
+        _ = f[new System.Index(0)..];
+        _ = f[new System.Index(9)..];
+        _ = f[new System.Index(10)..];
+        _ = f[new System.Index(11)..];
+        _ = f[new System.Index(12)..];
+    }
+}
+";
+
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(-2)..];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-2").WithLocation(6, 32),
+                // (7,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(-1)..];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(7, 32),
+                // (11,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(11)..];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(11, 32),
+                // (12,32): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[new System.Index(12)..];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "12").WithLocation(12, 32)
+                );
+        }
+
+        [Fact]
+        public void Slice_Bounds_04()
+        {
+            var src = @"
+class Program
+{
+    static void Test(Buffer10<int> f)
+    {
+        _ = f[..^12];
+        _ = f[..^11];
+        _ = f[..^10];
+        _ = f[..^1];
+        _ = f[..^0];
+        _ = f[..^-1];
+        _ = f[..^int.MinValue];
+    }
+}
+";
+
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,17): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[..^12];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^12").WithLocation(6, 17),
+                // (7,17): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[..^11];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^11").WithLocation(7, 17),
+                // (11,17): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[..^-1];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^-1").WithLocation(11, 17),
+                // (12,17): error CS9503: Index is outside the bounds of the inline array
+                //         _ = f[..^int.MinValue];
+                Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^int.MinValue").WithLocation(12, 17)
+                );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void Slice_Bounds_05()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        Buffer10<int> f = default;
+        Test(f, 0..10);
+        Test(f, 9..10);
+        Test(f, 9..11);
+        Test(f, 10..10);
+        Test(f, 10..11);
+    }
+
+    static void Test(Buffer10<int> f, System.Range range)
+    {
+        System.Console.Write(' ');
+
+        try
+        {
+            System.Console.Write(f[range].Length);
+        }
+        catch (System.ArgumentOutOfRangeException)
+        {
+            System.Console.Write(""Throw"");
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: " 10 1 Throw 0 Throw", verify: Verification.Fails).VerifyDiagnostics();
+        }
     }
 }

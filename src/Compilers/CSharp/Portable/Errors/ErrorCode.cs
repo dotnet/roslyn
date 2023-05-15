@@ -2194,6 +2194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InlineArrayConversionToSpanNotSupported = 9501, // PROTOTYPE(InlineArrays): Pack numbers
         ERR_InlineArrayConversionToReadOnlySpanNotSupported = 9502,
+        ERR_InlineArrayIndexOutOfRange = 9503,
 
         #endregion
 
