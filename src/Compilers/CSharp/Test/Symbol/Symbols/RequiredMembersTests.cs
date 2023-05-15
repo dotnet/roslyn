@@ -6214,6 +6214,9 @@ public class Derived : Base
             // (8,25): error CS0102: The type 'C' already contains a definition for 'Test'
             //     public required int Test;
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(8, 25),
+            // (12,19): error CS9035: Required member 'C.Test' must be set in the object initializer or attribute constructor.
+            //         C c = new C { T = 42 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Test").WithLocation(12, 19),
             // (12,23): error CS0117: 'C' does not contain a definition for 'T'
             //         C c = new C { T = 42 };
             Diagnostic(ErrorCode.ERR_NoSuchMember, "T").WithArguments("C", "T").WithLocation(12, 23)
@@ -6242,20 +6245,23 @@ public class Derived : Base
 
         comp.VerifyDiagnostics(
             // (4,25): error CS0102: The type 'C' already contains a definition for 'Test'
-            //     public required int Test;
+            //     public required int Test { get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(4, 25),
             // (5,25): error CS0102: The type 'C' already contains a definition for 'Test'
-            //     public required int Test;
+            //     public required int Test { get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(5, 25),
             // (6,25): error CS0102: The type 'C' already contains a definition for 'Test'
-            //     public required int Test;
+            //     public required int Test { get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(6, 25),
             // (7,25): error CS0102: The type 'C' already contains a definition for 'Test'
-            //     public required int Test;
+            //     public required int Test { get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(7, 25),
             // (8,25): error CS0102: The type 'C' already contains a definition for 'Test'
-            //     public required int Test;
+            //     public required int Test { get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(8, 25),
+            // (12,19): error CS9035: Required member 'C.Test' must be set in the object initializer or attribute constructor.
+            //         C c = new C { T = 42 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Test").WithLocation(12, 19),
             // (12,23): error CS0117: 'C' does not contain a definition for 'T'
             //         C c = new C { T = 42 };
             Diagnostic(ErrorCode.ERR_NoSuchMember, "T").WithArguments("C", "T").WithLocation(12, 23)
