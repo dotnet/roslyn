@@ -6364,4 +6364,147 @@ public class Derived : Base
             }
         });
     }
+
+    [Fact]
+    public void GenericSubstitution_NoneSet()
+    {
+        var code = """
+            _ = new C<int>();
+            
+            public class C<T>
+            {
+                public required T Prop { get; set; }
+                public required T Field;
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9035: Required member 'C<int>.Prop' must be set in the object initializer or attribute constructor.
+            // _ = new C<int>();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C<int>").WithArguments("C<int>.Prop").WithLocation(1, 9),
+            // (1,9): error CS9035: Required member 'C<int>.Field' must be set in the object initializer or attribute constructor.
+            // _ = new C<int>();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C<int>").WithArguments("C<int>.Field").WithLocation(1, 9)
+        );
+    }
+
+    [Fact]
+    public void GenericSubstitution_AllSet()
+    {
+        var code = """
+            _ = new C<int>() { Prop = 1, Field = 2 };
+            
+            public class C<T>
+            {
+                public required T Prop { get; set; }
+                public required T Field;
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void GenericSubstitution_Unbound()
+    {
+        var code = """
+            _ = new C<>();
+            
+            public class C<T>
+            {
+                public required T Prop { get; set; }
+                public required T Field;
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS7003: Unexpected use of an unbound generic name
+            // _ = new C<>();
+            Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<>").WithLocation(1, 9),
+            // (1,9): error CS9035: Required member 'C<T>.Prop' must be set in the object initializer or attribute constructor.
+            // _ = new C<>();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C<>").WithArguments("C<T>.Prop").WithLocation(1, 9),
+            // (1,9): error CS9035: Required member 'C<T>.Field' must be set in the object initializer or attribute constructor.
+            // _ = new C<>();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C<>").WithArguments("C<T>.Field").WithLocation(1, 9)
+        );
+
+        var c = comp.GetTypeByMetadataName("C`1");
+        var u_c = c!.ConstructUnboundGenericType();
+        Assert.False(u_c.HasDeclaredRequiredMembers);
+        AssertEx.Empty(u_c.AllRequiredMembers);
+    }
+
+    [Fact]
+    public void GenericSubstitution_Inheritance_NoneSet()
+    {
+        var code = """
+            _ = new D();
+            
+            public class C<T>
+            {
+                public required T Prop { get; set; }
+                public required T Field;
+            }
+
+            class D : C<int> { }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9035: Required member 'C<int>.Prop' must be set in the object initializer or attribute constructor.
+            // _ = new D();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "D").WithArguments("C<int>.Prop").WithLocation(1, 9),
+            // (1,9): error CS9035: Required member 'C<int>.Field' must be set in the object initializer or attribute constructor.
+            // _ = new D();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "D").WithArguments("C<int>.Field").WithLocation(1, 9)
+        );
+    }
+
+    [Fact]
+    public void GenericSubstitution_Inheritance_AllSet()
+    {
+        var code = """
+            _ = new D() { Prop = 1, Field = 2 };
+
+            public class C<T>
+            {
+                public required T Prop { get; set; }
+                public required T Field;
+            }
+
+            class D : C<int> { }
+           """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void GenericSubstitution_InheritanceAndOverride_NoneSet()
+    {
+        var code = """
+            _ = new D();
+            
+            public class C<T>
+            {
+                public virtual required T Prop { get; set; }
+            }
+
+            class D : C<int>
+            {
+                public override required int Prop { get; set; }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9035: Required member 'D.Prop' must be set in the object initializer or attribute constructor.
+            // _ = new D();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "D").WithArguments("D.Prop").WithLocation(1, 9)
+        );
+    }
 }
