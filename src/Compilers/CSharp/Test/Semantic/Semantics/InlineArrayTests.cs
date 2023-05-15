@@ -71,9 +71,10 @@ System.Console.WriteLine(c.F[1][0]);
 System.Console.WriteLine(c.F[1][1]);
 System.Console.WriteLine(c.F[1][2]);
 System.Console.WriteLine(c.F[1][3]);
+
 class C
 {
-    public Enclosing.Buffer F;
+    public Enclosing.Buffer[] F;
 }
 
 public class Enclosing
@@ -87,14 +88,6 @@ public class Enclosing
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             var output = @"
-111
-42
-43
-44
-45
-46
-47
-48
 ";
             CompileAndVerify(comp, expectedOutput: output, verify: Verification.Fails).VerifyDiagnostics();
         }
