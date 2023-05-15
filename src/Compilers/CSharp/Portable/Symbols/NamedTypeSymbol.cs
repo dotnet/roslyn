@@ -599,6 +599,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var member in GetMembersUnordered())
                 {
+                    if (member is PropertySymbol { ParameterCount: > 0 } prop)
+                    {
+                        if (prop.IsRequired)
+                        {
+                            // Bad metadata. Indexed properties cannot be required.
+                            return false;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+
                     if (baseAllRequiredMembers.TryGetValue(member.Name, out var existingMember))
                     {
                         // This is only permitted if the member is an override of a required member from a base type, and is required itself.
