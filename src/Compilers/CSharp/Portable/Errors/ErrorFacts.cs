@@ -2314,6 +2314,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InlineArrayConversionToSpanNotSupported:
                 case ErrorCode.ERR_InlineArrayConversionToReadOnlySpanNotSupported:
                 case ErrorCode.ERR_InlineArrayIndexOutOfRange:
+                case ErrorCode.ERR_InvalidInlineArrayLength:
+                case ErrorCode.ERR_InvalidInlineArrayLayout:
+                case ErrorCode.ERR_InvalidInlineArrayFields:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
