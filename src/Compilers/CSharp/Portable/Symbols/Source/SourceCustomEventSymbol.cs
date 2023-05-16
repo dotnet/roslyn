@@ -156,8 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // No body as this was an abstract event.
-                _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, hasAnyBody: false, isExpressionBodied: false, explicitlyImplementedEvent, aliasQualifierOpt);
-                _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, hasAnyBody: false, isExpressionBodied: false, explicitlyImplementedEvent, aliasQualifierOpt);
+                _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, BodyInfo.NoBody, explicitlyImplementedEvent, aliasQualifierOpt);
+                _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, BodyInfo.NoBody, explicitlyImplementedEvent, aliasQualifierOpt);
             }
             else
             {

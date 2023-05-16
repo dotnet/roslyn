@@ -15,6 +15,32 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    internal readonly struct BodyInfo
+    {
+        public static readonly BodyInfo NoBody = default;
+        public static readonly BodyInfo NonBlockNonExpressionBodied = new BodyInfo(hasBlockBody: false, hasExpressionBody: false, hasNonBlockNonExpressionBody: true);
+        public static readonly BodyInfo BlockBodied = new BodyInfo(hasBlockBody: false, hasExpressionBody: true, hasNonBlockNonExpressionBody: false);
+        public static readonly BodyInfo ExpressionBodied = new BodyInfo(hasBlockBody: false, hasExpressionBody: true, hasNonBlockNonExpressionBody: false);
+
+        public readonly bool HasBlockBody;
+        public readonly bool HasExpressionBody;
+        private readonly bool _hasNonBlockNonExpressionBody;
+
+        public bool HasAnyBody => HasBlockBody || HasExpressionBody || _hasNonBlockNonExpressionBody;
+
+#nullable enable
+        public static BodyInfo Create(BlockSyntax? block, ArrowExpressionClauseSyntax? arrowExpressionClause)
+            => new BodyInfo(hasBlockBody: block != null, hasExpressionBody: block == null && arrowExpressionClause != null, hasNonBlockNonExpressionBody: false);
+#nullable disable
+
+        private BodyInfo(bool hasBlockBody, bool hasExpressionBody, bool hasNonBlockNonExpressionBody)
+        {
+            HasBlockBody = hasBlockBody;
+            HasExpressionBody = hasExpressionBody;
+            _hasNonBlockNonExpressionBody = hasNonBlockNonExpressionBody;
+        }
+    }
+
     internal abstract class SourceMemberMethodSymbol : LocalFunctionOrSourceMemberMethodSymbol, IAttributeTargetSymbol
     {
         // The flags type is used to compact many different bits of information.
@@ -163,9 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodKind methodKind,
                 RefKind refKind,
                 DeclarationModifiers declarationModifiers,
+                BodyInfo bodyInfo,
                 bool returnsVoid,
-                bool hasAnyBody,
-                bool isExpressionBodied,
                 bool isExtensionMethod,
                 bool isNullableAnalysisEnabled,
                 bool isVararg,
@@ -175,8 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 int methodKindInt = ((int)methodKind & MethodKindMask) << MethodKindOffset;
                 int refKindInt = ((int)refKind & RefKindMask) << RefKindOffset;
-                int hasAnyBodyInt = hasAnyBody ? HasAnyBodyBit : 0;
-                int isExpressionBodyInt = isExpressionBodied ? IsExpressionBodiedBit : 0;
+                int hasAnyBodyInt = bodyInfo.HasAnyBody ? HasAnyBodyBit : 0;
+                int isExpressionBodyInt = bodyInfo.HasExpressionBody ? IsExpressionBodiedBit : 0;
                 int isExtensionMethodInt = isExtensionMethod ? IsExtensionMethodBit : 0;
                 int isNullableAnalysisEnabledInt = isNullableAnalysisEnabled ? IsNullableAnalysisEnabledBit : 0;
                 int isVarargInt = isVararg ? IsVarargBit : 0;
@@ -282,15 +307,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _location = location;
         }
 
-#nullable enable
-        protected static void GetBodyInfo(BlockSyntax? block, ArrowExpressionClauseSyntax? expressionBody, out bool hasBlockBody, out bool hasExpressionBody, out bool hasAnyBody)
-        {
-            hasBlockBody = block != null;
-            hasExpressionBody = !hasBlockBody && expressionBody != null;
-            hasAnyBody = hasBlockBody || hasExpressionBody;
-        }
-#nullable disable
-
         protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
         {
             if (this.DeclaredAccessibility <= Accessibility.Private || MethodKind == MethodKind.ExplicitInterfaceImplementation)
@@ -350,16 +366,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodKind methodKind,
             RefKind refKind,
             DeclarationModifiers declarationModifiers,
+            BodyInfo bodyInfo,
             bool returnsVoid,
-            bool hasAnyBody,
-            bool isExpressionBodied,
             bool isExtensionMethod,
             bool isNullableAnalysisEnabled,
             bool isVarArg,
             bool isMetadataVirtualIgnoringModifiers = false)
         {
             DeclarationModifiers = declarationModifiers;
-            this.flags = new Flags(methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody, isExpressionBodied, isExtensionMethod, isNullableAnalysisEnabled, isVarArg, isMetadataVirtualIgnoringModifiers);
+            this.flags = new Flags(methodKind, refKind, declarationModifiers, bodyInfo, returnsVoid, isExtensionMethod, isNullableAnalysisEnabled, isVarArg, isMetadataVirtualIgnoringModifiers);
         }
 
         protected void SetReturnsVoid(bool returnsVoid)

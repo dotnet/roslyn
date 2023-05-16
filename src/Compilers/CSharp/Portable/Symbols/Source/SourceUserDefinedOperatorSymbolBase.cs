@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             CSharpSyntaxNode syntax,
             DeclarationModifiers declarationModifiers,
-            bool hasAnyBody,
-            bool isExpressionBodied,
+            BodyInfo bodyInfo,
             bool isIterator,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics) :
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // of the parameters and return type we will update the flag if necessary.
 
             this.MakeFlags(
-                methodKind, RefKind.None, declarationModifiers, returnsVoid: false, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
+                methodKind, RefKind.None, declarationModifiers, bodyInfo, returnsVoid: false,
                 isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (this.ContainingType.IsInterface &&
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this.Kind.Localize(), this);
             }
-            else if (hasAnyBody && (IsExtern || IsAbstract))
+            else if (bodyInfo.HasAnyBody && (IsExtern || IsAbstract))
             {
                 Debug.Assert(!(IsAbstract && IsExtern));
                 if (IsExtern)
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_AbstractHasBody, location, this);
                 }
             }
-            else if (!hasAnyBody && !IsExtern && !IsAbstract && !IsPartial)
+            else if (!bodyInfo.HasAnyBody && !IsExtern && !IsAbstract && !IsPartial)
             {
                 // Do not report that the body is missing if the operator is marked as
                 // partial or abstract; we will already have given an error for that so

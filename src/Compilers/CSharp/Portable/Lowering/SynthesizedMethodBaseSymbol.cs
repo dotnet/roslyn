@@ -50,12 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 declarationModifiers: declarationModifiers,
                 returnsVoid: baseMethod.ReturnsVoid,
                 // Consider synthesized methods to always have bodies.
-                hasAnyBody: true,
+                bodyInfo: BodyInfo.NonBlockNonExpressionBodied,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: false,
                 isVarArg: baseMethod.IsVararg,
-                isMetadataVirtualIgnoringModifiers: false,
-                isExpressionBodied: false);
+                isMetadataVirtualIgnoringModifiers: false);
         }
 
         protected void AssignTypeMapAndTypeParameters(TypeMap typeMap, ImmutableArray<TypeParameterSymbol> typeParameters)

@@ -65,13 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                  syntax,
                  methodKind,
                  refKind: syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
+                 bodyInfo: BodyInfo.Create(syntax.Body, syntax.ExpressionBody),
                  isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                  isExtensionMethod: syntax.ParameterList.Parameters.FirstOrDefault() is ParameterSyntax firstParam &&
                                     !firstParam.IsArgList &&
                                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
                  isReadOnly: false,
-                 hasAnyBody: syntax.Body != null || syntax.ExpressionBody != null,
-                 isExpressionBodied: syntax is { Body: null, ExpressionBody: not null },
                  isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                  isVarArg: syntax.ParameterList.Parameters.Any(p => p.IsArgList),
                  diagnostics)

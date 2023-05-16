@@ -67,8 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location,
                 syntax,
                 MakeDeclarationModifiers(methodKind, containingType.IsInterface, syntax, location, diagnostics),
-                hasAnyBody: syntax.HasAnyBody(),
-                isExpressionBodied: syntax.Body == null && syntax.ExpressionBody != null,
+                bodyInfo: BodyInfo.Create(syntax.Body, syntax.ExpressionBody),
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 diagnostics)

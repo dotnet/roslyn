@@ -32,11 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode syntax,
             MethodKind methodKind,
             RefKind refKind,
+            BodyInfo bodyInfo,
             bool isIterator,
             bool isExtensionMethod,
             bool isReadOnly,
-            bool hasAnyBody,
-            bool isExpressionBodied,
             bool isNullableAnalysisEnabled,
             bool isVarArg,
             BindingDiagnosticBag diagnostics) :
@@ -56,20 +55,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const bool returnsVoid = false;
 
             DeclarationModifiers declarationModifiers;
-            (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isReadOnly, hasAnyBody, location, diagnostics);
+            (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isReadOnly, bodyInfo.HasAnyBody, location, diagnostics);
 
             //explicit impls must be marked metadata virtual unless static
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
             var isMetadataVirtualIgnoringModifiers = isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0;
 
             this.MakeFlags(
-                methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
+                methodKind, refKind, declarationModifiers, bodyInfo, returnsVoid,
                 isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isVarArg: isVarArg,
                 isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
 
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasAnyBody, diagnostics);
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, bodyInfo.HasAnyBody, diagnostics);
 
-            if (hasAnyBody)
+            if (bodyInfo.HasAnyBody)
             {
                 CheckModifiersForBody(location, diagnostics);
             }
