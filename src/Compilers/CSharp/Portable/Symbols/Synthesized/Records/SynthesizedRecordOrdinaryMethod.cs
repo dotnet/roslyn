@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected SynthesizedRecordOrdinaryMethod(SourceMemberContainerTypeSymbol containingType, string name, bool isReadOnly, bool hasBody, int memberOffset, BindingDiagnosticBag diagnostics)
             : base(containingType, name, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(), MethodKind.Ordinary, RefKind.None,
-                   isIterator: false, isExtensionMethod: false, isReadOnly: isReadOnly, hasBody: hasBody, isExpressionBodied: false, isNullableAnalysisEnabled: false, isVarArg: false, diagnostics)
+                   isIterator: false, isExtensionMethod: false, isReadOnly: isReadOnly, hasAnyBody: hasBody, isExpressionBodied: false, isNullableAnalysisEnabled: false, isVarArg: false, diagnostics)
         {
             _memberOffset = memberOffset;
         }
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
-        protected sealed override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics) => ImmutableArray<TypeParameterSymbol>.Empty;
+        public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
 
         public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes() => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
 

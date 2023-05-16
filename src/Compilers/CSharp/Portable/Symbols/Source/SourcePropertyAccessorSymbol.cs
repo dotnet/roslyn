@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location,
                 syntax,
                 hasBlockBody: false,
-                isExpressionBodied: false,
+                hasExpressionBody: false,
                 isIterator: false,
                 modifiers: default,
                 methodKind,
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             CSharpSyntaxNode syntax,
             bool hasBlockBody,
-            bool isExpressionBodied,
+            bool hasExpressionBody,
             bool isIterator,
             SyntaxTokenList modifiers,
             MethodKind methodKind,
@@ -190,7 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _property = property;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
-            var hasAnyBody = hasBlockBody || isExpressionBodied;
+            var isExpressionBodied = !hasBlockBody && hasExpressionBody;
+            var hasAnyBody = hasBlockBody || hasExpressionBody;
             _usesInit = usesInit;
             if (_usesInit)
             {

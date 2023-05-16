@@ -25,16 +25,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(containingType.HasPrimaryConstructor);
             Debug.Assert(containingType is SourceNamedTypeSymbol);
             Debug.Assert(containingType is IAttributeTargetSymbol);
+            Debug.Assert(syntax.ParameterList != null);
 
             this.MakeFlags(
                 MethodKind.Constructor,
                 RefKind.None,
                 containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public,
                 returnsVoid: true,
-                hasAnyBody: false,
+                // We consider synthesized constructors to have a body, since they effectively span the entire type, and
+                // can do things like create constructor assignments that write into the fields/props of the type.
+                hasAnyBody: true,
                 isExpressionBodied: false,
                 isExtensionMethod: false,
-                isVarArg: GetParameterList().Parameters.Any(static p => p.IsArgList),
+                isVarArg: syntax.ParameterList.Parameters.Any(static p => p.IsArgList),
                 isNullableAnalysisEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
         }
 

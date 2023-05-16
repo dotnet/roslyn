@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SourceOrdinaryMethodSymbolBase : SourceOrdinaryMethodOrUserDefinedOperatorSymbol
     {
-        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly string _name;
 
         protected SourceOrdinaryMethodSymbolBase(
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isIterator,
             bool isExtensionMethod,
             bool isReadOnly,
-            bool hasBody,
+            bool hasAnyBody,
             bool isExpressionBodied,
             bool isNullableAnalysisEnabled,
             bool isVarArg,
@@ -57,30 +56,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const bool returnsVoid = false;
 
             DeclarationModifiers declarationModifiers;
-            (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isReadOnly, hasBody, location, diagnostics);
+            (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isReadOnly, hasAnyBody, location, diagnostics);
 
             //explicit impls must be marked metadata virtual unless static
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
             var isMetadataVirtualIgnoringModifiers = isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0;
 
             this.MakeFlags(
-                methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody: hasBody, isExpressionBodied: isExpressionBodied,
+                methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isVarArg: isVarArg,
                 isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
 
-            _typeParameters = MakeTypeParameters(syntax, diagnostics);
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasAnyBody, diagnostics);
 
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
-
-            if (hasBody)
+            if (hasAnyBody)
             {
                 CheckModifiersForBody(location, diagnostics);
             }
 
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: isExplicitInterfaceImplementation, diagnostics, location);
         }
-
-        protected abstract ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics);
 
 #nullable enable
         protected override void MethodChecks(BindingDiagnosticBag diagnostics)
@@ -95,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 for (int i = 0; i < declaredConstraints.Length; i++)
                 {
-                    var typeParameter = _typeParameters[i];
+                    var typeParameter = this.TypeParameters[i];
                     ErrorCode report;
 
                     switch (declaredConstraints[i].Constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.Default))
@@ -175,10 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract void CompleteAsyncMethodChecksBetweenStartAndFinish();
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters
-        {
-            get { return _typeParameters; }
-        }
+        public abstract override ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
 
         public abstract override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
 

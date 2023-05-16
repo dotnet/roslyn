@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        location,
                        syntax,
                        hasBlockBody: true,
-                       isExpressionBodied: false,
+                       hasExpressionBody: false,
                        isIterator: false,
                        modifiers: default,
                        MethodKind.PropertyGet,

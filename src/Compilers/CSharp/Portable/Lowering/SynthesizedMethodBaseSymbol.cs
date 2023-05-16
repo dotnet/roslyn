@@ -49,12 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 refKind: baseMethod.RefKind,
                 declarationModifiers: declarationModifiers,
                 returnsVoid: baseMethod.ReturnsVoid,
-                hasAnyBody: false,
-                isExpressionBodied: false,
+                // Consider synthesized methods to always have bodies.
+                hasAnyBody: true,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: false,
                 isVarArg: baseMethod.IsVararg,
-                isMetadataVirtualIgnoringModifiers: false);
+                isMetadataVirtualIgnoringModifiers: false,
+                isExpressionBodied: false);
         }
 
         protected void AssignTypeMapAndTypeParameters(TypeMap typeMap, ImmutableArray<TypeParameterSymbol> typeParameters)
