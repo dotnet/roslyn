@@ -153,7 +153,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (syntax.Arity == 0)
                 {
-                    ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics.DiagnosticBag);
                     return ImmutableArray<TypeParameterSymbol>.Empty;
                 }
 
