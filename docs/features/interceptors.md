@@ -137,9 +137,13 @@ Interception can only occur for calls to ordinary member methods--not constructo
 
 ### Arity
 
-Interceptors cannot have type parameters or be declared in generic types at any level of nesting.
+Interceptors cannot be declared in generic types at any level of nesting.
 
-This limitation prevents interceptors from matching the signature of an interceptable call in cases where the interceptable call uses type parameters which are not in scope at the interceptor declaration. We can consider adjusting the rules to alleviate this limitation if compelling scenarios arise for it in the future.
+An interceptor method must either have arity 0 or have arity equal to the interceptable method.
+
+When an interceptor has nonzero arity, the method type arguments passed to the original method are passed to the interceptor. Type parameter constraints and [signature matching](#signature-matching) are enforced on the resulting constructed interceptor method.
+
+One important scenario enabled by this is when the type arguments to the original method are type parameters which are not in scope at the interceptor declaration.
 
 ```cs
 using System.Runtime.CompilerServices;
@@ -154,14 +158,34 @@ static class Program
 {
     public static void M<T2>(T2 t)
     {
-        C.InterceptableMethod(t);
+        C.InterceptableMethod(t); // intercepts with 'Interceptor1<T2>(T2)'
     }
 }
 
 static class D
 {
     [InterceptsLocation("Program.cs", 13, 11)]
-    public static void Interceptor1(object s) => throw null!;
+    public static void Interceptor1<T3>(T3 t3) => throw null!;
+}
+```
+
+If an interceptable method signature uses type parameters from the containing type (in parameters and returns, including `this`), it won't be possible to declare an interceptor for it in another type. This is because there's no position where the original containing type's type parameters can be substituted in to the interceptor. We could revisit this limitation if needed, perhaps by reviewing the arity matching requirements proposed for *implicit and explicit extensions* as a starting point.
+
+```cs
+class C<T>
+{
+    static void Interceptable(T t) { }
+
+    void M(T t)
+    {
+        Interceptable(t);
+    }
+}
+
+class D
+{
+    [InterceptsLocation("Program.cs", 7, 9)]
+    public static void Interceptor(T t) { } // error: we can't refer to 'T' in 'C<T>' here.
 }
 ```
 
