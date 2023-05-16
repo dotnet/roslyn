@@ -37,6 +37,16 @@
     Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgMicrosoft_VisualStudio_RemoteControl
     -->
     <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" GeneratePathProperty="True" />
+
+    <!--
+    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgMicrosoft_VisualStudio_Utilities_Internal
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.Utilities.Internal" Version="$(MicrosoftVisualStudioUtilitiesInternalVersion)" GeneratePathProperty="True" />
+
+    <!--
+    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgSystem_Configuration_ConfigurationManager
+    -->
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" GeneratePathProperty="True" />
   </ItemGroup>
 
   <ItemGroup>
@@ -59,6 +69,9 @@
     <ItemGroup>
       <NpmContent Include="$(PkgMicrosoft_VisualStudio_Telemetry)\lib\netstandard2.0\Microsoft.VisualStudio.Telemetry.dll" />
       <NpmContent Include="$(PkgMicrosoft_VisualStudio_RemoteControl)\lib\netstandard2.0\Microsoft.VisualStudio.RemoteControl.dll" />
+      <NpmContent Include="$(PkgMicrosoft_VisualStudio_Utilities_Internal)\lib\netstandard2.0\Microsoft.VisualStudio.Utilities.Internal.dll" />
+      <NpmContent Include="$(PkgSystem_Configuration_ConfigurationManager)\lib\netstandard2.0\System.Configuration.ConfigurationManager.dll" />
+
       <NpmContent Include="$(TargetPath)" />
       <NpmContent Include="@(AppConfigWithTargetPath->'$(OutDir)%(TargetPath)')" />
       <NpmContent Include="$(ProjectDepsFilePath)" />
