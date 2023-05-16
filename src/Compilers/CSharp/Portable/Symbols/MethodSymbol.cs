@@ -95,11 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
 
         /// <summary>
-        /// True if the method is annotated with the `[Interceptable]` attribute.
-        /// </summary>
-        internal abstract bool IsInterceptable { get; }
-
-        /// <summary>
         /// If a method is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
         /// listed in those attributes.
         /// Otherwise, an empty array.

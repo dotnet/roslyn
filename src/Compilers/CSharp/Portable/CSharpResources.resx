@@ -7505,12 +7505,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadCaseInSwitchArm" xml:space="preserve">
     <value>A switch expression arm does not begin with a 'case' keyword.</value>
   </data>
-  <data name="WRN_CallNotInterceptable" xml:space="preserve">
-    <value>Call to '{0}' is intercepted, but the method is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</value>
-  </data>
-  <data name="WRN_CallNotInterceptable_Title" xml:space="preserve">
-    <value>Call to a method is intercepted, but the method is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</value>
-  </data>
   <data name="ERR_InterceptorCannotBeGeneric" xml:space="preserve">
     <value>Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</value>
   </data>

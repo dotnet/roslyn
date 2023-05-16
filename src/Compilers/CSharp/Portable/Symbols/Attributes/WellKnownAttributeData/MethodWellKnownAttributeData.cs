@@ -149,21 +149,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SetDataStored();
             }
         }
-
-        private bool _hasInterceptableAttribute;
-        public bool HasInterceptableAttribute
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasInterceptableAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _hasInterceptableAttribute = value;
-                SetDataStored();
-            }
-        }
     }
 }

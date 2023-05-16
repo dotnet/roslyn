@@ -532,7 +532,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
-                case ErrorCode.WRN_CallNotInterceptable:
                 case ErrorCode.WRN_InterceptorSignatureMismatch:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
@@ -585,7 +584,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                 case ErrorCode.ERR_CannotBeConvertedToUtf8:
                 case ErrorCode.ERR_FileTypeNonUniquePath:
-                case ErrorCode.WRN_CallNotInterceptable:
                 case ErrorCode.ERR_InterceptorSignatureMismatch:
                 case ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter:
                 case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:

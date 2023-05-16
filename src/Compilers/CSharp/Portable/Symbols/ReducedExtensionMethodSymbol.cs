@@ -580,8 +580,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
-        internal override bool IsInterceptable => throw ExceptionUtilities.Unreachable();
-
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj) return true;

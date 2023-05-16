@@ -198,8 +198,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override bool IsInterceptable => false;
-
         internal sealed override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { return null; }

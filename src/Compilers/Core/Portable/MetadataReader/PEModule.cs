@@ -1025,11 +1025,6 @@ namespace Microsoft.CodeAnalysis
             return HasStringAndIntValuedAttribute(token, AttributeDescription.FixedBufferAttribute, out elementTypeName, out bufferSize);
         }
 
-        internal bool HasInterceptableAttribute(EntityHandle token)
-        {
-            return FindTargetAttribute(token, AttributeDescription.InterceptableAttribute).HasValue;
-        }
-
         internal bool HasAccessedThroughPropertyAttribute(EntityHandle token, out string propertyName)
         {
             return HasStringValuedAttribute(token, AttributeDescription.AccessedThroughPropertyAttribute, out propertyName);

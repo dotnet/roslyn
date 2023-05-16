@@ -256,8 +256,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return _lazyUnmanagedAttributeData;
         }
 
-        internal override bool IsInterceptable => UnderlyingMethod.IsInterceptable;
-
         internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             if (!_underlyingMethod.TryGetThisParameter(out var underlyingParameter))

@@ -1394,8 +1394,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
             GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
 
-        internal sealed override bool IsInterceptable => GetDecodedWellKnownAttributeData()?.HasInterceptableAttribute == true;
-
         internal override bool RequiresSecurityObject
         {
             get

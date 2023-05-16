@@ -2193,7 +2193,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
 
         // PROTOTYPE(ic): pack errors
-        WRN_CallNotInterceptable = 27000,
         ERR_InterceptorCannotBeGeneric = 27001,
         ERR_InterceptorPathNotInCompilation = 27002,
         ERR_InterceptorPathNotInCompilationWithCandidate = 27003,
