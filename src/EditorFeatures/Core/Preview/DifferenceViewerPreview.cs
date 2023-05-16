@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             RightWorkspace = rightWorkspace?.AddReference();
         }
 
-        public static ReferenceCountedDisposable<DifferenceViewerPreview> Create(
+        public static ReferenceCountedDisposable<DifferenceViewerPreview> CreateReferenceCounted(
             IDifferenceViewer viewer,
             ReferenceCountedDisposable<PreviewWorkspace>? leftWorkspace,
             ReferenceCountedDisposable<PreviewWorkspace>? rightWorkspace)

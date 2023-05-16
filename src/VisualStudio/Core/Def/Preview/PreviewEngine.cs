@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             _imageService = imageService;
         }
 
-        public static ReferenceCountedDisposable<PreviewEngine> Create(
+        public static ReferenceCountedDisposable<PreviewEngine> CreateReferenceCounted(
             IThreadingContext threadingContext,
             string title,
             string helpString,
@@ -243,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             if (_updater is not null)
                 return;
 
-            var newPreviewUpdater = PreviewUpdater.Create(ThreadingContext, EnsureTextViewIsInitialized(textView));
+            var newPreviewUpdater = PreviewUpdater.CreateReferenceCounted(ThreadingContext, EnsureTextViewIsInitialized(textView));
             if (Interlocked.CompareExchange(ref _updater, newPreviewUpdater, null) is not null)
             {
                 // _updater was initialized on another thread. This might not be possible, but we handle it because it's

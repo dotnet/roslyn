@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             _textView.Properties[typeof(PreviewTagger)] = _tagger;
         }
 
-        public static ReferenceCountedDisposable<PreviewUpdater> Create(IThreadingContext threadingContext, ITextView textView)
+        public static ReferenceCountedDisposable<PreviewUpdater> CreateReferenceCounted(IThreadingContext threadingContext, ITextView textView)
             => new(new PreviewUpdater(threadingContext, textView));
 
         public void Dispose()
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             if (previewWorkspace is null)
             {
-                var newWorkspace = PreviewDialogWorkspace.Create(document.Project.Solution);
+                var newWorkspace = PreviewDialogWorkspace.CreateReferenceCounted(document.Project.Solution);
                 if (Interlocked.CompareExchange(ref _previewWorkspace, newWorkspace, null) is not null)
                     newWorkspace.Dispose();
             }

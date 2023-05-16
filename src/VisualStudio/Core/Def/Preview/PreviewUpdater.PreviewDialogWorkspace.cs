@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             {
             }
 
-            public static new ReferenceCountedDisposable<PreviewDialogWorkspace> Create(Solution solution)
+            public static new ReferenceCountedDisposable<PreviewDialogWorkspace> CreateReferenceCounted(Solution solution)
                 => new(new PreviewDialogWorkspace(solution));
 
             public void CloseDocument(TextDocument document, SourceText text)

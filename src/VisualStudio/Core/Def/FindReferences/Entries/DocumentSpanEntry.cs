@@ -196,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // probably we need to dig in to see how expensvie it is to support this
                     var controlService = _excerptResult.Document.Project.Solution.Services.GetRequiredService<IContentControlService>();
                     var disposable = controlService.AttachToolTipToControl(content, () =>
-                        CreateDisposableToolTip(_excerptResult.Document, _excerptResult.Span));
+                        CreateReferenceCountedDisposableToolTip(_excerptResult.Document, _excerptResult.Span));
 
                     disposeCallback += () =>
                     {
@@ -230,7 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return base.GetValueWorker(keyName);
             }
 
-            private ReferenceCountedDisposable<DisposableToolTip> CreateDisposableToolTip(Document document, TextSpan sourceSpan)
+            private ReferenceCountedDisposable<DisposableToolTip> CreateReferenceCountedDisposableToolTip(Document document, TextSpan sourceSpan)
             {
                 Presenter.AssertIsForeground();
 
@@ -249,7 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         SetHighlightSpan(_spanKind, clonedBuffer, excerpt.Value.MappedSpan);
                         SetStaticClassifications(clonedBuffer, excerpt.Value.ClassifiedSpans);
 
-                        return controlService.CreateDisposableToolTip(clonedBuffer, EnvironmentColors.ToolWindowBackgroundBrushKey);
+                        return controlService.CreateReferenceCountedDisposableToolTip(clonedBuffer, EnvironmentColors.ToolWindowBackgroundBrushKey);
                     }
                 }
 
@@ -258,7 +258,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 SetHighlightSpan(_spanKind, textBuffer, sourceSpan);
 
                 var contentSpan = GetRegionSpanForReference(sourceText, sourceSpan);
-                return controlService.CreateDisposableToolTip(document, textBuffer, contentSpan, EnvironmentColors.ToolWindowBackgroundBrushKey);
+                return controlService.CreateReferenceCountedDisposableToolTip(document, textBuffer, contentSpan, EnvironmentColors.ToolWindowBackgroundBrushKey);
             }
 
             private static void SetStaticClassifications(ITextBuffer textBuffer, ImmutableArray<ClassifiedSpan> classifiedSpans)

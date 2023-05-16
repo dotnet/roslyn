@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
-using System.Threading;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Roslyn.Utilities;
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             _workspace = workspace?.AddReference();
         }
 
-        public static ReferenceCountedDisposable<DisposableToolTip> Create(ToolTip toolTip, ReferenceCountedDisposable<PreviewWorkspace>? workspace)
+        public static ReferenceCountedDisposable<DisposableToolTip> CreateReferenceCounted(ToolTip toolTip, ReferenceCountedDisposable<PreviewWorkspace>? workspace)
             => new(new DisposableToolTip(toolTip, workspace));
 
         public void Dispose()

@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             Solution oldSolution,
             bool showCheckBoxes = true)
         {
-            using var engine = PreviewEngine.Create(
+            using var engine = PreviewEngine.CreateReferenceCounted(
                 ThreadingContext,
                 title,
                 helpString,

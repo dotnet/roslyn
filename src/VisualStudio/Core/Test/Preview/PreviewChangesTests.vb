@@ -44,7 +44,7 @@ Class C
 
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
-                Using previewEngine2 = PreviewEngine.Create(
+                Using previewEngine2 = PreviewEngine.CreateReferenceCounted(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     forkedDocument.Project.Solution,
@@ -106,7 +106,7 @@ Class C
 
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
-                Using previewEngine2 = PreviewEngine.Create(
+                Using previewEngine2 = PreviewEngine.CreateReferenceCounted(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     newSolution,
@@ -144,7 +144,7 @@ Class C
 
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
-                Using previewEngine2 = PreviewEngine.Create(
+                Using previewEngine2 = PreviewEngine.CreateReferenceCounted(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     forkedDocument.Project.Solution,
@@ -211,7 +211,7 @@ Class C
                 newSolution = newSolution.AddDocument(addedDocumentId1, "test4.cs", addedDocumentText)
                 newSolution = newSolution.AddDocument(addedDocumentId2, "test5.cs", "// This file will be unchecked and not added!")
 
-                Using previewEngine2 = PreviewEngine.Create(
+                Using previewEngine2 = PreviewEngine.CreateReferenceCounted(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     newSolution,
@@ -294,7 +294,7 @@ End Class
 
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
-                Using previewEngine2 = PreviewEngine.Create(
+                Using previewEngine2 = PreviewEngine.CreateReferenceCounted(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     updatedSolution,

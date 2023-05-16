@@ -5,7 +5,6 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -15,12 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 {
     internal class PreviewWorkspace : Workspace
     {
-        public PreviewWorkspace()
-        : base(MefHostServices.DefaultHost, WorkspaceKind.Preview)
-        {
-        }
-
-        public PreviewWorkspace(HostServices hostServices)
+        private PreviewWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.Preview)
         {
         }
@@ -33,7 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }
 
-        public static ReferenceCountedDisposable<PreviewWorkspace> Create(Solution solution)
+        public static ReferenceCountedDisposable<PreviewWorkspace> CreateReferenceCounted(HostServices hostServices)
+            => new(new PreviewWorkspace(hostServices));
+
+        public static ReferenceCountedDisposable<PreviewWorkspace> CreateReferenceCounted(Solution solution)
             => new(new PreviewWorkspace(solution));
 
         public void EnableSolutionCrawler()
