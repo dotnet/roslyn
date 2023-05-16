@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
             {
                 if (_typeParameterInfo.LazyTypeParameterConstraintTypes.IsDefault)
                 {
@@ -153,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (syntax.Arity == 0)
                 {
+                    ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics.DiagnosticBag);
                     return ImmutableArray<TypeParameterSymbol>.Empty;
                 }
 
