@@ -2467,7 +2467,7 @@ Returned From Function 2");
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/68208")]
-        [ConditionalFact(typeof(WindowsDesktopOny))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void Typeof()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
