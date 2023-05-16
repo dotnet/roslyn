@@ -198,6 +198,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     var disposable = controlService.AttachToolTipToControl(content, () =>
                         CreateReferenceCountedDisposableToolTip(_excerptResult.Document, _excerptResult.Span));
 
+                    // Use the += operator for delegates to combine the dispose delegate from the base implementation
+                    // (which is allowed to be null) with the dispose callback being added here.
                     disposeCallback += () =>
                     {
                         try
