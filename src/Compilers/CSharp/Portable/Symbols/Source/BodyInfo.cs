@@ -25,6 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <see cref="BlockSyntax"/> body.
         /// </summary>
         public readonly bool HasExpressionBody;
+
+        /// <summary>
+        /// Symbol had some syntax that should be considered its 'body'.  Intuitively, this is generally set for 
+        /// symbols that still execute code, but don't explicitly have block or expression body (like a top level
+        /// entrypoint).  This is generally <em>not</em> set if a symbol is abstract/extern, as those modifiers
+        /// indicate that they will not execute c# code directly themselves.
+        /// </summary>
         private readonly bool _hasNonBlockNonExpressionBody;
 
         /// <summary>
