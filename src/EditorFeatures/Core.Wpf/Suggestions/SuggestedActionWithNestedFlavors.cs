@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         /// </summary>
         public sealed override bool HasActionSets => true;
 
-        public sealed override async Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
+        public sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -71,26 +70,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
 
-                // We use ConfigureAwait(true) to stay on the UI thread.
-                _nestedFlavors = await extensionManager.PerformFunctionAsync(
-                    Provider, () => CreateAllFlavorsAsync(cancellationToken),
-                    defaultValue: ImmutableArray<SuggestedActionSet>.Empty).ConfigureAwait(true);
+                _nestedFlavors = extensionManager.PerformFunction(
+                    Provider, CreateAllFlavors,
+                    defaultValue: ImmutableArray<SuggestedActionSet>.Empty);
             }
 
             Contract.ThrowIfTrue(_nestedFlavors.IsDefault);
-            return _nestedFlavors;
+            return Task.FromResult<IEnumerable<SuggestedActionSet>>(_nestedFlavors);
         }
 
-        private async Task<ImmutableArray<SuggestedActionSet>> CreateAllFlavorsAsync(CancellationToken cancellationToken)
+        private ImmutableArray<SuggestedActionSet> CreateAllFlavors()
         {
             var builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
-            // We use ConfigureAwait(true) to stay on the UI thread.
-            var previewChangesSuggestedActionSet = await GetPreviewChangesFlavorAsync(cancellationToken).ConfigureAwait(true);
-            if (previewChangesSuggestedActionSet != null)
-            {
-                builder.Add(previewChangesSuggestedActionSet);
-            }
+            var previewChangesSuggestedActionSet = GetPreviewChangesFlavor();
+            builder.Add(previewChangesSuggestedActionSet);
 
             if (_additionalFlavors != null)
             {
@@ -100,16 +94,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return builder.ToImmutableAndFree();
         }
 
-        private async Task<SuggestedActionSet> GetPreviewChangesFlavorAsync(CancellationToken cancellationToken)
+        private SuggestedActionSet GetPreviewChangesFlavor()
         {
-            // We use ConfigureAwait(true) to stay on the UI thread.
-            var previewChangesAction = await PreviewChangesSuggestedAction.CreateAsync(
-                this, cancellationToken).ConfigureAwait(true);
-            if (previewChangesAction == null)
-            {
-                return null;
-            }
-
+            var previewChangesAction = PreviewChangesSuggestedAction.Create(this);
             return new SuggestedActionSet(categoryName: null, actions: ImmutableArray.Create(previewChangesAction));
         }
 
