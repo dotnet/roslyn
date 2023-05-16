@@ -1135,7 +1135,7 @@ struct Buffer
         }
 
         [Fact]
-        public void InlineArrayType_22()
+        public void InlineArrayType_22_WrongSignature()
         {
             var src = @"
 #pragma warning disable CS0169 // The field 'Buffer._element0' is never used
@@ -1732,6 +1732,66 @@ struct Buffer
             Assert.True(buffer.HasInlineArrayAttribute(out int length));
             Assert.Equal(10, length);
             Assert.NotNull(buffer.TryGetInlineArrayElementField());
+        }
+
+        [Fact]
+        public void InlineArrayType_40_WrongSignature()
+        {
+            var src = @"
+#pragma warning disable CS0169 // The field 'Buffer._element0' is never used
+
+[System.Runtime.CompilerServices.InlineArray]
+struct Buffer
+{
+    private int _element0;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
+    public sealed class InlineArrayAttribute : Attribute
+    {
+        public InlineArrayAttribute ()
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+
+                Assert.False(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(0, length);
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_41_MissingArgument()
+        {
+            var src = @"
+#pragma warning disable CS0169 // The field 'Buffer._element0' is never used
+
+[System.Runtime.CompilerServices.InlineArray]
+struct Buffer
+{
+    private int _element0;
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS7036: There is no argument given that corresponds to the required parameter 'length' of 'InlineArrayAttribute.InlineArrayAttribute(int)'
+                // [System.Runtime.CompilerServices.InlineArray]
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "System.Runtime.CompilerServices.InlineArray").WithArguments("length", "System.Runtime.CompilerServices.InlineArrayAttribute.InlineArrayAttribute(int)").WithLocation(4, 2)
+                );
+
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.False(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(0, length);
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
