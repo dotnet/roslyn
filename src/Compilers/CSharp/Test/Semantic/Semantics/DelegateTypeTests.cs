@@ -9082,7 +9082,8 @@ System.Action`1[System.Byte*[]]
 ");
         }
 
-        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68208")]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void SynthesizedDelegateTypes_16()
         {
             var source =
