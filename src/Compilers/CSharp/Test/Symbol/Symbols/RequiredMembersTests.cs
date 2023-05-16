@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -5969,6 +5969,132 @@ public class Derived : Base
         CompileAndVerify(baseComp).VerifyDiagnostics();
 
         comp = CreateCompilation(code, references: new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (1,1): error CS9040: 'Derived' cannot satisfy the 'new()' constraint on parameter 'T' in the generic type or or method 'M<T>()' because 'Derived' has required members.
+            // M<Derived>();
+            Diagnostic(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, "M<Derived>").WithArguments("M<T>()", "T", "Derived").WithLocation(1, 1)
+        );
+    }
+
+    [Fact]
+    public void ForbidRequiredAsNew_MalformedMembersList()
+    {
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // public class Derived : Base
+        // {
+        //     public new required int P { get; set; }
+        //     public Derived() {}
+        // }
+        var badIl = """
+            .class public auto ansi Base
+                extends [mscorlib]System.Object
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .field private int32 _P
+            
+                .method public specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    ldarg.0
+                    call instance void [mscorlib]System.Object::.ctor()
+                    ret
+                }
+            
+                .method public specialname 
+                    instance int32 get_P () cil managed 
+                {
+                    IL_0000: ldarg.0
+                    IL_0001: ldfld int32 Base::_P
+                    IL_0006: br.s IL_0008
+            
+                    IL_0008: ret
+                }
+            
+                .method public specialname 
+                    instance void set_P (
+                        int32 AutoPropertyValue
+                    ) cil managed 
+                {
+                    ldarg.0
+                    ldarg.1
+                    stfld int32 Base::_P
+                    ret
+                }
+            
+                .property instance int32 P()
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    .get instance int32 Base::get_P()
+                    .set instance void Base::set_P(int32)
+                }
+            }
+            
+            .class public auto ansi Derived
+                extends Base
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .field private int32 _P
+            
+                .method public specialname 
+                    instance int32 get_P () cil managed 
+                {
+                    IL_0000: ldarg.0
+                    IL_0001: ldfld int32 Derived::_P
+                    IL_0006: br.s IL_0008
+            
+                    IL_0008: ret
+                }
+            
+                .method public specialname 
+                    instance void set_P (
+                        int32 AutoPropertyValue
+                    ) cil managed 
+                {
+                    ldarg.0
+                    ldarg.1
+                    stfld int32 Derived::_P
+                    ret
+                }
+            
+                .method public specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    nop
+                    ldarg.0
+                    call instance void Base::.ctor()
+                    ret
+                }
+            
+                .property instance int32 P()
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    .get instance int32 Derived::get_P()
+                    .set instance void Derived::set_P(int32)
+                }
+            }
+            """;
+
+        var code = """
+            M<Derived>();
+
+            void M<T>() where T : new()
+            {
+            }
+            """;
+
+        var comp = CreateCompilationWithIL(code, badIl, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (1,1): error CS9040: 'Derived' cannot satisfy the 'new()' constraint on parameter 'T' in the generic type or or method 'M<T>()' because 'Derived' has required members.
             // M<Derived>();
