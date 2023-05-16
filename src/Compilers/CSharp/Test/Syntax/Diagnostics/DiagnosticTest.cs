@@ -2940,7 +2940,6 @@ class Program
                     case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                     case ErrorCode.ERR_CannotBeConvertedToUtf8:
                     case ErrorCode.ERR_FileTypeNonUniquePath:
-                    case ErrorCode.WRN_CallNotInterceptable:
                     case ErrorCode.ERR_InterceptorSignatureMismatch:
                     case ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter:
                     case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:
