@@ -198,13 +198,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     | ReturnsVoidIsSetBit;
             }
 
-            public void SetOrdinaryMethodFlags(RefKind refKind, bool hasAnyBody)
-            {
-                // Only set in the constructor of SourceOrdinaryMethodSymbol, so does not need ThreadSafe operations.
-                _flags |= ((int)refKind & RefKindMask) << RefKindOffset;
-                _flags |= hasAnyBody ? HasAnyBodyBit : 0;
-            }
-
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
             {
                 // This flag is immutable, so there's no reason to set a lock bit, as we do below.

@@ -280,7 +280,6 @@ next:;
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
-
                 diagnostics.Free();
             }
 
