@@ -36,6 +36,10 @@ param (
   [string]$bootstrapToolset = "",
   [switch][Alias('bl')]$binaryLog,
   [string]$binaryLogName = "",
+<<<<<<< HEAD
+=======
+  [switch]$buildServerLog,
+>>>>>>> upstream/release/dev17.5-vs-deps
   [switch]$ci,
   [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
@@ -81,6 +85,10 @@ function Print-Usage() {
   Write-Host "  -deployExtensions         Deploy built vsixes (short: -d)"
   Write-Host "  -binaryLog                Create MSBuild binary log (short: -bl)"
   Write-Host "  -binaryLogName            Name of the binary log (default Build.binlog)"
+<<<<<<< HEAD
+=======
+  Write-Host "  -buildServerLog           Create Roslyn build server log"
+>>>>>>> upstream/release/dev17.5-vs-deps
   Write-Host ""
   Write-Host "Actions:"
   Write-Host "  -restore                  Restore packages (short: -r)"
@@ -179,6 +187,10 @@ function Process-Arguments() {
     $script:binaryLogName = "Build.binlog"
   }
 
+  if ($binaryLog -and ($binaryLogName -eq "")) {
+    $script:binaryLogName = "Build.binlog"
+  }
+
   $anyUnit = $testDesktop -or $testCoreClr
   if ($anyUnit -and $testVsi) {
     Write-Host "Cannot combine unit and VSI testing"
@@ -231,6 +243,10 @@ function BuildSolution() {
       Write-LogIssue -Type "error" -Message "Overwriting binary log file $($binaryLogPath)"
       throw "Overwriting binary log files"
     }
+<<<<<<< HEAD
+=======
+  }
+>>>>>>> upstream/release/dev17.5-vs-deps
 
   }
 
@@ -255,11 +271,11 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
- # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
+  # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
   # in our CI builds
   # https://github.com/NuGet/Home/issues/12373
   $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
-  
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
