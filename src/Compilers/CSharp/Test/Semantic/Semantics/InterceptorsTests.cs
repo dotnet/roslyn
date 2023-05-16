@@ -26,6 +26,52 @@ public class InterceptorsTests : CSharpTestBase
         }
         """, "attributes.cs");
 
+    private static readonly CSharpParseOptions RegularWithInterceptors = TestOptions.Regular.WithFeature("interceptors");
+
+    [Fact]
+    public void FeatureFlag()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+
+            class D
+            {
+                [InterceptsLocation("Program.cs", 4, 3)]
+                public static void M() => Console.Write(1);
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(13,6): error CS27000: The 'interceptors' experimental feature is not enabled. Add '<Features>interceptors</Features>' to your project.
+            //     [InterceptsLocation("Program.cs", 4, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(13, 6));
+
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("interceptors-experimental"));
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(13,6): error CS27000: The 'interceptors' experimental feature is not enabled. Add '<Features>interceptors</Features>' to your project.
+            //     [InterceptsLocation("Program.cs", 4, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(13, 6));
+
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+
+        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("interceptors", "false"), expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+
+        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("Interceptors"), expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+
+    }
+
     [Fact]
     public void SelfInterception()
     {
@@ -45,7 +91,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void InterceptableMethod() { Console.Write(1); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -73,7 +119,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1() { Console.Write("interceptor 1"); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor 1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "interceptor 1");
         verifier.VerifyDiagnostics();
     }
 
@@ -101,7 +147,7 @@ public class InterceptorsTests : CSharpTestBase
                 private static void Interceptor1() { Console.Write("interceptor 1"); }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
                 // Program.cs(17,6): error CS27018: Cannot intercept because 'D.Interceptor1()' is not accessible within 'C.Main()'.
                 //     [InterceptsLocation("Program.cs", 11, 9)]
@@ -138,7 +184,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source1, "Program.cs"), (source2, "Other.cs"), s_attributesSource }, expectedOutput: "interceptor 1");
+        var verifier = CompileAndVerify(new[] { (source1, "Program.cs"), (source2, "Other.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "interceptor 1");
         verifier.VerifyDiagnostics();
     }
 
@@ -175,7 +221,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify((source, "Program.cs"), expectedOutput: "1");
+        var verifier = CompileAndVerify((source, "Program.cs"), parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -227,13 +273,13 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp1 = CreateCompilation((source1, "Program.cs"));
+        var comp1 = CreateCompilation((source1, "Program.cs"), parseOptions: RegularWithInterceptors);
         comp1.VerifyEmitDiagnostics();
 
-        var comp2Verifier = CompileAndVerify((source2, "Program.cs"), references: new[] { comp1.ToMetadataReference() }, expectedOutput: "1");
+        var comp2Verifier = CompileAndVerify((source2, "Program.cs"), references: new[] { comp1.ToMetadataReference() }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         comp2Verifier.VerifyDiagnostics();
 
-        comp2Verifier = CompileAndVerify((source2, "Program.cs"), references: new[] { comp1.EmitToImageReference() }, expectedOutput: "1");
+        comp2Verifier = CompileAndVerify((source2, "Program.cs"), references: new[] { comp1.EmitToImageReference() }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         comp2Verifier.VerifyDiagnostics();
     }
 
@@ -265,7 +311,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call site");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "interceptor call site");
         verifier.VerifyDiagnostics();
     }
 
@@ -297,7 +343,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call site");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "interceptor call site");
         verifier.VerifyDiagnostics();
     }
 
@@ -329,7 +375,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static C Interceptor1(this C i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call site");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "interceptor call site");
         verifier.VerifyDiagnostics();
     }
 
@@ -361,7 +407,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static C Interceptor1(C i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(21,6): error CS27007: Cannot intercept method 'C.InterceptableMethod(string)' with interceptor 'D.Interceptor1(C, string)' because the signatures do not match.
             //     [InterceptsLocation("Program.cs", 15, 11)]
@@ -412,7 +458,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source0, source1, source2, s_attributesSource });
+        var comp = CreateCompilation(new[] { source0, source1, source2, s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Interceptor.cs(15,25): error CS27015: Cannot intercept a call in file with path 'Program.cs' because multiple files in the compilation have this path.
             //     [InterceptsLocation("Program.cs", 5, 11)]
@@ -443,7 +489,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(13,6): error CS27016: The indicated call is intercepted multiple times.
             //     [InterceptsLocation("Program.cs", 3, 3)]
@@ -488,7 +534,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source0, "Program.cs"), (source1, "File1.cs"), (source2, "File2.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source0, "Program.cs"), (source1, "File1.cs"), (source2, "File2.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // File2.cs(5,6): error CS27016: The indicated call is intercepted multiple times.
             //     [InterceptsLocation("Program.cs", 3, 3)]
@@ -539,7 +585,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify((source, "Program.cs"), expectedOutput: "1");
+        var verifier = CompileAndVerify((source, "Program.cs"), parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -565,7 +611,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(13,6): error CS27016: The indicated call is intercepted multiple times.
             //     [InterceptsLocation("Program.cs", 3, 3)]
@@ -619,7 +665,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify((source, "Program.cs"), expectedOutput: "CD");
+        var verifier = CompileAndVerify((source, "Program.cs"), parseOptions: RegularWithInterceptors, expectedOutput: "CD");
         verifier.VerifyDiagnostics();
     }
 
@@ -663,7 +709,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation((source, "Program.cs"));
+        var comp = CreateCompilation((source, "Program.cs"), parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(9,6): error CS27011: Interceptor must have a 'this' parameter matching parameter 'D this' on 'D.M()'.
             //     [InterceptsLocation("Program.cs", 5, 3)]
@@ -710,7 +756,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation((source, "Program.cs"));
+        var comp = CreateCompilation((source, "Program.cs"), parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(17,6): error CS27011: Interceptor must have a 'this' parameter matching parameter 'C this' on 'C.M()'.
             //     [InterceptsLocation("Program.cs", 5, 3)] // 1
@@ -757,7 +803,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify((source, "Program.cs"), expectedOutput: "1");
+        var verifier = CompileAndVerify((source, "Program.cs"), parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -789,10 +835,10 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true));
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true));
         verifier.VerifyDiagnostics();
 
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(16,6): error CS27016: The indicated call is intercepted multiple times.
             //     [InterceptsLocation("Program.cs", 7, 11)]
@@ -826,7 +872,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(true),
             // Program.cs(13,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '('.
             //     [InterceptsLocation("Program.cs", 3, 4)]
@@ -858,7 +904,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(string param) { Console.Write("interceptor " + param); }
             }
             """;
-        var comp0 = CreateCompilation(new[] { (source0, "Program.cs"), s_attributesSource });
+        var comp0 = CreateCompilation(new[] { (source0, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp0.VerifyEmitDiagnostics();
 
         var source1 = """
@@ -877,7 +923,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp1 = CompileAndVerify(new[] { (source1, "Program.cs") }, new[] { comp0.ToMetadataReference() }, expectedOutput: "interceptable 1");
+        var comp1 = CompileAndVerify(new[] { (source1, "Program.cs") }, new[] { comp0.ToMetadataReference() }, parseOptions: RegularWithInterceptors, expectedOutput: "interceptable 1");
         comp1.VerifyDiagnostics();
     }
 
@@ -909,7 +955,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static C Interceptor1(this C i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         compilation.VerifyEmitDiagnostics(
             // Program.cs(21,6): error CS27014: Possible method name 'InterceptableMethod' cannot be intercepted because it is not being invoked.
             //     [InterceptsLocation("Program.cs", 15, 21)]
@@ -937,7 +983,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(object param) { }
             }
             """;
-        var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         compilation.VerifyEmitDiagnostics(
             // Program.cs(7,13): error CS27023: A nameof operator cannot be intercepted.
             //         _ = nameof(Main);
@@ -975,7 +1021,7 @@ public class InterceptorsTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -1010,7 +1056,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(int x, int y, int z) { }
             }
             """;
-        var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         compilation.VerifyEmitDiagnostics(
             // Program.cs(21,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '__arglist'.
             //     [InterceptsLocation("Program.cs", 8, 12)] // __arglist
@@ -1050,7 +1096,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(this Action action) { action(); Console.Write(2); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "12");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "12");
         verifier.VerifyDiagnostics(
             );
     }
@@ -1083,7 +1129,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static C Interceptor1(C c, string param) { Console.Write("interceptor " + param); return c; }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call site");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "interceptor call site");
         verifier.VerifyDiagnostics();
     }
 
@@ -1115,7 +1161,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call site");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "interceptor call site");
         verifier.VerifyDiagnostics();
     }
 
@@ -1140,7 +1186,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(C c) => throw null!;
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(14,6): error CS27011: Interceptor must have a 'this' parameter matching parameter 'C c' on 'D.InterceptableMethod(C)'.
             //     [InterceptsLocation("Program.cs", 5, 3)]
@@ -1168,7 +1214,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(C c) => Console.Write(1);
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -1196,7 +1242,7 @@ public class InterceptorsTests : CSharpTestBase
                 public void Interceptor1(string param) { Console.Write("interceptor " + param); }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(17,6): error CS27012: Interceptor must not have a 'this' parameter because 'C.InterceptableMethod(string)' does not have a 'this' parameter.
             //     [InterceptsLocation("Program.cs", 8, 11)]
@@ -1231,7 +1277,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(this C c, string s1, string s2) { Console.Write("interceptor " + s1 + s2); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor Hello World");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "interceptor Hello World");
         verifier.VerifyDiagnostics();
     }
 
@@ -1263,7 +1309,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(this C c, string s2) { Console.Write(s2); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -1297,7 +1343,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(this C c, string s2, string s1) { Console.Write(s2); Console.Write(s1); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1234");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1234");
         verifier.VerifyDiagnostics();
     }
 
@@ -1329,7 +1375,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(this C c) { Console.Write(1); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -1360,7 +1406,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(this C c) => throw null!;
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyDiagnostics(
             // Program.cs(20,53): error CS27005: The given file has '22' lines, which is fewer than the provided line number '50'.
             //     [InterceptsLocation("Program.cs", character: 1, line: 50)] // 1
@@ -1397,7 +1443,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor call siteinterceptable call site");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "interceptor call siteinterceptable call site");
         verifier.VerifyDiagnostics();
     }
 
@@ -1435,10 +1481,10 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp1 = CreateCompilation(new[] { (source1, "File1.cs"), s_attributesSource });
+        var comp1 = CreateCompilation(new[] { (source1, "File1.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp1.VerifyEmitDiagnostics();
 
-        var verifier = CompileAndVerify((source2, "Program.cs"), references: new[] { comp1.ToMetadataReference() }, expectedOutput: "interceptor call site");
+        var verifier = CompileAndVerify((source2, "Program.cs"), references: new[] { comp1.ToMetadataReference() }, parseOptions: RegularWithInterceptors, expectedOutput: "interceptor call site");
         verifier.VerifyDiagnostics();
     }
 
@@ -1471,7 +1517,7 @@ public class InterceptorsTests : CSharpTestBase
                 }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyDiagnostics(
             // Program.cs(13,23): error CS27009: An interceptor method must be an ordinary member method.
             //         var lambda = [InterceptsLocation("Program.cs", 13, 8)] (string param) => { }; // 1
@@ -1514,7 +1560,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static I1 Interceptor1<T>(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
                 // Program.cs(22,6): error CS27001: Method 'D.Interceptor1<T>(I1, string)' cannot be used as an interceptor because it or its containing type has type parameters.
                 //     [InterceptsLocation("Program.cs", 16, 11)]
@@ -1549,7 +1595,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(string param) { Console.Write("interceptor " + param); }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(21,6): error CS27001: Method 'D<T>.Interceptor1(string)' cannot be used as an interceptor because it or its containing type has type parameters.
             //     [InterceptsLocation("Program.cs", 15, 11)]
@@ -1587,7 +1633,7 @@ public class InterceptorsTests : CSharpTestBase
                 }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(23,10): error CS27001: Method 'Outer<T>.D.Interceptor1(string)' cannot be used as an interceptor because it or its containing type has type parameters.
             //         [InterceptsLocation("Program.cs", 15, 11)]
@@ -1624,7 +1670,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(string s) { Console.Write(s); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "12");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "12");
         verifier.VerifyDiagnostics();
     }
 
@@ -1657,7 +1703,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(string s) { Console.Write(s); }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(20,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '<'.
             //     [InterceptsLocation("Program.cs", 14, 30)]
@@ -1698,7 +1744,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(string s) { Console.Write(s); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -1735,7 +1781,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(object s) { Console.Write(s); }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(22,6): error CS27007: Cannot intercept method 'C.InterceptableMethod<T2>(T2)' with interceptor 'D.Interceptor1(object)' because the signatures do not match.
             //     [InterceptsLocation("Program.cs", 14, 11)] // 1
@@ -1762,7 +1808,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(string param) { Console.Write("interceptor " + param); }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(6,42): error CS1503: Argument 3: cannot convert from 'string' to 'int'
             //     [InterceptsLocation("Program.cs", 1, "10")]
@@ -1807,7 +1853,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(21,25): error CS27002: Cannot intercept: compilation does not contain a file with path 'BAD'.
             //     [InterceptsLocation("BAD", 15, 11)]
@@ -1843,7 +1889,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "/Users/me/projects/Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "/Users/me/projects/Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // /Users/me/projects/Program.cs(21,25): error CS27003: Cannot intercept: compilation does not contain a file with path 'projects/Program.cs'. Did you mean to use path '/Users/me/projects/Program.cs'?
             //     [InterceptsLocation("projects/Program.cs", 15, 11)]
@@ -1878,7 +1924,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(20,25): error CS27013: Interceptor cannot have a 'null' file path.
             //     [InterceptsLocation(null, 15, 11)]
@@ -1913,7 +1959,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static C Interceptor1(this C c, string param) { Console.Write("interceptor " + param); return c; }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(20,25): error CS27002: Cannot intercept: compilation does not contain a file with path 'program.cs'.
             //     [InterceptsLocation("program.cs", 15, 11)]
@@ -1951,7 +1997,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(21,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '}'.
             //     [InterceptsLocation("Program.cs", 25, 1)]
@@ -1995,7 +2041,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(21,6): error CS27004: The provided line and character number does not refer to an interceptable method name, but rather to token '}'.
             //     [InterceptsLocation("Program.cs", 16, 5)]
@@ -2037,7 +2083,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
                 // Program.cs(21,6): error CS27004: The provided line and character number does not refer to an interceptable method, but rather to token 'c'.
                 //     [InterceptsLocation("Program.cs", 15, 9)]
@@ -2073,7 +2119,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(21,6): error CS27010: The provided line and character number does not refer to the start of token 'InterceptableMethod'. Did you mean to use line '15' and character '11'?
             //     [InterceptsLocation("Program.cs", 15, 13)]
@@ -2113,7 +2159,7 @@ public class InterceptorsTests : CSharpTestBase
             {
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(20,6): error CS27010: The provided line and character number does not refer to the start of token 'InterceptableMethod'. Did you mean to use line '12' and character '13'?
             //     [InterceptsLocation("Program.cs", 12, 11)] // intercept spaces before 'InterceptableMethod' token
@@ -2152,7 +2198,7 @@ public class InterceptorsTests : CSharpTestBase
             {
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(17,6): error CS27010: The provided line and character number does not refer to the start of token 'InterceptableMethod'. Did you mean to use line '11' and character '11'?
             //     [InterceptsLocation("Program.cs", 11, 31)] // intercept comment after 'InterceptableMethod' token
@@ -2191,7 +2237,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
                 // Program.cs(19,6): error CS27010: The provided line and character number does not refer to the start of token 'InterceptableMethod'. Did you mean to use line '13' and character '13'?
                 //     [InterceptsLocation("Program.cs", 12, 13)] // intercept comment above 'InterceptableMethod' token
@@ -2229,7 +2275,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(17,39): error CS27020: Line and character numbers provided to InterceptsLocationAttribute must be positive.
             //     [InterceptsLocation("Program.cs", -1, 1)] // 1
@@ -2280,7 +2326,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static I1 Interceptor1(this I1 i1, int param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
                 // Program.cs(21,6): error CS27007: Cannot intercept method 'Program.InterceptableMethod(I1, string)' with interceptor 'D.Interceptor1(I1, int)' because the signatures do not match.
                 //     [InterceptsLocation("Program.cs", 15, 11)]
@@ -2318,7 +2364,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(22,6): error CS27011: Interceptor must have a 'this' parameter matching parameter 'C this' on 'C.InterceptableMethod(string)'.
             //     [InterceptsLocation("Program.cs", 16, 11)]
@@ -2355,7 +2401,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(this S s, string param) { Console.Write("interceptor " + param); }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(21,6): error CS27011: Interceptor must have a 'this' parameter matching parameter 'ref S this' on 'S.InterceptableMethod(string)'.
             //     [InterceptsLocation("Program.cs", 15, 11)]
@@ -2391,7 +2437,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static string Interceptor1(this C s, string? param) => throw null!;
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, options: WithNullableEnable());
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, options: WithNullableEnable());
         comp.VerifyEmitDiagnostics();
     }
 
@@ -2431,7 +2477,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, options: WithNullableEnable());
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, options: WithNullableEnable());
         comp.VerifyEmitDiagnostics(
             // Program.cs(24,6): warning CS27022: Nullability of reference types in type of parameter 'param2' doesn't match interceptable method 'C.Method1(string?)'.
             //     [InterceptsLocation("Program.cs", 17, 11)] // 1
@@ -2441,7 +2487,7 @@ public class InterceptorsTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor, @"InterceptsLocation(""Program.cs"", 18, 15)").WithArguments("C.Method2()").WithLocation(27, 6)
             );
 
-        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, options: WithNullableDisable());
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, options: WithNullableDisable());
         comp.VerifyEmitDiagnostics(
             // Program.cs(6,31): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
             //     public void Method1(string? param1) => throw null!;
@@ -2487,7 +2533,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static object Interceptor2(this C s) => throw null!;
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(24,6): warning CS27017: Intercepting a call to 'C.Method1(object)' with interceptor 'D.Interceptor1(C, dynamic)', but the signatures do not match.
             //     [InterceptsLocation("Program.cs", 17, 11)] // 1
@@ -2527,7 +2573,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(this C s, (string a, string b) param2) => Console.Write(1);
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -2559,7 +2605,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static ref int Interceptor1(ref int value) => throw null!;
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, options: WithNullableEnable());
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, options: WithNullableEnable());
         comp.VerifyEmitDiagnostics(
             // Program.cs(20,6): error CS27019: Cannot intercept call to 'C.InterceptableMethod(scoped ref int)' with 'D.Interceptor1(ref int)' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.
             //     [InterceptsLocation("Program.cs", 14, 11)] // 1
@@ -2602,7 +2648,7 @@ public class InterceptorsTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -2642,7 +2688,7 @@ public class InterceptorsTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource, (UnscopedRefAttributeDefinition, "UnscopedRefAttribute.cs") }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource, (UnscopedRefAttributeDefinition, "UnscopedRefAttribute.cs") }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -2675,7 +2721,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static ref int Interceptor1([UnscopedRef] out int value) => throw null!;
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource, (UnscopedRefAttributeDefinition, "UnscopedRefAttribute.cs") }, options: WithNullableEnable());
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource, (UnscopedRefAttributeDefinition, "UnscopedRefAttribute.cs") }, parseOptions: RegularWithInterceptors, options: WithNullableEnable());
         comp.VerifyEmitDiagnostics(
             // Program.cs(21,6): error CS27019: Cannot intercept call to 'C.InterceptableMethod(out int)' with 'D.Interceptor1(out int)' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.
             //     [InterceptsLocation("Program.cs", 15, 11)] // 1
@@ -2755,7 +2801,7 @@ public class InterceptorsTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(CreateEmptyCompilation((source, "Program.cs"), options: WithNullableEnable()), verify: Verification.Skipped);
+        var verifier = CompileAndVerify(CreateEmptyCompilation((source, "Program.cs"), parseOptions: RegularWithInterceptors, options: WithNullableEnable()), verify: Verification.Skipped);
         verifier.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
 
         var referenceEqualsCallIL = """
@@ -2848,7 +2894,7 @@ public class InterceptorsTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(CreateEmptyCompilation((source, "Program.cs"), options: WithNullableEnable()), verify: Verification.Skipped);
+        var verifier = CompileAndVerify(CreateEmptyCompilation((source, "Program.cs"), parseOptions: RegularWithInterceptors, options: WithNullableEnable()), verify: Verification.Skipped);
         verifier.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
 
         verifier.VerifyIL("D.M0", """
@@ -2906,7 +2952,7 @@ public class InterceptorsTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "123456");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "123456");
         verifier.VerifyDiagnostics();
     }
 
@@ -2950,7 +2996,7 @@ public class InterceptorsTests : CSharpTestBase
                 }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
                 // Program.cs(14,11): error CS1501: No overload for method 'InterceptableMethod' takes 3 arguments
                 //         C.InterceptableMethod(1, 2, 3 ); // 1
@@ -3000,7 +3046,7 @@ public class InterceptorsTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "123456");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "123456");
         verifier.VerifyDiagnostics();
     }
 
@@ -3052,6 +3098,7 @@ partial struct CustomHandler
                 (GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), "b.cs"),
                 s_attributesSource
             },
+            parseOptions: RegularWithInterceptors,
             expectedOutput: "12");
         verifier.VerifyDiagnostics();
     }
@@ -3104,6 +3151,7 @@ partial struct CustomHandler
                 (GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), "b.cs"),
                 s_attributesSource
             },
+            parseOptions: RegularWithInterceptors,
             expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
@@ -3157,6 +3205,7 @@ partial struct CustomHandler
                 (GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), "b.cs"),
                 s_attributesSource
             },
+            parseOptions: RegularWithInterceptors,
             expectedOutput: "12");
         verifier.VerifyDiagnostics();
     }
@@ -3187,7 +3236,7 @@ partial struct CustomHandler
                 public static void Interceptor1() { Console.Write("interceptor 1"); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "interceptor 1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "interceptor 1");
         verifier.VerifyDiagnostics();
     }
 
@@ -3217,7 +3266,7 @@ partial struct CustomHandler
                 public static void Interceptor1() { Console.Write("interceptor 1"); }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // OtherFile.cs(48,25): error CS27002: Cannot intercept: compilation does not contain a file with path 'OtherFile.cs'.
             //     [InterceptsLocation("OtherFile.cs", 42, 9)]
@@ -3248,7 +3297,7 @@ partial struct CustomHandler
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -3275,7 +3324,7 @@ partial struct CustomHandler
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -3300,7 +3349,7 @@ partial struct CustomHandler
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, verify: Verification.Skipped);
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, verify: Verification.Skipped);
         verifier.VerifyDiagnostics();
 
         verifier.VerifyIL("<top-level-statements-entry-point>", """
@@ -3338,7 +3387,7 @@ partial struct CustomHandler
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -3368,7 +3417,7 @@ partial struct CustomHandler
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 }

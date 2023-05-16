@@ -942,6 +942,11 @@
         <target state="new">Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
+        <source>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;interceptors&lt;/Features&gt;' to your project.</source>
+        <target state="new">The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;interceptors&lt;/Features&gt;' to your project.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
         <source>'UnmanagedCallersOnly' method '{0}' cannot implement interface member '{1}' in type '{2}'</source>
         <target state="translated">“UnmanagedCallersOnly”方法“{0}”无法实现类型“{2}”中的接口成员“{1}”</target>
