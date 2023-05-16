@@ -17,9 +17,6 @@ public class InterceptorsTests : CSharpTestBase
     private static readonly (string, string) s_attributesSource = ("""
         namespace System.Runtime.CompilerServices;
 
-        [AttributeUsage(AttributeTargets.Method)]
-        public sealed class InterceptableAttribute : Attribute { }
-
         [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
         public sealed class InterceptsLocationAttribute : Attribute
         {
@@ -38,7 +35,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod() { Console.Write("interceptable"); }
                 
                 public static void NotInterceptable() { Console.Write("not interceptable"); }
@@ -74,7 +71,7 @@ public class InterceptorsTests : CSharpTestBase
                     InterceptableMethod();
                 }
 
-                [Interceptable]
+
                 [InterceptsLocation("Program.cs", 8, 9)]
                 public static void InterceptableMethod() { Console.Write(1); }
             }
@@ -92,7 +89,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod() { Console.Write("interceptable"); }
 
                 public static void Main()
@@ -120,7 +117,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod() { Console.Write("interceptable"); }
 
                 public static void Main()
@@ -152,7 +149,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod() { Console.Write("interceptable"); }
 
                 public static void Main()
@@ -188,7 +185,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void M() => throw null!;
             }
 
@@ -223,7 +220,7 @@ public class InterceptorsTests : CSharpTestBase
 
             public class C
             {
-                [Interceptable]
+
                 public static void M() => throw null!;
             }
 
@@ -288,7 +285,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class Program
             {
-                [Interceptable]
+
                 public static I1 InterceptableMethod(this I1 i1, string param) { Console.Write("interceptable " + param); return i1; }
 
                 public static void Main()
@@ -320,7 +317,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class Program
             {
-                [Interceptable]
+
                 public static I1 InterceptableMethod(this I1 i1, string param) { Console.Write("interceptable " + param); return i1; }
 
                 public static void Main()
@@ -349,7 +346,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public C InterceptableMethod(string param) { Console.Write("interceptable " + param); return this; }
             }
 
@@ -381,7 +378,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public C InterceptableMethod(string param) { Console.Write("interceptable " + param); return this; }
             }
 
@@ -440,7 +437,7 @@ public class InterceptorsTests : CSharpTestBase
 
             public class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
             }
 
@@ -468,7 +465,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void M() { }
             }
 
@@ -502,7 +499,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void M() { }
             }
             """;
@@ -551,7 +548,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public void M() => throw null!;
 
                 [InterceptsLocation("Program.cs", 5, 3)]
@@ -592,7 +589,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void M() { }
             }
 
@@ -630,7 +627,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public void M() => throw null!;
 
                 [InterceptsLocation("Program.cs", 5, 3)]
@@ -681,7 +678,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class D : C
             {
-                [Interceptable]
+
                 public void M() => throw null!;
 
                 public override void Interceptor() => throw null!;
@@ -722,7 +719,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public void M() => throw null!;
 
                 public virtual void Interceptor() => throw null!;
@@ -774,7 +771,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class D : C
             {
-                [Interceptable]
+
                 public void M() => throw null!;
 
                 [InterceptsLocation("Program.cs", 5, 3)]
@@ -814,7 +811,7 @@ public class InterceptorsTests : CSharpTestBase
                     C.M();
                 }
 
-                [Interceptable]
+
                 public static void M() { }
             }
 
@@ -853,7 +850,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void M() { }
             }
 
@@ -882,7 +879,7 @@ public class InterceptorsTests : CSharpTestBase
 
             public class C0
             {
-                [Interceptable]
+
                 public static void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
 
                 static void M0()
@@ -906,7 +903,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C1
             {
-                [Interceptable]
+
                 public static void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
 
                 static void Main()
@@ -929,7 +926,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public C InterceptableMethod(string param) { Console.Write("interceptable " + param); return this; }
             }
 
@@ -1000,7 +997,7 @@ public class InterceptorsTests : CSharpTestBase
 
                 private static object F = 1;
 
-                [Interceptable]
+
                 public static string nameof(object param) => throw null!;
             }
 
@@ -1107,7 +1104,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static C InterceptableMethod(C c, string param) { Console.Write("interceptable " + param); return c; }
             }
 
@@ -1139,7 +1136,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static C InterceptableMethod(C c, string param) { Console.Write("interceptable " + param); return c; }
             }
 
@@ -1176,7 +1173,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [Interceptable]
+
                 public static void InterceptableMethod(this C c) => throw null!;
 
                 [InterceptsLocation("Program.cs", 5, 3)]
@@ -1204,7 +1201,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [Interceptable]
+
                 public static void InterceptableMethod(this C c) => throw null!;
 
                 [InterceptsLocation("Program.cs", 5, 3)]
@@ -1232,7 +1229,7 @@ public class InterceptorsTests : CSharpTestBase
             
             class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
 
                 [InterceptsLocation("Program.cs", 8, 11)]
@@ -1255,7 +1252,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public void InterceptableMethod(string s1, string s2) { Console.Write(s1 + s2); }
             }
 
@@ -1287,7 +1284,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public void InterceptableMethod(string s1) => throw null!;
             }
 
@@ -1319,7 +1316,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public void InterceptableMethod(string s1, string s2) => throw null!;
             }
 
@@ -1353,7 +1350,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public void InterceptableMethod() => throw null!;
             }
 
@@ -1384,7 +1381,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public void InterceptableMethod() => throw null!;
             }
 
@@ -1423,7 +1420,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class Program
             {
-                [Interceptable]
+
                 public static I1 InterceptableMethod(this I1 i1, string param) { Console.Write("interceptable " + param); return i1; }
 
                 public static void Main()
@@ -1453,7 +1450,7 @@ public class InterceptorsTests : CSharpTestBase
 
             public class C
             {
-                [Interceptable]
+
                 public C InterceptableMethod(string param) { Console.Write("interceptable " + param); return this; }
             }
             """;
@@ -1493,7 +1490,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class Program
             {
-                [Interceptable]
+
                 public static void InterceptableMethod(string param) { }
 
                 public static void Main()
@@ -1616,7 +1613,7 @@ public class InterceptorsTests : CSharpTestBase
             interface I1 { }
             class C : I1
             {
-                [Interceptable]
+
                 public I1 InterceptableMethod(string param) { Console.Write("interceptable " + param); return this; }
             }
 
@@ -1652,7 +1649,7 @@ public class InterceptorsTests : CSharpTestBase
             interface I1 { }
             class C : I1
             {
-                [Interceptable]
+
                 public static void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
             }
 
@@ -1687,7 +1684,7 @@ public class InterceptorsTests : CSharpTestBase
             interface I1 { }
             class C : I1
             {
-                [Interceptable]
+
                 public static void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
             }
 
@@ -1725,7 +1722,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod<T>(T t) { Console.Write("0"); }
             }
 
@@ -1758,7 +1755,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod<T>(T t) { Console.Write("0"); }
             }
 
@@ -1801,7 +1798,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod<T>(T t) where T : class => throw null!;
             }
 
@@ -1834,7 +1831,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod<T1>(T1 t) => throw null!;
             }
 
@@ -1912,7 +1909,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class Program
             {
-                [Interceptable]
+
                 public static I1 InterceptableMethod(this I1 i1, string param) { Console.Write("interceptable " + param); return i1; }
 
                 public static void Main()
@@ -1948,7 +1945,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class Program
             {
-                [Interceptable]
+
                 public static I1 InterceptableMethod(this I1 i1, string param) { Console.Write("interceptable " + param); return i1; }
 
                 public static void Main()
@@ -1983,7 +1980,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class Program
             {
-                [Interceptable]
+
                 public static C InterceptableMethod(this C c, string param) { Console.Write("interceptable " + param); return c; }
 
                 public static void Main()
@@ -2018,7 +2015,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class Program
             {
-                [Interceptable]
+
                 public static C InterceptableMethod(this C c, string param) { Console.Write("interceptable " + param); return c; }
 
                 public static void Main()
@@ -2054,7 +2051,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class Program
             {
-                [Interceptable]
+
                 public static I1 InterceptableMethod(this I1 i1, string param) { Console.Write("interceptable " + param); return i1; }
 
                 public static void Main()
@@ -2098,7 +2095,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class Program
             {
-                [Interceptable]
+
                 public static I1 InterceptableMethod(this I1 i1, string param) { Console.Write("interceptable " + param); return i1; }
 
                 public static void Main()
@@ -2142,7 +2139,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class Program
             {
-                [Interceptable]
+
                 public static I1 InterceptableMethod(this I1 i1, string param) { Console.Write("interceptable " + param); return i1; }
 
                 public static void Main()
@@ -2178,7 +2175,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class Program
             {
-                [Interceptable]
+
                 public static I1 InterceptableMethod(this I1 i1, string param) { Console.Write("interceptable " + param); return i1; }
 
                 public static void Main()
@@ -2222,7 +2219,7 @@ public class InterceptorsTests : CSharpTestBase
                     c.InterceptableMethod    ("call site");
                 }
 
-                [Interceptable]
+
                 public static C InterceptableMethod(this C c, string param) { Console.Write("interceptable " + param); return c; }
 
                 [InterceptsLocation("Program.cs", 12, 11)] // intercept spaces before 'InterceptableMethod' token
@@ -2262,7 +2259,7 @@ public class InterceptorsTests : CSharpTestBase
                     c.InterceptableMethod/*comment*/("call site");
                 }
 
-                [Interceptable]
+
                 public static C InterceptableMethod(this C c, string param) { Console.Write("interceptable " + param); return c; }
 
                 [InterceptsLocation("Program.cs", 11, 31)] // intercept comment after 'InterceptableMethod' token
@@ -2300,7 +2297,7 @@ public class InterceptorsTests : CSharpTestBase
                         InterceptableMethod("call site");
                 }
 
-                [Interceptable]
+
                 public static C InterceptableMethod(this C c, string param) { Console.Write("interceptable " + param); return c; }
 
                 [InterceptsLocation("Program.cs", 12, 13)] // intercept comment above 'InterceptableMethod' token
@@ -2337,7 +2334,7 @@ public class InterceptorsTests : CSharpTestBase
                     c.InterceptableMethod("call site");
                 }
 
-                [Interceptable]
+
                 public static C InterceptableMethod(this C c, string param) { Console.Write("interceptable " + param); return c; }
 
                 [InterceptsLocation("Program.cs", -1, 1)] // 1
@@ -2385,7 +2382,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class Program
             {
-                [Interceptable]
+
                 public static I1 InterceptableMethod(this I1 i1, string param) { Console.Write("interceptable " + param); return i1; }
 
                 public static void Main()
@@ -2420,7 +2417,7 @@ public class InterceptorsTests : CSharpTestBase
             interface I1 { }
             class C : I1
             {
-                [Interceptable]
+
                 public I1 InterceptableMethod(string param) { Console.Write("interceptable " + param); return this; }
             }
 
@@ -2457,7 +2454,7 @@ public class InterceptorsTests : CSharpTestBase
 
             struct S
             {
-                [Interceptable]
+
                 public void InterceptableMethod(string param) { Console.Write("interceptable " + param); }
             }
 
@@ -2493,7 +2490,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public string? InterceptableMethod(string param) => throw null!;
             }
 
@@ -2525,10 +2522,10 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public void Method1(string? param1) => throw null!;
 
-                [Interceptable]
+
                 public string Method2() => throw null!;
             }
 
@@ -2582,10 +2579,10 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public void Method1(object param1) => throw null!;
 
-                [Interceptable]
+
                 public dynamic Method2() => throw null!;
             }
 
@@ -2629,7 +2626,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public void Method1((string x, string y) param1) => throw null!;
             }
 
@@ -2661,7 +2658,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static ref int InterceptableMethod(scoped ref int value) => throw null!;
             }
 
@@ -2698,7 +2695,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static ref int InterceptableMethod(ref int value) => throw null!;
             }
 
@@ -2738,7 +2735,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static ref int InterceptableMethod([UnscopedRef] out int value) => throw null!;
             }
 
@@ -2778,7 +2775,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static ref int InterceptableMethod(out int value) => throw null!;
             }
 
@@ -2813,7 +2810,7 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [Interceptable]
+
                 public static bool Interceptable(object? obj1, object? obj2) => throw null!;
 
                 public static void M0(object? obj1, object? obj2)
@@ -2935,7 +2932,7 @@ public class InterceptorsTests : CSharpTestBase
             {
                 public class Object
                 {
-                    [Interceptable]
+
                     public static bool ReferenceEquals(object? obj1, object? obj2) => throw null!;
                 }
             
@@ -2997,7 +2994,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod(params int[] value) => throw null!;
             }
 
@@ -3041,7 +3038,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod(int[] value) => throw null!;
             }
 
@@ -3091,7 +3088,7 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod(int[] value) => throw null!;
             }
 
@@ -3141,7 +3138,7 @@ public struct S1
     public S1() { }
     public int Field = 1;
 
-    [Interceptable]
+
     public void M([InterpolatedStringHandlerArgument("")] CustomHandler c)
     {
         Console.Write(0);
@@ -3193,7 +3190,7 @@ public struct S1
     public S1() { }
     public int Field = 1;
 
-    [Interceptable]
+
     public void M(CustomHandler c)
     {
         Console.Write(0);
@@ -3246,7 +3243,7 @@ public struct S1
     public S1(int field) => Field = field;
     public int Field = 1;
 
-    [Interceptable]
+
     public static void M(S1 s1, S1 s2, [InterpolatedStringHandlerArgument("s1")] CustomHandler c)
     {
         Console.Write(0);
@@ -3292,7 +3289,7 @@ partial struct CustomHandler
 
             class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod() { Console.Write("interceptable"); }
 
                 public static void Main()
@@ -3322,7 +3319,7 @@ partial struct CustomHandler
 
             class C
             {
-                [Interceptable]
+
                 public static void InterceptableMethod() { Console.Write("interceptable"); }
 
                 public static void Main()
@@ -3357,7 +3354,7 @@ partial struct CustomHandler
 
             class C
             {
-                [Interceptable]
+
                 public static void M() => throw null!;
             }
 
@@ -3385,7 +3382,7 @@ partial struct CustomHandler
 
             class C
             {
-                [Interceptable]
+
                 public static void M(int lineNumber = 1) => throw null!;
             }
 
@@ -3446,7 +3443,7 @@ partial struct CustomHandler
 
             class C
             {
-                [Interceptable]
+
                 public static void M() => throw null!;
             }
 
@@ -3482,7 +3479,7 @@ partial struct CustomHandler
 
             abstract class C
             {
-                [Interceptable]
+
                 public void M() => throw null!;
 
                 [InterceptsLocation("Program.cs", 5, 3)]
@@ -3511,7 +3508,7 @@ partial struct CustomHandler
 
             interface I
             {
-                [Interceptable]
+
                 public void M();
 
                 [InterceptsLocation("Program.cs", 5, 3)]
