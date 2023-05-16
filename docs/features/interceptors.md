@@ -19,7 +19,6 @@ c.InterceptableMethod(1); // prints "interceptable 1"
 
 class C
 {
-    [Interceptable]
     public void InterceptableMethod(int param)
     {
         Console.WriteLine($"interceptable {param}");
@@ -47,49 +46,6 @@ static class D
 ## Detailed design
 [design]: #detailed-design
 
-### InterceptableAttribute
-
-A method can indicate that its calls can be *intercepted* by including `[Interceptable]` on its declaration.
-
-PROTOTYPE(ic): For now, if a call is intercepted to a method which lacks this attribute, a warning is reported, and interception still occurs. This may be changed to an error in the future.
-
-```cs
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class InterceptableAttribute : Attribute { }
-}
-```
-
-#### PROTOTYPE(ic): Use an assembly attribute instead?
-The main reason we want something like `[Interceptable]` is so that users can better reason about *which calls might be getting intercepted or not*. We don't think there's a meaningful *security* concern which is addressed by `[Interceptable]`--if something untrusted has the ability to add source files to your build, taking away the ability for them to intercept certain calls doesn't really make a difference.
-
-It's been suggested that `[Interceptable]` on method declarations is the wrong point of control. Some SG authors will have good reason to want to intercept a call to a method from a library they don't own--for example, EF wanting to intercept calls to IQueryable extensions. It shouldn't be necessary for those authors to have to request the library authors to add an attribute before they can start doing it.
-
-One option to address this is to remove `[Interceptable]` from the design and not provide any mechanism for limiting which calls can be intercepted or not.
-
-Another option would be to expose an assembly attribute instead.
-
-```cs
-namespace System.Runtime.CompilerServices
-{
-    /// <summary>If present, indicates the set of types whose methods can have their calls intercepted in the current compilation.</summary>
-    /// <remarks>When this attribute is not present, methods on any type can have their calls intercepted.</remarks>
-    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false)]
-    public sealed class AllowInterception(params Type[] types) : Attribute { }
-}
-
-[assembly: AllowInterception(typeof(EndpointRouteBuilderExtensions))]
-```
-
-In order to intercept a classic extension method call, the extension type must be provided to this attribute, not the `this` parameter type.
-
-We specify `AllowMultiple = false` here to imply that the attribute is supposed to be hand-authored by the user. It's not meant for generators to use this to *opt themselves in* to being able to intercept things--it's for the user to state once and comprehensively which things can be intercepted.
-
-In such a scheme, it's not clear how often users would actually want to go to the trouble of writing the attribute--particularly since the process of writing and maintaining it would simply be to run source generators, review the "not interceptable" errors, and add the related types to this attribute. Is that useful to users in practice?
-
-Another alternative here might be to use `AllowMultiple = true`, require in practice that generators produce these attributes (i.e. disallow intercepting in the current compilation if this attribute isn't used in it), and let users search for usages of the attribute to get a sense of which calls may be getting intercepted in their project.
-
 ### InterceptsLocationAttribute
 
 A method indicates that it is an *interceptor* by adding one or more `[InterceptsLocation]` attributes. These attributes refer to the source locations of the calls it intercepts.
@@ -104,10 +60,12 @@ namespace System.Runtime.CompilerServices
 }
 ```
 
+Any "ordinary method" (i.e. with `MethodKind.Ordinary`) can have its calls intercepted.
+
 `[InterceptsLocation]` attributes included in source are emitted to the resulting assembly, just like other custom attributes.
 
 PROTOTYPE(ic): We may want to recognize `file class InterceptsLocationAttribute` as a valid declaration of the attribute, to allow generators to bring the attribute in without conflicting with other generators which may also be bringing the attribute in. See open question in [User opt-in](#user-opt-in).
-https://github.com/dotnet/roslyn/issues/67079 is a bug which causes file-local source declarations of well-known attributes to be generally treated as known. When that bug is fixed, we may want to single out one or both of `InterceptableAttribute` and `InterceptsLocationAttribute` as "recognized, even though they are file-local".
+https://github.com/dotnet/roslyn/issues/67079 is a bug which causes file-local source declarations of well-known attributes to be generally treated as known. When that bug is fixed, we may want to single out `InterceptsLocationAttribute` as "recognized, even though they are file-local".
 
 #### File paths
 
@@ -146,7 +104,6 @@ using System.Runtime.CompilerServices;
 
 class C
 {
-    [Interceptable]
     public static void InterceptableMethod<T1>(T1 t) => throw null!;
 }
 
@@ -160,7 +117,7 @@ static class Program
 
 static class D
 {
-    [InterceptsLocation("Program.cs", 13, 11)]
+    [InterceptsLocation("Program.cs", 12, 11)]
     public static void Interceptor1(object s) => throw null!;
 }
 ```

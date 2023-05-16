@@ -154,13 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(interceptableLocation != null);
             Debug.Assert(interceptor.Arity == 0);
 
-            if (!method.IsInterceptable)
-            {
-                // PROTOTYPE(ic): Eventually we may want this to be an error.
-                // For now it's convenient to just warn so we can experiment with intercepting APIs that haven't yet been marked.
-                this._diagnostics.Add(ErrorCode.WRN_CallNotInterceptable, attributeLocation, method);
-            }
-
             var containingMethod = this._factory.CurrentFunction;
             Debug.Assert(containingMethod is not null);
 
