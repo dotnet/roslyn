@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportUseSiteDiagnosticForDynamic(diagnostics, node);
                         }
 
-                        if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingTypeAlias) ? type.ContainsPointer() : type.IsUnsafe())
+                        if (type.ContainsPointer())
                         {
                             ReportUnsafeIfNotAllowed(node, diagnostics);
                         }

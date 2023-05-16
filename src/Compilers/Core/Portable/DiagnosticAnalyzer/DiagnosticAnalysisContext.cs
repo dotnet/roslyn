@@ -236,6 +236,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
 
+        /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="text"><see cref="AdditionalText"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(AdditionalText text, AdditionalTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
+        {
+            return TryGetValue(text, valueProvider.CoreValueProvider, out value);
+        }
+
         private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             where TKey : class
         {
@@ -486,6 +501,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="text"><see cref="AdditionalText"/> instance for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(AdditionalText text, AdditionalTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
+        {
+            return TryGetValue(text, valueProvider.CoreValueProvider, out value);
+        }
+
+        /// <summary>
         /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="tree"/>.
         /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="tree"/>} acts as the key.
         /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
@@ -588,6 +618,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
         public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
+        {
+            return TryGetValue(text, valueProvider.CoreValueProvider, out value);
+        }
+
+        /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="text"><see cref="AdditionalText"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(AdditionalText text, AdditionalTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }

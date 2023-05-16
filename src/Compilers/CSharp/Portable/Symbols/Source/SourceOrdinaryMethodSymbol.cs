@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -20,24 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceOrdinaryMethodSymbol : SourceOrdinaryMethodSymbolBase
     {
         private readonly TypeSymbol _explicitInterfaceType;
-        private readonly bool _isExpressionBodied;
-        private readonly bool _hasAnyBody;
-        private readonly RefKind _refKind;
-        private bool _lazyIsVararg;
 
-        /// <summary>
-        /// A collection of type parameter constraint types, populated when
-        /// constraint types for the first type parameter is requested.
-        /// Initialized in two steps. Hold a copy if accessing during initialization.
-        /// </summary>
-        private ImmutableArray<ImmutableArray<TypeWithAnnotations>> _lazyTypeParameterConstraintTypes;
-
-        /// <summary>
-        /// A collection of type parameter constraint kinds, populated when
-        /// constraint kinds for the first type parameter is requested.
-        /// Initialized in two steps. Hold a copy if accessing during initialization.
-        /// </summary>
-        private ImmutableArray<TypeParameterConstraintKind> _lazyTypeParameterConstraintKinds;
+        private readonly TypeParameterInfo _typeParameterInfo;
 
         /// <summary>
         /// If this symbol represents a partial method definition or implementation part, its other part (if any).
@@ -81,50 +64,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                  location,
                  syntax,
                  methodKind,
+                 refKind: syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                  isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                  isExtensionMethod: syntax.ParameterList.Parameters.FirstOrDefault() is ParameterSyntax firstParam &&
                                     !firstParam.IsArgList &&
                                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
                  isReadOnly: false,
-                 hasBody: syntax.Body != null || syntax.ExpressionBody != null,
+                 hasAnyBody: syntax.Body != null || syntax.ExpressionBody != null,
+                 isExpressionBodied: syntax is { Body: null, ExpressionBody: not null },
                  isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                 isVarArg: syntax.ParameterList.Parameters.Any(p => p.IsArgList),
                  diagnostics)
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
+            // Compute the type parameters.  If empty (the common case), directly point at the singleton to reduce the
+            // amount of pointers-to-arrays this type needs to store.
+            var typeParameters = MakeTypeParameters(syntax, diagnostics);
+            _typeParameterInfo = typeParameters.IsEmpty
+                ? TypeParameterInfo.Empty
+                : new TypeParameterInfo { LazyTypeParameters = typeParameters };
+
             _explicitInterfaceType = explicitInterfaceType;
 
-            bool hasBlockBody = syntax.Body != null;
-            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            bool hasBody = hasBlockBody || _isExpressionBodied;
-            _hasAnyBody = hasBody;
             Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
-            _refKind = syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics);
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
-        protected override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
-            var syntax = (MethodDeclarationSyntax)node;
-            if (syntax.Arity == 0)
+            get
             {
-                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics.DiagnosticBag);
-                return ImmutableArray<TypeParameterSymbol>.Empty;
-            }
-            else
-            {
-                return MakeTypeParameters(syntax, diagnostics);
+                Debug.Assert(!_typeParameterInfo.LazyTypeParameters.IsDefault);
+                return _typeParameterInfo.LazyTypeParameters;
             }
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
             var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
-
-            SyntaxToken arglistToken;
 
             // Constraint checking for parameter and return types must be delayed until
             // the method has been added to the containing type member list since
@@ -134,13 +115,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             ImmutableArray<ParameterSymbol> parameters = ParameterHelpers.MakeParameters(
-                signatureBinder, this, syntax.ParameterList, out arglistToken,
+                signatureBinder, this, syntax.ParameterList, out _,
                 allowRefOrOut: true,
                 allowThis: true,
                 addRefReadOnlyModifier: IsVirtual || IsAbstract,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
-            _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             var returnTypeSyntax = syntax.ReturnType;
             Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
 
@@ -194,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 forceMethodTypeParameters(returnType, this, declaredConstraints);
             }
 
-            return (returnType, parameters, _lazyIsVararg, declaredConstraints);
+            return (returnType, parameters, declaredConstraints);
 
             static void forceMethodTypeParameters(TypeWithAnnotations type, SourceOrdinaryMethodSymbol method, ImmutableArray<TypeParameterConstraintClause> declaredConstraints)
             {
@@ -285,8 +265,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override TypeSymbol ExplicitInterfaceType => _explicitInterfaceType;
 
-        protected override bool HasAnyBody => _hasAnyBody;
-
         internal MethodDeclarationSyntax GetSyntax()
         {
             Debug.Assert(syntaxReferenceOpt != null);
@@ -308,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
         {
-            if (_lazyTypeParameterConstraintTypes.IsDefault)
+            if (_typeParameterInfo.LazyTypeParameterConstraintTypes.IsDefault)
             {
                 GetTypeParameterConstraintKinds();
 
@@ -324,19 +302,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
                     diagnostics);
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintTypes, constraints))
+                if (ImmutableInterlocked.InterlockedInitialize(
+                        ref _typeParameterInfo.LazyTypeParameterConstraintTypes,
+                        constraints))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
                 diagnostics.Free();
             }
 
-            return _lazyTypeParameterConstraintTypes;
+            return _typeParameterInfo.LazyTypeParameterConstraintTypes;
         }
 
         public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
         {
-            if (_lazyTypeParameterConstraintKinds.IsDefault)
+            if (_typeParameterInfo.LazyTypeParameterConstraintKinds.IsDefault)
             {
                 var syntax = GetSyntax();
                 var withTypeParametersBinder =
@@ -349,30 +329,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses);
 
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintKinds, constraints);
+                ImmutableInterlocked.InterlockedInitialize(
+                    ref _typeParameterInfo.LazyTypeParameterConstraintKinds,
+                    constraints);
             }
 
-            return _lazyTypeParameterConstraintKinds;
-        }
-
-        public override bool IsVararg
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyIsVararg;
-            }
+            return _typeParameterInfo.LazyTypeParameterConstraintKinds;
         }
 
         protected override int GetParameterCountFromSyntax() => GetSyntax().ParameterList.ParameterCount;
-
-        public override RefKind RefKind
-        {
-            get
-            {
-                return _refKind;
-            }
-        }
 
         internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation)
         {
@@ -400,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && !_hasAnyBody && !HasExternModifier;
+                return this.IsPartial && !HasAnyBody && !HasExternModifier;
             }
         }
 
@@ -411,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && (_hasAnyBody || HasExternModifier);
+                return this.IsPartial && (HasAnyBody || HasExternModifier);
             }
         }
 
@@ -516,11 +481,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsExpressionBodied
-        {
-            get { return _isExpressionBodied; }
-        }
-
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
@@ -530,6 +490,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
+            if (syntax.Arity == 0)
+            {
+                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics.DiagnosticBag);
+                return ImmutableArray<TypeParameterSymbol>.Empty;
+            }
+
             Debug.Assert(syntax.TypeParameterList != null);
 
             MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, syntax.TypeParameterList.LessThanToken);

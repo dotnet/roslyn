@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected BoundExpression BindExpression(ExpressionSyntax node, BindingDiagnosticBag diagnostics, bool invoked, bool indexed)
         {
             BoundExpression expr = BindExpressionInternal(node, diagnostics, invoked, indexed);
-            VerifyUnchecked(node, diagnostics, expr);
+            CheckContextForPointerTypes(node, diagnostics, expr);
 
             if (expr.Kind == BoundKind.ArgListOperator)
             {
@@ -535,16 +535,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected BoundExpression BindExpressionAllowArgList(ExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             BoundExpression expr = BindExpressionInternal(node, diagnostics, invoked: false, indexed: false);
-            VerifyUnchecked(node, diagnostics, expr);
+            CheckContextForPointerTypes(node, diagnostics, expr);
             return expr;
         }
 
-        private void VerifyUnchecked(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BoundExpression expr)
+        private void CheckContextForPointerTypes(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BoundExpression expr)
         {
             if (!expr.HasAnyErrors && !IsInsideNameof)
             {
                 TypeSymbol exprType = expr.Type;
-                if ((object)exprType != null && exprType.IsUnsafe())
+                if ((object)exprType != null && exprType.ContainsPointer())
                 {
                     ReportUnsafeIfNotAllowed(node, diagnostics);
                     //CONSIDER: Return a bad expression so that HasErrors is true?
@@ -3280,7 +3280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             void reportUnsafeIfNeeded(MemberResolutionResult<TMember> methodResult, BindingDiagnosticBag diagnostics, BoundExpression argument, TypeWithAnnotations parameterTypeWithAnnotations)
             {
                 // NOTE: for some reason, dev10 doesn't report this for indexer accesses.
-                if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && parameterTypeWithAnnotations.Type.IsUnsafe())
+                if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && parameterTypeWithAnnotations.Type.ContainsPointer())
                 {
                     // CONSIDER: dev10 uses the call syntax, but this seems clearer.
                     ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics);
@@ -4318,7 +4318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         hasErrors = true; // prevent recursive constructor from being emitted
                     }
-                    else if (resultMember.HasUnsafeParameter())
+                    else if (resultMember.HasParameterContainingPointerType())
                     {
                         // What if some of the arguments are implicit?  Dev10 reports unsafe errors
                         // if the implied argument would have an unsafe type.  We need to check
@@ -5772,7 +5772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // if the implied argument would have an unsafe type.  We need to check
                 // the parameters explicitly, since there won't be bound nodes for the implied
                 // arguments until lowering.
-                if (method.HasUnsafeParameter())
+                if (method.HasParameterContainingPointerType())
                 {
                     // Don't worry about double reporting (i.e. for both the argument and the parameter)
                     // because only one unsafe diagnostic is allowed per scope - the others are suppressed.

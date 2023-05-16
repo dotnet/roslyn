@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             => new LinePosition(position.Line, position.Character);
 
         public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
-            => new LinePositionSpan(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
+            => new(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
 
         public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
         {
@@ -207,10 +207,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 {
                     return text.Lines.GetTextSpan(linePositionSpan);
                 }
-                catch (ArgumentException)
+                catch (ArgumentException ex)
                 {
                     // Create a custom error for this so we can examine the data we're getting.
-                    throw new ArgumentException($"Range={RangeToString(range)}. text.Length={text.Length}. text.Lines.Count={text.Lines.Count}");
+                    throw new ArgumentException($"Range={RangeToString(range)}. text.Length={text.Length}. text.Lines.Count={text.Lines.Count}", ex);
                 }
             }
             // Temporary exception reporting to investigate https://github.com/dotnet/roslyn/issues/66258.
