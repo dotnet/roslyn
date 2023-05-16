@@ -129,7 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public bool IsExtensionMethod
             {
                 get { return (_flags & IsExtensionMethodBit) != 0; }
-                set { ThreadSafeFlagOperations.Set(ref _flags, value ? IsExtensionMethodBit : 0); }
             }
 
             public bool IsNullableAnalysisEnabled
