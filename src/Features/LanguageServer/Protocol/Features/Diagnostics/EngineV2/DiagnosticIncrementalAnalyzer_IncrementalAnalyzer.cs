@@ -432,6 +432,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
+            if (project.CompilationOptions is null)
+            {
+                // Skip compilation options based checks for non-C#/VB projects.
+                return true;
+            }
+
             // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
             var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer);
             var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
