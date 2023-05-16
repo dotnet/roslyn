@@ -19,7 +19,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal class SourceOrdinaryMethodSymbol : SourceOrdinaryMethodSymbolBase
     {
         /// <summary>
-        /// Specialized subclass of SourceOrdinaryMethodSymbol for less common cases.
+        /// Specialized subclass of SourceOrdinaryMethodSymbol for less common cases.  Specifically, we only use this
+        /// for methods that are:
+        /// <list type="number">
+        /// <item>Generic.</item>
+        /// <item>An explicit interface implementation.</item>
+        /// <item>Partial.</item>
+        /// </list>
         /// </summary>
         private sealed class SourceOrdinaryMethodSymbolUncommon : SourceOrdinaryMethodSymbol
         {
