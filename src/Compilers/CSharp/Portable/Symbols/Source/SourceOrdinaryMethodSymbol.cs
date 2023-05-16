@@ -274,26 +274,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                  location,
                  syntax,
                  methodKind,
+                 refKind: syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                  isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                  isExtensionMethod: syntax.ParameterList.Parameters.FirstOrDefault() is ParameterSyntax firstParam &&
                                     !firstParam.IsArgList &&
                                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
                  isReadOnly: false,
-                 hasBody: syntax.Body != null || syntax.ExpressionBody != null,
+                 hasAnyBody: syntax.Body != null || syntax.ExpressionBody != null,
                  isExpressionBodied: syntax is { Body: null, ExpressionBody: not null },
                  isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                 isVarArg: syntax.ParameterList.Parameters.Any(p => p.IsArgList),
                  diagnostics)
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
             Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
 
-            bool hasBlockBody = syntax.Body != null;
-            bool isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            bool hasAnyBody = hasBlockBody || isExpressionBodied;
-            var refKind = syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics);
-
-            flags.SetOrdinaryMethodFlags(refKind, hasAnyBody);
+            Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
@@ -301,12 +298,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
 
-        protected sealed override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
             var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
-
-            SyntaxToken arglistToken;
 
             // Constraint checking for parameter and return types must be delayed until
             // the method has been added to the containing type member list since
@@ -316,13 +311,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             ImmutableArray<ParameterSymbol> parameters = ParameterHelpers.MakeParameters(
-                signatureBinder, this, syntax.ParameterList, out arglistToken,
+                signatureBinder, this, syntax.ParameterList, out _,
                 allowRefOrOut: true,
                 allowThis: true,
                 addRefReadOnlyModifier: IsVirtual || IsAbstract,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
-            flags.IsVarArg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             var returnTypeSyntax = syntax.ReturnType;
             Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
 
@@ -376,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 forceMethodTypeParameters(returnType, this, declaredConstraints);
             }
 
-            return (returnType, parameters, flags.IsVarArg, declaredConstraints);
+            return (returnType, parameters, declaredConstraints);
 
             static void forceMethodTypeParameters(TypeWithAnnotations type, SourceOrdinaryMethodSymbol method, ImmutableArray<TypeParameterConstraintClause> declaredConstraints)
             {
@@ -463,8 +457,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override TypeSymbol ExplicitInterfaceType => null;
 
-        protected sealed override bool HasAnyBody => flags.HasAnyBody;
-
         internal MethodDeclarationSyntax GetSyntax()
         {
             Debug.Assert(syntaxReferenceOpt != null);
@@ -490,24 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
             => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
-        public sealed override bool IsVararg
-        {
-            get
-            {
-                LazyMethodChecks();
-                return flags.IsVarArg;
-            }
-        }
-
-        protected sealed override int GetParameterCountFromSyntax() => GetSyntax().ParameterList.ParameterCount;
-
-        public sealed override RefKind RefKind
-        {
-            get
-            {
-                return flags.RefKind;
-            }
-        }
+        protected override int GetParameterCountFromSyntax() => GetSyntax().ParameterList.ParameterCount;
 
         internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation)
         {
@@ -532,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && !flags.HasAnyBody && !HasExternModifier;
+                return this.IsPartial && !HasAnyBody && !HasExternModifier;
             }
         }
 
@@ -543,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && (flags.HasAnyBody || HasExternModifier);
+                return this.IsPartial && (HasAnyBody || HasExternModifier);
             }
         }
 

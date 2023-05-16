@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             CSharpSyntaxNode syntax,
             DeclarationModifiers declarationModifiers,
-            bool hasBody,
+            bool hasAnyBody,
             bool isExpressionBodied,
             bool isIterator,
             bool isNullableAnalysisEnabled,
@@ -45,7 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // assume that the return type is non-void; when we do the lazy initialization
             // of the parameters and return type we will update the flag if necessary.
 
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
+            this.MakeFlags(
+                methodKind, RefKind.None, declarationModifiers, returnsVoid: false, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
+                isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (this.ContainingType.IsInterface &&
                 !(IsAbstract || IsVirtual) && !IsExplicitInterfaceImplementation &&
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this.Kind.Localize(), this);
             }
-            else if (hasBody && (IsExtern || IsAbstract))
+            else if (hasAnyBody && (IsExtern || IsAbstract))
             {
                 Debug.Assert(!(IsAbstract && IsExtern));
                 if (IsExtern)
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_AbstractHasBody, location, this);
                 }
             }
-            else if (!hasBody && !IsExtern && !IsAbstract && !IsPartial)
+            else if (!hasAnyBody && !IsExtern && !IsAbstract && !IsPartial)
             {
                 // Do not report that the body is missing if the operator is marked as
                 // partial or abstract; we will already have given an error for that so
@@ -761,14 +763,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool IsVararg
-        {
-            get
-            {
-                return false;
-            }
-        }
-
         public sealed override bool IsExtensionMethod
         {
             get
@@ -787,11 +781,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
             => ImmutableArray<TypeParameterConstraintKind>.Empty;
-
-        public sealed override RefKind RefKind
-        {
-            get { return RefKind.None; }
-        }
 
         protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {

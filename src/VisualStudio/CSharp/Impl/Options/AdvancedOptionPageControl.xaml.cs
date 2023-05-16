@@ -194,7 +194,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptionsStorage.OpenOnFocus);
 
             // Document Outline
-            BindToOption(EnableDocumentOutline, DocumentOutlineOptionsStorage.EnableDocumentOutline);
+            BindToOption(EnableDocumentOutline, DocumentOutlineOptionsStorage.EnableDocumentOutline, () =>
+            {
+                // If the option has not been set by the user, check if the option is disabled from experimentation. If
+                // so, default to reflect that.
+                return !optionStore.GetOption(DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag);
+            });
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,

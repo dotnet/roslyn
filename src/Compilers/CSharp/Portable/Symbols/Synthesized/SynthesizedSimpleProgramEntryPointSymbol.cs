@@ -55,11 +55,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isNullableAnalysisEnabled = IsNullableAnalysisEnabled(compilation, CompilationUnit);
             this.MakeFlags(
                 MethodKind.Ordinary,
+                RefKind.None,
                 DeclarationModifiers.Static | DeclarationModifiers.Private | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None),
                 returnsVoid: !hasAwait && !hasReturnWithExpression,
+                // Consider the synthesized entrypoint to always have a body (conceptually the top level statements).
+                hasAnyBody: true,
                 isExpressionBodied: false,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                isVarArg: false,
                 isMetadataVirtualIgnoringModifiers: false);
 
             _parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(this,
@@ -112,14 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return default(System.Reflection.MethodImplAttributes); }
         }
 
-        public override bool IsVararg
-        {
-            get
-            {
-                return false;
-            }
-        }
-
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get
@@ -141,14 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _parameters;
-            }
-        }
-
-        public override RefKind RefKind
-        {
-            get
-            {
-                return RefKind.None;
             }
         }
 

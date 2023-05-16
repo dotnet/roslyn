@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 propertyModifiers,
                 location,
                 syntax,
-                hasBody: false,
+                hasBlockBody: false,
                 hasExpressionBody: false,
                 isIterator: false,
                 modifiers: default,
@@ -156,8 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
             bool isExplicitInterfaceImplementation = property.IsExplicitInterfaceImplementation;
-            this.MakeFlags(MethodKind.PropertyGet, declarationModifiers, returnsVoid: false, isExpressionBodied: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                isMetadataVirtualIgnoringModifiers: isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0);
+            this.MakeFlags(MethodKind.PropertyGet, _property.RefKind, declarationModifiers, returnsVoid: false, hasAnyBody: true, isExpressionBodied: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                isVarArg: false, isMetadataVirtualIgnoringModifiers: isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0);
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
             CheckModifiersForBody(location, diagnostics);
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers propertyModifiers,
             Location location,
             CSharpSyntaxNode syntax,
-            bool hasBody,
+            bool hasBlockBody,
             bool hasExpressionBody,
             bool isIterator,
             SyntaxTokenList modifiers,
@@ -191,7 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _property = property;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
-            var isExpressionBodied = !hasBody && hasExpressionBody;
+            var isExpressionBodied = !hasBlockBody && hasExpressionBody;
+            var hasAnyBody = hasBlockBody || hasExpressionBody;
             _usesInit = usesInit;
             if (_usesInit)
             {
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             bool isExplicitInterfaceImplementation = property.IsExplicitInterfaceImplementation;
-            var declarationModifiers = this.MakeModifiers(modifiers, isExplicitInterfaceImplementation, hasBody || hasExpressionBody, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(modifiers, isExplicitInterfaceImplementation, hasAnyBody, location, diagnostics, out modifierErrors);
 
             // Include some modifiers from the containing property, but not the accessibility modifiers.
             declarationModifiers |= GetAccessorModifiers(propertyModifiers) & ~DeclarationModifiers.AccessibilityMask;
@@ -212,12 +213,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                isMetadataVirtualIgnoringModifiers: isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0);
+            this.MakeFlags(methodKind, _property.RefKind, declarationModifiers, returnsVoid: false, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                isVarArg: false, isMetadataVirtualIgnoringModifiers: isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0);
 
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: hasBody || hasExpressionBody || isAutoPropertyAccessor, diagnostics);
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: hasAnyBody || isAutoPropertyAccessor, diagnostics);
 
-            if (hasBody || hasExpressionBody)
+            if (hasAnyBody)
             {
                 CheckModifiersForBody(location, diagnostics);
             }
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!modifierErrors)
             {
-                this.CheckModifiers(location, hasBody || hasExpressionBody, isAutoPropertyAccessor, diagnostics);
+                this.CheckModifiers(location, hasAnyBody, isAutoPropertyAccessor, diagnostics);
             }
 
             if (modifiers.Count > 0)
@@ -303,11 +304,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _property; }
         }
 
-        public sealed override bool IsVararg
-        {
-            get { return false; }
-        }
-
         public sealed override bool ReturnsVoid
         {
             get { return this.ReturnType.IsVoidType(); }
@@ -332,11 +328,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
             => ImmutableArray<TypeParameterConstraintKind>.Empty;
-
-        public sealed override RefKind RefKind
-        {
-            get { return _property.RefKind; }
-        }
 
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
