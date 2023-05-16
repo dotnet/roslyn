@@ -15,32 +15,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal readonly struct BodyInfo
-    {
-        public static readonly BodyInfo NoBody = default;
-        public static readonly BodyInfo NonBlockNonExpressionBodied = new BodyInfo(hasBlockBody: false, hasExpressionBody: false, hasNonBlockNonExpressionBody: true);
-        public static readonly BodyInfo BlockBodied = new BodyInfo(hasBlockBody: false, hasExpressionBody: true, hasNonBlockNonExpressionBody: false);
-        public static readonly BodyInfo ExpressionBodied = new BodyInfo(hasBlockBody: false, hasExpressionBody: true, hasNonBlockNonExpressionBody: false);
-
-        public readonly bool HasBlockBody;
-        public readonly bool HasExpressionBody;
-        private readonly bool _hasNonBlockNonExpressionBody;
-
-        public bool HasAnyBody => HasBlockBody || HasExpressionBody || _hasNonBlockNonExpressionBody;
-
-#nullable enable
-        public static BodyInfo Create(BlockSyntax? block, ArrowExpressionClauseSyntax? arrowExpressionClause)
-            => new BodyInfo(hasBlockBody: block != null, hasExpressionBody: block == null && arrowExpressionClause != null, hasNonBlockNonExpressionBody: false);
-#nullable disable
-
-        private BodyInfo(bool hasBlockBody, bool hasExpressionBody, bool hasNonBlockNonExpressionBody)
-        {
-            HasBlockBody = hasBlockBody;
-            HasExpressionBody = hasExpressionBody;
-            _hasNonBlockNonExpressionBody = hasNonBlockNonExpressionBody;
-        }
-    }
-
     internal abstract class SourceMemberMethodSymbol : LocalFunctionOrSourceMemberMethodSymbol, IAttributeTargetSymbol
     {
         // The flags type is used to compact many different bits of information.
