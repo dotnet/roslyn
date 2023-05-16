@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -25,19 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
         private bool _lazyIsVararg;
 
-        /// <summary>
-        /// A collection of type parameter constraint types, populated when
-        /// constraint types for the first type parameter is requested.
-        /// Initialized in two steps. Hold a copy if accessing during initialization.
-        /// </summary>
-        private ImmutableArray<ImmutableArray<TypeWithAnnotations>> _lazyTypeParameterConstraintTypes;
-
-        /// <summary>
-        /// A collection of type parameter constraint kinds, populated when
-        /// constraint kinds for the first type parameter is requested.
-        /// Initialized in two steps. Hold a copy if accessing during initialization.
-        /// </summary>
-        private ImmutableArray<TypeParameterConstraintKind> _lazyTypeParameterConstraintKinds;
+        private readonly TypeParameterInfo _typeParameterInfo;
 
         /// <summary>
         /// If this symbol represents a partial method definition or implementation part, its other part (if any).
@@ -92,6 +79,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
+            // Compute the type parameters.  If empty (the common case), directly point at the singleton to reduce the
+            // amount of pointers-to-arrays this type needs to store.
+            var typeParameters = MakeTypeParameters(syntax, diagnostics);
+            _typeParameterInfo = typeParameters.IsEmpty
+                ? TypeParameterInfo.Empty
+                : new TypeParameterInfo { LazyTypeParameters = typeParameters };
+
             _explicitInterfaceType = explicitInterfaceType;
 
             bool hasBlockBody = syntax.Body != null;
@@ -105,17 +99,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
-        protected override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
-            var syntax = (MethodDeclarationSyntax)node;
-            if (syntax.Arity == 0)
+            get
             {
-                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics.DiagnosticBag);
-                return ImmutableArray<TypeParameterSymbol>.Empty;
-            }
-            else
-            {
-                return MakeTypeParameters(syntax, diagnostics);
+                Debug.Assert(!_typeParameterInfo.LazyTypeParameters.IsDefault);
+                return _typeParameterInfo.LazyTypeParameters;
             }
         }
 
@@ -308,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
         {
-            if (_lazyTypeParameterConstraintTypes.IsDefault)
+            if (_typeParameterInfo.LazyTypeParameterConstraintTypes.IsDefault)
             {
                 GetTypeParameterConstraintKinds();
 
@@ -324,19 +313,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
                     diagnostics);
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintTypes, constraints))
+                if (ImmutableInterlocked.InterlockedInitialize(
+                        ref _typeParameterInfo.LazyTypeParameterConstraintTypes,
+                        constraints))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
                 diagnostics.Free();
             }
 
-            return _lazyTypeParameterConstraintTypes;
+            return _typeParameterInfo.LazyTypeParameterConstraintTypes;
         }
 
         public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
         {
-            if (_lazyTypeParameterConstraintKinds.IsDefault)
+            if (_typeParameterInfo.LazyTypeParameterConstraintKinds.IsDefault)
             {
                 var syntax = GetSyntax();
                 var withTypeParametersBinder =
@@ -349,10 +340,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses);
 
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintKinds, constraints);
+                ImmutableInterlocked.InterlockedInitialize(
+                    ref _typeParameterInfo.LazyTypeParameterConstraintKinds,
+                    constraints);
             }
 
-            return _lazyTypeParameterConstraintKinds;
+            return _typeParameterInfo.LazyTypeParameterConstraintKinds;
         }
 
         public override bool IsVararg
@@ -530,6 +523,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
+            if (syntax.Arity == 0)
+            {
+                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics.DiagnosticBag);
+                return ImmutableArray<TypeParameterSymbol>.Empty;
+            }
+
             Debug.Assert(syntax.TypeParameterList != null);
 
             MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, syntax.TypeParameterList.LessThanToken);
