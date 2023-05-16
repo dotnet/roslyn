@@ -87,26 +87,31 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
     internal override ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
     {
         return this.ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(
-            w =>
+            async w =>
             {
                 // TODO(cyrusn): This only works for normal documents currently.  We'll have to rethink how things work
                 // in the world if we ever support additionalfiles/editorconfig in our language server.
                 var document = w.CurrentSolution.GetDocument(documentId);
 
-                // We assume that dynamic files don't exist on disk, so if we were to use the FileTextLoader we'd effectively
-                // be emptying out the document. This assumption is only valid for dynamic files because we further assume they're
-                // not user editable, and hence can't have "unsaved" changes that are expected to go away on close.
-                if (document is
-                    {
-                        DocumentState.Attributes.DesignTimeOnly: false,
-                        FilePath: { } filePath
-                    })
+                if (document is { FilePath: { } filePath })
                 {
-                    var loader = this.ProjectSystemProjectFactory.CreateFileTextLoader(filePath);
+                    TextLoader loader;
+                    if (document is { DocumentState.Attributes.DesignTimeOnly: true })
+                    {
+                        // We assume that dynamic files don't exist on disk, so if we were to use the FileTextLoader we'd effectively
+                        // be emptying out the document. This assumption is only valid for dynamic files because we further assume they're
+                        // not user editable, and hence can't have "unsaved" changes that are expected to go away on close. Instead we just
+                        // maintain their current state as per the LSP view of the world.
+                        var documentText = await document.GetTextAsync(cancellationToken);
+                        loader = new SourceTextLoader(documentText, filePath);
+                    }
+                    else
+                    {
+                        loader = this.ProjectSystemProjectFactory.CreateFileTextLoader(filePath);
+                    }
+
                     this.OnDocumentClosedEx(documentId, loader, requireDocumentPresentAndOpen: false);
                 }
-
-                return ValueTask.CompletedTask;
             },
             cancellationToken);
     }
