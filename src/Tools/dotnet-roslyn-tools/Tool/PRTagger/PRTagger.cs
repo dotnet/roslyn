@@ -49,12 +49,12 @@ internal class PRTagger
         foreach (var product in VSBranchInfo.AllProducts)
         {
             // We currently only support creating issues for GitHub repos
-            if (!product.RepoBaseUrl.Contains("github.com"))
+            if (!product.RepoHttpBaseUrl.Contains("github.com"))
             {
                 continue;
             }
 
-            var gitHubRepoName = product.RepoBaseUrl.Split('/').Last();
+            var gitHubRepoName = product.RepoHttpBaseUrl.Split('/').Last();
             logger.LogInformation($"GitHub repo: {gitHubRepoName}");
 
             // Get associated product build for current and previous VS commit SHAs
@@ -100,7 +100,7 @@ internal class PRTagger
                 if (!Repository.IsValid(gitHubRepoPath))
                 {
                     logger.LogInformation("Cloning GitHub repo...");
-                    gitHubRepoPath = Repository.Clone(product.RepoBaseUrl, workdirPath: gitHubRepoPath);
+                    gitHubRepoPath = Repository.Clone(product.RepoHttpBaseUrl, workdirPath: gitHubRepoPath);
                 }
                 else
                 {

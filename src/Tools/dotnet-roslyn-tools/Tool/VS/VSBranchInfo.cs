@@ -91,7 +91,7 @@ internal static class VSBranchInfo
         {
             WriteNameAndValue("Build Number", build.BuildNumber);
             WriteNameAndValue("Commit SHA", build.SourceVersion);
-            WriteNameAndValue("Link", $"{product.RepoBaseUrl}/commit/{build.SourceVersion}", "    ");
+            WriteNameAndValue("Link", $"{product.RepoHttpBaseUrl}/commit/{build.SourceVersion}", "    ");
             WriteNameAndValue("Source Branch", build.SourceBranch.Replace("refs/heads/", ""));
             WriteNameAndValue("Build", ((ReferenceLink)build.Links.Links["web"]).Href);
 

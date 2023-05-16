@@ -8,7 +8,8 @@ internal interface IProduct
 {
     string Name { get; }
 
-    string RepoBaseUrl { get; }
+    string RepoHttpBaseUrl { get; }
+    string RepoSshBaseUrl { get; }
 
     // If commits need to be made against the repo, which user gets the credit
     string GitUserName { get; }
