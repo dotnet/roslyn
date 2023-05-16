@@ -88,6 +88,14 @@ public class Enclosing
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             var output = @"
+111
+42
+43
+44
+45
+46
+47
+48
 ";
             CompileAndVerify(comp, expectedOutput: output, verify: Verification.Fails).VerifyDiagnostics();
         }
