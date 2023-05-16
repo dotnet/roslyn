@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -51,20 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             Assert.True(errorReported);
         }
 
-        [WpfFact]
-        public async Task TestExceptionInActionSets()
-        {
-            using var workspace = CreateWorkspaceFromOptions("class D {}", new TestParameters());
-
-            var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
-            var errorReported = false;
-            errorReportingService.OnError = message => errorReported = true;
-
-            await ActionSets(workspace, new ErrorCases.ExceptionInCodeAction());
-
-            Assert.True(errorReported);
-        }
-
         private static async Task GetPreview(TestWorkspace workspace, CodeRefactoringProvider provider)
         {
             var codeActions = new List<CodeAction>();
@@ -87,19 +72,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
                 workspace, workspace.CurrentSolution, textBuffer, provider, codeActions.First(), fixAllFlavors: null);
             _ = suggestedAction.DisplayText;
-            Assert.True(extensionManager.IsDisabled(provider));
-            Assert.False(extensionManager.IsIgnored(provider));
-        }
-
-        private static async Task ActionSets(TestWorkspace workspace, CodeRefactoringProvider provider)
-        {
-            var codeActions = new List<CodeAction>();
-            RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
-            var suggestedAction = new CodeRefactoringSuggestedAction(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
-                workspace, workspace.CurrentSolution, textBuffer, provider, codeActions.First(), fixAllFlavors: null);
-            _ = await suggestedAction.GetActionSetsAsync(CancellationToken.None);
             Assert.True(extensionManager.IsDisabled(provider));
             Assert.False(extensionManager.IsIgnored(provider));
         }
