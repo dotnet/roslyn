@@ -606,7 +606,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class SourceOrdinaryMethodSymbolSimple : SourceOrdinaryMethodSymbol
         {
             // Avoid adding fields here if possible.  This 'simple' type handles the majority of source methods in any
-            // compilation. So any fields here can add significantly to heap usage.  Consider placing in
+            // compilation.  So any fields here can add significantly to heap usage.  In measurements, there is roughly
+            // 25:1 more 'simple' methods than 'complex' methods. So consider placing new data in
             // SourceOrdinaryMethodSymbolComplex instead if it is state for rare-methods.
 
             public SourceOrdinaryMethodSymbolSimple(
