@@ -203,12 +203,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// except typed such that it can be used to create a pooled <see cref="ConditionalWeakTable{TKey,
         /// TValue}.CreateValueCallback"/>.
         /// </summary>
-        public static Releaser GetPooledCreateValueCallback<TArg, TKey, TValue>(
-            Func<TArg, TKey, TValue> unboundFunction, TArg argument,
+        public static Releaser GetPooledCreateValueCallback<TKey, TArg, TValue>(
+            Func<TKey, TArg, TValue> unboundFunction, TArg argument,
             out ConditionalWeakTable<TKey, TValue>.CreateValueCallback boundFunction) where TKey : class where TValue : class
 
         {
-            return GetPooledDelegate<CreateValueCallbackWithBoundArgument<TArg, TKey, TValue>, TArg, Func<TArg, TKey, TValue>, ConditionalWeakTable<TKey, TValue>.CreateValueCallback>(unboundFunction, argument, out boundFunction);
+            return GetPooledDelegate<CreateValueCallbackWithBoundArgument<TKey, TArg, TValue>, TArg, Func<TKey, TArg, TValue>, ConditionalWeakTable<TKey, TValue>.CreateValueCallback>(unboundFunction, argument, out boundFunction);
         }
         /// <summary>
         /// Gets a <see cref="Func{T, TResult}"/> delegate, which calls <paramref name="unboundFunction"/> with the
@@ -413,17 +413,17 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 => () => UnboundDelegate(Argument);
         }
 
-        private sealed class CreateValueCallbackWithBoundArgument<TArg, TKey, TValue>
+        private sealed class CreateValueCallbackWithBoundArgument<TKey, TArg, TValue>
             : AbstractDelegateWithBoundArgument<
-                CreateValueCallbackWithBoundArgument<TArg, TKey, TValue>,
+                CreateValueCallbackWithBoundArgument<TKey, TArg, TValue>,
                 TArg,
-                Func<TArg, TKey, TValue>,
+                Func<TKey, TArg, TValue>,
                 ConditionalWeakTable<TKey, TValue>.CreateValueCallback>
             where TKey : class
             where TValue : class
         {
             protected override ConditionalWeakTable<TKey, TValue>.CreateValueCallback Bind()
-                => key => UnboundDelegate(Argument, key);
+                => key => UnboundDelegate(key, Argument);
         }
 
         private sealed class FuncWithBoundArgument<T1, TArg, TResult>

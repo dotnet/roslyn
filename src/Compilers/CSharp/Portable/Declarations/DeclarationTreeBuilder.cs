@@ -1022,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Avoid unnecessary allocation (as CWT on NET6 and prior has no non-allocating way to try to
                         // get an existing value, and only add if that particular KVP is not already present).
                         using PooledDelegates.Releaser _ = PooledDelegates.GetPooledCreateValueCallback(
-                            static (BoxedMemberNames memberNames, GreenNode _) => memberNames, memberNames, out var pooledCallback);
+                            static (GreenNode _, BoxedMemberNames memberNames) => memberNames, memberNames, out var pooledCallback);
                         memberNames = s_nodeToMemberNames.GetValue(greenNode, pooledCallback);
                     }
                 }
