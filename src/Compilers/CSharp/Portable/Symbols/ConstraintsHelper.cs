@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             ConversionsBase conversions)
         {
-            var diagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             // Nullability checks can only add warnings here so skip them for this check as we are only
             // concerned with errors.
@@ -547,6 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public void Free()
             {
+                this.Args = default;
                 s_checkConstraintsArgsBoxedPool.Free(this);
             }
         }

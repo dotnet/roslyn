@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         protected ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeWithAnnotations _lazyReturnType;
-        private bool _lazyIsVararg;
 
         protected SourceConstructorSymbolBase(
             SourceMemberContainerTypeSymbol containingType,
@@ -48,15 +47,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // instance). Constraints are checked in AfterAddingTypeMembersChecks.
             var signatureBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
-            SyntaxToken arglistToken;
             _lazyParameters = ParameterHelpers.MakeParameters(
-                signatureBinder, this, parameterList, out arglistToken,
+                signatureBinder, this, parameterList, out _,
                 allowRefOrOut: AllowRefOrOut,
                 allowThis: false,
                 addRefReadOnlyModifier: false,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
-            _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             _lazyReturnType = TypeWithAnnotations.Create(bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
 
             var location = this.GetFirstLocation();
@@ -72,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
             this.CheckFileTypeUsage(_lazyReturnType, _lazyParameters, diagnostics);
 
-            if (_lazyIsVararg && (IsGenericMethod || ContainingType.IsGenericType || _lazyParameters.Length > 0 && _lazyParameters[_lazyParameters.Length - 1].IsParams))
+            if (this.IsVararg && (IsGenericMethod || ContainingType.IsGenericType || _lazyParameters.Length > 0 && _lazyParameters[_lazyParameters.Length - 1].IsParams))
             {
                 diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
             }
@@ -97,15 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var parameter in this.Parameters)
             {
                 parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics);
-            }
-        }
-
-        public sealed override bool IsVararg
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyIsVararg;
             }
         }
 
@@ -149,11 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
             => ImmutableArray<TypeParameterConstraintKind>.Empty;
-
-        public override RefKind RefKind
-        {
-            get { return RefKind.None; }
-        }
 
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {

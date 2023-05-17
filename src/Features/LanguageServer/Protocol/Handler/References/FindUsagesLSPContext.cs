@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     documentSpan.Value, options.ClassificationOptions, cancellationToken).ConfigureAwait(false);
 
                 var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
-                var docText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var docText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var classifiedTextRuns = GetClassifiedTextRuns(_id, definitionId, documentSpan.Value, isWrittenTo, classifiedSpans, docText);
 
                 return new ClassifiedTextElement(classifiedTextRuns.ToArray());

@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceDestructorSymbol : SourceMemberMethodSymbol
     {
         private TypeWithAnnotations _lazyReturnType;
-        private readonly bool _isExpressionBodied;
 
         internal SourceDestructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
@@ -28,17 +27,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             var declarationModifiers = MakeModifiers(syntax.Modifiers, location, diagnostics, out modifierErrors);
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
+
+            bool hasBlockBody = syntax.Body != null;
+            bool isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            bool hasAnyBody = hasBlockBody || isExpressionBodied;
+
+            this.MakeFlags(
+                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied, isExtensionMethod: false,
+                isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (syntax.Identifier.ValueText != containingType.Name)
             {
                 diagnostics.Add(ErrorCode.ERR_BadDestructorName, syntax.Identifier.GetLocation());
             }
 
-            bool hasBlockBody = syntax.Body != null;
-            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-
-            if (hasBlockBody || _isExpressionBodied)
+            if (hasBlockBody || isExpressionBodied)
             {
                 if (IsExtern)
                 {
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!modifierErrors && !hasBlockBody && !_isExpressionBodied && !IsExtern)
+            if (!modifierErrors && !hasBlockBody && !isExpressionBodied && !IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -84,11 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
-        public override bool IsVararg
-        {
-            get { return false; }
-        }
-
         internal override int ParameterCount
         {
             get { return 0; }
@@ -109,11 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
             => ImmutableArray<TypeParameterConstraintKind>.Empty;
-
-        public override RefKind RefKind
-        {
-            get { return RefKind.None; }
-        }
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
@@ -140,14 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override string Name
         {
             get { return WellKnownMemberNames.DestructorName; }
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get
-            {
-                return _isExpressionBodied;
-            }
         }
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()

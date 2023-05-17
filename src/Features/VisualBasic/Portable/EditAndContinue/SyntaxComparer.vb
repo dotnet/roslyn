@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
     Friend NotInheritable Class SyntaxComparer
-
         Inherits AbstractSyntaxComparer
 
         Friend Shared ReadOnly TopLevel As SyntaxComparer = New SyntaxComparer(Nothing, Nothing, Nothing, Nothing, compareStatementSyntax:=False)
@@ -1389,7 +1388,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' Distance is a number within [0, 1], the smaller the more similar the tokens are. 
         ''' </remarks>
         Public Overloads Shared Function ComputeDistance(oldToken As SyntaxToken, newToken As SyntaxToken) As Double
-            Return LongestCommonSubstring.ComputeDistance(oldToken.ValueText, newToken.ValueText)
+            Return LongestCommonSubstring.ComputePrefixDistance(
+                oldToken.Text, Math.Min(oldToken.Text.Length, LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation),
+                newToken.Text, Math.Min(newToken.Text.Length, LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation))
+        End Function
+
+        Private Shared Function CreateArrayForDistanceCalculation(Of T)(enumerable As IEnumerable(Of T)) As ImmutableArray(Of T)
+            Return If(enumerable Is Nothing, ImmutableArray(Of T).Empty, enumerable.Take(LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation).ToImmutableArray())
         End Function
 
         ''' <summary>
@@ -1399,17 +1404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         ''' </remarks>
         Public Overloads Shared Function ComputeDistance(oldTokens As IEnumerable(Of SyntaxToken), newTokens As IEnumerable(Of SyntaxToken)) As Double
-            Return ComputeDistance(oldTokens.AsImmutableOrNull(), newTokens.AsImmutableOrNull())
-        End Function
-
-        ''' <summary>
-        ''' Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
-        ''' </summary>
-        ''' <remarks>
-        ''' Distance is a number within [0, 1], the smaller the more similar the sequences are. 
-        ''' </remarks>
-        Public Overloads Shared Function ComputeDistance(oldTokens As ImmutableArray(Of SyntaxToken), newTokens As ImmutableArray(Of SyntaxToken)) As Double
-            Return LcsTokens.Instance.ComputeDistance(oldTokens.NullToEmpty(), newTokens.NullToEmpty())
+            Return LcsTokens.Instance.ComputeDistance(CreateArrayForDistanceCalculation(oldTokens), CreateArrayForDistanceCalculation(newTokens))
         End Function
 
         ''' <summary>
@@ -1419,17 +1414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         ''' </remarks>
         Public Overloads Shared Function ComputeDistance(oldTokens As IEnumerable(Of SyntaxNode), newTokens As IEnumerable(Of SyntaxNode)) As Double
-            Return ComputeDistance(oldTokens.AsImmutableOrNull(), newTokens.AsImmutableOrNull())
-        End Function
-
-        ''' <summary>
-        ''' Calculates the distance between two sequences of syntax nodes, disregarding trivia. 
-        ''' </summary>
-        ''' <remarks>
-        ''' Distance is a number within [0, 1], the smaller the more similar the sequences are. 
-        ''' </remarks>
-        Public Overloads Shared Function ComputeDistance(oldTokens As ImmutableArray(Of SyntaxNode), newTokens As ImmutableArray(Of SyntaxNode)) As Double
-            Return LcsNodes.Instance.ComputeDistance(oldTokens.NullToEmpty(), newTokens.NullToEmpty())
+            Return LcsNodes.Instance.ComputeDistance(CreateArrayForDistanceCalculation(oldTokens), CreateArrayForDistanceCalculation(newTokens))
         End Function
 
         ''' <summary>

@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType);
             var includeName = symbol.Name.Length != 0 && (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) ||
-                (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone) && builder.Count == 0));
+                (!format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.ExcludeParameterNameIfStandalone) && builder.Count == 0));
             var includeBrackets = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets);
             var includeDefaultValue = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
                 format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) &&

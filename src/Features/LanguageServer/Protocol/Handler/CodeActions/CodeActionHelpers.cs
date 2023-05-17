@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
     internal static class CodeActionHelpers
     {
         /// <summary>
-        /// Get, order, and filter code actions, and then transform them into VSCodeActions or CodeActions based on <paramref name="generateVSInternalCodeAction"/>.
+        /// Get, order, and filter code actions, and then transform them into VSCodeActions or CodeActions based on <paramref name="hasVsLspCapability"/>.
         /// </summary>
         /// <remarks>
         /// Used by CodeActionsHandler.
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            bool generateVSInternalCodeAction,
+            bool hasVsLspCapability,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
             using var _ = ArrayBuilder<LSP.CodeAction>.GetInstance(out var codeActions);
             // VS-LSP support nested code action, but standard LSP doesn't.
-            if (generateVSInternalCodeAction)
+            if (hasVsLspCapability)
             {
-                var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // Each suggested action set should have a unique set number, which is used for grouping code actions together.
                 var currentHighestSetNumber = 0;
@@ -124,11 +124,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     foreach (var action in actionSet.Actions)
                     {
-                        builder.AddRange(GenerateCodeActions(
-                            request,
-                            action,
-                            codeActionKind,
-                            currentTitle));
+                        // Filter the configure and suppress fixer if it is not VS LSP, because it would generate many nested code actions.
+                        // Tracking issue: https://github.com/microsoft/language-server-protocol/issues/994 
+                        if (action.OriginalCodeAction is not AbstractConfigurationActionWithNestedActions)
+                        {
+                            builder.AddRange(GenerateCodeActions(
+                                request,
+                                action,
+                                codeActionKind,
+                                currentTitle));
+                        }
                     }
                 }
             }
@@ -136,8 +141,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 builder.Add(new LSP.CodeAction
                 {
-                    // Add extra space because this is shown to user.
-                    Title = currentTitle.Replace("|", " | "),
+                    // Change this to -> because it is shown to the user
+                    Title = currentTitle.Replace("|", " -> "),
                     Kind = codeActionKind,
                     Diagnostics = diagnosticsForFix,
                     Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument)
@@ -308,7 +313,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             LSP.Range selection,
             CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
 
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(

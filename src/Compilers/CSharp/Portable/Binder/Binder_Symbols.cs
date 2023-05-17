@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case LookupResultKind.Viable:
                     // Case (2)
-                    var resultDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), diagnostics.DependenciesBag);
+                    var resultDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
                     bool wasError;
                     symbol = ResultSymbol(
                         lookupResult,
@@ -239,19 +239,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         wasError: out wasError,
                         qualifierOpt: null);
 
+                    diagnostics.AddDependencies(resultDiagnostics);
+
                     // Here, we're mimicking behavior of dev10.  If the identifier fails to bind
                     // as a type, even if the reason is (e.g.) a type/alias conflict, then treat
                     // it as the contextual keyword.
                     if (wasError && lookupResult.IsSingleViable)
                     {
                         // NOTE: don't report diagnostics - we're not going to use the lookup result.
-                        resultDiagnostics.DiagnosticBag.Free();
+                        resultDiagnostics.Free();
                         // Case (2)(a)(2)
                         goto default;
                     }
 
                     diagnostics.AddRange(resultDiagnostics.DiagnosticBag);
-                    resultDiagnostics.DiagnosticBag.Free();
+                    resultDiagnostics.Free();
 
                     if (lookupResult.IsSingleViable)
                     {
@@ -913,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportUseSiteDiagnosticForDynamic(diagnostics, node);
                         }
 
-                        if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingTypeAlias) ? type.ContainsPointer() : type.IsUnsafe())
+                        if (type.ContainsPointer())
                         {
                             ReportUnsafeIfNotAllowed(node, diagnostics);
                         }

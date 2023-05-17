@@ -83,6 +83,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                 return;
             }
 
+            if (diagnosticId == "EnableGenerateDocumentationFile")
+            {
+                Assert.Equal("https://github.com/dotnet/roslyn/issues/41640", helpLinkUri);
+                return;
+            }
+
             if (helpLinkUri != $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
             {
                 Assert.True(false, $"Invalid help link for {diagnosticId}");

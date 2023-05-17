@@ -1213,6 +1213,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Type))
             End If
         End Sub
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 End Namespace
 

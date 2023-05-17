@@ -2,18 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Utilities;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Roslyn.Utilities
 {
-    internal class SpellChecker : IObjectWritable, IChecksummedObject
+    internal readonly struct SpellChecker : IObjectWritable, IChecksummedObject
     {
         private const string SerializationFormat = "3";
 
@@ -32,18 +29,18 @@ namespace Roslyn.Utilities
         {
         }
 
-        public IList<string> FindSimilarWords(string value)
-            => FindSimilarWords(value, substringsAreSimilar: false);
-
-        public IList<string> FindSimilarWords(string value, bool substringsAreSimilar)
+        public void FindSimilarWords(ref TemporaryArray<string> similarWords, string value, bool substringsAreSimilar)
         {
-            var result = _bkTree.Find(value, threshold: null);
+            using var result = TemporaryArray<string>.Empty;
+            using var checker = new WordSimilarityChecker(value, substringsAreSimilar);
 
-            var checker = WordSimilarityChecker.Allocate(value, substringsAreSimilar);
-            var array = result.Where(checker.AreSimilar).ToArray();
-            checker.Free();
+            _bkTree.Find(ref result.AsRef(), value, threshold: null);
 
-            return array;
+            foreach (var current in result)
+            {
+                if (checker.AreSimilar(current))
+                    similarWords.Add(current);
+            }
         }
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
@@ -55,7 +52,7 @@ namespace Roslyn.Utilities
             _bkTree.WriteTo(writer);
         }
 
-        internal static SpellChecker TryReadFrom(ObjectReader reader)
+        internal static SpellChecker? TryReadFrom(ObjectReader reader)
         {
             try
             {
@@ -65,9 +62,7 @@ namespace Roslyn.Utilities
                     var checksum = Checksum.ReadFrom(reader);
                     var bkTree = BKTree.ReadFrom(reader);
                     if (bkTree != null)
-                    {
-                        return new SpellChecker(checksum, bkTree);
-                    }
+                        return new SpellChecker(checksum, bkTree.Value);
                 }
             }
             catch

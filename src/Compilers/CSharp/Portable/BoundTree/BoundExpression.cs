@@ -605,17 +605,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public Symbol ValueSymbol { get; }
         public BoundExpression ValueExpression { get; }
-        public BindingDiagnosticBag ValueDiagnostics { get; }
+        public ImmutableBindingDiagnostic<AssemblySymbol> ValueDiagnostics { get; }
         public BoundExpression TypeExpression { get; }
-        public BindingDiagnosticBag TypeDiagnostics { get; }
+        public ImmutableBindingDiagnostic<AssemblySymbol> TypeDiagnostics { get; }
 
-        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, BindingDiagnosticBag valueDiagnostics, BoundExpression typeExpression, BindingDiagnosticBag typeDiagnostics)
+        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, ImmutableBindingDiagnostic<AssemblySymbol> valueDiagnostics, BoundExpression typeExpression, ImmutableBindingDiagnostic<AssemblySymbol> typeDiagnostics)
         {
             Debug.Assert(valueSymbol != null, "Field 'valueSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(valueExpression != null, "Field 'valueExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(valueDiagnostics != null, "Field 'valueDiagnostics' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(typeExpression != null, "Field 'typeExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(typeDiagnostics != null, "Field 'typeDiagnostics' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.ValueSymbol = valueSymbol;
             this.ValueExpression = valueExpression;
@@ -630,9 +628,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (object)a.ValueSymbol == (object)b.ValueSymbol &&
                 (object)a.ValueExpression == (object)b.ValueExpression &&
-                (object)a.ValueDiagnostics == (object)b.ValueDiagnostics &&
+                a.ValueDiagnostics == b.ValueDiagnostics &&
                 (object)a.TypeExpression == (object)b.TypeExpression &&
-                (object)a.TypeDiagnostics == (object)b.TypeDiagnostics;
+                a.TypeDiagnostics == b.TypeDiagnostics;
         }
 
         public static bool operator !=(BoundTypeOrValueData a, BoundTypeOrValueData b)

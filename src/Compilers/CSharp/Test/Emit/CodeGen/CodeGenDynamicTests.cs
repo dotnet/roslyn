@@ -15530,7 +15530,7 @@ class Program
 		void Main () cil managed 
 	{
 		// Method begins at RVA 0x2050
-		// Code size: 11 (0xb)
+		// Code size 11 (0xb)
 		.maxstack 8
 		.entrypoint
 		IL_0000: ldstr """"
@@ -15541,7 +15541,7 @@ class Program
 		instance void .ctor () cil managed 
 	{
 		// Method begins at RVA 0x205c
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call instance void [netstandard]System.Object::.ctor()
@@ -15556,7 +15556,7 @@ class Program
 			01 00 00 00
 		)
 		// Method begins at RVA 0x2064
-		// Code size: 81 (0x51)
+		// Code size 81 (0x51)
 		.maxstack 3
 		IL_0000: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !0>> class Program/'<>o__0_0`1'<!!T>::'<>p__0'
 		IL_0005: brtrue.s IL_002b
@@ -15633,7 +15633,7 @@ class Program
 		void Main () cil managed 
 	{
 		// Method begins at RVA 0x2050
-		// Code size: 11 (0xb)
+		// Code size 11 (0xb)
 		.maxstack 8
 		.entrypoint
 		IL_0000: ldstr """"
@@ -15646,7 +15646,7 @@ class Program
 		) cil managed 
 	{
 		// Method begins at RVA 0x205c
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call void Program::'<M1>g__M2|1_0'<!!T1, !!T2, !!T1, !!T2>(!!2)
@@ -15656,7 +15656,7 @@ class Program
 		instance void .ctor () cil managed 
 	{
 		// Method begins at RVA 0x2064
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call instance void [netstandard]System.Object::.ctor()
@@ -15671,7 +15671,7 @@ class Program
 			01 00 00 00
 		)
 		// Method begins at RVA 0x206c
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call void Program::'<M1>g__M3|1_1'<!!T1, !!T2, !!T3, !!T4, !!T3, !!T4>(!!4)
@@ -15686,7 +15686,7 @@ class Program
 			01 00 00 00
 		)
 		// Method begins at RVA 0x2074
-		// Code size: 81 (0x51)
+		// Code size 81 (0x51)
 		.maxstack 3
 		IL_0000: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !4>> class Program/'<>o__1_1`6'<!!T1, !!T2, !!T3, !!T4, !!T5, !!T6>::'<>p__0'
 		IL_0005: brtrue.s IL_002b
@@ -15759,7 +15759,7 @@ class Program
 		void Main () cil managed 
 	{
 		// Method begins at RVA 0x2050
-		// Code size: 11 (0xb)
+		// Code size 11 (0xb)
 		.maxstack 8
 		.entrypoint
 		IL_0000: ldstr """"
@@ -15772,7 +15772,7 @@ class Program
 		) cil managed 
 	{
 		// Method begins at RVA 0x205c
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call void Program::'<M1>g__M2|1_0'<!!T1>(!!0)
@@ -15782,7 +15782,7 @@ class Program
 		instance void .ctor () cil managed 
 	{
 		// Method begins at RVA 0x2064
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call instance void [netstandard]System.Object::.ctor()
@@ -15797,7 +15797,7 @@ class Program
 			01 00 00 00
 		)
 		// Method begins at RVA 0x206c
-		// Code size: 81 (0x51)
+		// Code size 81 (0x51)
 		.maxstack 3
 		IL_0000: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !0>> class Program/'<>o__1`1'<!!T1>::'<>p__0'
 		IL_0005: brtrue.s IL_002b
@@ -15870,7 +15870,7 @@ class Program
 		void Main () cil managed 
 	{
 		// Method begins at RVA 0x2050
-		// Code size: 11 (0xb)
+		// Code size 11 (0xb)
 		.maxstack 8
 		.entrypoint
 		IL_0000: ldstr """"
@@ -15881,7 +15881,7 @@ class Program
 		instance void .ctor () cil managed 
 	{
 		// Method begins at RVA 0x205c
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call instance void [netstandard]System.Object::.ctor()
@@ -15896,7 +15896,7 @@ class Program
 			01 00 00 00
 		)
 		// Method begins at RVA 0x2064
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call void Program::'<Main>g__M2|0_1'<!!T, !!T>(!!1)
@@ -15911,7 +15911,7 @@ class Program
 			01 00 00 00
 		)
 		// Method begins at RVA 0x206c
-		// Code size: 81 (0x51)
+		// Code size 81 (0x51)
 		.maxstack 3
 		IL_0000: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Program/'<>o__1_0`2'<!!T, !!T>::'<>p__0'
 		IL_0005: brtrue.s IL_002b
@@ -15987,7 +15987,7 @@ class Class<T1>
 		void M () cil managed 
 	{
 		// Method begins at RVA 0x205f
-		// Code size: 11 (0xb)
+		// Code size 11 (0xb)
 		.maxstack 8
 		IL_0000: ldstr """"
 		IL_0005: call void class Class`1<!T1>::'<M>g__M1|0_0'<string>(!!0)
@@ -15997,7 +15997,7 @@ class Class<T1>
 		instance void .ctor () cil managed 
 	{
 		// Method begins at RVA 0x2057
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call instance void [netstandard]System.Object::.ctor()
@@ -16012,7 +16012,7 @@ class Class<T1>
 			01 00 00 00
 		)
 		// Method begins at RVA 0x206c
-		// Code size: 81 (0x51)
+		// Code size 81 (0x51)
 		.maxstack 3
 		IL_0000: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Class`1/'<>o__0_0`1'<!T1, !!T2>::'<>p__0'
 		IL_0005: brtrue.s IL_002b
