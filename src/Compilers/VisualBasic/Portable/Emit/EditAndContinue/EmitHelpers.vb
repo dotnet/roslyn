@@ -57,8 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Try
 
             If testData IsNot Nothing Then
-                moduleBeingBuilt.SetMethodTestData(testData.Methods)
-                testData.Module = moduleBeingBuilt
+                moduleBeingBuilt.SetTestData(testData)
             End If
 
             Dim definitionMap = moduleBeingBuilt.PreviousDefinitions
@@ -118,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             Dim currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers()
-            Dim currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMethods()
+            Dim currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMembers()
 
             ' Mapping from previous compilation to the current.
             Dim anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap()

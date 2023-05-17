@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private sealed class GlobalOptionChangedEventSource : AbstractTaggerEventSource
         {
-            private readonly IOption _globalOption;
+            private readonly IOption2 _globalOption;
             private readonly IGlobalOptionService _globalOptions;
 
-            public GlobalOptionChangedEventSource(IGlobalOptionService globalOptions, IOption globalOption)
+            public GlobalOptionChangedEventSource(IGlobalOptionService globalOptions, IOption2 globalOption)
             {
                 _globalOptions = globalOptions;
                 _globalOption = globalOption;
@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             public override void Connect()
             {
-                _globalOptions.OptionChanged += OnGlobalOptionChanged;
+                _globalOptions.AddOptionChangedHandler(this, OnGlobalOptionChanged);
             }
 
             public override void Disconnect()
             {
-                _globalOptions.OptionChanged -= OnGlobalOptionChanged;
+                _globalOptions.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
             }
 
             private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)

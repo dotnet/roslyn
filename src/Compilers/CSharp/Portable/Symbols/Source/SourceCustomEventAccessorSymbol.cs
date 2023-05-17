@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -29,10 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics)
             : base(@event,
                    syntax.GetReference(),
-                   ImmutableArray.Create(syntax.Keyword.GetLocation()), explicitlyImplementedEventOpt, aliasQualifierOpt,
+                   syntax.Keyword.GetLocation(), explicitlyImplementedEventOpt, aliasQualifierOpt,
                    isAdder: syntax.Kind() == SyntaxKind.AddAccessorDeclaration,
                    isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
-                   isNullableAnalysisEnabled: isNullableAnalysisEnabled)
+                   isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                   hasAnyBody: syntax.Body is not null || syntax.ExpressionBody is not null,
+                   isExpressionBodied: syntax is { Body: null, ExpressionBody: not null })
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.Kind() == SyntaxKind.AddAccessorDeclaration || syntax.Kind() == SyntaxKind.RemoveAccessorDeclaration);
@@ -64,6 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (AccessorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
+        {
+            return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
+        }
+
         public override Accessibility DeclaredAccessibility
         {
             get
@@ -85,17 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool GenerateDebugInfo
         {
             get { return true; }
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get
-            {
-                var syntax = GetSyntax();
-                var hasBody = syntax.Body != null;
-                var hasExpressionBody = syntax.ExpressionBody != null;
-                return !hasBody && hasExpressionBody;
-            }
         }
     }
 }

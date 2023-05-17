@@ -148,7 +148,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             if (whenPartType is IPointerTypeSymbol)
                 return;
 
-            // ?. is not available in expression-trees.  Disallow the fix in that case.
             var type = semanticModel.GetTypeInfo(conditionalExpression, cancellationToken).Type;
             if (type?.IsValueType == true)
             {
@@ -163,6 +162,15 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 // converting to c?.nullable doesn't affect the type
             }
 
+            if (syntaxFacts.IsSimpleMemberAccessExpression(whenPartToCheck))
+            {
+                // `x == null ? x : x.M` cannot be converted to `x?.M` when M is a method symbol.
+                syntaxFacts.GetPartsOfMemberAccessExpression(whenPartToCheck, out _, out var name);
+                if (semanticModel.GetSymbolInfo(name, cancellationToken).GetAnySymbol() is IMethodSymbol)
+                    return;
+            }
+
+            // ?. is not available in expression-trees.  Disallow the fix in that case.
             if (IsInExpressionTree(semanticModel, conditionNode, expressionType, cancellationToken))
                 return;
 

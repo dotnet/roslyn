@@ -876,7 +876,7 @@ Gen<dynamic> x = null;";
         }
 
         [Fact]
-        public void TestDynamicAttributeForScript_DynamicTypeInAliasTarget()
+        public void TestDynamicAttributeForScript_DynamicTypeInAliasTarget1()
         {
             var source =
                 "using X = Gen<dynamic>;"
@@ -898,7 +898,29 @@ Gen<dynamic> x = null;";
         }
 
         [Fact]
-        public void TestDynamicAttributeForScript_DynamicTypeInAliasTarget_NoCore()
+        public void TestDynamicAttributeForScript_DynamicTypeInAliasTarget2()
+        {
+            var source =
+                "using X = dynamic[];"
+                + GetNoCS1980String(typeName: @"dynamic[]")
+                + "X x = null;";
+
+            var comp = CreateCompilationWithMscorlib45(
+                source: source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.Preview),
+                references: new[] { SystemCoreRef });
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var implicitField = module.GlobalNamespace.GetTypeMember("Script").GetMember<FieldSymbol>("x");
+                var expectedTransformsFlags = new bool[] { false, true };
+                DynamicAttributeValidator.ValidateDynamicAttribute(implicitField.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformsFlags);
+            });
+        }
+
+        [Fact]
+        public void TestDynamicAttributeForScript_DynamicTypeInAliasTarget_NoCore1()
         {
             var source =
                 "using X = Gen<dynamic>;"
@@ -906,6 +928,23 @@ Gen<dynamic> x = null;";
                 + "X x = null;";
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script).VerifyDiagnostics(
+                // (20,1): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                // X x = null;
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(20, 1));
+        }
+
+        [Fact]
+        public void TestDynamicAttributeForScript_DynamicTypeInAliasTarget_NoCore2()
+        {
+            var source =
+                "using X = dynamic[];"
+                + GetNoCS1980String(typeName: @"dynamic[]")
+                + "X x = null;";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script).VerifyDiagnostics(
+                // (1,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using X = dynamic[];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "dynamic[]").WithArguments("using type alias").WithLocation(1, 11),
                 // (20,1): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // X x = null;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(20, 1));
@@ -1149,10 +1188,11 @@ class C
         d(null);
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var comp = CreateEmptyCompilation(source0, parseOptions: parseOptions);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef });
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef }, parseOptions: parseOptions);
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
             // PEVerify: Type load failed.
@@ -1185,10 +1225,11 @@ class C
         D d = () => { dynamic y = x; };
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var comp = CreateEmptyCompilation(source0, parseOptions: parseOptions);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef });
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef }, parseOptions: parseOptions);
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
             // PEVerify: Type load failed.
@@ -1302,7 +1343,7 @@ class C
         [Theory]
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        public void TestDynamicAttributeInAliasContext(SourceCodeKind sourceCodeKind)
+        public void TestDynamicAttributeInAliasContext1(SourceCodeKind sourceCodeKind)
         {
             string source =
                 "using X = Gen<dynamic>;     // No CS1980"
@@ -1311,6 +1352,20 @@ class C
             CompileAndVerify(CreateCompilationWithMscorlib45(
                 source: source,
                 parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)));
+        }
+
+        [Theory]
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        public void TestDynamicAttributeInAliasContext2(SourceCodeKind sourceCodeKind)
+        {
+            string source =
+                "using X = dynamic[];     // No CS1980"
+                + GetNoCS1980String(typeName: "X");
+
+            CompileAndVerify(CreateCompilationWithMscorlib45(
+                source: source,
+                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Preview)));
         }
 
         [Theory]

@@ -931,7 +931,6 @@ End Class
             Assert.True(result.Candidates(0).RequiresNarrowingNotFromObject)
             Assert.False(result.Candidates(0).RequiresNarrowingNotFromNumericConstant)
 
-
             'TestClass1.M7(shortVal, doubleConst)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
@@ -1094,7 +1093,6 @@ End Class
             Assert.True(result.Candidates(0).RequiresNarrowingConversion)
             Assert.True(result.Candidates(0).RequiresNarrowingNotFromObject)
             Assert.True(result.Candidates(0).RequiresNarrowingNotFromNumericConstant)
-
 
             'error BC32029: Option Strict On disallows narrowing from type 'Double' to type 'Short' in copying the value of 'ByRef' parameter 'x' back to the matching argument.
             'TestClass1.M8(TestClass1.ShortField)
@@ -1417,7 +1415,6 @@ End Class
             Assert.Same(TestClass1_M13(1), result.Candidates(0).Candidate.UnderlyingSymbol)
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
-
             'TestClass1.M13(intVal, intVal, intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:={(TestClass1_M13(0)), (TestClass1_M13(1))}.AsImmutableOrNull(),
@@ -1437,7 +1434,6 @@ End Class
             Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(1).State)
             Assert.Same(TestClass1_M13(1), result.Candidates(1).Candidate.UnderlyingSymbol)
             Assert.Equal(result.BestResult.Value, result.Candidates(1))
-
 
             'Derived.M1(intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
@@ -1810,7 +1806,6 @@ End Class
             Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(0).State)
             Assert.Same(ext_M12_Candidate, result.Candidates(0).Candidate.UnderlyingSymbol)
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
-
 
             'tc2.S1(10, 10)    ' Calls S1(U, T)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
@@ -2511,7 +2506,6 @@ End Class
             Assert.Same(TestClass1_M21(1), result.Candidates(0).Candidate.UnderlyingSymbol)
             Assert.Equal(result.BestResult.Value, result.Candidates(1))
 
-
             Dim numericTypesPrecedence = {System_SByte, System_Byte, System_Int16, System_UInt16,
                                           System_Int32, System_UInt32, System_Int64, System_UInt64,
                                           System_Decimal, System_Single, System_Double}
@@ -2679,7 +2673,6 @@ End Class
             Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(1).State)
             Assert.Same(TestClass1_M24(1), result.Candidates(1).Candidate.UnderlyingSymbol)
             Assert.Equal(result.BestResult.Value, result.Candidates(1))
-
 
             'Option strict ON
             'F:\ddp\Roslyn\Main\Open\Compilers\VisualBasic\Test\Semantics\OverloadResolutionTestSource.vb(549) : error BC30518: Overload resolution failed because no accessible 'M24' can be called with these arguments:
@@ -2887,7 +2880,6 @@ End Class
             Assert.Same(TestClass1_M14(1), result.Candidates(1).Candidate.UnderlyingSymbol)
             Assert.Equal(result.BestResult.Value, result.Candidates(1))
 
-
             Dim DoubleMaxValue As BoundExpression = New BoundConversion(_syntaxNode, New BoundLiteral(_syntaxNode, ConstantValue.Null, Nothing), ConversionKind.Widening, True, True, ConstantValue.Create(Double.MaxValue), c1.GetSpecialType(System_Double), Nothing)
             Dim IntegerMaxValue As BoundExpression = New BoundConversion(_syntaxNode, New BoundLiteral(_syntaxNode, ConstantValue.Null, Nothing), ConversionKind.Widening, True, True, ConstantValue.Create(Integer.MaxValue), c1.GetSpecialType(System_Int32), Nothing)
 
@@ -2971,7 +2963,6 @@ End Class
             Assert.Same(TestClass1_M26(1), result.Candidates(1).Candidate.UnderlyingSymbol)
             Assert.Equal(result.BestResult.Value, result.Candidates(1))
 
-
             'error BC30521: Overload resolution failed because no accessible 'g' is most specific for these arguments
             'TestClass1.g(1UI)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
@@ -3048,7 +3039,6 @@ End Class
 
         <Fact>
         Public Sub BasicTests2()
-
 
             Dim optionStrictOff =
 <file>
@@ -3767,7 +3757,6 @@ BC30519: Overload resolution failed because no accessible 'F2' can be called wit
 </expected>)
         End Sub
 
-
         <Fact>
         Public Sub Diagnostics4()
 
@@ -3828,7 +3817,6 @@ BC30519: Overload resolution failed because no accessible 'F2' can be called wit
         ~~
 </expected>)
         End Sub
-
 
         <Fact>
         Public Sub Diagnostics5()
@@ -4041,7 +4029,6 @@ Function
 Function
 ]]>)
 
-
             compilationDef =
 <compilation name="Bug4263">
     <file name="a.vb">
@@ -4086,7 +4073,6 @@ BC42016: Implicit conversion from 'Object' to 'String()'.
     Goo(CObj(Nothing))
         ~~~~~~~~~~~~~
 </expected>)
-
 
             compilationDef =
 <compilation name="Bug4263">
@@ -4710,7 +4696,6 @@ BC30516: Overload resolution failed because no accessible 'Goo' accepts this num
                                                                  </expected>)
         End Sub
 
-
         <Fact, WorkItem(546129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546129")>
         Public Sub SameMethodNameDifferentCase()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -5204,7 +5189,6 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="A.Test")
         End Sub
 
-
         <Fact(), WorkItem(918579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918579"), WorkItem(34, "CodePlex")>
         Public Sub Bug918579_01()
             Dim compilationDef =
@@ -5417,7 +5401,6 @@ Module Module1
 
 End Module
 ]]>
-
     </file>
 </compilation>
 
@@ -5506,7 +5489,6 @@ End Module
 Class c1
 End Class
 ]]>
-
     </file>
 </compilation>
 
@@ -5600,7 +5582,6 @@ End Class
 Public Class Line
 End Class
 ]]>
-
     </file>
 </compilation>
 

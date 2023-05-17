@@ -1190,6 +1190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool ContainsFunctionPointer(this TypeSymbol type) =>
             type.VisitType((TypeSymbol t, object? _, bool _) => t.IsFunctionPointer(), null) is object;
 
+        internal static bool ContainsPointer(this TypeSymbol type) =>
+            type.VisitType((TypeSymbol t, object? _, bool _) => t.TypeKind is TypeKind.Pointer or TypeKind.FunctionPointer, null) is object;
+
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
         /// If the type itself is not an error type, then it will be returned.
@@ -1367,14 +1370,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return foundType is not null;
         }
 
-        internal static string? AssociatedFileIdentifier(this NamedTypeSymbol type)
+        internal static string? GetFileLocalTypeMetadataNamePrefix(this NamedTypeSymbol type)
         {
-            if (type.AssociatedSyntaxTree is not SyntaxTree tree)
+            if (type.AssociatedFileIdentifier is not FileIdentifier identifier)
             {
                 return null;
             }
-            var ordinal = type.DeclaringCompilation.GetSyntaxTreeOrdinal(tree);
-            return GeneratedNames.MakeFileIdentifier(tree.FilePath, ordinal);
+            return GeneratedNames.MakeFileTypeMetadataNamePrefix(identifier.DisplayFilePath, identifier.FilePathChecksumOpt);
         }
 
         public static bool IsPointerType(this TypeSymbol type)
@@ -1430,27 +1432,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return checkedTypes.Add(type);
-        }
-
-        internal static bool IsUnsafe(this TypeSymbol type)
-        {
-            while (true)
-            {
-                switch (type.TypeKind)
-                {
-                    case TypeKind.Pointer:
-                    case TypeKind.FunctionPointer:
-                        return true;
-                    case TypeKind.Array:
-                        type = ((ArrayTypeSymbol)type).ElementType;
-                        break;
-                    default:
-                        // NOTE: we could consider a generic type with unsafe type arguments to be unsafe,
-                        // but that's already an error, so there's no reason to report it.  Also, this
-                        // matches Type::isUnsafe in Dev10.
-                        return false;
-                }
-            }
         }
 
         internal static bool IsVoidPointer(this TypeSymbol type)
@@ -2155,6 +2136,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 default: return -1;
             }
+        }
+
+        internal static bool IsDisplayClassType(this TypeSymbol type)
+        {
+            if (type.Kind == SymbolKind.NamedType)
+            {
+                switch (GeneratedNameParser.GetKind(type.Name))
+                {
+                    case GeneratedNameKind.LambdaDisplayClass:
+                    case GeneratedNameKind.StateMachineType:
+                        return true;
+                }
+            }
+
+            return false;
         }
     }
 }

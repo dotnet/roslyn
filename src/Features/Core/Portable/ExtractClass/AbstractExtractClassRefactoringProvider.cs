@@ -46,10 +46,14 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 return;
             }
 
-            // If we register the action on a class node, no need to find selected members. Just allow
-            // the action to be invoked with the dialog and no selected members
-            var action = await TryGetClassActionAsync(context, optionsService).ConfigureAwait(false)
-                ?? await TryGetMemberActionAsync(context, optionsService).ConfigureAwait(false);
+            var (action, hasBaseType) = await TryGetMemberActionAsync(context, optionsService).ConfigureAwait(false);
+
+            // If the action was not offered because we know the containing type
+            // already has a base class, no need to do extra work to see if just a class is selected
+            if (action is null && !hasBaseType)
+            {
+                action = await TryGetClassActionAsync(context, optionsService).ConfigureAwait(false);
+            }
 
             if (action != null)
             {
@@ -57,12 +61,12 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             }
         }
 
-        private async Task<ExtractClassWithDialogCodeAction?> TryGetMemberActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
+        private async Task<(ExtractClassWithDialogCodeAction? action, bool hasBaseType)> TryGetMemberActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
         {
             var selectedMemberNodes = await GetSelectedNodesAsync(context).ConfigureAwait(false);
             if (selectedMemberNodes.IsEmpty)
             {
-                return null;
+                return (null, false);
             }
 
             var (document, span, cancellationToken) = context;
@@ -75,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 
             if (memberNodeSymbolPairs.IsEmpty)
             {
-                return null;
+                return (null, false);
             }
 
             var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol);
@@ -90,40 +94,56 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 memberNodeSymbolPairs.First().node.FullSpan.Start,
                 memberNodeSymbolPairs.Last().node.FullSpan.End);
 
-            // Can't extract to a new type if there's already a base. Maybe
-            // in the future we could inject a new type inbetween base and
-            // current
-            if (containingType.BaseType?.SpecialType != SpecialType.System_Object)
+            if (HasBaseType(containingType))
             {
-                return null;
+                return (null, true);
             }
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var containingTypeDeclarationNode = selectedMemberNodes.First().FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
-            Contract.ThrowIfNull(containingTypeDeclarationNode);
-            if (selectedMemberNodes.Any(m => m.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration) != containingTypeDeclarationNode))
+            if (containingTypeDeclarationNode is null)
             {
-                return null;
+                // If the containing type node isn't found exit. This could be malformed code that we don't know
+                // how to correctly handle
+                return (null, false);
             }
 
-            return new ExtractClassWithDialogCodeAction(
+            if (selectedMemberNodes.Any(m => m.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration) != containingTypeDeclarationNode))
+            {
+                return (null, false);
+            }
+
+            var action = new ExtractClassWithDialogCodeAction(
                 document, memberSpan, optionsService, containingType, containingTypeDeclarationNode, context.Options, selectedMembers);
+
+            return (action, false);
         }
 
         private async Task<ExtractClassWithDialogCodeAction?> TryGetClassActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
         {
             var selectedClassNode = await GetSelectedClassDeclarationAsync(context).ConfigureAwait(false);
             if (selectedClassNode is null)
+            {
                 return null;
+            }
 
             var (document, span, cancellationToken) = context;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel.GetDeclaredSymbol(selectedClassNode, cancellationToken) is not INamedTypeSymbol originalType)
+            if (semanticModel.GetDeclaredSymbol(selectedClassNode, cancellationToken) is not INamedTypeSymbol selectedType)
+            {
                 return null;
+            }
+
+            if (HasBaseType(selectedType))
+            {
+                return null;
+            }
 
             return new ExtractClassWithDialogCodeAction(
-                document, span, optionsService, originalType, selectedClassNode, context.Options, selectedMembers: ImmutableArray<ISymbol>.Empty);
+                document, span, optionsService, selectedType, selectedClassNode, context.Options, selectedMembers: ImmutableArray<ISymbol>.Empty);
         }
+
+        private static bool HasBaseType(INamedTypeSymbol containingType) => containingType.BaseType?.SpecialType != SpecialType.System_Object;
     }
 }

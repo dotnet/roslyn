@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -15,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class ExportCodeRefactoringProviderAttribute : ExportAttribute
     {
+        private static readonly string[] s_defaultDocumentKinds = new[] { nameof(TextDocumentKind.Document) };
+        private static readonly string[] s_documentKindNames = Enum.GetNames(typeof(TextDocumentKind));
+
+        private string[] _documentKinds;
+
         /// <summary>
         /// The name of the <see cref="CodeRefactoringProvider"/>.  
         /// </summary>
@@ -25,6 +31,39 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// The source languages for which this provider can provide refactorings. See <see cref="LanguageNames"/>.
         /// </summary>
         public string[] Languages { get; }
+
+        /// <summary>
+        /// The document kinds for which this provider can provide refactorings. See <see cref="TextDocumentKind"/>.
+        /// By default, the provider supports refactorings only for source documents, <see cref="TextDocumentKind.Document"/>.
+        /// </summary>
+        public string[] DocumentKinds
+        {
+            get => _documentKinds;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                foreach (var kind in value)
+                {
+                    if (kind == null || !s_documentKindNames.Contains(kind))
+                    {
+                        var message = string.Format(WorkspacesResources.Unexpected_value_0_in_DocumentKinds_array,
+                            arg0: kind?.ToString() ?? "null");
+                        throw new ArgumentException(message);
+                    }
+                }
+
+                _documentKinds = value;
+            }
+        }
+
+        /// <summary>
+        /// The document extensions for which this provider can provide refactorings.
+        /// Each extension string must include the leading period, for example, ".txt", ".xaml", ".editorconfig", etc.
+        /// By default, this value is null and the document extension is not considered to determine applicability of refactorings.
+        /// </summary>
+        public string[]? DocumentExtensions { get; set; }
 
         /// <summary>
         /// Attribute constructor used to specify availability of a code refactoring provider.
@@ -47,6 +86,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             this.Languages = languages;
+            this._documentKinds = s_defaultDocumentKinds;
+            this.DocumentExtensions = null;
         }
     }
 }

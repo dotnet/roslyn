@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 if (throwOnError)
                 {
                     _connection.Throw(stepResult);
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 

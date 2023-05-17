@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private UseExpressionBodyForConstructorsHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
                    EnforceOnBuildValues.UseExpressionBodyForConstructors,
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_constructors), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_constructors), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_constructor), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_constructor), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedConstructors,
                    ImmutableArray.Create(SyntaxKind.ConstructorDeclaration))
         {

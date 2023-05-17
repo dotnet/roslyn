@@ -31,14 +31,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// </summary>
         internal class OpenTextBufferManager
         {
+            private static readonly object s_propagateSpansEditTag = new();
+            private static readonly object s_calculateMergedSpansEditTag = new();
+
             private readonly DynamicReadOnlyRegionQuery _isBufferReadOnly;
             private readonly InlineRenameSession _session;
             private readonly ITextBuffer _subjectBuffer;
             private readonly IEnumerable<Document> _baseDocuments;
             private readonly ITextBufferFactoryService _textBufferFactoryService;
-
-            private static readonly object s_propagateSpansEditTag = new object();
-            private static readonly object s_calculateMergedSpansEditTag = new object();
+            private readonly ITextBufferCloneService _textBufferCloneService;
 
             /// <summary>
             /// The list of active tracking spans that are updated with the session's replacement text.
@@ -55,14 +56,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public OpenTextBufferManager(
                 InlineRenameSession session,
-                ITextBuffer subjectBuffer,
                 Workspace workspace,
-                ITextBufferFactoryService textBufferFactoryService)
+                ITextBufferFactoryService textBufferFactoryService,
+                ITextBufferCloneService textBufferCloneService,
+                ITextBuffer subjectBuffer)
             {
                 _session = session;
                 _subjectBuffer = subjectBuffer;
                 _baseDocuments = subjectBuffer.GetRelatedDocuments();
                 _textBufferFactoryService = textBufferFactoryService;
+                _textBufferCloneService = textBufferCloneService;
                 _subjectBuffer.ChangedLowPriority += OnTextBufferChanged;
 
                 foreach (var view in session._textBufferAssociatedViewService.GetAssociatedTextViews(_subjectBuffer))
@@ -144,10 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var view = sender as ITextView;
                 view.Closed -= OnTextViewClosed;
                 _textViews.Remove(view);
-                if (!_session._dismissed)
-                {
-                    _session.Cancel();
-                }
+                _session.Cancel();
             }
 
             internal void ConnectToView(ITextView textView)
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             linkedDocumentsMightConflict = false;
 
                             // Only need to check the new span's content
-                            var firstDocumentNewText = conflictResolution.NewSolution.GetDocument(firstDocumentReplacements.document.Id).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                            var firstDocumentNewText = conflictResolution.NewSolution.GetDocument(firstDocumentReplacements.document.Id).GetTextSynchronously(cancellationToken);
                             var firstDocumentNewSpanText = firstDocumentReplacements.Item2.SelectAsArray(replacement => firstDocumentNewText.ToString(replacement.NewSpan));
                             foreach (var (document, replacements) in documentReplacements)
                             {
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                     continue;
                                 }
 
-                                var documentNewText = conflictResolution.NewSolution.GetDocument(document.Id).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                                var documentNewText = conflictResolution.NewSolution.GetDocument(document.Id).GetTextSynchronously(cancellationToken);
                                 for (var i = 0; i < replacements.Length; i++)
                                 {
                                     if (documentNewText.ToString(replacements[i].NewSpan) != firstDocumentNewSpanText[i])
@@ -554,8 +554,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             throw new ArgumentException(WorkspacesResources.The_specified_document_is_not_a_version_of_this_document);
                         }
 
-                        var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                        var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                         if (oldText == newText)
                         {
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -593,29 +593,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 // TODO: Track all spans at once
 
-                ITextBufferCloneService textBufferCloneService = null;
                 SnapshotSpan? snapshotSpanToClone = null;
                 string preMergeDocumentTextString = null;
 
-                var preMergeDocumentText = preMergeDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var preMergeDocumentText = preMergeDocument.GetTextSynchronously(cancellationToken);
                 var snapshot = preMergeDocumentText.FindCorrespondingEditorTextSnapshot();
-                if (snapshot != null)
+                if (snapshot != null && _textBufferCloneService != null)
                 {
-                    textBufferCloneService = preMergeDocument.Project.Solution.Services.GetService<ITextBufferCloneService>();
-                    if (textBufferCloneService != null)
-                    {
-                        snapshotSpanToClone = snapshot.GetFullSpan();
-                    }
+                    snapshotSpanToClone = snapshot.GetFullSpan();
                 }
 
                 if (snapshotSpanToClone == null)
                 {
-                    preMergeDocumentTextString = preMergeDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString();
+                    preMergeDocumentTextString = preMergeDocument.GetTextSynchronously(cancellationToken).ToString();
                 }
 
                 foreach (var replacement in relevantReplacements)
                 {
-                    var buffer = snapshotSpanToClone.HasValue ? textBufferCloneService.CloneWithUnknownContentType(snapshotSpanToClone.Value) : _textBufferFactoryService.CreateTextBuffer(preMergeDocumentTextString, contentType);
+                    var buffer = snapshotSpanToClone.HasValue ? _textBufferCloneService.CloneWithUnknownContentType(snapshotSpanToClone.Value) : _textBufferFactoryService.CreateTextBuffer(preMergeDocumentTextString, contentType);
                     var trackingSpan = buffer.CurrentSnapshot.CreateTrackingSpan(replacement.NewSpan.ToSpan(), SpanTrackingMode.EdgeExclusive, TrackingFidelityMode.Forward);
 
                     using (var edit = _subjectBuffer.CreateEdit(EditOptions.None, null, s_calculateMergedSpansEditTag))
@@ -654,7 +649,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            private struct SelectionTracking : IDisposable
+            private readonly struct SelectionTracking : IDisposable
             {
                 private readonly int? _anchor;
                 private readonly int? _active;

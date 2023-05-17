@@ -8,41 +8,37 @@ using Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
-    internal sealed class DeletedCustomAttribute : ICustomAttribute
+    internal sealed class DeletedCustomAttribute : DeletedDefinition<ICustomAttribute>, ICustomAttribute
     {
-        private readonly ICustomAttribute _oldAttribute;
-        private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
-
         public DeletedCustomAttribute(ICustomAttribute oldAttribute, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers)
+            : base(oldAttribute, typesUsedByDeletedMembers)
         {
-            _oldAttribute = oldAttribute;
-            _typesUsedByDeletedMembers = typesUsedByDeletedMembers;
         }
 
-        public int ArgumentCount => _oldAttribute.ArgumentCount;
+        public int ArgumentCount => OldDefinition.ArgumentCount;
 
-        public ushort NamedArgumentCount => _oldAttribute.NamedArgumentCount;
+        public ushort NamedArgumentCount => OldDefinition.NamedArgumentCount;
 
-        public bool AllowMultiple => _oldAttribute.AllowMultiple;
+        public bool AllowMultiple => OldDefinition.AllowMultiple;
 
         public IMethodReference Constructor(EmitContext context, bool reportDiagnostics)
         {
-            return _oldAttribute.Constructor(context, reportDiagnostics);
+            return OldDefinition.Constructor(context, reportDiagnostics);
         }
 
         public ImmutableArray<IMetadataExpression> GetArguments(EmitContext context)
         {
-            return _oldAttribute.GetArguments(context);
+            return OldDefinition.GetArguments(context);
         }
 
         public ImmutableArray<IMetadataNamedArgument> GetNamedArguments(EmitContext context)
         {
-            return _oldAttribute.GetNamedArguments(context);
+            return OldDefinition.GetNamedArguments(context);
         }
 
         public ITypeReference GetType(EmitContext context)
         {
-            return DeletedTypeDefinition.TryCreate(_oldAttribute.GetType(context), _typesUsedByDeletedMembers);
+            return WrapType(OldDefinition.GetType(context));
         }
     }
 }

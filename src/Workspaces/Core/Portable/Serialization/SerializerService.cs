@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.AnalyzerReference:
                         return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
                     case WellKnownSynchronizationKind.SerializableSourceText:
-                        return (T)(object)DeserializeSerializableSourceText(reader, cancellationToken);
+                        return (T)(object)SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken);
                     case WellKnownSynchronizationKind.SourceText:
                         return (T)(object)DeserializeSourceText(reader, cancellationToken);
 

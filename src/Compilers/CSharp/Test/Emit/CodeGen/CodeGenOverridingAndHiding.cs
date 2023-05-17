@@ -1191,7 +1191,7 @@ class Program
                     };
 
                     var substitutedSource = subst(substitutedSource0);
-                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.StandardLatest);
+                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.NetLatest);
                     string expectedOutput;
                     Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
                     if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
@@ -3158,14 +3158,14 @@ class Test
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
             var comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata001",
-                            options: TestOptions.ReleaseDll);
+                            parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             // better output with error info if any
             comp1.VerifyDiagnostics(); // No Errors
 
             refs.Add(new CSharpCompilationReference(comp1));
 
             var comp2 = CreateCompilation(text2, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata002",
-                            options: TestOptions.ReleaseDll);
+                            parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             Assert.Equal(0, comp2.GetDiagnostics().Count());
             refs.Add(new CSharpCompilationReference(comp2));
 

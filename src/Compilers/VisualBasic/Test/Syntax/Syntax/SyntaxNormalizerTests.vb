@@ -85,7 +85,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestNormalizeBlock("Dim goo as Bar     ' it is a Bar", "Dim goo as Bar ' it is a Bar" + vbCrLf)
         End Sub
 
-
         <Fact()>
         Public Sub TestOptionStatements()
             TestNormalizeBlock("Option             Explicit  Off", "Option Explicit Off" + vbCrLf)

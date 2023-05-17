@@ -57,10 +57,10 @@ ISizeOfOperation (OperationKind.SizeOf, Type: System.Int32, IsInvalid) (Syntax: 
   TypeOperand: C
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                // (8,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         i = /*<bind>*/sizeof(C)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(C)").WithArguments("C").WithLocation(8, 23),
-                // CS0233: 'C' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(C)").WithArguments("C").WithLocation(8, 23),
+                // (8,23): error CS0233: 'C' does not have a predefined size, therefore sizeof can only be used in an unsafe context
                 //         i = /*<bind>*/sizeof(C)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(C)").WithArguments("C").WithLocation(8, 23)
             };

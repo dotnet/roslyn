@@ -109,11 +109,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             telemetry.SetBreakState(inBreakState);
 
-            BaseActiveStatements = lazyActiveStatementMap ?? (inBreakState ?
-                new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true) :
-                new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty));
+            BaseActiveStatements = lazyActiveStatementMap ?? (inBreakState
+                ? AsyncLazy.Create(GetBaseActiveStatementsAsync)
+                : new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty));
 
-            Capabilities = new AsyncLazy<EditAndContinueCapabilities>(GetCapabilitiesAsync, cacheResult: true);
+            Capabilities = AsyncLazy.Create(GetCapabilitiesAsync);
             Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements, Capabilities);
         }
 
@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
-                var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var newTree = await newDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 // document location:
@@ -322,8 +322,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // (there had to be one as the content doesn't match). When we are about to apply changes it is ok to ignore this
             // document because the user does not see the change yet in the buffer (if the doc is open) and won't be confused
             // if it is not applied yet. The change will be applied later after it's observed by the workspace.
-            var oldSource = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newSource = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var oldSource = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var newSource = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return oldSource.ContentEquals(newSource);
         }
 
@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -792,18 +792,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             addedSymbols = addedSymbolsBuilder.ToImmutableHashSet();
         }
 
-        public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, CancellationToken cancellationToken)
+        public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, UpdateId updateId, CancellationToken cancellationToken)
         {
             try
             {
-                var log = EditAndContinueWorkspaceService.Log;
+                var log = EditAndContinueService.Log;
 
-                log.Write("EmitSolutionUpdate: '{0}'", solution.FilePath);
+                log.Write("EmitSolutionUpdate {0}.{1}: '{2}'", updateId.SessionId.Ordinal, updateId.Ordinal, solution.FilePath);
 
-                using var _1 = ArrayBuilder<ModuleUpdate>.GetInstance(out var deltas);
+                using var _1 = ArrayBuilder<ManagedHotReloadUpdate>.GetInstance(out var deltas);
                 using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
-                using var _3 = ArrayBuilder<(ProjectId, EmitBaseline)>.GetInstance(out var emitBaselines);
-                using var _4 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
+                using var _3 = ArrayBuilder<ProjectBaseline>.GetInstance(out var newProjectBaselines);
+                using var _4 = ArrayBuilder<ProjectDiagnostics>.GetInstance(out var diagnostics);
                 using var _5 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
                 using var _6 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
                 Diagnostic? syntaxError = null;
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var oldProject = oldSolution.GetProject(newProject.Id);
                     if (oldProject == null)
                     {
-                        log.Write("EnC state of '{0}' queried: project not loaded", newProject.FilePath);
+                        log.Write("EnC state of '{0}' queried: project not loaded", newProject.Id);
 
                         // TODO (https://github.com/dotnet/roslyn/issues/1204):
                         //
@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    log.Write("Found {0} potentially changed document(s) in project '{1}'", changedOrAddedDocuments.Count, newProject.FilePath);
+                    log.Write("Found {0} potentially changed document(s) in project '{1}'", changedOrAddedDocuments.Count, newProject.Id);
 
                     var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
                     if (mvidReadError != null)
@@ -847,7 +847,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // The error hasn't been reported by GetDocumentDiagnosticsAsync since it might have been intermittent.
                         // The MVID is required for emit so we consider the error permanent and report it here.
                         // Bail before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
-                        diagnostics.Add((newProject.Id, ImmutableArray.Create(mvidReadError)));
+                        diagnostics.Add(new(newProject.Id, ImmutableArray.Create(mvidReadError)));
 
                         Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, newProject.State.ProjectInfo.Attributes.TelemetryId, ImmutableArray.Create(mvidReadError.Descriptor.Id));
                         isBlocked = true;
@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (mvid == Guid.Empty)
                     {
-                        log.Write("Emitting update of '{0}': project not built", newProject.FilePath);
+                        log.Write("Emitting update of '{0}': project not built", newProject.Id);
                         continue;
                     }
 
@@ -882,11 +882,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // before the changes are attempted to be applied. If we still have any out-of-sync documents we report warnings and ignore changes in them.
                         // If in future the file is updated so that its content matches the PDB checksum, the document transitions to a matching state,
                         // and we consider any further changes to it for application.
-                        diagnostics.Add((newProject.Id, documentDiagnostics));
+                        diagnostics.Add(new(newProject.Id, documentDiagnostics));
                     }
 
                     var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
-                    log.Write("Project summary for '{0}': {1}", projectSummary, newProject.FilePath);
+                    log.Write("Project summary for '{0}': {1}", newProject.Id, projectSummary);
                     if (projectSummary == ProjectAnalysisSummary.NoChanges)
                     {
                         continue;
@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var isModuleEncBlocked = isModuleLoaded && !moduleDiagnostics.IsEmpty;
                     if (isModuleEncBlocked)
                     {
-                        diagnostics.Add((newProject.Id, moduleDiagnostics));
+                        diagnostics.Add(new(newProject.Id, moduleDiagnostics));
                         isBlocked = true;
                     }
 
@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             if (analysis.RudeEditErrors.Length > 0)
                             {
                                 documentsWithRudeEdits.Add((analysis.DocumentId, analysis.RudeEditErrors));
-                                Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors);
+                                Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors, newProject.State.Attributes.TelemetryId);
                             }
                         }
 
@@ -935,35 +935,45 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (isModuleEncBlocked || projectSummary != ProjectAnalysisSummary.ValidChanges)
                     {
                         Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, moduleDiagnostics.NullToEmpty().SelectAsArray(d => d.Descriptor.Id));
+
+                        await LogDocumentChangesAsync(generation: null, cancellationToken).ConfigureAwait(false);
                         continue;
                     }
 
-                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var baseline, out var baselineGeneration, out var baselineAccessLock))
+                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var projectBaseline, out var baselineAccessLock))
                     {
                         Debug.Assert(!createBaselineDiagnostics.IsEmpty);
 
                         // Report diagnosics even when the module is never going to be loaded (e.g. in multi-targeting scenario, where only one framework being debugged).
                         // This is consistent with reporting compilation errors - the IDE reports them for all TFMs regardless of what framework the app is running on.
-                        diagnostics.Add((newProject.Id, createBaselineDiagnostics));
+                        diagnostics.Add(new(newProject.Id, createBaselineDiagnostics));
                         Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, createBaselineDiagnostics);
                         isBlocked = true;
+
+                        await LogDocumentChangesAsync(generation: null, cancellationToken).ConfigureAwait(false);
                         continue;
                     }
 
-                    log.Write("Emitting update of '{0}'", newProject.FilePath);
+                    await LogDocumentChangesAsync(projectBaseline.Generation + 1, cancellationToken).ConfigureAwait(false);
 
-                    if (log.FileLoggingEnabled)
+                    async ValueTask LogDocumentChangesAsync(int? generation, CancellationToken cancellationToken)
                     {
-                        foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
+                        var fileLog = log.FileLog;
+                        if (fileLog != null)
                         {
-                            if (changedDocumentAnalysis.HasChanges)
+                            foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
                             {
-                                var oldDocument = await oldProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                                var newDocument = await newProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                                await log.WriteDocumentChangeAsync(oldDocument, newDocument, DebuggingSession.Id, baselineGeneration + 1, cancellationToken).ConfigureAwait(false);
+                                if (changedDocumentAnalysis.HasChanges)
+                                {
+                                    var oldDocument = await oldProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                                    var newDocument = await newProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                                    await fileLog.WriteDocumentChangeAsync(oldDocument, newDocument, updateId, generation, cancellationToken).ConfigureAwait(false);
+                                }
                             }
                         }
                     }
+
+                    log.Write("Emitting update of '{0}'", newProject.Id);
 
                     var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -989,7 +999,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         DebuggingSession.ThrowIfDisposed();
 
                         emitResult = newCompilation.EmitDifference(
-                            baseline,
+                            projectBaseline.EmitBaseline,
                             projectChanges.SemanticEdits,
                             projectChanges.AddedSymbols.Contains,
                             metadataStream,
@@ -1005,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var unsupportedChangesDiagnostic = await GetUnsupportedChangesDiagnosticAsync(emitResult, cancellationToken).ConfigureAwait(false);
                         if (unsupportedChangesDiagnostic is not null)
                         {
-                            diagnostics.Add((newProject.Id, ImmutableArray.Create(unsupportedChangesDiagnostic)));
+                            diagnostics.Add(new(newProject.Id, ImmutableArray.Create(unsupportedChangesDiagnostic)));
                             isBlocked = true;
                         }
                         else
@@ -1024,26 +1034,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 out var moduleNonRemappableRegions,
                                 out var exceptionRegionUpdates);
 
-                            var delta = new ModuleUpdate(
+                            var delta = new ManagedHotReloadUpdate(
                                 mvid,
+                                newCompilation.AssemblyName ?? newProject.Name, // used for display in debugger diagnostics
                                 ilStream.ToImmutableArray(),
                                 metadataStream.ToImmutableArray(),
                                 pdbStream.ToImmutableArray(),
-                                projectChanges.LineChanges,
-                                updatedMethodTokens,
                                 changedTypeTokens,
+                                projectChanges.RequiredCapabilities.ToStringArray(),
+                                updatedMethodTokens,
+                                projectChanges.LineChanges,
                                 activeStatementsInUpdatedMethods,
-                                exceptionRegionUpdates,
-                                projectChanges.RequiredCapabilities);
+                                exceptionRegionUpdates);
 
                             deltas.Add(delta);
 
                             nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
-                            emitBaselines.Add((newProject.Id, emitResult.Baseline));
+                            newProjectBaselines.Add(new ProjectBaseline(projectBaseline.ProjectId, emitResult.Baseline, projectBaseline.Generation + 1));
 
-                            if (log.FileLoggingEnabled)
+                            var fileLog = log.FileLog;
+                            if (fileLog != null)
                             {
-                                await LogDeltaFilesAsync(log, delta, baselineGeneration, oldProject, newProject, cancellationToken).ConfigureAwait(false);
+                                await LogDeltaFilesAsync(fileLog, delta, projectBaseline.Generation, oldProject, newProject, cancellationToken).ConfigureAwait(false);
                             }
                         }
                     }
@@ -1062,7 +1074,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // method bodies to have errors.
                     if (!emitResult.Diagnostics.IsEmpty)
                     {
-                        diagnostics.Add((newProject.Id, emitResult.Diagnostics));
+                        diagnostics.Add(new(newProject.Id, emitResult.Diagnostics));
                     }
 
                     Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, emitResult.Diagnostics);
@@ -1074,14 +1086,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Telemetry.LogRuntimeCapabilities(await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
                 }
 
-                var update = isBlocked ?
-                    SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError, hasEmitErrors) :
-                    new SolutionUpdate(
+                var update = isBlocked
+                    ? SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError, hasEmitErrors)
+                    : new SolutionUpdate(
                         new ModuleUpdates(
                             (deltas.Count > 0) ? ModuleUpdateStatus.Ready : ModuleUpdateStatus.None,
                             deltas.ToImmutable()),
                         nonRemappableRegions.ToImmutable(),
-                        emitBaselines.ToImmutable(),
+                        newProjectBaselines.ToImmutable(),
                         diagnostics.ToImmutable(),
                         documentsWithRudeEdits.ToImmutable(),
                         syntaxError);
@@ -1090,11 +1102,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
-        private async ValueTask LogDeltaFilesAsync(TraceLog log, ModuleUpdate delta, int baselineGeneration, Project oldProject, Project newProject, CancellationToken cancellationToken)
+        private async ValueTask LogDeltaFilesAsync(TraceLog.FileLogger log, ManagedHotReloadUpdate delta, int baselineGeneration, Project oldProject, Project newProject, CancellationToken cancellationToken)
         {
             var sessionId = DebuggingSession.Id;
 
@@ -1102,14 +1114,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var oldCompilationOutputs = DebuggingSession.GetCompilationOutputs(oldProject);
 
-                await log.WriteToFileAsync(
+                await log.WriteAsync(
                     async (stream, cancellationToken) => await oldCompilationOutputs.TryCopyAssemblyToAsync(stream, cancellationToken).ConfigureAwait(false),
                     sessionId,
                     newProject.Name,
                     PathUtilities.GetFileName(oldCompilationOutputs.AssemblyDisplayPath) ?? oldProject.Name + ".dll",
                     cancellationToken).ConfigureAwait(false);
 
-                await log.WriteToFileAsync(
+                await log.WriteAsync(
                     async (stream, cancellationToken) => await oldCompilationOutputs.TryCopyPdbToAsync(stream, cancellationToken).ConfigureAwait(false),
                     sessionId,
                     newProject.Name,
@@ -1118,9 +1130,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var generation = baselineGeneration + 1;
-            log.WriteToFile(sessionId, delta.ILDelta, newProject.Name, generation + ".il");
-            log.WriteToFile(sessionId, delta.MetadataDelta, newProject.Name, generation + ".md");
-            log.WriteToFile(sessionId, delta.PdbDelta, newProject.Name, generation + ".pdb");
+            log.Write(sessionId, delta.ILDelta, newProject.Name, generation + ".il");
+            log.Write(sessionId, delta.MetadataDelta, newProject.Name, generation + ".meta");
+            log.Write(sessionId, delta.PdbDelta, newProject.Name, generation + ".pdb");
         }
 
         // internal for testing

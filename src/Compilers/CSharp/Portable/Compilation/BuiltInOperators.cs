@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (kind.IsLifted())
             {
-                opType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(opType);
+                opType = _compilation.GetOrCreateNullableType(opType);
             }
 
             return new UnaryOperatorSignature(kind, opType, opType);
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol rightType = _compilation.GetSpecialType(SpecialType.System_Int32);
                     if (kind.IsLifted())
                     {
-                        rightType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(rightType);
+                        rightType = _compilation.GetOrCreateNullableType(rightType);
                     }
                     return new BinaryOperatorSignature(kind, left, rightType, left);
 
@@ -837,23 +837,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(kind.IsLifted());
 
-            var nullable = _compilation.GetSpecialType(SpecialType.System_Nullable_T);
-
-            switch (kind.OperandTypes())
+            var typeArgument = kind.OperandTypes() switch
             {
-                case BinaryOperatorKind.Int: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Int32));
-                case BinaryOperatorKind.UInt: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_UInt32));
-                case BinaryOperatorKind.Long: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Int64));
-                case BinaryOperatorKind.ULong: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_UInt64));
-                case BinaryOperatorKind.NInt: return nullable.Construct(_compilation.CreateNativeIntegerTypeSymbol(signed: true));
-                case BinaryOperatorKind.NUInt: return nullable.Construct(_compilation.CreateNativeIntegerTypeSymbol(signed: false));
-                case BinaryOperatorKind.Float: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Single));
-                case BinaryOperatorKind.Double: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Double));
-                case BinaryOperatorKind.Decimal: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Decimal));
-                case BinaryOperatorKind.Bool: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Boolean));
-            }
-            Debug.Assert(false, "Bad operator kind in lifted type");
-            return null;
+                BinaryOperatorKind.Int => _compilation.GetSpecialType(SpecialType.System_Int32),
+                BinaryOperatorKind.UInt => _compilation.GetSpecialType(SpecialType.System_UInt32),
+                BinaryOperatorKind.Long => _compilation.GetSpecialType(SpecialType.System_Int64),
+                BinaryOperatorKind.ULong => _compilation.GetSpecialType(SpecialType.System_UInt64),
+                BinaryOperatorKind.NInt => _compilation.CreateNativeIntegerTypeSymbol(signed: true),
+                BinaryOperatorKind.NUInt => _compilation.CreateNativeIntegerTypeSymbol(signed: false),
+                BinaryOperatorKind.Float => _compilation.GetSpecialType(SpecialType.System_Single),
+                BinaryOperatorKind.Double => _compilation.GetSpecialType(SpecialType.System_Double),
+                BinaryOperatorKind.Decimal => _compilation.GetSpecialType(SpecialType.System_Decimal),
+                BinaryOperatorKind.Bool => _compilation.GetSpecialType(SpecialType.System_Boolean),
+                var v => throw ExceptionUtilities.UnexpectedValue(v),
+            };
+
+            return _compilation.GetOrCreateNullableType(typeArgument);
         }
 
         internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNull, bool leftIsDefault, TypeSymbol rightType, bool rightIsNull, bool rightIsDefault, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

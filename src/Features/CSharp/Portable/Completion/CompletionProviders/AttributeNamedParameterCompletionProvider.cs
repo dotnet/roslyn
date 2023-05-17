@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
                 token = token.GetPreviousTokenIfTouchingWord(position);
 
-                if (!token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
+                if (token.Kind() is not (SyntaxKind.OpenParenToken or SyntaxKind.CommaToken))
                 {
                     return;
                 }
@@ -89,8 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var existingNamedParameters = GetExistingNamedParameters(attributeArgumentList, position);
 
                 var semanticModel = await document.ReuseExistingSpeculativeModelAsync(attributeSyntax, cancellationToken).ConfigureAwait(false);
-                var nameColonItems = await GetNameColonItemsAsync(context, semanticModel, token, attributeSyntax, existingNamedParameters).ConfigureAwait(false);
-                var nameEqualsItems = await GetNameEqualsItemsAsync(context, semanticModel, token, attributeSyntax, existingNamedParameters).ConfigureAwait(false);
+                var nameColonItems = GetNameColonItems(context, semanticModel, token, attributeSyntax, existingNamedParameters);
+                var nameEqualsItems = GetNameEqualsItems(context, semanticModel, token, attributeSyntax, existingNamedParameters);
 
                 context.AddItems(nameEqualsItems);
 
@@ -151,19 +150,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        private static async Task<ImmutableArray<CompletionItem>> GetNameEqualsItemsAsync(
+        private static ImmutableArray<CompletionItem> GetNameEqualsItems(
             CompletionContext context, SemanticModel semanticModel,
             SyntaxToken token, AttributeSyntax attributeSyntax, ISet<string> existingNamedParameters)
         {
             var attributeNamedParameters = GetAttributeNamedParameters(semanticModel, context.Position, attributeSyntax, context.CancellationToken);
             var unspecifiedNamedParameters = attributeNamedParameters.Where(p => !existingNamedParameters.Contains(p.Name));
 
-            var text = await semanticModel.SyntaxTree.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+            var rightToken = semanticModel.SyntaxTree.FindTokenOnRightOfPosition(context.Position, context.CancellationToken);
+            var displayTextSuffix = rightToken.IsKind(SyntaxKind.EqualsToken) ? null : SpaceEqualsString;
+
             var q = from p in attributeNamedParameters
                     where !existingNamedParameters.Contains(p.Name)
                     select SymbolCompletionItem.CreateWithSymbolId(
                        displayText: p.Name.ToIdentifierToken().ToString(),
-                       displayTextSuffix: SpaceEqualsString,
+                       displayTextSuffix: displayTextSuffix,
                        insertionText: null,
                        symbols: ImmutableArray.Create(p),
                        contextPosition: token.SpanStart,
@@ -172,19 +173,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return q.ToImmutableArray();
         }
 
-        private static async Task<IEnumerable<CompletionItem>> GetNameColonItemsAsync(
+        private static IEnumerable<CompletionItem> GetNameColonItems(
             CompletionContext context, SemanticModel semanticModel, SyntaxToken token, AttributeSyntax attributeSyntax, ISet<string> existingNamedParameters)
         {
             var parameterLists = GetParameterLists(semanticModel, context.Position, attributeSyntax, context.CancellationToken);
             parameterLists = parameterLists.Where(pl => IsValid(pl, existingNamedParameters));
 
-            var text = await semanticModel.SyntaxTree.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+            var rightToken = semanticModel.SyntaxTree.FindTokenOnRightOfPosition(context.Position, context.CancellationToken);
+            var displayTextSuffix = rightToken.IsKind(SyntaxKind.ColonToken) ? null : ColonString;
+
             return from pl in parameterLists
                    from p in pl
                    where !existingNamedParameters.Contains(p.Name)
                    select SymbolCompletionItem.CreateWithSymbolId(
                        displayText: p.Name.ToIdentifierToken().ToString(),
-                       displayTextSuffix: ColonString,
+                       displayTextSuffix: displayTextSuffix,
                        insertionText: null,
                        symbols: ImmutableArray.Create(p),
                        contextPosition: token.SpanStart,

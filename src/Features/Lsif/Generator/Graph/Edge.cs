@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
@@ -15,24 +16,39 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
         [JsonProperty("outV")]
         public Id<Vertex> OutVertex { get; }
 
-        // The LSIF format allows both for a one-to-one edge and a one-to-many edge. We'll just always use a one-to-many edge when
-        // emitting since the format isn't really that much larger but keeps everything much simpler.
-        [JsonProperty("inVs")]
-        public Id<Vertex>[] InVertices { get; }
+        // LSIF edges can have either an inV for a one-to-one edge, or an inVs for a one-to-many edge. We'll represent
+        // this by having two properties here, and exactly one of them will always be non-null.
+
+        [JsonProperty("inV", NullValueHandling = NullValueHandling.Ignore)]
+        public Id<Vertex>? InVertex { get; }
+
+        [JsonProperty("inVs", NullValueHandling = NullValueHandling.Ignore)]
+        public Id<Vertex>[]? InVertices { get; }
+
+        public IEnumerable<Id<Vertex>> GetInVerticies() => InVertices ?? SpecializedCollections.SingletonEnumerable(InVertex!.Value);
+
+        public Edge(string label, Id<Vertex> outVertex, Id<Vertex> inVertex, IdFactory idFactory)
+            : base(type: "edge", label: label, idFactory)
+        {
+            // We'll be strict and assert that label types that are one-to-many must always use inVs
+            Contract.ThrowIfTrue(IsEdgeLabelOneToMany(label));
+            OutVertex = outVertex;
+            InVertex = inVertex;
+        }
 
         public Edge(string label, Id<Vertex> outVertex, Id<Vertex>[] inVertices, IdFactory idFactory)
             : base(type: "edge", label: label, idFactory)
         {
+            Contract.ThrowIfFalse(IsEdgeLabelOneToMany(label));
             OutVertex = outVertex;
             InVertices = inVertices;
         }
 
+        private static bool IsEdgeLabelOneToMany(string label) => label is "contains" or "item";
+
         public static Edge Create<TOutVertex, TInVertex>(string label, Id<TOutVertex> outVertex, Id<TInVertex> inVertex, IdFactory idFactory) where TOutVertex : Vertex where TInVertex : Vertex
         {
-            var inVerticesArray = new Id<Vertex>[1];
-            inVerticesArray[0] = inVertex.As<TInVertex, Vertex>();
-
-            return new Edge(label, outVertex.As<TOutVertex, Vertex>(), inVerticesArray, idFactory);
+            return new Edge(label, outVertex.As<TOutVertex, Vertex>(), inVertex.As<TInVertex, Vertex>(), idFactory);
         }
 
         public static Edge Create<TOutVertex, TInVertex>(string label, Id<TOutVertex> outVertex, IList<Id<TInVertex>> inVertices, IdFactory idFactory) where TOutVertex : Vertex where TInVertex : Vertex
@@ -51,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 
         public override string ToString()
         {
-            return $"{Label} edge from {OutVertex} to {string.Join(", ", InVertices)}";
+            return $"{Label} edge from {OutVertex} to {string.Join(", ", GetInVerticies())}";
         }
     }
 }

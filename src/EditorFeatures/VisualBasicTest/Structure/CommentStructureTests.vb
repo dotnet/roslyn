@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
+    <Trait(Traits.Feature, Traits.Features.Outlining)>
     Public Class CommentTests
         Inherits AbstractSyntaxStructureProviderTests
 
@@ -32,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             End If
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestSimpleComment1() As Task
             Const code = "
 {|span:' $$Hello
@@ -45,7 +46,7 @@ End Class
                 Region("span", "' Hello ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestSimpleComment2() As Task
             Const code = "
 {|span:' $$Hello
@@ -59,7 +60,7 @@ End Class
                 Region("span", "' Hello ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestSimpleComment3() As Task
             Const code = "
 {|span:' $$Hello
@@ -73,7 +74,7 @@ End Class
                 Region("span", "' Hello ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestSingleLineCommentGroupFollowedByDocumentationComment() As Task
             Const code = "
 {|span:' $$Hello

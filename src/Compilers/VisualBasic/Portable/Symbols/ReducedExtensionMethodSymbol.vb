@@ -104,7 +104,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                diagnostic:=inferenceDiagnostic,
                                                inferTheseTypeParameters:=fixTheseTypeParameters)
 
-
                 parameterToArgumentMap.Free()
 
                 If Not success OrElse Not reducedUseSiteInfo.Diagnostics.IsNullOrEmpty() Then
@@ -848,6 +847,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
         End Class
+
+        Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 
     Friend MustInherit Class ReducedParameterSymbolBase

@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -64,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
                     var newDocument = OrganizingService.OrganizeAsync(document, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
                     if (document != newDocument)
                     {
-                        ApplyTextChange(document, newDocument);
+                        var changes = newDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                        args.SubjectBuffer.ApplyChanges(changes);
                     }
                 }
             }
@@ -144,7 +146,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
                 var newDocument = organizeImportsService.OrganizeImportsAsync(document, options, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (document != newDocument)
                 {
-                    ApplyTextChange(document, newDocument);
+                    var changes = newDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                    subjectBuffer.ApplyChanges(changes);
                 }
             }
         }
@@ -163,12 +166,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
                 newDocument = organizeImportsService.OrganizeImportsAsync(newDocument, options, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (document != newDocument)
                 {
-                    ApplyTextChange(document, newDocument);
+                    var changes = newDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                    subjectBuffer.ApplyChanges(changes);
                 }
             }
         }
-
-        protected static void ApplyTextChange(Document oldDocument, Document newDocument)
-            => oldDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, CancellationToken.None);
     }
 }

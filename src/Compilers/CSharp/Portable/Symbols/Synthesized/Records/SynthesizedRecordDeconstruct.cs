@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedRecordDeconstruct : SynthesizedRecordOrdinaryMethod
     {
-        private readonly SynthesizedRecordConstructor _ctor;
+        private readonly SynthesizedPrimaryConstructor _ctor;
         private readonly ImmutableArray<Symbol> _positionalMembers;
 
         public SynthesizedRecordDeconstruct(
             SourceMemberContainerTypeSymbol containingType,
-            SynthesizedRecordConstructor ctor,
+            SynthesizedPrimaryConstructor ctor,
             ImmutableArray<Symbol> positionalMembers,
             int memberOffset,
             BindingDiagnosticBag diagnostics)
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -46,11 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 param.TypeWithAnnotations,
                                                 param.Ordinal,
                                                 RefKind.Out,
-                                                DeclarationScope.Unscoped,
+                                                ScopedKind.None,
                                                 param.Name,
                                                 locations),
                                         arg: Locations),
-                    IsVararg: false,
                     DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
         }
 
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     PropertySymbol property => property.Type,
                     FieldSymbol field => field.Type,
-                    _ => throw ExceptionUtilities.Unreachable
+                    _ => throw ExceptionUtilities.Unreachable()
                 };
 
                 if (!parameter.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))

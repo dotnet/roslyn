@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 // therefore the exception filter in IdentifyConflictsAsync is insufficient.
                 // See https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=378642
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

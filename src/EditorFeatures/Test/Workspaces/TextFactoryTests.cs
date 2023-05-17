@@ -5,6 +5,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
 using Microsoft.CodeAnalysis.Host;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     {
         private readonly byte[] _nonUtf8StringBytes = new byte[] { 0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF };
 
-        [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018"), WorkItem(1041792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041792")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041792")]
         public void TestCreateTextFallsBackToSystemDefaultEncoding()
         {
             using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 expectedEncoding: Encoding.Default);
         }
 
-        [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
         public void TestCreateTextFallsBackToUTF8Encoding()
         {
             using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 expectedEncoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
         }
 
-        [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
         public void TestCreateTextFallsBackToProvidedDefaultEncoding()
         {
             using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 expectedEncoding: Encoding.GetEncoding(1254));
         }
 
-        [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
         public void TestCreateTextUsesByteOrderMarkIfPresent()
         {
             using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
@@ -119,8 +120,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private static void TestCreateTextInferredEncoding(ITextFactoryService textFactoryService, byte[] bytes, Encoding? defaultEncoding, Encoding expectedEncoding)
         {
             using var stream = new MemoryStream(bytes);
-            var text = textFactoryService.CreateText(stream, defaultEncoding);
+            var text = textFactoryService.CreateText(stream, defaultEncoding, SourceHashAlgorithms.Default, CancellationToken.None);
             Assert.Equal(expectedEncoding, text.Encoding);
+            Assert.Equal(SourceHashAlgorithms.Default, text.ChecksumAlgorithm);
         }
     }
 }

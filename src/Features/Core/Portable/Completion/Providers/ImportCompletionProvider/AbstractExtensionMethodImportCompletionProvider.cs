@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -44,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
                 {
-                    var totalTime = SharedStopwatch.StartNew();
 
                     var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
                         ? syntaxContext.InferredTypes
@@ -60,18 +57,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         hideAdvancedMembers: completionContext.CompletionOptions.HideAdvancedMembers,
                         cancellationToken).ConfigureAwait(false);
 
-                    if (result is null)
-                        return;
-
-                    var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
-                    completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
-
-                    // report telemetry:
-                    CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(
-                        totalTime.Elapsed, result.GetSymbolsTime, result.CreateItemsTime, result.IsRemote);
-
-                    if (result.IsPartialResult)
-                        CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
+                    if (result is not null)
+                    {
+                        var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
+                        completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
+                    }
                 }
             }
         }

@@ -739,8 +739,7 @@ $@"{typeKind} C {{
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestWhitespaceBetweenMethods1(string typeKind)
@@ -771,8 +770,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestWhitespaceBetweenMethods2(string typeKind)
@@ -805,8 +803,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestWhitespaceBetweenMethods3(string typeKind)
@@ -839,8 +836,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestWhitespaceBetweenMethods4(string typeKind)
@@ -875,8 +871,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestWhitespaceBetweenMethods5(string typeKind)
@@ -913,8 +908,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestWhitespaceBetweenMethods6(string typeKind)
@@ -953,8 +947,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestMoveComments1(string typeKind)
@@ -987,8 +980,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestMoveComments2(string typeKind)
@@ -1023,8 +1015,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestMoveDocComments1(string typeKind)
@@ -1057,8 +1048,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestMoveDocComments2(string typeKind)
@@ -1093,11 +1083,10 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
-        public async Task TestDontMoveBanner(string typeKind)
+        public async Task TestDoNotMoveBanner(string typeKind)
         {
             var initial =
 $@"{typeKind} Program
@@ -1129,11 +1118,10 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
-        public async Task TestDontMoveBanner2(string typeKind)
+        public async Task TestDoNotMoveBanner2(string typeKind)
         {
             var initial =
 $@"{typeKind} Program

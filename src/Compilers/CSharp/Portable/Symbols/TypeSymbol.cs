@@ -517,7 +517,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code)
             => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
 
-
         public override bool HasUnsupportedMetadata
         {
             get
@@ -852,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if ((object)currType == implementingType || implementingTypeImplementsInterface)
                     {
-                        diagnostics.Add(ErrorCode.ERR_DuplicateExplicitImpl, implementingType.Locations[0], interfaceMember);
+                        diagnostics.Add(ErrorCode.ERR_DuplicateExplicitImpl, implementingType.GetFirstLocation(), interfaceMember);
                     }
 
                     implementationInInterfacesMightChangeResult = false;
@@ -1763,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                         if (arg.isExplicit)
                                                                                         {
                                                                                             diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation,
-                                                                                                            implementingEvent.Locations[0], new FormattedSymbol(implementedEvent, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                                                                                                            implementingEvent.GetFirstLocation(), new FormattedSymbol(implementedEvent, SymbolDisplayFormat.MinimallyQualifiedFormat));
                                                                                         }
                                                                                         else
                                                                                         {
@@ -1796,7 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     diagnostics.Add(topLevel ?
                                                         ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation :
                                                         ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation,
-                                                    implementingMethod.Locations[0], new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                                                    implementingMethod.GetFirstLocation(), new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
                                 }
                                 else
                                 {
@@ -1817,7 +1816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     diagnostics.Add(topLevel ?
                                                         ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation :
                                                         ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation,
-                                                    implementingMethod.Locations[0],
+                                                    implementingMethod.GetFirstLocation(),
                                                     new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
                                                     new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
                                 }
@@ -1843,18 +1842,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             checkParameterTypes ? reportMismatchInParameterType : null,
                             (implementingType, isExplicit));
 
-                        if (checkParameterTypes)
+                        if (checkParameterTypes &&
+                            SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(implementedMethod))
                         {
                             SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
                                 implementedMethod,
                                 implementingMethod,
                                 diagnostics,
                                 static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
-                                    diagnostics.Add(
-                                        ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation,
-                                        GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
-                                        new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat)),
-                                (implementingType, isExplicit));
+                                    {
+                                        diagnostics.Add(
+                                            SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(implementedMethod, implementingMethod) ?
+                                                ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation :
+                                                ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation,
+                                            GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
+                                            new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                                    },
+                                (implementingType, isExplicit),
+                                allowVariance: true,
+                                invokedAsExtensionMethod: false);
+                        }
+
+                        if (implementingMethod.HasUnscopedRefAttributeOnMethodOrProperty())
+                        {
+                            diagnostics.Add(
+                                ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation,
+                                GetImplicitImplementationDiagnosticLocation(implementedMethod, implementingType, implementingMethod));
                         }
                     }
 
@@ -2024,7 +2037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 snt = implementingType as SourceMemberContainerTypeSymbol;
             }
 
-            return snt?.GetImplementsLocation(@interface) ?? implementingType.Locations.FirstOrNone();
+            return snt?.GetImplementsLocation(@interface) ?? implementingType.GetFirstLocationOrNone();
         }
 
         private static bool ReportAnyMismatchedConstraints(MethodSymbol interfaceMethod, TypeSymbol implementingType, MethodSymbol implicitImpl, BindingDiagnosticBag diagnostics)
@@ -2076,13 +2089,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (TypeSymbol.Equals(member.ContainingType, implementingType, TypeCompareKind.ConsiderEverything2))
             {
-                return member.Locations[0];
+                return member.GetFirstLocation();
             }
             else
             {
                 var @interface = interfaceMember.ContainingType;
                 SourceMemberContainerTypeSymbol snt = implementingType as SourceMemberContainerTypeSymbol;
-                return snt?.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
+                return snt?.GetImplementsLocation(@interface) ?? implementingType.GetFirstLocation();
             }
         }
 
@@ -2384,7 +2397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [Obsolete("Use TypeWithAnnotations.Is method.", true)]
         internal bool Equals(TypeWithAnnotations other)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
 #nullable enable
@@ -2401,27 +2414,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator ==(TypeSymbol left, TypeSymbol right)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator !=(TypeSymbol left, TypeSymbol right)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator ==(Symbol left, TypeSymbol right)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator !=(Symbol left, TypeSymbol right)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator ==(TypeSymbol left, Symbol right)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator !=(TypeSymbol left, Symbol right)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         internal ITypeSymbol GetITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {

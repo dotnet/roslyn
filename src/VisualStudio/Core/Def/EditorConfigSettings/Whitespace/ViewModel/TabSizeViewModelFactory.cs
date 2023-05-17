@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
             _key = new OptionKey2(FormattingOptions2.TabSize, LanguageNames.CSharp);
         }
 
-        public IEnumSettingViewModel CreateViewModel(WhitespaceSetting setting)
+        public IEnumSettingViewModel CreateViewModel(Setting setting)
         {
             return new TabSizeViewModel(setting);
         }

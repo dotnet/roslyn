@@ -13,11 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;
             if (decisionDag.ContainsAnySynthesizedNodes())
             {
+                bool negated = this.Pattern.IsNegated(out var innerPattern);
+                Debug.Assert(negated == this.IsNegated);
                 decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
                     compilation,
                     this.Syntax,
                     this.Expression,
-                    this.Pattern,
+                    innerPattern,
                     this.WhenTrueLabel,
                     this.WhenFalseLabel,
                     BindingDiagnosticBag.Discarded,

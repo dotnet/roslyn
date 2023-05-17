@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.ComponentModel
 Imports System.Text
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -176,6 +175,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 syntaxRoot:=root,
                 isMyTemplate:=False,
                 diagnosticOptions)
+        End Function
+
+        Friend Shared Function Create(root As VisualBasicSyntaxNode,
+                                      options As VisualBasicParseOptions,
+                                      path As String,
+                                      encoding As Encoding,
+                                      checksumAlgorithm As SourceHashAlgorithm) As SyntaxTree
+            Return New ParsedSyntaxTree(
+                textOpt:=Nothing,
+                encodingOpt:=encoding,
+                checksumAlgorithm:=checksumAlgorithm,
+                path:=path,
+                options:=options,
+                syntaxRoot:=root,
+                isMyTemplate:=False,
+                diagnosticOptions:=Nothing)
+        End Function
+
+        ''' <summary>
+        ''' Creates a new syntax tree from a syntax node with text that should correspond to the syntax node.
+        ''' </summary>
+        ''' <remarks>This is used by the ExpressionEvaluator.</remarks>
+        Friend Shared Function CreateForDebugger(root As VisualBasicSyntaxNode, text As SourceText, options As VisualBasicParseOptions) As SyntaxTree
+            Debug.Assert(root IsNot Nothing)
+            Return New DebuggerSyntaxTree(root, text, options)
         End Function
 
         ''' <summary>
@@ -589,7 +613,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          path As String,
                                          encoding As Encoding,
                                          cancellationToken As CancellationToken) As SyntaxTree
+#Disable Warning RS0030 ' Do not used banned APIs
             Return ParseText(text, options, path, encoding, diagnosticOptions:=Nothing, cancellationToken)
+#Enable Warning RS0030
         End Function
 
         ' 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
@@ -607,7 +633,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       options As VisualBasicParseOptions,
                                       path As String,
                                       encoding As Encoding) As SyntaxTree
+#Disable Warning RS0030 ' Do not used banned APIs
             Return Create(root, options, path, encoding, diagnosticOptions:=Nothing)
+#Enable Warning RS0030
         End Function
     End Class
 End Namespace

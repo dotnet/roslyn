@@ -23,8 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             IAccessibilityFacts accessibilityFacts,
             MemberDeclarationSyntax member,
             AccessibilityModifiersRequired option,
-            out SyntaxToken name)
+            out SyntaxToken name,
+            out bool modifierAdded)
         {
+            modifierAdded = false;
+
             // Have to have a name to report the issue on.
             name = member.GetNameToken();
             if (name.Kind() == SyntaxKind.None)
@@ -40,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             // Omit will flag any accessibility values that exist and are default
             // The other options will remove or ignore accessibility
             var isOmit = option == AccessibilityModifiersRequired.OmitIfDefault;
+            modifierAdded = !isOmit;
 
             if (isOmit)
             {

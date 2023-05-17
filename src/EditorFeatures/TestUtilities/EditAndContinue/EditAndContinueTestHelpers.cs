@@ -39,7 +39,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EditAndContinueCapabilities.UpdateParameters;
 
         public const EditAndContinueCapabilities AllRuntimeCapabilities =
-            Net6RuntimeCapabilities;
+            Net6RuntimeCapabilities |
+            EditAndContinueCapabilities.GenericAddMethodToExistingType |
+            EditAndContinueCapabilities.GenericUpdateMethod |
+            EditAndContinueCapabilities.GenericAddFieldToExistingType;
 
         public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
 
@@ -47,6 +50,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public abstract string LanguageName { get; }
         public abstract string ProjectFileExtension { get; }
         public abstract TreeComparer<SyntaxNode> TopSyntaxComparer { get; }
+        public abstract string? TryGetResource(string keyword);
 
         private void VerifyDocumentActiveStatementsAndExceptionRegions(
             ActiveStatementsDescription description,
@@ -99,7 +103,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 capabilities);
         }
 
-        internal void VerifySemantics(EditScript<SyntaxNode>[] editScripts, TargetFramework targetFramework, DocumentAnalysisResultsDescription[] expectedResults, EditAndContinueCapabilities? capabilities = null)
+        internal void VerifySemantics(
+            EditScript<SyntaxNode>[] editScripts,
+            TargetFramework targetFramework,
+            DocumentAnalysisResultsDescription[] expectedResults,
+            EditAndContinueCapabilities? capabilities = null)
         {
             Assert.True(editScripts.Length == expectedResults.Length);
             var documentCount = expectedResults.Length;
@@ -119,9 +127,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var allEdits = new List<SemanticEditInfo>();
 
             // include Baseline by default, unless no capabilities are explicitly specified:
-            var requiredCapabilities = capabilities.HasValue ?
-                (capabilities.Value == 0 ? 0 : capabilities.Value | EditAndContinueCapabilities.Baseline) :
-                expectedResults.Any(r => r.Diagnostics.Any()) ? AllRuntimeCapabilities : EditAndContinueCapabilities.Baseline;
+            var requiredCapabilities = capabilities.HasValue
+                ? (capabilities.Value == 0 ? 0 : capabilities.Value | EditAndContinueCapabilities.Baseline)
+                : expectedResults.Any(r => r.Diagnostics.Any()) ? AllRuntimeCapabilities : EditAndContinueCapabilities.Baseline;
 
             var lazyCapabilities = AsyncLazy.Create(requiredCapabilities);
             var actualRequiredCapabilities = EditAndContinueCapabilities.None;
@@ -230,7 +238,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
 
             var duplicateNonPartial = allEdits
-                .Where(e => e.PartialType == null)
+                .Where(e => e.PartialType == null && e.DeletedSymbolContainer is null)
                 .GroupBy(e => e.Symbol, SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true))
                 .Where(g => g.Count() > 1)
                 .Select(g => g.Key);
@@ -251,13 +259,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
         }
 
-        public static void VerifyDiagnostics(IEnumerable<RudeEditDiagnosticDescription> expected, IEnumerable<RudeEditDiagnostic> actual, SourceText newSource)
-            => VerifyDiagnostics(expected, actual.ToDescription(newSource, expected.Any(d => d.FirstLine != null)));
-
-        public static void VerifyDiagnostics(IEnumerable<RudeEditDiagnosticDescription> expected, IEnumerable<RudeEditDiagnosticDescription> actual, string? message = null)
+        public void VerifyDiagnostics(IEnumerable<RudeEditDiagnosticDescription> expected, IEnumerable<RudeEditDiagnosticDescription> actual, string? message = null)
         {
             // Assert that the diagnostics are actually what the test expects
-            AssertEx.SetEqual(expected, actual, message: message, itemSeparator: ",\r\n");
+            AssertEx.SetEqual(expected, actual, message: message, itemSeparator: ",\r\n", itemInspector: d => d.ToString(TryGetResource));
 
             // Also make sure to realise each diagnostic to ensure its message is able to be formatted
             foreach (var diagnostic in actual)
@@ -277,8 +282,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             // string comparison to simplify understanding why a test failed:
             AssertEx.Equal(
-                expectedSemanticEdits.Select(e => $"{e.Kind}: {e.SymbolProvider(newCompilation)}"),
-                actualSemanticEdits.NullToEmpty().Select(e => $"{e.Kind}: {e.Symbol.Resolve(newCompilation).Symbol}"),
+                expectedSemanticEdits.Select(e => $"{e.Kind}: {e.SymbolProvider((e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation))}"),
+                actualSemanticEdits.NullToEmpty().Select(e => $"{e.Kind}: {e.Symbol.Resolve(e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation).Symbol}"),
                 message: message);
 
             for (var i = 0; i < actualSemanticEdits.Length; i++)
@@ -311,7 +316,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     else
                     {
                         Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
-                        Assert.Equal(null, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+
+                        // When we're deleting a symbol, and have a deleted symbol container, it means the symbol wasn't really deleted,
+                        // but rather had its signature changed in some way. Some of those ways, like changing the return type, are not
+                        // represented in the symbol key, so the check below would fail, so we skip it.
+                        if (expectedSemanticEdit.DeletedSymbolContainerProvider is null)
+                        {
+                            Assert.Equal(null, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                        }
                     }
 
                     var deletedSymbolContainer = actualSemanticEdit.DeletedSymbolContainer?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol;
@@ -375,7 +387,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private void CreateProjects(EditScript<SyntaxNode>[] editScripts, AdhocWorkspace workspace, TargetFramework targetFramework, out Project oldProject, out Project newProject)
         {
-            var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), name: "project", assemblyName: "project", LanguageName, filePath: Path.Combine(TempRoot.Root, "project" + ProjectFileExtension));
+            var projectInfo = ProjectInfo.Create(
+                new ProjectInfo.ProjectAttributes(
+                    id: ProjectId.CreateNewId(),
+                    version: VersionStamp.Create(),
+                    name: "project",
+                    assemblyName: "project",
+                    language: LanguageName,
+                    compilationOutputFilePaths: default,
+                    filePath: Path.Combine(TempRoot.Root, "project" + ProjectFileExtension),
+                    checksumAlgorithm: SourceHashAlgorithms.Default));
 
             oldProject = workspace.AddProject(projectInfo).WithMetadataReferences(TargetFrameworkUtil.GetReferences(targetFramework));
             foreach (var editScript in editScripts)
@@ -421,7 +442,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(AbstractEditAndContinueAnalyzer analyzer, Match<SyntaxNode> bodyMatch)
         {
             Dictionary<SyntaxNode, LambdaInfo>? lazyActiveOrMatchedLambdas = null;
-            var map = analyzer.GetTestAccessor().ComputeMap(bodyMatch, new ArrayBuilder<ActiveNode>(), ref lazyActiveOrMatchedLambdas, new ArrayBuilder<RudeEditDiagnostic>());
+            var map = analyzer.GetTestAccessor().ComputeMap(bodyMatch, new ArrayBuilder<ActiveNode>(), ref lazyActiveOrMatchedLambdas);
 
             var result = new Dictionary<SyntaxNode, SyntaxNode>();
             foreach (var pair in map.Forward)

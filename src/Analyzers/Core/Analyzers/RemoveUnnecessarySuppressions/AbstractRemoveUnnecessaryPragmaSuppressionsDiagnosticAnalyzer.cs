@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract ISemanticFacts SemanticFacts { get; }
         protected abstract (Assembly assembly, string typeName) GetCompilerDiagnosticAnalyzerInfo();
+        protected abstract bool ContainsPragmaDirective(SyntaxNode root);
 
         private ImmutableHashSet<int> GetSupportedCompilerErrorCodes()
         {
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             // The core algorithm is as follows:
             //  1. Iterate through all the active pragmas and local SuppressMessageAttributes in the source file and
             //     identify the pragmas and local SuppressMessageAttributes
-            //     with diagnostics IDs for which we support unnecesary suppression analysis.
+            //     with diagnostics IDs for which we support unnecessary suppression analysis.
             //  2. Build the following data structures during this loop:
             //      a. A map from diagnostic ID to list of pragmas for the ID. This map tracks supported diagnostic IDs for this tree's pragmas.
             //      b. A array of tuples of candidate pragmas sorted by span, along with associated IDs and enable/disable flag.
@@ -147,10 +148,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             //  3. Map the set of candidate diagnostic IDs to the analyzers that can report diagnostics with these IDs.
             //  4. Execute these analyzers to compute the diagnostics reported by these analyzers in this file.
             //  5. Iterate through the suppressed diagnostics from this list and do the following:
-            //     a. If the diagnostic was suppressed with a prama, mark the closest preceeeding disable pragma
+            //     a. If the diagnostic was suppressed with a pragma, mark the closest preceding disable pragma
             //        which suppresses this ID as used/necessary. Also mark the matching restore pragma as used.
             //     b. Otherwise, if the diagnostic was suppressed with SuppressMessageAttribute, mark the attribute as used. 
-            //  6. Finally, report a diagostic all the pragmas and SuppressMessageAttributes which have not been marked as used.
+            //  6. Finally, report a diagnostic all the pragmas and SuppressMessageAttributes which have not been marked as used.
 
             using var _1 = PooledDictionary<string, List<(SyntaxTrivia pragma, bool isDisable)>>.GetInstance(out var idToPragmasMap);
             using var _2 = ArrayBuilder<(SyntaxTrivia pragma, ImmutableArray<string> ids, bool isDisable)>.GetInstance(out var sortedPragmasWithIds);
@@ -229,14 +230,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             PooledHashSet<string> compilerDiagnosticIds,
             ImmutableArray<string> userExclusions)
         {
-            if (!root.ContainsDirectives)
+            if (!ContainsPragmaDirective(root))
             {
                 return false;
             }
 
             using var _ = ArrayBuilder<string>.GetInstance(out var idsBuilder);
             var hasPragmaInAnalysisSpan = false;
-            foreach (var trivia in root.DescendantTrivia())
+            foreach (var trivia in root.DescendantTrivia(node => node.ContainsDirectives))
             {
                 // Check if this is an active pragma with at least one applicable diagnostic ID/error code.
                 // Note that a pragma can have multiple error codes, such as '#pragma warning disable ID0001, ID0002'
@@ -824,20 +825,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             category = null;
 
             if (suppressMessageAttributeType.Equals(attribute.AttributeClass) &&
-                attribute.AttributeConstructor?.Parameters.Length >= 2 &&
-                attribute.AttributeConstructor.Parameters[1].Name == "checkId" &&
-                attribute.AttributeConstructor.Parameters[1].Type.SpecialType == SpecialType.System_String &&
-                attribute.ConstructorArguments.Length >= 2 &&
-                attribute.ConstructorArguments[1] is
-                {
-                    Kind: TypedConstantKind.Primitive,
-                    Value: string checkId
-                })
+                attribute.AttributeConstructor?.Parameters is [_, { Name: "checkId", Type.SpecialType: SpecialType.System_String }, ..] &&
+                attribute.ConstructorArguments is [_, { Kind: TypedConstantKind.Primitive, Value: string checkId }, ..])
             {
                 // CheckId represents diagnostic ID, followed by an option ':' and name.
                 // For example, "CA1801:ReviewUnusedParameters"
                 var index = checkId.IndexOf(':');
-                id = index > 0 ? checkId.Substring(0, index) : checkId;
+                id = index > 0 ? checkId[..index] : checkId;
 
                 if (attribute.AttributeConstructor.Parameters[0].Name == "category" &&
                     attribute.AttributeConstructor.Parameters[0].Type.SpecialType == SpecialType.System_String &&

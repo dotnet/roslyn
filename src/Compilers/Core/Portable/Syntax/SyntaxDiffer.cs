@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
             ReplaceOldWithNew
         }
 
-        private struct DiffAction
+        private readonly struct DiffAction
         {
             public readonly DiffOp Operation;
             public readonly int Count;

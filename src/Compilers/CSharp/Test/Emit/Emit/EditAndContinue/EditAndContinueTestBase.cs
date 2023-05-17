@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static SourceWithMarkedNodes MarkedSource(string markedSource, string fileName = "", CSharpParseOptions options = null, bool removeTags = false)
             => new SourceWithMarkedNodes(
                 WithWindowsLineBreaks(markedSource),
-                parser: s => Parse(s, fileName, options),
+                parser: s => Parse(s, fileName, options ?? TestOptions.Regular.WithNoRefSafetyRulesAttribute()),
                 getSyntaxKind: s => (int)(SyntaxKind)typeof(SyntaxKind).GetField(s).GetValue(null),
                 removeTags);
 
@@ -129,8 +129,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return null;
         }
 
-        internal static SemanticEditDescription Edit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, Func<Compilation, ISymbol> newSymbolProvider = null)
-            => new(kind, symbolProvider, newSymbolProvider);
+        internal static SemanticEditDescription Edit(
+            SemanticEditKind kind,
+            Func<Compilation, ISymbol> symbolProvider,
+            Func<Compilation, ISymbol> newSymbolProvider = null,
+            bool preserveLocalVariables = false)
+            => new(kind, symbolProvider, newSymbolProvider, preserveLocalVariables);
 
         internal static EditAndContinueLogEntry Row(int rowNumber, TableIndex table, EditAndContinueOperation operation)
         {

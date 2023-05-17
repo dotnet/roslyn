@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private int GetNullableAnnotationsHashCode(ITypeSymbol type)
-                => _symbolEquivalenceComparer._ignoreNullableAnnotations ? 0 : type.NullableAnnotation.GetHashCode();
+                => _symbolEquivalenceComparer._ignoreNullableAnnotations ? 0 : ((int)type.NullableAnnotation).GetHashCode();
 
             private int GetHashCodeWorker(ISymbol x, int currentHash)
                 => x.Kind switch

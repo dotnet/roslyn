@@ -333,6 +333,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.PreferredModifierOrder, value); }
         }
 
+        public string Style_PreferReadOnlyStruct
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferReadOnlyStruct); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferReadOnlyStruct, value); }
+        }
+
         public string Style_PreferStaticLocalFunction
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferStaticLocalFunction); }
@@ -403,6 +409,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer); }
             set { SetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, value); }
+        }
+
+        public string Style_AllowBlankLineAfterTokenInConditionalExpression
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression); }
+            set { SetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, value); }
+        }
+
+        public string Style_AllowBlankLineAfterTokenInArrowExpressionClause
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause); }
+            set { SetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, value); }
         }
 
         public string Style_NamespaceDeclarations

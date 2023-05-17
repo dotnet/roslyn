@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public sealed class CompletionList
     {
-        private readonly bool _isExclusive;
         private readonly Lazy<ImmutableArray<CompletionItem>> _lazyItems;
 
         /// <summary>
@@ -47,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The span identifies the text in the document that is used to filter the initial list 
         /// presented to the user, and typically represents the region of the document that will 
         /// be changed if this item is committed.
+        /// The latter is not always the case because each provider is free to make more complex changes 
+        /// to the document. If this is the case, <see cref="CompletionItem.IsComplexTextEdit"/> must be
+        /// set to <see langword="true"/>.
         /// </summary>
         public TextSpan Span { get; }
 
@@ -64,6 +66,11 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItem? SuggestionModeItem { get; }
 
+        /// <summary>
+        /// Whether the items in this list should be the only items presented to the user.
+        /// </summary>
+        internal bool IsExclusive { get; }
+
         private CompletionList(
             TextSpan defaultSpan,
             IReadOnlyList<CompletionItem> itemsList,
@@ -77,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             Rules = rules ?? CompletionRules.Default;
             SuggestionModeItem = suggestionModeItem;
-            _isExclusive = isExclusive;
+            IsExclusive = isExclusive;
 
             foreach (var item in ItemsList)
             {
@@ -132,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
             else
             {
-                return Create(newSpan, newItemsList, newRules, newSuggestionModeItem, isExclusive: false);
+                return Create(newSpan, newItemsList, newRules, newSuggestionModeItem, IsExclusive);
             }
         }
 
@@ -180,18 +187,5 @@ namespace Microsoft.CodeAnalysis.Completion
             suggestionModeItem: null, isExclusive: false);
 
         internal bool IsEmpty => ItemsList.Count == 0 && SuggestionModeItem is null;
-
-        internal TestAccessor GetTestAccessor()
-            => new(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly CompletionList _completionList;
-
-            public TestAccessor(CompletionList completionList)
-                => _completionList = completionList;
-
-            internal bool IsExclusive => _completionList._isExclusive;
-        }
     }
 }

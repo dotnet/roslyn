@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Indentation
 {
     internal abstract partial class AbstractIndentation<TSyntaxRoot>
     {
-        protected struct Indenter
+        protected readonly struct Indenter
         {
             private readonly AbstractIndentation<TSyntaxRoot> _service;
 

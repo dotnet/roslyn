@@ -265,6 +265,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_TupleElementNamesAttribute,
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker,
         System_Runtime_CompilerServices_NullableAttribute,
         System_Runtime_CompilerServices_NullableContextAttribute,
         System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
@@ -315,6 +316,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
         System_Runtime_CompilerServices_ScopedRefAttribute,
+        System_Runtime_CompilerServices_RefSafetyRulesAttribute,
 
         System_ArgumentNullException,
 
@@ -586,6 +588,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.TupleElementNamesAttribute",
 
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
+            "Microsoft.CodeAnalysis.Runtime.LocalStoreTracker",
 
             "System.Runtime.CompilerServices.NullableAttribute",
             "System.Runtime.CompilerServices.NullableContextAttribute",
@@ -636,6 +639,7 @@ namespace Microsoft.CodeAnalysis
             "System.Text.StringBuilder",
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
             "System.Runtime.CompilerServices.ScopedRefAttribute",
+            "System.Runtime.CompilerServices.RefSafetyRulesAttribute",
             "System.ArgumentNullException",
 
             "System.Runtime.CompilerServices.RequiredMemberAttribute",

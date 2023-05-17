@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 int position,
                 CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var startLineNumber = text.Lines.IndexOf(position);
@@ -105,8 +105,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             private bool TryDetermineOverridableMembers(
-                SemanticModel semanticModel, SyntaxToken startToken,
-                Accessibility seenAccessibility, out ImmutableArray<ISymbol> overridableMembers)
+                SemanticModel semanticModel,
+                SyntaxToken startToken,
+                Accessibility seenAccessibility,
+                out ImmutableArray<ISymbol> overridableMembers)
             {
                 var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(startToken.SpanStart, _cancellationToken);
                 Contract.ThrowIfNull(containingType);
@@ -115,12 +117,29 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 // Filter based on accessibility
                 if (seenAccessibility != Accessibility.NotApplicable)
-                {
-                    result = result.WhereAsArray(m => m.DeclaredAccessibility == seenAccessibility);
-                }
+                    result = result.WhereAsArray(m => MatchesAccessibility(m.DeclaredAccessibility, seenAccessibility));
 
                 overridableMembers = result;
                 return overridableMembers.Length > 0;
+
+                static bool MatchesAccessibility(Accessibility declaredAccessibility, Accessibility seenAccessibility)
+                {
+                    // since some accessibility modifiers take two keywords, allow filtering to those if the user has
+                    // only typed one of the keywords.  This makes it less onerous than having to determine the exact
+                    // right modifier set to specify, and follows the intuition of writing less filtering less and
+                    // writing more filtering out more.
+                    return seenAccessibility switch
+                    {
+                        // `private`, `private protected`
+                        Accessibility.Private => declaredAccessibility is Accessibility.Private or Accessibility.ProtectedAndInternal,
+                        // `protected`, `private protected`, `protected internal`
+                        Accessibility.Protected => declaredAccessibility is Accessibility.Protected or Accessibility.ProtectedAndInternal or Accessibility.ProtectedOrInternal,
+                        // `internal`, `protected internal`
+                        Accessibility.Internal => declaredAccessibility is Accessibility.Internal or Accessibility.ProtectedOrInternal,
+                        // For anything else, require an exact match.
+                        _ => declaredAccessibility == seenAccessibility,
+                    };
+                }
             }
 
             private bool TryCheckForTrailingTokens(int position)

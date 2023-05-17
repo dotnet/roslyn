@@ -2,13 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
@@ -17,12 +12,12 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         /// <summary>
         /// What we use to identify each SnippetProvider on the completion list
         /// </summary>
-        string SnippetIdentifier { get; }
+        string Identifier { get; }
 
         /// <summary>
-        /// What is being displayed for the description of the snippet
+        /// What is being displayed for the inline-description of the snippet as well as the title on the tool-tip.
         /// </summary>
-        string SnippetDescription { get; }
+        string Description { get; }
 
         /// <summary>
         /// Determines if a snippet can exist at a particular location.

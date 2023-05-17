@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal struct InlineRenameLocation
+    internal readonly struct InlineRenameLocation
     {
         public Document Document { get; }
         public TextSpan TextSpan { get; }
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor
         Allowed
     }
 
-    internal struct InlineRenameReplacement
+    internal readonly struct InlineRenameReplacement
     {
         public InlineRenameReplacementKind Kind { get; }
         public TextSpan OriginalSpan { get; }

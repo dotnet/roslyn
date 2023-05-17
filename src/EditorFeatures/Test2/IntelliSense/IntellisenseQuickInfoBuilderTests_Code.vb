@@ -9,9 +9,10 @@ Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text.Adornments
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <Trait(Traits.Feature, Traits.Features.QuickInfo)>
     Public Class IntellisenseQuickInfoBuilderTests_Code
         Inherits AbstractIntellisenseQuickInfoBuilderTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact>
         Public Async Function QuickInfoForXmlCodeElementWithCDATA() As Task
             Dim workspace =
                 <Workspace>
@@ -57,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact>
         Public Async Function QuickInfoForXmlCodeElement() As Task
             Dim workspace =
                 <Workspace>

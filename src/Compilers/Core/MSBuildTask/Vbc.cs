@@ -468,7 +468,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-
             // Verbosity
             if (
                    (this.Verbosity != null) &&
@@ -1089,7 +1088,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     Log.LogErrorWithCodeFromResources("General_IncorrectHostObject", "Vbc", "IVbcHostObject");
                 }
             }
-
 
             // No appropriate host object was found.
             UsedCommandLineTool = true;

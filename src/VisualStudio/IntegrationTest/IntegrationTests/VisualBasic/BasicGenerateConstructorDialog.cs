@@ -14,6 +14,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
     public class BasicGenerateConstructorDialog : AbstractEditorTest
     {
         private const string DialogName = "PickMembersDialog";
@@ -25,7 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WpfFact]
         public void VerifyCodeRefactoringOfferedAndCanceled()
         {
             SetUpEditor(@"
@@ -53,7 +54,7 @@ Class C
 End Class", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WpfFact]
         public void VerifyCodeRefactoringOfferedAndAccepted()
         {
             SetUpEditor(
@@ -87,7 +88,7 @@ Class C
 End Class", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WpfFact]
         public void VerifyReordering()
         {
             SetUpEditor(
@@ -124,7 +125,7 @@ Class C
 End Class", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WpfFact]
         public void VerifyDeselect()
         {
             SetUpEditor(

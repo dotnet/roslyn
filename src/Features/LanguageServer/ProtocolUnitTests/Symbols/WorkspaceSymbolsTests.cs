@@ -11,17 +11,22 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
 {
     public class WorkspaceSymbolsTests : AbstractLanguageServerProtocolTests
     {
+        public WorkspaceSymbolsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         private static void AssertSetEquals(LSP.SymbolInformation[] expected, LSP.SymbolInformation[]? results)
             => Assert.True(expected.ToHashSet().SetEquals(results));
 
-        [Fact]
-        public async Task TestGetWorkspaceSymbolsAsync_Class()
+        [Theory, CombinatorialData]
+        public async Task TestGetWorkspaceSymbolsAsync_Class(bool mutatingLspWorkspace)
         {
             var markup =
 @"class {|class:A|}
@@ -30,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var expected = new LSP.SymbolInformation[]
             {
                 CreateSymbolInformation(LSP.SymbolKind.Class, "A", testLspServer.GetLocations("class").Single(), Glyph.ClassInternal, GetContainerName(testLspServer.GetCurrentSolution()))
@@ -40,8 +45,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             AssertSetEquals(expected, results);
         }
 
-        [Fact]
-        public async Task TestGetWorkspaceSymbolsAsync_Class_Streaming()
+        [Theory, CombinatorialData]
+        public async Task TestGetWorkspaceSymbolsAsync_Class_Streaming(bool mutatingLspWorkspace)
         {
             var markup =
 @"class {|class:A|}
@@ -50,24 +55,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var expected = new LSP.SymbolInformation[]
             {
                 CreateSymbolInformation(LSP.SymbolKind.Class, "A", testLspServer.GetLocations("class").Single(), Glyph.ClassInternal, GetContainerName(testLspServer.GetCurrentSolution()))
             };
 
-            using var progress = BufferedProgress.Create<LSP.SymbolInformation>(null);
+            using var progress = BufferedProgress.Create<LSP.SymbolInformation[]>(null);
 
             var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "A", progress).ConfigureAwait(false);
 
             Assert.Null(results);
 
-            results = progress.GetValues().ToArray();
+            results = progress.GetFlattenedValues();
             AssertSetEquals(expected, results);
         }
 
-        [Fact]
-        public async Task TestGetWorkspaceSymbolsAsync_Method()
+        [Theory, CombinatorialData]
+        public async Task TestGetWorkspaceSymbolsAsync_Method(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -76,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var expected = new LSP.SymbolInformation[]
             {
                 CreateSymbolInformation(LSP.SymbolKind.Method, "M", testLspServer.GetLocations("method").Single(), Glyph.MethodPrivate, GetContainerName(testLspServer.GetCurrentSolution(), "A"))
@@ -86,10 +91,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             AssertSetEquals(expected, results);
         }
 
-        [Fact(Skip = "GetWorkspaceSymbolsAsync does not yet support locals.")]
+        [Theory(Skip = "GetWorkspaceSymbolsAsync does not yet support locals."), CombinatorialData]
         // TODO - Remove skip & modify once GetWorkspaceSymbolsAsync is updated to support all symbols.
         // https://github.com/dotnet/roslyn/projects/45#card-20033822
-        public async Task TestGetWorkspaceSymbolsAsync_Local()
+        public async Task TestGetWorkspaceSymbolsAsync_Local(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -99,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
         int {|local:i|} = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var expected = new LSP.SymbolInformation[]
             {
                 CreateSymbolInformation(LSP.SymbolKind.Variable, "i", testLspServer.GetLocations("local").Single(), Glyph.Local, GetContainerName(testLspServer.GetCurrentSolution(), "A.M.i"))
@@ -109,8 +114,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             AssertSetEquals(expected, results);
         }
 
-        [Fact]
-        public async Task TestGetWorkspaceSymbolsAsync_MultipleKinds()
+        [Theory, CombinatorialData]
+        public async Task TestGetWorkspaceSymbolsAsync_MultipleKinds(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -124,7 +129,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
         int {|field:F|};
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var classAContainerName = GetContainerName(testLspServer.GetCurrentSolution(), "A");
             var expected = new LSP.SymbolInformation[]
             {
@@ -137,8 +142,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             AssertSetEquals(expected, results);
         }
 
-        [Fact]
-        public async Task TestGetWorkspaceSymbolsAsync_MultipleDocuments()
+        [Theory, CombinatorialData]
+        public async Task TestGetWorkspaceSymbolsAsync_MultipleDocuments(bool mutatingLspWorkspace)
         {
             var markups = new string[]
             {
@@ -156,7 +161,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
 }"
             };
 
-            using var testLspServer = await CreateTestLspServerAsync(markups);
+            await using var testLspServer = await CreateTestLspServerAsync(markups, mutatingLspWorkspace);
             var expected = new LSP.SymbolInformation[]
             {
                 CreateSymbolInformation(LSP.SymbolKind.Method, "M", testLspServer.GetLocations("method")[0], Glyph.MethodPrivate, GetContainerName(testLspServer.GetCurrentSolution(), "A")),
@@ -167,8 +172,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             AssertSetEquals(expected, results);
         }
 
-        [Fact]
-        public async Task TestGetWorkspaceSymbolsAsync_NoSymbols()
+        [Theory, CombinatorialData]
+        public async Task TestGetWorkspaceSymbolsAsync_NoSymbols(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -177,21 +182,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "NonExistingSymbol").ConfigureAwait(false);
             Assert.Empty(results);
         }
 
-        [Fact]
-        public async Task TestGetWorkspaceSymbolsAsync_VisualBasic()
+        [Theory, CombinatorialData]
+        public async Task TestGetWorkspaceSymbolsAsync_VisualBasic(bool mutatingLspWorkspace)
         {
             var markup = @"Class {|class:A|}
     Sub Method()
     End Sub
 End Class";
 
-            using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup);
+            await using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace);
             var expected = new LSP.SymbolInformation[]
             {
                 CreateSymbolInformation(LSP.SymbolKind.Class, "A", testLspServer.GetLocations("class").Single(), Glyph.ClassInternal, GetContainerName(testLspServer.GetCurrentSolution()))

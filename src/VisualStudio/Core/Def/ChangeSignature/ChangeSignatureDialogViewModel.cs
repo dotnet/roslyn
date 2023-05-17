@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly ExistingParameterViewModel? _paramsParameter;
         private readonly HashSet<ParameterViewModel> _disabledParameters = new();
 
-        private ImmutableArray<SymbolDisplayPart> _declarationParts;
+        private readonly ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
 
         /// <summary>

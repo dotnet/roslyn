@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             if (end < start)
             {
-                throw new ArgumentOutOfRangeException(nameof(end), CodeAnalysisResources.EndMustNotBeLessThanStart);
+                throw new ArgumentOutOfRangeException(nameof(end), string.Format(CodeAnalysisResources.EndMustNotBeLessThanStart, start, end));
             }
 
             return new TextSpan(start, end - start);
@@ -225,9 +225,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Determines if current instance of <see cref="TextSpan"/> is equal to another.
         /// </summary>
         public override bool Equals(object? obj)
-        {
-            return obj is TextSpan && Equals((TextSpan)obj);
-        }
+            => obj is TextSpan span && Equals(span);
 
         /// <summary>
         /// Produces a hash code for <see cref="TextSpan"/>.

@@ -20,62 +20,49 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 {
     public class IntentTestsBase
     {
+        internal static async Task VerifyIntentMissingAsync(
+            string intentName,
+            string priorDocumentText,
+            string currentDocumentText,
+            OptionsCollection? options = null,
+            string? intentData = null)
+        {
+            using var workspace = TestWorkspace.CreateCSharp(priorDocumentText, composition: EditorTestCompositions.EditorFeatures);
+            var results = await GetIntentsAsync(workspace, intentName, currentDocumentText, options, intentData).ConfigureAwait(false);
+            Assert.Empty(results);
+        }
+
         internal static Task VerifyExpectedTextAsync(
             string intentName,
-            string markup,
+            string priorDocumentText,
+            string currentDocumentText,
             string expectedText,
             OptionsCollection? options = null,
-            string? intentData = null,
-            string? priorText = null)
+            string? intentData = null)
         {
-            return VerifyExpectedTextAsync(intentName, markup, new string[] { }, new string[] { expectedText }, options, intentData, priorText);
+            return VerifyExpectedTextAsync(intentName, priorDocumentText, currentDocumentText, Array.Empty<string>(), new string[] { expectedText }, options, intentData);
         }
 
         internal static async Task VerifyExpectedTextAsync(
             string intentName,
-            string activeDocument,
+            string priorDocumentText,
+            string currentDocumentText,
             string[] additionalDocuments,
             string[] expectedTexts,
             OptionsCollection? options = null,
-            string? intentData = null,
-            string? priorText = null)
+            string? intentData = null)
         {
-            var documentSet = additionalDocuments.Prepend(activeDocument).ToArray();
-
+            // Create the workspace from the prior document + any additional documents.
+            var documentSet = additionalDocuments.Prepend(priorDocumentText).ToArray();
             using var workspace = TestWorkspace.CreateCSharp(documentSet, composition: EditorTestCompositions.EditorFeatures);
-            options?.SetGlobalOptions(workspace.GlobalOptions);
-
-            var intentSource = workspace.ExportProvider.GetExportedValue<IIntentSourceProvider>();
-
-            // The first document will be the active document.
-            var document = workspace.Documents.Single(d => d.Name == "test1.cs");
-            var textBuffer = document.GetTextBuffer();
-
-            // Get the text change to rewind the document to the correct pre-intent location.
-            var rewindTextChange = new TextChange(document.AnnotatedSpans["typed"].Single(), priorText ?? string.Empty);
-
-            // Get the current snapshot span to pass in.
-            var currentSnapshot = new SnapshotSpan(textBuffer.CurrentSnapshot, new Span(0, textBuffer.CurrentSnapshot.Length));
-
-            var priorSelection = TextSpan.FromBounds(rewindTextChange.Span.Start, rewindTextChange.Span.Start);
-            if (document.AnnotatedSpans.ContainsKey("priorSelection"))
-            {
-                priorSelection = document.AnnotatedSpans["priorSelection"].Single();
-            }
-
-            var intentContext = new IntentRequestContext(
-                intentName,
-                currentSnapshot,
-                ImmutableArray.Create(rewindTextChange),
-                priorSelection,
-                intentData: intentData);
-            var results = await intentSource.ComputeIntentsAsync(intentContext, CancellationToken.None).ConfigureAwait(false);
+            var results = await GetIntentsAsync(workspace, intentName, currentDocumentText, options, intentData).ConfigureAwait(false);
 
             // For now, we're just taking the first result to match intellicode behavior.
             var result = results.First();
@@ -97,11 +84,54 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
                 actualDocumentTexts.Add(documentBuffer.CurrentSnapshot.GetText());
             }
 
+            actualDocumentTexts.Sort();
+            Array.Sort(expectedTexts);
+
             Assert.Equal(expectedTexts.Length, actualDocumentTexts.Count);
-            foreach (var expectedText in expectedTexts)
+            for (var i = 0; i < actualDocumentTexts.Count; i++)
             {
-                Assert.True(actualDocumentTexts.Contains(expectedText));
+                AssertEx.EqualOrDiff(expectedTexts[i], actualDocumentTexts[i]);
             }
+        }
+
+        internal static async Task<ImmutableArray<IntentSource>> GetIntentsAsync(
+            TestWorkspace workspace,
+            string intentName,
+            string currentDocumentText,
+            OptionsCollection? options = null,
+            string? intentData = null)
+        {
+            options?.SetGlobalOptions(workspace.GlobalOptions);
+
+            var intentSource = workspace.ExportProvider.GetExportedValue<IIntentSourceProvider>();
+
+            // Get the prior test document from the workspace.
+            var testDocument = workspace.Documents.Single(d => d.Name == "test1.cs");
+            var priorDocument = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
+
+            // Extract the prior selection annotated region from the prior document.
+            var priorSelection = testDocument.AnnotatedSpans["priorSelection"].Single();
+
+            // Move the test document buffer forward to the current document.
+            testDocument.Update(SourceText.From(currentDocumentText));
+            var currentTextBuffer = testDocument.GetTextBuffer();
+
+            // Get the text change to pass into the API that rewinds the current document to the prior document.
+            var currentDocument = currentTextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var textDiffService = workspace.CurrentSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            var changes = await textDiffService.GetTextChangesAsync(currentDocument, priorDocument, CancellationToken.None).ConfigureAwait(false);
+
+            // Get the current snapshot span to pass in.
+            var currentSnapshot = new SnapshotSpan(currentTextBuffer.CurrentSnapshot, new Span(0, currentTextBuffer.CurrentSnapshot.Length));
+
+            var intentContext = new IntentRequestContext(
+                intentName,
+                currentSnapshot,
+                changes,
+                priorSelection,
+                intentData: intentData);
+            var results = await intentSource.ComputeIntentsAsync(intentContext, CancellationToken.None).ConfigureAwait(false);
+            return results;
         }
     }
 }

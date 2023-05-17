@@ -24,7 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.VisitExpressionNode(lambda)
         End Function
 
-
         Private Shared Function BuildDelegateRelaxationLambda(
                 syntaxNode As SyntaxNode,
                 targetType As NamedTypeSymbol,
@@ -151,7 +150,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return result
         End Function
-
 
     End Class
 End Namespace

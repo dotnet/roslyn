@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
@@ -69,11 +70,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         private static readonly ImmutableArray<Update> EmptyUpdate = ImmutableArray.Create<Update>();
         private static readonly ImmutableArray<Diagnostic> EmptyDiagnostic = ImmutableArray.Create<Diagnostic>();
 
-        private readonly IEditAndContinueWorkspaceService _encService;
+        private readonly IEditAndContinueService _encService;
         private DebuggingSessionId _sessionId;
 
         public UnitTestingHotReloadService(HostWorkspaceServices services)
-            => _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>();
+            => _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         /// <summary>
         /// Starts the watcher.
@@ -86,6 +87,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             var newSessionId = await _encService.StartDebuggingSessionAsync(
                 solution,
                 new DebuggerService(capabilities),
+                NullPdbMatchingSourceTextProvider.Instance,
                 captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: false,

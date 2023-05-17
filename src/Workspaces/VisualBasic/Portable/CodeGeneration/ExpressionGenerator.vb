@@ -6,6 +6,7 @@ Imports System.Globalization
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -14,17 +15,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Const s_doubleQuote = """"
 
-        Friend Function GenerateExpression(typedConstant As TypedConstant) As ExpressionSyntax
+        Public Function GenerateExpression(generator As SyntaxGenerator, typedConstant As TypedConstant) As ExpressionSyntax
             Select Case typedConstant.Kind
                 Case TypedConstantKind.Primitive, TypedConstantKind.Enum
-                    Return GenerateExpression(typedConstant.Type, typedConstant.Value, canUseFieldReference:=True)
+                    Return GenerateExpression(generator, typedConstant.Type, typedConstant.Value, canUseFieldReference:=True)
 
                 Case TypedConstantKind.Array
                     If typedConstant.IsNull Then
                         Return GenerateNothingLiteral()
                     Else
                         Return SyntaxFactory.CollectionInitializer(
-                            SyntaxFactory.SeparatedList(typedConstant.Values.Select(AddressOf GenerateExpression)))
+                            SyntaxFactory.SeparatedList(typedConstant.Values.Select(Function(v) GenerateExpression(generator, v))))
                     End If
                 Case TypedConstantKind.Type
                     If Not TypeOf typedConstant.Value Is ITypeSymbol Then
@@ -38,17 +39,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Friend Function GenerateExpression(type As ITypeSymbol, value As Object, canUseFieldReference As Boolean) As ExpressionSyntax
-            If (type.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T) AndAlso
-               (value IsNot Nothing) Then
-                ' If the type of the argument is T?, then the type of the supplied default value can either be T 
-                ' (e.g. Optional x As Integer? = 5) or it can be T? (e.g. Optional x as SomeStruct? = Nothing). The
-                ' below statement handles the case where the type of the supplied default value is T.
-                Return GenerateExpression(DirectCast(type, INamedTypeSymbol).TypeArguments(0), value, canUseFieldReference)
-            End If
-
-            If type.TypeKind = TypeKind.Enum AndAlso value IsNot Nothing Then
-                Return DirectCast(VisualBasicFlagsEnumGenerator.Instance.CreateEnumConstantValue(DirectCast(type, INamedTypeSymbol), value), ExpressionSyntax)
+        Friend Function GenerateExpression(generator As SyntaxGenerator, type As ITypeSymbol, value As Object, canUseFieldReference As Boolean) As ExpressionSyntax
+            If value IsNot Nothing Then
+                If type.IsNullable() Then
+                    ' If the type of the argument is T?, then the type of the supplied default value can either be T 
+                    ' (e.g. Optional x As Integer? = 5) or it can be T? (e.g. Optional x as SomeStruct? = Nothing). The
+                    ' below statement handles the case where the type of the supplied default value is T.
+                    Return GenerateExpression(generator, DirectCast(type, INamedTypeSymbol).TypeArguments(0), value, canUseFieldReference)
+                ElseIf type?.TypeKind = TypeKind.Enum Then
+                    Return DirectCast(VisualBasicFlagsEnumGenerator.Instance.CreateEnumConstantValue(
+                        generator, DirectCast(type, INamedTypeSymbol), value), ExpressionSyntax)
+                End If
             End If
 
             Return GenerateNonEnumValueExpression(type, value, canUseFieldReference)

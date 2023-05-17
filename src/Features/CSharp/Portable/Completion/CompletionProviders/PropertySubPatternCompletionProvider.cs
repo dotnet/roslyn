@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return GetMemberType(type, name: identifier.Identifier.ValueText, document, semanticModel, position);
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             static ITypeSymbol? GetMemberType(ITypeSymbol? type, string name, Document document, SemanticModel semanticModel, int position)
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     IPropertySymbol property => property.Type,
                     IFieldSymbol field => field.Type,
-                    _ => throw ExceptionUtilities.Unreachable,
+                    _ => throw ExceptionUtilities.Unreachable(),
                 };
             }
 
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.IsKind(SyntaxKind.CommaToken, SyntaxKind.OpenBraceToken))
+            if (token.Kind() is SyntaxKind.CommaToken or SyntaxKind.OpenBraceToken)
             {
                 return token.Parent is PropertyPatternClauseSyntax { Parent: PatternSyntax } propertyPatternClause
                     ? (propertyPatternClause, null)

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement result = node.Update(loweredExpression);
                 if (!suppressInstrumentation && this.Instrument && !node.WasCompilerGenerated)
                 {
-                    result = _instrumenter.InstrumentExpressionStatement(node, result);
+                    result = Instrumenter.InstrumentExpressionStatement(node, result);
                 }
 
                 return result;

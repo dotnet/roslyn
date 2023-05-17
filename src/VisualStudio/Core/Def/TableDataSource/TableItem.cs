@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             ProjectGuids = projectGuids;
         }
 
-        internal static void GetProjectNameAndGuid(Workspace workspace, ProjectId? projectId, [NotNullIfNotNull("projectId")] out string? projectName, out Guid projectGuid)
+        internal static void GetProjectNameAndGuid(Workspace workspace, ProjectId? projectId, [NotNullIfNotNull(nameof(projectId))] out string? projectName, out Guid projectGuid)
         {
             projectName = (projectId == null) ? null : workspace.CurrentSolution.GetProject(projectId)?.Name ?? ServicesVSResources.Unknown2;
             projectGuid = (projectId != null && workspace is VisualStudioWorkspace vsWorkspace) ? vsWorkspace.GetProjectGuid(projectId) : Guid.Empty;
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public abstract ProjectId? ProjectId { get; }
 
         public abstract LinePosition GetOriginalPosition();
-        public abstract string? GetOriginalFilePath();
+        public abstract string GetOriginalFilePath();
         public abstract bool EqualsIgnoringLocation(TableItem other);
 
         public string? ProjectName

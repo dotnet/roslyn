@@ -152,7 +152,6 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
             }
         }
 
-
         /// <summary>
         /// Does pretty much the same thing as MetadataDecoder.DecodeType only instead of 
         /// producing a type symbol it compares encoded type to the target.

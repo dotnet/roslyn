@@ -28,12 +28,16 @@ namespace Microsoft.CodeAnalysis.AddImport
             /// </summary>
             private readonly InstallPackageDirectlyCodeActionOperation _installOperation;
 
+            /// <summary>
+            /// This code action only works by installing a package.  As such, it requires a non document change (and is
+            /// thus restricted in which hosts it can run).
+            /// </summary>
             public InstallPackageAndAddImportCodeAction(
                 Document originalDocument,
                 AddImportFixData fixData,
                 string title,
                 InstallPackageDirectlyCodeActionOperation installOperation)
-                : base(originalDocument, fixData)
+                : base(originalDocument, fixData, RequiresNonDocumentChangeTags)
             {
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.PackageSymbol);
                 Title = title;
@@ -53,7 +57,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var solutionChangeAction = SolutionChangeAction.Create("", GetUpdatedSolutionAsync, "");
 
                 using var _ = ArrayBuilder<CodeActionOperation>.GetInstance(out var result);
-                result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false));
+                result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(
+                    this.OriginalDocument.Project.Solution, cancellationToken).ConfigureAwait(false));
                 result.Add(_installOperation);
                 return result.ToImmutable();
             }
@@ -82,8 +87,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 var updatedDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-                var oldText = await OriginalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var newText = await updatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var oldText = await OriginalDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var newText = await updatedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 return ImmutableArray.Create<CodeActionOperation>(
                     new InstallPackageAndAddImportOperation(

@@ -22,16 +22,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly AssemblySymbol _embeddingAssembly;
         private readonly string _fullTypeName;
-        private readonly string _guid;
-        private readonly string _scope;
-        private readonly string _identifier;
+        private readonly string? _guid;
+        private readonly string? _scope;
+        private readonly string? _identifier;
 
         public NoPiaMissingCanonicalTypeSymbol(
             AssemblySymbol embeddingAssembly,
             string fullTypeName,
-            string guid,
-            string scope,
-            string identifier,
+            string? guid,
+            string? scope,
+            string? identifier,
             TupleExtraData? tupleData = null)
             : base(tupleData)
         {
@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override SyntaxTree? AssociatedSyntaxTree => null;
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
 
-        public string Guid
+        public string? Guid
         {
             get
             {
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public string Scope
+        public string? Scope
         {
             get
             {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public string Identifier
+        public string? Identifier
         {
             get
             {

@@ -10,16 +10,21 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
 public class LspWorkspaceRegistrationServiceTests : AbstractLanguageServerProtocolTests
 {
-    [Fact]
-    public async Task TestDisposedWorkspaceDeregistered()
+    public LspWorkspaceRegistrationServiceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestDisposedWorkspaceDeregistered(bool mutatingLspWorkspace)
     {
         var markup = "";
         TestWorkspaceRegistrationService registrationService;
-        using (var testLspServer = await CreateTestLspServerAsync(markup))
+        await using (var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace))
         {
             registrationService = (TestWorkspaceRegistrationService)testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationService>();
         }

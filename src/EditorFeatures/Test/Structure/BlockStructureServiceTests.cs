@@ -17,9 +17,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Outlining)]
     public class BlockStructureServiceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestSimpleLambda()
         {
             var code =
@@ -43,7 +44,7 @@ class C
             Assert.Equal(4, spans.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestParenthesizedLambda()
         {
             var code =
@@ -67,7 +68,7 @@ class C
             Assert.Equal(4, spans.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestAnonymousDelegate()
         {
             var code =

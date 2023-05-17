@@ -89,13 +89,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options
                 {
                     CleanupOptions = CodeCleanupOptions.GetDefault(languageServices) with
                     {
-                        FormattingOptions = SyntaxFormattingOptions.GetDefault(languageServices).With(new LineFormattingOptions
+                        FormattingOptions = SyntaxFormattingOptions.GetDefault(languageServices) with
                         {
-                            IndentationSize = lineFormattingOptions.IndentationSize,
-                            TabSize = lineFormattingOptions.TabSize,
-                            UseTabs = lineFormattingOptions.UseTabs,
-                            NewLine = lineFormattingOptions.NewLine,
-                        })
+                            LineFormatting = new()
+                            {
+                                IndentationSize = lineFormattingOptions.IndentationSize,
+                                TabSize = lineFormattingOptions.TabSize,
+                                UseTabs = lineFormattingOptions.UseTabs,
+                                NewLine = lineFormattingOptions.NewLine,
+                            }
+                        }
                     }
                 };
                 return new ValueTask<CleanCodeGenerationOptions>(codeGenerationOptions);

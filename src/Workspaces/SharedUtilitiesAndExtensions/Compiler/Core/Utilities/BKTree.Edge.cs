@@ -4,9 +4,9 @@
 
 namespace Roslyn.Utilities
 {
-    internal partial class BKTree
+    internal readonly partial struct BKTree
     {
-        private struct Edge
+        private readonly struct Edge
         {
             // The edit distance between the child and parent connected by this edge.
             // The child can be found in _nodes at ChildNodeIndex. 

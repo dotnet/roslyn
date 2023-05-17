@@ -126,6 +126,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - Typing experience and dealing with incomplete code
     - Intellisense (squiggles, dot completion)
     - "go to", Find All References, and renaming
+    - F1 help (for new keywords)
     - cref comments
     - UpgradeProject code fixer
     - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/main/docs/contributing/IDE%20Test%20Plan.md)
@@ -250,6 +251,7 @@ x + y
 x - y 
 x << y 
 x >> y 
+x >>> y 
 x < y 
 x > y 
 x <= y 
@@ -273,6 +275,7 @@ x += y
 x -= y 
 x <<= y 
 x >>= y 
+x >>>= y 
 x &= y 
 x ^= y 
 x |= y 

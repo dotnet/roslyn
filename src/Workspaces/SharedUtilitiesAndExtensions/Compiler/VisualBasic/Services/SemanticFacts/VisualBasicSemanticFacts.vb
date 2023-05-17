@@ -165,7 +165,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetForEachSymbols(model As SemanticModel, forEachStatement As SyntaxNode) As ForEachSymbols Implements ISemanticFacts.GetForEachSymbols
-
             Dim vbForEachStatement = TryCast(forEachStatement, ForEachStatementSyntax)
             If vbForEachStatement IsNot Nothing Then
                 Dim info = model.GetForEachStatementInfo(vbForEachStatement)
@@ -189,6 +188,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return Nothing
+        End Function
+
+        Public Function GetCollectionInitializerSymbolInfo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As SymbolInfo Implements ISemanticFacts.GetCollectionInitializerSymbolInfo
+            Return semanticModel.GetCollectionInitializerSymbolInfo(DirectCast(node, ExpressionSyntax), cancellationToken)
         End Function
 
         Public Function GetGetAwaiterMethod(model As SemanticModel, node As SyntaxNode) As IMethodSymbol Implements ISemanticFacts.GetGetAwaiterMethod
@@ -227,11 +230,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SpecializedCollections.SingletonEnumerable(semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken))
         End Function
 
-        Public Function FindParameterForArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForArgument
-            Return DirectCast(argument, ArgumentSyntax).DetermineParameter(semanticModel, allowUncertainCandidates, allowParamArray:=False, cancellationToken)
+        Public Function FindParameterForArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, allowParams As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForArgument
+            Return DirectCast(argument, ArgumentSyntax).DetermineParameter(semanticModel, allowUncertainCandidates, allowParams, cancellationToken)
         End Function
 
-        Public Function FindParameterForAttributeArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForAttributeArgument
+        Public Function FindParameterForAttributeArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, allowParams As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForAttributeArgument
             Return Nothing
         End Function
 
@@ -270,6 +273,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsInExpressionTree(semanticModel As SemanticModel, node As SyntaxNode, expressionTypeOpt As INamedTypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInExpressionTree
             Return node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken)
+        End Function
+
+        Public Function GenerateNameForExpression(semanticModel As SemanticModel,
+                                                  expression As SyntaxNode,
+                                                  capitalize As Boolean,
+                                                  cancellationToken As CancellationToken) As String Implements ISemanticFacts.GenerateNameForExpression
+            Return semanticModel.GenerateNameForExpression(
+                DirectCast(expression, ExpressionSyntax), capitalize, cancellationToken)
         End Function
     End Class
 End Namespace

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Summarizes whether a conversion is allowed, and if so, which kind of conversion (and in some cases, the
     /// associated symbol).
     /// </summary>
-    public struct Conversion : IEquatable<Conversion>, IConvertibleConversion
+    public readonly struct Conversion : IEquatable<Conversion>, IConvertibleConversion
     {
         private readonly ConversionKind _kind;
         private readonly UncommonData? _uncommonData;
@@ -25,6 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         // in uncommon cases an instance of this class is attached to the conversion.
         private class UncommonData
         {
+            public static readonly UncommonData NoApplicableOperators = new UncommonData(
+                isExtensionMethod: false,
+                isArrayIndex: false,
+                conversionResult: UserDefinedConversionResult.NoApplicableOperators(ImmutableArray<UserDefinedConversionAnalysis>.Empty),
+                conversionMethod: null,
+                nestedConversions: default);
+
             public UncommonData(
                 bool isExtensionMethod,
                 bool isArrayIndex,
@@ -107,12 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? ConversionKind.NoConversion
                 : isImplicit ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
 
-            _uncommonData = new UncommonData(
-                isExtensionMethod: false,
-                isArrayIndex: false,
-                conversionResult: conversionResult,
-                conversionMethod: null,
-                nestedConversions: default);
+            _uncommonData = conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators && conversionResult.Results.IsEmpty
+                ? UncommonData.NoApplicableOperators
+                : new UncommonData(
+                    isExtensionMethod: false,
+                    isArrayIndex: false,
+                    conversionResult: conversionResult,
+                    conversionMethod: null,
+                    nestedConversions: default);
         }
 
         // For the method group, lambda and anonymous method conversions
@@ -263,6 +272,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ImmutableArray<Conversion> ExplicitEnumerationUnderlying => ConversionSingletons.ExplicitEnumerationUnderlying;
         internal static ImmutableArray<Conversion> PointerToIntegerUnderlying => ConversionSingletons.PointerToIntegerUnderlying;
 
+        // Common combinations to avoid allocations:
+        internal static readonly Conversion ExplicitNullableWithExplicitEnumerationUnderlying = new Conversion(ConversionKind.ExplicitNullable, ExplicitEnumerationUnderlying);
+        internal static readonly Conversion ExplicitNullableWithPointerToIntegerUnderlying = new Conversion(ConversionKind.ExplicitNullable, PointerToIntegerUnderlying);
+        internal static readonly Conversion ExplicitNullableWithIdentityUnderlying = new Conversion(ConversionKind.ExplicitNullable, IdentityUnderlying);
+        internal static readonly Conversion ExplicitNullableWithImplicitNumericUnderlying = new Conversion(ConversionKind.ExplicitNullable, ImplicitNumericUnderlying);
+        internal static readonly Conversion ExplicitNullableWithExplicitNumericUnderlying = new Conversion(ConversionKind.ExplicitNullable, ExplicitNumericUnderlying);
+        internal static readonly Conversion ExplicitNullableWithImplicitConstantUnderlying = new Conversion(ConversionKind.ExplicitNullable, ImplicitConstantUnderlying);
+
+        internal static readonly Conversion ImplicitNullableWithExplicitEnumerationUnderlying = new Conversion(ConversionKind.ImplicitNullable, ExplicitEnumerationUnderlying);
+        internal static readonly Conversion ImplicitNullableWithPointerToIntegerUnderlying = new Conversion(ConversionKind.ImplicitNullable, PointerToIntegerUnderlying);
+        internal static readonly Conversion ImplicitNullableWithIdentityUnderlying = new Conversion(ConversionKind.ImplicitNullable, IdentityUnderlying);
+        internal static readonly Conversion ImplicitNullableWithImplicitNumericUnderlying = new Conversion(ConversionKind.ImplicitNullable, ImplicitNumericUnderlying);
+        internal static readonly Conversion ImplicitNullableWithExplicitNumericUnderlying = new Conversion(ConversionKind.ImplicitNullable, ExplicitNumericUnderlying);
+        internal static readonly Conversion ImplicitNullableWithImplicitConstantUnderlying = new Conversion(ConversionKind.ImplicitNullable, ImplicitConstantUnderlying);
+
         // these static fields are not directly inside the Conversion
         // because that causes CLR loader failure.
         private static class ConversionSingletons
@@ -289,33 +313,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(kind == ConversionKind.ImplicitNullable || kind == ConversionKind.ExplicitNullable);
 
-            ImmutableArray<Conversion> nested;
-            switch (nestedConversion.Kind)
+            return nestedConversion.Kind switch
             {
-                case ConversionKind.Identity:
-                    nested = IdentityUnderlying;
-                    break;
-                case ConversionKind.ImplicitConstant:
-                    nested = ImplicitConstantUnderlying;
-                    break;
-                case ConversionKind.ImplicitNumeric:
-                    nested = ImplicitNumericUnderlying;
-                    break;
-                case ConversionKind.ExplicitNumeric:
-                    nested = ExplicitNumericUnderlying;
-                    break;
-                case ConversionKind.ExplicitEnumeration:
-                    nested = ExplicitEnumerationUnderlying;
-                    break;
-                case ConversionKind.ExplicitPointerToInteger:
-                    nested = PointerToIntegerUnderlying;
-                    break;
-                default:
-                    nested = ImmutableArray.Create(nestedConversion);
-                    break;
-            }
-
-            return new Conversion(kind, nested);
+                ConversionKind.Identity => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithIdentityUnderlying : ExplicitNullableWithIdentityUnderlying,
+                ConversionKind.ImplicitConstant => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithImplicitConstantUnderlying : ExplicitNullableWithImplicitConstantUnderlying,
+                ConversionKind.ImplicitNumeric => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithImplicitNumericUnderlying : ExplicitNullableWithImplicitNumericUnderlying,
+                ConversionKind.ExplicitNumeric => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithExplicitNumericUnderlying : ExplicitNullableWithExplicitNumericUnderlying,
+                ConversionKind.ExplicitEnumeration => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithExplicitEnumerationUnderlying : ExplicitNullableWithExplicitEnumerationUnderlying,
+                ConversionKind.ExplicitPointerToInteger => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithPointerToIntegerUnderlying : ExplicitNullableWithPointerToIntegerUnderlying,
+                _ => new Conversion(kind, ImmutableArray.Create(nestedConversion)),
+            };
         }
 
         internal static Conversion MakeSwitchExpression(ImmutableArray<Conversion> innerConversions)
@@ -490,7 +497,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return false;
                 }
-
 
                 var nestedConversionsOpt = _uncommonData?._nestedConversionsOpt;
                 if (nestedConversionsOpt != null)
@@ -1154,7 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Stores all the information from binding for calling a Deconstruct method.</summary>
-    internal struct DeconstructMethodInfo
+    internal readonly struct DeconstructMethodInfo
     {
         internal DeconstructMethodInfo(BoundExpression invocation, BoundDeconstructValuePlaceholder inputPlaceholder,
             ImmutableArray<BoundDeconstructValuePlaceholder> outputPlaceholders)

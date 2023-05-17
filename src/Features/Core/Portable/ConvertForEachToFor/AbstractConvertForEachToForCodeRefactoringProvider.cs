@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 
         protected static SyntaxToken CreateUniqueName(
             ISemanticFactsService semanticFacts, SemanticModel model, SyntaxNode location, string baseName, CancellationToken cancellationToken)
-            => semanticFacts.GenerateUniqueLocalName(model, location, containerOpt: null, baseName, cancellationToken);
+            => semanticFacts.GenerateUniqueLocalName(model, location, container: null, baseName, cancellationToken);
 
         protected static SyntaxNode GetCollectionVariableName(
             SemanticModel model, SyntaxGenerator generator,
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             var collectionVariableToken = generator.Identifier(collectionVariable.ToString()).WithAdditionalAnnotations(RenameAnnotation.Create());
 
             // this expression is from user code. don't simplify this.
-            var expression = foreachCollectionExpression.WithoutAnnotations(SimplificationHelpers.DontSimplifyAnnotation);
+            var expression = foreachCollectionExpression.WithoutAnnotations(SimplificationHelpers.DoNotSimplifyAnnotation);
             var collectionStatement = generator.LocalDeclarationStatement(
                 type,
                 collectionVariableToken,
@@ -351,10 +351,8 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             foreach (var current in interfaceType.GetAllInterfacesIncludingThis())
             {
                 var members = current.GetMembers(memberName);
-                if (!members.IsEmpty && members[0] is IMethodSymbol method)
-                {
+                if (members is [IMethodSymbol method, ..])
                     return method;
-                }
             }
 
             return null;

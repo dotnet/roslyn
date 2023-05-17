@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
 
             protected override Stream CreateStream(DiagnosticBag diagnostics)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

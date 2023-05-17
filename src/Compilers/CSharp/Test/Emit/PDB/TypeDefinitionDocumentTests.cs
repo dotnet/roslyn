@@ -73,7 +73,6 @@ class C
             TestTypeDefinitionDocuments(new[] { source });
         }
 
-
         [Fact]
         public void PartialNestedClassWithMethod()
         {
@@ -382,7 +381,6 @@ enum E2
                 ("E", "1.cs"),
                 ("E2", "1.cs"));
         }
-
 
         [Fact]
         public void Delegate()

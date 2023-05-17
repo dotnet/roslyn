@@ -6,9 +6,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Utilities
 {
-    internal partial class BKTree
+    internal readonly partial struct BKTree
     {
-        private struct Node
+        private readonly struct Node
         {
             /// <summary>
             /// The string this node corresponds to.  Specifically, this span is the range of

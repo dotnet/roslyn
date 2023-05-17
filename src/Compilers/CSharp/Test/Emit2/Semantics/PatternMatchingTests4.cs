@@ -163,7 +163,7 @@ class C
                 // (12,18): error CS0150: A constant value is expected
                 //             case new { X = 0 }:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "new { X = 0 }").WithLocation(12, 18)
-                );
+            );
         }
 
         [Fact]
@@ -3430,16 +3430,16 @@ class Program
 ";
             var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
-                // (5,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                // 0.cs(5,18): error CS8521: Pattern-matching is not permitted for pointer types.
                 //         if (p is {}) { }
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "{}").WithLocation(5, 18),
-                // (6,18): error CS0266: Cannot implicitly convert type 'int' to 'int*'. An explicit conversion exists (are you missing a cast?)
+                // 0.cs(6,18): error CS0266: Cannot implicitly convert type 'int' to 'int*'. An explicit conversion exists (are you missing a cast?)
                 //         if (p is 1) { }
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1").WithArguments("int", "int*").WithLocation(6, 18),
-                // (6,18): error CS0150: A constant value is expected
+                // 0.cs(6,18): error CS9133: A constant value of type 'int*' is expected
                 //         if (p is 1) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1").WithLocation(6, 18),
-                // (7,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1").WithArguments("int*").WithLocation(6, 18),
+                // 0.cs(7,18): error CS8521: Pattern-matching is not permitted for pointer types.
                 //         if (p is var (x, y)) { }
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var (x, y)").WithLocation(7, 18)
                 );
@@ -4023,7 +4023,7 @@ class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (26,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'i3' of 'C.Deconstruct(out int, out string, out int?)'
+                // (26,18): error CS7036: There is no argument given that corresponds to the required parameter 'i3' of 'C.Deconstruct(out int, out string, out int?)'
                 //             case (< 10, object): // 1, 2
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(< 10, object)").WithArguments("i3", "C.Deconstruct(out int, out string, out int?)").WithLocation(26, 18),
                 // (26,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
@@ -4748,5 +4748,35 @@ public class C
 """);
         }
 #endif
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67923")]
+        public void VarPatternCapturingAfterDisjunctiveTypeTest()
+        {
+            var source = """
+A a = new B();
+
+if (a is (B or C) and var x)
+{
+    if (x is null)
+        throw null;
+    else
+        System.Console.WriteLine("OK");
+}
+
+class A { }
+class B : A { }
+class C : A { }
+class D : A { }
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "OK");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var x = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().First();
+            Assert.Equal("x", x.ToString());
+            Assert.Equal("A? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+        }
     }
 }

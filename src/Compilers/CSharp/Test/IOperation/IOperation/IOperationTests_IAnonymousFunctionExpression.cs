@@ -493,6 +493,29 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             Assert.True(lambdaOperation.Symbol.IsStatic);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IAnonymousFunctionExpression_DefaultParameterValue()
+        {
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        const int N = 10;
+                        var lam = (/*<bind>*/int x = N/*</bind>*/) => x;
+                        lam();
+                    }
+                }
+                """;
+            var expectedOperationTree = """
+                IParameterInitializerOperation (Parameter: [System.Int32 x = 10]) (OperationKind.ParameterInitializer, Type: null) (Syntax: '= N')
+                  ILocalReferenceOperation: N (OperationKind.LocalReference, Type: System.Int32, Constant: 10) (Syntax: 'N')
+                """;
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void LambdaFlow_01()

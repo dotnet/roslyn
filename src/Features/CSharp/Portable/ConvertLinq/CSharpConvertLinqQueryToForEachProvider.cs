@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             {
                 // Do not try refactoring queries with comments or conditional compilation in them.
                 // We can consider supporting queries with comments in the future.
-                if (_source.DescendantTrivia().Any(trivia => trivia.MatchesKind(
-                        SyntaxKind.SingleLineCommentTrivia,
-                        SyntaxKind.MultiLineCommentTrivia,
+                if (_source.DescendantTrivia().Any(trivia => trivia is (kind:
+                        SyntaxKind.SingleLineCommentTrivia or
+                        SyntaxKind.MultiLineCommentTrivia or
                         SyntaxKind.MultiLineDocumentationCommentTrivia) ||
                     _source.ContainsDirectives))
                 {
@@ -465,7 +465,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 {
                     case SyntaxKind.EqualsValueClause:
                         // Avoid for(int i = (from x in a select x).Count(); i < 10; i++)
-                        if (invocationParent.IsParentKind(SyntaxKind.VariableDeclarator, SyntaxKind.VariableDeclaration, SyntaxKind.LocalDeclarationStatement) &&
+                        if (invocationParent?.Parent.Kind() is
+                                SyntaxKind.VariableDeclarator or
+                                SyntaxKind.VariableDeclaration or
+                                SyntaxKind.LocalDeclarationStatement &&
                             // Avoid int i = (from x in a select x).Count(), j = i;
                             ((VariableDeclarationSyntax)invocationParent.Parent.Parent).Variables.Count == 1)
                         {
@@ -607,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
             private SyntaxToken GetFreeSymbolNameAndMarkUsed(string prefix)
             {
-                var freeToken = _semanticFacts.GenerateUniqueName(_semanticModel, _source, containerOpt: null, baseName: prefix, _introducedLocalNames, _cancellationToken);
+                var freeToken = _semanticFacts.GenerateUniqueName(_semanticModel, _source, container: null, baseName: prefix, _introducedLocalNames, _cancellationToken);
                 _introducedLocalNames.Add(freeToken.ValueText);
                 return freeToken;
             }
@@ -634,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         if (_semanticFacts.GenerateUniqueName(
                                 _semanticModel,
                                 location: forEachStatement.Statement,
-                                containerOpt: forEachStatement.Statement,
+                                container: forEachStatement.Statement,
                                 baseName: identifierName,
                                 usedNames: Enumerable.Empty<string>(),
                                 _cancellationToken).ValueText != identifierName)

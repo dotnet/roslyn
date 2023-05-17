@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -22,22 +21,22 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private class SourceSymbolsProjectSearchScope : ProjectSearchScope
         {
-            private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> _projectToAssembly;
+            private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> _projectToAssembly;
 
             public SourceSymbolsProjectSearchScope(
                 AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
-                Project project, bool ignoreCase, CancellationToken cancellationToken)
-                : base(provider, project, ignoreCase, cancellationToken)
+                ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly,
+                Project project, bool ignoreCase)
+                : base(provider, project, ignoreCase)
             {
                 _projectToAssembly = projectToAssembly;
             }
 
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
-                SymbolFilter filter, SearchQuery searchQuery)
+                SymbolFilter filter, SearchQuery searchQuery, CancellationToken cancellationToken)
             {
-                var service = _project.Solution.Services.GetService<SymbolTreeInfoCacheService>();
-                var info = await service.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
+                var service = _project.Solution.Services.GetRequiredService<ISymbolTreeInfoCacheService>();
+                var info = await service.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(_project, cancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
                     // Looks like there was nothing in the cache.  Return no results for now.
@@ -50,19 +49,16 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
 
                 var declarations = await info.FindAsync(
-                    searchQuery, lazyAssembly, filter, CancellationToken).ConfigureAwait(false);
+                    searchQuery, lazyAssembly, filter, cancellationToken).ConfigureAwait(false);
 
                 return declarations;
-            }
 
-            private static AsyncLazy<IAssemblySymbol> CreateLazyAssembly(Project project)
-            {
-                return new AsyncLazy<IAssemblySymbol>(
-                    async c =>
-                    {
-                        var compilation = await project.GetCompilationAsync(c).ConfigureAwait(false);
-                        return compilation.Assembly;
-                    }, cacheResult: true);
+                static AsyncLazy<IAssemblySymbol?> CreateLazyAssembly(Project project)
+                    => new(async c =>
+                           {
+                               var compilation = await project.GetRequiredCompilationAsync(c).ConfigureAwait(false);
+                               return compilation.Assembly;
+                           });
             }
         }
     }

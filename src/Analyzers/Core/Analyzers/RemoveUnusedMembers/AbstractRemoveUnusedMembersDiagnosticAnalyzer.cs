@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -24,6 +25,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         where TDocumentationCommentTriviaSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
+        /// <summary>
+        /// Produces names like TypeName.MemberName
+        /// </summary>
+        private static readonly SymbolDisplayFormat ContainingTypeAndNameOnlyFormat = new(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
+
         // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
         private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
@@ -86,6 +94,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
             private readonly INamedTypeSymbol _eventArgsType;
+            private readonly INamedTypeSymbol _iNotifyCompletionType;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
             private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> _analyzer;
@@ -102,6 +111,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _debuggerDisplayAttributeType = compilation.DebuggerDisplayAttributeType();
                 _structLayoutAttributeType = compilation.StructLayoutAttributeType();
                 _eventArgsType = compilation.EventArgsType();
+                _iNotifyCompletionType = compilation.GetBestTypeByMetadataName(typeof(INotifyCompletion).FullName!);
                 _deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
                 _attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(compilation));
             }
@@ -183,27 +193,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     //     We do so to ensure that we don't report false positives during editing scenarios in the IDE, where the user
                     //     is still editing code and fixing unresolved references to symbols, such as overload resolution errors.
                     //  2. Dynamic operations, where we do not know the exact member being referenced at compile time.
-                    //  3. Operations with OperationKind.None which are not operation root nodes. Attributes
-                    //     generate operation blocks with root operation with OperationKind.None, and we don't want to bail out for them.
-                    symbolStartContext.RegisterOperationAction(_ => hasUnsupportedOperation = true, OperationKind.Invalid,
+                    //  3. Operations with OperationKind.None.
+                    symbolStartContext.RegisterOperationAction(_ => hasUnsupportedOperation = true, OperationKind.Invalid, OperationKind.None,
                         OperationKind.DynamicIndexerAccess, OperationKind.DynamicInvocation, OperationKind.DynamicMemberReference, OperationKind.DynamicObjectCreation);
-                    symbolStartContext.RegisterOperationAction(AnalyzeOperationNone, OperationKind.None);
 
                     symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasUnsupportedOperation));
 
                     // Register custom language-specific actions, if any.
                     _analyzer.HandleNamedTypeSymbolStart(symbolStartContext, onSymbolUsageFound);
-
-                    return;
-
-                    void AnalyzeOperationNone(OperationAnalysisContext context)
-                    {
-                        if (context.Operation.Kind == OperationKind.None &&
-                            context.Operation.Parent != null)
-                        {
-                            hasUnsupportedOperation = true;
-                        }
-                    }
                 }, SymbolKind.NamedType);
             }
 
@@ -522,8 +519,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     }
                 }
 
-                var memberName = $"{member.ContainingType.Name}.{member.Name}";
-                return new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, memberName);
+                return new DiagnosticHelper.LocalizableStringWithArguments(
+                    messageFormat, member.ToDisplayString(ContainingTypeAndNameOnlyFormat));
             }
 
             private static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
@@ -550,7 +547,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                              .SelectMany(n => n.DescendantNodes().OfType<TIdentifierNameSyntax>()))
                     {
                         lazyModel ??= compilation.GetSemanticModel(root.SyntaxTree);
-                        var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol;
+                        var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol?.OriginalDefinition;
                         if (symbol != null && IsCandidateSymbol(symbol))
                         {
                             builder.Add(symbol);
@@ -593,15 +590,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 foreach (var attribute in symbol.GetAttributes())
                 {
                     if (attribute.AttributeClass == _debuggerDisplayAttributeType &&
-                        attribute.ConstructorArguments.Length == 1 &&
-                        attribute.ConstructorArguments[0] is var arg &&
-                        arg.Kind == TypedConstantKind.Primitive &&
-                        arg.Type.SpecialType == SpecialType.System_String)
+                        attribute.ConstructorArguments is [{ Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string value }])
                     {
-                        if (arg.Value is string value)
-                        {
-                            builder.Add(value);
-                        }
+                        builder.Add(value);
                     }
                 }
             }
@@ -616,7 +607,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             ///        such that is meets a few criteria (see implementation details below).
             ///     5. If field, then it must not be a backing field for an auto property.
             ///        Backing fields have a non-null <see cref="IFieldSymbol.AssociatedSymbol"/>.
-            ///     6. If property, then it must not be an explicit interface property implementation.
+            ///     6. If property, then it must not be an explicit interface property implementation
+            ///        or the 'IsCompleted' property which is needed to make a type awaitable.
             ///     7. If event, then it must not be an explicit interface event implementation.
             /// </summary>
             private bool IsCandidateSymbol(ISymbol memberSymbol)
@@ -706,6 +698,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                         return false;
                                     }
 
+                                    // Ignore methods which make a type awaitable.
+                                    if (methodSymbol.ContainingType.AllInterfaces.Contains(_iNotifyCompletionType, SymbolEqualityComparer.Default)
+                                        && methodSymbol.Name is "GetAwaiter" or "GetResult")
+                                    {
+                                        return false;
+                                    }
+
                                     return true;
 
                                 default:
@@ -716,6 +715,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             return ((IFieldSymbol)memberSymbol).AssociatedSymbol == null;
 
                         case SymbolKind.Property:
+                            if (memberSymbol.ContainingType.AllInterfaces.Contains(_iNotifyCompletionType) && memberSymbol.Name == "IsCompleted")
+                            {
+                                return false;
+                            }
+
                             return ((IPropertySymbol)memberSymbol).ExplicitInterfaceImplementations.IsEmpty;
 
                         case SymbolKind.Event:

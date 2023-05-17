@@ -244,13 +244,13 @@
   <data name="Insert_space_within_empty_argument_list_parentheses" xml:space="preserve">
     <value>Insert space within empty argument list parentheses</value>
   </data>
-  <data name="Insert_space_between_method_name_and_its_opening_parenthesis1" xml:space="preserve">
-    <value>Insert space between method name and its opening parenthesis</value>
+  <data name="Insert_space_between_called_method_name_and_its_opening_parenthesis" xml:space="preserve">
+    <value>Insert space between called method name and its opening parenthesis</value>
   </data>
   <data name="Insert_space_within_empty_parameter_list_parentheses" xml:space="preserve">
     <value>Insert space within empty parameter list parentheses</value>
   </data>
-  <data name="Insert_space_between_method_name_and_its_opening_parenthesis2" xml:space="preserve">
+  <data name="Insert_space_between_method_name_and_its_opening_parenthesis" xml:space="preserve">
     <value>Insert space between method name and its opening parenthesis</value>
   </data>
   <data name="Insert_space_within_parameter_list_parentheses" xml:space="preserve">
@@ -634,7 +634,7 @@
   <data name="Allow_blank_lines_between_consecutive_braces" xml:space="preserve">
     <value>Allow blank lines between consecutive braces</value>
   </data>
-  <data name="Allow_bank_line_after_colon_in_constructor_initializer" xml:space="preserve">
+  <data name="Allow_blank_line_after_colon_in_constructor_initializer" xml:space="preserve">
     <value>Allow blank line after colon in constructor initializer</value>
   </data>
   <data name="Automatically_complete_statement_on_semicolon" xml:space="preserve">
@@ -657,5 +657,11 @@
   </data>
   <data name="Show_new_snippet_experience_experimental" xml:space="preserve">
     <value>Show new snippet experience (experimental)</value>
+  </data>
+  <data name="Allow_blank_line_after_token_in_conditional_expression" xml:space="preserve">
+    <value>Allow blank line after token in conditional expression</value>
+  </data>
+  <data name="Allow_blank_line_after_token_in_arrow_expression_clause" xml:space="preserve">
+    <value>Allow blank line after token in arrow expression clause</value>
   </data>
 </root>

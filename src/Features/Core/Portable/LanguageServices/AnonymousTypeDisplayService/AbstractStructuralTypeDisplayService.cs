@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         {
             using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
 
-            var invokeMethod = anonymousType.DelegateInvokeMethod ?? throw ExceptionUtilities.Unreachable;
+            var invokeMethod = anonymousType.DelegateInvokeMethod ?? throw ExceptionUtilities.Unreachable();
 
             parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, symbol: null,
                 SyntaxFactsService.GetText(SyntaxFactsService.SyntaxKinds.DelegateKeyword)));
@@ -95,9 +95,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 var structuralType = transitiveStructuralTypeReferences[i];
                 typeParts.AddRange(Space(count: 4));
 
-                var kind =
-                    structuralType.IsValueType ? SymbolDisplayPartKind.StructName :
-                    structuralType.IsDelegateType() ? SymbolDisplayPartKind.DelegateName : SymbolDisplayPartKind.ClassName;
+                var kind = structuralType.GetSymbolDisplayPartKind();
 
                 typeParts.Add(Part(kind, structuralType, structuralType.Name));
                 typeParts.AddRange(Space());

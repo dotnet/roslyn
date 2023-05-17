@@ -44,9 +44,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var capabilities = clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true }
-                ? GetVSServerCapabilities()
-                : new ServerCapabilities();
+            var supportsVsExtensions = clientCapabilities.HasVisualStudioLspCapability();
+            var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new ServerCapabilities();
 
             var commitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
             var triggerCharacters = _completionProviders.SelectMany(
@@ -69,7 +68,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             capabilities.DocumentFormattingProvider = true;
             capabilities.DocumentRangeFormattingProvider = true;
             capabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } };
-            capabilities.ReferencesProvider = true;
+            capabilities.ReferencesProvider = new ReferenceOptions
+            {
+                WorkDoneProgress = true,
+            };
+
             capabilities.FoldingRangeProvider = true;
             capabilities.ExecuteCommandProvider = new ExecuteCommandOptions();
             capabilities.TextDocumentSync = new TextDocumentSyncOptions
@@ -80,20 +83,44 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             capabilities.HoverProvider = true;
 
-            // Using only range handling has shown to be more performant than using a combination of full/edits/range handling,
-            // especially for larger files. With range handling, we only need to compute tokens for whatever is in view, while
-            // with full/edits handling we need to compute tokens for the entire file and then potentially run a diff between
-            // the old and new tokens.
+            // Using only range handling has shown to be more performant than using a combination of full/edits/range
+            // handling, especially for larger files. With range handling, we only need to compute tokens for whatever
+            // is in view, while with full/edits handling we need to compute tokens for the entire file and then
+            // potentially run a diff between the old and new tokens.
             capabilities.SemanticTokensOptions = new SemanticTokensOptions
             {
                 Full = false,
                 Range = true,
                 Legend = new SemanticTokensLegend
                 {
-                    TokenTypes = SemanticTokenTypes.AllTypes.Concat(SemanticTokensHelpers.RoslynCustomTokenTypes).ToArray(),
+                    TokenTypes = SemanticTokensSchema.GetSchema(clientCapabilities).AllTokenTypes.ToArray(),
                     TokenModifiers = new string[] { SemanticTokenModifiers.Static }
                 }
             };
+
+            capabilities.CodeLensProvider = new CodeLensOptions
+            {
+                ResolveProvider = true,
+                // TODO - Code lens should support streaming
+                // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1730465
+                WorkDoneProgress = false,
+            };
+
+            capabilities.InlayHintOptions = new InlayHintOptions
+            {
+                ResolveProvider = true,
+                WorkDoneProgress = false,
+            };
+
+            if (!supportsVsExtensions)
+            {
+                capabilities.DiagnosticOptions = new DiagnosticOptions
+                {
+                    InterFileDependencies = true,
+                    WorkDoneProgress = true,
+                    WorkspaceDiagnostics = true,
+                };
+            }
 
             return capabilities;
         }

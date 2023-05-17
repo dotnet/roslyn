@@ -366,9 +366,17 @@ Class C(Of T)
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
+
             edits.VerifyLineEdits(
                 Array.Empty(Of SequencePointUpdates),
-                diagnostics:={Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "            ", FeaturesResources.method)})
+                diagnostics:={Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, vbCrLf & "            ", FeaturesResources.method)},
+                capabilities:=EditAndContinueCapabilities.Baseline)
+
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Bar"))},
+                capabilities:=EditAndContinueCapabilities.GenericUpdateMethod)
+
         End Sub
 
         <Fact>
@@ -392,7 +400,13 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits(
                 Array.Empty(Of SequencePointUpdates),
-                diagnostics:={Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, vbCrLf & "        ", FeaturesResources.method)})
+                diagnostics:={Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, vbCrLf & "        ", FeaturesResources.method)},
+                capabilities:=EditAndContinueCapabilities.Baseline)
+
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Bar"))},
+                capabilities:=EditAndContinueCapabilities.GenericUpdateMethod)
         End Sub
 
         <Fact>
@@ -957,9 +971,22 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
+
             edits.VerifyLineEdits(
                 Array.Empty(Of SequencePointUpdates),
-                diagnostics:={Diagnostic(RudeEditKind.GenericTypeUpdate, "Class C(Of T)")})
+                diagnostics:=
+                {
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "Class C(Of T)", GetResource("constructor", "New()"))
+                },
+                capabilities:=EditAndContinueCapabilities.Baseline)
+
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)
+                },
+                capabilities:=EditAndContinueCapabilities.GenericUpdateMethod)
         End Sub
 
         <Fact>
@@ -1433,7 +1460,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits(
                  Array.Empty(Of SequencePointUpdates)(),
-                 diagnostics:={Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "Sub Bar(Of T)()", FeaturesResources.method)})
+                 diagnostics:={Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "Sub Bar(Of T)()", FeaturesResources.method)},
+                 capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
 #End Region

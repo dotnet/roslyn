@@ -13,7 +13,7 @@
     mc:Ignorable="d" d:DesignHeight="279" d:DesignWidth="514">
 
     <options:AbstractOptionPageControl.Resources>
-        <DataTemplate DataType="{x:Type options:CheckBoxOptionViewModel}">
+        <DataTemplate DataType="{x:Type options:AbstractCheckBoxViewModel}">
             <StackPanel Orientation="Horizontal">
                 <CheckBox x:Uid="OptionCheckBox"
                                         AutomationProperties.LabeledBy="{Binding ElementName=OptionText}"
@@ -24,56 +24,6 @@
                 </CheckBox>
                 <TextBlock Name="OptionText" Text="{Binding Description}" Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}}"/>
             </StackPanel>
-        </DataTemplate>
-
-        <DataTemplate DataType="{x:Type options:CheckBoxWithComboOptionViewModel}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <CheckBox x:Uid="OptionCheckBox" 
-                                        IsChecked="{Binding IsChecked, Mode=TwoWay}"
-                                        Width="Auto"
-                                        Focusable="False"
-                                        Margin="20, 0, 0, 0"
-                                        Grid.Column="0"/>
-
-                <!-- TODO: remove hardcoded width -->
-                <ComboBox x:Uid="ComboBoxOptions"
-                                  ItemsSource="{Binding NotificationOptions}"
-                                  SelectedItem="{Binding SelectedNotificationOption, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                  HorizontalContentAlignment="Left"
-                                  VerticalContentAlignment="Center"
-                                  Margin="5, 0, 0, 0"
-                                  Width="100"
-                                  Grid.Column="1">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <imaging:CrispImage
-                                            Height="16" 
-                                            Width="16" 
-                                            Moniker="{Binding Moniker}"
-                                            Grid.Column="0"/>
-                                <TextBlock 
-                                            Margin="5, 0, 0, 0" 
-                                            Text="{Binding Notification}"
-                                            Grid.Column="1"
-                                            Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}}"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-
-                <TextBlock x:Uid="Description" Text="{Binding Description}"
-                                   Margin="5, 0, 0, 0" Grid.Column="2" TextWrapping="WrapWithOverflow"/>
-            </Grid>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type options:HeaderItemViewModel}">

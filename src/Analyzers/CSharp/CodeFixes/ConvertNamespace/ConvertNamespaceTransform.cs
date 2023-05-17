@@ -168,13 +168,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         {
             var leadingTrivia = token.LeadingTrivia;
 
-            if (leadingTrivia.Count >= 1 && leadingTrivia[0].Kind() == SyntaxKind.EndOfLineTrivia)
+            if (leadingTrivia is [(kind: SyntaxKind.EndOfLineTrivia), ..])
             {
                 withoutBlankLine = token.WithLeadingTrivia(leadingTrivia.RemoveAt(0));
                 return true;
             }
 
-            if (leadingTrivia.Count >= 2 && leadingTrivia[0].IsKind(SyntaxKind.WhitespaceTrivia) && leadingTrivia[1].IsKind(SyntaxKind.EndOfLineTrivia))
+            if (leadingTrivia is [(kind: SyntaxKind.WhitespaceTrivia), (kind: SyntaxKind.EndOfLineTrivia), ..])
             {
                 withoutBlankLine = token.WithLeadingTrivia(leadingTrivia.Skip(2));
                 return true;
@@ -186,7 +186,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         private static FileScopedNamespaceDeclarationSyntax ConvertNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
         {
-            var semiColon = SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithoutTrivia();
+            // If the open-brace token has any special trivia, then move them to after the semicolon.
+            var semiColon = SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                .WithoutTrivia()
+                .WithTrailingTrivia(namespaceDeclaration.Name.GetTrailingTrivia())
+                .WithAppendedTrailingTrivia(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
+
+            if (!namespaceDeclaration.OpenBraceToken.TrailingTrivia.All(static t => t.IsWhitespace()))
+                semiColon = semiColon.WithAppendedTrailingTrivia(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
 
             // Move trivia after the original name token to now be after the new semicolon token.
             var fileScopedNamespace = SyntaxFactory.FileScopedNamespaceDeclaration(
@@ -194,45 +201,43 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 namespaceDeclaration.Modifiers,
                 namespaceDeclaration.NamespaceKeyword,
                 namespaceDeclaration.Name.WithoutTrailingTrivia(),
-                semiColon.WithTrailingTrivia(namespaceDeclaration.Name.GetTrailingTrivia()),
+                semiColon,
                 namespaceDeclaration.Externs,
                 namespaceDeclaration.Usings,
                 namespaceDeclaration.Members);
 
-            var firstBodyToken = fileScopedNamespace.SemicolonToken.GetNextToken();
+            // Copy trivia from the close brace to the end of the file scoped namespace (which means after all of the members)
+            fileScopedNamespace = fileScopedNamespace
+                .WithAppendedTrailingTrivia(namespaceDeclaration.CloseBraceToken.LeadingTrivia)
+                .WithAppendedTrailingTrivia(namespaceDeclaration.CloseBraceToken.TrailingTrivia);
 
-            // If the open-brace token has any special trivia, then move them to before the first member in the namespace.
-            if (namespaceDeclaration.OpenBraceToken.LeadingTrivia.Any(t => t.IsSingleOrMultiLineComment() || t.IsDirective) ||
-                namespaceDeclaration.OpenBraceToken.TrailingTrivia.Any(t => t.IsSingleOrMultiLineComment() || t.IsDirective))
+            var originalHadTrailingNewLine = namespaceDeclaration.GetTrailingTrivia() is [.., (kind: SyntaxKind.EndOfLineTrivia)];
+
+            // now, intelligently trim excess newlines to try to match what the original namespace looked like.
+            while (fileScopedNamespace.HasTrailingTrivia)
             {
-                fileScopedNamespace = fileScopedNamespace.ReplaceToken(
-                    firstBodyToken,
-                    firstBodyToken.WithPrependedLeadingTrivia(namespaceDeclaration.OpenBraceToken.GetAllTrivia()));
-                firstBodyToken = fileScopedNamespace.SemicolonToken.GetNextNonZeroWidthTokenOrEndOfFile();
-            }
+                var trailingTrivia = fileScopedNamespace.GetTrailingTrivia();
 
-            // Otherwise, ensure there's a blank line between the namespace line and the first body member. Don't bother
-            // with this though if we already separated things by moving a pp directive (like a #else) from the open brace
-            // to the first token.
-            if (firstBodyToken.Kind() != SyntaxKind.EndOfFileToken &&
-                !HasLeadingBlankLine(firstBodyToken, out _) &&
-                !namespaceDeclaration.OpenBraceToken.LeadingTrivia.Any(t => t.IsDirective))
-            {
-                fileScopedNamespace = fileScopedNamespace.ReplaceToken(
-                    firstBodyToken,
-                    firstBodyToken.WithPrependedLeadingTrivia(SyntaxFactory.CarriageReturnLineFeed));
-            }
+                // if the new namespace doesn't end with a newline, nothing for us to do.
+                if (trailingTrivia is not [.., (kind: SyntaxKind.EndOfLineTrivia)])
+                    break;
 
-            // Copy leading trivia from the close brace to the end of the file scoped namespace (which means after all of the members)
-            fileScopedNamespace = fileScopedNamespace.WithAppendedTrailingTrivia(namespaceDeclaration.CloseBraceToken.LeadingTrivia);
+                // if the original had a newline, then we only want to trim the newlines as long as there is still one
+                // left at the end.
 
-            // If the previous namespace declaration had no trailing trivia and the last member only has a newline, then assume the user
-            // doesn't want that newline any more.
-            if (!namespaceDeclaration.HasTrailingTrivia &&
-                namespaceDeclaration.CloseBraceToken.GetPreviousToken() is var lastMemberToken &&
-                lastMemberToken.TrailingTrivia is [{ RawKind: (int)SyntaxKind.EndOfLineTrivia }])
-            {
-                fileScopedNamespace = fileScopedNamespace.WithoutTrailingTrivia();
+                if (originalHadTrailingNewLine && trailingTrivia is not
+                    [
+                        ..,
+                        (kind: SyntaxKind.EndOfLineTrivia or SyntaxKind.EndIfDirectiveTrivia or SyntaxKind.EndRegionDirectiveTrivia),
+                        (kind: SyntaxKind.EndOfLineTrivia)
+                    ])
+                {
+                    break;
+                }
+
+                // New namespace has excess newlines, remove the last one and try again.
+                fileScopedNamespace = fileScopedNamespace.WithTrailingTrivia(
+                    trailingTrivia.Take(trailingTrivia.Count - 1));
             }
 
             return fileScopedNamespace;

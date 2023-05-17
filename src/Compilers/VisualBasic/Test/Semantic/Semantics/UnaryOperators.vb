@@ -329,10 +329,8 @@ Long: -25
             CompileAndVerify(c1, expected)
         End Sub
 
-
         <Fact>
         Public Sub Test2()
-
 
             Dim compilationDef =
 <compilation name="Test2">
@@ -405,7 +403,6 @@ BC30487: Operator '-' is not defined for type 'Date'.
 
         End Sub
 
-
         <Fact>
         Public Sub Test3()
 
@@ -429,7 +426,6 @@ End Module</text>.Value
                         )},
                 references:=Nothing, options:=TestOptions.ReleaseDll)
 
-
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
 BC31091: Import of type 'Object' from assembly or module 'Test3.dll' failed.
@@ -450,7 +446,6 @@ BC42105: Function 'Main' doesn't return a value on all code paths. A null refere
 </expected>)
 
         End Sub
-
 
         <Fact>
         Public Sub Test4()
@@ -525,8 +520,6 @@ BC30439: Constant expression not representable in type 'Long'.
 
         End Sub
 
-
-
         <Fact>
         Public Sub Test5()
 
@@ -550,7 +543,6 @@ Module Module1
 End Module
     </file>
 </compilation>
-
 
             Dim expected =
 <expected>
@@ -751,12 +743,22 @@ End Class
 
             Assert.Equal(String.Format("Function {0}.{1}(value As {0}) As {2}",
                                        containerName,
-                                       OverloadResolution.TryGetOperatorName(op),
+                                       OverloadResolution.TryGetOperatorName(op, symbol1.IsCheckedBuiltin),
                                        returnName),
                          symbol1.ToTestDisplayString())
 
+            Assert.Equal(String.Format("Public Shared Operator {0}(value As {1}) As {2}",
+                                       SyntaxFacts.GetText(OverloadResolution.GetOperatorTokenKind(op)),
+                                       symbol1.Parameters(0).Type.ToDisplayString(),
+                                       symbol1.ReturnType.ToDisplayString()),
+                         symbol1.ToDisplayString())
+
             Assert.Equal(MethodKind.BuiltinOperator, symbol1.MethodKind)
             Assert.True(symbol1.IsImplicitlyDeclared)
+
+            Dim synthesizedMethod = compilation.CreateBuiltinOperator(
+                symbol1.Name, symbol1.ReturnType, symbol1.Parameters(0).Type)
+            Assert.Equal(synthesizedMethod, symbol1)
 
             Assert.Equal(op = UnaryOperatorKind.Minus AndAlso symbol1.ContainingType.IsIntegralType(),
                          symbol1.IsCheckedBuiltin)
@@ -796,7 +798,6 @@ End Class
 
         <Fact()>
         Public Sub CheckedIntrinsicSymbols()
-
 
             Dim source =
 <compilation>

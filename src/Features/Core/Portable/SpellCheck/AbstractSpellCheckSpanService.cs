@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             return spans.ToImmutable();
         }
 
-        private ref struct Worker
+        private readonly ref struct Worker
         {
             private readonly ISyntaxFactsService _syntaxFacts;
             private readonly ISyntaxKinds _syntaxKinds;

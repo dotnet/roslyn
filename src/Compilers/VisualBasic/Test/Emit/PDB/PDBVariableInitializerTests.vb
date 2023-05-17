@@ -34,7 +34,6 @@ partial Class C1
     End sub
 End Class
     </file>
-
         <file name="b.vb">
 Option strict on
 imports system

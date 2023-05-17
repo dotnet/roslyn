@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (end < start)
             {
-                throw new ArgumentException(CodeAnalysisResources.EndMustNotBeLessThanStart, nameof(end));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.EndMustNotBeLessThanStart, start, end), nameof(end));
             }
 
             _start = start;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override bool Equals(object? obj)
         {
-            return obj is LinePositionSpan && Equals((LinePositionSpan)obj);
+            return obj is LinePositionSpan span && Equals(span);
         }
 
         public bool Equals(LinePositionSpan other)

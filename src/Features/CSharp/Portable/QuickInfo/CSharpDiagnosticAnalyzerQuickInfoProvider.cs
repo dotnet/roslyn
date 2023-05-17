@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 IdentifierNameSyntax identifierName => identifierName.Identifier.ValueText,
                 // case 0219 or 219:
                 // Take the number and add the "CS" prefix.
-                LiteralExpressionSyntax { RawKind: (int)SyntaxKind.NumericLiteralExpression } literal
+                LiteralExpressionSyntax(SyntaxKind.NumericLiteralExpression) literal
                     => int.TryParse(literal.Token.ValueText, out var errorCodeNumber)
                         ? $"CS{errorCodeNumber:0000}"
                         : literal.Token.ValueText,

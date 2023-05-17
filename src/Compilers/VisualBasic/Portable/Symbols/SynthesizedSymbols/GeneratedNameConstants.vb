@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Const HoistedUserVariablePrefix As String = "$VB$Local_"
         Friend Const HoistedSpecialVariablePrefix As String = "$VB$NonLocal_" ' prefixes Me and Closure variables when hoisted
         Friend Const HoistedWithLocalPrefix As String = "$W"
-        Friend Const StateMachineHoistedUserVariablePrefix As String = "$VB$ResumableLocal_"
+        Friend Const StateMachineHoistedUserVariableOrDisplayClassPrefix As String = "$VB$ResumableLocal_"
         Friend Const ClosureVariablePrefix As String = "$VB$Closure_"
         Friend Const DisplayClassPrefix As String = "_Closure$__"
         Friend Const StateMachineTypeNamePrefix As String = "VB$StateMachine_"

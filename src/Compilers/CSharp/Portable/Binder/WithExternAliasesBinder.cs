@@ -69,8 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal sealed override uint LocalScopeDepth => Binder.ExternalScope;
-
         internal static WithExternAliasesBinder Create(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next)
         {
             return new FromSyntax(declaringSymbol, declarationSyntax, next);

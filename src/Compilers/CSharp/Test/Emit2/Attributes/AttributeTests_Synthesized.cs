@@ -1119,8 +1119,9 @@ public class Test
     {
     }
 }";
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
             var options = TestOptions.CreateTestOptions(outputKind, optimizationLevel);
-            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, parseOptions: parseOptions, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 VerifyDebuggableAttribute(module.GetAttributes().Single(), optimizationLevel, isSynthesized: false);
 
@@ -1192,8 +1193,9 @@ public class Test
     {
     }
 }";
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
             var options = TestOptions.CreateTestOptions(outputKind, optimizationLevel);
-            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, parseOptions: parseOptions, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 VerifyCompilationRelaxationsAttribute(module.GetAttributes().Single(), isSynthesized: false);
 
@@ -1229,8 +1231,9 @@ public class Test
     {
     }
 }";
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
             var options = TestOptions.CreateTestOptions(outputKind, optimizationLevel);
-            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, parseOptions: parseOptions, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 VerifyDebuggableAttribute(module.GetAttributes().Single(), options.OptimizationLevel, isSynthesized: false);
 
@@ -1256,7 +1259,7 @@ public class Test
         public void MissingWellKnownAttributesNoDiagnosticsAndNoSynthesizedAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
         {
             var options = TestOptions.CreateTestOptions(outputKind, optimizationLevel);
-            var compilation = CreateEmptyCompilation("", options: options);
+            var compilation = CreateEmptyCompilation("", parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: options);
 
             if (outputKind.IsApplication())
             {
@@ -1602,7 +1605,7 @@ unsafe class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.CreateTestOptions(outputKind, OptimizationLevel.Release, allowUnsafe: true));
+            var compilation = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.CreateTestOptions(outputKind, OptimizationLevel.Release, allowUnsafe: true));
 
             //Skipped because PeVerify fails to run with "The module  was expected to contain an assembly manifest."
             CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: module =>
@@ -1908,6 +1911,8 @@ public class Test<T>
         [Fact, WorkItem(7809, "https://github.com/dotnet/roslyn/issues/7809")]
         public void SynthesizeAttributeWithUseSiteErrorFails()
         {
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+
             #region "mslib"
             var mslibNoString = @"
 namespace System
@@ -1926,11 +1931,11 @@ namespace System
             #endregion
 
             // Build an mscorlib including String
-            var mslibComp = CreateEmptyCompilation(new string[] { mslib }).VerifyDiagnostics();
+            var mslibComp = CreateEmptyCompilation(new string[] { mslib }, parseOptions: parseOptions).VerifyDiagnostics();
             var mslibRef = mslibComp.EmitToImageReference();
 
             // Build an mscorlib without String
-            var mslibNoStringComp = CreateEmptyCompilation(new string[] { mslibNoString }).VerifyDiagnostics();
+            var mslibNoStringComp = CreateEmptyCompilation(new string[] { mslibNoString }, parseOptions: parseOptions).VerifyDiagnostics();
             var mslibNoStringRef = mslibNoStringComp.EmitToImageReference();
 
             var diagLibSource = @"
@@ -1947,11 +1952,11 @@ namespace System.Runtime.CompilerServices
     public class CompilerGeneratedAttribute { } 
 }";
             // Build Diagnostics referencing mscorlib with String
-            var diagLibComp = CreateEmptyCompilation(new string[] { diagLibSource }, references: new[] { mslibRef }).VerifyDiagnostics();
+            var diagLibComp = CreateEmptyCompilation(new string[] { diagLibSource }, parseOptions: parseOptions, references: new[] { mslibRef }).VerifyDiagnostics();
             var diagLibRef = diagLibComp.EmitToImageReference();
 
             // Create compilation using Diagnostics but referencing mscorlib without String
-            var comp = CreateEmptyCompilation(new SyntaxTree[] { Parse("") }, references: new[] { diagLibRef, mslibNoStringRef });
+            var comp = CreateEmptyCompilation(new SyntaxTree[] { Parse("", options: parseOptions) }, references: new[] { diagLibRef, mslibNoStringRef });
 
             // Attribute cannot be synthesized because ctor has a use-site error (String type missing)
             var attribute = comp.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor);

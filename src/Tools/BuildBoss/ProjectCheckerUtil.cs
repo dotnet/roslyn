@@ -291,6 +291,8 @@ namespace BuildBoss
                     case "netcoreapp3.1":
                     case "net6.0":
                     case "net6.0-windows":
+                    case "net7.0":
+                    case "net8.0":
                         continue;
                 }
 

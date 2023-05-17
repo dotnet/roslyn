@@ -22,7 +22,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
         FreeLibrary(hFile As IntPtr) As Boolean
         End Function
 
-
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub DefaultVersionResource()
             Dim source =
@@ -367,9 +366,6 @@ End Module
 
             Assert.Equal(expected, versionData)
         End Sub
-
-
-
 
         <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>

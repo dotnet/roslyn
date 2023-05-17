@@ -8,7 +8,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct AssemblyVersion : IEquatable<AssemblyVersion>, IComparable<AssemblyVersion>
+    internal readonly struct AssemblyVersion : IEquatable<AssemblyVersion>, IComparable<AssemblyVersion>
     {
         private readonly ushort _major;
         private readonly ushort _minor;

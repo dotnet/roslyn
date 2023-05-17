@@ -5,10 +5,11 @@
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
 
-        <WorkItem(541928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541928")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541928")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpRangeVariableInInto1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -31,8 +32,8 @@ class C
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(541928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541928")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541928")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpRangeVariableInInto2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -55,8 +56,8 @@ class C
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpRangeVariableInSubmission1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -69,8 +70,8 @@ var q = from $${|Definition:x|} in new int[] { 1, 2, 3, 4 } select [|x|];
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpRangeVariableInSubmission2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -83,8 +84,8 @@ var q = from {|Definition:x|} in new int[] { 1, 2, 3, 4 } select [|$$x|];
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpRangeVariableInFieldInitializer1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -101,8 +102,8 @@ class C
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpRangeVariableInFieldInitializer2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -119,8 +120,8 @@ class C
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542509")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542509")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVisualBasicTrivialSelect1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -141,8 +142,8 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542509")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542509")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVisualBasicTrivialSelect2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -163,8 +164,8 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(545163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545163")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545163")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVisualBasicLetClause1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -182,8 +183,8 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(545163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545163")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545163")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVisualBasicLetClause2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -201,8 +202,8 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(628189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628189")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628189")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVisualBasicMultipleAggregateFunctions(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -238,7 +239,7 @@ End Namespace
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpRangeVariableUseInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

@@ -4,13 +4,17 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -29,7 +33,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         internal static void EnableAsynchronousOperationTracking()
         {
-            AsynchronousOperationListenerProvider.Enable(true);
+            AsynchronousOperationListenerProvider.Enable(true, diagnostics: true);
         }
 
         protected override async Task InitializeCoreAsync()
@@ -51,7 +55,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public async Task<bool> IsPrettyListingOnAsync(string languageName, CancellationToken cancellationToken)
         {
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            return globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
+            return globalOptions.GetOption(LineCommitOptionsStorage.PrettyListing, languageName);
         }
 
         public async Task SetPrettyListingAsync(string languageName, bool value, CancellationToken cancellationToken)
@@ -59,7 +63,37 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.PrettyListing, languageName), value);
+            globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, languageName, value);
+        }
+
+        public async Task SetTriggerCompletionInArgumentListsAsync(string languageName, bool value, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
+            globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, languageName, value);
+        }
+
+        public async Task SetFileScopedNamespaceAsync(bool value, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
+            globalOptions.SetGlobalOption(Microsoft.CodeAnalysis.CSharp.CodeStyle.CSharpCodeStyleOptions.NamespaceDeclarations,
+                new CodeStyleOption2<NamespaceDeclarationPreference>(value ? NamespaceDeclarationPreference.FileScoped : NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Suggestion));
+        }
+
+        public async Task SetFullSolutionAnalysisAsync(bool value, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
+
+            var scope = value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default;
+            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope);
+            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope);
+
+            var compilerScope = value ? CompilerDiagnosticsScope.FullSolution : CompilerDiagnosticsScope.OpenFiles;
+            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.CSharp, compilerScope);
+            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.VisualBasic, compilerScope);
         }
 
         public Task WaitForAsyncOperationsAsync(string featuresToWaitFor, CancellationToken cancellationToken)
@@ -115,6 +149,18 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             await listenerProvider.WaitAllAsync(workspace, featureNames).WithCancellation(cancellationToken);
+        }
+
+        public async Task WaitForRenameAsync(CancellationToken cancellationToken)
+        {
+            await WaitForAllAsyncOperationsAsync(
+                new[]
+                {
+                    FeatureAttribute.Rename,
+                    FeatureAttribute.RenameTracking,
+                    FeatureAttribute.InlineRenameFlyout,
+                },
+                cancellationToken);
         }
 
         /// <summary>

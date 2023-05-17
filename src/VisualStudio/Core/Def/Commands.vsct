@@ -66,6 +66,12 @@
 
       <Group guid="guidRoslynGrpId" id="grpSetActiveRuleSet">
       </Group>
+
+      <Group guid="guidStackTraceExplorer" id="StackTraceExplorerContextMenuGrp" />
+
+      <Group guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbarGroup" priority="0x0100">
+        <Parent guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbar" />
+      </Group>
     </Groups>
 
     <Buttons>
@@ -494,14 +500,106 @@
         </Strings>
       </Button>
 
-      <Button guid="guidStackTraceExplorerCmdSet" id="cmdIdShowStackTraceExplorer" priority="0x0100" type="Button">
+      <Button guid="guidStackTraceExplorer" id="cmdIdShowStackTraceExplorer" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
+        <Icon guid="ImageCatalogGuid" id="CallStackWindow" />
         <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>IconAndText</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Stack Trace Explorer</ButtonText>
           <CommandName>ShowStackTraceExplorerCommandName</CommandName>
           <CanonicalName>ShowStackTraceExplorer</CanonicalName>
           <LocCanonicalName>ShowStackTraceExplorer</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidStackTraceExplorer" id="cmdIdPasteStackTraceExplorer" type="Button">
+        <Icon guid="ImageCatalogGuid" id="Paste" />
+        <CommandFlag>IconAndText</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Paste</ButtonText>
+          <CommandName>PasteStackTraceExplorerCommandName</CommandName>
+          <CanonicalName>PasteStackTraceExplorer</CanonicalName>
+          <LocCanonicalName>PasteStackTraceExplorer</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidStackTraceExplorer" id="cmdIdClearStackTraceExplorer" type="Button">
+        <Icon guid="ImageCatalogGuid" id="ClearCollection" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>IconAndText</CommandFlag>
+        <Strings>
+          <ButtonText>Clear</ButtonText>
+          <CommandName>CleearStackTraceExplorerCommandName</CommandName>
+          <CanonicalName>ClearStackTraceExplorer</CanonicalName>
+          <LocCanonicalName>ClearStackTraceExplorer</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidDocumentOutlineExpandAll" priority="0x0101" type="Button">
+        <Parent guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbarGroup" />
+        <Icon guid="ImageCatalogGuid" id="ExpandAll" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <LocCanonicalName>DocumentOutlineExpandAll</LocCanonicalName>
+          <ButtonText>Expand All</ButtonText>
+          <MenuText>Expand All</MenuText>
+          <ToolTipText>Expand All</ToolTipText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidDocumentOutlineCollapseAll" priority="0x0102" type="Button">
+        <Parent guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbarGroup" />
+        <Icon guid="ImageCatalogGuid" id="CollapseAll" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <LocCanonicalName>DocumentOutlineCollapseAll</LocCanonicalName>
+          <ButtonText>Collapse All</ButtonText>
+          <MenuText>Collapse All</MenuText>
+          <ToolTipText>Collapse All</ToolTipText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidDocumentOutlineSortByName" priority="0x0103" type="Button">
+        <Parent guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbarGroup" />
+        <Icon guid="ImageCatalogGuid" id="SortAscending" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <LocCanonicalName>DocumentOutlineSortByName</LocCanonicalName>
+          <ButtonText>Sort By Name</ButtonText>
+          <MenuText>Sort By Name</MenuText>
+          <ToolTipText>Sort By Name</ToolTipText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidDocumentOutlineSortByOrder" priority="0x0104" type="Button">
+        <Parent guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbarGroup" />
+        <Icon guid="ImageCatalogGuid" id="SortByNamespace" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <LocCanonicalName>DocumentOutlineSortByOrder</LocCanonicalName>
+          <ButtonText>Sort By Order</ButtonText>
+          <MenuText>Sort By Order</MenuText>
+          <ToolTipText>Sort By Order</ToolTipText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidDocumentOutlineSortByType" priority="0x0105" type="Button">
+        <Parent guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbarGroup" />
+        <Icon guid="ImageCatalogGuid" id="SortByType" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <LocCanonicalName>DocumentOutlineSortByType</LocCanonicalName>
+          <ButtonText>Sort By Type</ButtonText>
+          <MenuText>Sort By Type</MenuText>
+          <ToolTipText>Sort By Type</ToolTipText>
         </Strings>
       </Button>
     </Buttons>
@@ -581,6 +679,23 @@
           <LocCanonicalName>Set severity</LocCanonicalName>
         </Strings>
       </Menu>
+      
+      <!-- StackTraceExplorer menus -->
+      <Menu guid="guidStackTraceExplorer" id="StackTraceExplorerContextMenu" type="Context">
+        <Strings>
+          <MenuText>StackTrace Explorer</MenuText>
+          <ButtonText>StackTrace Explorer</ButtonText>
+        </Strings>
+      </Menu>
+
+      <!-- Document Outline toolbar -->
+      <Menu guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbar" type="Toolbar">
+        <CommandFlag>NotInTBList</CommandFlag>
+        <Strings>
+          <LocCanonicalName>RoslynDocumentOutlineToolbar</LocCanonicalName>
+          <ButtonText>Document Outline</ButtonText>
+        </Strings>
+      </Menu>
     </Menus>
   </Commands>
 
@@ -631,6 +746,18 @@
     <CommandPlacement guid="guidRoslynGrpId" id="cmdidshowValueTracking" priority="0xF200">
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
     </CommandPlacement>
+
+    <CommandPlacement guid="guidStackTraceExplorer" id="StackTraceExplorerContextMenuGrp" priority="0x0001">
+      <Parent guid="guidStackTraceExplorer" id="StackTraceExplorerContextMenu" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidStackTraceExplorer" id="cmdIdPasteStackTraceExplorer" priority="0x0001">
+      <Parent guid="guidStackTraceExplorer" id="StackTraceExplorerContextMenuGrp" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidStackTraceExplorer" id="cmdIdClearStackTraceExplorer" priority="0x0002">
+      <Parent guid="guidStackTraceExplorer" id="StackTraceExplorerContextMenuGrp" />
+    </CommandPlacement>
   </CommandPlacements>
 
   <KeyBindings>
@@ -641,7 +768,7 @@
 
     <KeyBinding guid="guidCSharpGrpId" id="cmdidCSharpOrganizeRemoveAndSort" mod1="Control" key1="R" key2="G" editor="guidVSStd97" />
     <KeyBinding guid="guidCSharpGrpId" id="cmdidCSharpOrganizeRemoveAndSort" mod1="Control" key1="R" mod2="Control" key2="G" editor="guidVSStd97" />
-    <KeyBinding guid="guidStackTraceExplorerCmdSet" id="cmdIdShowStackTraceExplorer" mod1="Control" key1="E" mod2="Control" key2="S" editor="guidVSStd97" />
+    <KeyBinding guid="guidStackTraceExplorer" id="cmdIdShowStackTraceExplorer" mod1="Control" key1="E" mod2="Control" key2="S" editor="guidVSStd97" />
   </KeyBindings>
 
   <UsedCommands>
@@ -731,6 +858,14 @@
       <IDSymbol name="cmdidshowValueTracking"  value="0x0203" />
 
       <IDSymbol name="cmdidSyncNamespaces" value="0x204" />
+
+      <IDSymbol name="cmdidDocumentOutlineToolbar" value="0x300" />
+      <IDSymbol name="cmdidDocumentOutlineExpandAll" value="0x311"/>
+      <IDSymbol name="cmdidDocumentOutlineCollapseAll" value="0x312"/>
+      <IDSymbol name="cmdidDocumentOutlineSortByName" value="0x313"/>
+      <IDSymbol name="cmdidDocumentOutlineSortByOrder" value="0x314"/>
+      <IDSymbol name="cmdidDocumentOutlineSortByType" value="0x315"/>
+      <IDSymbol name="cmdidDocumentOutlineToolbarGroup" value="0x350" />
     </GuidSymbol>
 
     <GuidSymbol name="guidEditorCommands" value="{160961B3-909D-4B28-9353-A1BEF587B4A6}">
@@ -756,8 +891,12 @@
       <IDSymbol name="cmdAddReferenceGroup" value="0x450" />
     </GuidSymbol>
 
-    <GuidSymbol name="guidStackTraceExplorerCmdSet" value="{FB190424-4DFF-43DB-8CCA-E32D1CE8A5CA}">
+    <GuidSymbol name="guidStackTraceExplorer" value="{FB190424-4DFF-43DB-8CCA-E32D1CE8A5CA}">
       <IDSymbol name="cmdIdShowStackTraceExplorer" value="0x0100" />
+      <IDSymbol name="cmdIdPasteStackTraceExplorer" value="0x0101" />
+      <IDSymbol name="cmdIdClearStackTraceExplorer" value="0x0102" />
+      <IDSymbol name="StackTraceExplorerContextMenuGrp" value="0x0200" />
+      <IDSymbol name="StackTraceExplorerContextMenu" value="0x0300" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

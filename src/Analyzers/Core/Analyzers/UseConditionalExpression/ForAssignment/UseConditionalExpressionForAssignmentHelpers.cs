@@ -13,11 +13,13 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public static bool TryMatchPattern(
             ISyntaxFacts syntaxFacts,
             IConditionalOperation ifOperation,
+            out bool isRef,
             [NotNullWhen(true)] out IOperation trueStatement,
             [NotNullWhen(true)] out IOperation? falseStatement,
             out ISimpleAssignmentOperation? trueAssignment,
             out ISimpleAssignmentOperation? falseAssignment)
         {
+            isRef = false;
             falseAssignment = null;
 
             trueStatement = ifOperation.WhenTrue;
@@ -47,8 +49,40 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
+            // If both assignments are discards type check is required.
+            // Since discard can discard value of any type, after converting if statement to a conditional expression
+            // it can produce compiler error if types are not the same and there is no implicit conversion between them, e.g.:
+            // if (flag)
+            // {
+            //     _ = 5;
+            // }
+            // else
+            // {
+            //     _ = "";
+            // }
+            // This code can result in `_ = flag ? 5 : ""`, which immediately produces CS0173
+            if (trueAssignment?.Target is IDiscardOperation &&
+                falseAssignment?.Target is IDiscardOperation &&
+                !AreEqualOrHaveImplicitConversion(trueAssignment.Type, falseAssignment.Type, trueAssignment.SemanticModel!.Compilation))
+            {
+                return false;
+            }
+
+            isRef = trueAssignment?.IsRef == true;
             return UseConditionalExpressionHelpers.CanConvert(
                 syntaxFacts, ifOperation, trueStatement, falseStatement);
+
+            static bool AreEqualOrHaveImplicitConversion(ITypeSymbol? firstType, ITypeSymbol? secondType, Compilation compilation)
+            {
+                if (SymbolEqualityComparer.Default.Equals(firstType, secondType))
+                    return true;
+
+                if (firstType is null || secondType is null)
+                    return false;
+
+                return compilation.ClassifyCommonConversion(firstType, secondType).IsImplicit
+                     ^ compilation.ClassifyCommonConversion(secondType, firstType).IsImplicit;
+            }
         }
 
         private static bool TryGetAssignmentOrThrow(

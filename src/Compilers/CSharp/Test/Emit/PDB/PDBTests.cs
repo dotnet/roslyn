@@ -119,6 +119,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 </symbols>", options: PdbValidationOptions.ExcludeMethods);
         }
 
+        [Fact]
+        public void EmitDebugInfoForSynthesizedSyntaxTree()
+        {
+            var tree1 = SyntaxFactory.ParseCompilationUnit(@"
+#line 1 ""test.cs""
+class C { void M() {} }
+").SyntaxTree;
+            var tree2 = SyntaxFactory.ParseCompilationUnit(@"
+class D { void M() {} }
+").SyntaxTree;
+
+            var comp = CSharpCompilation.Create("test", new[] { tree1, tree2 }, TargetFrameworkUtil.StandardReferences, TestOptions.DebugDll);
+
+            var result = comp.Emit(new MemoryStream(), pdbStream: new MemoryStream());
+            result.Diagnostics.Verify();
+
+            comp.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+    <file id=""2"" name=""test.cs"" language=""C#"" />
+  </files>
+</symbols>
+", format: DebugInformationFormat.PortablePdb, options: PdbValidationOptions.ExcludeMethods);
+        }
+
         [WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void RelativePathForExternalSource_Sha1_Windows()
@@ -999,6 +1025,87 @@ class C
     </method>
   </methods>
 </symbols>");
+        }
+
+        [Fact]
+        public void ConstructorsWithSharedInitializers()
+        {
+            var source = @"
+class B
+{
+    public B(int z) {}
+}
+
+class C : B
+{
+    int a = 1;
+    bool b = true;
+
+    C(int x)
+        : base(3)
+    {
+        a = x;
+    }
+    
+    C(bool y)
+        : base(4)
+    {
+        b = y;
+    }
+}
+
+";
+
+            var c = CompileAndVerify(source);
+
+            c.VerifyMethodBody("C..ctor(int)", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  // sequence point: int a = 1;
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int C.a""
+  // sequence point: bool b = true;
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""bool C.b""
+  // sequence point: base(3)
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.3
+  IL_0010:  call       ""B..ctor(int)""
+  // sequence point: a = x;
+  IL_0015:  ldarg.0
+  IL_0016:  ldarg.1
+  IL_0017:  stfld      ""int C.a""
+  // sequence point: }
+  IL_001c:  ret
+}
+");
+            c.VerifyMethodBody("C..ctor(bool)", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  // sequence point: int a = 1;
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int C.a""
+  // sequence point: bool b = true;
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""bool C.b""
+  // sequence point: base(4)
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.4
+  IL_0010:  call       ""B..ctor(int)""
+  // sequence point: b = y;
+  IL_0015:  ldarg.0
+  IL_0016:  ldarg.1
+  IL_0017:  stfld      ""bool C.b""
+  // sequence point: }
+  IL_001c:  ret
+}
+");
         }
 
         /// <summary>
@@ -9891,7 +9998,7 @@ class C
         };
     }
 }");
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             verifier.VerifyTypeIL("C",
 @".class private auto ansi beforefieldinit C
 	extends [netstandard]System.Object
@@ -10100,7 +10207,7 @@ class C
         };
     }
 }");
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             verifier.VerifyTypeIL("C",
 @".class private auto ansi beforefieldinit C
 	extends [netstandard]System.Object

@@ -198,7 +198,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
 DoneWithBindingAttributes:
-
             If attributeData Is Nothing Then
                 binder = Nothing
                 attributeSyntax = Nothing
@@ -206,7 +205,6 @@ DoneWithBindingAttributes:
 
             Return attributeData
         End Function
-
 
         Private Shared Sub FindGroupClassBaseTypes(nameParts() As String, current As NamespaceOrTypeSymbol, nextPart As Integer, candidates As ArrayBuilder(Of NamedTypeSymbol))
             ' Bindable::FindBaseInMyGroupCollection
@@ -291,8 +289,9 @@ DoneWithBindingAttributes:
 
         Private Shared Function MyGroupCollectionCandidateHasPublicParameterlessConstructor(candidate As SourceNamedTypeSymbol) As Boolean
             ' Simply calling HasPublicParameterlessConstructor might get us in a cycle.
+            Debug.Assert(candidate.TypeKind = TypeKind.Class)
             If candidate.MembersHaveBeenCreated Then
-                Return HasPublicParameterlessConstructor(candidate)
+                Return HasPublicParameterlessConstructor(candidate) = ConstructorConstraintError.None
             Else
                 Return candidate.InferFromSyntaxIfClassWillHavePublicParameterlessConstructor()
             End If
@@ -302,7 +301,12 @@ DoneWithBindingAttributes:
         Protected Overrides Sub VerifyMembers()
             If Me.TypeKind = TypeKind.Class Then
                 Debug.Assert(MembersHaveBeenCreated)
-                Debug.Assert(HasPublicParameterlessConstructor(Me) = InferFromSyntaxIfClassWillHavePublicParameterlessConstructor())
+                Dim constructorConstraintError As ConstructorConstraintError = HasPublicParameterlessConstructor(Me)
+                If InferFromSyntaxIfClassWillHavePublicParameterlessConstructor() Then
+                    Debug.Assert(constructorConstraintError = ConstructorConstraintError.None OrElse constructorConstraintError = ConstructorConstraintError.HasRequiredMembers)
+                Else
+                    Debug.Assert(constructorConstraintError = ConstructorConstraintError.NoPublicParameterlessConstructor)
+                End If
             End If
         End Sub
 #End If

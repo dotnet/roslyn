@@ -1474,8 +1474,7 @@ $$    [|private int i = 3;|]
         public void ConstFieldVariableDeclarator2()
             => TestMissing("class C { $$const int a = 1; }");
 
-        [Fact]
-        [WorkItem(538777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
         public void VariableDeclarator0()
             => TestMissing("class C { void Goo() { int$$ } }");
 
@@ -3962,8 +3961,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact]
-        [WorkItem(48504, "https://github.com/dotnet/roslyn/issues/48504")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48504")]
         public void OnPropertyAccessor5()
         {
             TestSpan(
@@ -4009,8 +4007,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [WorkItem(932711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932711")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932711")]
         public void OnPropertyWithInitializer()
         {
             TestSpan(
@@ -4322,7 +4319,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void InstanceConstructor_NoInitializer_ExpressionBody1()
         {
             // a sequence point for base constructor call
@@ -4333,7 +4330,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void InstanceConstructor_NoInitializer_ExpressionBody2()
         {
             // a sequence point for base constructor call
@@ -4344,7 +4341,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void InstanceConstructor_NoInitializer_ExpressionBody3()
         {
             // a sequence point for base constructor call
@@ -4355,7 +4352,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void InstanceConstructor_NoInitializer_ExpressionBody4()
         {
             // a sequence point for base constructor call
@@ -4366,7 +4363,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void InstanceConstructor_NoInitializer_ExpressionBody5()
         {
             TestSpan(
@@ -4376,7 +4373,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void InstanceConstructor_NoInitializer_ExpressionBody6()
         {
             TestSpan(
@@ -4386,7 +4383,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void InstanceConstructor_NoInitializer_ExpressionBody7()
         {
             TestSpan(
@@ -4574,8 +4571,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [WorkItem(543968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543968")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543968")]
         public void ConstructorInitializer()
         {
             // a sequence point for base constructor call
@@ -4720,8 +4716,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [WorkItem(3557, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(3557, "DevDiv_Projects/Roslyn")]
         public void InFrontOfAttribute()
         {
             TestSpan(
@@ -4734,8 +4729,7 @@ $$ [method: Obsolete]
 }");
         }
 
-        [WorkItem(538058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538058")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538058")]
         public void InInactivePPRegion()
         {
             TestLine(
@@ -4746,8 +4740,7 @@ $$gooby
 #endif");
         }
 
-        [WorkItem(538777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
         public void WithIncompleteDeclaration()
         {
             TestMissing(
@@ -4761,8 +4754,7 @@ $$        int
 }");
         }
 
-        [WorkItem(937290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
         public void OnGetter()
         {
             TestSpan(
@@ -4790,8 +4782,7 @@ $$        int
 }");
         }
 
-        [WorkItem(937290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
         public void OnSetter()
         {
             TestSpan(
@@ -4968,7 +4959,7 @@ $$    [|var (x, y) = (1, 2);|]
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody1()
         {
             TestSpan(
@@ -4978,7 +4969,7 @@ $$    [|var (x, y) = (1, 2);|]
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody2()
         {
             TestSpan(
@@ -4988,7 +4979,7 @@ $$    [|var (x, y) = (1, 2);|]
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody3()
         {
             TestSpan(
@@ -4998,7 +4989,7 @@ $$    [|var (x, y) = (1, 2);|]
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody4()
         {
             TestSpan(
@@ -5008,7 +4999,7 @@ $$    [|var (x, y) = (1, 2);|]
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody5()
         {
             TestSpan(
@@ -5018,7 +5009,7 @@ $$    public event Action Goo { add => [|123|]; remove => 456; }
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody6()
         {
             TestSpan(
@@ -5028,7 +5019,7 @@ $$    public event Action Goo { add => [|123|]; remove => 456; }
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody7()
         {
             TestSpan(
@@ -5038,7 +5029,7 @@ $$    public event Action Goo { add => [|123|]; remove => 456; }
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody8()
         {
             TestSpan(
@@ -5048,7 +5039,7 @@ $$    public event Action Goo { add => [|123|]; remove => 456; }
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnDtorExpressionBody1()
         {
             TestSpan(
@@ -5058,7 +5049,7 @@ $$    public ~C() => [|x = 1|];
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnDtorExpressionBody2()
         {
             TestSpan(
@@ -5068,7 +5059,7 @@ $$    public ~C() => [|x = 1|];
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnDtorExpressionBody3()
         {
             TestSpan(
@@ -5078,7 +5069,7 @@ $$    public ~C() => [|x = 1|];
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnDtorExpressionBody4()
         {
             TestSpan(
@@ -5088,7 +5079,7 @@ $$    public ~C() => [|x = 1|];
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnDtorExpressionBody5()
         {
             TestSpan(
@@ -5098,7 +5089,7 @@ $$    public ~C() => [|x = 1|];
 }");
         }
 
-        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
         public void OnLocalFunctionDecl_1()
         {
             TestSpan(
@@ -5114,7 +5105,7 @@ $$        int Local(object[] a)
 }");
         }
 
-        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
         public void OnLocalFunctionDecl_2()
         {
             TestSpan(
@@ -5130,7 +5121,7 @@ $$        int Local(object[] a)
 }");
         }
 
-        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
         public void OnLocalFunctionDecl_3()
         {
             TestSpan(
@@ -5146,7 +5137,7 @@ $$        [|{|]
 }");
         }
 
-        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
         public void OnLocalFunctionDecl_4()
         {
             TestSpan(
@@ -5159,7 +5150,7 @@ $$        int Local(object[] a) => [|a.Length|];
 }");
         }
 
-        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
         public void OnLocalFunctionDecl_5()
         {
             TestSpan(
@@ -5172,7 +5163,7 @@ $$        int Local(object[] a) => [|a.Length|];
 }");
         }
 
-        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
         public void OnLocalFunctionDecl_6()
         {
             TestSpan(
@@ -5185,7 +5176,7 @@ $$        int Local(object[] a) => [|a.Length|];
 }");
         }
 
-        [Fact, WorkItem(98990, "https://developercommunity.visualstudio.com/content/problem/98990/cant-set-breakpoint.html")]
+        [Fact, WorkItem("https://developercommunity.visualstudio.com/content/problem/98990/cant-set-breakpoint.html")]
         public void IncompleteExpressionStatement()
         {
             TestSpan(

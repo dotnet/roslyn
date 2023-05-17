@@ -345,7 +345,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-
         ''' <summary>
         ''' Returns interface methods explicitly implemented by this method.
         ''' </summary>
@@ -869,6 +868,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End Get
         End Property
+
+        Friend MustOverride ReadOnly Property HasSetsRequiredMembers As Boolean
 
 #Region "IMethodSymbol"
 

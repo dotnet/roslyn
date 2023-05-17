@@ -28,6 +28,29 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal static readonly SyntaxTree Dummy = new DummySyntaxTree();
 
+        private InternalSyntax.DirectiveStack _lazyDirectives;
+
+        /// <summary>
+        /// Stores positions where preprocessor state changes. Sorted by position.
+        /// The updated state can be found in <see cref="_preprocessorStates"/> array at the same index.
+        /// </summary>
+        private ImmutableArray<int> _preprocessorStateChangePositions;
+
+        /// <summary>
+        /// Preprocessor states corresponding to positions in <see cref="_preprocessorStateChangePositions"/>.
+        /// </summary>
+        private ImmutableArray<InternalSyntax.DirectiveStack> _preprocessorStates;
+
+        public CSharpSyntaxTree()
+            : this(directives: default)
+        {
+        }
+
+        internal CSharpSyntaxTree(InternalSyntax.DirectiveStack directives)
+        {
+            _lazyDirectives = directives;
+        }
+
         /// <summary>
         /// The options used by the parser to produce the syntax tree.
         /// </summary>
@@ -132,44 +155,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         #region Preprocessor Symbols
-        private bool _hasDirectives;
-        private InternalSyntax.DirectiveStack _directives;
 
-        internal void SetDirectiveStack(InternalSyntax.DirectiveStack directives)
+        internal InternalSyntax.DirectiveStack GetDirectives()
         {
-            _directives = directives;
-            _hasDirectives = true;
-        }
-
-        private InternalSyntax.DirectiveStack GetDirectives()
-        {
-            if (!_hasDirectives)
+            if (_lazyDirectives.IsNull)
             {
-                var stack = this.GetRoot().CsGreen.ApplyDirectives(default);
-                SetDirectiveStack(stack);
+                InternalSyntax.DirectiveStack.InterlockedInitialize(ref _lazyDirectives, GetRoot().CsGreen.ApplyDirectives(InternalSyntax.DirectiveStack.Empty));
             }
 
-            return _directives;
+            Debug.Assert(!_lazyDirectives.IsNull);
+
+            return _lazyDirectives;
         }
 
         internal bool IsAnyPreprocessorSymbolDefined(ImmutableArray<string> conditionalSymbols)
         {
-            Debug.Assert(conditionalSymbols != null);
+            var directives = GetDirectives();
 
             foreach (string conditionalSymbol in conditionalSymbols)
             {
-                if (IsPreprocessorSymbolDefined(conditionalSymbol))
+                if (IsPreprocessorSymbolDefined(directives, conditionalSymbol))
                 {
                     return true;
                 }
             }
 
             return false;
-        }
-
-        internal bool IsPreprocessorSymbolDefined(string symbolName)
-        {
-            return IsPreprocessorSymbolDefined(GetDirectives(), symbolName);
         }
 
         private bool IsPreprocessorSymbolDefined(InternalSyntax.DirectiveStack directives, string symbolName)
@@ -184,17 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.Options.PreprocessorSymbols.Contains(symbolName);
             }
         }
-
-        /// <summary>
-        /// Stores positions where preprocessor state changes. Sorted by position.
-        /// The updated state can be found in <see cref="_preprocessorStates"/> array at the same index.
-        /// </summary>
-        private ImmutableArray<int> _preprocessorStateChangePositions;
-
-        /// <summary>
-        /// Preprocessor states corresponding to positions in <see cref="_preprocessorStateChangePositions"/>.
-        /// </summary>
-        private ImmutableArray<InternalSyntax.DirectiveStack> _preprocessorStates;
 
         internal bool IsPreprocessorSymbolDefined(string symbolName, int position)
         {
@@ -342,10 +342,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(root));
             }
 
-            var directives = root.Kind() == SyntaxKind.CompilationUnit ?
-                ((CompilationUnitSyntax)root).GetConditionalDirectivesStack() :
-                InternalSyntax.DirectiveStack.Empty;
-
             return new ParsedSyntaxTree(
                 textOpt: null,
                 encodingOpt: encoding,
@@ -353,8 +349,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 path: path,
                 options: options ?? CSharpParseOptions.Default,
                 root: root,
-                directives: directives,
+                directives: default,
                 diagnosticOptions,
+                cloneRoot: true);
+        }
+
+        internal static SyntaxTree Create(
+            CSharpSyntaxNode root,
+            CSharpParseOptions options,
+            string? path,
+            Encoding? encoding,
+            SourceHashAlgorithm checksumAlgorithm)
+        {
+            return new ParsedSyntaxTree(
+                textOpt: null,
+                encodingOpt: encoding,
+                checksumAlgorithm: checksumAlgorithm,
+                path: path,
+                options: options,
+                root: root,
+                directives: default,
+                diagnosticOptions: null,
                 cloneRoot: true);
         }
 
@@ -388,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 path: "",
                 options: CSharpParseOptions.Default,
                 root: root,
-                directives: InternalSyntax.DirectiveStack.Empty,
+                directives: default,
                 diagnosticOptions: null,
                 cloneRoot: false);
         }
@@ -442,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool? isGeneratedCode,
             CancellationToken cancellationToken)
         {
-            return ParseText(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
+            return ParseText(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 
         // The overload that has more parameters is itself obsolete, as an intentional break to allow future
@@ -919,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Encoding? encoding,
             ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
             CancellationToken cancellationToken)
-            => ParseText(text, options, path, encoding, diagnosticOptions, isGeneratedCode: null, cancellationToken);
+            => ParseText(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), options, path, diagnosticOptions, isGeneratedCode: null, cancellationToken);
 
         // 3.3 BACK COMPAT OVERLOAD -- DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -932,5 +947,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions)
             => Create(root, options, path, encoding, diagnosticOptions, isGeneratedCode: null);
 
+        /// <summary>
+        /// This is ONLY used for debugging purpose
+        /// </summary>
+        internal string Dump()
+        {
+            return this.GetRoot().Dump();
+        }
     }
 }

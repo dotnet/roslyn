@@ -19,7 +19,7 @@ namespace RunTests
 {
     internal sealed class ProcessTestExecutor
     {
-        public static string BuildRspFileContents(WorkItemInfo workItem, Options options)
+        public static string BuildRspFileContents(WorkItemInfo workItem, Options options, string xmlResultsFilePath, string? htmlResultsFilePath)
         {
             var fileContentsBuilder = new StringBuilder();
 
@@ -31,10 +31,10 @@ namespace RunTests
             }
 
             fileContentsBuilder.AppendLine($@"/Platform:{options.Architecture}");
-            fileContentsBuilder.AppendLine($@"/Logger:xunit;LogFilePath={GetResultsFilePath(workItem, options, "xml")}");
-            if (options.IncludeHtml)
+            fileContentsBuilder.AppendLine($@"/Logger:xunit;LogFilePath={xmlResultsFilePath}");
+            if (htmlResultsFilePath != null)
             {
-                fileContentsBuilder.AppendLine($@"/Logger:html;LogFileName={GetResultsFilePath(workItem, options, "html")}");
+                fileContentsBuilder.AppendLine($@"/Logger:html;LogFileName={htmlResultsFilePath}");
             }
 
             var blameOption = "CollectHangDump";
@@ -54,7 +54,10 @@ namespace RunTests
             // Helix timeout is 15 minutes as helix jobs fully timeout in 30minutes.  So in order to capture dumps we need the timeout
             // to be 2x shorter than the expected test run time (15min) in case only the last test hangs.
             var timeout = options.UseHelix ? "15minutes" : "25minutes";
-            fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout=15minutes;DumpType=full");
+            fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout={timeout};DumpType=full");
+
+            // Specifies the results directory - this is where dumps from the blame options will get published.
+            fileContentsBuilder.AppendLine($"/ResultsDirectory:{options.TestResultsDirectory}");
 
             // Build the filter string
             var filterStringBuilder = new StringBuilder();
@@ -101,7 +104,7 @@ namespace RunTests
             return vsTestConsolePath;
         }
 
-        private static string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
+        public static string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
         {
             var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
             return Path.Combine(options.TestResultsDirectory, fileName);
@@ -130,17 +133,17 @@ namespace RunTests
         {
             try
             {
-                var rspFileContents = BuildRspFileContents(workItemInfo, options);
-                var rspFilePath = Path.Combine(Directory.GetCurrentDirectory(), $"vstest_{workItemInfo.PartitionIndex}.rsp");
+                var resultsFilePath = GetResultsFilePath(workItemInfo, options);
+                var htmlResultsFilePath = options.IncludeHtml ? GetResultsFilePath(workItemInfo, options, "html") : null;
+                var rspFileContents = BuildRspFileContents(workItemInfo, options, resultsFilePath, htmlResultsFilePath);
+                var rspFilePath = Path.Combine(getRspDirectory(), $"vstest_{workItemInfo.PartitionIndex}.rsp");
                 File.WriteAllText(rspFilePath, rspFileContents);
 
                 var vsTestConsolePath = GetVsTestConsolePath(options.DotnetFilePath);
 
                 var commandLineArguments = $"exec \"{vsTestConsolePath}\" @\"{rspFilePath}\"";
 
-                var resultsFilePath = GetResultsFilePath(workItemInfo, options);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
-                var htmlResultsFilePath = options.IncludeHtml ? GetResultsFilePath(workItemInfo, options, "html") : null;
                 var processResultList = new List<ProcessResult>();
 
                 // NOTE: xUnit doesn't always create the log directory
@@ -238,6 +241,19 @@ namespace RunTests
                     testResultInfo,
                     commandLineArguments,
                     processResults: ImmutableArray.CreateRange(processResultList));
+
+                string getRspDirectory()
+                {
+                    // There is no artifacts directory on Helix, just use the current directory
+                    if (options.UseHelix)
+                    {
+                        return Directory.GetCurrentDirectory();
+                    }
+
+                    var dirPath = Path.Combine(options.ArtifactsDirectory, "tmp", options.Configuration, "vstest-rsp");
+                    Directory.CreateDirectory(dirPath);
+                    return dirPath;
+                }
             }
             catch (Exception ex)
             {

@@ -16,17 +16,17 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class EtwLogger : ILogger
     {
-        private readonly Lazy<Func<FunctionId, bool>> _isEnabledPredicate;
+        private readonly Func<FunctionId, bool> _isEnabledPredicate;
 
         // Due to ETW specifics, RoslynEventSource.Instance needs to be initialized during EtwLogger construction 
         // so that we can enable the listeners synchronously before any events are logged.
         private readonly RoslynEventSource _source = RoslynEventSource.Instance;
 
         public EtwLogger(Func<FunctionId, bool> isEnabledPredicate)
-            => _isEnabledPredicate = new Lazy<Func<FunctionId, bool>>(() => isEnabledPredicate);
+            => _isEnabledPredicate = isEnabledPredicate;
 
         public bool IsEnabled(FunctionId functionId)
-            => _source.IsEnabled() && _isEnabledPredicate.Value(functionId);
+            => _source.IsEnabled() && _isEnabledPredicate(functionId);
 
         public void Log(FunctionId functionId, LogMessage logMessage)
             => _source.Log(GetMessage(logMessage), functionId);

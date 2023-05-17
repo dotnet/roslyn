@@ -206,6 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
+                case ErrorCode.WRN_AddressOfInAsync:
+                    // Warning level 8 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 8 (C# 12) and that can be reported for pre-existing code.
+                    return 8;
                 case ErrorCode.WRN_LowerCaseTypeName:
                     // Warning level 7 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 7 (C# 11) and that can be reported for pre-existing code.
@@ -501,6 +505,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UnassignedThisSupportedVersion:
                 case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
+                case ErrorCode.WRN_DuplicateAnalyzerReference:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
+                case ErrorCode.WRN_ManagedAddr:
+                case ErrorCode.WRN_EscapeVariable:
+                case ErrorCode.WRN_EscapeStackAlloc:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal2:
+                case ErrorCode.WRN_RefReturnStructThis:
+                case ErrorCode.WRN_RefAssignNarrower:
+                case ErrorCode.WRN_MismatchedRefEscapeInTernary:
+                case ErrorCode.WRN_RefReturnParameter:
+                case ErrorCode.WRN_RefReturnScopedParameter:
+                case ErrorCode.WRN_RefReturnParameter2:
+                case ErrorCode.WRN_RefReturnScopedParameter2:
+                case ErrorCode.WRN_RefReturnLocal:
+                case ErrorCode.WRN_RefReturnLocal2:
+                case ErrorCode.WRN_RefAssignReturnOnly:
+                case ErrorCode.WRN_RefReturnOnlyParameter:
+                case ErrorCode.WRN_RefReturnOnlyParameter2:
+                case ErrorCode.WRN_RefAssignValEscapeWider:
+                case ErrorCode.WRN_OptionalParamValueMismatch:
+                case ErrorCode.WRN_ParamsArrayInLambdaOnly:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
+                case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                     return 1;
                 default:
                     return 0;
@@ -549,6 +578,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_DynamicRequiredTypesMissing:
                 case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                 case ErrorCode.ERR_CannotBeConvertedToUtf8:
+                case ErrorCode.ERR_FileTypeNonUniquePath:
+                    // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
+                    // whenever new values are added here.
                     return true;
                 case ErrorCode.Void:
                 case ErrorCode.Unknown:
@@ -1193,6 +1225,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadYieldInTryOfCatch:
                 case ErrorCode.ERR_EmptyYield:
                 case ErrorCode.ERR_AnonDelegateCantUse:
+                case ErrorCode.ERR_AnonDelegateCantUseRefLike:
+                case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef:
+                case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike:
+                case ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember:
+                case ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured:
                 case ErrorCode.ERR_IllegalInnerUnsafe:
                 case ErrorCode.ERR_BadYieldInCatch:
                 case ErrorCode.ERR_BadDelegateLeave:
@@ -1798,6 +1835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InvalidObjectCreation:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.ERR_OutVariableCannotBeByRef:
+                case ErrorCode.ERR_DeconstructVariableCannotBeByRef:
                 case ErrorCode.ERR_OmittedTypeArgument:
                 case ErrorCode.ERR_FeatureNotAvailableInVersion8:
                 case ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable:
@@ -2197,6 +2235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadAbstractEqualityOperatorSignature:
                 case ErrorCode.ERR_BadBinaryReadOnlySpanConcatenation:
                 case ErrorCode.ERR_ScopedRefAndRefStructOnly:
+                case ErrorCode.ERR_ScopedDiscard:
                 case ErrorCode.ERR_FixedFieldMustNotBeRef:
                 case ErrorCode.ERR_RefFieldCannotReferToRefStruct:
                 case ErrorCode.ERR_FileTypeDisallowedInSignature:
@@ -2207,15 +2246,71 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FileTypeNameDisallowed:
                 case ErrorCode.ERR_FeatureNotAvailableInVersion11:
                 case ErrorCode.ERR_RefFieldInNonRefStruct:
-                case ErrorCode.ERR_BadParameterModifiersOrder:
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                 case ErrorCode.ERR_CannotMatchOnINumberBase:
-                case ErrorCode.ERR_MisplacedScoped:
                 case ErrorCode.ERR_ScopedTypeNameDisallowed:
+                case ErrorCode.ERR_ImplicitlyTypedDefaultParameter:
                 case ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget:
                 case ErrorCode.ERR_RuntimeDoesNotSupportRefFields:
                 case ErrorCode.ERR_ExplicitScopedRef:
                 case ErrorCode.ERR_UnscopedScoped:
+                case ErrorCode.WRN_DuplicateAnalyzerReference:
+                case ErrorCode.ERR_FilePathCannotBeConvertedToUtf8:
+                case ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn:
+                case ErrorCode.ERR_FileLocalDuplicateNameInNS:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
+                case ErrorCode.ERR_RefReturnScopedParameter:
+                case ErrorCode.ERR_RefReturnScopedParameter2:
+                case ErrorCode.ERR_RefReturnOnlyParameter:
+                case ErrorCode.ERR_RefReturnOnlyParameter2:
+                case ErrorCode.ERR_RefAssignReturnOnly:
+                case ErrorCode.WRN_ManagedAddr:
+                case ErrorCode.WRN_EscapeVariable:
+                case ErrorCode.WRN_EscapeStackAlloc:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal2:
+                case ErrorCode.WRN_RefReturnStructThis:
+                case ErrorCode.WRN_RefAssignNarrower:
+                case ErrorCode.WRN_MismatchedRefEscapeInTernary:
+                case ErrorCode.WRN_RefReturnParameter:
+                case ErrorCode.WRN_RefReturnScopedParameter:
+                case ErrorCode.WRN_RefReturnParameter2:
+                case ErrorCode.WRN_RefReturnScopedParameter2:
+                case ErrorCode.WRN_RefReturnLocal:
+                case ErrorCode.WRN_RefReturnLocal2:
+                case ErrorCode.WRN_RefAssignReturnOnly:
+                case ErrorCode.WRN_RefReturnOnlyParameter:
+                case ErrorCode.WRN_RefReturnOnlyParameter2:
+                case ErrorCode.ERR_RefAssignValEscapeWider:
+                case ErrorCode.WRN_RefAssignValEscapeWider:
+                case ErrorCode.WRN_OptionalParamValueMismatch:
+                case ErrorCode.WRN_ParamsArrayInLambdaOnly:
+                case ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget:
+                case ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation:
+                case ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion:
+                case ErrorCode.ERR_BadSpecialByRefUsing:
+                case ErrorCode.ERR_InvalidPrimaryConstructorParameterReference:
+                case ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
+                case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                case ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter:
+                case ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter:
+                case ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter:
+                case ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter2:
+                case ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter2:
+                case ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter2:
+                case ErrorCode.ERR_RefReturnPrimaryConstructorParameter:
+                case ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter:
+                case ErrorCode.ERR_UnexpectedParameterList:
+                case ErrorCode.WRN_AddressOfInAsync:
+                case ErrorCode.ERR_BadRefInUsingAlias:
+                case ErrorCode.ERR_BadUnsafeInUsingDirective:
+                case ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias:
+                case ErrorCode.ERR_BadStaticAfterUnsafe:
+                case ErrorCode.ERR_BadCaseInSwitchArm:
+                case ErrorCode.ERR_ConstantValueOfTypeExpected:
+                case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
@@ -2255,6 +2350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_QueryRangeVariableSameAsTypeParam:
                 case ErrorCode.ERR_DeprecatedCollectionInitAddStr:
                 case ErrorCode.ERR_DeprecatedSymbolStr:
+                case ErrorCode.ERR_MissingPredefinedMember:
                     return false;
                 default:
                     return true;

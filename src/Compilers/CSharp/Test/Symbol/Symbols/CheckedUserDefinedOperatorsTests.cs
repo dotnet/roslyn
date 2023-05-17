@@ -403,9 +403,9 @@ static class C
                 // (4,38): error CS0715: 'C.operator checked ++(C)': static classes cannot contain user-defined operators
                 //     public static C operator checked ++(C x) => x;
                 Diagnostic(ErrorCode.ERR_OperatorInStaticClass, op).WithArguments("C.operator checked " + op + "(C)").WithLocation(4, 38),
-                // (4,38): error CS0721: 'C': static types cannot be used as parameters
+                // (4,41): error CS0721: 'C': static types cannot be used as parameters
                 //     public static C operator checked ++(C x) => x;
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, op).WithArguments("C").WithLocation(4, 38)
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(4, 39 + op.Length)
                 );
         }
 
@@ -1576,12 +1576,12 @@ static class C
                 // (4,38): error CS0715: 'C.operator checked -(C, C)': static classes cannot contain user-defined operators
                 //     public static C operator checked -(C x, C y) => x;
                 Diagnostic(ErrorCode.ERR_OperatorInStaticClass, op).WithArguments("C.operator checked " + op + "(C, C)").WithLocation(4, 38),
-                // (4,38): error CS0721: 'C': static types cannot be used as parameters
+                // (4,40): error CS0721: 'C': static types cannot be used as parameters
                 //     public static C operator checked -(C x, C y) => x;
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, op).WithArguments("C").WithLocation(4, 38),
-                // (4,38): error CS0721: 'C': static types cannot be used as parameters
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(4, 40),
+                // (4,45): error CS0721: 'C': static types cannot be used as parameters
                 //     public static C operator checked -(C x, C y) => x;
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, op).WithArguments("C").WithLocation(4, 38)
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(4, 45)
                 );
         }
 
@@ -2798,9 +2798,9 @@ static class C
                 // (4,45): error CS0715: 'C.explicit operator checked int(C)': static classes cannot contain user-defined operators
                 //     public static explicit operator checked int(C x) => 0;
                 Diagnostic(ErrorCode.ERR_OperatorInStaticClass, "int").WithArguments("C.explicit operator checked int(C)").WithLocation(4, 45),
-                // (4,45): error CS0721: 'C': static types cannot be used as parameters
+                // (4,49): error CS0721: 'C': static types cannot be used as parameters
                 //     public static explicit operator checked int(C x) => 0;
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "int").WithArguments("C").WithLocation(4, 45)
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(4, 49)
                 );
         }
 

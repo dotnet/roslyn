@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
 {
+    [Trait(Traits.Feature, Traits.Features.FindReferences)]
     public class BasicFindReferences : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -23,7 +24,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
         {
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [IdeFact]
         public async Task FindReferencesToLocals()
         {
             await SetUpEditorAsync(@"
@@ -35,7 +36,7 @@ Class Program
 End Class
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
@@ -58,7 +59,7 @@ End Class
                 });
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [IdeFact]
         public async Task FindReferencesToSharedField()
         {
             await SetUpEditorAsync(@"
@@ -78,7 +79,7 @@ Class SomeOtherClass
 End Class
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
@@ -103,8 +104,7 @@ End Class
             await TestServices.FindReferencesWindow.NavigateToAsync(results[0], isPreview: false, shouldActivate: true, HangMitigatingCancellationToken);
 
             // Assert we are in the right file now
-            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
-            Assert.Equal($"Class1.vb{dirtyModifier}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal($"Class1.vb", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
             Assert.Equal("Alpha As Int32", await TestServices.Editor.GetLineTextAfterCaretAsync(HangMitigatingCancellationToken));
         }
     }

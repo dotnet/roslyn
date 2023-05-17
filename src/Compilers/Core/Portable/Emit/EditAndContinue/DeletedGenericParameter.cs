@@ -9,102 +9,99 @@ using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
-    internal sealed class DeletedGenericParameter : IGenericMethodParameter
+    internal sealed class DeletedGenericParameter : DeletedDefinition<IGenericMethodParameter>, IGenericMethodParameter
     {
-        private readonly IGenericMethodParameter _oldParameter;
         private readonly DeletedMethodDefinition _method;
-        private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
 
         public DeletedGenericParameter(IGenericMethodParameter oldParameter, DeletedMethodDefinition method, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers)
+            : base(oldParameter, typesUsedByDeletedMembers)
         {
-            _oldParameter = oldParameter;
             _method = method;
-            _typesUsedByDeletedMembers = typesUsedByDeletedMembers;
         }
 
         public IMethodDefinition DefiningMethod => _method;
 
-        public bool MustBeReferenceType => _oldParameter.MustBeReferenceType;
+        public bool MustBeReferenceType => OldDefinition.MustBeReferenceType;
 
-        public bool MustBeValueType => _oldParameter.MustBeValueType;
+        public bool MustBeValueType => OldDefinition.MustBeValueType;
 
-        public bool MustHaveDefaultConstructor => _oldParameter.MustHaveDefaultConstructor;
+        public bool MustHaveDefaultConstructor => OldDefinition.MustHaveDefaultConstructor;
 
-        public TypeParameterVariance Variance => _oldParameter.Variance;
+        public TypeParameterVariance Variance => OldDefinition.Variance;
 
-        public IGenericMethodParameter? AsGenericMethodParameter => _oldParameter.AsGenericMethodParameter;
+        public IGenericMethodParameter? AsGenericMethodParameter => OldDefinition.AsGenericMethodParameter;
 
-        public IGenericTypeParameter? AsGenericTypeParameter => _oldParameter.AsGenericTypeParameter;
+        public IGenericTypeParameter? AsGenericTypeParameter => OldDefinition.AsGenericTypeParameter;
 
-        public bool IsEnum => _oldParameter.IsEnum;
+        public bool IsEnum => OldDefinition.IsEnum;
 
-        public bool IsValueType => _oldParameter.IsValueType;
+        public bool IsValueType => OldDefinition.IsValueType;
 
-        public Cci.PrimitiveTypeCode TypeCode => _oldParameter.TypeCode;
+        public Cci.PrimitiveTypeCode TypeCode => OldDefinition.TypeCode;
 
-        public TypeDefinitionHandle TypeDef => _oldParameter.TypeDef;
+        public TypeDefinitionHandle TypeDef => OldDefinition.TypeDef;
 
-        public IGenericMethodParameterReference? AsGenericMethodParameterReference => _oldParameter.AsGenericMethodParameterReference;
+        public IGenericMethodParameterReference? AsGenericMethodParameterReference => OldDefinition.AsGenericMethodParameterReference;
 
-        public IGenericTypeInstanceReference? AsGenericTypeInstanceReference => _oldParameter.AsGenericTypeInstanceReference;
+        public IGenericTypeInstanceReference? AsGenericTypeInstanceReference => OldDefinition.AsGenericTypeInstanceReference;
 
-        public IGenericTypeParameterReference? AsGenericTypeParameterReference => _oldParameter.AsGenericTypeParameterReference;
+        public IGenericTypeParameterReference? AsGenericTypeParameterReference => OldDefinition.AsGenericTypeParameterReference;
 
-        public INamespaceTypeReference? AsNamespaceTypeReference => _oldParameter.AsNamespaceTypeReference;
+        public INamespaceTypeReference? AsNamespaceTypeReference => OldDefinition.AsNamespaceTypeReference;
 
-        public INestedTypeReference? AsNestedTypeReference => _oldParameter.AsNestedTypeReference;
+        public INestedTypeReference? AsNestedTypeReference => OldDefinition.AsNestedTypeReference;
 
-        public ISpecializedNestedTypeReference? AsSpecializedNestedTypeReference => _oldParameter.AsSpecializedNestedTypeReference;
+        public ISpecializedNestedTypeReference? AsSpecializedNestedTypeReference => OldDefinition.AsSpecializedNestedTypeReference;
 
-        public string? Name => _oldParameter.Name;
+        public string? Name => OldDefinition.Name;
 
-        public ushort Index => _oldParameter.Index;
+        public ushort Index => OldDefinition.Index;
 
-        IMethodReference IGenericMethodParameterReference.DefiningMethod => ((IGenericMethodParameterReference)_oldParameter).DefiningMethod;
+        IMethodReference IGenericMethodParameterReference.DefiningMethod => ((IGenericMethodParameterReference)OldDefinition).DefiningMethod;
 
         public IDefinition? AsDefinition(EmitContext context)
         {
-            return _oldParameter.AsDefinition(context);
+            return OldDefinition.AsDefinition(context);
         }
 
         public INamespaceTypeDefinition? AsNamespaceTypeDefinition(EmitContext context)
         {
-            return _oldParameter.AsNamespaceTypeDefinition(context);
+            return OldDefinition.AsNamespaceTypeDefinition(context);
         }
 
         public INestedTypeDefinition? AsNestedTypeDefinition(EmitContext context)
         {
-            return _oldParameter.AsNestedTypeDefinition(context);
+            return OldDefinition.AsNestedTypeDefinition(context);
         }
 
         public ITypeDefinition? AsTypeDefinition(EmitContext context)
         {
-            return _oldParameter.AsTypeDefinition(context);
+            return OldDefinition.AsTypeDefinition(context);
         }
 
         public void Dispatch(MetadataVisitor visitor)
         {
-            _oldParameter.Dispatch(visitor);
+            OldDefinition.Dispatch(visitor);
         }
 
         public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
-            return _oldParameter.GetAttributes(context);
+            return OldDefinition.GetAttributes(context);
         }
 
         public IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context)
         {
-            return _oldParameter.GetConstraints(context);
+            return OldDefinition.GetConstraints(context);
         }
 
         public ISymbolInternal? GetInternalSymbol()
         {
-            return _oldParameter.GetInternalSymbol();
+            return OldDefinition.GetInternalSymbol();
         }
 
         public ITypeDefinition? GetResolvedType(EmitContext context)
         {
-            return (ITypeDefinition?)DeletedTypeDefinition.TryCreate(_oldParameter.GetResolvedType(context), _typesUsedByDeletedMembers);
+            return (ITypeDefinition?)WrapType(OldDefinition.GetResolvedType(context));
         }
     }
 }

@@ -17,7 +17,8 @@ internal class CSharpVisualBasicLspServiceProvider : AbstractLspServiceProvider
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpVisualBasicLspServiceProvider(
         [ImportMany(ProtocolConstants.RoslynLspLanguagesContract)] IEnumerable<Lazy<ILspService, LspServiceMetadataView>> lspServices,
-        [ImportMany(ProtocolConstants.RoslynLspLanguagesContract)] IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> lspServiceFactories) : base(lspServices, lspServiceFactories)
+        [ImportMany(ProtocolConstants.RoslynLspLanguagesContract)] IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> lspServiceFactories)
+    : base(lspServices, lspServiceFactories)
     {
     }
 }

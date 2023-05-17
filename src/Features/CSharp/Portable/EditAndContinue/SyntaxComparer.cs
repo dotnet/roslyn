@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
@@ -621,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.IndexerDeclaration;
 
                 case SyntaxKind.ArrowExpressionClause:
-                    if (node.IsParentKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration))
+                    if (node?.Parent is (kind: SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration))
                         return Label.ArrowExpressionClause;
 
                     break;
@@ -790,27 +791,53 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
 
                 case SyntaxKind.UsingStatement:
-                    var leftUsing = (UsingStatementSyntax)leftNode;
-                    var rightUsing = (UsingStatementSyntax)rightNode;
-
-                    if (leftUsing.Declaration != null && rightUsing.Declaration != null)
                     {
-                        distance = ComputeWeightedDistance(
-                            leftUsing.Declaration,
-                            leftUsing.Statement,
-                            rightUsing.Declaration,
-                            rightUsing.Statement);
-                    }
-                    else
-                    {
-                        distance = ComputeWeightedDistance(
-                            (SyntaxNode?)leftUsing.Expression ?? leftUsing.Declaration!,
-                            leftUsing.Statement,
-                            (SyntaxNode?)rightUsing.Expression ?? rightUsing.Declaration!,
-                            rightUsing.Statement);
+                        var leftUsing = (UsingStatementSyntax)leftNode;
+                        var rightUsing = (UsingStatementSyntax)rightNode;
+
+                        if (leftUsing.Declaration != null && rightUsing.Declaration != null)
+                        {
+                            distance = ComputeWeightedDistance(
+                                leftUsing.Declaration,
+                                leftUsing.Statement,
+                                rightUsing.Declaration,
+                                rightUsing.Statement);
+                        }
+                        else
+                        {
+                            distance = ComputeWeightedDistance(
+                                (SyntaxNode?)leftUsing.Expression ?? leftUsing.Declaration!,
+                                leftUsing.Statement,
+                                (SyntaxNode?)rightUsing.Expression ?? rightUsing.Declaration!,
+                                rightUsing.Statement);
+                        }
+
+                        return true;
                     }
 
-                    return true;
+                case SyntaxKind.UsingDirective:
+                    {
+                        var leftUsing = (UsingDirectiveSyntax)leftNode;
+                        var rightUsing = (UsingDirectiveSyntax)rightNode;
+
+                        // For now, just compute the distances of both the alias and name and combine their weights
+                        // 50/50. We could consider weighting the alias more heavily.  i.e. if you have `using X = ...`
+                        // and `using X = ...` it's more likely that this is the same alias, and just the name portion
+                        // changed versus thinking that some other using became this alias.
+                        distance =
+                            ComputeDistance(leftUsing.Alias, rightUsing.Alias) +
+                            ComputeDistance(leftUsing.NamespaceOrType, rightUsing.NamespaceOrType);
+
+                        // Consider two usings that only differ by presence/absence of 'global' to be a near match.
+                        if (leftUsing.GlobalKeyword.IsKind(SyntaxKind.None) != rightUsing.GlobalKeyword.IsKind(SyntaxKind.None))
+                            distance += EpsilonDist;
+
+                        // Consider two usings that only differ by presence/absence of 'unsafe' to be a near match.
+                        if (leftUsing.UnsafeKeyword.IsKind(SyntaxKind.None) != rightUsing.UnsafeKeyword.IsKind(SyntaxKind.None))
+                            distance += EpsilonDist;
+
+                        return true;
+                    }
 
                 case SyntaxKind.LockStatement:
                     var leftLock = (LockStatementSyntax)leftNode;
@@ -1057,6 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.Block:
                 case SyntaxKind.LabeledStatement:
+                case SyntaxKind.GlobalStatement:
                     distance = ComputeWeightedBlockDistance(leftBlock, rightBlock);
                     return true;
 
@@ -1244,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             foreach (var child in block.ChildNodes())
             {
-                if (child.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax? localDecl))
+                if (child is LocalDeclarationStatementSyntax localDecl)
                 {
                     GetLocalNames(localDecl.Declaration, ref result);
                 }
@@ -1380,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((ExternAliasDirectiveSyntax)node).Identifier;
 
                 case SyntaxKind.UsingDirective:
-                    return ((UsingDirectiveSyntax)node).Name;
+                    return ((UsingDirectiveSyntax)node).NamespaceOrType;
 
                 case SyntaxKind.NamespaceDeclaration:
                 case SyntaxKind.FileScopedNamespaceDeclaration:
@@ -1566,7 +1594,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Distance is a number within [0, 1], the smaller the more similar the tokens are. 
         /// </remarks>
         public static double ComputeDistance(SyntaxToken oldToken, SyntaxToken newToken)
-            => LongestCommonSubstring.ComputeDistance(oldToken.Text, newToken.Text);
+            => LongestCommonSubstring.ComputePrefixDistance(
+                oldToken.Text, Math.Min(oldToken.Text.Length, LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation),
+                newToken.Text, Math.Min(newToken.Text.Length, LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation));
+
+        private static ImmutableArray<T> CreateArrayForDistanceCalculation<T>(IEnumerable<T>? enumerable)
+            => enumerable is null ? ImmutableArray<T>.Empty : enumerable.Take(LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation).ToImmutableArray();
 
         /// <summary>
         /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
@@ -1575,16 +1608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
         public static double ComputeDistance(IEnumerable<SyntaxToken>? oldTokens, IEnumerable<SyntaxToken>? newTokens)
-            => LcsTokens.Instance.ComputeDistance(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
-
-        /// <summary>
-        /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
-        /// </summary>
-        /// <remarks>
-        /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
-        /// </remarks>
-        public static double ComputeDistance(ImmutableArray<SyntaxToken> oldTokens, ImmutableArray<SyntaxToken> newTokens)
-            => LcsTokens.Instance.ComputeDistance(oldTokens.NullToEmpty(), newTokens.NullToEmpty());
+            => LcsTokens.Instance.ComputeDistance(CreateArrayForDistanceCalculation(oldTokens), CreateArrayForDistanceCalculation(newTokens));
 
         /// <summary>
         /// Calculates the distance between two sequences of syntax nodes, disregarding trivia. 
@@ -1593,16 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
         public static double ComputeDistance(IEnumerable<SyntaxNode>? oldNodes, IEnumerable<SyntaxNode>? newNodes)
-            => LcsNodes.Instance.ComputeDistance(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
-
-        /// <summary>
-        /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
-        /// </summary>
-        /// <remarks>
-        /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
-        /// </remarks>
-        public static double ComputeDistance(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
-            => LcsNodes.Instance.ComputeDistance(oldNodes.NullToEmpty(), newNodes.NullToEmpty());
+            => LcsNodes.Instance.ComputeDistance(CreateArrayForDistanceCalculation(oldNodes), CreateArrayForDistanceCalculation(newNodes));
 
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax nodes to another, disregarding trivia.

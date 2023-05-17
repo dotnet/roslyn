@@ -120,8 +120,8 @@
   <data name="Add_file_header" xml:space="preserve">
     <value>Add file header</value>
   </data>
-  <data name="Fix_Name_Violation_colon_0" xml:space="preserve">
-    <value>Fix Name Violation: {0}</value>
+  <data name="Fix_name_violation_colon_0" xml:space="preserve">
+    <value>Fix name violation: {0}</value>
   </data>
   <data name="Add_both" xml:space="preserve">
     <value>Add both</value>
@@ -141,8 +141,8 @@
   <data name="Update_suppression_format" xml:space="preserve">
     <value>Update suppression format</value>
   </data>
-  <data name="Suppress_or_Configure_issues" xml:space="preserve">
-    <value>Suppress or Configure issues</value>
+  <data name="Suppress_or_configure_issues" xml:space="preserve">
+    <value>Suppress or configure issues</value>
   </data>
   <data name="Fix_all_occurrences_in" xml:space="preserve">
     <value>Fix all occurrences in</value>
@@ -167,5 +167,47 @@
   </data>
   <data name="Convert_type_to_0" xml:space="preserve">
     <value>Convert type to '{0}'</value>
+  </data>
+  <data name="Make_type_partial" xml:space="preserve">
+    <value>Make type partial</value>
+  </data>
+  <data name="Add_member_name" xml:space="preserve">
+    <value>Add member name</value>
+  </data>
+  <data name="Add_parameter_to_0" xml:space="preserve">
+    <value>Add parameter to '{0}'</value>
+  </data>
+  <data name="Add_parameter_to_0_and_overrides_implementations" xml:space="preserve">
+    <value>Add parameter to '{0}' (and overrides/implementations)</value>
+  </data>
+  <data name="Add_to_0" xml:space="preserve">
+    <value>Add to '{0}'</value>
+  </data>
+  <data name="Related_method_signatures_found_in_metadata_will_not_be_updated" xml:space="preserve">
+    <value>Related method signatures found in metadata will not be updated.</value>
+  </data>
+  <data name="Remove_async_modifier" xml:space="preserve">
+    <value>Remove 'async' modifier</value>
+  </data>
+  <data name="Take_0" xml:space="preserve">
+    <value>Take '{0}'</value>
+  </data>
+  <data name="Take_both" xml:space="preserve">
+    <value>Take both</value>
+  </data>
+  <data name="Take_bottom" xml:space="preserve">
+    <value>Take bottom</value>
+  </data>
+  <data name="Take_top" xml:space="preserve">
+    <value>Take top</value>
+  </data>
+  <data name="Add_missing_param_nodes" xml:space="preserve">
+    <value>Add missing param nodes</value>
+  </data>
+  <data name="Remove_tag" xml:space="preserve">
+    <value>Remove tag</value>
+  </data>
+  <data name="Make_method_synchronous" xml:space="preserve">
+    <value>Make method synchronous</value>
   </data>
 </root>

@@ -162,6 +162,302 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void FieldDeclaration_Initializer_01(LanguageVersion languageVersion)
+        {
+            string source = "struct S { ref int _f = ref F(); }";
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.StructDeclaration);
+            {
+                N(SyntaxKind.StructKeyword);
+                N(SyntaxKind.IdentifierToken, "S");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_f");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.RefExpression);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "F");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void FieldDeclaration_Initializer_02(LanguageVersion languageVersion)
+        {
+            string source = "struct S { ref int _f, _g = ref F(); }";
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.StructDeclaration);
+            {
+                N(SyntaxKind.StructKeyword);
+                N(SyntaxKind.IdentifierToken, "S");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_f");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_g");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.RefExpression);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "F");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void FieldDeclaration_Initializer_03(LanguageVersion languageVersion)
+        {
+            string source = "struct S { int P { get; } = ref F(); }";
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,29): error CS1525: Invalid expression term 'ref'
+                // struct S { int P { get; } = ref F(); }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref F()").WithArguments("ref").WithLocation(1, 29));
+
+            N(SyntaxKind.StructDeclaration);
+            {
+                N(SyntaxKind.StructKeyword);
+                N(SyntaxKind.IdentifierToken, "S");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "P");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.RefExpression);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "F");
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void FieldDeclaration_Initializer_04(LanguageVersion languageVersion)
+        {
+            string source = "struct S { const ref int _f = ref s; }";
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,31): error CS1525: Invalid expression term 'ref'
+                // struct S { const ref int _f = ref s; }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref s").WithArguments("ref").WithLocation(1, 31));
+
+            N(SyntaxKind.StructDeclaration);
+            {
+                N(SyntaxKind.StructKeyword);
+                N(SyntaxKind.IdentifierToken, "S");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.ConstKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_f");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.RefExpression);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "s");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void FieldDeclaration_Initializer_05(LanguageVersion languageVersion)
+        {
+            string source = "struct S { D _f = ref F() => ref i; }";
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.StructDeclaration);
+            {
+                N(SyntaxKind.StructKeyword);
+                N(SyntaxKind.IdentifierToken, "S");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "D");
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_f");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.ParenthesizedLambdaExpression);
+                                {
+                                    N(SyntaxKind.RefType);
+                                    {
+                                        N(SyntaxKind.RefKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "F");
+                                        }
+                                    }
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.RefExpression);
+                                    {
+                                        N(SyntaxKind.RefKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "i");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -354,22 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ReadOnlyRefParameter(LanguageVersion languageVersion)
         {
             string source = "class C { void M(readonly ref int i) { } }";
-            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
-                // (1,1): error CS1073: Unexpected token '}'
-                // class C { void M(readonly ref int i) { } }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "class C { void M(readonly ref int i) { }").WithArguments("}").WithLocation(1, 1),
-                // (1,18): error CS1026: ) expected
-                // class C { void M(readonly ref int i) { } }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(1, 18),
-                // (1,18): error CS1002: ; expected
-                // class C { void M(readonly ref int i) { } }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(1, 18),
-                // (1,36): error CS1003: Syntax error, ',' expected
-                // class C { void M(readonly ref int i) { } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 36),
-                // (1,40): error CS1002: ; expected
-                // class C { void M(readonly ref int i) { } }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 40));
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
 
             N(SyntaxKind.ClassDeclaration);
             {
@@ -386,29 +667,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        M(SyntaxKind.CloseParenToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.FieldDeclaration);
-                {
-                    N(SyntaxKind.ReadOnlyKeyword);
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.RefType);
+                        N(SyntaxKind.Parameter);
                         {
+                            N(SyntaxKind.ReadOnlyKeyword);
                             N(SyntaxKind.RefKeyword);
                             N(SyntaxKind.PredefinedType);
                             {
                                 N(SyntaxKind.IntKeyword);
                             }
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
                             N(SyntaxKind.IdentifierToken, "i");
                         }
+                        N(SyntaxKind.CloseParenToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
@@ -697,6 +972,209 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void AnonymousType_01(LanguageVersion languageVersion)
+        {
+            string source = "new { ref x }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,7): error CS1525: Invalid expression term 'ref'
+                // new { ref x }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref x").WithArguments("ref").WithLocation(1, 7));
+
+            N(SyntaxKind.AnonymousObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void AnonymousType_02(LanguageVersion languageVersion)
+        {
+            string source = "new { ref x, y }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,7): error CS1525: Invalid expression term 'ref'
+                // new { ref x, y }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref x").WithArguments("ref").WithLocation(1, 7));
+
+            N(SyntaxKind.AnonymousObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void AnonymousType_03(LanguageVersion languageVersion)
+        {
+            string source = "new { x, ref y }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,10): error CS1525: Invalid expression term 'ref'
+                // new { x, ref y }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref y").WithArguments("ref").WithLocation(1, 10));
+
+            N(SyntaxKind.AnonymousObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void AnonymousType_04(LanguageVersion languageVersion)
+        {
+            string source = "new { P = ref x, y }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,11): error CS1525: Invalid expression term 'ref'
+                // new { P = ref x, y }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref x").WithArguments("ref").WithLocation(1, 11));
+
+            N(SyntaxKind.AnonymousObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "P");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void AnonymousType_05(LanguageVersion languageVersion)
+        {
+            string source = "new { x, Q = ref y }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,14): error CS1525: Invalid expression term 'ref'
+                // new { x, Q = ref y }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref y").WithArguments("ref").WithLocation(1, 14));
+
+            N(SyntaxKind.AnonymousObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Q");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }

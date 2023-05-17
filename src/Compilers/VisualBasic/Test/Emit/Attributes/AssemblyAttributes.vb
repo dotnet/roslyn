@@ -5,13 +5,17 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
+Imports System.Reflection.Emit
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1007,7 +1011,6 @@ end class
                            Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute))
                        End Sub)
 
-
         compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -1054,7 +1057,6 @@ end class
 <expected>
 BC37215: Cryptographic failure while creating hashes.
 </expected>)
-
 
         Dim comp = CreateVisualBasicCompilation("AlgorithmIdAttribute",
         <![CDATA[<Assembly: System.Reflection.AssemblyAlgorithmIdAttribute(System.Configuration.Assemblies.AssemblyHashAlgorithm.MD5)>]]>,
@@ -1231,8 +1233,10 @@ End Class
         ' We should get only unique netmodule/assembly attributes here, duplicate ones should not be emitted.
         Dim expectedEmittedAttrsCount As Integer = expectedSrcAttrCount - expectedDuplicateAttrCount
 
+        Dim moduleBuilder = CreateTestModuleBuilder(compilation)
+
         Dim allEmittedAttrs = DirectCast(assembly, SourceAssemblySymbol).
-            GetAssemblyCustomAttributesToEmit(New ModuleCompilationState, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
+            GetAssemblyCustomAttributesToEmit(moduleBuilder, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
             Cast(Of VisualBasicAttributeData)()
 
         Dim emittedAttrs = allEmittedAttrs.Where(Function(a) a.AttributeClass.Name.Equals(attrTypeName)).AsImmutable()
@@ -1243,6 +1247,18 @@ End Class
             Assert.True(uniqueAttributes.Add(attr))
         Next
     End Sub
+
+    Private Shared Function CreateTestModuleBuilder(compilation As Compilation) As PEModuleBuilder
+        Return DirectCast(compilation.CheckOptionsAndCreateModuleBuilder(
+            New DiagnosticBag(),
+            manifestResources:=Nothing,
+            EmitOptions.Default,
+            debugEntryPoint:=Nothing,
+            sourceLinkStream:=Nothing,
+            embeddedTexts:=Nothing,
+            testData:=Nothing,
+            CancellationToken.None), PEModuleBuilder)
+    End Function
 #End Region
 
     <Fact()>
@@ -1516,8 +1532,9 @@ End Class
             expectedDuplicateAttrCount:=1,
             attrTypeName:="AssemblyTitleAttribute")
 
+        Dim moduleBuilder = CreateTestModuleBuilder(consoleappCompilation)
         Dim attrs = DirectCast(consoleappCompilation.Assembly, SourceAssemblySymbol).
-            GetAssemblyCustomAttributesToEmit(New ModuleCompilationState, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
+            GetAssemblyCustomAttributesToEmit(moduleBuilder, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
             Cast(Of VisualBasicAttributeData)()
 
         For Each a In attrs
@@ -1776,7 +1793,6 @@ Imports System
 <Assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text := "str1", Text2 := "str1")> ' duplicate
                     ]]>.Value
 
-
         Dim defaultImportsString As String = <![CDATA[
 Imports System
 ]]>.Value
@@ -1982,7 +1998,6 @@ End Class
         Dim metadata = m.Module
         Dim metadataReader = metadata.GetMetadataReader()
 
-
         Dim token As EntityHandle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere")
         Assert.False(token.IsNil())   'could the type ref be located? If not then the attribute's not there.
 
@@ -2025,7 +2040,6 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
 <Assembly:System.Reflection.AssemblyDescriptionAttribute("Module1")>
     ]]></file>
 </compilation>
-
 
         Dim mod2Source =
 <compilation name="M2">
@@ -2078,7 +2092,6 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
     ]]></file>
 </compilation>
 
-
         Dim mod2Source =
 <compilation name="M2">
     <file><![CDATA[
@@ -2125,7 +2138,6 @@ BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M1.netmodule' wil
 <Assembly:System.Reflection.AssemblyDescriptionAttribute("Module1")>
     ]]></file>
 </compilation>
-
 
         Dim mod2Source =
 <compilation name="M2">
@@ -2175,7 +2187,6 @@ BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M2.netmodule' wil
 <Assembly:System.Reflection.AssemblyDescriptionAttribute("Module1")>
     ]]></file>
 </compilation>
-
 
         Dim mod2Source =
 <compilation name="M2">

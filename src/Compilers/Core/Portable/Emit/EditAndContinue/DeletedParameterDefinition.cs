@@ -2,52 +2,44 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
-    internal sealed class DeletedParameterDefinition : IParameterDefinition
+    internal sealed class DeletedParameterDefinition : DeletedDefinition<IParameterDefinition>, IParameterDefinition
     {
-        private readonly IParameterDefinition _oldParameter;
-        private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
-
         public DeletedParameterDefinition(IParameterDefinition oldParameter, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers)
+            : base(oldParameter, typesUsedByDeletedMembers)
         {
-            _oldParameter = oldParameter;
-            _typesUsedByDeletedMembers = typesUsedByDeletedMembers;
         }
 
-        public bool HasDefaultValue => _oldParameter.HasDefaultValue;
+        public bool HasDefaultValue => OldDefinition.HasDefaultValue;
 
-        public bool IsIn => _oldParameter.IsIn;
+        public bool IsIn => OldDefinition.IsIn;
 
-        public bool IsMarshalledExplicitly => _oldParameter.IsMarshalledExplicitly;
+        public bool IsMarshalledExplicitly => OldDefinition.IsMarshalledExplicitly;
 
-        public bool IsOptional => _oldParameter.IsOptional;
+        public bool IsOptional => OldDefinition.IsOptional;
 
-        public bool IsOut => _oldParameter.IsOut;
+        public bool IsOut => OldDefinition.IsOut;
 
-        public IMarshallingInformation? MarshallingInformation => _oldParameter.MarshallingInformation;
+        public IMarshallingInformation? MarshallingInformation => OldDefinition.MarshallingInformation;
 
-        public ImmutableArray<byte> MarshallingDescriptor => _oldParameter.MarshallingDescriptor;
+        public ImmutableArray<byte> MarshallingDescriptor => OldDefinition.MarshallingDescriptor;
 
-        public string? Name => _oldParameter.Name;
+        public string? Name => OldDefinition.Name;
 
-        public ImmutableArray<ICustomModifier> CustomModifiers => _oldParameter.CustomModifiers;
+        public ImmutableArray<ICustomModifier> CustomModifiers => OldDefinition.CustomModifiers;
 
-        public ImmutableArray<ICustomModifier> RefCustomModifiers => _oldParameter.RefCustomModifiers;
+        public ImmutableArray<ICustomModifier> RefCustomModifiers => OldDefinition.RefCustomModifiers;
 
-        public bool IsByReference => _oldParameter.IsByReference;
+        public bool IsByReference => OldDefinition.IsByReference;
 
-        public ushort Index => _oldParameter.Index;
+        public ushort Index => OldDefinition.Index;
 
         public IDefinition? AsDefinition(EmitContext context)
         {
@@ -56,27 +48,27 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public void Dispatch(MetadataVisitor visitor)
         {
-            _oldParameter.Dispatch(visitor);
+            OldDefinition.Dispatch(visitor);
         }
 
         public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
-            return _oldParameter.GetAttributes(context).Select(a => new DeletedCustomAttribute(a, _typesUsedByDeletedMembers));
+            return WrapAttributes(OldDefinition.GetAttributes(context));
         }
 
         public MetadataConstant? GetDefaultValue(EmitContext context)
         {
-            return _oldParameter.GetDefaultValue(context);
+            return OldDefinition.GetDefaultValue(context);
         }
 
         public ISymbolInternal? GetInternalSymbol()
         {
-            return _oldParameter.GetInternalSymbol();
+            return OldDefinition.GetInternalSymbol();
         }
 
         public ITypeReference GetType(EmitContext context)
         {
-            return DeletedTypeDefinition.TryCreate(_oldParameter.GetType(context), _typesUsedByDeletedMembers);
+            return WrapType(OldDefinition.GetType(context));
         }
     }
 }

@@ -15,7 +15,7 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeF
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpdateLegacySuppressions
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUpdateLegacySuppressions)]
-    [WorkItem(44362, "https://github.com/dotnet/roslyn/issues/44362")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/44362")]
     public class UpdateLegacySuppressionsTests
     {
         [Theory, CombinatorialData]

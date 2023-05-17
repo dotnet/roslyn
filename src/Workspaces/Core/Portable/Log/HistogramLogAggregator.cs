@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// <summary>
     /// Defines a log aggregator to create a histogram
     /// </summary>
-    internal sealed class HistogramLogAggregator<TKey> : AbstractLogAggregator<TKey, HistogramLogAggregator<TKey>.HistogramCounter>
+    internal sealed class HistogramLogAggregator<TKey> : AbstractLogAggregator<TKey, HistogramLogAggregator<TKey>.HistogramCounter> where TKey : notnull
     {
         private readonly int _bucketSize;
         private readonly int _maxBucketValue;

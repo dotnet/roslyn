@@ -18,25 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
 [CompilerTrait(CompilerFeature.RequiredMembers)]
 public class RequiredMembersTests : CSharpTestBase
 {
-    private const string RequiredMemberAttributeVB = @"
-Namespace System.Runtime.CompilerServices
-    <AttributeUsage(AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Field Or AttributeTargets.Property, Inherited := false, AllowMultiple := false)>
-    Public Class RequiredMemberAttribute
-        Inherits Attribute
-    End Class
-End Namespace
-Namespace System.Diagnostics.CodeAnalysis
-    <AttributeUsage(AttributeTargets.Constructor, Inherited := false, AllowMultiple := false)>
-    Public Class SetsRequiredMembersAttribute
-        Inherits Attribute
-    End Class
-End Namespace";
-
     private static CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, IEnumerable<MetadataReference>? references = null, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null, string? assemblyName = null, TargetFramework targetFramework = TargetFramework.Standard)
         => CreateCompilation(new[] { source, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute }, references, options: options, parseOptions: parseOptions, assemblyName: assemblyName, targetFramework: targetFramework);
-
-    private Compilation CreateVisualBasicCompilationWithRequiredMembers(string source)
-        => CreateVisualBasicCompilation(new[] { source, RequiredMemberAttributeVB });
 
     private static Action<ModuleSymbol> ValidateRequiredMembersInModule(string[] memberPaths, string expectedAttributeLayout)
     {
@@ -56,14 +39,7 @@ End Namespace";
                 AssertEx.NotNull(member, $"Member {memberPath} was not found");
                 Assert.True(member is PropertySymbol or FieldSymbol, $"Unexpected member symbol type {member.Kind}");
                 Assert.True(member.IsRequired());
-                if (module is SourceModuleSymbol)
-                {
-                    Assert.All(member.GetAttributes(), attr => AssertEx.NotEqual("System.Runtime.CompilerServices.RequiredMemberAttribute", attr.AttributeClass.ToTestDisplayString()));
-                }
-                else
-                {
-                    AssertEx.Any(member.GetAttributes(), attr => attr.AttributeClass.ToTestDisplayString() == "System.Runtime.CompilerServices.RequiredMemberAttribute");
-                }
+                Assert.All(member.GetAttributes(), attr => AssertEx.NotEqual("System.Runtime.CompilerServices.RequiredMemberAttribute", attr.AttributeClass.ToTestDisplayString()));
 
                 requiredTypes.Add((NamedTypeSymbol)member.ContainingType);
             }
@@ -1383,6 +1359,35 @@ class C
         );
     }
 
+    [Fact]
+    public void RefFields()
+    {
+        var source = """
+            #pragma warning disable 649
+            internal ref struct R1<T>
+            {
+                internal required ref T F1;
+                public R1() { }
+            }
+            public ref struct R2<U>
+            {
+                public required ref readonly U F2;
+                public R2() { }
+            }
+            """;
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var expectedRequiredMembers = new[] { "R1.F1", "R2.F2" };
+        var expectedAttributeLayout = """
+            [RequiredMember] R1<T>
+                    [RequiredMember] ref T R1<T>.F1
+                [RequiredMember] R2<U>
+                    [RequiredMember] ref readonly U R2<U>.F2
+            """;
+        var symbolValidator = ValidateRequiredMembersInModule(expectedRequiredMembers, expectedAttributeLayout);
+        var verifier = CompileAndVerify(comp, verify: Verification.Skipped, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
+    }
+
     [Theory]
     [InlineData("internal")]
     [InlineData("internal protected")]
@@ -1737,26 +1742,59 @@ public class C
     [Fact]
     public void EnforcedRequiredMembers_NoInheritance_Unsettable_FromMetadata()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
+        // Equivalent to:
+        // public class C
+        // {
+        //     public required readonly int Field1;
+        //     public required int Prop1 { get; }
+        // }
+        var il = @"
+.class public auto ansi C
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _Prop1
+    .field public initonly int32 Field1
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
 
-<RequiredMember>
-Public Class C
-    <RequiredMember>
-    Public Readonly Property Prop1 As Integer
-    <RequiredMember>
-    Public Readonly Field1 As Integer
-End Class
-";
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        vbComp.VerifyEmitDiagnostics();
+    .method public specialname 
+        instance int32 get_Prop1 () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 C::_Prop1
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .property instance int32 Prop1()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 C::get_Prop1()
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = @"
 var c = new C();
 c = new C() { Prop1 = 1, Field1 = 1 };
 ";
-        var comp = CreateCompilation(new[] { c }, references: new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(new[] { c }, references: new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (2,13): error CS9035: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
             // var c = new C();
@@ -2421,6 +2459,88 @@ public class Derived : Base
     }
 
     [Fact]
+    public void EnforcedRequiredMembers_Override_DiffersByModreq_NoneSet()
+    {
+        // Equivalent to 
+        // class Base
+        // {
+        //     public virtual required modopt(object) int Prop1 { get; set; }
+        // }
+        var @base = @"
+.class public auto ansi beforefieldinit Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 '<Prop1>k__BackingField'
+
+    .method public hidebysig specialname newslot virtual 
+        instance int32 get_Prop1 () cil managed 
+    {
+        ldarg.0
+        ldfld int32 Base::'<Prop1>k__BackingField'
+        ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void set_Prop1 (
+            int32 'value'
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::'<Prop1>k__BackingField'
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
+            01 00 5f 43 6f 6e 73 74 72 75 63 74 6f 72 73 20
+            6f 66 20 74 79 70 65 73 20 77 69 74 68 20 72 65
+            71 75 69 72 65 64 20 6d 65 6d 62 65 72 73 20 61
+            72 65 20 6e 6f 74 20 73 75 70 70 6f 72 74 65 64
+            20 69 6e 20 74 68 69 73 20 76 65 72 73 69 6f 6e
+            20 6f 66 20 79 6f 75 72 20 63 6f 6d 70 69 6c 65
+            72 2e 01 00 00
+        )
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+            01 00 0f 52 65 71 75 69 72 65 64 4d 65 6d 62 65
+            72 73 00 00
+        )
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+
+    .property instance int32 modopt([mscorlib]System.Object) Prop1()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_Prop1()
+        .set instance void Base::set_Prop1(int32)
+    }
+}";
+
+        var code = @"
+_ = new Derived() { Prop1 = 1 };
+
+public class Derived : Base
+{
+    public override required int Prop1 { get; set; }
+}
+";
+
+        var baseRef = CompileIL(@base);
+
+        var comp = CreateCompilation(code, new[] { baseRef }, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void EnforcedRequiredMembers_OverrideRetargeted_AllSet()
     {
         var retargetedCode = @"public class C {}";
@@ -2486,28 +2606,118 @@ public class Derived : Base
         Assert.IsType<RetargetingNamedTypeSymbol>(comp.GetTypeByMetadataName("Base"));
     }
 
+    /// <summary>
+    /// Equivalent to
+    /// <code>
+    /// public class Base
+    /// {
+    ///     public required int P { get; set; }
+    /// }
+    /// public class Derived : Base
+    /// {
+    ///     public new required int P { get; set; }
+    /// }
+    /// </code>
+    /// </summary>
+    private const string ShadowingBaseAndDerivedIL = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
     [Fact]
     public void EnforcedRequiredMembers_ShadowedInSource_01()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
-
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    <RequiredMember>
-    Public Shadows Property P As Integer
-End Class
-";
-
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
-
         var c = @"
 _ = new Derived2();
 _ = new Derived3();
@@ -2519,7 +2729,9 @@ class Derived2 : Derived
 }
 class Derived3 : Derived { }";
 
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var ilRef = CompileIL(ShadowingBaseAndDerivedIL);
+
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (7,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
@@ -2536,24 +2748,7 @@ class Derived3 : Derived { }";
     [Fact]
     public void EnforcedRequiredMembers_ShadowedInSource_01_HasSetsRequiredMembers()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
-
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    <RequiredMember>
-    Public Shadows Property P As Integer
-End Class
-";
-
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+        var ilRef = CompileIL(ShadowingBaseAndDerivedIL);
 
         var c = @"
 using System.Diagnostics.CodeAnalysis;
@@ -2567,30 +2762,117 @@ class Derived2 : Derived
     public Derived2(int x) {}
 }";
 
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
     }
 
     [Fact]
     public void EnforcedRequiredMembers_ShadowedInSource_02()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // [RequiredMember]public class Derived : Base
+        // {
+        //     public new int P { get; set; }
+        // }
+        // </code>
+        string il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    Public Shadows Property P As Integer
-End Class
-";
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = @"
 _ = new Derived2();
@@ -2602,7 +2884,7 @@ class Derived2 : Derived
 }
 class Derived3 : Derived { }";
 
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (7,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
@@ -2616,22 +2898,105 @@ class Derived3 : Derived { }";
     [Fact]
     public void EnforcedRequiredMembers_ShadowedInSource_03()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // public class Derived : Base
+        // {
+        //     public new int P { get; set; }
+        // }
+        // </code>
+        string il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-Public Class Derived
-    Inherits Base
-    Public Shadows Property P As Integer
-End Class
-";
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
 
         var c = @"
 _ = new Derived2();
@@ -2643,7 +3008,9 @@ class Derived2 : Derived
 }
 class Derived3 : Derived { }";
 
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var ilRef = CompileIL(il);
+
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (7,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
@@ -2653,7 +3020,6 @@ class Derived3 : Derived { }";
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived3").WithArguments("Derived").WithLocation(9, 7)
         );
     }
-
 
     /// <summary>
     /// This IL is the equivalent of:
@@ -3050,38 +3416,133 @@ record DerivedDerived1 : Derived
     [Fact]
     public void EnforcedRequiredMembers_ShadowedFromMetadata_01()
     {
-        var vb = @"
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // public class Derived : Base
+        // {
+        //     public new required int P { get; set; }
+        //     public Derived() {}
+        //     [SetsRequiredMembers] public Derived(int unused) {}
+        // }
+        var il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    <RequiredMember>
-    Public Shadows Property P As Integer
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-    Public Sub New()
-    End Sub
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
 
-    <SetsRequiredMembers>
-    Public Sub New(unused As Integer)
-    End Sub
-End Class
-";
+        IL_0008: ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor (
+            int32 'unused'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = """
             _ = new Derived();
             _ = new Derived(1);
             """;
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (1,9): error CS9037: The required members list for 'Derived' is malformed and cannot be interpreted.
             // _ = new Derived();
@@ -3092,37 +3553,130 @@ End Class
     [Fact]
     public void EnforcedRequiredMembers_ShadowedFromMetadata_02()
     {
-        var vb = @"
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // [RequiredMember] public class Derived : Base
+        // {
+        //     public new int P { get; set; }
+        //     public Derived() {}
+        //     [SetsRequiredMembers] public Derived(int unused) {}
+        // }
+        var il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    Public Shadows Property P As Integer
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-    Public Sub New()
-    End Sub
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
 
-    <SetsRequiredMembers>
-    Public Sub New(unused As Integer)
-    End Sub
-End Class
-";
+        IL_0008: ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor (
+            int32 'unused'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = """
             _ = new Derived();
             _ = new Derived(1);
             """;
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (1,9): error CS9037: The required members list for 'Derived' is malformed and cannot be interpreted.
             // _ = new Derived();
@@ -3133,36 +3687,127 @@ End Class
     [Fact]
     public void EnforcedRequiredMembers_ShadowedFromMetadata_03()
     {
-        var vb = @"
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // public class Derived : Base
+        // {
+        //     public new int P { get; set; }
+        //     public Derived() {}
+        //     [SetsRequiredMembers] public Derived(int unused) {}
+        // }
+        var il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-Public Class Derived
-    Inherits Base
-    Public Shadows Property P As Integer
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-    Public Sub New()
-    End Sub
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
 
-    <SetsRequiredMembers>
-    Public Sub New(unused As Integer)
-    End Sub
-End Class
-";
+        IL_0008: ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor (
+            int32 'unused'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = """
             _ = new Derived();
             _ = new Derived(1);
             """;
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (1,9): error CS9037: The required members list for 'Derived' is malformed and cannot be interpreted.
             // _ = new Derived();
@@ -3593,7 +4238,8 @@ struct S
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor()
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_01()
     {
         var code = @"
 using System.Diagnostics.CodeAnalysis;
@@ -3601,13 +4247,129 @@ using System.Diagnostics.CodeAnalysis;
 class C
 {
     private string _field;
-    public required string Field { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+    public required string Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
 
     public C() { }
 }";
 
         var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_02()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_03()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field1;
+    private string _field2;
+    [MemberNotNull(nameof(_field1))]
+    public required string Property
+    { 
+        get => _field1 ??= "";
+        [MemberNotNull(nameof(_field2))]
+        set
+        {
+            _field1 = value; 
+            _field2 = value; 
+        }
+    }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_04()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    public required string Property1 { get => Property2; [MemberNotNull(nameof(Property2))] set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_05()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    [MemberNotNull(nameof(Property2))]
+    public required string Property1 { get => Property2 ??= ""; set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_06()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    [SetsRequiredMembers]
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
         comp.VerifyDiagnostics(
+            // (9,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property").WithLocation(9, 12),
             // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
             //     public C() { }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12)
@@ -3615,33 +4377,467 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor()
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_07()
     {
-        var code = @"
+        var code = """
 using System.Diagnostics.CodeAnalysis;
 #nullable enable
 class C
 {
     private string _field;
-    public required string Field { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+    public required string Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    [SetsRequiredMembers]
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (9,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property").WithLocation(9, 12),
+            // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_08()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (6,60): error CS9034: Required member 'C.Property' must be settable.
+            //     [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; }
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Property").WithArguments("C.Property").WithLocation(6, 60)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_09()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class C
+{
+    public required string Prop1 { get => Prop2; [MemberNotNull(nameof(Prop2))] set => Prop2 = value; }
+    public string Prop2 { get => Prop3; [MemberNotNull(nameof(Prop3))] set => Prop3 = value; }
+    public string Prop3 { get; set; }
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (8,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Prop3").WithLocation(8, 12)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_01()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    public required string Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
 
     public C() { }
     public C(bool unused) : this()
     { 
         _field.ToString();
-        Field.ToString();
+        Property.ToString();
     }
-}";
+}
+""";
 
         var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
         comp.VerifyDiagnostics(
-            // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
-            //     public C() { }
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12),
-            // (13,9): warning CS8602: Dereference of a possibly null reference.
-            //         Field.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field").WithLocation(13, 9)
+            // (11,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(11, 9),
+            // (12,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(12, 9)
         );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_02()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    public C() { }
+    public C(bool unused) : this()
+    { 
+        _field.ToString();
+        Property.ToString();
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (11,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(11, 9),
+            // (12,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(12, 9)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_03()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    public required string Property1 { get => Property2; [MemberNotNull(nameof(Property2))] set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    public C() { }
+    public C(bool unused) : this()
+    { 
+        Property1.ToString();
+        Property2.ToString();
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (11,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property1.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property1").WithLocation(11, 9),
+            // (12,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property2.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property2").WithLocation(12, 9)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_04()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    public required string Property1 { get => Property2; [MemberNotNull(nameof(Property2))] set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    public C() { }
+    [SetsRequiredMembers]
+    public C(bool unused) : this()
+    { 
+        Property1.ToString();
+        Property2.ToString();
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (12,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property1.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property1").WithLocation(12, 9),
+            // (13,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property2.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property2").WithLocation(13, 9)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_05()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    public required string Property1 { get => Property2; [MemberNotNull(nameof(Property2))] set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    [SetsRequiredMembers]
+    public C() { }
+    [SetsRequiredMembers]
+    public C(bool unused) : this()
+    { 
+        Property1.ToString();
+        Property2.ToString();
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (9,12): warning CS8618: Non-nullable property 'Property2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property2").WithLocation(9, 12),
+            // (9,12): warning CS8618: Non-nullable property 'Property1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property1").WithLocation(9, 12)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_01()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    protected string _field;
+    public required string Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+#nullable enable
+class Derived : Base
+{
+    public Derived()
+    { 
+        _field.ToString();
+        Property.ToString();
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (6,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(6, 9),
+            // (7,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(7, 9)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_02()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    protected string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+#nullable enable
+class Derived : Base
+{
+    public Derived()
+    { 
+        _field.ToString();
+        Property.ToString();
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (6,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(6, 9),
+            // (7,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(7, 9)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_03()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    private string _field;
+    public required string Property { get => _field ??= ""; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+#nullable enable
+class Derived : Base
+{
+    private string _field;
+    private Derived() { _field = ""; }
+    public Derived(bool unused) : this()
+    { 
+        // No warning, as the _field in the MemberNotNull isn't visible in this type, and the one that is visible was set by the chained ctor
+        _field.ToString();
+        Property.ToString();
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (10,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(10, 9)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_04()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    private string _field;
+    public required string Property { get => _field ??= ""; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+#nullable enable
+class Derived : Base
+{
+    private string _field;
+    private Derived()
+    {
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (4,20): warning CS0169: The field 'Derived._field' is never used
+            //     private string _field;
+            Diagnostic(ErrorCode.WRN_UnreferencedField, "_field").WithArguments("Derived._field").WithLocation(4, 20),
+            // (5,13): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            //     private Derived()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "_field").WithLocation(5, 13)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_05()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    protected string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class Derived : Base
+{
+    [SetsRequiredMembers]
+    public Derived()
+    {
+        _field.ToString();
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (6,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Property").WithLocation(6, 12),
+            // (8,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(8, 9)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
@@ -3979,6 +5175,12 @@ public class Derived : Base
                     Prop4 = null!;
                 }
 
+                [SetsRequiredMembers]
+                public Derived(bool unused)
+                {
+                    Prop4 = null!;
+                }
+
                 public Derived() : this(0)
                 {
                     Prop1.ToString();
@@ -3998,9 +5200,15 @@ public class Derived : Base
             // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
             //     public Derived(int unused) : base()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
-            // (15,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            // (16,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(16, 12),
+            // (16,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(16, 12),
+            // (21,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
             //     public Derived() : this(0)
-            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(15, 24)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(21, 24)
         );
 
         var baseComp = CreateCompilationWithRequiredMembers(@base);
@@ -4012,9 +5220,15 @@ public class Derived : Base
             // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
             //     public Derived(int unused) : base()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
-            // (15,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            // (16,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(16, 12),
+            // (16,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(16, 12),
+            // (21,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
             //     public Derived() : this(0)
-            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(15, 24)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(21, 24)
         );
     }
 
@@ -4044,6 +5258,12 @@ public class Derived : Base
                     Field4 = null!;
                 }
 
+                [SetsRequiredMembers]
+                public Derived(bool unused)
+                {
+                    Field4 = null!;
+                }
+
                 public Derived() : this(0)
                 {
                     Field1.ToString();
@@ -4056,15 +5276,22 @@ public class Derived : Base
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (17,12): warning CS8618: Non-nullable field 'Field3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
-            //     public Derived(int unused) : base()
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field3").WithLocation(17, 12),
-            // (17,12): warning CS8618: Non-nullable field 'Field1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
-            //     public Derived(int unused) : base()
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field1").WithLocation(17, 12),
-            // (22,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
-            //     public Derived() : this(0)
-            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(22, 24)
+                // (17,12): warning CS8618: Non-nullable field 'Field3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public Derived(int unused) : base()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field3").WithLocation(17, 12),
+                // (17,12): warning CS8618: Non-nullable field 'Field1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public Derived(int unused) : base()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field1").WithLocation(17, 12),
+                // (23,12): warning CS8618: Non-nullable field 'Field3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public Derived(bool unused)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field3").WithLocation(23, 12),
+                // (23,12): warning CS8618: Non-nullable field 'Field1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public Derived(bool unused)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field1").WithLocation(23, 12),
+                // (28,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+                //     public Derived() : this(0)
+                Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(28, 24)
+
         );
     }
 
@@ -4097,6 +5324,11 @@ public class Derived : Base
                 {
                 }
 
+                [SetsRequiredMembers]
+                public Derived(bool unused)
+                {
+                }
+
                 public Derived() : this(0)
                 {
                     Prop1.ToString();
@@ -4108,29 +5340,41 @@ public class Derived : Base
         var comp = CreateCompilationWithRequiredMembers(new[] { derived, @base });
 
         comp.VerifyDiagnostics(
-            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
-            //     public Derived(int unused) : base()
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
             // (10,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
             //     public Derived(int unused) : base()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop2").WithLocation(10, 12),
-            // (14,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
+            // (15,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop2").WithLocation(15, 12),
+            // (15,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(15, 12),
+            // (19,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
             //     public Derived() : this(0)
-            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(14, 24)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(19, 24)
         );
 
         var baseComp = CreateCompilationWithRequiredMembers(@base);
         comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
-            //     public Derived(int unused) : base()
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
             // (10,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
             //     public Derived(int unused) : base()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop2").WithLocation(10, 12),
-            // (14,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
+            // (15,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop2").WithLocation(15, 12),
+            // (15,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(15, 12),
+            // (19,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
             //     public Derived() : this(0)
-            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(14, 24)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(19, 24)
         );
     }
 
@@ -4438,6 +5682,139 @@ public class Derived : Base
         );
     }
 
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_11()
+    {
+        var code = """
+            #nullable enable
+            public class Base
+            {
+                public required string Prop1 { get; set; }
+                public string Prop2 { get; set; } = null!;
+            }
+            
+            public class Derived : Base
+            {
+                public required string Prop3 { get; set; } = Prop1.ToString();
+                public string Prop4 { get; set; } = Prop2.ToString();
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (10,50): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Base.Prop1'
+            //     public required string Prop3 { get; set; } = Prop1.ToString();
+            Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Prop1").WithArguments("Base.Prop1").WithLocation(10, 50),
+            // (11,41): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Base.Prop2'
+            //     public string Prop4 { get; set; } = Prop2.ToString();
+            Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Prop2").WithArguments("Base.Prop2").WithLocation(11, 41)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_12()
+    {
+        var code = """
+            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+            public record Base
+            {
+                public required string Prop1 { get; set; }
+                public string Prop2 { get; set; } = null!;
+
+                [SetsRequiredMembers]
+                protected Base() {} // 1
+            }
+            
+            public record Derived() : Base;
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (9,15): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     protected Base() {} // 1
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Base").WithArguments("property", "Prop1").WithLocation(9, 15),
+            // (12,15): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            // public record Derived() : Base;
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "Derived").WithLocation(12, 15)
+        );
+    }
+
+    [Fact]
+    public void SetsRequiredMembersRequiredForChaining_ImplicitConstructor()
+    {
+        var code = """
+            using System.Diagnostics.CodeAnalysis;
+
+            class Base
+            {
+                [SetsRequiredMembers]
+                public Base() { }
+            }
+
+            class Derived : Base { }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (9,7): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            // class Derived : Base { }
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "Derived").WithLocation(9, 7)
+        );
+    }
+
+    [Fact]
+    public void SetsRequiredMembersRequiredForChaining_ImplicitBaseCall()
+    {
+        var code = """
+            using System.Diagnostics.CodeAnalysis;
+
+            class Base
+            {
+                [SetsRequiredMembers]
+                public Base() { }
+            }
+
+            class Derived : Base
+            {
+                public Derived() { }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (11,12): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() { }
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "Derived").WithLocation(11, 12)
+        );
+    }
+
+    [Fact]
+    public void SetsRequiredMembersRequiredForChaining_Explicit()
+    {
+        var code = """
+            using System.Diagnostics.CodeAnalysis;
+
+            class Base
+            {
+                [SetsRequiredMembers]
+                public Base() { }
+            }
+
+            class Derived : Base
+            {
+                public Derived() : base() { } 
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (11,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : base() { } 
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "base").WithLocation(11, 24)
+        );
+    }
+
     [Fact]
     public void SetsRequiredMembersAppliedToRecordCopyConstructor_DeclaredInType()
     {
@@ -4486,35 +5863,6 @@ public class Derived : Base
             // (1,15): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute..ctor'
             // public record C
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute", ".ctor").WithLocation(1, 15)
-        );
-    }
-
-    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_11()
-    {
-        var code = """
-            #nullable enable
-            public class Base
-            {
-                public required string Prop1 { get; set; }
-                public string Prop2 { get; set; } = null!;
-            }
-            
-            public class Derived : Base
-            {
-                public required string Prop3 { get; set; } = Prop1.ToString();
-                public string Prop4 { get; set; } = Prop2.ToString();
-            }
-            """;
-
-        var comp = CreateCompilationWithRequiredMembers(code);
-        comp.VerifyDiagnostics(
-            // (10,50): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Base.Prop1'
-            //     public required string Prop3 { get; set; } = Prop1.ToString();
-            Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Prop1").WithArguments("Base.Prop1").WithLocation(10, 50),
-            // (11,41): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Base.Prop2'
-            //     public string Prop4 { get; set; } = Prop2.ToString();
-            Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Prop2").WithArguments("Base.Prop2").WithLocation(11, 41)
         );
     }
 
@@ -4953,6 +6301,67 @@ public class Derived : Base
             //     public required int Test { get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(4, 25)
         );
+    }
 
+    [Theory, CombinatorialData]
+    public void FirstAccessOfIsRequiredDoesNotMatter(bool accessAttributesFirst)
+    {
+        // Accessing attributes will populate IsRequired if it's not already populated, so we want to test both codepaths explicitly.
+        var comp = CreateCompilationWithRequiredMembers("""
+            public class C
+            {
+                public required int Field1;
+                public required int Property1 { get; set; }
+            }
+
+            public class D
+            {
+                public int Field2;
+                public int Property2 { get; set; }
+            }
+            """);
+
+        CompileAndVerify(comp, symbolValidator: module =>
+        {
+            var c = module.ContainingAssembly.GetTypeByMetadataName("C");
+            AssertEx.NotNull(c);
+            FieldSymbol field1 = c.GetMember<FieldSymbol>("Field1");
+            PropertySymbol property1 = c.GetMember<PropertySymbol>("Property1");
+            var d = module.ContainingAssembly.GetTypeByMetadataName("D");
+            AssertEx.NotNull(d);
+            FieldSymbol field2 = d.GetMember<FieldSymbol>("Field2");
+            PropertySymbol property2 = d.GetMember<PropertySymbol>("Property2");
+
+            if (accessAttributesFirst)
+            {
+                assertAttributesEmpty();
+                assertIsRequired();
+            }
+            else
+            {
+                assertIsRequired();
+                assertAttributesEmpty();
+            }
+
+            void assertIsRequired()
+            {
+                Assert.True(c.HasDeclaredRequiredMembers);
+                Assert.True(field1.IsRequired);
+                Assert.True(property1.IsRequired);
+                Assert.False(d.HasDeclaredRequiredMembers);
+                Assert.False(field2.IsRequired);
+                Assert.False(property2.IsRequired);
+            }
+
+            void assertAttributesEmpty()
+            {
+                Assert.Empty(c.GetAttributes());
+                Assert.Empty(field1.GetAttributes());
+                Assert.Empty(property1.GetAttributes());
+                Assert.Empty(d.GetAttributes());
+                Assert.Empty(field2.GetAttributes());
+                Assert.Empty(property2.GetAttributes());
+            }
+        });
     }
 }

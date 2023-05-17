@@ -2,28 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.NamingStyles;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources
 {
+    using static SymbolSpecification;
+
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class DeclarationNameCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         private const string Span = @"
@@ -331,8 +328,7 @@ namespace System.Collections.Generic
         internal override Type GetCompletionProviderType()
             => typeof(DeclarationNameCompletionProvider);
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(48310, "https://github.com/dotnet/roslyn/issues/48310")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/48310")]
         [InlineData("record")]
         [InlineData("record class")]
         [InlineData("record struct")]
@@ -348,7 +344,22 @@ public {record} R(MyClass $$
             await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        public async Task DoNotTreatPrimaryConstructorParameterAsProperty(string record)
+        {
+            var markup = $@"
+public class MyClass
+{{
+}}
+
+public {record} R(MyClass $$
+";
+            await VerifyItemIsAbsentAsync(markup, "MyClass");
+        }
+
+        [Fact]
         public async Task NameWithOnlyType1()
         {
             var markup = @"
@@ -362,7 +373,7 @@ public class MyClass
             await VerifyItemExistsAsync(markup, "GetMyClass", glyph: (int)Glyph.MethodPublic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AsyncTaskOfT()
         {
             var markup = @"
@@ -375,7 +386,7 @@ public class C
             await VerifyItemExistsAsync(markup, "GetCAsync");
         }
 
-        [Fact(Skip = "not yet implemented"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact(Skip = "not yet implemented")]
         public async Task NonAsyncTaskOfT()
         {
             var markup = @"
@@ -387,7 +398,7 @@ public class C
             await VerifyItemExistsAsync(markup, "GetCAsync");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task MethodDeclaration1()
         {
             var markup = @"
@@ -401,7 +412,7 @@ public class C
             await VerifyItemIsAbsentAsync(markup, "c");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task WordBreaking1()
         {
             var markup = @"
@@ -416,7 +427,7 @@ public class C
             await VerifyItemExistsAsync(markup, "token");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task WordBreaking2()
         {
             var markup = @"
@@ -429,7 +440,7 @@ public class C
             await VerifyItemExistsAsync(markup, "GetI");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task WordBreaking3()
         {
             var markup = @"
@@ -442,7 +453,7 @@ public class C
             await VerifyItemExistsAsync(markup, "GetI");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task WordBreaking4()
         {
             var markup = @"
@@ -455,7 +466,7 @@ public class C
             await VerifyItemExistsAsync(markup, "Goo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task WordBreaking5()
         {
             var markup = @"
@@ -476,7 +487,7 @@ public class C
             await VerifyItemExistsAsync(markup, "SomeWonderfullyLongClassName");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task Parameter1()
         {
             var markup = @"
@@ -489,7 +500,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task Parameter2()
         {
             var markup = @"
@@ -502,7 +513,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task Parameter3()
         {
             var markup = @"
@@ -515,8 +526,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
         public async Task Parameter4()
         {
             var markup = @"
@@ -530,7 +540,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task Parameter5()
         {
             var markup = @"
@@ -543,8 +553,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
         public async Task Parameter6()
         {
             var markup = @"
@@ -556,7 +565,7 @@ void Goo(CancellationToken c$$) {}
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task Parameter7()
         {
             var markup = @"
@@ -567,8 +576,7 @@ void Goo(CancellationToken cancellationToken, CancellationToken c$$) {}
             await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
         public async Task Parameter8()
         {
             var markup = @"
@@ -582,8 +590,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
         public async Task Parameter9()
         {
             var markup = @"
@@ -600,9 +607,8 @@ public class C
         [InlineData(LanguageVersion.CSharp7)]
         [InlineData(LanguageVersion.CSharp8)]
         [InlineData(LanguageVersion.Latest)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
-        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/42049")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
         public async Task Parameter10(LanguageVersion languageVersion)
         {
             var source = @"
@@ -631,9 +637,8 @@ public class C
         [InlineData(LanguageVersion.CSharp7)]
         [InlineData(LanguageVersion.CSharp8)]
         [InlineData(LanguageVersion.Latest)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
-        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/42049")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
         public async Task Parameter11(LanguageVersion languageVersion)
         {
             var source = @"
@@ -663,9 +668,8 @@ public class C
         [InlineData(LanguageVersion.CSharp7)]
         [InlineData(LanguageVersion.CSharp8)]
         [InlineData(LanguageVersion.Latest)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
-        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/42049")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
         public async Task Parameter12(LanguageVersion languageVersion)
         {
             var source = @"
@@ -692,13 +696,12 @@ public class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(36248, "https://github.com/dotnet/roslyn/issues/36248")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36248")]
         public async Task Parameter13()
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
 
             var options = new CompletionOptions()
             {
@@ -716,8 +719,7 @@ public class C
             await VerifyItemIsAbsentAsync(markup, "CancellationToken", options: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52534")]
         public async Task SuggestParameterNamesFromExistingOverloads()
         {
             var markup = @"
@@ -733,8 +735,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52534")]
         public async Task SuggestParameterNamesFromExistingOverloads_Constructor()
         {
             var markup = @"
@@ -751,8 +752,7 @@ public class C
             await VerifyItemIsAbsentAsync(markup, "firstName");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52534")]
         public async Task DoNotSuggestParameterNamesFromTheSameOverload()
         {
             var markup = @"
@@ -764,8 +764,7 @@ public class C
             await VerifyItemIsAbsentAsync(markup, "name");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52534")]
         public async Task DoNotSuggestParameterNamesFromNonOverloads()
         {
             var markup = @"
@@ -781,8 +780,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52534")]
         public async Task DoNotSuggestInGenericType()
         {
             var markup = @"
@@ -797,8 +795,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52534")]
         public async Task DoNotSuggestInOptionalParameterDefaultValue()
         {
             var markup = @"
@@ -814,8 +811,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19260")]
         public async Task EscapeKeywords1()
         {
             var markup = @"
@@ -830,8 +826,7 @@ public class C
             await VerifyItemExistsAsync(markup, "builder", glyph: (int)Glyph.Parameter);
         }
 
-        [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19260")]
         public async Task EscapeKeywords2()
         {
             var markup = @"
@@ -844,8 +839,7 @@ public class C
             await VerifyItemExistsAsync(markup, "@for", glyph: (int)Glyph.Parameter);
         }
 
-        [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19260")]
         public async Task EscapeKeywords3()
         {
             var markup = @"
@@ -861,8 +855,7 @@ public class C
             await VerifyItemExistsAsync(markup, "@for");
         }
 
-        [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19260")]
         public async Task EscapeKeywords4()
         {
             var markup = @"
@@ -880,8 +873,7 @@ public class C
             await VerifyItemExistsAsync(markup, "builder");
         }
 
-        [WorkItem(25214, "https://github.com/dotnet/roslyn/issues/25214")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25214")]
         public async Task TypeImplementsLazyOfType1()
         {
             var markup = @"
@@ -900,8 +892,7 @@ public class Item { }
             await VerifyItemExistsAsync(markup, "GetItem");
         }
 
-        [WorkItem(25214, "https://github.com/dotnet/roslyn/issues/25214")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25214")]
         public async Task TypeImplementsLazyOfType2()
         {
             var markup = @"
@@ -920,7 +911,7 @@ public class Item { }
             await VerifyItemExistsAsync(markup, "GetItems");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoSuggestionsForInt()
         {
             var markup = @"
@@ -933,7 +924,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoSuggestionsForLong()
         {
             var markup = @"
@@ -946,7 +937,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoSuggestionsForDouble()
         {
             var markup = @"
@@ -959,7 +950,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoSuggestionsForFloat()
         {
             var markup = @"
@@ -972,7 +963,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoSuggestionsForSbyte()
         {
             var markup = @"
@@ -985,7 +976,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoSuggestionsForShort()
         {
             var markup = @"
@@ -998,7 +989,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoSuggestionsForUint()
         {
             var markup = @"
@@ -1011,7 +1002,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoSuggestionsForUlong()
         {
             var markup = @"
@@ -1024,7 +1015,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task SuggestionsForUShort()
         {
             var markup = @"
@@ -1037,7 +1028,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoSuggestionsForBool()
         {
             var markup = @"
@@ -1050,7 +1041,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoSuggestionsForByte()
         {
             var markup = @"
@@ -1063,7 +1054,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoSuggestionsForChar()
         {
             var markup = @"
@@ -1076,7 +1067,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoSuggestionsForString()
         {
             var markup = @"
@@ -1088,7 +1079,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoSingleLetterClassNameSuggested()
         {
             var markup = @"
@@ -1101,7 +1092,7 @@ public class C
             await VerifyItemIsAbsentAsync(markup, "c");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ArrayElementTypeSuggested()
         {
             var markup = @"
@@ -1115,7 +1106,7 @@ public class MyClass
             await VerifyItemIsAbsentAsync(markup, "Array");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotTriggeredByVar()
         {
             var markup = @"
@@ -1127,7 +1118,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotAfterVoid()
         {
             var markup = @"
@@ -1139,7 +1130,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterGeneric()
         {
             var markup = @"
@@ -1151,7 +1142,7 @@ public class C
             await VerifyItemExistsAsync(markup, "GetCs");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NothingAfterVar()
         {
             var markup = @"
@@ -1166,7 +1157,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestCorrectOrder()
         {
             var markup = @"
@@ -1181,7 +1172,7 @@ public class MyClass
                 items.Select(item => item.DisplayText));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestDescriptionInsideClass()
         {
             var markup = @"
@@ -1195,7 +1186,7 @@ public class MyClass
             await VerifyItemExistsAsync(markup, "GetMyClass", glyph: (int)Glyph.MethodPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestDescriptionInsideMethod()
         {
             var markup = @"
@@ -1212,8 +1203,7 @@ public class MyClass
             await VerifyItemIsAbsentAsync(markup, "GetMyClass");
         }
 
-        [WorkItem(20273, "https://github.com/dotnet/roslyn/issues/20273")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20273")]
         public async Task Alias1()
         {
             var markup = @"
@@ -1227,8 +1217,7 @@ public class C
             await VerifyItemExistsAsync(markup, "type");
             await VerifyItemExistsAsync(markup, "myType");
         }
-        [WorkItem(20273, "https://github.com/dotnet/roslyn/issues/20273")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20273")]
         public async Task AliasWithInterfacePattern()
         {
             var markup = @"
@@ -1243,8 +1232,7 @@ public class C
             await VerifyItemExistsAsync(markup, "myType");
         }
 
-        [WorkItem(20016, "https://github.com/dotnet/roslyn/issues/20016")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20016")]
         public async Task NotAfterExistingName1()
         {
             var markup = @"
@@ -1257,8 +1245,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(20016, "https://github.com/dotnet/roslyn/issues/20016")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20016")]
         public async Task NotAfterExistingName2()
         {
             var markup = @"
@@ -1271,8 +1258,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19409")]
         public async Task OutVarArgument()
         {
             var markup = @"
@@ -1287,8 +1273,7 @@ class Test
             await VerifyItemExistsAsync(markup, "test");
         }
 
-        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19409")]
         public async Task OutArgument()
         {
             var markup = @"
@@ -1303,8 +1288,7 @@ class Test
             await VerifyItemExistsAsync(markup, "test");
         }
 
-        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19409")]
         public async Task OutGenericArgument()
         {
             var markup = @"
@@ -1319,8 +1303,7 @@ class Test
             await VerifyItemExistsAsync(markup, "test");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleExpressionDeclaration1()
         {
             var markup = @"
@@ -1335,8 +1318,7 @@ class Test
             await VerifyItemExistsAsync(markup, "action");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleExpressionDeclaration2()
         {
             var markup = @"
@@ -1351,8 +1333,7 @@ class Test
             await VerifyItemIsAbsentAsync(markup, "action");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleExpressionDeclaration_NestedTuples()
         {
             var markup = @"
@@ -1367,8 +1348,7 @@ class Test
             await VerifyItemExistsAsync(markup, "action");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleExpressionDeclaration_NestedTuples_CompletionInTheMiddle()
         {
             var markup = @"
@@ -1383,8 +1363,7 @@ class Test
             await VerifyItemExistsAsync(markup, "action");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleElementDefinition1()
         {
             var markup = @"
@@ -1399,8 +1378,7 @@ class Test
             await VerifyItemExistsAsync(markup, "array");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleElementDefinition2()
         {
             var markup = @"
@@ -1412,8 +1390,7 @@ class Test
             await VerifyItemExistsAsync(markup, "array");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleElementDefinition3()
         {
             var markup = @"
@@ -1425,8 +1402,7 @@ class Test
             await VerifyItemExistsAsync(markup, "action");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleElementDefinition4()
         {
             var markup = @"
@@ -1438,8 +1414,7 @@ class Test
             await VerifyItemExistsAsync(markup, "array");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleElementDefinition5()
         {
             var markup = @"
@@ -1451,8 +1426,7 @@ class Test
             await VerifyItemExistsAsync(markup, "array");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleElementDefinition_NestedTuples()
         {
             var markup = @"
@@ -1464,8 +1438,7 @@ class Test
             await VerifyItemExistsAsync(markup, "array");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleElementDefinition_InMiddleOfTuple()
         {
             var markup = @"
@@ -1477,8 +1450,7 @@ class Test
             await VerifyItemExistsAsync(markup, "array");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleElementTypeInference()
         {
             var markup = @"
@@ -1497,8 +1469,8 @@ class Test
             // await VerifyItemExistsAsync(markup, "action");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
-        [Fact(Skip = "Not yet supported"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact(Skip = "Not yet supported")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleElementInGenericTypeArgument()
         {
             var markup = @"
@@ -1513,8 +1485,7 @@ class Test
             await VerifyItemExistsAsync(markup, "action");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleElementInvocationInsideTuple()
         {
             var markup = @"
@@ -1530,8 +1501,7 @@ class Test
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17987")]
         public async Task Pluralize1()
         {
             var markup = @"
@@ -1544,8 +1514,7 @@ class Index
             await VerifyItemExistsAsync(markup, "Indices");
         }
 
-        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17987")]
         public async Task Pluralize2()
         {
             var markup = @"
@@ -1558,8 +1527,7 @@ class Test
             await VerifyItemExistsAsync(markup, "tests");
         }
 
-        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17987")]
         public async Task Pluralize3()
         {
             var markup = @"
@@ -1575,8 +1543,7 @@ class Test
             await VerifyItemExistsAsync(markup, "tokens");
         }
 
-        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17987")]
         public async Task PluralizeList()
         {
             var markup = @"
@@ -1592,8 +1559,7 @@ class Test
             await VerifyItemExistsAsync(markup, "tokens");
         }
 
-        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17987")]
         public async Task PluralizeArray()
         {
             var markup = @"
@@ -1609,8 +1575,7 @@ class Test
             await VerifyItemExistsAsync(markup, "tokens");
         }
 
-        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37366")]
         public async Task PluralizeSpan()
         {
             var markup = @"
@@ -1624,8 +1589,7 @@ class Test
             await VerifyItemExistsAsync(markup, "tests");
         }
 
-        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37366")]
         public async Task PluralizeValidGetEnumerator()
         {
             var markup = @"
@@ -1653,8 +1617,7 @@ class MyOwnCollection<T>
             await VerifyItemExistsAsync(markup, "myClasses");
         }
 
-        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37366")]
         public async Task PluralizeValidGetAsyncEnumerator()
         {
             var markup = @"
@@ -1684,8 +1647,7 @@ class MyOwnCollection<T>
             await VerifyItemExistsAsync(markup, "myClasses");
         }
 
-        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37366")]
         public async Task PluralizeForUnimplementedIEnumerable()
         {
             var markup = @"
@@ -1704,8 +1666,7 @@ class MyOwnCollection<T> : IEnumerable<T>
             await VerifyItemExistsAsync(markup, "myClasses");
         }
 
-        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37366")]
         public async Task PluralizeForUnimplementedIAsyncEnumerable()
         {
             var markup = @"
@@ -1724,8 +1685,7 @@ class MyOwnCollection<T> : IAsyncEnumerable<T>
             await VerifyItemExistsAsync(markup, "myClasses");
         }
 
-        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23497")]
         public async Task InPatternMatching1()
         {
             var markup = @"
@@ -1745,8 +1705,7 @@ public class C
             await VerifyItemExistsAsync(markup, "token");
         }
 
-        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23497")]
         public async Task InPatternMatching2()
         {
             var markup = @"
@@ -1766,8 +1725,7 @@ public class C
             await VerifyItemExistsAsync(markup, "token");
         }
 
-        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23497")]
         public async Task InPatternMatching3()
         {
             var markup = @"
@@ -1790,8 +1748,7 @@ public class C
             await VerifyItemExistsAsync(markup, "token");
         }
 
-        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23497")]
         public async Task InPatternMatching4()
         {
             var markup = @"
@@ -1810,8 +1767,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellation");
         }
 
-        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23497")]
         public async Task InPatternMatching5()
         {
             var markup = @"
@@ -1830,8 +1786,7 @@ public class C
             await VerifyItemExistsAsync(markup, "token");
         }
 
-        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23497")]
         public async Task InPatternMatching6()
         {
             var markup = @"
@@ -1853,7 +1808,7 @@ public class C
             await VerifyItemExistsAsync(markup, "token");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InUsingStatement1()
         {
             var markup = @"
@@ -1870,7 +1825,7 @@ class C
             await VerifyItemExistsAsync(markup, "streamReader");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InUsingStatement2()
         {
             var markup = @"
@@ -1887,7 +1842,7 @@ class C
             await VerifyItemExistsAsync(markup, "streamReader");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InUsingStatement_Var()
         {
             var markup = @"
@@ -1904,7 +1859,7 @@ class C
             await VerifyItemExistsAsync(markup, "memoryStream");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InForStatement1()
         {
             var markup = @"
@@ -1921,7 +1876,7 @@ class C
             await VerifyItemExistsAsync(markup, "streamReader");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InForStatement2()
         {
             var markup = @"
@@ -1938,7 +1893,7 @@ class C
             await VerifyItemExistsAsync(markup, "streamReader");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InForStatement_Var()
         {
             var markup = @"
@@ -1955,8 +1910,7 @@ class C
             await VerifyItemExistsAsync(markup, "memoryStream");
         }
 
-        [WorkItem(26021, "https://github.com/dotnet/roslyn/issues/26021")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26021")]
         public async Task InForEachStatement()
         {
             var markup = @"
@@ -1973,7 +1927,7 @@ class C
             await VerifyItemExistsAsync(markup, "streamReader");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InForEachStatement_Var()
         {
             var markup = @"
@@ -1990,7 +1944,7 @@ class C
             await VerifyItemExistsAsync(markup, "memoryStream");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task DisabledByOption()
         {
             ShowNameSuggestions = false;
@@ -2004,8 +1958,7 @@ class Test
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
         public async Task TypeImplementsIEnumerableOfType()
         {
             var markup = @"
@@ -2025,8 +1978,7 @@ public class ContainerBase : IEnumerable<ContainerBase> { }
             await VerifyItemExistsAsync(markup, "container");
         }
 
-        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
         public async Task TypeImplementsIEnumerableOfType2()
         {
             var markup = @"
@@ -2046,8 +1998,7 @@ public class Container : ContainerBase { }
             await VerifyItemExistsAsync(markup, "container");
         }
 
-        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
         public async Task TypeImplementsIEnumerableOfType3()
         {
             var markup = @"
@@ -2066,8 +2017,7 @@ public class Container : IEnumerable<Container> { }
             await VerifyItemExistsAsync(markup, "container");
         }
 
-        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
         public async Task TypeImplementsIEnumerableOfType4()
         {
             var markup = @"
@@ -2089,8 +2039,7 @@ public class TaskType : Task<Container> { }
             await VerifyItemExistsAsync(markup, "taskType");
         }
 
-        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
         public async Task TypeImplementsTaskOfType()
         {
             var markup = @"
@@ -2110,8 +2059,7 @@ public class ContainerBase : Task<ContainerBase> { }
             await VerifyItemExistsAsync(markup, "container");
         }
 
-        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
         public async Task TypeImplementsTaskOfType2()
         {
             var markup = @"
@@ -2131,8 +2079,7 @@ public class ContainerBase : Container { }
             await VerifyItemExistsAsync(markup, "container");
         }
 
-        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
         public async Task TypeImplementsTaskOfType3()
         {
             var markup = @"
@@ -2154,8 +2101,7 @@ public class EnumerableType : IEnumerable<TaskType> { }
             await VerifyItemExistsAsync(markup, "taskTypes");
         }
 
-        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
         public async Task TypeIsNullableOfNullable()
         {
             var markup = @"
@@ -2173,9 +2119,8 @@ public class Class1
             await VerifyItemExistsAsync(markup, "nullables");
         }
 
-        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
-        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
+        [WorkItem("https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
         public async Task TypeIsNullableStructInLocalWithNullableTypeName()
         {
             var markup = @"
@@ -2194,9 +2139,8 @@ public class Class1
             await VerifyItemExistsAsync(markup, "ints");
         }
 
-        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
-        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
+        [WorkItem("https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
         public async Task TypeIsNullableStructInLocalWithQuestionMark()
         {
             var markup = @"
@@ -2215,9 +2159,8 @@ public class Class1
             await VerifyItemExistsAsync(markup, "ints");
         }
 
-        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
-        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
+        [WorkItem("https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
         public async Task TypeIsNullableReferenceInLocal()
         {
             var markup = @"
@@ -2236,9 +2179,8 @@ public class Class1
             await VerifyItemExistsAsync(markup, "ints");
         }
 
-        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
-        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
+        [WorkItem("https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
         public async Task TypeIsNullableStructInParameterWithNullableTypeName()
         {
             var markup = @"
@@ -2256,9 +2198,8 @@ public class Class1
             await VerifyItemExistsAsync(markup, "ints");
         }
 
-        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
-        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
+        [WorkItem("https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
         public async Task TypeIsNullableStructInParameterWithQuestionMark()
         {
             var markup = @"
@@ -2274,9 +2215,8 @@ public class Class1
             await VerifyItemExistsAsync(markup, "ints");
         }
 
-        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
-        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
+        [WorkItem("https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
         public async Task TypeIsNullableReferenceInParameter()
         {
             var markup = @"
@@ -2294,8 +2234,7 @@ public class Class1
             await VerifyItemExistsAsync(markup, "ints");
         }
 
-        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
         public async Task EnumerableParameterOfUnmanagedType()
         {
             var markup = @"
@@ -2311,8 +2250,7 @@ public class Class1
             await VerifyItemExistsAsync(markup, "ints");
         }
 
-        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
         public async Task EnumerableParameterOfObject()
         {
             var markup = @"
@@ -2328,8 +2266,7 @@ public class Class1
             await VerifyItemExistsAsync(markup, "objects");
         }
 
-        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
         public async Task EnumerableParameterOfString()
         {
             var markup = @"
@@ -2345,8 +2282,7 @@ public class Class1
             await VerifyItemExistsAsync(markup, "strings");
         }
 
-        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
         public async Task EnumerableGenericTParameter()
         {
             var markup = @"
@@ -2362,8 +2298,7 @@ public class Class1
             await VerifyItemExistsAsync(markup, "values");
         }
 
-        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
         public async Task EnumerableGenericTNameParameter()
         {
             var markup = @"
@@ -2379,8 +2314,7 @@ public class Class1
             await VerifyItemExistsAsync(markup, "results");
         }
 
-        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
         public async Task EnumerableGenericUnexpectedlyNamedParameter()
         {
             var markup = @"
@@ -2396,8 +2330,7 @@ public class Class1
             await VerifyItemExistsAsync(markup, "args");
         }
 
-        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
         public async Task EnumerableGenericUnexpectedlyNamedParameterBeginsWithT()
         {
             var markup = @"
@@ -2413,12 +2346,12 @@ public class Class1
             await VerifyItemExistsAsync(markup, "types");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CustomNamingStyleInsideClass()
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
 
             var options = new CompletionOptions()
             {
@@ -2441,12 +2374,12 @@ class Configuration
             await VerifyItemIsAbsentAsync(markup, "ConfigurationLocalFunction", options: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CustomNamingStyleInsideMethod()
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
 
             var options = new CompletionOptions()
             {
@@ -2471,8 +2404,7 @@ class Configuration
             await VerifyItemIsAbsentAsync(markup, "ConfigurationProperty", options: options);
         }
 
-        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31304")]
         public async Task TestCompletionDoesNotUseForeachVariableName()
         {
             var markup = @"
@@ -2496,8 +2428,7 @@ class ClassA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
-        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31304")]
         public async Task TestCompletionDoesNotUseParameterName()
         {
             var markup = @"
@@ -2516,8 +2447,7 @@ class ClassA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
-        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31304")]
         public async Task TestCompletionCanUsePropertyName()
         {
             var markup = @"
@@ -2537,8 +2467,7 @@ class ClassA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
-        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31304")]
         public async Task TestCompletionCanUseFieldName()
         {
             var markup = @"
@@ -2558,8 +2487,7 @@ class ClassA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
-        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31304")]
         public async Task TestCompletionDoesNotUseLocalName()
         {
             var markup = @"
@@ -2579,8 +2507,7 @@ class ClassA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
-        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31304")]
         public async Task TestCompletionDoesNotUseLocalNameMultiple()
         {
             var markup = @"
@@ -2602,8 +2529,7 @@ class ClassA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
-        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31304")]
         public async Task TestCompletionDoesNotUseLocalInsideIf()
         {
             var markup = @"
@@ -2626,8 +2552,7 @@ class ClassA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
-        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31304")]
         public async Task TestCompletionCanUseClassName()
         {
             var markup = @"
@@ -2643,8 +2568,7 @@ class classA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
-        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31304")]
         public async Task TestCompletionCanUseLocalInDifferentScope()
         {
             var markup = @"
@@ -2670,9 +2594,8 @@ class ClassA
         [InlineData(LanguageVersion.CSharp7)]
         [InlineData(LanguageVersion.CSharp8)]
         [InlineData(LanguageVersion.Latest)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
-        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/35891")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42049")]
         public async Task TestUseLocalAsLocalFunctionParameter(LanguageVersion languageVersion)
         {
             var source = @"
@@ -2702,9 +2625,8 @@ class ClassA
         [InlineData(LanguageVersion.CSharp7)]
         [InlineData(LanguageVersion.CSharp8)]
         [InlineData(LanguageVersion.Latest)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
-        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/35891")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42049")]
         public async Task TestCompletionDoesNotUseLocalAsLocalFunctionVariable(LanguageVersion languageVersion)
         {
             var source = @"
@@ -2725,8 +2647,7 @@ class ClassA
             await VerifyItemIsAbsentAsync(markup, "classB");
         }
 
-        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35891")]
         public async Task TestCompletionDoesNotUseLocalInNestedLocalFunction()
         {
             var markup = @"
@@ -2749,8 +2670,7 @@ class ClassA
             await VerifyItemIsAbsentAsync(markup, "classB");
         }
 
-        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35891")]
         public async Task TestCompletionDoesNotUseLocalFunctionParameterInNestedLocalFunction()
         {
             var markup = @"
@@ -2772,8 +2692,7 @@ class ClassA
             await VerifyItemIsAbsentAsync(markup, "classB");
         }
 
-        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35891")]
         public async Task TestCompletionCanUseLocalFunctionParameterAsParameter()
         {
             var markup = @"
@@ -2791,8 +2710,7 @@ class ClassA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
-        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35891")]
         public async Task TestCompletionCanUseLocalFunctionVariableAsParameter()
         {
             var markup = @"
@@ -2813,8 +2731,7 @@ class ClassA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
-        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35891")]
         public async Task TestCompletionCanUseLocalFunctionParameterAsVariable()
         {
             var markup = @"
@@ -2835,8 +2752,7 @@ class ClassA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
-        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35891")]
         public async Task TestCompletionCanUseLocalFunctionVariableAsVariable()
         {
             var markup = @"
@@ -2860,7 +2776,7 @@ class ClassA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestNotForUnboundAsync()
         {
             var markup = @"
@@ -2874,13 +2790,12 @@ class C
             await VerifyItemIsAbsentAsync(markup, "GetAsync");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(43816, "https://github.com/dotnet/roslyn/pull/43816")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/43816")]
         public async Task ConflictingLocalVariable()
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
 
             var options = new CompletionOptions()
             {
@@ -2898,6 +2813,105 @@ public class MyClass
 }
 ";
             await VerifyItemExistsAsync(markup, "myClass1", glyph: (int)Glyph.Local, options: options);
+        }
+
+        [Fact]
+        public async Task TestNotForNonTypeSymbol()
+        {
+            var markup = @"
+using System;
+class C
+{
+    Console.BackgroundColor $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "consoleColor");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29487")]
+        public async Task TestForOutParam1()
+        {
+            var markup = @"
+using System.Threading;
+
+class C
+{
+    void Main()
+    {
+        Goo(out var $$)
+    }
+
+    void Goo(out CancellationToken interestingName)
+    {
+
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "interestingName");
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43602")]
+        public async Task TestForOutParam2()
+        {
+            var markup = @"
+class C
+{
+    void Main()
+    {
+        int.TryParse("""", out var $$)
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "result");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49791")]
+        public async Task TestForErrorType1()
+        {
+            var markup = @"
+class C
+{
+    void Main(string _rootPath)
+    {
+        _rootPath $$
+        _rootPath = null;
+    }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49791")]
+        public async Task TestForErrorType2()
+        {
+            var markup = @"
+class C
+{
+    void Main()
+    {
+        Goo $$
+        Goo = null;
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "goo");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36352")]
+        public async Task InferCollectionInErrorCase1()
+        {
+            var markup = @"
+class Customer { }
+
+class V
+{
+    void M(IEnumerable<Customer> $$)
+    {
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "customers");
         }
 
         private static NamingStylePreferences MultipleCamelCaseLocalRules()
@@ -3009,13 +3023,11 @@ public class MyClass
         }
 
         private static SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
-        {
-            return new SerializableNamingRule()
+            => new()
             {
                 SymbolSpecificationID = specification.ID,
                 NamingStyleID = style.ID,
                 EnforcementLevel = ReportDiagnostic.Error
             };
-        }
     }
 }
