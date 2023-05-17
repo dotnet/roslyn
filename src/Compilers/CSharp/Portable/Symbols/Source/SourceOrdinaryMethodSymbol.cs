@@ -31,9 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial => null;
+            internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial
+                => null;
 
-            protected sealed override TypeSymbol ExplicitInterfaceType => null;
+            protected sealed override TypeSymbol ExplicitInterfaceType
+                => null;
 
             protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
                 => null;
