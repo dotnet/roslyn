@@ -28,7 +28,6 @@ steps:
       !**/linux-*/**
       !**/osx*/**
     TargetFolder: $(Build.ArtifactStagingDirectory)/APIScanInputs
-  condition: and(succeeded(), ${{ parameters.EnableAPIScan }}, ne(variables.ApiScanClientId, ''))
 
 - task: BinSkim@4
   displayName: 🔍 Run BinSkim
