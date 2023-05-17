@@ -686,10 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Conversions.IsDelegateRelaxationSupportedFor(methodConversions) Then
-                Dim typeArgumentInferenceDiagnosticsOpt = analysisResult.TypeArgumentInferenceDiagnosticsOpt
-                If typeArgumentInferenceDiagnosticsOpt IsNot Nothing Then
-                    diagnostics.AddRange(typeArgumentInferenceDiagnosticsOpt)
-                End If
+                diagnostics.AddRange(analysisResult.TypeArgumentInferenceDiagnosticsOpt)
 
                 If addressOfExpression.MethodGroup.ResultKind = LookupResultKind.Good Then
                     addressOfExpression.Binder.CheckMemberTypeAccessibility(diagnostics, addressOfOperandSyntax, targetMethodSymbol)

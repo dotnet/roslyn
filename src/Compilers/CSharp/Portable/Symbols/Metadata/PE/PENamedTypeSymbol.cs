@@ -10,15 +10,15 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -394,10 +394,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get;
         }
 
-        internal override FileIdentifier? AssociatedFileIdentifier =>
-            GetUncommonProperties() is { lazyFilePathChecksum: { IsDefault: false } checksum, lazyDisplayFileName: { } displayFileName }
-                ? new FileIdentifier { FilePathChecksumOpt = checksum, DisplayFilePath = displayFileName }
-                : null;
+        internal override FileIdentifier? AssociatedFileIdentifier
+        {
+            get
+            {
+                // `lazyFilePathChecksum` and `lazyDisplayFileName` of `_lazyUncommonProperties` are initialized in the constructor, not on demand.
+                // Therefore we can use `_lazyUncommonProperties` directly to avoid additional computations.
+                // Also important, that computing full uncommon properties here may lead to stack overflow if there is a circular dependency between types in the metadata.
+                return _lazyUncommonProperties is { lazyFilePathChecksum: { IsDefault: false } checksum, lazyDisplayFileName: { } displayFileName }
+                    ? new FileIdentifier { FilePathChecksumOpt = checksum, DisplayFilePath = displayFileName }
+                    : null;
+            }
+        }
 
         internal abstract int MetadataArity
         {
@@ -2060,13 +2068,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
+            AssemblySymbol primaryDependency = PrimaryDependency;
             if (!_lazyCachedUseSiteInfo.IsInitialized)
             {
-                AssemblySymbol primaryDependency = PrimaryDependency;
                 _lazyCachedUseSiteInfo.Initialize(primaryDependency, new UseSiteInfo<AssemblySymbol>(primaryDependency).AdjustDiagnosticInfo(GetUseSiteDiagnosticImpl()));
             }
 
-            return _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
         }
 
         protected virtual DiagnosticInfo GetUseSiteDiagnosticImpl()

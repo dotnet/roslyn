@@ -6560,5 +6560,59 @@ class C
             Assert.Equal(2, nestedConversions.Length);
             Assert.All(nestedConversions, n => Assert.Empty(n.Nested));
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68026")]
+        public void ErrorForeachVariable_01()
+        {
+            var source = @"
+foreach
+Console.Write($""{1 switch { _ => 1 }}"");
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,8): error CS1003: Syntax error, '(' expected
+                // foreach
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(2, 8),
+                // (3,40): error CS1515: 'in' expected
+                // Console.Write($"{1 switch { _ => 1 }}");
+                Diagnostic(ErrorCode.ERR_InExpected, ";").WithLocation(3, 40),
+                // (3,40): error CS0230: Type and identifier are both required in a foreach statement
+                // Console.Write($"{1 switch { _ => 1 }}");
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, ";").WithLocation(3, 40),
+                // (3,40): error CS1525: Invalid expression term ';'
+                // Console.Write($"{1 switch { _ => 1 }}");
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(3, 40),
+                // (3,40): error CS1026: ) expected
+                // Console.Write($"{1 switch { _ => 1 }}");
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 40)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68026")]
+        public void ErrorForeachVariable_02()
+        {
+            var source = @"
+foreach (m(out var x) in new[]{1,2})
+{ 
+    x++; // 1
+}
+
+x++; // 2
+
+void m(out int x) => x = 0;
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,23): error CS0230: Type and identifier are both required in a foreach statement
+                // foreach (m(out var x) in new[]{1,2})
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(2, 23),
+                // (7,1): error CS0103: The name 'x' does not exist in the current context
+                // x++; // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(7, 1),
+                // (9,6): warning CS8321: The local function 'm' is declared but never used
+                // void m(out int x) => x = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "m").WithArguments("m").WithLocation(9, 6)
+                );
+        }
     }
 }

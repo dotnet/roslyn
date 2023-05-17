@@ -2884,5 +2884,40 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public sealed class FilterSpanTestAnalyzer : DiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+                    "ID0001",
+                    "Title",
+                    "Message",
+                    "Category",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true);
+
+            private readonly bool _testSyntaxTreeAction;
+
+            public FilterSpanTestAnalyzer(bool testSyntaxTreeAction)
+            {
+                _testSyntaxTreeAction = testSyntaxTreeAction;
+            }
+
+            public TextSpan? CallbackFilterSpan { get; private set; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_testSyntaxTreeAction)
+                {
+                    context.RegisterSyntaxTreeAction(context => CallbackFilterSpan = context.FilterSpan);
+                }
+                else
+                {
+                    context.RegisterSemanticModelAction(context => CallbackFilterSpan = context.FilterSpan);
+                }
+            }
+        }
     }
 }

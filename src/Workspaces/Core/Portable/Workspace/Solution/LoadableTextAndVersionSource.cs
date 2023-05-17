@@ -6,8 +6,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -145,6 +143,18 @@ internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
 
     public Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
         => GetLazyValue(options).GetValueAsync(cancellationToken);
+
+    public bool TryGetVersion(LoadTextOptions options, out VersionStamp version)
+    {
+        if (!TryGetValue(options, out var value))
+        {
+            version = default;
+            return false;
+        }
+
+        version = value.Version;
+        return true;
+    }
 
     public async ValueTask<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
     {

@@ -145,7 +145,7 @@
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.CompareVersions" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.SingleError" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
 
-  <Target Name="_CheckRequiredMSBuildVersion" BeforeTargets="BeforeBuild">
+  <Target Name="_CheckRequiredMSBuildVersion" BeforeTargets="BeforeBuild" Condition="'$(DotNetBuildFromSource)' != 'true'">
     <CompareVersions Left="$(MSBuildVersion)" Right="$(MinimumMSBuildVersion)">
       <Output TaskParameter="Result" PropertyName="_VersionComparisonResult"/>
     </CompareVersions>
@@ -362,6 +362,13 @@
     <Touch Files="@(CopyUpToDateMarker)"
            AlwaysCreate="true"
            Condition="'@(ReferencesCopiedInThisBuild)' != ''"/>
+  </Target>
+
+  <!-- Workaround for https://github.com/dotnet/runtime/pull/84936 -->
+  <Target Name="ExcludeSlowJSImportGenerator" AfterTargets="ResolveTargetingPackAssets">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" Condition="'%(FileName)' == 'Microsoft.Interop.JavaScript.JSImportGenerator' AND '%(Analyzer.NuGetPackageId)' == 'Microsoft.NETCore.App.Ref'" />
+    </ItemGroup>
   </Target>
 
   <Import Project="DoNotGenerateSatelliteAssemblies_Workaround.targets" Condition="'$(GenerateSatelliteAssemblies)' == 'false'" />

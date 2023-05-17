@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         }
 
         [WpfTheory, CombinatorialData]
-        public async Task TestNestedCodeActions(bool mutatingLspWorkspace)
+        public async Task TestNoSuppressionFixerInStandardLSP(bool mutatingLspWorkspace)
         {
             var markup = @"
 class ABC
@@ -168,14 +168,42 @@ class ABC
             };
 
             var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
-            Assert.Equal(7, results.Length);
+            Assert.Single(results);
             Assert.Equal("Make method synchronous", results[0].Title);
-            Assert.Equal("Suppress or configure issues | Suppress CS1998 | in Source", results[1].Title);
-            Assert.Equal("Suppress or configure issues | Configure CS1998 severity | None", results[2].Title);
-            Assert.Equal("Suppress or configure issues | Configure CS1998 severity | Silent", results[3].Title);
-            Assert.Equal("Suppress or configure issues | Configure CS1998 severity | Suggestion", results[4].Title);
-            Assert.Equal("Suppress or configure issues | Configure CS1998 severity | Warning", results[5].Title);
-            Assert.Equal("Suppress or configure issues | Configure CS1998 severity | Error", results[6].Title);
+        }
+
+        [WpfTheory, CombinatorialData]
+        public async Task TestStandardLspNestedCodeAction(bool mutatingLspWorkspace)
+        {
+            var markup = @"
+class ABC
+{
+    private void XYZ()
+    {
+        var a = {|caret:A()|};
+    }
+
+    private int A() => 1;
+}";
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var caret = testLspServer.GetLocations("caret").Single();
+            var codeActionParams = new LSP.CodeActionParams
+            {
+                TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+                Range = caret.Range,
+                Context = new LSP.CodeActionContext
+                {
+                }
+            };
+
+            var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
+            var resultsTitles = results.Select(r => r.Title).ToArray();
+            // Inline method refactoring provide nested code actions.
+            // Make sure it is correctly displayed.
+            Assert.True(resultsTitles.Contains("Inline 'A()' -> Inline 'A()'"));
+            Assert.True(resultsTitles.Contains("Inline 'A()' -> Inline and keep 'A()'"));
         }
 
         private static async Task<LSP.VSInternalCodeAction[]> RunGetCodeActionsAsync(

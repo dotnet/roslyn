@@ -1416,6 +1416,35 @@ class Test
         }
 
         [Fact]
+        public void RefReadOnlyMethod_PassThrough_ChainNoCopying()
+        {
+            CompileAndVerify(@"
+public struct S
+{
+    public readonly ref readonly S M() => throw null;
+}
+class Test
+{
+    private S x;
+    void M()
+    {
+        x.M().M().M();
+    }
+}").VerifyIL("Test.M", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""S Test.x""
+  IL_0006:  call       ""readonly ref readonly S S.M()""
+  IL_000b:  call       ""readonly ref readonly S S.M()""
+  IL_0010:  call       ""readonly ref readonly S S.M()""
+  IL_0015:  pop
+  IL_0016:  ret
+}");
+        }
+
+        [Fact]
         public void RefReadOnlyReturnOptionalValue()
         {
             CompileAndVerify(@"

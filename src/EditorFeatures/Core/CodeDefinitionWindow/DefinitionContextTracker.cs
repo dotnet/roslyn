@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
                 {
                     if (await navigationService.CanNavigateToSpanAsync(workspace, item.Document.Id, item.SourceSpan, cancellationToken).ConfigureAwait(false))
                     {
-                        var text = await item.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var text = await item.Document.GetTextAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
                         var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
 
                         if (item.Document.FilePath != null)

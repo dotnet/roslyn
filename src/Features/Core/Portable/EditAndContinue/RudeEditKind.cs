@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         InsertExtern = 25,
         InsertOperator = 26,
         // InsertNonPublicConstructor = 27,
-        InsertGenericMethod = 28,
+        // InsertGenericMethod = 28,
         InsertDllImport = 29,
         InsertIntoStruct = 30,
         InsertIntoClassWithLayout = 31,
@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // MethodBodyAdd = 34,
         // MethodBodyDelete = 35,
         GenericMethodUpdate = 36,
-        GenericMethodTriviaUpdate = 37,
+        // GenericMethodTriviaUpdate = 37,
         GenericTypeUpdate = 38,
-        GenericTypeTriviaUpdate = 39,
-        GenericTypeInitializerUpdate = 40,
+        // GenericTypeTriviaUpdate = 39,
+        // GenericTypeInitializerUpdate = 40,
         // PartialTypeInitializerUpdate = 41,
         // AsyncMethodUpdate = 42,
         // AsyncMethodTriviaUpdate = 43,
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         MemberBodyInternalError = 88,
         SourceFileTooBig = 89,
         MemberBodyTooBig = 90,
-        InsertIntoGenericType = 91,
+        // InsertIntoGenericType = 91,
 
         ImplementRecordParameterAsReadOnly = 92,
         ImplementRecordParameterWithSet = 93,
@@ -139,5 +139,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ChangingTypeNotSupportedByRuntime = 110,
         DeleteNotSupportedByRuntime = 111,
         UpdatingStateMachineMethodNotSupportedByRuntime = 112,
+        UpdatingGenericNotSupportedByRuntime = 113,
     }
 }

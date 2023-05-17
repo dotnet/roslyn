@@ -2942,7 +2942,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>__arglist is not allowed in the parameter list of iterators</value>
   </data>
   <data name="ERR_UnsafeIteratorArgType" xml:space="preserve">
-    <value>Iterators cannot have unsafe parameters or yield types</value>
+    <value>Iterators cannot have pointer type parameters</value>
   </data>
   <data name="ERR_BadCoClassSig" xml:space="preserve">
     <value>The managed coclass wrapper class signature '{0}' for interface '{1}' is not a valid class name signature</value>
@@ -3771,7 +3771,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>'await' cannot be used in an expression containing the type '{0}'</value>
   </data>
   <data name="ERR_UnsafeAsyncArgType" xml:space="preserve">
-    <value>Async methods cannot have unsafe parameters or return types</value>
+    <value>Async methods cannot have pointer type parameters</value>
   </data>
   <data name="ERR_BadAsyncArgType" xml:space="preserve">
     <value>Async methods cannot have ref, in or out parameters</value>

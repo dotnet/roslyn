@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _globalOptions = languageService.Package.ComponentModel.GetService<IGlobalOptionService>();
 
                 _sink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
-                _globalOptions.OptionChanged += GlobalOptionChanged;
+                _globalOptions.AddOptionChangedHandler(this, GlobalOptionChanged);
             }
 
             private void SetupView(IVsTextView view)
@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             public int RemoveAdornments()
             {
                 _sink.Unadvise();
-                _globalOptions.OptionChanged -= GlobalOptionChanged;
+                _globalOptions.RemoveOptionChangedHandler(this, GlobalOptionChanged);
 
                 if (_codeWindow is IVsDropdownBarManager dropdownManager)
                 {
@@ -250,13 +250,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 phwnd = default;
 
-                var enabled = _globalOptions.GetOption(DocumentOutlineOptionsStorage.EnableDocumentOutline);
+                var enabled = _globalOptions.GetOption(DocumentOutlineOptionsStorage.EnableDocumentOutline)
+                    ?? !_globalOptions.GetOption(DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag);
                 if (!enabled)
                     return;
 
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
                 threadingContext.ThrowIfNotOnUIThread();
 
+                var uiShell = (IVsUIShell4)_languageService.SystemServiceProvider.GetService(typeof(SVsUIShell));
+                var windowSearchHostFactory = (IVsWindowSearchHostFactory)_languageService.SystemServiceProvider.GetService(typeof(SVsWindowSearchHostFactory));
                 var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
                 var asyncListenerProvider = _languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
                 var asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.DocumentOutline);
@@ -268,7 +271,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 var viewTracker = new VsCodeWindowViewTracker(_codeWindow, threadingContext, editorAdaptersFactoryService);
                 _documentOutlineView = new DocumentOutlineView(
-                    threadingContext, viewTracker,
+                    uiShell, windowSearchHostFactory, threadingContext, _globalOptions, viewTracker,
                     new DocumentOutlineViewModel(threadingContext, viewTracker, languageServiceBroker, asyncListener));
 
                 _documentOutlineViewHost = new ElementHost

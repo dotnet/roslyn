@@ -129,6 +129,11 @@
         <target state="translated">Параметр "{0}" должен быть символом из этой компиляции или из другой сборки, на которую она ссылается.</target>
         <note />
       </trans-unit>
+      <trans-unit id="LineCannotBeGreaterThanEnd">
+        <source>The requested line number {0} must be less than the number of lines {1}.</source>
+        <target state="new">The requested line number {0} must be less than the number of lines {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
         <target state="translated">Ожидается символ метода</target>

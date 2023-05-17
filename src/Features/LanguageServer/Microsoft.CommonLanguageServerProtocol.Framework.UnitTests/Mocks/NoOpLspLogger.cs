@@ -5,13 +5,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
 public class NoOpLspLogger : ILspLogger
 {
-    public static NoOpLspLogger Instance = new NoOpLspLogger();
+    public static NoOpLspLogger Instance = new();
 
     public void LogError(string message, params object[] @params)
     {

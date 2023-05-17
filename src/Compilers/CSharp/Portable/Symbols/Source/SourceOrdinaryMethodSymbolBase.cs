@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SourceOrdinaryMethodSymbolBase : SourceOrdinaryMethodOrUserDefinedOperatorSymbol
     {
-        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly string _name;
 
         protected SourceOrdinaryMethodSymbolBase(
@@ -32,11 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             CSharpSyntaxNode syntax,
             MethodKind methodKind,
+            RefKind refKind,
             bool isIterator,
             bool isExtensionMethod,
             bool isReadOnly,
-            bool hasBody,
+            bool hasAnyBody,
+            bool isExpressionBodied,
             bool isNullableAnalysisEnabled,
+            bool isVarArg,
             BindingDiagnosticBag diagnostics) :
             base(containingType,
                  syntax.GetReference(),
@@ -54,19 +56,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const bool returnsVoid = false;
 
             DeclarationModifiers declarationModifiers;
-            (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isReadOnly, hasBody, location, diagnostics);
+            (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isReadOnly, hasAnyBody, location, diagnostics);
 
             //explicit impls must be marked metadata virtual unless static
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
             var isMetadataVirtualIgnoringModifiers = isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0;
 
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
+            this.MakeFlags(
+                methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
+                isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isVarArg: isVarArg,
+                isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
 
-            _typeParameters = MakeTypeParameters(syntax, diagnostics);
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasAnyBody, diagnostics);
 
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
-
-            if (hasBody)
+            if (hasAnyBody)
             {
                 CheckModifiersForBody(location, diagnostics);
             }
@@ -74,14 +77,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: isExplicitInterfaceImplementation, diagnostics, location);
         }
 
-        protected abstract ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics);
-
 #nullable enable
         protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.MethodKind != MethodKind.UserDefinedOperator, "SourceUserDefinedOperatorSymbolBase overrides this");
 
-            var (returnType, parameters, isVararg, declaredConstraints) = MakeParametersAndBindReturnType(diagnostics);
+            var (returnType, parameters, declaredConstraints) = MakeParametersAndBindReturnType(diagnostics);
 
             MethodSymbol? overriddenOrExplicitlyImplementedMethod = MethodChecks(returnType, parameters, diagnostics);
 
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 for (int i = 0; i < declaredConstraints.Length; i++)
                 {
-                    var typeParameter = _typeParameters[i];
+                    var typeParameter = this.TypeParameters[i];
                     ErrorCode report;
 
                     switch (declaredConstraints[i].Constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.Default))
@@ -124,13 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            CheckModifiers(MethodKind == MethodKind.ExplicitInterfaceImplementation, isVararg, HasAnyBody, _location, diagnostics);
+            CheckModifiers(MethodKind == MethodKind.ExplicitInterfaceImplementation, HasAnyBody, _location, diagnostics);
         }
 #nullable disable
 
-        protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics);
-
-        protected abstract bool HasAnyBody { get; }
+        protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics);
 
         protected sealed override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
         {
@@ -171,10 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract void CompleteAsyncMethodChecksBetweenStartAndFinish();
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters
-        {
-            get { return _typeParameters; }
-        }
+        public abstract override ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
 
         public abstract override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
 
@@ -308,8 +304,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool HasExtendedPartialModifier => (DeclarationModifiers & PartialMethodExtendedModifierMask) != 0;
 
-        private void CheckModifiers(bool isExplicitInterfaceImplementation, bool isVararg, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
+        private void CheckModifiers(bool isExplicitInterfaceImplementation, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
         {
+            bool isVararg = this.IsVararg;
+
             Debug.Assert(!IsStatic || !IsOverride); // Otherwise should have been reported and cleared earlier.
             Debug.Assert(!IsStatic || ContainingType.IsInterface || (!IsAbstract && !IsVirtual)); // Otherwise should have been reported and cleared earlier.
 
