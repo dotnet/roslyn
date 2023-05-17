@@ -18,256 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract class SourceOrdinaryMethodSymbol : SourceOrdinaryMethodSymbolBase
     {
-        private sealed class SourceOrdinaryMethodSymbolSimple : SourceOrdinaryMethodSymbol
-        {
-            // Avoid adding fields here if possible.  This 'simple' type handles the majority of source methods in any
-            // compilation. So any fields here can add significantly to heap usage.  Consider placing in
-            // SourceOrdinaryMethodSymbolComplex instead if it is state for rare-methods.
-
-            public SourceOrdinaryMethodSymbolSimple(
-                NamedTypeSymbol containingType,
-                string name,
-                Location location,
-                MethodDeclarationSyntax syntax,
-                MethodKind methodKind,
-                bool isNullableAnalysisEnabled,
-                BindingDiagnosticBag diagnostics)
-                : base(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
-            {
-            }
-
-            internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial
-                => null;
-
-            protected sealed override TypeSymbol ExplicitInterfaceType
-                => null;
-
-            protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
-                => null;
-
-            public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
-                => ImmutableArray<TypeParameterSymbol>.Empty;
-
-            public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
-                => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
-
-            public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
-                => ImmutableArray<TypeParameterConstraintKind>.Empty;
-
-            protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
-            {
-            }
-        }
-
-        /// <summary>
-        /// Specialized subclass of SourceOrdinaryMethodSymbol for less common cases.  Specifically, we only use this
-        /// for methods that are:
-        /// <list type="number">
-        /// <item>Generic.</item>
-        /// <item>An explicit interface implementation.</item>
-        /// <item>Partial.</item>
-        /// </list>
-        /// </summary>
-        private sealed class SourceOrdinaryMethodSymbolComplex : SourceOrdinaryMethodSymbol
-        {
-            private readonly TypeSymbol _explicitInterfaceType;
-
-            private readonly TypeParameterInfo _typeParameterInfo;
-
-            /// <summary>
-            /// If this symbol represents a partial method definition or implementation part, its other part (if any).
-            /// This should be set, if at all, before this symbol appears among the members of its owner.  
-            /// The implementation part is not listed among the "members" of the enclosing type.
-            /// </summary>
-            private SourceOrdinaryMethodSymbol _otherPartOfPartial;
-
-            public SourceOrdinaryMethodSymbolComplex(
-                NamedTypeSymbol containingType,
-                TypeSymbol explicitInterfaceType,
-                string name,
-                Location location,
-                MethodDeclarationSyntax syntax,
-                MethodKind methodKind,
-                bool isNullableAnalysisEnabled,
-                BindingDiagnosticBag diagnostics)
-                : base(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
-            {
-                _explicitInterfaceType = explicitInterfaceType;
-                _typeParameterInfo = new TypeParameterInfo { LazyTypeParameters = MakeTypeParameters(syntax, diagnostics) };
-            }
-
-            protected sealed override TypeSymbol ExplicitInterfaceType => _explicitInterfaceType;
-            internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial => _otherPartOfPartial;
-
-            internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbolComplex definition, SourceOrdinaryMethodSymbolComplex implementation)
-            {
-                Debug.Assert(definition.IsPartialDefinition);
-                Debug.Assert(implementation.IsPartialImplementation);
-
-                Debug.Assert(definition._otherPartOfPartial is null || definition._otherPartOfPartial == implementation);
-                Debug.Assert(implementation._otherPartOfPartial is null || implementation._otherPartOfPartial == definition);
-
-                definition._otherPartOfPartial = implementation;
-                implementation._otherPartOfPartial = definition;
-            }
-
-            protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
-            {
-                var syntax = GetSyntax();
-                return this.FindExplicitlyImplementedMethod(isOperator: false, _explicitInterfaceType, syntax.Identifier.ValueText, syntax.ExplicitInterfaceSpecifier, diagnostics);
-            }
-
-            public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
-            {
-                get
-                {
-                    Debug.Assert(!_typeParameterInfo.LazyTypeParameters.IsDefault);
-                    return _typeParameterInfo.LazyTypeParameters;
-                }
-            }
-
-            public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
-            {
-                if (_typeParameterInfo.LazyTypeParameterConstraintTypes.IsDefault)
-                {
-                    GetTypeParameterConstraintKinds();
-
-                    var diagnostics = BindingDiagnosticBag.GetInstance();
-                    var syntax = GetSyntax();
-                    var withTypeParametersBinder =
-                        this.DeclaringCompilation
-                        .GetBinderFactory(syntax.SyntaxTree)
-                        .GetBinder(syntax.ReturnType, syntax, this);
-                    var constraints = this.MakeTypeParameterConstraintTypes(
-                        withTypeParametersBinder,
-                        TypeParameters,
-                        syntax.TypeParameterList,
-                        syntax.ConstraintClauses,
-                        diagnostics);
-                    if (ImmutableInterlocked.InterlockedInitialize(
-                            ref _typeParameterInfo.LazyTypeParameterConstraintTypes,
-                            constraints))
-                    {
-                        this.AddDeclarationDiagnostics(diagnostics);
-                    }
-                    diagnostics.Free();
-                }
-
-                return _typeParameterInfo.LazyTypeParameterConstraintTypes;
-            }
-
-            public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
-            {
-                if (_typeParameterInfo.LazyTypeParameterConstraintKinds.IsDefault)
-                {
-                    var syntax = GetSyntax();
-                    var withTypeParametersBinder =
-                        this.DeclaringCompilation
-                        .GetBinderFactory(syntax.SyntaxTree)
-                        .GetBinder(syntax.ReturnType, syntax, this);
-                    var constraints = this.MakeTypeParameterConstraintKinds(
-                        withTypeParametersBinder,
-                        TypeParameters,
-                        syntax.TypeParameterList,
-                        syntax.ConstraintClauses);
-
-                    ImmutableInterlocked.InterlockedInitialize(
-                        ref _typeParameterInfo.LazyTypeParameterConstraintKinds,
-                        constraints);
-                }
-
-                return _typeParameterInfo.LazyTypeParameterConstraintKinds;
-            }
-
-            protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
-            {
-                if ((object)_explicitInterfaceType != null)
-                {
-                    var syntax = this.GetSyntax();
-                    Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
-                    _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
-                }
-            }
-
-            private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
-            {
-                if (syntax.Arity == 0)
-                {
-                    return ImmutableArray<TypeParameterSymbol>.Empty;
-                }
-
-                Debug.Assert(syntax.TypeParameterList != null);
-
-                MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, syntax.TypeParameterList.LessThanToken);
-
-                OverriddenMethodTypeParameterMapBase typeMap = null;
-                if (this.IsOverride)
-                {
-                    typeMap = new OverriddenMethodTypeParameterMap(this);
-                }
-                else if (this.IsExplicitInterfaceImplementation)
-                {
-                    typeMap = new ExplicitInterfaceMethodTypeParameterMap(this);
-                }
-
-                var typeParameters = syntax.TypeParameterList.Parameters;
-                var result = ArrayBuilder<TypeParameterSymbol>.GetInstance();
-
-                for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
-                {
-                    var parameter = typeParameters[ordinal];
-                    if (parameter.VarianceKeyword.Kind() != SyntaxKind.None)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
-                    }
-
-                    var identifier = parameter.Identifier;
-                    var location = identifier.GetLocation();
-                    var name = identifier.ValueText;
-
-                    // Note: It is not an error to have a type parameter named the same as its enclosing method: void M<M>() {}
-
-                    for (int i = 0; i < result.Count; i++)
-                    {
-                        if (name == result[i].Name)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateTypeParameter, location, name);
-                            break;
-                        }
-                    }
-
-                    SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
-
-                    var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
-                    if ((object)tpEnclosing != null)
-                    {
-                        // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
-                        diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
-                    }
-
-                    var syntaxRefs = ImmutableArray.Create(parameter.GetReference());
-                    var locations = ImmutableArray.Create(location);
-                    var typeParameter = (typeMap != null) ?
-                        (TypeParameterSymbol)new SourceOverridingMethodTypeParameterSymbol(
-                            typeMap,
-                            name,
-                            ordinal,
-                            locations,
-                            syntaxRefs) :
-                        new SourceMethodTypeParameterSymbol(
-                            this,
-                            name,
-                            ordinal,
-                            locations,
-                            syntaxRefs);
-
-                    result.Add(typeParameter);
-                }
-
-                return result.ToImmutableAndFree();
-            }
-        }
-
         public static SourceOrdinaryMethodSymbol CreateMethodSymbol(
             NamedTypeSymbol containingType,
             Binder bodyBinder,
@@ -854,5 +604,255 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool GenerateDebugInfo => !IsAsync && !IsIterator;
+
+        private sealed class SourceOrdinaryMethodSymbolSimple : SourceOrdinaryMethodSymbol
+        {
+            // Avoid adding fields here if possible.  This 'simple' type handles the majority of source methods in any
+            // compilation. So any fields here can add significantly to heap usage.  Consider placing in
+            // SourceOrdinaryMethodSymbolComplex instead if it is state for rare-methods.
+
+            public SourceOrdinaryMethodSymbolSimple(
+                NamedTypeSymbol containingType,
+                string name,
+                Location location,
+                MethodDeclarationSyntax syntax,
+                MethodKind methodKind,
+                bool isNullableAnalysisEnabled,
+                BindingDiagnosticBag diagnostics)
+                : base(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
+            {
+            }
+
+            internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial
+                => null;
+
+            protected sealed override TypeSymbol ExplicitInterfaceType
+                => null;
+
+            protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
+                => null;
+
+            public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
+                => ImmutableArray<TypeParameterSymbol>.Empty;
+
+            public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+                => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+            public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+                => ImmutableArray<TypeParameterConstraintKind>.Empty;
+
+            protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Specialized subclass of SourceOrdinaryMethodSymbol for less common cases.  Specifically, we only use this
+        /// for methods that are:
+        /// <list type="number">
+        /// <item>Generic.</item>
+        /// <item>An explicit interface implementation.</item>
+        /// <item>Partial.</item>
+        /// </list>
+        /// </summary>
+        private sealed class SourceOrdinaryMethodSymbolComplex : SourceOrdinaryMethodSymbol
+        {
+            private readonly TypeSymbol _explicitInterfaceType;
+
+            private readonly TypeParameterInfo _typeParameterInfo;
+
+            /// <summary>
+            /// If this symbol represents a partial method definition or implementation part, its other part (if any).
+            /// This should be set, if at all, before this symbol appears among the members of its owner.  
+            /// The implementation part is not listed among the "members" of the enclosing type.
+            /// </summary>
+            private SourceOrdinaryMethodSymbol _otherPartOfPartial;
+
+            public SourceOrdinaryMethodSymbolComplex(
+                NamedTypeSymbol containingType,
+                TypeSymbol explicitInterfaceType,
+                string name,
+                Location location,
+                MethodDeclarationSyntax syntax,
+                MethodKind methodKind,
+                bool isNullableAnalysisEnabled,
+                BindingDiagnosticBag diagnostics)
+                : base(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
+            {
+                _explicitInterfaceType = explicitInterfaceType;
+                _typeParameterInfo = new TypeParameterInfo { LazyTypeParameters = MakeTypeParameters(syntax, diagnostics) };
+            }
+
+            protected sealed override TypeSymbol ExplicitInterfaceType => _explicitInterfaceType;
+            internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial => _otherPartOfPartial;
+
+            internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbolComplex definition, SourceOrdinaryMethodSymbolComplex implementation)
+            {
+                Debug.Assert(definition.IsPartialDefinition);
+                Debug.Assert(implementation.IsPartialImplementation);
+
+                Debug.Assert(definition._otherPartOfPartial is null || definition._otherPartOfPartial == implementation);
+                Debug.Assert(implementation._otherPartOfPartial is null || implementation._otherPartOfPartial == definition);
+
+                definition._otherPartOfPartial = implementation;
+                implementation._otherPartOfPartial = definition;
+            }
+
+            protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
+            {
+                var syntax = GetSyntax();
+                return this.FindExplicitlyImplementedMethod(isOperator: false, _explicitInterfaceType, syntax.Identifier.ValueText, syntax.ExplicitInterfaceSpecifier, diagnostics);
+            }
+
+            public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
+            {
+                get
+                {
+                    Debug.Assert(!_typeParameterInfo.LazyTypeParameters.IsDefault);
+                    return _typeParameterInfo.LazyTypeParameters;
+                }
+            }
+
+            public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            {
+                if (_typeParameterInfo.LazyTypeParameterConstraintTypes.IsDefault)
+                {
+                    GetTypeParameterConstraintKinds();
+
+                    var diagnostics = BindingDiagnosticBag.GetInstance();
+                    var syntax = GetSyntax();
+                    var withTypeParametersBinder =
+                        this.DeclaringCompilation
+                        .GetBinderFactory(syntax.SyntaxTree)
+                        .GetBinder(syntax.ReturnType, syntax, this);
+                    var constraints = this.MakeTypeParameterConstraintTypes(
+                        withTypeParametersBinder,
+                        TypeParameters,
+                        syntax.TypeParameterList,
+                        syntax.ConstraintClauses,
+                        diagnostics);
+                    if (ImmutableInterlocked.InterlockedInitialize(
+                            ref _typeParameterInfo.LazyTypeParameterConstraintTypes,
+                            constraints))
+                    {
+                        this.AddDeclarationDiagnostics(diagnostics);
+                    }
+                    diagnostics.Free();
+                }
+
+                return _typeParameterInfo.LazyTypeParameterConstraintTypes;
+            }
+
+            public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            {
+                if (_typeParameterInfo.LazyTypeParameterConstraintKinds.IsDefault)
+                {
+                    var syntax = GetSyntax();
+                    var withTypeParametersBinder =
+                        this.DeclaringCompilation
+                        .GetBinderFactory(syntax.SyntaxTree)
+                        .GetBinder(syntax.ReturnType, syntax, this);
+                    var constraints = this.MakeTypeParameterConstraintKinds(
+                        withTypeParametersBinder,
+                        TypeParameters,
+                        syntax.TypeParameterList,
+                        syntax.ConstraintClauses);
+
+                    ImmutableInterlocked.InterlockedInitialize(
+                        ref _typeParameterInfo.LazyTypeParameterConstraintKinds,
+                        constraints);
+                }
+
+                return _typeParameterInfo.LazyTypeParameterConstraintKinds;
+            }
+
+            protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+            {
+                if ((object)_explicitInterfaceType != null)
+                {
+                    var syntax = this.GetSyntax();
+                    Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
+                    _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
+                }
+            }
+
+            private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
+            {
+                if (syntax.Arity == 0)
+                {
+                    return ImmutableArray<TypeParameterSymbol>.Empty;
+                }
+
+                Debug.Assert(syntax.TypeParameterList != null);
+
+                MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, syntax.TypeParameterList.LessThanToken);
+
+                OverriddenMethodTypeParameterMapBase typeMap = null;
+                if (this.IsOverride)
+                {
+                    typeMap = new OverriddenMethodTypeParameterMap(this);
+                }
+                else if (this.IsExplicitInterfaceImplementation)
+                {
+                    typeMap = new ExplicitInterfaceMethodTypeParameterMap(this);
+                }
+
+                var typeParameters = syntax.TypeParameterList.Parameters;
+                var result = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+
+                for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
+                {
+                    var parameter = typeParameters[ordinal];
+                    if (parameter.VarianceKeyword.Kind() != SyntaxKind.None)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
+                    }
+
+                    var identifier = parameter.Identifier;
+                    var location = identifier.GetLocation();
+                    var name = identifier.ValueText;
+
+                    // Note: It is not an error to have a type parameter named the same as its enclosing method: void M<M>() {}
+
+                    for (int i = 0; i < result.Count; i++)
+                    {
+                        if (name == result[i].Name)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DuplicateTypeParameter, location, name);
+                            break;
+                        }
+                    }
+
+                    SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
+
+                    var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
+                    if ((object)tpEnclosing != null)
+                    {
+                        // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
+                        diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
+                    }
+
+                    var syntaxRefs = ImmutableArray.Create(parameter.GetReference());
+                    var locations = ImmutableArray.Create(location);
+                    var typeParameter = (typeMap != null) ?
+                        (TypeParameterSymbol)new SourceOverridingMethodTypeParameterSymbol(
+                            typeMap,
+                            name,
+                            ordinal,
+                            locations,
+                            syntaxRefs) :
+                        new SourceMethodTypeParameterSymbol(
+                            this,
+                            name,
+                            ordinal,
+                            locations,
+                            syntaxRefs);
+
+                    result.Add(typeParameter);
+                }
+
+                return result.ToImmutableAndFree();
+            }
+        }
     }
 }
