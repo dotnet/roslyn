@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodDeclarationSyntax syntax,
                 MethodKind methodKind,
                 bool isNullableAnalysisEnabled,
-                BindingDiagnosticBag diagnostics) : base(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
+                BindingDiagnosticBag diagnostics)
+                : base(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
             {
             }
 
