@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
+            internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial => null;
+
             protected sealed override TypeSymbol ExplicitInterfaceType => null;
 
             protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
@@ -44,6 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
                 => ImmutableArray<TypeParameterConstraintKind>.Empty;
+
+            protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+            {
+            }
         }
 
         /// <summary>
@@ -513,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this is a partial implementation part returns the definition part and vice versa.
         /// </summary>
-        internal virtual SourceOrdinaryMethodSymbol OtherPartOfPartial => null;
+        internal abstract SourceOrdinaryMethodSymbol OtherPartOfPartial { get; }
 
         /// <summary>
         /// Returns true if this symbol represents a partial method definition (the part that specifies a signature but no body).
@@ -669,9 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.SourcePartialImplementation?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
         }
 
-        protected override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
-        {
-        }
+        protected abstract override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics);
 
         protected sealed override void PartialMethodChecks(BindingDiagnosticBag diagnostics)
         {
