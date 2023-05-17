@@ -89,7 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : base(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
             {
                 _explicitInterfaceType = explicitInterfaceType;
-
                 _typeParameterInfo = new TypeParameterInfo { LazyTypeParameters = MakeTypeParameters(syntax, diagnostics) };
             }
 
