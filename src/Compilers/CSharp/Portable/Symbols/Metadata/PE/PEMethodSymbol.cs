@@ -45,12 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // This type is used to compact many different bits of information efficiently.
         private struct PackedFlags
         {
-            // We currently pack everything into a 64-bit long with the following layout:
+            // We currently pack everything into a 32-bit int with the following layout:
             //
-            // |________|________|________|_______|A|z|y|x|w|v|u|t|s|r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
+            // |y|x|w|v|u|t|s|r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             // 
-            // _ = unused
-            //
             // a = method kind. 5 bits.
             // b = method kind populated. 1 bit.
             //
@@ -78,49 +76,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // w = IsSetsRequiredMembersPopulated. 1 bit.
             // x = IsUnscopedRef. 1 bit.
             // y = IsUnscopedRefPopulated. 1 bit.
-            // z = IsInterceptable. 1 bit.
-            // A = IsInterceptablePopulated. 1 bit.
-            // 31 bits remain for future purposes.
-
-            // PROTOTYPE(ic): consider reverting back to 'int' for these flags.
-            // - There may not be a need to cache 'IsInterceptable' on the symbol. We could just look it up from attributes each time.
-            //   Since the number of calls which are intercepted is relatively small, this may be a negligible additional cost.
-            // - Otherwise, there may be more space efficient method of storing the flags which we should be using instead.
-            //   For example, writing a byte is atomic, so if multiple *bits of information* aren't being stored independently in it,
-            //   we could store 'IsInterceptable' in a 'ThreeState' field, for example.
+            // 2 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
-            private const long MethodKindMask = 0x1F;
+            private const int MethodKindMask = 0x1F;
 
-            private const long MethodKindIsPopulatedBit = 0x1L << 5;
-            private const long IsExtensionMethodBit = 0x1L << 6;
-            private const long IsExtensionMethodIsPopulatedBit = 0x1L << 7;
-            private const long IsExplicitFinalizerOverrideBit = 0x1L << 8;
-            private const long IsExplicitClassOverrideBit = 0x1L << 9;
-            private const long IsExplicitOverrideIsPopulatedBit = 0x1L << 10;
-            private const long IsObsoleteAttributePopulatedBit = 0x1L << 11;
-            private const long IsCustomAttributesPopulatedBit = 0x1L << 12;
-            private const long IsUseSiteDiagnosticPopulatedBit = 0x1L << 13;
-            private const long IsConditionalPopulatedBit = 0x1L << 14;
-            private const long IsOverriddenOrHiddenMembersPopulatedBit = 0x1L << 15;
-            private const long IsReadOnlyBit = 0x1L << 16;
-            private const long IsReadOnlyPopulatedBit = 0x1L << 17;
+            private const int MethodKindIsPopulatedBit = 0x1 << 5;
+            private const int IsExtensionMethodBit = 0x1 << 6;
+            private const int IsExtensionMethodIsPopulatedBit = 0x1 << 7;
+            private const int IsExplicitFinalizerOverrideBit = 0x1 << 8;
+            private const int IsExplicitClassOverrideBit = 0x1 << 9;
+            private const int IsExplicitOverrideIsPopulatedBit = 0x1 << 10;
+            private const int IsObsoleteAttributePopulatedBit = 0x1 << 11;
+            private const int IsCustomAttributesPopulatedBit = 0x1 << 12;
+            private const int IsUseSiteDiagnosticPopulatedBit = 0x1 << 13;
+            private const int IsConditionalPopulatedBit = 0x1 << 14;
+            private const int IsOverriddenOrHiddenMembersPopulatedBit = 0x1 << 15;
+            private const int IsReadOnlyBit = 0x1 << 16;
+            private const int IsReadOnlyPopulatedBit = 0x1 << 17;
             private const int NullableContextOffset = 18;
-            private const long NullableContextMask = 0x7;
-            private const long DoesNotReturnBit = 0x1L << 21;
-            private const long IsDoesNotReturnPopulatedBit = 0x1L << 22;
-            private const long IsMemberNotNullPopulatedBit = 0x1L << 23;
-            private const long IsInitOnlyBit = 0x1L << 24;
-            private const long IsInitOnlyPopulatedBit = 0x1L << 25;
-            private const long IsUnmanagedCallersOnlyAttributePopulatedBit = 0x1L << 26;
-            private const long HasSetsRequiredMembersBit = 0x1L << 27;
-            private const long HasSetsRequiredMembersPopulatedBit = 0x1L << 28;
-            private const long IsUnscopedRefBit = 0x1L << 29;
-            private const long IsUnscopedRefPopulatedBit = 0x1L << 30;
-            private const long IsInterceptableBit = 0x1L << 31;
-            private const long IsInterceptablePopulatedBit = 0x1L << 32;
+            private const int NullableContextMask = 0x7;
+            private const int DoesNotReturnBit = 0x1 << 21;
+            private const int IsDoesNotReturnPopulatedBit = 0x1 << 22;
+            private const int IsMemberNotNullPopulatedBit = 0x1 << 23;
+            private const int IsInitOnlyBit = 0x1 << 24;
+            private const int IsInitOnlyPopulatedBit = 0x1 << 25;
+            private const int IsUnmanagedCallersOnlyAttributePopulatedBit = 0x1 << 26;
+            private const int HasSetsRequiredMembersBit = 0x1 << 27;
+            private const int HasSetsRequiredMembersPopulatedBit = 0x1 << 28;
+            private const int IsUnscopedRefBit = 0x1 << 29;
+            private const int IsUnscopedRefPopulatedBit = 0x1 << 30;
 
-            private long _bits;
+            private int _bits;
 
             public MethodKind MethodKind
             {
@@ -131,8 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 set
                 {
-                    Debug.Assert((long)value == ((long)value & MethodKindMask));
-                    _bits = (_bits & ~(MethodKindMask << MethodKindOffset)) | (((long)value & MethodKindMask) << MethodKindOffset) | MethodKindIsPopulatedBit;
+                    Debug.Assert((int)value == ((int)value & MethodKindMask));
+                    _bits = (_bits & ~(MethodKindMask << MethodKindOffset)) | (((int)value & MethodKindMask) << MethodKindOffset) | MethodKindIsPopulatedBit;
                 }
             }
 
@@ -159,8 +146,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool HasSetsRequiredMembersPopulated => (_bits & HasSetsRequiredMembersPopulatedBit) != 0;
             public bool IsUnscopedRef => (_bits & IsUnscopedRefBit) != 0;
             public bool IsUnscopedRefPopulated => (_bits & IsUnscopedRefPopulatedBit) != 0;
-            public bool IsInterceptable => (_bits & IsInterceptableBit) != 0;
-            public bool IsInterceptablePopulated => (_bits & IsInterceptablePopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -171,36 +156,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 #endif
 
-            private static bool BitsAreUnsetOrSame(long bits, long mask)
+            private static bool BitsAreUnsetOrSame(int bits, int mask)
             {
                 return (bits & mask) == 0 || (bits & mask) == mask;
             }
 
             public void InitializeIsExtensionMethod(bool isExtensionMethod)
             {
-                var bitsToSet = (isExtensionMethod ? IsExtensionMethodBit : 0) | IsExtensionMethodIsPopulatedBit;
+                int bitsToSet = (isExtensionMethod ? IsExtensionMethodBit : 0) | IsExtensionMethodIsPopulatedBit;
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
             public void InitializeIsReadOnly(bool isReadOnly)
             {
-                var bitsToSet = (isReadOnly ? IsReadOnlyBit : 0) | IsReadOnlyPopulatedBit;
+                int bitsToSet = (isReadOnly ? IsReadOnlyBit : 0) | IsReadOnlyPopulatedBit;
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
             public void InitializeMethodKind(MethodKind methodKind)
             {
-                Debug.Assert((long)methodKind == ((long)methodKind & MethodKindMask));
-                var bitsToSet = (((long)methodKind & MethodKindMask) << MethodKindOffset) | MethodKindIsPopulatedBit;
+                Debug.Assert((int)methodKind == ((int)methodKind & MethodKindMask));
+                int bitsToSet = (((int)methodKind & MethodKindMask) << MethodKindOffset) | MethodKindIsPopulatedBit;
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
             public void InitializeIsExplicitOverride(bool isExplicitFinalizerOverride, bool isExplicitClassOverride)
             {
-                var bitsToSet =
+                int bitsToSet =
                     (isExplicitFinalizerOverride ? IsExplicitFinalizerOverrideBit : 0) |
                     (isExplicitClassOverride ? IsExplicitClassOverrideBit : 0) |
                     IsExplicitOverrideIsPopulatedBit;
@@ -240,12 +225,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             public bool SetNullableContext(byte? value)
             {
-                return ThreadSafeFlagOperations.Set(ref _bits, (((long)value.ToNullableContextFlags() & NullableContextMask) << NullableContextOffset));
+                return ThreadSafeFlagOperations.Set(ref _bits, (((int)value.ToNullableContextFlags() & NullableContextMask) << NullableContextOffset));
             }
 
             public bool InitializeDoesNotReturn(bool value)
             {
-                var bitsToSet = IsDoesNotReturnPopulatedBit;
+                int bitsToSet = IsDoesNotReturnPopulatedBit;
                 if (value) bitsToSet |= DoesNotReturnBit;
 
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
@@ -258,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             public void InitializeIsInitOnly(bool isInitOnly)
             {
-                var bitsToSet = (isInitOnly ? IsInitOnlyBit : 0) | IsInitOnlyPopulatedBit;
+                int bitsToSet = (isInitOnly ? IsInitOnlyBit : 0) | IsInitOnlyPopulatedBit;
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
@@ -270,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             public bool InitializeSetsRequiredMembersBit(bool value)
             {
-                var bitsToSet = HasSetsRequiredMembersPopulatedBit;
+                int bitsToSet = HasSetsRequiredMembersPopulatedBit;
                 if (value) bitsToSet |= HasSetsRequiredMembersBit;
 
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
@@ -278,16 +263,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             public bool InitializeIsUnscopedRef(bool value)
             {
-                var bitsToSet = IsUnscopedRefPopulatedBit;
+                int bitsToSet = IsUnscopedRefPopulatedBit;
                 if (value) bitsToSet |= IsUnscopedRefBit;
-
-                return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
-            }
-
-            public bool InitializeInterceptable(bool value)
-            {
-                var bitsToSet = IsInterceptablePopulatedBit;
-                if (value) bitsToSet |= IsInterceptableBit;
 
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
@@ -1669,21 +1646,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return _packedFlags.IsUnscopedRef;
-            }
-        }
-
-        internal sealed override bool IsInterceptable
-        {
-            get
-            {
-                if (!_packedFlags.IsInterceptablePopulated)
-                {
-                    var moduleSymbol = _containingType.ContainingPEModule;
-                    bool interceptable = moduleSymbol.Module.HasInterceptableAttribute(_handle);
-                    _packedFlags.InitializeInterceptable(interceptable);
-                }
-
-                return _packedFlags.IsInterceptable;
             }
         }
 

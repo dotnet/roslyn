@@ -2187,16 +2187,6 @@
         <target state="translated">이 인수 조합은 선언 범위 외부의 매개 변수에서 참조하는 변수를 노출할 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_CallNotInterceptable">
-        <source>Call to '{0}' is intercepted, but the method is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</source>
-        <target state="new">Call to '{0}' is intercepted, but the method is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CallNotInterceptable_Title">
-        <source>Call to a method is intercepted, but the method is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</source>
-        <target state="new">Call to a method is intercepted, but the method is not marked with 'System.Runtime.CompilerServices.InterceptableAttribute'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
         <target state="translated">매개 변수 '{0}'에 적용된 CallerArgumentExpressionAttribute는 효과가 없습니다. 잘못된 매개 변수 이름으로 적용되었습니다.</target>

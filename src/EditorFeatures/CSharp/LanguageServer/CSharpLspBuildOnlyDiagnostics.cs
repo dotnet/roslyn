@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer
         "CS8984", // ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
         "CS9026", // ErrorCode.ERR_CannotBeConvertedToUtf8:
         "CS9068", // ErrorCode.ERR_FileTypeNonUniquePath:
-        "CS27000", // ErrorCode.WRN_CallNotInterceptable:
         "CS27007", // ErrorCode.ERR_InterceptorSignatureMismatch
         "CS27011", // ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter
         "CS27012", // ErrorCode.ERR_InterceptorMustNotHaveThisParameter
