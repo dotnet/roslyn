@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
 
-                var synthesizedGlobalMethod = AdaptedMethodSymbol as SynthesizedGlobalMethodSymbol;
+                var synthesizedGlobalMethod = AdaptedMethodSymbol.OriginalDefinition as SynthesizedGlobalMethodSymbol;
                 if ((object)synthesizedGlobalMethod != null)
                 {
                     return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;

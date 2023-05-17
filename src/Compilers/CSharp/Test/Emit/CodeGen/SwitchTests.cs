@@ -2922,7 +2922,7 @@ class Test
   IL_0021:  ldarg.0
   IL_0022:  brfalse    IL_012b
   IL_0027:  ldarg.0
-  IL_0028:  call       ""ComputeStringHash""
+  IL_0028:  call       ""ComputeStringHash(string)""
   IL_002d:  stloc.1
   IL_002e:  ldloc.1
   IL_002f:  ldc.i4     0xc70bfb85
@@ -3367,7 +3367,7 @@ class Test
   IL_0017:  callvirt   ""string string.Remove(int, int)""
   IL_001c:  starg.s    V_0
   IL_001e:  ldarg.0
-  IL_001f:  call       ""ComputeStringHash""
+  IL_001f:  call       ""ComputeStringHash(string)""
   IL_0024:  stloc.1
   IL_0025:  ldloc.1
   IL_0026:  ldc.i4     0xb2f29419
@@ -4039,7 +4039,7 @@ class Goo
 
         private static void VerifySynthesizedStringHashMethod(CompilationVerifier compVerifier, bool expected)
         {
-            compVerifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected);
+            compVerifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected);
 
             if (expected)
             {
@@ -7165,7 +7165,7 @@ public class Test
   .maxstack  2
   .locals init (uint V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ComputeStringHash""
+  IL_0001:  call       ""ComputeStringHash(string)""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0x6ceb2d06
@@ -7870,7 +7870,7 @@ public class Test
   IL_0017:  ldelem.ref
   IL_0018:  stloc.0
   IL_0019:  ldloc.0
-  IL_001a:  call       ""ComputeStringHash""
+  IL_001a:  call       ""ComputeStringHash(string)""
   IL_001f:  stloc.1
   IL_0020:  ldloc.1
   IL_0021:  ldc.i4     0xc30bf539
@@ -8104,7 +8104,7 @@ public class Test
   IL_0002:  ldelem.ref
   IL_0003:  stloc.0
   IL_0004:  ldloc.0
-  IL_0005:  call       ""ComputeStringHash""
+  IL_0005:  call       ""ComputeStringHash(string)""
   IL_000a:  stloc.1
   IL_000b:  ldloc.1
   IL_000c:  ldc.i4     0xc30bf539
