@@ -79,8 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
 
-            Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
-
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
