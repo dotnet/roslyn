@@ -81,7 +81,7 @@ namespace Microsoft.RoslynTools.NuGet
                 "Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.XUnit"
             };
 
-        internal static async Task<int> PublishAsync(string repoName, string source, string apiKey, bool unlisted, ILogger logger)
+        internal static async Task<int> PublishAsync(string repoName, string source, string apiKey, bool unlisted, bool skipDuplicate, ILogger logger)
         {
             try
             {
@@ -103,9 +103,11 @@ namespace Microsoft.RoslynTools.NuGet
 
                 logger.LogInformation($"Publishing {version} packages...");
 
+                var skipDuplicateFlag = skipDuplicate ? "--skip-duplicate" : "";
+
                 foreach (var packageId in packageIds)
                 {
-                    var result = await PublishPackageAsync(packageId, version);
+                    var result = await PublishPackageAsync(packageId, version, skipDuplicateFlag);
                     if (result.ExitCode != 0)
                     {
                         logger.LogError($"Failed to publish '{packageId}'");
@@ -159,9 +161,9 @@ namespace Microsoft.RoslynTools.NuGet
                 return true;
             }
 
-            Task<ProcessResult> PublishPackageAsync(string packageId, string? version)
+            Task<ProcessResult> PublishPackageAsync(string packageId, string? version, string skipDuplicatesFlag)
             {
-                return ProcessRunner.RunProcessAsync("dotnet", $"nuget push --source \"{source}\" --api-key \"{apiKey}\" \"{packageId}.{version}.nupkg\"");
+                return ProcessRunner.RunProcessAsync("dotnet", $"nuget push {skipDuplicatesFlag} --source \"{source}\" --api-key \"{apiKey}\" \"{packageId}.{version}.nupkg\"");
             }
 
             Task<ProcessResult> UnlistPackageAsync(string packageId, string? version)

@@ -49,16 +49,17 @@ internal class PRTagger
         foreach (var product in VSBranchInfo.AllProducts)
         {
             // We currently only support creating issues for GitHub repos
-            if (!product.RepoBaseUrl.Contains("github.com"))
+            if (!product.RepoHttpBaseUrl.Contains("github.com"))
             {
                 continue;
             }
 
-            // Get associated product build for current and previous VS commit SHAs
-            var currentBuild = await TryGetBuildNumberForReleaseAsync(product.ComponentJsonFileName, product.ComponentName, vsCommitSha, devdivConnection).ConfigureAwait(false);
-            var previousBuild = await TryGetBuildNumberForReleaseAsync(product.ComponentJsonFileName, product.ComponentName, previousVsCommitSha, devdivConnection).ConfigureAwait(false);
+            var gitHubRepoName = product.RepoHttpBaseUrl.Split('/').Last();
+            logger.LogInformation($"GitHub repo: {gitHubRepoName}");
 
-            var gitHubRepoName = product.RepoBaseUrl.Split('/').Last();
+            // Get associated product build for current and previous VS commit SHAs
+            var currentBuild = await TryGetBuildNumberForReleaseAsync(product.ComponentJsonFileName, product.ComponentName, vsCommitSha, devdivConnection, logger).ConfigureAwait(false);
+            var previousBuild = await TryGetBuildNumberForReleaseAsync(product.ComponentJsonFileName, product.ComponentName, previousVsCommitSha, devdivConnection, logger).ConfigureAwait(false);
 
             if (currentBuild is null)
             {
@@ -80,8 +81,8 @@ internal class PRTagger
             }
 
             // Get commit SHAs for product builds
-            var previousProductCommitSha = await TryGetProductCommitShaFromBuildAsync(product, connections, previousBuild).ConfigureAwait(false);
-            var currentProductCommitSha = await TryGetProductCommitShaFromBuildAsync(product, connections, currentBuild).ConfigureAwait(false);
+            var previousProductCommitSha = await TryGetProductCommitShaFromBuildAsync(product, connections, previousBuild, logger).ConfigureAwait(false);
+            var currentProductCommitSha = await TryGetProductCommitShaFromBuildAsync(product, connections, currentBuild, logger).ConfigureAwait(false);
 
             if (previousProductCommitSha is null || currentProductCommitSha is null)
             {
@@ -99,7 +100,7 @@ internal class PRTagger
                 if (!Repository.IsValid(gitHubRepoPath))
                 {
                     logger.LogInformation("Cloning GitHub repo...");
-                    gitHubRepoPath = Repository.Clone(product.RepoBaseUrl, workdirPath: gitHubRepoPath);
+                    gitHubRepoPath = Repository.Clone(product.RepoHttpBaseUrl, workdirPath: gitHubRepoPath);
                 }
                 else
                 {
@@ -139,22 +140,26 @@ internal class PRTagger
         string componentJsonFileName,
         string componentName,
         string vsCommitSha,
-        AzDOConnection vsConnection)
+        AzDOConnection vsConnection,
+        ILogger logger)
     {
         var url = await VisualStudioRepository.GetUrlFromComponentJsonFileAsync(
             vsCommitSha, GitVersionType.Commit, vsConnection, componentJsonFileName, componentName);
         if (url is null)
         {
+            logger.LogError($"Could not retrieve URL from component JSON file.");
             return null;
         }
 
         try
         {
             var buildNumber = VisualStudioRepository.GetBuildNumberFromUrl(url);
+            logger.LogInformation($"Retrieved build number from URL: {buildNumber}");
             return buildNumber;
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogError($"Error retrieving build number from URL: {ex}");
             return null;
         }
     }
@@ -162,16 +167,19 @@ internal class PRTagger
     private static async Task<string?> TryGetProductCommitShaFromBuildAsync(
         IProduct product,
         AzDOConnection[] connections,
-        string buildNumber)
+        string buildNumber,
+        ILogger logger)
     {
         foreach (var connection in connections)
         {
             var buildPipelineName = product.GetBuildPipelineName(connection.BuildProjectName);
+            logger.LogInformation($"Build pipeline name: {buildPipelineName}");
             if (buildPipelineName is not null)
             {
-                var build = (await connection.TryGetBuildsAsync(buildPipelineName, buildNumber))?.SingleOrDefault();
+                var build = (await connection.TryGetBuildsAsync(buildPipelineName, buildNumber, logger))?.SingleOrDefault();
                 if (build is not null)
                 {
+                    logger.LogInformation($"Build source version: {build.SourceVersion}");
                     return build.SourceVersion;
                 }
             }

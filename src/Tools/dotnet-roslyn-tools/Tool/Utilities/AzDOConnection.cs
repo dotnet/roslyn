@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
+using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
@@ -38,13 +39,18 @@ internal sealed class AzDOConnection : IDisposable
         ProjectClient = Connection.GetClient<ProjectHttpClient>();
     }
 
-    public async Task<List<Build>?> TryGetBuildsAsync(string pipelineName, string buildNumber)
+    public async Task<List<Build>?> TryGetBuildsAsync(string pipelineName, string buildNumber, ILogger? logger = null)
     {
         try
         {
             var buildDefinition = (await BuildClient.GetDefinitionsAsync(BuildProjectName, name: pipelineName)).Single();
             var builds = await BuildClient.GetBuildsAsync(buildDefinition.Project.Id, definitions: new[] { buildDefinition.Id }, buildNumber: buildNumber);
             return builds;
+        }
+        catch (VssUnauthorizedException ex)
+        {
+            logger?.LogError($"Authorization exception while retrieving builds: {ex}");
+            return null;
         }
         catch
         {

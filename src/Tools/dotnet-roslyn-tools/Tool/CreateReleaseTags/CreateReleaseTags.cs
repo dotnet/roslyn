@@ -36,7 +36,7 @@ internal static class CreateReleaseTags
             var repository = new Repository(Environment.CurrentDirectory);
             var existingTags = repository.Tags.ToImmutableArray();
 
-            if (!repository.Network.Remotes.Any(r => r.Url.Equals(product.RepoBaseUrl, StringComparison.OrdinalIgnoreCase)))
+            if (!repository.Network.Remotes.Any(r => r.Url.Equals(product.RepoHttpBaseUrl, StringComparison.OrdinalIgnoreCase) || r.Url.Equals(product.RepoSshBaseUrl, StringComparison.OrdinalIgnoreCase)))
             {
                 logger.LogError($"Repo does not appear to be the {product.Name} repo. Please fetch tags if tags are not already fetched and try again.");
                 return 1;

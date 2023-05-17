@@ -8,7 +8,8 @@ internal class Roslyn : IProduct
 {
     public string Name => "Roslyn";
 
-    public string RepoBaseUrl => "https://github.com/dotnet/roslyn";
+    public string RepoHttpBaseUrl => "https://github.com/dotnet/roslyn";
+    public string RepoSshBaseUrl => "git@github.com:dotnet/roslyn.git";
     public string GitUserName => "dotnet bot";
     public string GitEmail => "dotnet-bot@microsoft.com";
 
