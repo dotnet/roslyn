@@ -25,7 +25,6 @@ return await parser.InvokeAsync(args);
 
 static async Task RunAsync(
     bool launchDebugger,
-    string? brokeredServicePipeName,
     LogLevel minimumLogLevel,
     string? starredCompletionPath,
     string? telemetryLevel,
@@ -76,24 +75,6 @@ static async Task RunAsync(
     var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
     RoslynLogger.Initialize(telemetryReporter, telemetryLevel);
 
-    // Cancellation token source that we can use to cancel on either LSP server shutdown (managed by client) or interrupt.
-    using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-    cancellationToken = cancellationTokenSource.Token;
-
-    var bridgeCompletionTask = Task.CompletedTask;
-    if (brokeredServicePipeName != null)
-    {
-        var container = await BrokeredServiceContainer.CreateAsync(exportProvider, cancellationToken);
-
-        var bridgeProvider = exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
-
-        bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, container, cancellationToken);
-
-        // starred completions can only be initialized if brokered service pipe and relevant path are both present
-        var serviceBroker = container.GetFullAccessServiceBroker();
-        StarredCompletionAssemblyHelper.InitializeInstance(starredCompletionPath, loggerFactory, serviceBroker);
-    }
-
     // Create the workspace first, since right now the language server will assume there's at least one Workspace
     var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
 
@@ -104,22 +85,16 @@ static async Task RunAsync(
 
     await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
 
+    var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
+    StarredCompletionAssemblyHelper.InitializeInstance(starredCompletionPath, loggerFactory, serviceBrokerFactory);
+
     var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
     server.Start();
 
-    if (brokeredServicePipeName != null)
-    {
-        await exportProvider.GetExportedValue<RemoteHelloWorldProvider>().SayHelloToRemoteServerAsync(cancellationToken);
-    }
-
     await server.WaitForExitAsync();
 
-    // Server has exited, cancel our token.
-    cancellationTokenSource.Cancel();
-
-    await bridgeCompletionTask;
-
-    return;
+    // Server has exited, cancel our service broker service
+    await serviceBrokerFactory.ShutdownAndWaitForCompletionAsync();
 }
 
 static Parser CreateCommandLineParser()
@@ -175,13 +150,12 @@ static Parser CreateCommandLineParser()
     {
         var cancellationToken = context.GetCancellationToken();
         var launchDebugger = context.ParseResult.GetValueForOption(debugOption);
-        var brokeredServicePipeName = context.ParseResult.GetValueForOption(brokeredServicePipeNameOption);
         var logLevel = context.ParseResult.GetValueForOption(logLevelOption);
         var starredCompletionsPath = context.ParseResult.GetValueForOption(starredCompletionsPathOption);
         var telemetryLevel = context.ParseResult.GetValueForOption(telemetryLevelOption);
         var extensionAssemblyPaths = context.ParseResult.GetValueForOption(extensionAssemblyPathsOption) ?? Array.Empty<string>();
 
-        return RunAsync(launchDebugger, brokeredServicePipeName, logLevel, starredCompletionsPath, telemetryLevel, extensionAssemblyPaths, cancellationToken);
+        return RunAsync(launchDebugger, logLevel, starredCompletionsPath, telemetryLevel, extensionAssemblyPaths, cancellationToken);
     });
 
     return new CommandLineBuilder(rootCommand).UseDefaults().Build();

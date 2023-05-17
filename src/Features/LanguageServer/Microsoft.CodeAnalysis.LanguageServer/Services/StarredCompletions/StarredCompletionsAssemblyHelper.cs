@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.Extensions.Logging;
@@ -14,64 +16,93 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 internal static class StarredCompletionAssemblyHelper
 {
-    private static AsyncLazy<CompletionProvider>? _completionProviderLazy;
-
     private const string CompletionsDllName = "Microsoft.VisualStudio.IntelliCode.CSharp.dll";
     private const string ALCName = "IntelliCode-ALC";
     private const string CompletionHelperClassFullName = "PythiaCSDevKit.CSDevKitCompletionHelper";
     private const string CreateCompletionProviderMethodName = "CreateCompletionProviderAsync";
+
+    // The following fields are only set as a part of the call to InitializeInstance, which is only called once for the lifetime of the process. Thus, it is safe to assume that once
+    // set, they will never change again.
+    private static string? s_completionsAssemblyLocation;
+    private static ILogger? s_logger;
+    private static ServiceBrokerFactory? s_serviceBrokerFactory;
+
+    /// <summary>
+    /// A gate to guard the actual creation of <see cref="s_completionProvider"/>. This just prevents us from trying to create the provider more than once; once the field is set it
+    /// won't change again.
+    /// </summary>
+    private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
+    private static bool s_previousCreationFailed = false;
+    private static CompletionProvider? s_completionProvider;
 
     /// <summary>
     /// Initializes CompletionsAssemblyHelper singleton
     /// </summary>
     /// <param name="completionsAssemblyLocation">Location of dll for starred completion</param>
     /// <param name="loggerFactory">Factory for creating new logger</param>
-    /// <param name="serviceBroker">Service broker with access to necessary remote services</param>
-    internal static void InitializeInstance(string? completionsAssemblyLocation, ILoggerFactory loggerFactory, IServiceBroker serviceBroker)
+    /// <param name="serviceBrokerFactory">Service broker with access to necessary remote services</param>
+    internal static void InitializeInstance(string? completionsAssemblyLocation, ILoggerFactory loggerFactory, ServiceBrokerFactory serviceBrokerFactory)
     {
+        // No location provided means it wasn't passed through from C# Dev Kit, so we don't need to initialize anything further
         if (string.IsNullOrEmpty(completionsAssemblyLocation))
         {
-            return; //no location provided means it wasn't passed through from C# Dev Kit
+            return;
         }
-        var logger = loggerFactory.CreateLogger(typeof(StarredCompletionAssemblyHelper));
-        try
-        {
-            var alc = AssemblyLoadContextWrapper.TryCreate(ALCName, completionsAssemblyLocation, logger);
-            if (alc is null)
-            {
-                return;
-            }
 
-            var createCompletionProviderMethodInfo = alc.GetMethodInfo(CompletionsDllName, CompletionHelperClassFullName, CreateCompletionProviderMethodName);
-            _completionProviderLazy = new AsyncLazy<CompletionProvider>(c => CreateCompletionProviderAsync(
-                    createCompletionProviderMethodInfo,
-                    serviceBroker,
-                    completionsAssemblyLocation,
-                    logger
-                ));
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, $"Could not initialize {nameof(StarredCompletionAssemblyHelper)}. Starred completions will not be provided.");
-        }
+        // C# Dev Kit must be installed, so we should be able to provide this; however we may not yet have a connection to the Dev Kit service broker, so we need to defer the actual creation
+        // until that point.
+        s_completionsAssemblyLocation = completionsAssemblyLocation;
+        s_logger = loggerFactory.CreateLogger(typeof(StarredCompletionAssemblyHelper));
+        s_serviceBrokerFactory = serviceBrokerFactory;
     }
 
-    private static bool _completionProviderTaskFailed = false;
     internal static async Task<CompletionProvider?> GetCompletionProviderAsync(CancellationToken cancellationToken)
     {
-        // early exit if async lazy is not initialized or if task has previously failed
-        // this prevents us from seeing errors every time we try to get completions
-        if (_completionProviderLazy == null || _completionProviderTaskFailed)
-        {
+        // Short cut: if we already have a provider, return it
+        if (s_completionProvider is CompletionProvider completionProvider)
+            return completionProvider;
+
+        // If we don't have one because we previously failed to create one, then just return failure
+        if (s_previousCreationFailed)
             return null;
-        }
-        var completionProviderTask = _completionProviderLazy.GetValueAsync(cancellationToken);
-        if (!completionProviderTask.IsCompleted)
-        {
+
+        // If we were never initialized with any information from Dev Kit, we can't create one
+        if (s_completionsAssemblyLocation is null || s_logger is null || s_serviceBrokerFactory is null)
             return null;
+
+        // If we don't have a connection to a service broker yet, we also can't create one
+        var serviceBroker = s_serviceBrokerFactory.TryGetFullAccessServiceBroker();
+        if (serviceBroker is null)
+            return null;
+
+        // At this point, we have everything we need to go and create the provider, so let's do it
+        using (await s_gate.DisposableWaitAsync(cancellationToken))
+        {
+            // Re-check this inside the lock, since we could have had a failure between the earlier check and now
+            if (s_previousCreationFailed)
+                return null;
+
+            try
+            {
+                var alc = AssemblyLoadContextWrapper.TryCreate(ALCName, s_completionsAssemblyLocation, s_logger);
+                if (alc is null)
+                {
+                    s_previousCreationFailed = true;
+                    return null;
+                }
+
+                var createCompletionProviderMethodInfo = alc.GetMethodInfo(CompletionsDllName, CompletionHelperClassFullName, CreateCompletionProviderMethodName);
+
+                s_completionProvider = await CreateCompletionProviderAsync(createCompletionProviderMethodInfo, serviceBroker, s_completionsAssemblyLocation, s_logger);
+                return s_completionProvider;
+            }
+            catch (Exception ex)
+            {
+                s_previousCreationFailed = true;
+                s_logger.LogError(ex, "Unable to create the StarredCompletionProvider.");
+                throw;
+            }
         }
-        _completionProviderTaskFailed = completionProviderTask.IsFaulted; //note if the task faulted so we don't await it again
-        return await completionProviderTask;
     }
 
     private static async Task<CompletionProvider> CreateCompletionProviderAsync(MethodInfo createCompletionProviderMethodInfo, IServiceBroker serviceBroker, string modelBasePath, ILogger logger)
