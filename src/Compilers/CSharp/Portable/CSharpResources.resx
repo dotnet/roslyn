@@ -7545,7 +7545,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Partial declarations of '{0}' must specify the same extension modifier ('implicit' or 'explicit').</value>
   </data>
   <data name="ERR_UnderlyingTypesMismatch" xml:space="preserve">
-    <value>Extension '{0}' has underlying type '{1}' but a base extension has underlying type '{2}'.</value>
+    <value>Extension '{0}' extends '{1}' but base extension '{2}' extends '{3}'.</value>
   </data>
   <data name="WRN_DuplicateExtensionWithNullabilityMismatchInBaseList" xml:space="preserve">
     <value>'{0}' is already listed in the base extension list on type '{1}' with different nullability of reference types.</value>

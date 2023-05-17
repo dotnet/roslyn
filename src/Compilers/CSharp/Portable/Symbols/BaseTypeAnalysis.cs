@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         TypeDependsClosure(namedType.GetDeclaredExtensionUnderlyingType(), currentCompilation, partialClosure);
 
-                        foreach (var bt in namedType.GetDeclaredBaseExtensions())
+                        foreach (var bt in namedType.GetDeclaredBaseExtensions(basesBeingResolved: null))
                         {
                             TypeDependsClosure(bt, currentCompilation, partialClosure);
                         }

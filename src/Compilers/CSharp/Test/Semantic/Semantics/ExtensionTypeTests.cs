@@ -25,6 +25,7 @@ public class ExtensionTypeTests : CompilingTestBase
         Assert.False(type.IsExplicitExtension);
         Assert.Null(type.ExtendedTypeNoUseSiteDiagnostics);
         Assert.Empty(type.BaseExtensionsNoUseSiteDiagnostics);
+        Assert.Empty(type.AllBaseExtensionsNoUseSiteDiagnostics);
     }
 
     // Verify things that are common for all extension types
@@ -73,16 +74,9 @@ public class ExtensionTypeTests : CompilingTestBase
             VerifyExtension<TypeSymbol>(namedType.OriginalDefinition, isExplicit);
         }
 
-        foreach (var baseExtension in namedType.BaseExtensionsNoUseSiteDiagnostics)
+        foreach (var baseExtension in namedType.AllBaseExtensionsNoUseSiteDiagnostics)
         {
-            if (baseExtension.IsExtension)
-            {
-                VerifyExtension<TypeSymbol>(baseExtension, isExplicit: null);
-            }
-            else
-            {
-                Assert.True(baseExtension.IsErrorType());
-            }
+            checkBaseExtension(baseExtension);
         }
 
         var managedKindUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
@@ -106,6 +100,18 @@ public class ExtensionTypeTests : CompilingTestBase
             Assert.False(sourceNamedType.IsAnonymousType);
             Assert.False(sourceNamedType.IsSimpleProgram);
             Assert.False(sourceNamedType.IsImplicitlyDeclared);
+        }
+
+        static void checkBaseExtension(NamedTypeSymbol baseExtension)
+        {
+            if (baseExtension.IsExtension)
+            {
+                VerifyExtension<TypeSymbol>(baseExtension, isExplicit: null);
+            }
+            else
+            {
+                Assert.True(baseExtension.IsErrorType());
+            }
         }
     }
 
@@ -176,6 +182,7 @@ explicit extension R2 for UnderlyingClass : R { }
 
             Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
 
             if (!inSource)
             {
@@ -758,6 +765,7 @@ static explicit extension R for UnderlyingClass
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+        Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         AssertEx.Equal(new[]
             {
                 "System.Int32 R.StaticField",
@@ -1824,6 +1832,7 @@ explicit extension R for UnderlyingStruct
 
             Assert.Equal("UnderlyingStruct", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.GetMembers());
 
             Assert.Null(r.BaseTypeNoUseSiteDiagnostics);
@@ -1865,6 +1874,7 @@ interface I { }
 
             Assert.Equal("T", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.GetMembers());
 
             Assert.Null(r.BaseTypeNoUseSiteDiagnostics);
@@ -1906,6 +1916,7 @@ enum E { }
 
             Assert.Equal("E", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.GetMembers());
 
             Assert.Null(r.BaseTypeNoUseSiteDiagnostics);
@@ -1933,6 +1944,7 @@ explicit extension R for object
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("System.Object", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+        Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.GetMembers());
         Assert.Null(r.BaseTypeNoUseSiteDiagnostics);
         Assert.False(r.IsStatic);
@@ -1972,6 +1984,7 @@ explicit extension R<U> for C<U>
 
             Assert.Equal("C<U>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.GetMembers());
 
             Assert.Null(r.BaseTypeNoUseSiteDiagnostics);
@@ -2012,6 +2025,7 @@ explicit extension R for (int, int)
 
             Assert.Equal("(System.Int32, System.Int32)", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.GetMembers());
 
             Assert.Null(r.BaseTypeNoUseSiteDiagnostics);
@@ -2052,6 +2066,7 @@ explicit extension R for int[]
 
             Assert.Equal("System.Int32[]", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.GetMembers());
 
             Assert.Null(r.BaseTypeNoUseSiteDiagnostics);
@@ -2317,15 +2332,15 @@ public static explicit extension R4 for C : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE: should report use-site diagnostics for R1 instead
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R3' has underlying type 'C' but a base extension has underlying type 'C'.
+            // (1,27): error CS9216: Extension 'R3' extends 'C' but base extension 'R1' extends 'C'.
             // public explicit extension R3 for C : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C", "C").WithLocation(1, 27),
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C", "R1", "C").WithLocation(1, 27),
             // (1,34): error CS9206: Instance extension 'R3' cannot extend type 'C' because it is static.
             // public explicit extension R3 for C : R1 { }
             Diagnostic(ErrorCode.ERR_StaticBaseTypeOnInstanceExtension, "C").WithArguments("R3", "C").WithLocation(1, 34),
-            // (2,34): error CS9216: Extension 'R4' has underlying type 'C' but a base extension has underlying type 'C'.
+            // (2,34): error CS9216: Extension 'R4' extends 'C' but base extension 'R1' extends 'C'.
             // public static explicit extension R4 for C : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "C", "C").WithLocation(2, 34)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "C", "R1", "C").WithLocation(2, 34)
             );
 
         var r1 = (PENamedTypeSymbol)comp.GlobalNamespace.GetTypeMember("R1");
@@ -2365,9 +2380,9 @@ public explicit extension E2 for C : E1 { }
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70,
             references: new[] { comp2.ToMetadataReference(), comp1Updated.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'E2' has underlying type 'C' but a base extension has underlying type 'C'.
+            // (1,27): error CS9216: Extension 'E2' extends 'C' but base extension 'E1' extends 'C'.
             // public explicit extension E2 for C : E1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E2").WithArguments("E2", "C", "C").WithLocation(1, 27),
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E2").WithArguments("E2", "C", "E1", "C").WithLocation(1, 27),
             // (1,34): error CS9206: Instance extension 'E2' cannot extend type 'C' because it is static.
             // public explicit extension E2 for C : E1 { }
             Diagnostic(ErrorCode.ERR_StaticBaseTypeOnInstanceExtension, "C").WithArguments("E2", "C").WithLocation(1, 34)
@@ -2438,9 +2453,9 @@ public explicit extension E4 for E0 : E2 { }
             // (1,27): error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // public explicit extension E3 for E1 : E2 { }
             Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "E3").WithArguments("first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 27),
-            // (1,27): error CS9216: Extension 'E3' has underlying type 'E1' but a base extension has underlying type 'E0'.
+            // (1,27): error CS9216: Extension 'E3' extends 'E1' but base extension 'E2' extends 'E0'.
             // public explicit extension E3 for E1 : E2 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E3").WithArguments("E3", "E1", "E0").WithLocation(1, 27),
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E3").WithArguments("E3", "E1", "E2", "E0").WithLocation(1, 27),
             // (2,27): error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // public explicit extension E4 for E0 : E2 { }
             Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "E4").WithArguments("first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 27),
@@ -2730,6 +2745,7 @@ explicit extension R3 for System.IntPtr : R { }
             VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("nint", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         }
     }
 
@@ -2756,9 +2772,9 @@ explicit extension R3 for System.IntPtr : R { }
 """;
         var comp3 = CreateCompilation(src3, references: new[] { AsReference(comp, useImageReference) });
         comp3.VerifyDiagnostics(
-            // (1,20): error CS9216: Extension 'R3' has underlying type 'IntPtr' but a base extension has underlying type 'nint'.
+            // (1,20): error CS9216: Extension 'R3' extends 'IntPtr' but base extension 'R' extends 'nint'.
             // explicit extension R3 for System.IntPtr : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "System.IntPtr", "nint").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "System.IntPtr", "R", "nint").WithLocation(1, 20)
             );
 
         return;
@@ -2769,6 +2785,7 @@ explicit extension R3 for System.IntPtr : R { }
             VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("nint", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         }
     }
 
@@ -2797,9 +2814,9 @@ explicit extension R3 for C<System.IntPtr> : R { }
 """;
         var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Mscorlib45);
         comp3.VerifyDiagnostics(
-            // (1,20): error CS9216: Extension 'R3' has underlying type 'C<IntPtr>' but a base extension has underlying type 'C<nint>'.
+            // (1,20): error CS9216: Extension 'R3' extends 'C<IntPtr>' but base extension 'R' extends 'C<nint>'.
             // explicit extension R3 for C<System.IntPtr> : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<System.IntPtr>", "C<nint>").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<System.IntPtr>", "R", "C<nint>").WithLocation(1, 20)
             );
 
         return;
@@ -2810,6 +2827,7 @@ explicit extension R3 for C<System.IntPtr> : R { }
             VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("C<nint>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         }
     }
 
@@ -2836,9 +2854,9 @@ explicit extension R3 for C<object> : R { }
 """;
         var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp3.VerifyDiagnostics(
-            // (1,20): error CS9216: Extension 'R3' has underlying type 'C<object>' but a base extension has underlying type 'C<dynamic>'.
+            // (1,20): error CS9216: Extension 'R3' extends 'C<object>' but base extension 'R' extends 'C<dynamic>'.
             // explicit extension R3 for C<object> : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "C<dynamic>").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "R", "C<dynamic>").WithLocation(1, 20)
             );
 
         return;
@@ -2849,6 +2867,7 @@ explicit extension R3 for C<object> : R { }
             VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("C<dynamic>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         }
     }
 
@@ -2879,9 +2898,9 @@ explicit extension R3 for C<object> : R { }
         // PROTOTYPE this should at most be a nullability warning
         var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp3.VerifyDiagnostics(
-            // (2,20): error CS9216: Extension 'R3' has underlying type 'C<object>' but a base extension has underlying type 'C<object?>'.
+            // (2,20): error CS9216: Extension 'R3' extends 'C<object>' but base extension 'R' extends 'C<object?>'.
             // explicit extension R3 for C<object> : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "C<object?>").WithLocation(2, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "R", "C<object?>").WithLocation(2, 20)
             );
 
         var src4 = """
@@ -2890,9 +2909,9 @@ explicit extension R3 for C<object> : R { }
         // PROTOTYPE the nullability warning should be silenced here (oblivious context)
         var comp4 = CreateCompilation(src4, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp4.VerifyDiagnostics(
-            // (1,20): error CS9216: Extension 'R3' has underlying type 'C<object>' but a base extension has underlying type 'C<object?>'.
+            // (1,20): error CS9216: Extension 'R3' extends 'C<object>' but base extension 'R' extends 'C<object?>'.
             // explicit extension R3 for C<object> : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "C<object?>").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "R", "C<object?>").WithLocation(1, 20)
             );
 
         return;
@@ -2903,6 +2922,7 @@ explicit extension R3 for C<object> : R { }
             VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("C<System.Object?>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString(includeNonNullable: true));
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         }
     }
 
@@ -2933,9 +2953,9 @@ explicit extension R3 for C<object?> : R { }
         // PROTOTYPE this should at most be a nullability warning
         var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp3.VerifyDiagnostics(
-            // (2,20): error CS9216: Extension 'R3' has underlying type 'C<object?>' but a base extension has underlying type 'C<object>'.
+            // (2,20): error CS9216: Extension 'R3' extends 'C<object?>' but base extension 'R' extends 'C<object>'.
             // explicit extension R3 for C<object?> : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object?>", "C<object>").WithLocation(2, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object?>", "R", "C<object>").WithLocation(2, 20)
             );
 
         var src4 = """
@@ -2944,9 +2964,9 @@ explicit extension R3 for C<object> : R { }
         // PROTOTYPE the nullability warning should be silenced here (oblivious context)
         var comp4 = CreateCompilation(src4, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp4.VerifyDiagnostics(
-            // (1,20): error CS9216: Extension 'R3' has underlying type 'C<object>' but a base extension has underlying type 'C<object>'.
+            // (1,20): error CS9216: Extension 'R3' extends 'C<object>' but base extension 'R' extends 'C<object>'.
             // explicit extension R3 for C<object> : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "C<object>").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "C<object>", "R", "C<object>").WithLocation(1, 20)
             );
 
         return;
@@ -2957,6 +2977,7 @@ explicit extension R3 for C<object> : R { }
             VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("C<System.Object!>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString(includeNonNullable: true));
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         }
     }
 
@@ -2991,9 +3012,9 @@ explicit extension R3 for (int, int) : R { }
         // PROTOTYPE consider warning instead, when revisiting rules for variance of underlying types
         var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp3.VerifyDiagnostics(
-            // (1,20): error CS9216: Extension 'R3' has underlying type '(int, int)' but a base extension has underlying type '(int a, int b)'.
+            // (1,20): error CS9216: Extension 'R3' extends '(int, int)' but base extension 'R' extends '(int a, int b)'.
             // explicit extension R3 for (int, int) : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "(int, int)", "(int a, int b)").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "(int, int)", "R", "(int a, int b)").WithLocation(1, 20)
             );
 
         var src4 = """
@@ -3001,9 +3022,9 @@ explicit extension R4 for (int a, int other) : R { }
 """;
         var comp4 = CreateCompilation(src4, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp4.VerifyDiagnostics(
-            // (1,20): error CS9216: Extension 'R4' has underlying type '(int a, int other)' but a base extension has underlying type '(int a, int b)'.
+            // (1,20): error CS9216: Extension 'R4' extends '(int a, int other)' but base extension 'R' extends '(int a, int b)'.
             // explicit extension R4 for (int a, int other) : R { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "(int a, int other)", "(int a, int b)").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "(int a, int other)", "R", "(int a, int b)").WithLocation(1, 20)
             );
 
         return;
@@ -3014,6 +3035,7 @@ explicit extension R4 for (int a, int other) : R { }
             VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("(System.Int32 a, System.Int32 b)", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         }
     }
 
@@ -3138,6 +3160,7 @@ explicit extension R for dynamic
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Null(r.ExtendedTypeNoUseSiteDiagnostics);
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+        Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
     }
 
     [Fact]
@@ -3581,18 +3604,22 @@ partial explicit extension R6 for C : R1, R2 { }
 
         var r3 = comp.GlobalNamespace.GetTypeMember("R3");
         Assert.Equal(new[] { "R1", "R2" }, r3.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        Assert.Equal(new[] { "R1", "R2" }, r3.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
         Assert.True(r3.IsPartial());
 
         var r4 = comp.GlobalNamespace.GetTypeMember("R4");
         Assert.Equal(new[] { "R1", "R2" }, r4.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        Assert.Equal(new[] { "R1", "R2" }, r4.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
         Assert.True(r4.IsPartial());
 
         var r5 = comp.GlobalNamespace.GetTypeMember("R5");
         Assert.Equal(new[] { "R1", "R2" }, r5.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        Assert.Equal(new[] { "R1", "R2" }, r5.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
         Assert.True(r5.IsPartial());
 
         var r6 = comp.GlobalNamespace.GetTypeMember("R6");
         Assert.Equal(new[] { "R1", "R2" }, r6.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        Assert.Equal(new[] { "R1", "R2" }, r6.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
         Assert.True(r6.IsPartial());
     }
 
@@ -3799,6 +3826,28 @@ explicit extension R for R { }
     }
 
     [Fact]
+    public void TypeDepends_SelfReference_AsContainingType()
+    {
+        var src = """
+public explicit extension One<T> for object : One<int>.Two
+{
+    public explicit extension Two for object { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,27): error CS9211: Base extension 'One<int>.Two' causes a cycle in the extension hierarchy of 'One<T>'.
+            // public explicit extension One<T> for object : One<int>.Two
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "One").WithArguments("One<T>", "One<int>.Two").WithLocation(1, 27)
+            );
+
+        var one = comp.GlobalNamespace.GetTypeMember("One");
+        var two = one.BaseExtensionsNoUseSiteDiagnostics.Single();
+        Assert.Equal("One<System.Int32>.Two", two.ToTestDisplayString());
+        Assert.True(two.IsErrorType());
+    }
+
+    [Fact]
     public void TypeDepends_SelfReference_WithArray()
     {
         var src = """
@@ -3905,6 +3954,7 @@ explicit extension Z for S : X { }
             var baseExtension = type.BaseExtensionsNoUseSiteDiagnostics.Single();
             Assert.Equal(expectedBaseName, baseExtension.ToTestDisplayString());
             Assert.True(baseExtension.IsErrorType());
+            Assert.Same(baseExtension, type.AllBaseExtensionsNoUseSiteDiagnostics.Single());
         }
     }
 
@@ -3995,12 +4045,15 @@ explicit extension R2 for object : R
         Assert.True(r.IsExtension);
         Assert.Equal("R2.Nested", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+        Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
         Assert.True(r2.IsExtension);
         Assert.Equal("System.Object", r2.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Equal(new[] { "R" }, r2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
         Assert.True(r2.BaseExtensionsNoUseSiteDiagnostics.Single().IsErrorType());
+        Assert.Equal(new[] { "R" }, r2.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        Assert.True(r2.AllBaseExtensionsNoUseSiteDiagnostics.Single().IsErrorType());
     }
 
     [Fact]
@@ -4052,12 +4105,12 @@ public explicit extension R9 for R2 { }
             targetFramework: TargetFramework.Net70);
         // PROTOTYPE we should report use-site errors for the uses of R1 and R2
         comp6.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R6' has underlying type 'object' but a base extension has underlying type 'R2'.
+            // (1,27): error CS9216: Extension 'R6' extends 'object' but base extension 'R1' extends 'R2'.
             // public explicit extension R6 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R6").WithArguments("R6", "object", "R2").WithLocation(1, 27),
-            // (2,27): error CS9216: Extension 'R7' has underlying type 'object' but a base extension has underlying type 'R1'.
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R6").WithArguments("R6", "object", "R1", "R2").WithLocation(1, 27),
+            // (2,27): error CS9216: Extension 'R7' extends 'object' but base extension 'R2' extends 'R1'.
             // public explicit extension R7 for object : R2 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R7").WithArguments("R7", "object", "R1").WithLocation(2, 27),
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R7").WithArguments("R7", "object", "R2", "R1").WithLocation(2, 27),
             // (3,34): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // public explicit extension R8 for R1 { }
             Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "R1").WithLocation(3, 34),
@@ -4090,11 +4143,13 @@ explicit extension R2 for R2.Nested[] : R
         Assert.True(r.IsExtension);
         Assert.Equal("R2.Nested[]", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+        Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
         Assert.True(r2.IsExtension);
         Assert.Equal("R2.Nested[]", r2.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Equal(new[] { "R" }, r2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        Assert.Equal(new[] { "R" }, r2.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -4112,10 +4167,34 @@ explicit extension R2 for (R2.Nested, int) : R
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("(R2.Nested, System.Int32)", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
+        Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
         Assert.Equal("(R2.Nested, System.Int32)", r2.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Equal(new[] { "R" }, r2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        Assert.Equal(new[] { "R" }, r2.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void TypeDepends_CircularityViaUnderlyingTypeAndBaseExtensions()
+    {
+        var src = """
+explicit extension E1 for object : E2 { }
+explicit extension E2 for E2 : E2 { }
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,20): error CS9211: Base extension 'E2' causes a cycle in the extension hierarchy of 'E2'.
+            // explicit extension E2 for E2 : E2 { }
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "E2").WithArguments("E2", "E2").WithLocation(2, 20),
+            // (2,27): error CS9205: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
+            // explicit extension E2 for E2 : E2 { }
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "E2").WithLocation(2, 27)
+            );
+        var e2 = comp.GlobalNamespace.GetTypeMember("E2");
+        Assert.True(e2.IsExtension);
+        Assert.Null(e2.ExtendedTypeNoUseSiteDiagnostics);
+        Assert.Equal("E2", e2.BaseExtensionsNoUseSiteDiagnostics.Single().ToTestDisplayString());
     }
 
     [Fact]
@@ -4221,9 +4300,9 @@ public explicit extension R3 for object : R1 { }
         // PROTOTYPE expecting some use-site diagnostics (bad metadata, as underlying type cannot be an extension)
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R3' has underlying type 'object' but a base extension has underlying type 'R2'.
+            // (1,27): error CS9216: Extension 'R3' extends 'object' but base extension 'R1' extends 'R2'.
             // public explicit extension R3 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "object", "R2").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "object", "R1", "R2").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -4519,10 +4598,12 @@ partial explicit extension R4 for C : R2 { }
             var r3 = module.GlobalNamespace.GetTypeMember("R3");
             Assert.Equal("C", r3.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Equal(new[] { "R1", "R2" }, r3.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+            Assert.Equal(new[] { "R1", "R2" }, r3.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
 
             var r4 = module.GlobalNamespace.GetTypeMember("R4");
             Assert.Equal("C", r4.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Equal(new[] { "R1", "R2" }, r4.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+            Assert.Equal(new[] { "R1", "R2" }, r4.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
         }
     }
 
@@ -4556,11 +4637,13 @@ class D<U>
             Assert.Equal(1, r3.Arity);
             Assert.Equal("C<U, V>", r3.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Equal(new[] { "D<U>.R1<U, V>", "D<U>.R2<U, V>" }, r3.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+            Assert.Equal(new[] { "D<U>.R1<U, V>", "D<U>.R2<U, V>" }, r3.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
 
             var r4 = d.GetTypeMember("R4");
             Assert.Equal(1, r4.Arity);
             Assert.Equal("C<U, V>", r4.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Equal(new[] { "D<U>.R1<U, V>", "D<U>.R2<U, V>" }, r4.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+            Assert.Equal(new[] { "D<U>.R1<U, V>", "D<U>.R2<U, V>" }, r4.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
 
             var r4FirstBase = r4.BaseExtensionsNoUseSiteDiagnostics.First();
             Assert.Equal(2, r4FirstBase.TypeArguments().Length);
@@ -4689,6 +4772,7 @@ explicit extension R for UnderlyingClass : R1 { }
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
         Assert.Equal(new[] { "R1@<tree 0>" }, r.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        Assert.Equal(new[] { "R1@<tree 0>" }, r.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -4989,21 +5073,30 @@ explicit extension R3<T> for C { }
 #nullable disable
 explicit extension R5a for C : R3<object> { }
 #nullable enable
-explicit extension R5b for C : R5a, R3<object?> { } // 1
+explicit extension R5b for C : R5a, R3<object?> { }
 
 #nullable enable
 explicit extension R6a for C : R3<object> { }
-explicit extension R6b for C : R6a, R3<object?> { } // 2
+explicit extension R6b for C : R6a, R3<object?> { } // 1
 
 explicit extension R7a for C : R3<object> { }
-explicit extension R7b for C : R7a, R3<dynamic> { } // 3
+explicit extension R7b for C : R7a, R3<dynamic> { } // 2
 
 explicit extension R8a for C : R3<(int i, int j)> { }
-explicit extension R8b for C : R8a, R3<(int, int)> { } // 4
+explicit extension R8b for C : R8a, R3<(int, int)> { } // 3
 """;
-        // PROTOTYPE Missing diagnostics for duplicates from the bases' bases.
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (19,20): warning CS9217: 'R3<object?>' is already listed in the base extension list on type 'R6b' with different nullability of reference types.
+            // explicit extension R6b for C : R6a, R3<object?> { } // 1
+            Diagnostic(ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList, "R6b").WithArguments("R3<object?>", "R6b").WithLocation(19, 20),
+            // (22,20): error CS9219: 'R3<dynamic>' is already listed in the base extension list on type 'R7b' as 'R3<object>'.
+            // explicit extension R7b for C : R7a, R3<dynamic> { } // 2
+            Diagnostic(ErrorCode.ERR_DuplicateExtensionWithDifferencesInBaseList, "R7b").WithArguments("R3<dynamic>", "R3<object>", "R7b").WithLocation(22, 20),
+            // (25,20): error CS9218: 'R3<(int, int)>' is already listed in the base extension list on type 'R8b' with different tuple element names, as 'R3<(int i, int j)>'.
+            // explicit extension R8b for C : R8a, R3<(int, int)> { } // 3
+            Diagnostic(ErrorCode.ERR_DuplicateExtensionWithTupleNamesInBaseList, "R8b").WithArguments("R3<(int, int)>", "R3<(int i, int j)>", "R8b").WithLocation(25, 20)
+            );
     }
 
     [Fact]
@@ -5055,21 +5148,21 @@ explicit extension R11 for C<string> { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (2,20): error CS9216: Extension 'R2' has underlying type 'long' but a base extension has underlying type 'int'.
+            // (2,20): error CS9216: Extension 'R2' extends 'long' but base extension 'R1' extends 'int'.
             // explicit extension R2 for long : R1 { } // 1
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "long", "int").WithLocation(2, 20),
-            // (6,20): error CS9216: Extension 'R4' has underlying type 'C<dynamic>' but a base extension has underlying type 'C<object>'.
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "long", "R1", "int").WithLocation(2, 20),
+            // (6,20): error CS9216: Extension 'R4' extends 'C<dynamic>' but base extension 'R3' extends 'C<object>'.
             // explicit extension R4 for C<dynamic> : R3 { } // 2
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "C<dynamic>", "C<object>").WithLocation(6, 20),
-            // (9,20): error CS9216: Extension 'R6' has underlying type '(int, int)' but a base extension has underlying type '(int i, int j)'.
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "C<dynamic>", "R3", "C<object>").WithLocation(6, 20),
+            // (9,20): error CS9216: Extension 'R6' extends '(int, int)' but base extension 'R5' extends '(int i, int j)'.
             // explicit extension R6 for (int, int) : R5 { } // 3
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R6").WithArguments("R6", "(int, int)", "(int i, int j)").WithLocation(9, 20),
-            // (19,20): error CS9216: Extension 'R10' has underlying type 'C<string>' but a base extension has underlying type 'C<string>'.
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R6").WithArguments("R6", "(int, int)", "R5", "(int i, int j)").WithLocation(9, 20),
+            // (19,20): error CS9216: Extension 'R10' extends 'C<string>' but base extension 'R9' extends 'C<string>'.
             // explicit extension R10 for C<string> : R9 { } // 4
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R10").WithArguments("R10", "C<string>", "C<string>").WithLocation(19, 20),
-            // (21,20): error CS9216: Extension 'R12' has underlying type 'C<string>' but a base extension has underlying type 'C<string>'.
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R10").WithArguments("R10", "C<string>", "R9", "C<string>").WithLocation(19, 20),
+            // (21,20): error CS9216: Extension 'R12' extends 'C<string>' but base extension 'R11' extends 'C<string>'.
             // explicit extension R12 for C<string> : R11 { } // 5
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R12").WithArguments("R12", "C<string>", "C<string>").WithLocation(21, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R12").WithArguments("R12", "C<string>", "R11", "C<string>").WithLocation(21, 20)
             );
     }
 
@@ -5141,18 +5234,19 @@ public explicit extension R4 for C : R2 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE we should check that the extended type is compatible
-        // with the base extension's
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R3' has underlying type 'object' but a base extension has underlying type 'C'.
+            // (1,27): error CS9216: Extension 'R3' extends 'object' but base extension 'R2' extends 'C'.
             // public explicit extension R3 for object : R2 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "object", "C").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "object", "R2", "C").WithLocation(1, 27),
+            // (2,27): error CS9216: Extension 'R4' extends 'C' but base extension 'R1' extends 'object'.
+            // public explicit extension R4 for C : R2 { }
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R4").WithArguments("R4", "C", "R1", "object").WithLocation(2, 27)
             );
 
         var r2 = (PENamedTypeSymbol)comp.GlobalNamespace.GetTypeMember("R2");
         var r2BaseExtension = r2.BaseExtensionsNoUseSiteDiagnostics.Single();
         Assert.Equal("R1", r2BaseExtension.ToTestDisplayString());
-        Assert.False(r2BaseExtension.IsErrorType()); // PROTOTYPE
+        Assert.False(r2BaseExtension.IsErrorType());
     }
 
     [Fact]
@@ -5194,9 +5288,9 @@ explicit extension E4 for object : E2 { }
             // (2,20): error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // explicit extension E4 for object : E2 { }
             Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "E4").WithArguments("first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 20),
-            // (2,20): error CS9216: Extension 'E4' has underlying type 'object' but a base extension has underlying type 'C'.
+            // (2,20): error CS9216: Extension 'E4' extends 'object' but base extension 'E2' extends 'C'.
             // explicit extension E4 for object : E2 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E4").WithArguments("E4", "object", "C").WithLocation(2, 20)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "E4").WithArguments("E4", "object", "E2", "C").WithLocation(2, 20)
             );
 
         var e2 = (RetargetingNamedTypeSymbol)comp.GlobalNamespace.GetTypeMember("E2");
@@ -6675,9 +6769,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have an error like "Extension marker method on type '...' is malformed" instead
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type 'Object'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends 'Object'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "System.Object").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "System.Object").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -6713,9 +6807,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have an error like "Extension marker method on type '...' is malformed" instead (if we keep an error)
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type '?'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends '?'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "?").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -6747,9 +6841,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have an error like "Extension marker method on type '...' is malformed" instead
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type '?'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends '?'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "?").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -6779,9 +6873,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have an error like "Extension marker method on type '...' is malformed" instead (if we keep an error)
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type 'Object'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends 'Object'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "System.Object").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "System.Object").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -6817,9 +6911,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have an error like "Extension marker method on type '...' is malformed" instead
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type 'Object'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends 'Object'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "System.Object").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "System.Object").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7116,9 +7210,9 @@ public explicit extension R2 for object : R1 { }
         // PROTOTYPE should have a use-site error too
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type 'dynamic'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends 'dynamic'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "dynamic").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "dynamic").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7165,9 +7259,9 @@ public explicit extension R2 for object : R1 { }
         // PROTOTYPE should have an error like "Extension marker method on type '...' is malformed" instead
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type 'R0'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends 'R0'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R0").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "R0").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7205,9 +7299,9 @@ public explicit extension R2 for object : R1 { }
         // PROTOTYPE should have a use-site error too
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type 'R1'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends 'R1'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "R1").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7673,9 +7767,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have a use-site error too
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type '?'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends '?'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "?").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7708,9 +7802,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have a use-site error too
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type '?'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends '?'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "?").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7773,9 +7867,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have a use-site error too
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type '?'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends '?'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "?").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7808,9 +7902,9 @@ public explicit extension R2 for object : R1 { }
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type '?'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends '?'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "?").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7843,9 +7937,9 @@ public explicit extension R2 for object : R1 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should have a use-site error too
         comp.VerifyDiagnostics(
-            // (1,27): error CS9216: Extension 'R2' has underlying type 'object' but a base extension has underlying type '?'.
+            // (1,27): error CS9216: Extension 'R2' extends 'object' but base extension 'R1' extends '?'.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "?").WithLocation(1, 27)
+            Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -7873,6 +7967,7 @@ public explicit extension R2 for object : R1<dynamic> { }
         {
             var r2 = module.GlobalNamespace.GetTypeMember("R2");
             Assert.Equal("R1<dynamic>", r2.BaseExtensionsNoUseSiteDiagnostics.Single().ToTestDisplayString());
+            Assert.Equal("R1<dynamic>", r2.AllBaseExtensionsNoUseSiteDiagnostics.Single().ToTestDisplayString());
         }
     }
 
@@ -7910,6 +8005,7 @@ public explicit extension R2 for object : R1<(int a, int b)> { }
         {
             var r2 = module.GlobalNamespace.GetTypeMember("R2");
             Assert.Equal("R1<(System.Int32 a, System.Int32 b)>", r2.BaseExtensionsNoUseSiteDiagnostics.Single().ToTestDisplayString());
+            Assert.Equal("R1<(System.Int32 a, System.Int32 b)>", r2.AllBaseExtensionsNoUseSiteDiagnostics.Single().ToTestDisplayString());
         }
     }
 
@@ -8157,5 +8253,1141 @@ public explicit extension R for object { }
             );
         // PROTOTYPE revisit once attributes are allowed on extension types.
         // The Obsolete poison attribute should not be emitted when the user marked the type as obsolete.
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void MemberLookup()
+    {
+        var src = """
+E.M();
+_ = E.Property;
+
+public explicit extension E for object
+{
+    public static void M()
+    {
+        System.Console.Write("Method ");
+    }
+
+    public static int Property
+    {
+        get
+        {
+            System.Console.Write("Property");
+            return 0;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "Method Property",
+            symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        Assert.Equal("E.M()", invocation.ToString());
+        Assert.Equal("void E.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
+        Assert.Equal("E.Property", property.ToString());
+        Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+
+        void validate(ModuleSymbol module)
+        {
+            bool inSource = module is SourceModuleSymbol;
+            var e = module.GlobalNamespace.GetTypeMember("E");
+            Assert.Empty(e.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(e.AllBaseExtensionsNoUseSiteDiagnostics);
+        }
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "fails in emit stage in used assemblies leg")]
+    public void MemberLookup_Instance()
+    {
+        var src = """
+void M(E e)
+{
+    e.M();
+    _ = e.Property;
+}
+
+public explicit extension E for object
+{
+    public void M()
+    {
+        System.Console.Write("Method ");
+    }
+
+    public int Property
+    {
+        get
+        {
+            System.Console.Write("Property");
+            return 0;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,6): warning CS8321: The local function 'M' is declared but never used
+            // void M(E e)
+            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(1, 6)
+            );
+        // PROTOTYPE execute once instance invocation is implemented
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        Assert.Equal("e.M()", invocation.ToString());
+        Assert.Equal("void E.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
+        Assert.Equal("e.Property", property.ToString());
+        Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void MemberLookup_BaseExtension()
+    {
+        var src = """
+E.M();
+_ = E.Property;
+
+public explicit extension Base for object
+{
+    public static void M()
+    {
+        System.Console.Write("Method ");
+    }
+
+    public static int Property
+    {
+        get
+        {
+            System.Console.Write("Property");
+            return 0;
+        }
+    }
+}
+
+public explicit extension E for object : Base { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "Method Property",
+            symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        Assert.Equal("E.M()", invocation.ToString());
+        Assert.Equal("void Base.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
+        Assert.Equal("E.Property", property.ToString());
+        Assert.Equal("System.Int32 Base.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+
+        static void validate(ModuleSymbol module)
+        {
+            bool inSource = module is SourceModuleSymbol;
+            var e = module.GlobalNamespace.GetTypeMember("E");
+            AssertEx.Equal(new[] { "Base" }, e.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "Base" }, e.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "fails in emit stage in used assemblies leg")]
+    public void MemberLookup_BaseExtension_Instance()
+    {
+        var src = """
+#pragma warning disable CS8321 // unused local function
+void M(E e)
+{
+    e.M();
+    _ = e.Property;
+}
+
+public explicit extension Base for object
+{
+    public void M()
+    {
+        System.Console.Write("Method ");
+    }
+
+    public int Property
+    {
+        get
+        {
+            System.Console.Write("Property");
+            return 0;
+        }
+    }
+}
+
+public explicit extension E for object : Base { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE execute once instance invocation is implemented
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        Assert.Equal("e.M()", invocation.ToString());
+        Assert.Equal("void Base.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
+        Assert.Equal("e.Property", property.ToString());
+        Assert.Equal("System.Int32 Base.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void MemberLookup_BaseExtension_DifferentArities()
+    {
+        var src = """
+E.M<int>();
+
+public explicit extension Base for object
+{
+    public static void M<T>()
+    {
+        System.Console.Write("Method ");
+    }
+    public static void M() => throw null;
+}
+
+public explicit extension E for object : Base
+{
+    public static void M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "Method", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        Assert.Equal("E.M<int>()", invocation.ToString());
+        Assert.Equal("void Base.M<System.Int32>()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void MemberLookup_BaseExtension_Ambiguous()
+    {
+        var src = """
+E.M();
+_ = E.Property;
+
+public explicit extension Base1 for object
+{
+    public static void M() => throw null;
+    public static int Property => throw null;
+}
+
+public explicit extension Base2 for object
+{
+    public static void M() => throw null;
+    public static int Property => throw null;
+}
+
+public explicit extension E for object : Base1, Base2 { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+             // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'Base1.M()' and 'Base2.M()'
+             // E.M();
+             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Base1.M()", "Base2.M()").WithLocation(1, 3),
+             // (2,7): error CS0229: Ambiguity between 'Base1.Property' and 'Base2.Property'
+             // _ = E.Property;
+             Diagnostic(ErrorCode.ERR_AmbigMember, "Property").WithArguments("Base1.Property", "Base2.Property").WithLocation(2, 7)
+             );
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        Assert.Equal("E.M()", invocation.ToString());
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal(new[] { "void Base1.M()", "void Base2.M()" }, model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
+
+        var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
+        Assert.Equal("E.Property", property.ToString());
+        Assert.Null(model.GetSymbolInfo(property).Symbol);
+        Assert.Equal(new[] { "System.Int32 Base1.Property { get; }", "System.Int32 Base2.Property { get; }" },
+            model.GetSymbolInfo(property).CandidateSymbols.ToTestDisplayStrings());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void MemberLookup_NestedType()
+    {
+        var src = """
+public explicit extension E2 for object : E.Nested, E.BaseNested, E.HidingNested { }
+
+public explicit extension Base for object
+{
+    public explicit extension BaseNested for object { }
+    public explicit extension HidingNested for object { }
+}
+
+public explicit extension E for object : Base
+{
+    public explicit extension Nested for object { }
+    public explicit extension HidingNested for object { }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var e2 = comp.GlobalNamespace.GetTypeMember("E2");
+        AssertEx.Equal(new[] { "E.Nested", "Base.BaseNested", "E.HidingNested" },
+            e2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void MemberLookup_NestedType_DifferentArities()
+    {
+        var src = """
+public explicit extension E2 for object : E.Nested, E.Nested<int> { }
+
+public explicit extension Base for object
+{
+    public explicit extension Nested<T> for object { }
+    public explicit extension Nested for object { }
+}
+
+public explicit extension E for object : Base
+{
+    public explicit extension Nested for object { }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var e2 = comp.GlobalNamespace.GetTypeMember("E2");
+        AssertEx.Equal(new[] { "E.Nested", "Base.Nested<System.Int32>" },
+            e2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void MemberLookup_NestedType_Ambiguous()
+    {
+        var src = """
+public explicit extension E2 for object : E.Ambiguous { }
+
+public explicit extension Base1 for object
+{
+    public explicit extension Ambiguous for object { }
+}
+
+public explicit extension Base2 for object
+{
+    public explicit extension Ambiguous for object { }
+}
+
+public explicit extension E for object : Base1, Base2
+{
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,45): error CS0104: 'Ambiguous' is an ambiguous reference between 'Base1.Ambiguous' and 'Base2.Ambiguous'
+            // public explicit extension E2 for object : E.Ambiguous { }
+            Diagnostic(ErrorCode.ERR_AmbigContext, "Ambiguous").WithArguments("Ambiguous", "Base1.Ambiguous", "Base2.Ambiguous").WithLocation(1, 45)
+            );
+
+        var e2 = comp.GlobalNamespace.GetTypeMember("E2");
+        AssertEx.Equal(new[] { "Base1.Ambiguous" }, e2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void MemberLookup_BaseExtension_Hiding()
+    {
+        var src = """
+E.M();
+_ = E.Property;
+
+public explicit extension Base for object
+{
+    public static void M() => throw null;
+    public static int Property => throw null;
+}
+
+public explicit extension E for object : Base
+{
+    public static void M()
+    {
+        System.Console.Write("Method ");
+    }
+
+    public static int Property
+    {
+        get
+        {
+            System.Console.Write("Property");
+            return 0;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "Method Property",
+            symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        Assert.Equal("E.M()", invocation.ToString());
+        Assert.Equal("void E.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
+        Assert.Equal("E.Property", property.ToString());
+        Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+
+        static void validate(ModuleSymbol module)
+        {
+            bool inSource = module is SourceModuleSymbol;
+            var e = module.GlobalNamespace.GetTypeMember("E");
+            AssertEx.Equal(new[] { "Base" }, e.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "Base" }, e.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void MemberLookup_BaseExtension_MethodHidesProperty()
+    {
+        var src = """
+E.Member();
+
+var m = E.Member;
+m();
+
+public explicit extension Base for object
+{
+    public static int Member => throw null;
+}
+
+public explicit extension E for object : Base
+{
+    public static void Member()
+    {
+        System.Console.Write("Member ");
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "Member Member",
+            symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        Assert.Equal("E.Member()", invocation.ToString());
+        Assert.Equal("void E.Member()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
+        Assert.Equal("E.Member", property.ToString());
+        Assert.Equal("void E.Member()", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+
+        static void validate(ModuleSymbol module)
+        {
+            bool inSource = module is SourceModuleSymbol;
+            var e = module.GlobalNamespace.GetTypeMember("E");
+            AssertEx.Equal(new[] { "Base" }, e.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "Base" }, e.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void MemberLookup_MultipleCandidates()
+    {
+        var src = """
+E.M((int)0);
+E.M("hi");
+E.M((long)0);
+
+public explicit extension Base for object
+{
+    public static void M(int i)
+    {
+        System.Console.Write("Method(int) ");
+    }
+    public static void M(string i)
+    {
+        System.Console.Write("Method(string) ");
+    }
+}
+
+public explicit extension E for object : Base
+{
+    public static void M(long l)
+    {
+        System.Console.Write("Method(long) ");
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "Method(long) Method(string) Method(long)", verify: Verification.FailsPEVerify);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void MemberLookup_BaseExtension_Diamond()
+    {
+        var src = """
+_ = E2.Prop;
+_ = E4.Prop;
+
+public explicit extension E1 for object
+{
+    public static int Prop => throw null;
+}
+
+public explicit extension E2 for object : E1
+{
+    public static long Prop
+    {
+        get
+        {
+            System.Console.Write("E2.Prop ");
+            return 42;
+        }
+    }
+}
+
+public explicit extension E3 for object : E1 { }
+
+public explicit extension E4 for object : E2, E3 { }
+""";
+
+        // PROTOTYPE should warn about hiding
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "E2.Prop E2.Prop", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().First();
+        Assert.Equal("E2.Prop", property.ToString());
+        Assert.Equal("System.Int64 E2.Prop { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+
+        var property2 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
+        Assert.Equal("E4.Prop", property2.ToString());
+        Assert.Equal("System.Int64 E2.Prop { get; }", model.GetSymbolInfo(property2).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(ClrOnly))]
+    public void MemberLookup_BaseExtension_Inaccessible()
+    {
+        var src = """
+E.M();
+_ = E.Property;
+
+public explicit extension Base for object
+{
+    private static void M() => throw null;
+    private static int Property => throw null;
+}
+
+public explicit extension E for object : Base
+{
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,3): error CS0122: 'Base.M()' is inaccessible due to its protection level
+            // E.M();
+            Diagnostic(ErrorCode.ERR_BadAccess, "M").WithArguments("Base.M()").WithLocation(1, 3),
+            // (2,7): error CS0122: 'Base.Property' is inaccessible due to its protection level
+            // _ = E.Property;
+            Diagnostic(ErrorCode.ERR_BadAccess, "Property").WithArguments("Base.Property").WithLocation(2, 7)
+            );
+    }
+
+    [ConditionalFact(typeof(ClrOnly))]
+    public void MemberLookup_BaseExtension_Circular()
+    {
+        var src = """
+E2.M();
+_ = E2.Property;
+
+public explicit extension E1 for object : E2
+{
+    public static void M() { }
+    public static int Property => 0;
+}
+
+public explicit extension E2 for object : E1 { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,4): error CS0117: 'E2' does not contain a definition for 'M'
+            // E2.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("E2", "M").WithLocation(1, 4),
+            // (2,8): error CS0117: 'E2' does not contain a definition for 'Property'
+            // _ = E2.Property;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("E2", "Property").WithLocation(2, 8),
+            // (4,27): error CS9211: Base extension 'E2' causes a cycle in the extension hierarchy of 'E1'.
+            // public explicit extension E1 for object : E2
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "E1").WithArguments("E1", "E2").WithLocation(4, 27),
+            // (10,27): error CS9211: Base extension 'E1' causes a cycle in the extension hierarchy of 'E2'.
+            // public explicit extension E2 for object : E1 { }
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "E2").WithArguments("E2", "E1").WithLocation(10, 27)
+            );
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        Assert.Equal("E2.M()", invocation.ToString());
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+
+        var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
+        Assert.Equal("E2.Property", property.ToString());
+        Assert.Null(model.GetSymbolInfo(property).Symbol);
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly))]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void MemberLookup_GrandBaseExtension(int offset)
+    {
+        var src = $$"""
+E.M();
+_ = E.Property;
+
+public explicit extension GrandBase{{offset}} for object
+{
+    public static void M()
+    {
+        System.Console.Write("Method ");
+    }
+
+    public static int Property
+    {
+        get
+        {
+            System.Console.Write("Property");
+            return 0;
+        }
+    }
+}
+public explicit extension GrandBase{{(offset + 1) % 4}} for object
+{
+}
+public explicit extension GrandBase{{(offset + 2) % 4}} for object
+{
+}
+public explicit extension GrandBase{{(offset + 3) % 4}} for object
+{
+}
+
+public explicit extension Base1 for object : GrandBase0, GrandBase1
+{
+}
+public explicit extension Base2 for object : GrandBase2, GrandBase3
+{
+}
+
+public explicit extension E for object : Base1, Base2 { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "Method Property",
+            symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        Assert.Equal("E.M()", invocation.ToString());
+        Assert.Equal($$"""void GrandBase{{offset}}.M()""", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
+        Assert.Equal("E.Property", property.ToString());
+        Assert.Equal($$"""System.Int32 GrandBase{{offset}}.Property { get; }""", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+
+        static void validate(ModuleSymbol module)
+        {
+            bool inSource = module is SourceModuleSymbol;
+            var e = module.GlobalNamespace.GetTypeMember("E");
+            AssertEx.Equal(new[] { "Base1", "Base2" }, e.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            AssertEx.Equal(new[] { "Base1", "GrandBase0", "GrandBase1", "Base2", "GrandBase2", "GrandBase3" },
+                e.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+    }
+
+    [ConditionalFact(typeof(ClrOnly))]
+    public void MemberLookup_BaseExtension_CircularityAcrossNestedExtensions()
+    {
+        var src = """
+D.E.M();
+_ = D.E.Property;
+
+public explicit extension C for object : D.E
+{
+    public explicit extension Base for object
+    {
+        public static void M()
+        {
+            System.Console.Write("Method ");
+        }
+
+        public static int Property
+        {
+            get
+            {
+                System.Console.Write("Property");
+                return 0;
+            }
+        }
+    }
+}
+
+public explicit extension D for object : C.Base
+{
+    public explicit extension E for object : C.Base { }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,5): error CS0117: 'D.E' does not contain a definition for 'M'
+            // D.E.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("D.E", "M").WithLocation(1, 5),
+            // (2,9): error CS0117: 'D.E' does not contain a definition for 'Property'
+            // _ = D.E.Property;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("D.E", "Property").WithLocation(2, 9),
+            // (4,27): error CS9211: Base extension 'D.E' causes a cycle in the extension hierarchy of 'C'.
+            // public explicit extension C for object : D.E
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "C").WithArguments("C", "D.E").WithLocation(4, 27),
+            // (24,27): error CS9211: Base extension 'C.Base' causes a cycle in the extension hierarchy of 'D'.
+            // public explicit extension D for object : C.Base
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "D").WithArguments("D", "C.Base").WithLocation(24, 27),
+            // (26,31): error CS9211: Base extension 'C.Base' causes a cycle in the extension hierarchy of 'D.E'.
+            //     public explicit extension E for object : C.Base { }
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "E").WithArguments("D.E", "C.Base").WithLocation(26, 31)
+            );
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        Assert.Equal("D.E.M()", invocation.ToString());
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+
+        var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(2).First();
+        Assert.Equal("D.E.Property", property.ToString());
+        Assert.Null(model.GetSymbolInfo(property).Symbol);
+    }
+
+    [ConditionalFact(typeof(ClrOnly))]
+    public void MemberLookup_BaseExtension_CircularityAcrossNestedExtensions_MissingBase()
+    {
+        var src1 = """
+public explicit extension A for object { }
+""";
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net70, assemblyName: "missing");
+
+        var src2 = """
+public explicit extension B for object : A { }
+""";
+        var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.Net70,
+            references: new[] { comp1.ToMetadataReference() });
+
+        var src3 = """
+D.E.M();
+_ = D.E.Property;
+
+public explicit extension C for object : D.E, B
+{
+    public explicit extension Base for object
+    {
+        public static void M()
+        {
+            System.Console.Write("Method ");
+        }
+
+        public static int Property
+        {
+            get
+            {
+                System.Console.Write("Property");
+                return 0;
+            }
+        }
+    }
+}
+
+public explicit extension D for object : C.Base
+{
+    public explicit extension E for object : C.Base { }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, targetFramework: TargetFramework.Net70,
+            references: new[] { comp2.ToMetadataReference() });
+
+        comp3.VerifyDiagnostics(
+            // (1,5): error CS0117: 'D.E' does not contain a definition for 'M'
+            // D.E.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("D.E", "M").WithLocation(1, 5),
+            // (2,9): error CS0117: 'D.E' does not contain a definition for 'Property'
+            // _ = D.E.Property;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("D.E", "Property").WithLocation(2, 9),
+            // (4,27): error CS9211: Base extension 'D.E' causes a cycle in the extension hierarchy of 'C'.
+            // public explicit extension C for object : D.E, B
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "C").WithArguments("C", "D.E").WithLocation(4, 27),
+            // (4,27): error CS8090: There is an error in a referenced assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // public explicit extension C for object : D.E, B
+            Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "C").WithArguments("missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 27),
+            // (10,13): error CS8090: There is an error in a referenced assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            //             System.Console.Write("Method ");
+            Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "System").WithArguments("missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 13),
+            // (17,17): error CS8090: There is an error in a referenced assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            //                 System.Console.Write("Property");
+            Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "System").WithArguments("missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(17, 17),
+            // (24,27): error CS9211: Base extension 'C.Base' causes a cycle in the extension hierarchy of 'D'.
+            // public explicit extension D for object : C.Base
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "D").WithArguments("D", "C.Base").WithLocation(24, 27),
+            // (26,31): error CS9211: Base extension 'C.Base' causes a cycle in the extension hierarchy of 'D.E'.
+            //     public explicit extension E for object : C.Base { }
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "E").WithArguments("D.E", "C.Base").WithLocation(26, 31)
+            );
+
+        var tree = comp3.SyntaxTrees.Single();
+        var model = comp3.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        Assert.Equal("D.E.M()", invocation.ToString());
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+
+        var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(2).First();
+        Assert.Equal("D.E.Property", property.ToString());
+        Assert.Null(model.GetSymbolInfo(property).Symbol);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void MemberLookup_WithTypeArgumentInvolvingMissingBase()
+    {
+        var src1 = """
+public explicit extension Missing for object { }
+""";
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net70, assemblyName: "missing");
+
+        var src2 = """
+public explicit extension B for object : Missing
+{
+    public class C { }
+}
+""";
+        var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.Net70,
+            references: new[] { comp1.ToMetadataReference() });
+
+        var src3 = """
+E1.Method();
+
+public explicit extension E2<T> for object
+{
+}
+public explicit extension E1 for object : E2<B.C>
+{
+    public static void Method()
+    {
+        System.Console.Write("Method");
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, targetFramework: TargetFramework.Net70,
+            references: new[] { comp2.ToMetadataReference() });
+
+        // PROTOTYPE should we have a diagnostic for using B (whose base extension is missing)?
+        comp3.VerifyDiagnostics();
+        CompileAndVerify(comp3, expectedOutput: "Method");
+    }
+
+    [Fact]
+    public void RecursiveExtensionLookup()
+    {
+        var src = """
+explicit extension A<T> for object { }
+explicit extension B for object : A<B.Garbage> { }
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,39): error CS0426: The type name 'Garbage' does not exist in the type 'B'
+            // explicit extension B for object : A<B.Garbage> { }
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Garbage").WithArguments("Garbage", "B").WithLocation(2, 39)
+            );
+    }
+
+    [Fact]
+    public void UseSiteErrorReporting_MissingGrandBase()
+    {
+        var source1 = """
+public explicit extension A for object { }
+""";
+        var compilation1 = CreateCompilation(source1, assemblyName: "missing",
+            targetFramework: TargetFramework.Net70);
+
+        compilation1.VerifyDiagnostics();
+
+        var source2 = """
+public explicit extension B for object : A { }
+public explicit extension C<T> for object : B { }
+""";
+        var compilation2 = CreateCompilation(source2, references: new[] { compilation1.ToMetadataReference() },
+            targetFramework: TargetFramework.Net70);
+
+        compilation2.VerifyDiagnostics();
+
+        var source3 = """
+D.M();
+
+public explicit extension D for object : C<string> 
+{
+    public static void M() { }
+}
+""";
+        var compilation3 = CreateCompilation(source3, references: new[] { compilation2.ToMetadataReference() },
+            targetFramework: TargetFramework.Net70);
+
+        compilation3.VerifyDiagnostics(
+            // (1,1): error CS8090: There is an error in a referenced assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // D.M();
+            Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "D.M").WithArguments("missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+            // (1,3): error CS8090: There is an error in a referenced assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // D.M();
+            Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "M").WithArguments("missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 3),
+            // (3,27): error CS8090: There is an error in a referenced assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // public explicit extension D for object : C<string> 
+            Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "D").WithArguments("missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 27)
+            );
+    }
+
+    [Fact]
+    public void MemberLookup_MethodsFromObject()
+    {
+        var src = """
+#pragma warning disable CS8321 // unused local function
+void M(A a)
+{
+    A.ToString();
+    a.ToString();
+}
+
+public explicit extension A for object { }
+""";
+        // PROTOTYPE methods from System.Object will come from member access (not from member lookup)
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (4,7): error CS0117: 'A' does not contain a definition for 'ToString'
+            //     A.ToString();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "ToString").WithArguments("A", "ToString").WithLocation(4, 7),
+            // (5,7): error CS1061: 'A' does not contain a definition for 'ToString' and no accessible extension method 'ToString' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+            //     a.ToString();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToString").WithArguments("A", "ToString").WithLocation(5, 7)
+            );
+    }
+
+    [Fact]
+    public void MemberLookup_InUsing()
+    {
+        var src = """
+explicit extension Base for object
+{
+    public class BaseMember { }
+    public class HidingMember { }
+}
+
+explicit extension E for object : Base
+{
+    public class Member { }
+    public class HidingMember { }
+}
+
+namespace N
+{
+#pragma warning disable CS8019 // unnecessary using
+    using Alias1 = E.Member;
+    using Alias2 = E.BaseMember;
+    using Alias3 = E.HidingMember;
+}
+""";
+        // PROTOTYPE should warn for hiding
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var alias1 = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().First();
+        Assert.Equal("Alias1=E.Member", model.GetDeclaredSymbol(alias1).ToTestDisplayString());
+
+        var alias2 = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Skip(1).First();
+        Assert.Equal("Alias2=Base.BaseMember", model.GetDeclaredSymbol(alias2).ToTestDisplayString());
+
+        var alias3 = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Skip(2).First();
+        Assert.Equal("Alias3=E.HidingMember", model.GetDeclaredSymbol(alias3).ToTestDisplayString());
+    }
+
+    [Fact]
+    public void MemberLookup_InGlobalAlias()
+    {
+        var src = """
+_ = typeof(global::E.Member);
+_ = typeof(global::E.BaseMember);
+_ = typeof(global::E.HidingMember);
+
+explicit extension Base for object
+{
+    public class BaseMember { }
+    public class HidingMember { }
+}
+
+explicit extension E for object : Base
+{
+    public class Member { }
+    public class HidingMember { }
+}
+
+""";
+        // PROTOTYPE should warn for hiding
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var member = tree.GetRoot().DescendantNodes().OfType<TypeOfExpressionSyntax>().First().Type;
+        Assert.Equal("E.Member", model.GetSymbolInfo(member).Symbol.ToTestDisplayString());
+
+        var baseMember = tree.GetRoot().DescendantNodes().OfType<TypeOfExpressionSyntax>().Skip(1).First().Type;
+        Assert.Equal("Base.BaseMember", model.GetSymbolInfo(baseMember).Symbol.ToTestDisplayString());
+
+        var hidingMember = tree.GetRoot().DescendantNodes().OfType<TypeOfExpressionSyntax>().Skip(2).First().Type;
+        Assert.Equal("E.HidingMember", model.GetSymbolInfo(hidingMember).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void MemberLookup_InAlias()
+    {
+        var src = """
+using Alias = E;
+
+_ = typeof(Alias.Member);
+_ = typeof(Alias.BaseMember);
+_ = typeof(Alias.HidingMember);
+
+explicit extension Base for object
+{
+    public class BaseMember { }
+    public class HidingMember { }
+}
+
+explicit extension E for object : Base
+{
+    public class Member { }
+    public class HidingMember { }
+}
+""";
+        // PROTOTYPE should warn for hiding
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var member = tree.GetRoot().DescendantNodes().OfType<TypeOfExpressionSyntax>().First().Type;
+        Assert.Equal("E.Member", model.GetSymbolInfo(member).Symbol.ToTestDisplayString());
+
+        var baseMember = tree.GetRoot().DescendantNodes().OfType<TypeOfExpressionSyntax>().Skip(1).First().Type;
+        Assert.Equal("Base.BaseMember", model.GetSymbolInfo(baseMember).Symbol.ToTestDisplayString());
+
+        var hidingMember = tree.GetRoot().DescendantNodes().OfType<TypeOfExpressionSyntax>().Skip(2).First().Type;
+        Assert.Equal("E.HidingMember", model.GetSymbolInfo(hidingMember).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalTheory(typeof(ClrOnly))]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void AllBaseExtensions_Retargeting(int offset)
+    {
+        var src1 = """
+public explicit extension E1 for object { }
+""";
+
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net70, assemblyName: "first");
+        comp1.VerifyDiagnostics();
+
+        var src2 = """
+public explicit extension E2 for object : E1 { }
+""";
+        var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.Net70,
+            references: new[] { comp1.EmitToImageReference() });
+
+        comp2.VerifyDiagnostics();
+
+        var src1Updated = $$"""
+public explicit extension GrandBase{{offset}} for object
+{
+}
+public explicit extension GrandBase{{(offset + 1) % 4}} for object
+{
+}
+public explicit extension GrandBase{{(offset + 2) % 4}} for object
+{
+}
+public explicit extension GrandBase{{(offset + 3) % 4}} for object
+{
+}
+
+public explicit extension Base1 for object : GrandBase0, GrandBase1
+{
+}
+public explicit extension Base2 for object : GrandBase2, GrandBase3
+{
+}
+
+public explicit extension E1 for object : Base1, Base2 { }
+""";
+
+        var comp1Updated = CreateCompilation(src1Updated, targetFramework: TargetFramework.Net70, assemblyName: "first");
+        comp1Updated.VerifyDiagnostics();
+
+        var src = """
+public explicit extension E3 for object : E2 { }
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70,
+            references: new[] { comp2.ToMetadataReference(), comp1Updated.EmitToImageReference() });
+        comp.VerifyDiagnostics();
+
+        var e3 = comp.GlobalNamespace.GetTypeMember("E3");
+        var e2 = e3.BaseExtensionsNoUseSiteDiagnostics.Single();
+        Assert.Equal("E2", e2.ToTestDisplayString());
+        VerifyExtension<RetargetingNamedTypeSymbol>(e2, isExplicit: true);
+
+        AssertEx.Equal(new[] { "E1", "Base1", "GrandBase0", "GrandBase1", "Base2", "GrandBase2", "GrandBase3" },
+            e2.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
     }
 }

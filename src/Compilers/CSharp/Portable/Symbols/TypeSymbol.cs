@@ -229,6 +229,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
+        internal ImmutableArray<NamedTypeSymbol> AllBaseExtensionsWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var baseExtensions = AllBaseExtensionsNoUseSiteDiagnostics;
+
+            foreach (var baseExtension in baseExtensions)
+            {
+                baseExtension.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
+            }
+
+            return baseExtensions;
+        }
+
         /// <summary>
         /// If this is a type parameter returns its effective base class, otherwise returns this type.
         /// </summary>
@@ -2474,6 +2486,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract TypeSymbol? ExtendedTypeNoUseSiteDiagnostics { get; }
 
         internal abstract ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics { get; }
-#nullable disable
+
+        /// <summary>
+        /// For extension types, returns the list of all base extensions 
+        /// (this excludes this type itself).
+        /// Each result appears exactly once in the list. This list is topologically sorted by the inheritance
+        /// relationship: if extension type A inherits extension type B, then A precedes B in the
+        /// list.
+        /// </summary>
+        internal abstract ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics { get; }
     }
 }

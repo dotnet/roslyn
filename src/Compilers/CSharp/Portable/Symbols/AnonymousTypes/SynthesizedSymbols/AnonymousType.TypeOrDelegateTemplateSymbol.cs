@@ -318,11 +318,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics => null;
             internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
                 => ImmutableArray<NamedTypeSymbol>.Empty;
+            internal sealed override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
+                => ImmutableArray<NamedTypeSymbol>.Empty;
 
             internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
                 => throw ExceptionUtilities.Unreachable();
 
-            internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
+            internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions(ConsList<TypeSymbol>? basesBeingResolved)
                 => throw ExceptionUtilities.Unreachable();
 
             internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
