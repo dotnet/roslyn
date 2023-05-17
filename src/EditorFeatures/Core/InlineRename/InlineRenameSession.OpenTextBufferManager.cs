@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             linkedDocumentsMightConflict = false;
 
                             // Only need to check the new span's content
-                            var firstDocumentNewText = conflictResolution.NewSolution.GetDocument(firstDocumentReplacements.document.Id).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                            var firstDocumentNewText = conflictResolution.NewSolution.GetDocument(firstDocumentReplacements.document.Id).GetTextSynchronously(cancellationToken);
                             var firstDocumentNewSpanText = firstDocumentReplacements.Item2.SelectAsArray(replacement => firstDocumentNewText.ToString(replacement.NewSpan));
                             foreach (var (document, replacements) in documentReplacements)
                             {
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                     continue;
                                 }
 
-                                var documentNewText = conflictResolution.NewSolution.GetDocument(document.Id).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                                var documentNewText = conflictResolution.NewSolution.GetDocument(document.Id).GetTextSynchronously(cancellationToken);
                                 for (var i = 0; i < replacements.Length; i++)
                                 {
                                     if (documentNewText.ToString(replacements[i].NewSpan) != firstDocumentNewSpanText[i])
@@ -554,8 +554,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             throw new ArgumentException(WorkspacesResources.The_specified_document_is_not_a_version_of_this_document);
                         }
 
-                        var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                        var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                         if (oldText == newText)
                         {
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 SnapshotSpan? snapshotSpanToClone = null;
                 string preMergeDocumentTextString = null;
 
-                var preMergeDocumentText = preMergeDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var preMergeDocumentText = preMergeDocument.GetTextSynchronously(cancellationToken);
                 var snapshot = preMergeDocumentText.FindCorrespondingEditorTextSnapshot();
                 if (snapshot != null && _textBufferCloneService != null)
                 {
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 if (snapshotSpanToClone == null)
                 {
-                    preMergeDocumentTextString = preMergeDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString();
+                    preMergeDocumentTextString = preMergeDocument.GetTextSynchronously(cancellationToken).ToString();
                 }
 
                 foreach (var replacement in relevantReplacements)

@@ -3,16 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.IO.Pipelines;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Nerdbank.Streams;
-using StreamJsonRpc;
 using Xunit;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;

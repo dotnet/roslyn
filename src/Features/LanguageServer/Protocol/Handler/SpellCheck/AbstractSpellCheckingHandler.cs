@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             CancellationToken cancellationToken)
         {
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var spans = await service.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<LSP.VSInternalSpellCheckableRange>.GetInstance(spans.Length, out var result);

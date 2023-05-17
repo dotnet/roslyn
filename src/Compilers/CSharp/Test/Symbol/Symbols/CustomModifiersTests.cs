@@ -2829,7 +2829,7 @@ Charlie");
         string Method () cil managed 
     {
         // Method begins at RVA 0x2050
-        // Code size: 6 (0x6)
+        // Code size 6 (0x6)
         .maxstack 8
 
         IL_0000: ldstr ""Method""
@@ -2840,7 +2840,7 @@ Charlie");
         instance void .ctor () cil managed 
     {
         // Method begins at RVA 0x2057
-        // Code size: 7 (0x7)
+        // Code size 7 (0x7)
         .maxstack 8
 
         IL_0000: ldarg.0
@@ -2858,7 +2858,7 @@ Charlie");
         instance void .ctor () cil managed 
     {
         // Method begins at RVA 0x2057
-        // Code size: 7 (0x7)
+        // Code size 7 (0x7)
         .maxstack 8
 
         IL_0000: ldarg.0
@@ -2876,7 +2876,7 @@ Charlie");
         instance void .ctor () cil managed 
     {
         // Method begins at RVA 0x205f
-        // Code size: 7 (0x7)
+        // Code size 7 (0x7)
         .maxstack 8
 
         IL_0000: ldarg.0
@@ -2920,7 +2920,7 @@ class Test
         string Method () cil managed 
     {
         // Method begins at RVA 0x2050
-        // Code size: 6 (0x6)
+        // Code size 6 (0x6)
         .maxstack 8
 
         IL_0000: ldstr ""Method""
@@ -2931,7 +2931,7 @@ class Test
         instance void .ctor () cil managed 
     {
         // Method begins at RVA 0x2057
-        // Code size: 7 (0x7)
+        // Code size 7 (0x7)
         .maxstack 8
 
         IL_0000: ldarg.0
@@ -2949,7 +2949,7 @@ class Test
         instance void .ctor () cil managed 
     {
         // Method begins at RVA 0x2057
-        // Code size: 7 (0x7)
+        // Code size 7 (0x7)
         .maxstack 8
 
         IL_0000: ldarg.0
@@ -2967,7 +2967,7 @@ class Test
         instance void .ctor () cil managed 
     {
         // Method begins at RVA 0x205f
-        // Code size: 7 (0x7)
+        // Code size 7 (0x7)
         .maxstack 8
 
         IL_0000: ldarg.0

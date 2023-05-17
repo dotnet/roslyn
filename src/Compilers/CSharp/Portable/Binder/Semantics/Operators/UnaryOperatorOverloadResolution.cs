@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private NamedTypeSymbol MakeNullable(TypeSymbol type)
         {
-            return Compilation.GetOrCreateNullableType(type);
+            return Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
         }
 
         public void UnaryOperatorOverloadResolution(UnaryOperatorKind kind, bool isChecked, BoundExpression operand, UnaryOperatorOverloadResolutionResult result, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var nullableEnum = MakeNullable(enumType);
+            var nullableEnum = Compilation.GetOrCreateNullableType(enumType);
 
             switch (kind)
             {

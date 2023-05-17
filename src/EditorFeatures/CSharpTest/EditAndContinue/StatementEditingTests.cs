@@ -2144,6 +2144,121 @@ class C
         }
 
         [Fact]
+        public void Lambdas_Insert_First_Static_InGenericContext_Method()
+        {
+            var src1 = @"
+using System;
+class C
+{
+    void F<T>()
+    {
+    }
+}";
+            var src2 = @"
+using System;
+class C
+{
+    void F<T>()
+    {
+        var f = new Func<int, int>(a => a);
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                capabilities:
+                    EditAndContinueCapabilities.NewTypeDefinition |
+                    EditAndContinueCapabilities.AddMethodToExistingType |
+                    EditAndContinueCapabilities.AddStaticFieldToExistingType |
+                    EditAndContinueCapabilities.GenericAddMethodToExistingType |
+                    EditAndContinueCapabilities.GenericAddFieldToExistingType |
+                    EditAndContinueCapabilities.GenericUpdateMethod);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a", GetResource("lambda")) },
+                capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
+        }
+
+        [Fact]
+        public void Lambdas_Insert_First_Static_InGenericContext_Type()
+        {
+            var src1 = @"
+using System;
+class C<T>
+{
+    void F()
+    {
+    }
+}";
+            var src2 = @"
+using System;
+class C<T>
+{
+    void F()
+    {
+        var f = new Func<int, int>(a => a);
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                capabilities:
+                    EditAndContinueCapabilities.NewTypeDefinition |
+                    EditAndContinueCapabilities.AddMethodToExistingType |
+                    EditAndContinueCapabilities.AddStaticFieldToExistingType |
+                    EditAndContinueCapabilities.GenericAddMethodToExistingType |
+                    EditAndContinueCapabilities.GenericAddFieldToExistingType |
+                    EditAndContinueCapabilities.GenericUpdateMethod);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a", GetResource("lambda")) },
+                capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
+        }
+
+        [Fact]
+        public void Lambdas_Insert_First_Static_InGenericContext_LocalFunction()
+        {
+            var src1 = @"
+using System;
+class C
+{
+    void F()
+    {
+        void L<T>()
+        {
+        }
+    }
+}";
+            var src2 = @"
+using System;
+class C
+{
+    void F()
+    {
+        void L<T>()
+        {
+            var f = new Func<int, int>(a => a);
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                capabilities:
+                    EditAndContinueCapabilities.NewTypeDefinition |
+                    EditAndContinueCapabilities.AddMethodToExistingType |
+                    EditAndContinueCapabilities.GenericAddMethodToExistingType |
+                    EditAndContinueCapabilities.GenericUpdateMethod);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a", GetResource("lambda")) },
+                capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
+        }
+
+        [Fact]
         public void Lambdas_Insert_Static_Nested()
         {
             var src1 = @"
@@ -5330,6 +5445,141 @@ class C
         }
 
         [Fact]
+        public void LocalFunctions_Insert_Static_InGenericContext_Method()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F<T>()
+    {
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F<T>()
+    {
+        int f(int a) => a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                capabilities:
+                    EditAndContinueCapabilities.AddMethodToExistingType |
+                    EditAndContinueCapabilities.GenericAddMethodToExistingType |
+                    EditAndContinueCapabilities.GenericUpdateMethod);
+
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "f", GetResource("local function")),
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "void F<T>()", GetResource("method"))
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void LocalFunctions_Insert_Static_InGenericContext_Type()
+        {
+            var src1 = @"
+using System;
+
+class C<T>
+{
+    void F()
+    {
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C<T>
+{
+    void F()
+    {
+        int f(int a) => a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                capabilities:
+                    EditAndContinueCapabilities.AddMethodToExistingType |
+                    EditAndContinueCapabilities.GenericAddMethodToExistingType |
+                    EditAndContinueCapabilities.GenericUpdateMethod);
+
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "f", GetResource("local function")),
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "void F()", GetResource("method"))
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void LocalFunctions_Insert_Static_InGenericContext_LocalFunction()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        void L<T>()
+        {
+            void M()
+            {
+            }
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        void L<T>()
+        {
+            void M()
+            {
+                int f(int a) => a;
+            }
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                capabilities:
+                    EditAndContinueCapabilities.AddMethodToExistingType |
+                    EditAndContinueCapabilities.GenericAddMethodToExistingType |
+                    EditAndContinueCapabilities.GenericUpdateMethod);
+
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "L", GetResource("local function")),
+                    Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "f", GetResource("local function"))
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
         public void LocalFunctions_Insert_Static_Nested_ExpressionBodies()
         {
             var src1 = @"
@@ -7177,6 +7427,45 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+        }
+
+        [Fact]
+        public void LocalFunctions_Update_Generic()
+        {
+            var src1 = @"
+class C
+{
+    void F()
+    {
+        int L<T>() => 1;
+        int M<T>() => 1;
+        int N<T>() => 1;
+        int O<T>() => 1;
+    }
+}";
+            var src2 = @"
+class C
+{
+    void F()
+    {
+        int L<T>() => 1;
+        int M<T>() => 2;
+        int N<T>() => 1 ;
+        int O<T>() =>  1;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "M", GetResource("local function"))
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
+
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -9476,7 +9765,10 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemanticDiagnostics(
-                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType);
+                capabilities:
+                    EditAndContinueCapabilities.NewTypeDefinition |
+                    EditAndContinueCapabilities.AddStaticFieldToExistingType |
+                    EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
                 new[]
@@ -9672,6 +9964,129 @@ class C
             edits.VerifySemantics(
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true) },
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+        }
+
+        [Fact]
+        public void Yield_Update_GenericType()
+        {
+            var src1 = @"
+class C<T>
+{
+    static IEnumerable<int> F()
+    {
+        yield return 1;
+    }
+}
+";
+            var src2 = @"
+class C<T>
+{
+    static IEnumerable<int> F()
+    {
+        yield return 2;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                capabilities:
+                    EditAndContinueCapabilities.GenericUpdateMethod |
+                    EditAndContinueCapabilities.GenericAddFieldToExistingType |
+                    EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "static IEnumerable<int> F()", GetResource("method"))
+                },
+                capabilities:
+                    EditAndContinueCapabilities.GenericUpdateMethod |
+                    EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+        }
+
+        [Fact]
+        public void Yield_Update_GenericMethod()
+        {
+            var src1 = @"
+class C
+{
+    static IEnumerable<int> F<T>()
+    {
+        yield return 1;
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static IEnumerable<int> F<T>()
+    {
+        yield return 2;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                capabilities:
+                    EditAndContinueCapabilities.GenericUpdateMethod |
+                    EditAndContinueCapabilities.GenericAddFieldToExistingType |
+                    EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "static IEnumerable<int> F<T>()", GetResource("method"))
+                },
+                capabilities:
+                    EditAndContinueCapabilities.GenericUpdateMethod |
+                    EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+        }
+
+        [Fact]
+        public void Yield_Update_GenericLocalFunction()
+        {
+            var src1 = @"
+class C
+{
+    void F()
+    {
+        IEnumerable<int> L<T>()
+        {
+            yield return 1;
+        }
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    void F()
+    {
+        IEnumerable<int> L<T>()
+        {
+            yield return 2;
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                capabilities:
+                    EditAndContinueCapabilities.GenericUpdateMethod |
+                    EditAndContinueCapabilities.GenericAddFieldToExistingType |
+                    EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "L", GetResource("local function"))
+                },
+                capabilities:
+                    EditAndContinueCapabilities.GenericUpdateMethod |
+                    EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]
@@ -10493,7 +10908,136 @@ class C
         }
 
         [Fact]
-        public void MissingAsyncStateMachineAttribute1()
+        public void Await_Update_GenericType()
+        {
+            var src1 = @"
+class C<T>
+{
+    static async Task F()
+    {
+        await Task.FromResult(1);
+    }
+}
+";
+            var src2 = @"
+class C<T>
+{
+    static async Task F()
+    {
+        await Task.FromResult(2);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                capabilities:
+                    EditAndContinueCapabilities.GenericUpdateMethod |
+                    EditAndContinueCapabilities.GenericAddFieldToExistingType |
+                    EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "static async Task F()", GetResource("method"))
+                },
+                capabilities:
+                    EditAndContinueCapabilities.GenericUpdateMethod |
+                    EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+        }
+
+        [Fact]
+        public void Await_Update_GenericMethod()
+        {
+            var src1 = @"
+class C
+{
+    static async Task F<T>()
+    {
+        await Task.FromResult(1);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task F<T>()
+    {
+        await Task.FromResult(2);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                capabilities:
+                    EditAndContinueCapabilities.GenericUpdateMethod |
+                    EditAndContinueCapabilities.GenericAddFieldToExistingType |
+                    EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "static async Task F<T>()", GetResource("method"))
+                },
+                capabilities:
+                    EditAndContinueCapabilities.GenericUpdateMethod |
+                    EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+        }
+
+        [Fact]
+        public void Await_Update_GenericLocalFunction()
+        {
+            var src1 = @"
+class C
+{
+    void F()
+    {
+        void M()
+        {
+            async Task L<T>()
+            {
+                await Task.FromResult(1);
+            }
+        }
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    void F()
+    {
+        void M()
+        {
+            async Task L<T>()
+            {
+                await Task.FromResult(2);
+            }
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                capabilities:
+                    EditAndContinueCapabilities.GenericUpdateMethod |
+                    EditAndContinueCapabilities.GenericAddFieldToExistingType |
+                    EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "L", GetResource("local function"))
+                },
+                capabilities:
+                    EditAndContinueCapabilities.GenericUpdateMethod |
+                    EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+        }
+
+        [Fact]
+        public void MissingAsyncStateMachineAttribute()
         {
             var src1 = @"
 using System.Threading.Tasks;
