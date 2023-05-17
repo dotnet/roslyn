@@ -4,7 +4,7 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
+namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
 {
     /// <summary>
     /// Diagnostic information about a particular edit made through hot reload.

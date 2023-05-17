@@ -4,7 +4,7 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
+namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
 {
     /// <summary>
     /// Managed hot reload availability information.
