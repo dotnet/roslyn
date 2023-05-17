@@ -16,8 +16,36 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class SourceOrdinaryMethodSymbol : SourceOrdinaryMethodSymbolBase
+    internal abstract class SourceOrdinaryMethodSymbol : SourceOrdinaryMethodSymbolBase
     {
+        private sealed class SourceOrdinaryMethodSymbolCommon : SourceOrdinaryMethodSymbol
+        {
+            public SourceOrdinaryMethodSymbolCommon(
+                NamedTypeSymbol containingType,
+                string name,
+                Location location,
+                MethodDeclarationSyntax syntax,
+                MethodKind methodKind,
+                bool isNullableAnalysisEnabled,
+                BindingDiagnosticBag diagnostics) : base(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
+            {
+            }
+
+            protected sealed override TypeSymbol ExplicitInterfaceType => null;
+
+            protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
+                => null;
+
+            public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
+                => ImmutableArray<TypeParameterSymbol>.Empty;
+
+            public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+                => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+            public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+                => ImmutableArray<TypeParameterConstraintKind>.Empty;
+        }
+
         /// <summary>
         /// Specialized subclass of SourceOrdinaryMethodSymbol for less common cases.  Specifically, we only use this
         /// for methods that are:
@@ -57,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             protected sealed override TypeSymbol ExplicitInterfaceType => _explicitInterfaceType;
-            internal override SourceOrdinaryMethodSymbol OtherPartOfPartial => _otherPartOfPartial;
+            internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial => _otherPartOfPartial;
 
             internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbolUncommon definition, SourceOrdinaryMethodSymbolUncommon implementation)
             {
@@ -255,16 +283,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Use a smaller type for the common case of non-generic, non-partial, non-explicit-impl methods.
 
-            if (explicitInterfaceType is not null ||
-                syntax.Modifiers.Any(SyntaxKind.PartialKeyword) ||
-                syntax.Arity > 0)
-            {
-                return new SourceOrdinaryMethodSymbolUncommon(containingType, explicitInterfaceType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
-            }
-            else
-            {
-                return new SourceOrdinaryMethodSymbol(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
-            }
+            return explicitInterfaceType is not null || syntax.Modifiers.Any(SyntaxKind.PartialKeyword) || syntax.Arity > 0
+                ? new SourceOrdinaryMethodSymbolUncommon(containingType, explicitInterfaceType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
+                : new SourceOrdinaryMethodSymbolCommon(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
         }
 
         private SourceOrdinaryMethodSymbol(
@@ -301,8 +322,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
-
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
@@ -393,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override void ExtensionMethodChecks(BindingDiagnosticBag diagnostics)
+        protected sealed override void ExtensionMethodChecks(BindingDiagnosticBag diagnostics)
         {
             // errors relevant for extension methods
             if (IsExtensionMethod)
@@ -457,11 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics) => null;
-
         protected sealed override Location ReturnTypeLocation => GetSyntax().ReturnType.Location;
-
-        protected override TypeSymbol ExplicitInterfaceType => null;
 
         internal MethodDeclarationSyntax GetSyntax()
         {
@@ -482,13 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
-            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
-
-        public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
-            => ImmutableArray<TypeParameterConstraintKind>.Empty;
-
-        protected override int GetParameterCountFromSyntax() => GetSyntax().ParameterList.ParameterCount;
+        protected sealed override int GetParameterCountFromSyntax() => GetSyntax().ParameterList.ParameterCount;
 
         internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation)
         {
