@@ -20,6 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private sealed class SourceOrdinaryMethodSymbolCommon : SourceOrdinaryMethodSymbol
         {
+            // Avoid adding fields here if possible.  This 'Common' type handles the majority of source methods in any
+            // compilation. So any fields here can add significantly to heap usage.  Consider placing in
+            // SourceOrdinaryMethodSymbolUncommon instead if it is state for rare-methods.
+
             public SourceOrdinaryMethodSymbolCommon(
                 NamedTypeSymbol containingType,
                 string name,
