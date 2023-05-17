@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart;
 
         public static string Option_run_code_analysis_on_dotnet
-            => ServicesVSResources.Run_code_analysis_on_dotnet_requires_restart;
+            => ServicesVSResources.Run_code_analysis_on_latest_dotnet_requires_restart;
 
         public static string Option_analyze_source_generated_files
             => ServicesVSResources.Analyze_source_generated_files;
