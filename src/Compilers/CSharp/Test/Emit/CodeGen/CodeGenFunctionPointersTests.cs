@@ -2466,6 +2466,7 @@ Returned From Function 2");
 }");
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68208")]
         [Fact]
         public void Typeof()
         {
@@ -2479,7 +2480,7 @@ class C
         Console.WriteLine(t.ToString());
     }
 }
-", expectedOutput: "System.IntPtr");
+", expectedOutput: ExecutionConditionUtil.IsCoreClr ? "System.Void()" : "System.IntPtr");
 
             verifier.VerifyIL("C.Main()", expectedIL: @"
 {

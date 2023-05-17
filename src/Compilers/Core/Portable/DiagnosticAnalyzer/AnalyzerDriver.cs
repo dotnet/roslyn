@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
@@ -1031,10 +1032,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         foreach (var suppressor in suppressors)
                         {
-                            var task = Task.Run(
-                                () => AnalyzerExecutor.ExecuteSuppressionAction(suppressor, getSuppressableDiagnostics(suppressor), cancellationToken),
-                                cancellationToken);
-                            tasks.Add(task);
+                            var suppressableDiagnostics = getSuppressableDiagnostics(suppressor);
+                            if (!suppressableDiagnostics.IsEmpty)
+                            {
+                                var task = Task.Run(
+                                    () => AnalyzerExecutor.ExecuteSuppressionAction(suppressor, suppressableDiagnostics, cancellationToken),
+                                    cancellationToken);
+                                tasks.Add(task);
+                            }
                         }
 
                         Task.WaitAll(tasks.ToArray(), cancellationToken);
@@ -1062,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return ImmutableArray<Diagnostic>.Empty;
                     }
 
-                    var builder = ArrayBuilder<Diagnostic>.GetInstance();
+                    using var builder = TemporaryArray<Diagnostic>.Empty;
                     foreach (var diagnostic in reportedDiagnostics)
                     {
                         if (supportedSuppressions.Contains(s => s.SuppressedDiagnosticId == diagnostic.Id))
@@ -1071,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
-                    return builder.ToImmutableAndFree();
+                    return builder.ToImmutableAndClear();
                 }
             }
 
@@ -1448,13 +1453,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Kick off tasks to execute syntax tree actions.
-                    var syntaxTreeActionsTask = Task.Run(() => ExecuteSyntaxTreeActions(analysisScope, cancellationToken), cancellationToken);
+                    var syntaxTreeActionsTask = analysisScope.SyntaxTrees.Any()
+                        ? Task.Run(() => ExecuteSyntaxTreeActions(analysisScope, cancellationToken), cancellationToken)
+                        : Task.CompletedTask;
 
                     // Kick off tasks to execute additional file actions.
-                    var additionalFileActionsTask = Task.Run(() => ExecuteAdditionalFileActions(analysisScope, cancellationToken), cancellationToken);
+                    var additionalFileActionsTask = analysisScope.AdditionalFiles.Any()
+                        ? Task.Run(() => ExecuteAdditionalFileActions(analysisScope, cancellationToken), cancellationToken)
+                        : Task.CompletedTask;
 
-                    // Wait for all worker threads to complete processing events.
-                    await Task.WhenAll(workerTasks.Concat(syntaxTreeActionsTask).Concat(additionalFileActionsTask)).ConfigureAwait(false);
+                    // If necessary, wait for all worker threads to complete processing events.
+                    if (workerTasks.Length > 0 || syntaxTreeActionsTask.Status != TaskStatus.RanToCompletion || additionalFileActionsTask.Status != TaskStatus.RanToCompletion)
+                    {
+                        await Task.WhenAll(workerTasks.Concat(syntaxTreeActionsTask).Concat(additionalFileActionsTask)).ConfigureAwait(false);
+                    }
 
                     for (int i = 0; i < workerCount; i++)
                     {
@@ -2287,14 +2299,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CompilationOptions options,
             AnalyzerManager analyzerManager,
             AnalyzerExecutor analyzerExecutor,
-            AnalysisScope? analysisScope,
+            AnalysisScope analysisScope,
             SeverityFilter severityFilter,
             CancellationToken cancellationToken)
         {
             return analyzerManager.IsDiagnosticAnalyzerSuppressed(analyzer, options, s_IsCompilerAnalyzerFunc, analyzerExecutor, analysisScope, severityFilter, cancellationToken);
         }
 
-        private static bool IsCompilerAnalyzer(DiagnosticAnalyzer analyzer) => analyzer is CompilerDiagnosticAnalyzer;
+        internal static bool IsCompilerAnalyzer(DiagnosticAnalyzer analyzer) => analyzer is CompilerDiagnosticAnalyzer;
 
         public void Dispose()
         {

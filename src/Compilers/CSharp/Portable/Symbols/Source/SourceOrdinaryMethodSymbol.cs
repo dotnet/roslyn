@@ -19,10 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceOrdinaryMethodSymbol : SourceOrdinaryMethodSymbolBase
     {
         private readonly TypeSymbol _explicitInterfaceType;
-        private readonly bool _isExpressionBodied;
-        private readonly bool _hasAnyBody;
-        private readonly RefKind _refKind;
-        private bool _lazyIsVararg;
 
         private readonly TypeParameterInfo _typeParameterInfo;
 
@@ -68,13 +64,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                  location,
                  syntax,
                  methodKind,
+                 refKind: syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                  isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                  isExtensionMethod: syntax.ParameterList.Parameters.FirstOrDefault() is ParameterSyntax firstParam &&
                                     !firstParam.IsArgList &&
                                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
                  isReadOnly: false,
-                 hasBody: syntax.Body != null || syntax.ExpressionBody != null,
+                 hasAnyBody: syntax.Body != null || syntax.ExpressionBody != null,
+                 isExpressionBodied: syntax is { Body: null, ExpressionBody: not null },
                  isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                 isVarArg: syntax.ParameterList.Parameters.Any(p => p.IsArgList),
                  diagnostics)
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
@@ -88,12 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _explicitInterfaceType = explicitInterfaceType;
 
-            bool hasBlockBody = syntax.Body != null;
-            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            bool hasBody = hasBlockBody || _isExpressionBodied;
-            _hasAnyBody = hasBody;
             Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
-            _refKind = syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics);
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
@@ -108,12 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
             var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
-
-            SyntaxToken arglistToken;
 
             // Constraint checking for parameter and return types must be delayed until
             // the method has been added to the containing type member list since
@@ -123,13 +115,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             ImmutableArray<ParameterSymbol> parameters = ParameterHelpers.MakeParameters(
-                signatureBinder, this, syntax.ParameterList, out arglistToken,
+                signatureBinder, this, syntax.ParameterList, out _,
                 allowRefOrOut: true,
                 allowThis: true,
                 addRefReadOnlyModifier: IsVirtual || IsAbstract,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
-            _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             var returnTypeSyntax = syntax.ReturnType;
             Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
 
@@ -183,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 forceMethodTypeParameters(returnType, this, declaredConstraints);
             }
 
-            return (returnType, parameters, _lazyIsVararg, declaredConstraints);
+            return (returnType, parameters, declaredConstraints);
 
             static void forceMethodTypeParameters(TypeWithAnnotations type, SourceOrdinaryMethodSymbol method, ImmutableArray<TypeParameterConstraintClause> declaredConstraints)
             {
@@ -274,8 +265,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override TypeSymbol ExplicitInterfaceType => _explicitInterfaceType;
 
-        protected override bool HasAnyBody => _hasAnyBody;
-
         internal MethodDeclarationSyntax GetSyntax()
         {
             Debug.Assert(syntaxReferenceOpt != null);
@@ -348,24 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _typeParameterInfo.LazyTypeParameterConstraintKinds;
         }
 
-        public override bool IsVararg
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyIsVararg;
-            }
-        }
-
         protected override int GetParameterCountFromSyntax() => GetSyntax().ParameterList.ParameterCount;
-
-        public override RefKind RefKind
-        {
-            get
-            {
-                return _refKind;
-            }
-        }
 
         internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation)
         {
@@ -393,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && !_hasAnyBody && !HasExternModifier;
+                return this.IsPartial && !HasAnyBody && !HasExternModifier;
             }
         }
 
@@ -404,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && (_hasAnyBody || HasExternModifier);
+                return this.IsPartial && (HasAnyBody || HasExternModifier);
             }
         }
 
@@ -507,11 +479,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return default(SyntaxList<AttributeListSyntax>);
             }
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get { return _isExpressionBodied; }
         }
 
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
