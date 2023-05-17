@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 using System;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
+namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
 {
     /// <summary>
     /// Flags regarding Edit and Continue engine capabilities.
