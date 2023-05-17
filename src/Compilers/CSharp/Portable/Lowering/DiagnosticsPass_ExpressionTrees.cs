@@ -110,7 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitInlineArrayAccess(BoundInlineArrayAccess node)
         {
-            // PROTOTYPE(InlineArrays): Disallow.
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation, node);
+            }
+
             return base.VisitInlineArrayAccess(node);
         }
 
@@ -793,7 +797,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                // PROTOTYPE(InlineArrays): Disallow in expression trees
+                case ConversionKind.InlineArray:
+                    if (_inExpressionLambda)
+                    {
+                        Error(ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation, node);
+                    }
+                    break;
+
                 case ConversionKind.InterpolatedStringHandler:
                     if (_inExpressionLambda)
                     {
