@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract class SourceOrdinaryMethodSymbol : SourceOrdinaryMethodSymbolBase
     {
-        private sealed class SourceOrdinaryMethodSymbolCommon : SourceOrdinaryMethodSymbol
+        private sealed class SourceOrdinaryMethodSymbolSimple : SourceOrdinaryMethodSymbol
         {
-            // Avoid adding fields here if possible.  This 'Common' type handles the majority of source methods in any
+            // Avoid adding fields here if possible.  This 'simple' type handles the majority of source methods in any
             // compilation. So any fields here can add significantly to heap usage.  Consider placing in
-            // SourceOrdinaryMethodSymbolUncommon instead if it is state for rare-methods.
+            // SourceOrdinaryMethodSymbolComplex instead if it is state for rare-methods.
 
-            public SourceOrdinaryMethodSymbolCommon(
+            public SourceOrdinaryMethodSymbolSimple(
                 NamedTypeSymbol containingType,
                 string name,
                 Location location,
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <item>Partial.</item>
         /// </list>
         /// </summary>
-        private sealed class SourceOrdinaryMethodSymbolUncommon : SourceOrdinaryMethodSymbol
+        private sealed class SourceOrdinaryMethodSymbolComplex : SourceOrdinaryMethodSymbol
         {
             private readonly TypeSymbol _explicitInterfaceType;
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             private SourceOrdinaryMethodSymbol _otherPartOfPartial;
 
-            public SourceOrdinaryMethodSymbolUncommon(
+            public SourceOrdinaryMethodSymbolComplex(
                 NamedTypeSymbol containingType,
                 TypeSymbol explicitInterfaceType,
                 string name,
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected sealed override TypeSymbol ExplicitInterfaceType => _explicitInterfaceType;
             internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial => _otherPartOfPartial;
 
-            internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbolUncommon definition, SourceOrdinaryMethodSymbolUncommon implementation)
+            internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbolComplex definition, SourceOrdinaryMethodSymbolComplex implementation)
             {
                 Debug.Assert(definition.IsPartialDefinition);
                 Debug.Assert(implementation.IsPartialImplementation);
@@ -295,9 +295,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Use a smaller type for the common case of non-generic, non-partial, non-explicit-impl methods.
 
-            return explicitInterfaceType is not null || syntax.Modifiers.Any(SyntaxKind.PartialKeyword) || syntax.Arity > 0
-                ? new SourceOrdinaryMethodSymbolUncommon(containingType, explicitInterfaceType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
-                : new SourceOrdinaryMethodSymbolCommon(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
+            return explicitInterfaceType is null && !syntax.Modifiers.Any(SyntaxKind.PartialKeyword) && syntax.Arity == 0
+                ? new SourceOrdinaryMethodSymbolSimple(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
+                : new SourceOrdinaryMethodSymbolComplex(containingType, explicitInterfaceType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
         }
 
         private SourceOrdinaryMethodSymbol(
@@ -517,9 +517,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(implementation.IsPartialImplementation);
 
             // Thse casts must succeed as being partial means we would have created the uncommon forms.
-            SourceOrdinaryMethodSymbolUncommon.InitializePartialMethodParts(
-                (SourceOrdinaryMethodSymbolUncommon)definition,
-                 (SourceOrdinaryMethodSymbolUncommon)implementation);
+            SourceOrdinaryMethodSymbolComplex.InitializePartialMethodParts(
+                (SourceOrdinaryMethodSymbolComplex)definition,
+                (SourceOrdinaryMethodSymbolComplex)implementation);
         }
 
         /// <summary>
