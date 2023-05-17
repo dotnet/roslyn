@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
+namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
 {
     /// <summary>
     /// Active statement affected by a managed update.
