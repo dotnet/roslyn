@@ -218,6 +218,8 @@ namespace System.Runtime.CompilerServices
         public void InlineArrayType_05_WrongLength()
         {
             var src = @"
+#pragma warning disable CS0169 // The field 'Buffer._element0' is never used
+
 [System.Runtime.CompilerServices.InlineArray(0)]
 struct Buffer
 {
@@ -225,15 +227,53 @@ struct Buffer
 }
 ";
             var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics(
-                // (5,17): warning CS0169: The field 'Buffer._element0' is never used
-                //     private int _element0;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_element0").WithArguments("Buffer._element0").WithLocation(5, 17)
+            comp.VerifyDiagnostics(
+                // (4,46): error CS9504: Inline array length must be greater than 0.
+                // [System.Runtime.CompilerServices.InlineArray(0)]
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayLength, "0").WithLocation(4, 46)
                 );
 
-            void verify(ModuleSymbol m)
+            verify(comp);
+
+            var ilSource = @"
+.class private sequential ansi sealed beforefieldinit Buffer
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void System.Runtime.CompilerServices.InlineArrayAttribute::.ctor(int32) = (
+        01 00 00 00 00 00 00 00
+    )
+
+    .field private int32 _element0
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.InlineArrayAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 length
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            comp = CreateCompilationWithIL("", ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+                var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
                 Assert.False(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(0, length);
@@ -244,6 +284,8 @@ struct Buffer
         public void InlineArrayType_06_WrongLength()
         {
             var src = @"
+#pragma warning disable CS0169 // The field 'Buffer._element0' is never used
+
 [System.Runtime.CompilerServices.InlineArray(-1)]
 struct Buffer
 {
@@ -251,15 +293,53 @@ struct Buffer
 }
 ";
             var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics(
-                // (5,17): warning CS0169: The field 'Buffer._element0' is never used
-                //     private int _element0;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_element0").WithArguments("Buffer._element0").WithLocation(5, 17)
+            comp.VerifyDiagnostics(
+                // (4,46): error CS9504: Inline array length must be greater than 0.
+                // [System.Runtime.CompilerServices.InlineArray(-1)]
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayLength, "-1").WithLocation(4, 46)
                 );
 
-            void verify(ModuleSymbol m)
+            verify(comp);
+
+            var ilSource = @"
+.class private sequential ansi sealed beforefieldinit Buffer
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void System.Runtime.CompilerServices.InlineArrayAttribute::.ctor(int32) = (
+        01 00 ff ff ff ff 00 00
+    )
+
+    .field private int32 _element0
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.InlineArrayAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 length
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            comp = CreateCompilationWithIL("", ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+                var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
                 Assert.False(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(0, length);
@@ -270,6 +350,8 @@ struct Buffer
         public void InlineArrayType_07_WrongLength()
         {
             var src = @"
+#pragma warning disable CS0169 // The field 'Buffer._element0' is never used
+
 [System.Runtime.CompilerServices.InlineArray(-2)]
 struct Buffer
 {
@@ -277,15 +359,53 @@ struct Buffer
 }
 ";
             var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics(
-                // (5,17): warning CS0169: The field 'Buffer._element0' is never used
-                //     private int _element0;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_element0").WithArguments("Buffer._element0").WithLocation(5, 17)
+            comp.VerifyDiagnostics(
+                // (4,46): error CS9504: Inline array length must be greater than 0.
+                // [System.Runtime.CompilerServices.InlineArray(-2)]
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayLength, "-2").WithLocation(4, 46)
                 );
 
-            void verify(ModuleSymbol m)
+            verify(comp);
+
+            var ilSource = @"
+.class private sequential ansi sealed beforefieldinit Buffer
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void System.Runtime.CompilerServices.InlineArrayAttribute::.ctor(int32) = (
+        01 00 fe ff ff ff 00 00
+    )
+
+    .field private int32 _element0
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.InlineArrayAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 length
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            comp = CreateCompilationWithIL("", ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+                var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
                 Assert.False(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(0, length);
@@ -304,11 +424,54 @@ struct Buffer
 }
 ";
             var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // struct Buffer
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
+                );
 
-            void verify(ModuleSymbol m)
+            verify(comp);
+
+            var ilSource = @"
+.class private sequential ansi sealed beforefieldinit Buffer
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void System.Runtime.CompilerServices.InlineArrayAttribute::.ctor(int32) = (
+        01 00 0a 00 00 00 00 00
+    )
+    // Fields
+    .field private int32 _element0
+    .field private int32 _element1
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.InlineArrayAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 length
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            comp = CreateCompilationWithIL("", ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+                var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
@@ -326,11 +489,53 @@ struct Buffer
 }
 ";
             var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // struct Buffer
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
+                );
 
-            void verify(ModuleSymbol m)
+            verify(comp);
+
+            var ilSource = @"
+.class private sequential ansi sealed beforefieldinit Buffer
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void System.Runtime.CompilerServices.InlineArrayAttribute::.ctor(int32) = (
+        01 00 0a 00 00 00 00 00
+    )
+    .pack 0
+    .size 1
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.InlineArrayAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 length
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            comp = CreateCompilationWithIL("", ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+                var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
@@ -374,11 +579,55 @@ struct Buffer
 }
 ";
             var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // struct Buffer
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
+                );
 
-            void verify(ModuleSymbol m)
+            verify(comp);
+
+            var ilSource = @"
+.class private sequential ansi sealed beforefieldinit Buffer
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void System.Runtime.CompilerServices.InlineArrayAttribute::.ctor(int32) = (
+        01 00 0a 00 00 00 00 00
+    )
+    .pack 0
+    .size 1
+
+    .field private static int32 _element0
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.InlineArrayAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 length
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            comp = CreateCompilationWithIL("", ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+                var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
@@ -411,12 +660,65 @@ namespace System.Runtime.CompilerServices
 }
 ";
             var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,2): error CS0592: Attribute 'System.Runtime.CompilerServices.InlineArray' is not valid on this declaration type. It is only valid on 'struct' declarations.
+                // [System.Runtime.CompilerServices.InlineArray(10)]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "System.Runtime.CompilerServices.InlineArray").WithArguments("System.Runtime.CompilerServices.InlineArray", "struct").WithLocation(2, 2)
+                );
 
-            void verify(ModuleSymbol m)
+            verify(comp);
+
+            var ilSource = @"
+.class private auto ansi beforefieldinit Buffer
+    extends [mscorlib]System.Object
+{
+    .custom instance void System.Runtime.CompilerServices.InlineArrayAttribute::.ctor(int32) = (
+        01 00 0a 00 00 00 00 00
+    )
+
+    .field private int32 _element0
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.InlineArrayAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 length
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            comp = CreateCompilationWithIL("", ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+                var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
+                Assert.True(buffer.IsClassType());
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
                 Assert.Null(buffer.TryGetInlineArrayElementField());
@@ -448,12 +750,57 @@ namespace System.Runtime.CompilerServices
 }
 ";
             var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,2): error CS0592: Attribute 'System.Runtime.CompilerServices.InlineArray' is not valid on this declaration type. It is only valid on 'struct' declarations.
+                // [System.Runtime.CompilerServices.InlineArray(10)]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "System.Runtime.CompilerServices.InlineArray").WithArguments("System.Runtime.CompilerServices.InlineArray", "struct").WithLocation(2, 2)
+                );
 
-            void verify(ModuleSymbol m)
+            verify(comp);
+
+            var ilSource = @"
+.class private auto ansi sealed Buffer
+    extends [mscorlib]System.Enum
+{
+    .custom instance void System.Runtime.CompilerServices.InlineArrayAttribute::.ctor(int32) = (
+        01 00 0a 00 00 00 00 00
+    )
+    // Fields
+    .field public specialname rtspecialname int32 value__
+    .field public static literal valuetype Buffer _element0 = int32(0)
+
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.InlineArrayAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 length
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            comp = CreateCompilationWithIL("", ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+                var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
+                Assert.True(buffer.IsEnumType());
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
                 Assert.Null(buffer.TryGetInlineArrayElementField());
@@ -482,12 +829,81 @@ namespace System.Runtime.CompilerServices
 }
 ";
             var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,2): error CS0592: Attribute 'System.Runtime.CompilerServices.InlineArray' is not valid on this declaration type. It is only valid on 'struct' declarations.
+                // [System.Runtime.CompilerServices.InlineArray(10)]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "System.Runtime.CompilerServices.InlineArray").WithArguments("System.Runtime.CompilerServices.InlineArray", "struct").WithLocation(2, 2)
+                );
 
-            void verify(ModuleSymbol m)
+            verify(comp);
+
+            var ilSource = @"
+.class private auto ansi sealed Buffer
+    extends [mscorlib]System.MulticastDelegate
+{
+    .custom instance void System.Runtime.CompilerServices.InlineArrayAttribute::.ctor(int32) = (
+        01 00 0a 00 00 00 00 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            object 'object',
+            native int 'method'
+        ) runtime managed 
+    {
+    }
+
+    .method public hidebysig newslot virtual 
+        instance void Invoke () runtime managed 
+    {
+    }
+
+    .method public hidebysig newslot virtual 
+        instance class [mscorlib]System.IAsyncResult BeginInvoke (
+            class [mscorlib]System.AsyncCallback callback,
+            object 'object'
+        ) runtime managed 
+    {
+    }
+
+    .method public hidebysig newslot virtual 
+        instance void EndInvoke (
+            class [mscorlib]System.IAsyncResult result
+        ) runtime managed 
+    {
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.InlineArrayAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 length
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            comp = CreateCompilationWithIL("", ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+                var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
+                Assert.True(buffer.IsDelegateType());
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
                 Assert.Null(buffer.TryGetInlineArrayElementField());
@@ -520,6 +936,9 @@ namespace System.Runtime.CompilerServices
 ";
             var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics(
+                // (2,2): error CS0592: Attribute 'System.Runtime.CompilerServices.InlineArray' is not valid on this declaration type. It is only valid on 'struct' declarations.
+                // [System.Runtime.CompilerServices.InlineArray(10)]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "System.Runtime.CompilerServices.InlineArray").WithArguments("System.Runtime.CompilerServices.InlineArray", "struct").WithLocation(2, 2),
                 // (5,17): error CS0525: Interfaces cannot contain instance fields
                 //     private int _element0;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "_element0").WithLocation(5, 17)
@@ -543,11 +962,56 @@ ref struct Buffer
 }
 ";
             var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (3,12): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // ref struct Buffer
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 12)
+                );
 
-            void verify(ModuleSymbol m)
+            verify(comp);
+
+            var ilSource = @"
+.class private sequential ansi sealed beforefieldinit Buffer
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void System.Runtime.CompilerServices.InlineArrayAttribute::.ctor(int32) = (
+        01 00 0a 00 00 00 00 00
+    )
+
+    .field private int32& _element0
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.InlineArrayAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 length
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            comp = CreateCompilationWithIL("", ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+                var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
@@ -566,11 +1030,59 @@ ref struct Buffer
 }
 ";
             var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (3,12): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // ref struct Buffer
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 12)
+                );
 
-            void verify(ModuleSymbol m)
+            verify(comp);
+
+            var ilSource = @"
+.class private sequential ansi sealed beforefieldinit Buffer
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void System.Runtime.CompilerServices.InlineArrayAttribute::.ctor(int32) = (
+        01 00 0a 00 00 00 00 00
+    )
+
+    .field private int32& _element0
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+        01 00 00 00
+    )
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.InlineArrayAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 length
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            comp = CreateCompilationWithIL("", ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
             {
-                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+                var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
                 Assert.True(buffer.HasInlineArrayAttribute(out int length));
                 Assert.Equal(10, length);
@@ -680,7 +1192,7 @@ struct Buffer
         }
 
         [Fact]
-        public void InlineArrayType_22()
+        public void InlineArrayType_22_WrongSignature()
         {
             var src = @"
 #pragma warning disable CS0169 // The field 'Buffer._element0' is never used
@@ -845,16 +1357,17 @@ struct Buffer
 }
 ";
             var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // struct Buffer
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
+                );
 
-            void verify(ModuleSymbol m)
-            {
-                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
-                Assert.True(buffer.HasInlineArrayAttribute(out int length));
-                Assert.Equal(10, length);
-                Assert.Null(buffer.TryGetInlineArrayElementField());
-            }
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.Null(buffer.TryGetInlineArrayElementField());
         }
 
         [Fact]
@@ -869,16 +1382,17 @@ struct Buffer
 }
 ";
             var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // struct Buffer
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
+                );
 
-            void verify(ModuleSymbol m)
-            {
-                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
-                Assert.True(buffer.HasInlineArrayAttribute(out int length));
-                Assert.Equal(10, length);
-                Assert.Null(buffer.TryGetInlineArrayElementField());
-            }
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.Null(buffer.TryGetInlineArrayElementField());
         }
 
         [Fact]
@@ -892,16 +1406,17 @@ record struct Buffer(int p)
 }
 ";
             var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (3,15): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // record struct Buffer(int p)
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 15)
+                );
 
-            void verify(ModuleSymbol m)
-            {
-                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
-                Assert.True(buffer.HasInlineArrayAttribute(out int length));
-                Assert.Equal(10, length);
-                Assert.Null(buffer.TryGetInlineArrayElementField());
-            }
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.Null(buffer.TryGetInlineArrayElementField());
         }
 
         [Fact]
@@ -910,7 +1425,7 @@ record struct Buffer(int p)
             // [System.Runtime.CompilerServices.InlineArray(10)]
             // public struct Buffer
             // {
-            //     private int _element0;
+            //     private modreq(int32) int _element0;
             // }
             var ilSource = @"
 .class public sequential ansi sealed beforefieldinit Buffer
@@ -1174,6 +1689,166 @@ public class Enclosing<T>
                 Assert.Equal(10, length);
                 Assert.Equal("System.String Enclosing<System.Int32>.Buffer<System.String>._element0", buffer.TryGetInlineArrayElementField().ToTestDisplayString());
             }
+        }
+
+        [Fact]
+        public void InlineArrayType_36_CapturingPrimaryConstructor()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+struct Buffer(int p)
+{
+    private int _element0;
+
+    int M() => p;
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            comp.VerifyDiagnostics(
+                // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // struct Buffer(int p)
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
+                );
+
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.Null(buffer.TryGetInlineArrayElementField());
+        }
+
+        [Fact]
+        public void InlineArrayType_37_StructLayout_Auto()
+        {
+            var src = @"
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Auto)]
+[System.Runtime.CompilerServices.InlineArray(10)]
+struct Buffer
+{
+    private int _element0;
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            comp.VerifyEmitDiagnostics();
+
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.NotNull(buffer.TryGetInlineArrayElementField());
+        }
+
+        [Fact]
+        public void InlineArrayType_38_StructLayout_Sequential()
+        {
+            var src = @"
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Sequential)]
+[System.Runtime.CompilerServices.InlineArray(10)]
+struct Buffer
+{
+    private int _element0;
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            comp.VerifyEmitDiagnostics();
+
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.NotNull(buffer.TryGetInlineArrayElementField());
+        }
+
+        [Fact]
+        public void InlineArrayType_39_StructLayout_Explicit()
+        {
+            var src = @"
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Explicit)]
+[System.Runtime.CompilerServices.InlineArray(10)]
+struct Buffer
+{
+    [FieldOffset(10)]
+    private int _element0;
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            comp.VerifyDiagnostics(
+                // (6,8): error CS9505: Inline array struct must not have explicit layout.
+                // struct Buffer
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayLayout, "Buffer").WithLocation(6, 8)
+                );
+
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.True(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(10, length);
+            Assert.NotNull(buffer.TryGetInlineArrayElementField());
+        }
+
+        [Fact]
+        public void InlineArrayType_40_WrongSignature()
+        {
+            var src = @"
+#pragma warning disable CS0169 // The field 'Buffer._element0' is never used
+
+[System.Runtime.CompilerServices.InlineArray]
+struct Buffer
+{
+    private int _element0;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
+    public sealed class InlineArrayAttribute : Attribute
+    {
+        public InlineArrayAttribute ()
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var buffer = m.GlobalNamespace.GetTypeMember("Buffer");
+
+                Assert.False(buffer.HasInlineArrayAttribute(out int length));
+                Assert.Equal(0, length);
+            }
+        }
+
+        [Fact]
+        public void InlineArrayType_41_MissingArgument()
+        {
+            var src = @"
+#pragma warning disable CS0169 // The field 'Buffer._element0' is never used
+
+[System.Runtime.CompilerServices.InlineArray]
+struct Buffer
+{
+    private int _element0;
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS7036: There is no argument given that corresponds to the required parameter 'length' of 'InlineArrayAttribute.InlineArrayAttribute(int)'
+                // [System.Runtime.CompilerServices.InlineArray]
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "System.Runtime.CompilerServices.InlineArray").WithArguments("length", "System.Runtime.CompilerServices.InlineArrayAttribute.InlineArrayAttribute(int)").WithLocation(4, 2)
+                );
+
+            var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
+
+            Assert.False(buffer.HasInlineArrayAttribute(out int length));
+            Assert.Equal(0, length);
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
