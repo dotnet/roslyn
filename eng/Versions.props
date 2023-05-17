@@ -7,7 +7,7 @@
 
 <PropertyGroup>
     <MetalamaBackstageVersion></MetalamaBackstageVersion>
-    <PostSharpEngineeringVersion>2023.0.144</PostSharpEngineeringVersion>
+    <PostSharpEngineeringVersion>2023.0.146</PostSharpEngineeringVersion>
 </PropertyGroup>
 
   <Import Project="..\eng-Metalama\MainVersion.props" />
