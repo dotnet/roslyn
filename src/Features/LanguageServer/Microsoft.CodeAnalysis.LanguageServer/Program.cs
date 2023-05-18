@@ -139,7 +139,7 @@ static Parser CreateCommandLineParser()
         IsRequired = false
     };
 
-    var extensionAssemblyPathsOption = new Option<string[]?>("--extensions")
+    var extensionAssemblyPathsOption = new Option<string[]?>(new string[] { "--extension", "--extensions" }) // TODO: remove plural form
     {
         Description = "Full paths of extension assemblies to load (optional).",
         IsRequired = false
