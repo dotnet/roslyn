@@ -870,7 +870,7 @@ namespace N1
             var compilation2 = CreateCompilation(new SyntaxTree[] { firstTree });
 
             var type1 = (SourceNamedTypeSymbol)compilation1.GetTypeByMetadataName("N1.N2.N3.E");
-            var type2 = (SourceNamedTypeSymbol)compilation1.GetTypeByMetadataName("N1.N2.N3.E");
+            var type2 = (SourceNamedTypeSymbol)compilation2.GetTypeByMetadataName("N1.N2.N3.E");
             Assert.True(type1.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
             Assert.True(type2.MergedDeclaration.Declarations[0].MemberNames.Value.SetEquals(new[] { "x", "y", "z" }));
 
