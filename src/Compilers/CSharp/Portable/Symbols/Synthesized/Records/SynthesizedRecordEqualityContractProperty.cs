@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind.None,
                 PropertyName,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
-                containingType.Locations[0],
+                containingType.GetFirstLocation(),
                 diagnostics)
         {
             Debug.Assert(!containingType.IsRecordStruct);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override IAttributeTargetSymbol AttributesOwner => this;
 
         protected override Location TypeLocation
-            => ContainingType.Locations[0];
+            => ContainingType.GetFirstLocation();
 
         protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ContainingType,
                 this,
                 _modifiers,
-                ContainingType.Locations[0],
+                ContainingType.GetFirstLocation(),
                 (CSharpSyntaxNode)((SourceMemberContainerTypeSymbol)ContainingType).SyntaxReferences[0].GetSyntax(),
                 diagnostics);
         }
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (reportAnError)
             {
-                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, overriding.Locations[0], overriding, overriding.ContainingType.BaseTypeNoUseSiteDiagnostics);
+                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, overriding.GetFirstLocation(), overriding, overriding.ContainingType.BaseTypeNoUseSiteDiagnostics);
             }
         }
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        propertyModifiers,
                        location,
                        syntax,
-                       hasBody: true,
+                       hasBlockBody: true,
                        hasExpressionBody: false,
                        isIterator: false,
                        modifiers: default,

@@ -72,11 +72,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and <paramref name="filterSpanWithinTree"/> is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
         public static void CheckCompliance(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
         {
-            var queue = new BindingDiagnosticBag(diagnostics.DiagnosticBag, diagnostics.AccumulatesDependencies ? new ConcurrentSet<AssemblySymbol>() : null);
+            var queue = diagnostics.AccumulatesDependencies ? BindingDiagnosticBag.GetConcurrentInstance() : BindingDiagnosticBag.GetInstance(withDiagnostics: diagnostics.AccumulatesDiagnostics, withDependencies: false);
             var checker = new ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken);
             checker.Visit(compilation.Assembly);
             checker.WaitForWorkers();
+
+            if (diagnostics.AccumulatesDiagnostics)
+            {
+                diagnostics.AddRange(queue.DiagnosticBag);
+            }
+
             diagnostics.AddDependencies(queue);
+            queue.Free();
         }
 
         public override void VisitAssembly(AssemblySymbol symbol)
@@ -111,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Location attributeLocation;
                 bool? moduleDeclaredCompliance = GetDeclaredCompliance(module, out attributeLocation);
 
-                Location warningLocation = i == 0 ? attributeLocation : module.Locations[0];
+                Location warningLocation = i == 0 ? attributeLocation : module.GetFirstLocation();
                 System.Diagnostics.Debug.Assert(warningLocation != null || !moduleDeclaredCompliance.HasValue || (i == 0 && _filterTree != null),
                     "Can only be null when the source location is filtered out.");
 
@@ -250,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (_compilation.IsAttributeType(symbol) && !HasAcceptableAttributeConstructor(symbol))
                     {
-                        this.AddDiagnostic(ErrorCode.WRN_CLS_BadAttributeType, symbol.Locations[0], symbol);
+                        this.AddDiagnostic(ErrorCode.WRN_CLS_BadAttributeType, symbol.GetFirstLocation(), symbol);
                     }
                 }
             }
@@ -325,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (symbol.IsVararg)
                 {
-                    this.AddDiagnostic(ErrorCode.WRN_CLS_NoVarArgs, symbol.Locations[0]);
+                    this.AddDiagnostic(ErrorCode.WRN_CLS_NoVarArgs, symbol.GetFirstLocation());
                 }
             }
         }
@@ -404,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (symbol.IsVolatile)
                 {
-                    this.AddDiagnostic(ErrorCode.WRN_CLS_VolatileField, symbol.Locations[0], symbol);
+                    this.AddDiagnostic(ErrorCode.WRN_CLS_VolatileField, symbol.GetFirstLocation(), symbol);
                 }
             }
         }
@@ -450,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (IsDeclared(compliance))
             {
-                this.AddDiagnostic(ErrorCode.WRN_CLS_MeaninglessOnPrivateType, symbol.Locations[0], symbol);
+                this.AddDiagnostic(ErrorCode.WRN_CLS_MeaninglessOnPrivateType, symbol.GetFirstLocation(), symbol);
                 return false; // Don't cascade from this failure.
             }
 
@@ -494,11 +501,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol containingType = symbol.ContainingType;
             if ((object)containingType != null && containingType.IsInterface)
             {
-                this.AddDiagnostic(ErrorCode.WRN_CLS_BadInterfaceMember, symbol.Locations[0], symbol);
+                this.AddDiagnostic(ErrorCode.WRN_CLS_BadInterfaceMember, symbol.GetFirstLocation(), symbol);
             }
             else if (symbol.IsAbstract && symbol.Kind != SymbolKind.NamedType)
             {
-                this.AddDiagnostic(ErrorCode.WRN_CLS_NoAbstractMembers, symbol.Locations[0], symbol);
+                this.AddDiagnostic(ErrorCode.WRN_CLS_NoAbstractMembers, symbol.GetFirstLocation(), symbol);
             }
         }
 
@@ -515,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!IsCompliantType(interfaceType, symbol))
                     {
                         // TODO: it would be nice to report this on the base type clause.
-                        this.AddDiagnostic(ErrorCode.WRN_CLS_BadInterface, symbol.Locations[0], symbol, interfaceType);
+                        this.AddDiagnostic(ErrorCode.WRN_CLS_BadInterface, symbol.GetFirstLocation(), symbol, interfaceType);
                     }
                 }
             }
@@ -526,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)baseType != null && !IsCompliantType(baseType, symbol))
                 {
                     // TODO: it would be nice to report this on the base type clause.
-                    this.AddDiagnostic(ErrorCode.WRN_CLS_BadBase, symbol.Locations[0], symbol, baseType);
+                    this.AddDiagnostic(ErrorCode.WRN_CLS_BadBase, symbol.GetFirstLocation(), symbol, baseType);
                 }
             }
         }
@@ -539,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             System.Diagnostics.Debug.Assert((object)containingType == null || !containingType.IsImplicitClass);
             if ((object)containingType != null && !IsTrue(GetDeclaredOrInheritedCompliance(containingType)))
             {
-                this.AddDiagnostic(ErrorCode.WRN_CLS_IllegalTrueInFalse, symbol.Locations[0], symbol, containingType);
+                this.AddDiagnostic(ErrorCode.WRN_CLS_IllegalTrueInFalse, symbol.GetFirstLocation(), symbol, containingType);
             }
         }
 
@@ -556,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // TODO: it would be nice to report this on the constraint clause.
                         // NOTE: we're improving over dev11 by reporting on the type parameter declaration,
                         // rather than on the constraint type declaration.
-                        this.AddDiagnostic(ErrorCode.WRN_CLS_BadTypeVar, typeParameter.Locations[0], constraintType.Type);
+                        this.AddDiagnostic(ErrorCode.WRN_CLS_BadTypeVar, typeParameter.GetFirstLocation(), constraintType.Type);
                     }
                 }
             }
@@ -570,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!IsCompliantType(parameter.Type, context))
                 {
-                    this.AddDiagnostic(ErrorCode.WRN_CLS_BadArgType, parameter.Locations[0], parameter.Type);
+                    this.AddDiagnostic(ErrorCode.WRN_CLS_BadArgType, parameter.GetFirstLocation(), parameter.Type);
                 }
             }
         }
@@ -752,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!IsCompliantType(type, symbol.ContainingType))
             {
-                this.AddDiagnostic(code, symbol.Locations[0], symbol);
+                this.AddDiagnostic(code, symbol.GetFirstLocation(), symbol);
             }
         }
 
@@ -785,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ErrorCode code = IsTrue(compliance)
                         ? ErrorCode.WRN_CLS_AssemblyNotCLS
                         : ErrorCode.WRN_CLS_AssemblyNotCLS2;
-                    this.AddDiagnostic(code, symbol.Locations[0], symbol);
+                    this.AddDiagnostic(code, symbol.GetFirstLocation(), symbol);
                     return false;
                 }
             }
@@ -886,7 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (other.Name != symbolName && !(isMethodOrProperty && other.Kind == symbol.Kind))
                 {
                     // TODO: Shouldn't we somehow reference the conflicting member?  Dev11 doesn't.
-                    this.AddDiagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, symbol.Locations[0], symbol);
+                    this.AddDiagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, symbol.GetFirstLocation(), symbol);
                     return;
                 }
             }
@@ -905,13 +912,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !other.IsAccessor() &&
                     TryGetCollisionErrorCode(symbol, other, out code))
                 {
-                    this.AddDiagnostic(code, symbol.Locations[0], symbol);
+                    this.AddDiagnostic(code, symbol.GetFirstLocation(), symbol);
                     return;
                 }
                 else if (other.Name != symbolName)
                 {
                     // TODO: Shouldn't we somehow reference the conflicting member?  Dev11 doesn't.
-                    this.AddDiagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, symbol.Locations[0], symbol);
+                    this.AddDiagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, symbol.GetFirstLocation(), symbol);
                     return;
                 }
             }
@@ -946,7 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (name.Length > 0 && name[0] == '\u005F')
             {
-                this.AddDiagnostic(ErrorCode.WRN_CLS_BadIdentifier, symbol.Locations[0], name);
+                this.AddDiagnostic(ErrorCode.WRN_CLS_BadIdentifier, symbol.GetFirstLocation(), name);
             }
         }
 
@@ -1185,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NamedTypeSymbol attributeClass = data.AttributeClass;
                     if ((object)attributeClass != null)
                     {
-                        if (_diagnostics.ReportUseSite(attributeClass, symbol.Locations.IsEmpty ? NoLocation.Singleton : symbol.Locations[0]))
+                        if (_diagnostics.ReportUseSite(attributeClass, symbol.GetFirstLocationOrNone()))
                         {
                             continue;
                         }

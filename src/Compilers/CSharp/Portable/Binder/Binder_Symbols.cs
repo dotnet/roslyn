@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case LookupResultKind.Viable:
                     // Case (2)
-                    var resultDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), diagnostics.DependenciesBag);
+                    var resultDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
                     bool wasError;
                     symbol = ResultSymbol(
                         lookupResult,
@@ -239,19 +239,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         wasError: out wasError,
                         qualifierOpt: null);
 
+                    diagnostics.AddDependencies(resultDiagnostics);
+
                     // Here, we're mimicking behavior of dev10.  If the identifier fails to bind
                     // as a type, even if the reason is (e.g.) a type/alias conflict, then treat
                     // it as the contextual keyword.
                     if (wasError && lookupResult.IsSingleViable)
                     {
                         // NOTE: don't report diagnostics - we're not going to use the lookup result.
-                        resultDiagnostics.DiagnosticBag.Free();
+                        resultDiagnostics.Free();
                         // Case (2)(a)(2)
                         goto default;
                     }
 
                     diagnostics.AddRange(resultDiagnostics.DiagnosticBag);
-                    resultDiagnostics.DiagnosticBag.Free();
+                    resultDiagnostics.Free();
 
                     if (lookupResult.IsSingleViable)
                     {
@@ -444,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.FunctionPointerType:
                     var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)syntax;
-                    MessageID.IDS_FeatureFunctionPointers.CheckFeatureAvailability(diagnostics, syntax, functionPointerTypeSyntax.DelegateKeyword.GetLocation());
+                    MessageID.IDS_FeatureFunctionPointers.CheckFeatureAvailability(diagnostics, functionPointerTypeSyntax.DelegateKeyword);
 
                     if (GetUnsafeDiagnosticInfo(sizeOfTypeOpt: null) is CSDiagnosticInfo info)
                     {
@@ -535,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeOrAliasSymbolWithAnnotations bindNullable()
             {
                 var nullableSyntax = (NullableTypeSyntax)syntax;
-                MessageID.IDS_FeatureNullable.CheckFeatureAvailability(diagnostics, nullableSyntax, nullableSyntax.QuestionToken.GetLocation());
+                MessageID.IDS_FeatureNullable.CheckFeatureAvailability(diagnostics, nullableSyntax.QuestionToken);
 
                 TypeSyntax typeArgumentSyntax = nullableSyntax.ElementType;
                 TypeWithAnnotations typeArgument = BindType(typeArgumentSyntax, diagnostics, basesBeingResolved);
@@ -913,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportUseSiteDiagnosticForDynamic(diagnostics, node);
                         }
 
-                        if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingTypeAlias) ? type.ContainsPointer() : type.IsUnsafe())
+                        if (type.ContainsPointer())
                         {
                             ReportUnsafeIfNotAllowed(node, diagnostics);
                         }
@@ -1847,8 +1849,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int bLocationsCount = fst.Locations.Length;
                 if (aLocationsCount != bLocationsCount) return aLocationsCount - bLocationsCount;
                 if (aLocationsCount == 0 && bLocationsCount == 0) return Compare(fst.ContainingSymbol, snd.ContainingSymbol);
-                Location la = snd.Locations[0];
-                Location lb = fst.Locations[0];
+                Location la = snd.GetFirstLocation();
+                Location lb = fst.GetFirstLocation();
                 if (la.IsInSource != lb.IsInSource) return la.IsInSource ? 1 : -1;
                 int containerResult = Compare(fst.ContainingSymbol, snd.ContainingSymbol);
                 if (!la.IsInSource) return containerResult;
@@ -1933,7 +1935,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (best.IsFromSourceModule)
                             {
-                                arg0 = srcSymbol.Locations.First().SourceTree.FilePath;
+                                arg0 = srcSymbol.GetFirstLocation().SourceTree.FilePath;
                             }
                             else
                             {
@@ -2087,7 +2089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                     if (best.IsFromSourceModule)
                                     {
-                                        arg0 = first.Locations.First().SourceTree.FilePath;
+                                        arg0 = first.GetFirstLocation().SourceTree.FilePath;
                                     }
                                     else
                                     {

@@ -2,7 +2,5 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
   <PropertyGroup>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
-    <!-- Subfolder relative to the root package folder where all servicehub assemblies for .NET Core host are located -->
-    <ServiceHubCoreSubPath>Core</ServiceHubCoreSubPath>
   </PropertyGroup>
 </Project>

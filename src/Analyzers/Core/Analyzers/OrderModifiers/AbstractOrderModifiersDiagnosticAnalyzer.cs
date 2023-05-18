@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                 return;
             }
 
-            var root = context.Tree.GetRoot(context.CancellationToken);
-            Recurse(context, preferredOrder, option.Notification.Severity, root);
+            Recurse(context, preferredOrder, option.Notification.Severity, context.GetAnalysisRoot(findInTrivia: false));
         }
 
         protected abstract void Recurse(

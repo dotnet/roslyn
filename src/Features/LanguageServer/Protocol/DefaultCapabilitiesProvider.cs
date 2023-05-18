@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var supportsVsExtensions = clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true };
+            var supportsVsExtensions = clientCapabilities.HasVisualStudioLspCapability();
             var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new ServerCapabilities();
 
             var commitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
@@ -83,17 +83,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             capabilities.HoverProvider = true;
 
-            // Using only range handling has shown to be more performant than using a combination of full/edits/range handling,
-            // especially for larger files. With range handling, we only need to compute tokens for whatever is in view, while
-            // with full/edits handling we need to compute tokens for the entire file and then potentially run a diff between
-            // the old and new tokens.
+            // Using only range handling has shown to be more performant than using a combination of full/edits/range
+            // handling, especially for larger files. With range handling, we only need to compute tokens for whatever
+            // is in view, while with full/edits handling we need to compute tokens for the entire file and then
+            // potentially run a diff between the old and new tokens.
             capabilities.SemanticTokensOptions = new SemanticTokensOptions
             {
                 Full = false,
                 Range = true,
                 Legend = new SemanticTokensLegend
                 {
-                    TokenTypes = SemanticTokenTypes.AllTypes.Concat(SemanticTokensHelpers.RoslynCustomTokenTypes).ToArray(),
+                    TokenTypes = SemanticTokensSchema.GetSchema(clientCapabilities).AllTokenTypes.ToArray(),
                     TokenModifiers = new string[] { SemanticTokenModifiers.Static }
                 }
             };

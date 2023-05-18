@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConditionalExpressionInStringInterpolati
             // 1. Inserts an opening parenthesis
             // 2. Re-parses the resulting document (now the colon isn't treated as starting a FormatClause anymore)
             // 3. Replaces the missing CloseParenToken with a new one
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var openParenthesisPosition = conditionalExpressionSyntaxStartPosition;
             var textWithOpenParenthesis = text.Replace(openParenthesisPosition, 0, "(");
             var documentWithOpenParenthesis = document.WithText(textWithOpenParenthesis);
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConditionalExpressionInStringInterpolati
             ParenthesizedExpressionSyntax parenthesizedExpression,
             CancellationToken cancellationToken)
         {
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (parenthesizedExpression.Expression is ConditionalExpressionSyntax conditional &&
                 parenthesizedExpression.GetAncestor<InterpolatedStringExpressionSyntax>()?.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
             {

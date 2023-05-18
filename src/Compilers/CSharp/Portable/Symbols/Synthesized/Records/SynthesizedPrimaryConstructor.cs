@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -21,12 +22,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
              base(containingType, syntax.Identifier.GetLocation(), syntax, isIterator: false)
         {
             Debug.Assert(syntax.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration);
+            Debug.Assert(containingType.HasPrimaryConstructor);
+            Debug.Assert(containingType is SourceNamedTypeSymbol);
+            Debug.Assert(containingType is IAttributeTargetSymbol);
+            Debug.Assert(syntax.ParameterList != null);
 
             this.MakeFlags(
                 MethodKind.Constructor,
+                RefKind.None,
                 containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public,
                 returnsVoid: true,
+                // We consider synthesized constructors to have a body, since they effectively span the entire type, and
+                // can do things like create constructor assignments that write into the fields/props of the type.
+                hasAnyBody: true,
+                isExpressionBodied: false,
                 isExtensionMethod: false,
+                isVarArg: syntax.ParameterList.Parameters.Any(static p => p.IsArgList),
                 isNullableAnalysisEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
         }
 
@@ -34,6 +45,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(syntaxReferenceOpt != null);
             return (TypeDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+        }
+
+        protected override IAttributeTargetSymbol AttributeOwner
+        {
+            get { return (IAttributeTargetSymbol)ContainingType; }
+        }
+
+        protected override AttributeLocation AttributeLocationForLoadAndValidateAttributes
+        {
+            get { return AttributeLocation.Method; }
+        }
+
+        internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        {
+            return new OneOrMany<SyntaxList<AttributeListSyntax>>(((SourceNamedTypeSymbol)ContainingType).GetAttributeDeclarations());
         }
 
         protected override ParameterListSyntax GetParameterList()
@@ -49,8 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public new SourceMemberContainerTypeSymbol ContainingType => (SourceMemberContainerTypeSymbol)base.ContainingType;
 
         protected override bool AllowRefOrOut => !(ContainingType is { IsRecord: true } or { IsRecordStruct: true });
-
-        internal override bool IsExpressionBodied => false;
 
         internal override bool IsNullableAnalysisEnabled()
         {
@@ -98,6 +122,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Interlocked.CompareExchange(ref _capturedParameters, Binder.CapturedParametersFinder.GetCapturedParameters(this), null);
             return _capturedParameters;
+        }
+
+        internal override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.SymbolPart == AttributeLocation.Method);
+            arguments.SymbolPart = AttributeLocation.None;
+            var result = base.EarlyDecodeWellKnownAttribute(ref arguments);
+            arguments.SymbolPart = AttributeLocation.Method;
+            return result;
+        }
+
+        protected override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.SymbolPart == AttributeLocation.Method);
+            arguments.SymbolPart = AttributeLocation.None;
+            base.DecodeWellKnownAttributeImpl(ref arguments);
+            arguments.SymbolPart = AttributeLocation.Method;
+        }
+
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        {
+            Debug.Assert(symbolPart is AttributeLocation.Method or AttributeLocation.Return);
+            base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart is AttributeLocation.Method ? AttributeLocation.None : symbolPart, decodedData);
+        }
+
+        protected override bool ShouldBindAttributes(AttributeListSyntax attributeDeclarationSyntax, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(attributeDeclarationSyntax.Target is object);
+
+            if (!base.ShouldBindAttributes(attributeDeclarationSyntax, diagnostics))
+            {
+                return false;
+            }
+
+            if (attributeDeclarationSyntax.SyntaxTree == SyntaxRef.SyntaxTree &&
+                GetSyntax().AttributeLists.Contains(attributeDeclarationSyntax))
+            {
+                if (ContainingType is { IsRecord: true } or { IsRecordStruct: true })
+                {
+                    MessageID.IDS_FeaturePrimaryConstructors.CheckFeatureAvailability(diagnostics, attributeDeclarationSyntax, attributeDeclarationSyntax.Target.Identifier.GetLocation());
+                }
+
+                return true;
+            }
+
+            SyntaxToken target = attributeDeclarationSyntax.Target.Identifier;
+            diagnostics.Add(ErrorCode.WRN_AttributeLocationOnBadDeclaration,
+                            target.GetLocation(), target.ToString(), (AttributeOwner.AllowedAttributeLocations & ~AttributeLocation.Method).ToDisplayString());
+
+            return false;
         }
     }
 }

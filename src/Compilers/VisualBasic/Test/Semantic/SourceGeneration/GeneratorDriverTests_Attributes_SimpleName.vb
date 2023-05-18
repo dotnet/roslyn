@@ -1258,7 +1258,7 @@ end class
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
 
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps("result_ForAttribute").Single().Outputs.Single().Reason)
 
@@ -1465,7 +1465,7 @@ end class"))))
 
             Assert.Collection(runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs,
                 Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Reason),
-                Sub(_step) Assert.Equal(IncrementalStepRunReason.Modified, _step.Reason))
+                Sub(_step) Assert.Equal(IncrementalStepRunReason.New, _step.Reason))
             Assert.Collection(runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute"),
                 Sub(_step) Assert.Equal(IncrementalStepRunReason.Cached, _step.Outputs.Single().Reason),
                 Sub(_step) Assert.Equal(IncrementalStepRunReason.New, _step.Outputs.Single().Reason))

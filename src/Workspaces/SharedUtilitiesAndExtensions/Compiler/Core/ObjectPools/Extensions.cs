@@ -27,12 +27,14 @@ namespace Microsoft.CodeAnalysis
         public static PooledObject<HashSet<TItem>> GetPooledObject<TItem>(this ObjectPool<HashSet<TItem>> pool)
             => PooledObject<HashSet<TItem>>.Create(pool);
 
-        public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool)
-            where TKey : notnull
+        public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool) where TKey : notnull
             => PooledObject<Dictionary<TKey, TValue>>.Create(pool);
 
         public static PooledObject<List<TItem>> GetPooledObject<TItem>(this ObjectPool<List<TItem>> pool)
             => PooledObject<List<TItem>>.Create(pool);
+
+        public static PooledObject<SegmentedList<TItem>> GetPooledObject<TItem>(this ObjectPool<SegmentedList<TItem>> pool)
+            => PooledObject<SegmentedList<TItem>>.Create(pool);
 
         public static PooledObject<List<TItem>> GetPooledObject<TItem>(this ObjectPool<List<TItem>> pool, out List<TItem> list)
         {
@@ -94,6 +96,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static List<T> AllocateAndClear<T>(this ObjectPool<List<T>> pool)
+        {
+            var list = pool.Allocate();
+            list.Clear();
+
+            return list;
+        }
+
+        public static SegmentedList<T> AllocateAndClear<T>(this ObjectPool<SegmentedList<T>> pool)
         {
             var list = pool.Allocate();
             list.Clear();
@@ -258,7 +268,7 @@ namespace Microsoft.CodeAnalysis
             pool.Free(map);
         }
 
-        public static void ClearAndFree<T>(this ObjectPool<List<T>> pool, List<T> list)
+        public static void ClearAndFree<T>(this ObjectPool<List<T>> pool, List<T> list, bool trim = true)
         {
             if (list == null)
             {
@@ -267,7 +277,24 @@ namespace Microsoft.CodeAnalysis
 
             list.Clear();
 
-            if (list.Capacity > Threshold)
+            if (trim && list.Capacity > Threshold)
+            {
+                list.Capacity = Threshold;
+            }
+
+            pool.Free(list);
+        }
+
+        public static void ClearAndFree<T>(this ObjectPool<SegmentedList<T>> pool, SegmentedList<T> list, bool trim = true)
+        {
+            if (list == null)
+            {
+                return;
+            }
+
+            list.Clear();
+
+            if (trim && list.Capacity > Threshold)
             {
                 list.Capacity = Threshold;
             }

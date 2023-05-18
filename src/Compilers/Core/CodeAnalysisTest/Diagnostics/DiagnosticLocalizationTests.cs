@@ -303,8 +303,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException = (ex, a, diag, ct) => exceptionDiagnostics.Add(diag);
             var analyzerManager = new AnalyzerManager(analyzer);
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, analyzerManager);
-            var descriptors = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
+            var compilation = CSharp.CSharpCompilation.Create("test");
+            var analyzerExecutor = AnalyzerExecutor.Create(compilation, AnalyzerOptions.Empty,
+                addNonCategorizedDiagnostic: (_, _) => { }, onAnalyzerException, analyzerExceptionFilter: null,
+                isCompilerAnalyzer: _ => false, analyzerManager, shouldSkipAnalysisOnGeneratedCode: _ => false,
+                shouldSuppressGeneratedCodeDiagnostic: (_, _, _, _) => false, isGeneratedCodeLocation: (_, _, _) => false,
+                isAnalyzerSuppressedForTree: (_, _, _, _) => false, getAnalyzerGate: _ => null,
+                getSemanticModel: tree => compilation.GetSemanticModel(tree, ignoreAccessibility: true));
+            var descriptors = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor, CancellationToken.None);
 
             Assert.Equal(1, descriptors.Length);
             Assert.Equal(descriptor.Id, descriptors[0].Id);

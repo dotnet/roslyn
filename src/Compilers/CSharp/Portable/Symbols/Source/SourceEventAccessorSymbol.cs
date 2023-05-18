@@ -24,13 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceEventAccessorSymbol(
             SourceEventSymbol @event,
             SyntaxReference syntaxReference,
-            ImmutableArray<Location> locations,
+            Location location,
             EventSymbol explicitlyImplementedEventOpt,
             string aliasQualifierOpt,
             bool isAdder,
             bool isIterator,
-            bool isNullableAnalysisEnabled)
-            : base(@event.containingType, syntaxReference, locations, isIterator)
+            bool isNullableAnalysisEnabled,
+            bool hasAnyBody,
+            bool isExpressionBodied)
+            : base(@event.containingType, syntaxReference, location, isIterator)
         {
             _event = @event;
 
@@ -54,10 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.MakeFlags(
                 isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
+                RefKind.None,
                 @event.Modifiers,
                 returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
+                hasAnyBody: hasAnyBody,
+                isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                isVarArg: false,
                 isMetadataVirtualIgnoringModifiers: @event.IsExplicitInterfaceImplementation && (@event.Modifiers & DeclarationModifiers.Static) == 0);
 
             _name = GetOverriddenAccessorName(@event, isAdder) ?? name;
@@ -163,11 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override RefKind RefKind
-        {
-            get { return RefKind.None; }
-        }
-
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
@@ -196,11 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool IsVararg
-        {
-            get { return false; }
-        }
-
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
@@ -217,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 Debug.Assert(this.Locations.Length == 1);
-                return this.Locations[0];
+                return this.GetFirstLocation();
             }
         }
 
@@ -245,12 +241,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return null;
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            // Events cannot be expression-bodied
-            get { return false; }
         }
     }
 }

@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Differencing;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -39,7 +39,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EditAndContinueCapabilities.UpdateParameters;
 
         public const EditAndContinueCapabilities AllRuntimeCapabilities =
-            Net6RuntimeCapabilities;
+            Net6RuntimeCapabilities |
+            EditAndContinueCapabilities.GenericAddMethodToExistingType |
+            EditAndContinueCapabilities.GenericUpdateMethod |
+            EditAndContinueCapabilities.GenericAddFieldToExistingType;
 
         public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
 

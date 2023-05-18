@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // much better than using its 'Location' (which is the entire span of the lambda).
                     var diagnosticLocation = CurrentSymbol is LambdaSymbol lambda
                         ? lambda.DiagnosticLocation
-                        : CurrentSymbol.Locations.FirstOrNone();
+                        : CurrentSymbol.GetFirstLocationOrNone();
 
                     Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, diagnosticLocation);
                 }
@@ -1170,7 +1170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (skipIfUseBeforeDeclaration &&
                 symbol.Kind == SymbolKind.Local &&
-                (symbol.Locations.Length == 0 || node.Span.End < symbol.Locations.FirstOrNone().SourceSpan.Start))
+                (symbol.TryGetFirstLocation() is var location && (location is null || node.Span.End < location.SourceSpan.Start)))
             {
                 // We've already reported the use of a local before its declaration.  No need to emit
                 // another diagnostic for the same issue.
@@ -1824,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Diagnostics.Add((primaryCtor.ContainingType is { IsRecord: true } or { IsRecordStruct: true }) ?
                                             ErrorCode.WRN_UnreadRecordParameter :
                                             ErrorCode.WRN_UnreadPrimaryConstructorParameter,
-                                        parameter.Locations.FirstOrNone(), parameter.Name);
+                                        parameter.GetFirstLocationOrNone(), parameter.Name);
                 }
             }
 
@@ -2160,7 +2160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (symbol.DeclarationKind != LocalDeclarationKind.PatternVariable && !string.IsNullOrEmpty(symbol.Name)) // avoid diagnostics for parser-inserted names
                 {
-                    Diagnostics.Add(assigned && _writtenVariables.Contains(symbol) ? ErrorCode.WRN_UnreferencedVarAssg : ErrorCode.WRN_UnreferencedVar, symbol.Locations.FirstOrNone(), symbol.Name);
+                    Diagnostics.Add(assigned && _writtenVariables.Contains(symbol) ? ErrorCode.WRN_UnreferencedVarAssg : ErrorCode.WRN_UnreferencedVar, symbol.GetFirstLocationOrNone(), symbol.Name);
                 }
             }
         }
@@ -2179,7 +2179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!string.IsNullOrEmpty(symbol.Name)) // avoid diagnostics for parser-inserted names
                 {
-                    Diagnostics.Add(ErrorCode.WRN_UnreferencedLocalFunction, symbol.Locations.FirstOrNone(), symbol.Name);
+                    Diagnostics.Add(ErrorCode.WRN_UnreferencedLocalFunction, symbol.GetFirstLocationOrNone(), symbol.Name);
                 }
             }
         }

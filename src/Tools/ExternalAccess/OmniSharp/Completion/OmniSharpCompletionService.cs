@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
             OmniSharpCompletionOptions options,
             CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return completionService.ShouldTriggerCompletion(document.Project, document.Project.Services, text, caretPosition, trigger, options.ToCompletionOptions(), document.Project.Solution.Options, roles);
         }
 

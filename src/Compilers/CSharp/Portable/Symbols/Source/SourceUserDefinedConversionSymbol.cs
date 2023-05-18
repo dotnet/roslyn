@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (name == WellKnownMemberNames.CheckedExplicitConversionName)
             {
-                MessageID.IDS_FeatureCheckedUserDefinedOperators.CheckFeatureAvailability(diagnostics, syntax, syntax.CheckedKeyword.GetLocation());
+                MessageID.IDS_FeatureCheckedUserDefinedOperators.CheckFeatureAvailability(diagnostics, syntax.CheckedKeyword);
             }
             else if (syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword))
             {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location,
                 syntax,
                 MakeDeclarationModifiers(methodKind, containingType.IsInterface, syntax, location, diagnostics),
-                hasBody: syntax.HasAnyBody(),
+                hasAnyBody: syntax.HasAnyBody(),
                 isExpressionBodied: syntax.Body == null && syntax.ExpressionBody != null,
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,

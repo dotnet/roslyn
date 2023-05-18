@@ -1777,6 +1777,11 @@
         <target state="translated">Non è possibile usare il parametro ref, out o in del costruttore primario '{0}' all'interno di un membro di istanza</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
+        <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
+        <target state="new">Cannot use primary constructor parameter of type '{0}' inside an instance member</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
         <source>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</source>
         <target state="translated">Non è possibile usare il parametro del costruttore primario '{0}' con un tipo simile a ref all'interno di un membro di istanza</target>
@@ -1900,6 +1905,11 @@
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
         <target state="translated">tipo di delegato dedotto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInstanceMemberInNameof">
+        <source>instance member in 'nameof'</source>
+        <target state="new">instance member in 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -8525,8 +8535,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
-        <source>Iterators cannot have unsafe parameters or yield types</source>
-        <target state="translated">Gli iteratori non possono avere parametri unsafe o tipi yield</target>
+        <source>Iterators cannot have pointer type parameters</source>
+        <target state="needs-review-translation">Gli iteratori non possono avere parametri unsafe o tipi yield</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9868,8 +9878,8 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
-        <source>Async methods cannot have unsafe parameters or return types</source>
-        <target state="translated">I metodi asincroni non possono avere parametri non sicuri o tipi restituiti</target>
+        <source>Async methods cannot have pointer type parameters</source>
+        <target state="needs-review-translation">I metodi asincroni non possono avere parametri non sicuri o tipi restituiti</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
@@ -11670,11 +11680,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       <trans-unit id="ERR_RefReturnReadonlyLocalCause">
         <source>Cannot return '{0}' by reference because it is a '{1}'</source>
         <target state="translated">Non è possibile restituire '{0}' per riferimento perché è '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal2Cause">
-        <source>Cannot return fields of '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">Non è possibile restituire i campi di '{0}' per riferimento perché è '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">

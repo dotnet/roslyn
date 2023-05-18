@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed partial class SourceNamespaceSymbol : NamespaceSymbol
     {
+        private static readonly ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> s_emptyMap =
+            ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparers(ReferenceEqualityComparer.Instance);
+
         private readonly SourceModuleSymbol _module;
         private readonly Symbol _container;
         private readonly MergedNamespaceDeclaration _mergedDeclaration;
@@ -33,14 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Should only be read using <see cref="GetAliasesAndUsings(SingleNamespaceDeclaration)"/>.
         /// </summary>
-        private ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings_doNotAccessDirectly =
-            ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparer(ReferenceEqualityComparer.Instance);
+        private ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings_doNotAccessDirectly = s_emptyMap;
 #if DEBUG
         /// <summary>
         /// Should only be read using <see cref="GetAliasesAndUsingsForAsserts"/>.
         /// </summary>
-        private ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts_doNotAccessDirectly =
-            ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparer(ReferenceEqualityComparer.Instance);
+        private ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts_doNotAccessDirectly = s_emptyMap;
 #endif
         private MergedGlobalAliasesAndUsings _lazyMergedGlobalAliasesAndUsings;
 
@@ -97,6 +98,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return _locations;
             }
+        }
+
+        public override Location TryGetFirstLocation()
+            => _mergedDeclaration.Declarations[0].NameLocation;
+
+        public override bool HasLocationContainedWithin(SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
+        {
+            // Avoid the allocation of .Locations in the base method.
+            foreach (var decl in _mergedDeclaration.Declarations)
+            {
+                if (IsLocationContainedWithin(decl.NameLocation, tree, declarationSpan, out wasZeroWidthMatch))
+                    return true;
+            }
+
+            wasZeroWidthMatch = false;
+            return false;
         }
 
         private static readonly Func<SingleNamespaceDeclaration, SyntaxReference> s_declaringSyntaxReferencesSelector = d =>
@@ -232,58 +249,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // NOTE: This method depends on MakeNameToMembersMap() on creating a proper
                 // NOTE: type of the array, see comments in MakeNameToMembersMap() for details
-                Interlocked.CompareExchange(ref _nameToTypeMembersMap, GetTypesFromMemberMap(GetNameToMembersMap()), null);
+                Interlocked.CompareExchange(
+                    ref _nameToTypeMembersMap,
+                    ImmutableArrayExtensions.GetTypesFromMemberMap<NamespaceOrTypeSymbol, NamedTypeSymbol>(GetNameToMembersMap(), StringOrdinalComparer.Instance),
+                    comparand: null);
             }
 
             return _nameToTypeMembersMap;
-        }
-
-        private static Dictionary<string, ImmutableArray<NamedTypeSymbol>> GetTypesFromMemberMap(Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> map)
-        {
-            var dictionary = new Dictionary<string, ImmutableArray<NamedTypeSymbol>>(StringOrdinalComparer.Instance);
-
-            foreach (var kvp in map)
-            {
-                ImmutableArray<NamespaceOrTypeSymbol> members = kvp.Value;
-
-                bool hasType = false;
-                bool hasNamespace = false;
-
-                foreach (var symbol in members)
-                {
-                    if (symbol.Kind == SymbolKind.NamedType)
-                    {
-                        hasType = true;
-                        if (hasNamespace)
-                        {
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        Debug.Assert(symbol.Kind == SymbolKind.Namespace);
-                        hasNamespace = true;
-                        if (hasType)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                if (hasType)
-                {
-                    if (hasNamespace)
-                    {
-                        dictionary.Add(kvp.Key, members.OfType<NamedTypeSymbol>().AsImmutable());
-                    }
-                    else
-                    {
-                        dictionary.Add(kvp.Key, members.As<NamedTypeSymbol>());
-                    }
-                }
-            }
-
-            return dictionary;
         }
 
         private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(BindingDiagnosticBag diagnostics)
@@ -297,13 +269,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: a name maps into values collection containing types only instead of allocating another
             // NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray<NamedTypeSymbol>
 
-            var builder = new NameToSymbolMapBuilder(_mergedDeclaration.Children.Length);
+            var builder = PooledDictionary<string, object>.GetInstance();
             foreach (var declaration in _mergedDeclaration.Children)
             {
-                builder.Add(BuildSymbol(declaration, diagnostics));
+                NamespaceOrTypeSymbol symbol = BuildSymbol(declaration, diagnostics);
+                ImmutableArrayExtensions.AddToMultiValueDictionaryBuilder(builder, symbol.Name, symbol);
             }
 
-            var result = builder.CreateMap();
+            var result = new Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>>(builder.Count);
+            ImmutableArrayExtensions.CreateNameToMembersMap<NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(builder, result);
+            builder.Free();
 
             CheckMembers(this, result, diagnostics);
 
@@ -366,13 +341,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // no error
                                 break;
                             case (SourceNamedTypeSymbol { IsFileLocal: true }, _) or (_, SourceNamedTypeSymbol { IsFileLocal: true }):
-                                diagnostics.Add(ErrorCode.ERR_FileLocalDuplicateNameInNS, symbol.Locations.FirstOrNone(), name, @namespace);
+                                diagnostics.Add(ErrorCode.ERR_FileLocalDuplicateNameInNS, symbol.GetFirstLocationOrNone(), name, @namespace);
                                 break;
                             case (SourceNamedTypeSymbol { IsPartial: true }, SourceNamedTypeSymbol { IsPartial: true }):
-                                diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.Locations.FirstOrNone(), symbol);
+                                diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.GetFirstLocationOrNone(), symbol);
                                 break;
                             default:
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.Locations.FirstOrNone(), name, @namespace);
+                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.GetFirstLocationOrNone(), name, @namespace);
                                 break;
                         }
                     }
@@ -385,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Accessibility declaredAccessibility = nts.DeclaredAccessibility;
                         if (declaredAccessibility != Accessibility.Public && declaredAccessibility != Accessibility.Internal)
                         {
-                            diagnostics.Add(ErrorCode.ERR_NoNamespacePrivate, symbol.Locations.FirstOrNone());
+                            diagnostics.Add(ErrorCode.ERR_NoNamespacePrivate, symbol.GetFirstLocationOrNone());
                         }
                     }
                 }
@@ -495,76 +470,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
-        }
-
-        private readonly struct NameToSymbolMapBuilder
-        {
-            private readonly Dictionary<string, object> _dictionary;
-
-            public NameToSymbolMapBuilder(int capacity)
-            {
-                _dictionary = new Dictionary<string, object>(capacity, StringOrdinalComparer.Instance);
-            }
-
-            public void Add(NamespaceOrTypeSymbol symbol)
-            {
-                string name = symbol.Name;
-                object item;
-                if (_dictionary.TryGetValue(name, out item))
-                {
-                    var builder = item as ArrayBuilder<NamespaceOrTypeSymbol>;
-                    if (builder == null)
-                    {
-                        builder = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
-                        builder.Add((NamespaceOrTypeSymbol)item);
-                        _dictionary[name] = builder;
-                    }
-                    builder.Add(symbol);
-                }
-                else
-                {
-                    _dictionary[name] = symbol;
-                }
-            }
-
-            public Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>> CreateMap()
-            {
-                var result = new Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>>(_dictionary.Count, StringOrdinalComparer.Instance);
-
-                foreach (var kvp in _dictionary)
-                {
-                    object value = kvp.Value;
-                    ImmutableArray<NamespaceOrTypeSymbol> members;
-
-                    var builder = value as ArrayBuilder<NamespaceOrTypeSymbol>;
-                    if (builder != null)
-                    {
-                        Debug.Assert(builder.Count > 1);
-                        bool hasNamespaces = false;
-                        for (int i = 0; (i < builder.Count) && !hasNamespaces; i++)
-                        {
-                            hasNamespaces |= (builder[i].Kind == SymbolKind.Namespace);
-                        }
-
-                        members = hasNamespaces
-                            ? builder.ToImmutable()
-                            : StaticCast<NamespaceOrTypeSymbol>.From(builder.ToDowncastedImmutable<NamedTypeSymbol>());
-
-                        builder.Free();
-                    }
-                    else
-                    {
-                        NamespaceOrTypeSymbol symbol = (NamespaceOrTypeSymbol)value;
-                        members = symbol.Kind == SymbolKind.Namespace
-                            ? ImmutableArray.Create<NamespaceOrTypeSymbol>(symbol)
-                            : StaticCast<NamespaceOrTypeSymbol>.From(ImmutableArray.Create<NamedTypeSymbol>((NamedTypeSymbol)symbol));
-                    }
-
-                    result.Add(kvp.Key, members);
-                }
-
-                return result;
-            }
         }
     }
 }

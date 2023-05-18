@@ -573,6 +573,7 @@ function Deploy-VsixViaTool() {
   $orderedVsixFileNames = @(
     "Roslyn.Compilers.Extension.vsix",
     "Roslyn.VisualStudio.Setup.vsix",
+    "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
     "Roslyn.VisualStudio.Setup.Dependencies.vsix",
     "ExpressionEvaluatorPackage.vsix",
     "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
@@ -613,9 +614,9 @@ function Deploy-VsixViaTool() {
   $oop64bitValue = [int]$oop64bit.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
 
-  # Configure RemoteHostOptions.OOPCoreClrFeatureFlag for testing
-  $oopCoreClrFeatureFlagValue = [int]$oopCoreClr.ToBool()
-  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\ServiceHubCore" Value dword $oopCoreClrFeatureFlagValue
+  # Configure RemoteHostOptions.OOPCoreClr for testing
+  $oopCoreClrValue = [int]$oopCoreClr.ToBool()
+  &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOPCoreClr dword $oopCoreClrValue
 }
 
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains

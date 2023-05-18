@@ -409,7 +409,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstantValueOfTypeExpected">
         <source>A constant value of type '{0}' is expected</source>
-        <target state="new">A constant value of type '{0}' is expected</target>
+        <target state="translated">Um valor constante do tipo '{0}' é esperado</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
@@ -1777,6 +1777,11 @@
         <target state="translated">Não é possível usar ref, out ou no parâmetro de construtor primário "{0}" dentro de um membro da instância</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
+        <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
+        <target state="new">Cannot use primary constructor parameter of type '{0}' inside an instance member</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
         <source>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</source>
         <target state="translated">Não é possível usar o parâmetro de construtor primário "{0}" que tem o tipo ref-like dentro de um membro de instância</target>
@@ -1900,6 +1905,11 @@
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
         <target state="translated">tipo representante inferido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInstanceMemberInNameof">
+        <source>instance member in 'nameof'</source>
+        <target state="new">instance member in 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -8525,8 +8535,8 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
-        <source>Iterators cannot have unsafe parameters or yield types</source>
-        <target state="translated">Iteradores não podem ter tipos yield nem parâmetros sem segurança</target>
+        <source>Iterators cannot have pointer type parameters</source>
+        <target state="needs-review-translation">Iteradores não podem ter tipos yield nem parâmetros sem segurança</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9868,8 +9878,8 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
-        <source>Async methods cannot have unsafe parameters or return types</source>
-        <target state="translated">Os métodos assíncronos não podem ter parâmetros ou tipos de retorno sem segurança</target>
+        <source>Async methods cannot have pointer type parameters</source>
+        <target state="needs-review-translation">Os métodos assíncronos não podem ter parâmetros ou tipos de retorno sem segurança</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
@@ -11670,11 +11680,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       <trans-unit id="ERR_RefReturnReadonlyLocalCause">
         <source>Cannot return '{0}' by reference because it is a '{1}'</source>
         <target state="translated">Não é possível retornar '{0}' por referência, porque ele é um '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal2Cause">
-        <source>Cannot return fields of '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">Não é possível retornar campos de '{0}' por referência, porque ele é um '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">

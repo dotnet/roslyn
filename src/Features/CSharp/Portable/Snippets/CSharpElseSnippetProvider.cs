@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -63,11 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return isAfterIfStatement && await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
 
-        protected override Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var elseClause = SyntaxFactory.ElseClause(SyntaxFactory.Block());
-
-            return Task.FromResult(ImmutableArray.Create(new TextChange(TextSpan.FromBounds(position, position), elseClause.ToFullString())));
+            return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), elseClause.ToFullString()));
         }
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
