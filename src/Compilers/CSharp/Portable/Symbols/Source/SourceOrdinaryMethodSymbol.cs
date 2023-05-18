@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(diagnostics.DiagnosticBag is object);
-
             var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
             var nameToken = syntax.Identifier;
 
@@ -37,11 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var methodKind = interfaceSpecifier == null
                 ? MethodKind.Ordinary
                 : MethodKind.ExplicitInterfaceImplementation;
-
-            if (syntax.Arity == 0)
-            {
-                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics.DiagnosticBag);
-            }
 
             // Use a smaller type for the common case of non-generic, non-partial, non-explicit-impl methods.
 
@@ -78,6 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
             Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
+
+            if (syntax.Arity == 0)
+            {
+                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics.DiagnosticBag);
+            }
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
