@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var moduleSymbol = ContainingPEModule;
                 var module = moduleSymbol.Module;
 
-                var names = PooledHashSet<string>.GetInstance();
+                var names = new HashSet<string>();
 
                 try
                 {
@@ -858,7 +858,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 Interlocked.CompareExchange(ref _lazyMemberNames, CreateReadOnlyMemberNames(names), null);
-                names.Free();
             }
         }
 
@@ -1283,8 +1282,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 #nullable enable
         private void LoadMembers()
         {
-            ArrayBuilder<Symbol> members = null;
-            PooledHashSet<string> memberNames = null;
+            ArrayBuilder<Symbol>? members = null;
+            HashSet<string>? memberNames = null;
 
             if (_lazyMembersInDeclarationOrder.IsDefault)
             {
@@ -1293,7 +1292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 members = ArrayBuilder<Symbol>.GetInstance();
                 if (_lazyMemberNames is null)
                 {
-                    memberNames = PooledHashSet<string>.GetInstance();
+                    memberNames = new HashSet<string>();
                 }
 
                 Debug.Assert(SymbolKind.Field.ToSortOrder() < SymbolKind.Method.ToSortOrder());
@@ -1386,7 +1385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     foreach (PEFieldSymbol field in fieldMembers)
                     {
-                        if ((object)field.AssociatedSymbol == null)
+                        if (field.AssociatedSymbol is null)
                         {
                             members.Add(field);
                         }
@@ -1420,11 +1419,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 members.Sort(membersCount, DeclarationOrderTypeSymbolComparer.Instance);
 
 #if DEBUG
-                Symbol previous = null;
+                Symbol? previous = null;
 
                 foreach (var s in members)
                 {
-                    if (previous == null)
+                    if (previous is null)
                     {
                         previous = s;
                     }
@@ -1507,9 +1506,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             members?.Free();
-            memberNames?.Free();
         }
-#nullable restore
+#nullable disable
 
         internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
         {
@@ -1914,7 +1912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
 #nullable enable
-        private MultiDictionary<string, PEFieldSymbol> CreateFields(ArrayBuilder<PEFieldSymbol> fieldMembers, PooledHashSet<string>? memberNames)
+        private MultiDictionary<string, PEFieldSymbol> CreateFields(ArrayBuilder<PEFieldSymbol> fieldMembers, HashSet<string>? memberNames)
         {
             var privateFieldNameToSymbols = new MultiDictionary<string, PEFieldSymbol>();
 
@@ -1976,7 +1974,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return privateFieldNameToSymbols;
         }
 
-        private PooledDictionary<MethodDefinitionHandle, PEMethodSymbol> CreateMethods(ArrayBuilder<Symbol> members, PooledHashSet<string>? memberNames)
+        private PooledDictionary<MethodDefinitionHandle, PEMethodSymbol> CreateMethods(ArrayBuilder<Symbol> members, HashSet<string>? memberNames)
         {
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
@@ -2004,7 +2002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return map;
         }
 
-        private void CreateProperties(Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol, ArrayBuilder<Symbol> members, PooledHashSet<string>? memberNames)
+        private void CreateProperties(Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol, ArrayBuilder<Symbol> members, HashSet<string>? memberNames)
         {
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
@@ -2017,10 +2015,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         var methods = module.GetPropertyMethodsOrThrow(propertyDef);
 
-                        PEMethodSymbol getMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Getter);
-                        PEMethodSymbol setMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Setter);
+                        PEMethodSymbol? getMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Getter);
+                        PEMethodSymbol? setMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Setter);
 
-                        if (((object)getMethod != null) || ((object)setMethod != null))
+                        if (((object?)getMethod != null) || ((object?)setMethod != null))
                         {
                             var symbol = PEPropertySymbol.Create(moduleSymbol, this, propertyDef, getMethod, setMethod);
                             members.Add(symbol);
@@ -2039,7 +2037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             MultiDictionary<string, PEFieldSymbol> privateFieldNameToSymbols,
             Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol,
             ArrayBuilder<Symbol> members,
-            PooledHashSet<string>? memberNames)
+            HashSet<string>? memberNames)
         {
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
@@ -2053,14 +2051,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         var methods = module.GetEventMethodsOrThrow(eventRid);
 
                         // NOTE: C# ignores all other accessors (most notably, raise/fire).
-                        PEMethodSymbol addMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Adder);
-                        PEMethodSymbol removeMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Remover);
+                        PEMethodSymbol? addMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Adder);
+                        PEMethodSymbol? removeMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Remover);
 
                         // NOTE: both accessors are required, but that will be reported separately.
                         // Create the symbol unless both accessors are missing.
-                        if (((object)addMethod != null) || ((object)removeMethod != null))
+                        if (((object?)addMethod != null) || ((object?)removeMethod != null))
                         {
-                            var symbol = new PEEventSymbol(moduleSymbol, this, eventRid, addMethod, removeMethod, privateFieldNameToSymbols);
+                            var symbol = new PEEventSymbol(moduleSymbol, this, eventRid, addMethod!, removeMethod!, privateFieldNameToSymbols);
                             members.Add(symbol);
                             memberNames?.Add(symbol.Name);
                         }
@@ -2073,19 +2071,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             { }
         }
 
-        private PEMethodSymbol GetAccessorMethod(PEModule module, Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol, TypeDefinitionHandle typeDef, MethodDefinitionHandle methodDef)
+        private PEMethodSymbol? GetAccessorMethod(PEModule module, Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol, TypeDefinitionHandle typeDef, MethodDefinitionHandle methodDef)
         {
             if (methodDef.IsNil)
             {
                 return null;
             }
 
-            PEMethodSymbol method;
+            PEMethodSymbol? method;
             bool found = methodHandleToSymbol.TryGetValue(methodDef, out method);
             Debug.Assert(found || !module.ShouldImportMethod(typeDef, methodDef, this.ContainingPEModule.ImportOptions));
             return method;
         }
-#nullable restore
+#nullable disable
 
         private static Dictionary<string, ImmutableArray<Symbol>> GroupByName(ArrayBuilder<Symbol> symbols)
         {
