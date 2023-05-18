@@ -2019,4 +2019,7 @@ Additional information: {1}</value>
   <data name="Enable_document_outline_experimental_requires_restart" xml:space="preserve">
     <value>Enable document outline (experimental, requires restart)</value>
   </data>
+  <data name="Prefer_primary_constructors" xml:space="preserve">
+    <value>Prefer primary constructors</value>
+  </data>
 </root>
