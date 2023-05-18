@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 
@@ -34,5 +35,12 @@ internal class StarredCompletionProvider : CompletionProvider
         var provider = await StarredCompletionAssemblyHelper.GetCompletionProviderAsync(cancellationToken);
         Contract.ThrowIfNull(provider, "ProvideCompletionsAsync must have completed successfully for GetChangeAsync to be called");
         return await provider.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal override async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+    {
+        var provider = await StarredCompletionAssemblyHelper.GetCompletionProviderAsync(cancellationToken);
+        Contract.ThrowIfNull(provider, "ProvideCompletionsAsync must have completed successfully for GetDescriptionAsync to be called");
+        return await provider.GetDescriptionAsync(document, item, options, displayOptions, cancellationToken);
     }
 }

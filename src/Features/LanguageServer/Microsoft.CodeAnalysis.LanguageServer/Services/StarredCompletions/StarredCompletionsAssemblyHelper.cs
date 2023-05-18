@@ -112,10 +112,6 @@ internal static class StarredCompletionAssemblyHelper
         {
             throw new NotSupportedException($"{createCompletionProviderMethodInfo.Name} method could not be invoked");
         }
-        if (completionProviderObj.GetType().BaseType != typeof(Task<CompletionProvider>))
-        {
-            throw new NotSupportedException($"{createCompletionProviderMethodInfo.Name} method did not return object of type {nameof(Task<CompletionProvider>)}");
-        }
         var completionProvider = (Task<CompletionProvider>)completionProviderObj;
         return await completionProvider;
     }
