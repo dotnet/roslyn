@@ -24,7 +24,7 @@ public sealed class TelemetryReporterTests : AbstractLanguageServerHostTests
         Assert.NotNull(reporter);
 
         // Do not set default session in tests to enable test isolation:
-        reporter.InitializeSession("off", isDefaultSession: false);
+        reporter.InitializeSession("off", "test-session", isDefaultSession: false);
 
         return reporter;
     }

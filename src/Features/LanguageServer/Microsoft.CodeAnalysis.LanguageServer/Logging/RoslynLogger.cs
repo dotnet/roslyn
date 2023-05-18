@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
         {
         }
 
-        public static void Initialize(ITelemetryReporter? reporter, string? telemetryLevel)
+        public static void Initialize(ITelemetryReporter? reporter, string? telemetryLevel, string? sessionId)
         {
             Contract.ThrowIfTrue(_instance is not null);
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 
             if (reporter is not null && telemetryLevel is not null)
             {
-                reporter.InitializeSession(telemetryLevel, isDefaultSession: true);
+                reporter.InitializeSession(telemetryLevel, sessionId, isDefaultSession: true);
                 _telemetryReporter = reporter;
             }
 

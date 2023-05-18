@@ -28,6 +28,7 @@ static async Task RunAsync(
     LogLevel minimumLogLevel,
     string? starredCompletionPath,
     string? telemetryLevel,
+    string? sessionId,
     IEnumerable<string> extensionAssemblyPaths,
     CancellationToken cancellationToken)
 {
@@ -73,7 +74,7 @@ static async Task RunAsync(
 
     // Initialize the fault handler if it's available
     var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
-    RoslynLogger.Initialize(telemetryReporter, telemetryLevel);
+    RoslynLogger.Initialize(telemetryReporter, telemetryLevel, sessionId);
 
     // Create the workspace first, since right now the language server will assume there's at least one Workspace
     var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
@@ -131,6 +132,13 @@ static Parser CreateCommandLineParser()
         Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
         IsRequired = false,
     };
+
+    var sessionIdOption = new Option<string?>("--sessionId")
+    {
+        Description = "Session Id to use for telemetry",
+        IsRequired = false
+    };
+
     var extensionAssemblyPathsOption = new Option<string[]?>("--extensions")
     {
         Description = "Full paths of extension assemblies to load (optional).",
@@ -144,6 +152,7 @@ static Parser CreateCommandLineParser()
         logLevelOption,
         starredCompletionsPathOption,
         telemetryLevelOption,
+        sessionIdOption,
         extensionAssemblyPathsOption,
     };
     rootCommand.SetHandler(context =>
@@ -153,9 +162,10 @@ static Parser CreateCommandLineParser()
         var logLevel = context.ParseResult.GetValueForOption(logLevelOption);
         var starredCompletionsPath = context.ParseResult.GetValueForOption(starredCompletionsPathOption);
         var telemetryLevel = context.ParseResult.GetValueForOption(telemetryLevelOption);
+        var sessionId = context.ParseResult.GetValueForOption(sessionIdOption);
         var extensionAssemblyPaths = context.ParseResult.GetValueForOption(extensionAssemblyPathsOption) ?? Array.Empty<string>();
 
-        return RunAsync(launchDebugger, logLevel, starredCompletionsPath, telemetryLevel, extensionAssemblyPaths, cancellationToken);
+        return RunAsync(launchDebugger, logLevel, starredCompletionsPath, telemetryLevel, sessionId, extensionAssemblyPaths, cancellationToken);
     });
 
     return new CommandLineBuilder(rootCommand).UseDefaults().Build();

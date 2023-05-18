@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Contracts.Telemetry;
 
 internal interface ITelemetryReporter
 {
-    void InitializeSession(string telemetryLevel, bool isDefaultSession);
+    void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession);
     void Log(string name, ImmutableDictionary<string, object?> properties);
     void LogBlockStart(string eventName, int kind, int blockId);
     void LogBlockEnd(int blockId, ImmutableDictionary<string, object?> properties, CancellationToken cancellationToken);

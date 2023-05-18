@@ -31,11 +31,11 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
     {
     }
 
-    public void InitializeSession(string telemetryLevel, bool isDefaultSession)
+    public void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession)
     {
         Debug.Assert(_telemetrySession == null);
 
-        var sessionSettingsJson = CreateSessionSettingsJson(telemetryLevel);
+        var sessionSettingsJson = CreateSessionSettingsJson(telemetryLevel, sessionId);
         var session = new TelemetrySession($"{{{sessionSettingsJson}}}");
 
         if (isDefaultSession)
@@ -121,9 +121,9 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
         _telemetrySession.PostEvent(faultEvent);
     }
 
-    private static string CreateSessionSettingsJson(string telemetryLevel)
+    private static string CreateSessionSettingsJson(string telemetryLevel, string? sessionId)
     {
-        var customSessionId = Guid.NewGuid().ToString();
+        sessionId ??= Guid.NewGuid().ToString();
 
         // Generate a new startTime for process to be consumed by Telemetry Settings
         using var curProcess = Process.GetCurrentProcess();
@@ -133,7 +133,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
 
         var kvp = new Dictionary<string, string>
         {
-            { "Id", StringToJsonValue(customSessionId) },
+            { "Id", StringToJsonValue(sessionId) },
             { "HostName", StringToJsonValue("Default") },
 
             // Insert Telemetry Level instead of Opt-Out status. The telemetry service handles
