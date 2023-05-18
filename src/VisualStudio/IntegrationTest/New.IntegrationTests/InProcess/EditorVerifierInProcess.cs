@@ -266,6 +266,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 var actualTaggedText = actualTaggedSpan.Span.GetText();
                 Assert.Equal(expectedTag.taggedText, actualTaggedText);
 
+                AssertEx.NotNull(actualTaggedSpan.Tag.ToolTipContent);
                 var containerElement = (ContainerElement)actualTaggedSpan.Tag.ToolTipContent;
                 var actualTooltipText = CollectTextInRun(containerElement);
                 Assert.Equal(expectedTag.tooltipText, actualTooltipText);
