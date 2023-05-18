@@ -677,7 +677,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : base(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
             {
                 _explicitInterfaceType = explicitInterfaceType;
-                _typeParameterInfo = new TypeParameterInfo { LazyTypeParameters = MakeTypeParameters(syntax, diagnostics) };
+
+                // Compute the type parameters.  If empty (the common case), directly point at the singleton to reduce
+                // the amount of pointers-to-arrays this type needs to store.
+                var typeParameters = MakeTypeParameters(syntax, diagnostics);
+                _typeParameterInfo = typeParameters.IsEmpty
+                    ? TypeParameterInfo.Empty
+                    : new TypeParameterInfo { LazyTypeParameters = typeParameters };
             }
 
             protected sealed override TypeSymbol ExplicitInterfaceType => _explicitInterfaceType;
