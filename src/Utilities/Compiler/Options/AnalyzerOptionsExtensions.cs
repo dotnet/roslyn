@@ -127,7 +127,7 @@ namespace Analyzer.Utilities
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation);
             return analyzerConfigOptions.GetOptionValue(
                 optionName, tree, rule,
-                tryParseValue: (string value, out TEnum result) => Enum.TryParse(value, ignoreCase: true, result: out result),
+                tryParseValue: static (string value, out TEnum result) => Enum.TryParse(value, ignoreCase: true, result: out result),
                 defaultValue: defaultValue);
         }
 
@@ -447,17 +447,23 @@ namespace Analyzer.Utilities
             string? optionForcedValue = null)
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation);
-            return analyzerConfigOptions.GetOptionValue(optionName, tree, rule, TryParse, defaultValue: GetDefaultValue());
+            return analyzerConfigOptions.GetOptionValue(
+                optionName,
+                tree,
+                rule,
+                TryParse,
+                (compilation, getTypeAndSuffixFunc, namePrefix, optionForcedValue),
+                defaultValue: GetDefaultValue());
 
             // Local functions.
-            bool TryParse(string s, out SymbolNamesWithValueOption<TValue> option)
+            static bool TryParse(string s, (Compilation compilation, Func<string, SymbolNamesWithValueOption<TValue>.NameParts> getTypeAndSuffixFunc, string? namePrefix, string? optionForcedValue) arg, out SymbolNamesWithValueOption<TValue> option)
             {
                 var optionValue = s;
 
-                if (!RoslynString.IsNullOrEmpty(optionForcedValue) &&
-                    (optionValue == null || !optionValue.Contains(optionForcedValue, StringComparison.Ordinal)))
+                if (!RoslynString.IsNullOrEmpty(arg.optionForcedValue) &&
+                    (optionValue == null || !optionValue.Contains(arg.optionForcedValue, StringComparison.Ordinal)))
                 {
-                    optionValue = $"{optionForcedValue}|{optionValue}";
+                    optionValue = $"{arg.optionForcedValue}|{optionValue}";
                 }
 
                 if (string.IsNullOrEmpty(optionValue))
@@ -467,7 +473,7 @@ namespace Analyzer.Utilities
                 }
 
                 var names = optionValue.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
-                option = SymbolNamesWithValueOption<TValue>.Create(names, compilation, namePrefix, getTypeAndSuffixFunc);
+                option = SymbolNamesWithValueOption<TValue>.Create(names, arg.compilation, arg.namePrefix, arg.getTypeAndSuffixFunc);
                 return true;
             }
 
@@ -489,7 +495,7 @@ namespace Analyzer.Utilities
 
                 RoslynDebug.Assert(optionValue != null);
 
-                return TryParse(optionValue, out var option)
+                return TryParse(optionValue, (compilation, getTypeAndSuffixFunc, namePrefix, optionForcedValue), out var option)
                     ? option
                     : SymbolNamesWithValueOption<TValue>.Empty;
             }
@@ -511,7 +517,7 @@ namespace Analyzer.Utilities
 
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation);
             return analyzerConfigOptions.GetOptionValue(optionName, tree, rule: null,
-                tryParseValue: (string value, out string? result) =>
+                tryParseValue: static (string value, out string? result) =>
                 {
                     result = value;
                     return true;
@@ -536,7 +542,7 @@ namespace Analyzer.Utilities
             var propertyOptionName = MSBuildItemOptionNamesHelpers.GetPropertyNameForItemOptionName(itemOptionName);
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation);
             var propertyValue = analyzerConfigOptions.GetOptionValue(propertyOptionName, tree, rule: null,
-                tryParseValue: (string value, out string? result) =>
+                tryParseValue: static (string value, out string? result) =>
                 {
                     result = value;
                     return true;
@@ -606,10 +612,18 @@ namespace Analyzer.Utilities
                 return categorizedAnalyzerConfigOptions;
             }
 
-            var createValueCallback = new ConditionalWeakTable<AnalyzerOptions, ICategorizedAnalyzerConfigOptions>.CreateValueCallback(_ =>
-                AggregateCategorizedAnalyzerConfigOptions.Create(options.AnalyzerConfigOptionsProvider, compilation)
-            );
-            return s_cachedOptions.GetValue(options, createValueCallback);
+            // Fall back to a slow version of the method, which allocates both for the CreateValueCallback and for
+            // capturing the Compilation argument.
+            return GetOrComputeCategorizedAnalyzerConfigOptions_Slow(options, compilation);
+
+            static ICategorizedAnalyzerConfigOptions GetOrComputeCategorizedAnalyzerConfigOptions_Slow(
+                AnalyzerOptions options,
+                Compilation compilation)
+            {
+                return s_cachedOptions.GetValue(
+                    options,
+                    options => AggregateCategorizedAnalyzerConfigOptions.Create(options.AnalyzerConfigOptionsProvider, compilation));
+            }
         }
     }
 }

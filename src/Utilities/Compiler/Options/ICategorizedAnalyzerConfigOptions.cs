@@ -47,10 +47,14 @@ namespace Analyzer.Utilities
         bool IsEmpty { get; }
 
         T GetOptionValue<T>(string optionName, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, T defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality);
+
+        T GetOptionValue<T, TArg>(string optionName, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T, TArg> tryParseValue, TArg arg, T defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality);
     }
 
     internal static class CategorizedAnalyzerConfigOptionsExtensions
     {
         public delegate bool TryParseValue<T>(string value, [MaybeNullWhen(returnValue: false)] out T parsedValue);
+
+        public delegate bool TryParseValue<T, TArg>(string value, TArg arg, [MaybeNullWhen(returnValue: false)] out T parsedValue);
     }
 }
