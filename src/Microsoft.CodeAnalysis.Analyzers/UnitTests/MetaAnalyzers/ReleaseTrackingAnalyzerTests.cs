@@ -545,8 +545,12 @@ class MyAnalyzer : DiagnosticAnalyzer
         [InlineData("", ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |")]
         // Missing TableHeaderLine1 in unshipped
         [InlineData("", ReleaseTrackingHelper.TableTitleNewRules + BlankLine + ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", 2)]
+        // Missing TableHeaderLine1 with minimum markdown column hyphens in unshipped
+        [InlineData("", ReleaseTrackingHelper.TableTitleNewRules + BlankLine + @"---|---|---|---" + BlankLine + "Id1 | Category1 | Warning |", 2)]
         // Missing TableHeaderLine2 in unshipped
         [InlineData("", ReleaseTrackingHelper.TableTitleNewRules + BlankLine + ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |", 3)]
+        // Missing TableHeaderLine2 with extra column header text spaces in unshipped
+        [InlineData("", ReleaseTrackingHelper.TableTitleNewRules + BlankLine + @"Rule ID  | Category  | Severity  | Notes " + BlankLine + "Id1 | Category1 | Warning |", 3)]
         // Missing Release Version line in shipped
         [InlineData(DefaultUnshippedHeader + "Id1 | Category1 | Warning |", "")]
         // Missing Release Version in shipped
@@ -557,8 +561,12 @@ class MyAnalyzer : DiagnosticAnalyzer
         [InlineData(ReleaseTrackingHelper.ReleasePrefix + "1.0" + BlankLine + ReleaseTrackingHelper.TableHeaderChangedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |", "", 2)]
         // Missing TableHeaderLine1 in shipped
         [InlineData(ReleaseTrackingHelper.ReleasePrefix + "1.0" + BlankLine + ReleaseTrackingHelper.TableTitleChangedRules + BlankLine + ReleaseTrackingHelper.TableHeaderChangedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", "", 3)]
+        // Missing TableHeaderLine1 with minimum markdown column hyphens in shipped
+        [InlineData(ReleaseTrackingHelper.ReleasePrefix + "1.0" + BlankLine + ReleaseTrackingHelper.TableTitleChangedRules + BlankLine + @"---|---|---|---|---|---" + BlankLine + "Id1 | Category1 | Warning |", "", 3)]
         // Missing TableHeaderLine2 in shipped
         [InlineData(ReleaseTrackingHelper.ReleasePrefix + " 1.0" + BlankLine + ReleaseTrackingHelper.TableTitleChangedRules + BlankLine + ReleaseTrackingHelper.TableHeaderChangedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |", "", 4)]
+        // Missing TableHeaderLine2 in with extra column header text spaces shipped
+        [InlineData(ReleaseTrackingHelper.ReleasePrefix + " 1.0" + BlankLine + ReleaseTrackingHelper.TableTitleChangedRules + BlankLine + @"Rule ID  | New Category  | New Severity  | Old Category  | Old Severity  | Notes" + BlankLine + "Id1 | Category1 | Warning |", "", 4)]
         // Invalid Release Version line in unshipped
         [InlineData("", DefaultShippedHeader + "Id1 | Category1 | Warning |")]
         // Mismatch Table title and TableHeaderLine1 in unshipped

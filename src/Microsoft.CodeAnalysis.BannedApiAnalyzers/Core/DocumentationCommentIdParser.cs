@@ -33,11 +33,10 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 case 'M': // Methods
                 case 'P': // Properties
                 case 'T': // Types
-                    break;
                 case 'N': // Namespaces
+                    break;
                 default:
-                    // Documentation comment id must start with E, F, M, N, P or T. Note: we don't support banning full
-                    // namespaces, so we bail in that case as well.
+                    // Documentation comment id must start with E, F, M, N, P or T.
                     return null;
             }
 

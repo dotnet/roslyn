@@ -222,6 +222,7 @@ namespace Analyzer.Utilities
         public const string SystemException = "System.Exception";
         public const string SystemExecutionEngineException = "System.ExecutionEngineException";
         public const string SystemFlagsAttribute = "System.FlagsAttribute";
+        public const string SystemFunc2 = "System.Func`2";
         public const string SystemGC = "System.GC";
         public const string SystemGlobalizationCultureInfo = "System.Globalization.CultureInfo";
         public const string SystemGuid = "System.Guid";

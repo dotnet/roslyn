@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
@@ -14,6 +15,7 @@ using System.Xml.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 #pragma warning disable IDE0010 // Add missing cases (noise)
@@ -50,13 +52,23 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                 {
                     var (resourceFile, (optionsProvider, compilationInfo)) = resourceFileAndOptions;
                     var options = optionsProvider.GetOptions(resourceFile);
-                    if (options.TryGetValue("build_metadata.AdditionalFiles.GenerateSource", out var generateSourceText)
-                        && !string.IsNullOrEmpty(generateSourceText)
-                        && generateSourceText != "unset"
-                        && !string.Equals(bool.TrueString, generateSourceText, StringComparison.OrdinalIgnoreCase))
+
+                    // Use the GenerateSource property if provided. Otherwise, the value of GenerateSource defaults to
+                    // true for resources without an explicit culture.
+                    var explicitGenerateSource = IsGenerateSource(options);
+                    if (explicitGenerateSource == false)
                     {
-                        // Source generation is disabled for this resource file
+                        // Source generation is explicitly disabled for this resource file
                         return Array.Empty<ResourceInformation>();
+                    }
+                    else if (explicitGenerateSource != true)
+                    {
+                        var implicitGenerateSource = !IsExplicitWithCulture(options);
+                        if (!implicitGenerateSource)
+                        {
+                            // Source generation is disabled for this resource file
+                            return Array.Empty<ResourceInformation>();
+                        }
                     }
 
                     if (!optionsProvider.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace))
@@ -64,7 +76,8 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         rootNamespace = compilationInfo.AssemblyName;
                     }
 
-                    var resourceName = Path.GetFileNameWithoutExtension(resourceFile.Path);
+                    var resourceHintName = Path.GetFileNameWithoutExtension(resourceFile.Path);
+                    var resourceName = resourceHintName;
                     if (options.TryGetValue("build_metadata.AdditionalFiles.RelativeDir", out var relativeDir))
                     {
                         resourceName = relativeDir.Replace(Path.DirectorySeparatorChar, '.').Replace(Path.AltDirectorySeparatorChar, '.') + resourceName;
@@ -100,6 +113,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             CompilationInformation: compilationInfo,
                             ResourceFile: resourceFile,
                             ResourceName: string.Join(".", rootNamespace, resourceName),
+                            ResourceHintName: resourceHintName,
                             ResourceClassName: null,
                             OmitGetResourceString: omitGetResourceString,
                             AsConstants: asConstants,
@@ -107,9 +121,54 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             EmitFormatMethods: emitFormatMethods)
                     };
                 });
+            var renameMapping = resourceFilesToGenerateSource
+                .Select(static (resourceFile, cancellationToken) =>
+                {
+                    return (resourceFile.ResourceName, resourceFile.ResourceHintName);
+                })
+                .Collect()
+                .Select(static (resourceNames, cancellationToken) =>
+                {
+                    var names = new HashSet<string>();
+                    var remappedNames = ImmutableDictionary<string, string>.Empty;
+                    foreach (var (resourceName, resourceHintName) in resourceNames.OrderBy(x => x.ResourceName, StringComparer.Ordinal))
+                    {
+                        for (var i = -1; true; i++)
+                        {
+                            if (i == -1)
+                            {
+                                if (names.Add(resourceHintName))
+                                    break;
+                            }
+                            else
+                            {
+                                var candidateName = resourceHintName + i;
+                                if (names.Add(candidateName))
+                                {
+                                    remappedNames = remappedNames.Add(resourceName, candidateName);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    return remappedNames;
+                })
+                .WithComparer(ImmutableDictionaryEqualityComparer<string, string>.Instance);
+            var resourceFilesToGenerateSourceWithNames = resourceFilesToGenerateSource.Combine(renameMapping).Select(
+                static (resourceFileAndRenameMapping, cancellationToken) =>
+                {
+                    var (resourceFile, renameMapping) = resourceFileAndRenameMapping;
+                    if (renameMapping.TryGetValue(resourceFile.ResourceName, out var newHintName))
+                    {
+                        return resourceFile with { ResourceHintName = newHintName };
+                    }
+
+                    return resourceFile;
+                });
 
             context.RegisterSourceOutput(
-                resourceFilesToGenerateSource,
+                resourceFilesToGenerateSourceWithNames,
                 static (context, resourceInformation) =>
                 {
                     try
@@ -125,9 +184,33 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         var exceptionLines = ex.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                         var text = string.Join("", exceptionLines.Select(line => "#error " + line + Environment.NewLine));
                         var errorText = SourceText.From(text, Encoding.UTF8, SourceHashAlgorithm.Sha256);
-                        context.AddSource($"{Path.GetFileName(resourceInformation.ResourceFile.Path)}.Error", errorText);
+                        context.AddSource($"{resourceInformation.ResourceHintName}.Error", errorText);
                     }
                 });
+        }
+
+        private static bool? IsGenerateSource(AnalyzerConfigOptions options)
+        {
+            if (!options.TryGetValue("build_metadata.AdditionalFiles.GenerateSource", out var generateSourceText)
+                || !bool.TryParse(generateSourceText, out var generateSource))
+            {
+                // This resource did not explicitly set GenerateSource to true or false
+                return null;
+            }
+
+            return generateSource;
+        }
+
+        private static bool IsExplicitWithCulture(AnalyzerConfigOptions options)
+        {
+            if (!options.TryGetValue("build_metadata.AdditionalFiles.WithCulture", out var withCultureText)
+                || !bool.TryParse(withCultureText, out var withCulture))
+            {
+                // Assume the resource does not have a culture when there is no indication otherwise
+                return false;
+            }
+
+            return withCulture;
         }
 
         /// <summary>
@@ -149,6 +232,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
         /// <param name="CompilationInformation">Information about the compilation.</param>
         /// <param name="ResourceFile">Resources (resx) file.</param>
         /// <param name="ResourceName">Name of the embedded resources to generate accessor class for.</param>
+        /// <param name="ResourceHintName">Unique identifying name for the generated resource file within the compilation. This will be the same as the last segment of <paramref name="ResourceName"/> (after the final <c>.</c>) except in the case of duplicates.</param>
         /// <param name="ResourceClassName">Optionally, a <c>namespace.type</c> name for the generated Resources accessor class. Defaults to <see cref="ResourceName"/> if unspecified.</param>
         /// <param name="OmitGetResourceString">If set to <see langword="true"/>, the <c>GetResourceString</c> method is not included in the generated class and must be specified in a separate source file.</param>
         /// <param name="AsConstants">If set to <see langword="true"/>, emits constant key strings instead of properties that retrieve values.</param>
@@ -158,11 +242,49 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
             CompilationInformation CompilationInformation,
             AdditionalText ResourceFile,
             string ResourceName,
+            string ResourceHintName,
             string? ResourceClassName,
             bool OmitGetResourceString,
             bool AsConstants,
             bool IncludeDefaultValues,
             bool EmitFormatMethods);
+
+        private sealed class ImmutableDictionaryEqualityComparer<TKey, TValue> : IEqualityComparer<ImmutableDictionary<TKey, TValue>?>
+            where TKey : notnull
+        {
+            public static readonly ImmutableDictionaryEqualityComparer<TKey, TValue> Instance = new();
+
+            public bool Equals(ImmutableDictionary<TKey, TValue>? x, ImmutableDictionary<TKey, TValue>? y)
+            {
+                if (ReferenceEquals(x, y))
+                    return true;
+
+                if (x is null || y is null)
+                    return false;
+
+                if (!Equals(x.KeyComparer, y.KeyComparer))
+                    return false;
+
+                if (!Equals(x.ValueComparer, y.ValueComparer))
+                    return false;
+
+                foreach (var (key, value) in x)
+                {
+                    if (!y.TryGetValue(key, out var other)
+                        || !x.ValueComparer.Equals(value, other))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public int GetHashCode(ImmutableDictionary<TKey, TValue>? obj)
+            {
+                return obj?.Count ?? 0;
+            }
+        }
 
         private sealed class Impl
         {
@@ -224,7 +346,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                     _ => "cs",
                 };
 
-                OutputTextHintName = ResourceInformation.ResourceName + $".Designer.{extension}";
+                OutputTextHintName = ResourceInformation.ResourceHintName + $".Designer.{extension}";
 
                 if (string.IsNullOrEmpty(ResourceInformation.ResourceName))
                 {

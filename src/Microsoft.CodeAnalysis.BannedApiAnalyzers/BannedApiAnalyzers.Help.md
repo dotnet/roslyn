@@ -68,3 +68,4 @@ namespace N
 | `string BannedField`                  | `F:N.BannedType.BannedField`
 | `string BannedProperty { get; }`      | `P:N.BannedType.BannedProperty`
 | `event EventHandler BannedEvent;`     | `E:N.BannedType.BannedEvent`
+| `namespace N`                         | `N:N`

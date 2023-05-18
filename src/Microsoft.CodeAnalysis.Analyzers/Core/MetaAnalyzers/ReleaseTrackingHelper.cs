@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Analyzer.Utilities;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -30,6 +31,10 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
         internal const string TableHeaderNewOrRemovedRulesLine2 = @"--------|----------|----------|-------";
         internal const string TableHeaderChangedRulesLine1 = @"Rule ID | New Category | New Severity | Old Category | Old Severity | Notes";
         internal const string TableHeaderChangedRulesLine2 = @"--------|--------------|--------------|--------------|--------------|-------";
+        internal const string TableHeaderNewOrRemovedRulesLine1RegexPattern = @"^\s*Rule ID\s*\|\s*Category\s*\|\s*\Severity\s*\|\s*Notes";
+        internal const string TableHeaderChangedRulesLine1RegexPattern = @"^\s*Rule ID\s*\|\s*New Category\s*\|\s*New Severity\s*\|\s*Old Category\s*\|\s*Old Severity\s*\|\s*Notes";
+        internal const string TableHeaderNewOrRemovedRulesLine2RegexPattern = @"^-{3,}\|-{3,}\|-{3,}\|-{3,}";
+        internal const string TableHeaderChangedRulesLine2RegexPattern = @"^-{3,}\|-{3,}\|-{3,}\|-{3,}\|-{3,}\|-{3,}";
 
         internal static Version UnshippedVersion { get; } = new Version(int.MaxValue, int.MaxValue);
 
@@ -109,7 +114,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
                         continue;
 
                     case ReleaseTrackingHeaderKind.TableHeaderNewOrRemovedRulesLine1:
-                        if (lineText.StartsWith(TableHeaderNewOrRemovedRulesLine1, StringComparison.OrdinalIgnoreCase))
+                        if (Regex.IsMatch(lineText, TableHeaderNewOrRemovedRulesLine1RegexPattern, RegexOptions.IgnoreCase))
                         {
                             expectedHeaderKind = ReleaseTrackingHeaderKind.TableHeaderNewOrRemovedRulesLine2;
                             continue;
@@ -120,7 +125,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
 
                     case ReleaseTrackingHeaderKind.TableHeaderNewOrRemovedRulesLine2:
                         expectedHeaderKind = null;
-                        if (lineText.StartsWith(TableHeaderNewOrRemovedRulesLine2, StringComparison.OrdinalIgnoreCase))
+                        if (Regex.IsMatch(lineText, TableHeaderNewOrRemovedRulesLine2RegexPattern, RegexOptions.IgnoreCase))
                         {
                             continue;
                         }
@@ -129,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
                         return ReleaseTrackingData.Default;
 
                     case ReleaseTrackingHeaderKind.TableHeaderChangedRulesLine1:
-                        if (lineText.StartsWith(TableHeaderChangedRulesLine1, StringComparison.OrdinalIgnoreCase))
+                        if (Regex.IsMatch(lineText, TableHeaderChangedRulesLine1RegexPattern, RegexOptions.IgnoreCase))
                         {
                             expectedHeaderKind = ReleaseTrackingHeaderKind.TableHeaderChangedRulesLine2;
                             continue;
@@ -140,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
 
                     case ReleaseTrackingHeaderKind.TableHeaderChangedRulesLine2:
                         expectedHeaderKind = null;
-                        if (lineText.StartsWith(TableHeaderChangedRulesLine2, StringComparison.OrdinalIgnoreCase))
+                        if (Regex.IsMatch(lineText, TableHeaderChangedRulesLine2RegexPattern, RegexOptions.IgnoreCase))
                         {
                             continue;
                         }

@@ -344,12 +344,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             void AddOrUpdate(string methodName, INamedTypeSymbol typeSymbol)
             {
-                if (!builder.ContainsKey(methodName))
+                if (!builder.TryGetValue(methodName, out var methodTypeSymbols))
                 {
-                    builder.Add(methodName, ImmutableHashSet.CreateBuilder<INamedTypeSymbol>(SymbolEqualityComparer.Default));
+                    methodTypeSymbols = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+                    builder.Add(methodName, methodTypeSymbols);
                 }
 
-                builder[methodName].Add(typeSymbol);
+                methodTypeSymbols.Add(typeSymbol);
             }
         }
 
