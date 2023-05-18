@@ -34,7 +34,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        public const string Buffer10RawDefinition =
+        public const string Buffer10Definition =
 @"
 [System.Runtime.CompilerServices.InlineArray(10)]
 public struct Buffer10<T>
@@ -42,12 +42,13 @@ public struct Buffer10<T>
     private T _element0;
 }
 ";
-
-        public const string Buffer10Definition =
-@$"
-{Buffer10RawDefinition}
-{InlineArrayAttributeDefinition}
-";
+        private static Verification VerifyOnMonoOrCoreClr
+        {
+            get
+            {
+                return ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped;
+            }
+        }
 
         [ConditionalFact(typeof(CoreClrOnly))]
         public void InlineArrayType_00_LayoutAtRuntime()
@@ -134,8 +135,8 @@ struct Buffer
     " + accessibility + @" int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -157,8 +158,8 @@ struct Buffer<T>
     private T _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -201,8 +202,8 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-            var comp = CreateCompilation(src);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -226,7 +227,7 @@ struct Buffer
     private int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (4,46): error CS9504: Inline array length must be greater than 0.
                 // [System.Runtime.CompilerServices.InlineArray(0)]
@@ -292,7 +293,7 @@ struct Buffer
     private int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (4,46): error CS9504: Inline array length must be greater than 0.
                 // [System.Runtime.CompilerServices.InlineArray(-1)]
@@ -358,7 +359,7 @@ struct Buffer
     private int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (4,46): error CS9504: Inline array length must be greater than 0.
                 // [System.Runtime.CompilerServices.InlineArray(-2)]
@@ -423,7 +424,7 @@ struct Buffer
     private int _element1;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // struct Buffer
@@ -488,7 +489,7 @@ struct Buffer
 {
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // struct Buffer
@@ -555,8 +556,8 @@ struct Buffer
     public static short B;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -578,7 +579,7 @@ struct Buffer
     private static int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // struct Buffer
@@ -951,7 +952,7 @@ namespace System.Runtime.CompilerServices
             Assert.Null(buffer.TryGetInlineArrayElementField());
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void InlineArrayType_16_RefField()
         {
             var src = @"
@@ -961,7 +962,7 @@ ref struct Buffer
     private ref int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (3,12): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // ref struct Buffer
@@ -1019,7 +1020,7 @@ ref struct Buffer
             }
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void InlineArrayType_17_RefField()
         {
             var src = @"
@@ -1029,7 +1030,7 @@ ref struct Buffer
     private ref readonly int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (3,12): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // ref struct Buffer
@@ -1121,8 +1122,8 @@ struct Buffer
     private int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -1147,8 +1148,8 @@ struct Buffer
     private int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics(
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (2,46): warning CS0618: 'Buffer.Length' is obsolete: 'yes'
                 // [System.Runtime.CompilerServices.InlineArray(Length)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Length").WithArguments("Buffer.Length", "yes").WithLocation(2, 46)
@@ -1177,7 +1178,7 @@ struct Buffer
     private int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (2,46): error CS0619: 'Buffer.Length' is obsolete: 'yes'
                 // [System.Runtime.CompilerServices.InlineArray(Length)]
@@ -1356,7 +1357,7 @@ struct Buffer
     public event System.Action E;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // struct Buffer
@@ -1381,7 +1382,7 @@ struct Buffer
     int E { get; set; }
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // struct Buffer
@@ -1405,7 +1406,7 @@ record struct Buffer(int p)
     private int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (3,15): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // record struct Buffer(int p)
@@ -1466,7 +1467,7 @@ x[0] = 111;
 _ = (System.Span<int>)x;
 ";
 
-            var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net80);
             var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
             Assert.True(buffer.HasInlineArrayAttribute(out int length));
@@ -1502,7 +1503,7 @@ unsafe struct Buffer
     private void* _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithAllowUnsafe(true));
             var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
 
             Assert.True(buffer.HasInlineArrayAttribute(out int length));
@@ -1516,7 +1517,7 @@ unsafe struct Buffer
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void InlineArrayType_31_Nested()
         {
             var src = @"
@@ -1538,7 +1539,7 @@ public class Enclosing
     }
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
@@ -1551,7 +1552,7 @@ public class Enclosing
             }
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void InlineArrayType_32_Generic()
         {
             var src = @"
@@ -1573,7 +1574,7 @@ public class Enclosing<T>
     }
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
@@ -1586,7 +1587,7 @@ public class Enclosing<T>
             }
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void InlineArrayType_33_Generic()
         {
             var src = @"
@@ -1608,7 +1609,7 @@ public class Enclosing
     }
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
@@ -1621,7 +1622,7 @@ public class Enclosing
             }
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void InlineArrayType_34_Generic()
         {
             var src = @"
@@ -1643,7 +1644,7 @@ public class Enclosing<T>
     }
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
@@ -1656,7 +1657,7 @@ public class Enclosing<T>
             }
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void InlineArrayType_35_Generic()
         {
             var src = @"
@@ -1678,7 +1679,7 @@ public class Enclosing<T>
     }
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
@@ -1703,7 +1704,7 @@ struct Buffer(int p)
     int M() => p;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // struct Buffer(int p)
@@ -1730,7 +1731,7 @@ struct Buffer
     private int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
 
             var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
@@ -1753,7 +1754,7 @@ struct Buffer
     private int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
 
             var buffer = comp.GlobalNamespace.GetTypeMember("Buffer");
@@ -1777,7 +1778,7 @@ struct Buffer
     private int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (6,8): error CS9505: Inline array struct must not have explicit layout.
                 // struct Buffer
@@ -1838,7 +1839,7 @@ struct Buffer
     private int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (4,2): error CS7036: There is no argument given that corresponds to the required parameter 'length' of 'InlineArrayAttribute.InlineArrayAttribute(int)'
                 // [System.Runtime.CompilerServices.InlineArray]
@@ -1851,7 +1852,7 @@ struct Buffer
             Assert.Equal(0, length);
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void InlineArrayType_42()
         {
             var src = @"
@@ -1868,12 +1869,12 @@ public struct Buffer
     }
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             // No warning CS0414: The field 'Buffer._element0' is assigned but its value is never used
             CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_01()
         {
             var src = @"
@@ -1898,7 +1899,7 @@ class Program
 }
 " + Buffer10Definition;
 
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M1",
@@ -1940,10 +1941,10 @@ class Program
 }
 ");
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (18,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int M1(C x) => x.F[0];
@@ -1971,7 +1972,7 @@ class Program
 #endif
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_02()
         {
             var src = @"
@@ -1992,7 +1993,7 @@ class Program
     static ref int M2(C x) => ref x.F[0];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -2014,7 +2015,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_03()
         {
             var src = @"
@@ -2035,7 +2036,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
@@ -2057,7 +2058,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Variable_04()
         {
             var src = @"
@@ -2084,7 +2085,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (16,35): error CS8167: Cannot return by reference a member of parameter 'x' because it is not a ref or out parameter
                 //     static ref int M2(C x) => ref x.F[0];
@@ -2095,7 +2096,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Variable_05()
         {
             var src = @"
@@ -2122,7 +2123,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (6,32): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public ref int M2() => ref F[0];
@@ -2133,7 +2134,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_06()
         {
             var src = @"
@@ -2154,7 +2155,7 @@ class Program
     static ref int M2(ref C x) => ref x.F[0];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -2176,7 +2177,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_07()
         {
             var src = @"
@@ -2198,7 +2199,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
@@ -2220,7 +2221,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_08()
         {
             var src = @"
@@ -2245,7 +2246,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -2267,7 +2268,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_09()
         {
             var src = @"
@@ -2293,7 +2294,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
@@ -2315,7 +2316,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_10()
         {
             var src = @"
@@ -2339,11 +2340,11 @@ class Program
     static void M2(C x) => x.F[0][0] = 111;
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_11()
         {
             var src = @"
@@ -2364,11 +2365,11 @@ class Program
     static ref int M2(C x) => ref x.F[0][0];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_12()
         {
             var src = @"
@@ -2389,11 +2390,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Variable_13()
         {
             var src = @"
@@ -2420,7 +2421,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (16,35): error CS8167: Cannot return by reference a member of parameter 'x' because it is not a ref or out parameter
                 //     static ref int M2(C x) => ref x.F[0][0];
@@ -2431,7 +2432,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Variable_14()
         {
             var src = @"
@@ -2458,7 +2459,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (6,32): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public ref int M2() => ref F[0][0];
@@ -2469,7 +2470,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_15()
         {
             var src = @"
@@ -2490,11 +2491,11 @@ class Program
     static ref int M2(ref C x) => ref x.F[0][0];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_16()
         {
             var src = @"
@@ -2516,11 +2517,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_17()
         {
             var src = @"
@@ -2545,11 +2546,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_18()
         {
             var src = @"
@@ -2575,11 +2576,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Await_01()
         {
             var src = @"
@@ -2612,7 +2613,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -2803,7 +2804,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Await_02()
         {
             var src = @"
@@ -2836,7 +2837,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -3035,7 +3036,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Await_03()
         {
             var src = @"
@@ -3068,7 +3069,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -3263,7 +3264,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Await_04()
         {
             var src = @"
@@ -3293,7 +3294,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M2>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -3388,7 +3389,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Await_05()
         {
             var src = @"
@@ -3418,7 +3419,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M2>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -3517,7 +3518,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Await_06()
         {
             var src = @"
@@ -3547,7 +3548,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M2>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -3644,7 +3645,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Await_07()
         {
             var src = @"
@@ -3678,7 +3679,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -3775,7 +3776,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Await_08()
         {
             var src = @"
@@ -3804,7 +3805,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M2>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -3917,7 +3918,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Await_09()
         {
             var src = @"
@@ -3954,7 +3955,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -4065,7 +4066,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Await_10()
         {
             var src = @"
@@ -4109,7 +4110,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // (24,22): error CS4007: 'await' cannot be used in an expression containing the type 'System.ReadOnlySpan<Buffer10<int>>'
                 //            [Get01()][await FromResult(Get02(x))];
@@ -4117,7 +4118,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Await_11()
         {
             var src = @"
@@ -4161,7 +4162,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
                     // (24,13): error CS4007: 'await' cannot be used in an expression containing the type 'System.ReadOnlySpan<int>'
                     //            [await FromResult(Get02(x))];
@@ -4169,7 +4170,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Await_12()
         {
             var src = @"
@@ -4211,7 +4212,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // (20,12): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.GetItem(ReadOnlySpan<Buffer10<int>>, int)' because it returns by reference
                 //         => GetItem(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(ref Unsafe.AsRef(in GetC(x).F)),10), Get01())[await FromResult(Get02(x))];
@@ -4219,7 +4220,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Await_13()
         {
             var src = @"
@@ -4255,7 +4256,7 @@ public ref struct Buffer10
     private int _element0;
 }
 ";
-            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // (11,41): error CS4007: 'await' cannot be used in an expression containing the type 'Buffer10'
                 //     static async Task<int> M2() => M3()[await FromResult(0)];
@@ -4279,7 +4280,7 @@ class Program
 }
 " + Buffer10Definition;
 
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (7,15): error CS9507: An expression tree may not contain an inline array access or conversion
                 //         () => x[0];
@@ -4293,7 +4294,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Await_14_GenericMethod()
         {
             var src = @"
@@ -4326,7 +4327,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -4526,7 +4527,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Index_Variable_01()
         {
             var src = @"
@@ -4551,7 +4552,7 @@ class Program
 }
 " + Buffer10Definition;
 
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M1",
@@ -4592,10 +4593,10 @@ class Program
   IL_0019:  ret
 }
 ");
-            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (18,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int M1(C x) => x.F[^10];
@@ -4606,7 +4607,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Dynamic_Variable_01()
         {
             var src = @"
@@ -4630,7 +4631,7 @@ class Program
     static void M2(C x) => x.F[(dynamic)0] = 111;
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             // PROTOTYPE(InlineArrays): Dynamic index is always converted to 'int'. Confirm this is what we want.
@@ -4670,7 +4671,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Variable_01()
         {
             var src = @"
@@ -4695,7 +4696,7 @@ class Program
 }
 " + Buffer10Definition;
 
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -4717,10 +4718,10 @@ class Program
 }
 ");
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (18,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int M1(C x) => x.F[0];
@@ -4742,7 +4743,7 @@ class Program
 #endif
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Variable_03()
         {
             var src = @"
@@ -4763,7 +4764,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
@@ -4786,7 +4787,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_Variable_04()
         {
             var src = @"
@@ -4813,7 +4814,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (17,40): error CS8167: Cannot return by reference a member of parameter 'x' because it is not a ref or out parameter
                 //     static System.Span<int> M2(C x) => x.F[..5];
@@ -4824,7 +4825,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_Variable_05()
         {
             var src = @"
@@ -4851,7 +4852,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (6,37): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public System.Span<int> M2() => F[..5];
@@ -4862,7 +4863,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Variable_06()
         {
             var src = @"
@@ -4884,7 +4885,7 @@ class Program
     static System.Span<int> M2(ref C x) => x.F[..5];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -4907,7 +4908,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Variable_07()
         {
             var src = @"
@@ -4929,7 +4930,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
@@ -4952,7 +4953,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Variable_08()
         {
             var src = @"
@@ -4978,7 +4979,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -5001,7 +5002,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Variable_09()
         {
             var src = @"
@@ -5027,7 +5028,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
@@ -5050,7 +5051,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Variable_10()
         {
             var src = @"
@@ -5074,11 +5075,11 @@ class Program
     static System.Span<Buffer10<int>> M2(C x) => x.F[..5][..3];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Variable_12()
         {
             var src = @"
@@ -5099,11 +5100,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_Variable_13()
         {
             var src = @"
@@ -5130,7 +5131,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (17,50): error CS8167: Cannot return by reference a member of parameter 'x' because it is not a ref or out parameter
                 //     static System.Span<Buffer10<int>> M2(C x) => x.F[..5][..3];
@@ -5141,7 +5142,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_Variable_14()
         {
             var src = @"
@@ -5168,7 +5169,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (6,47): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public System.Span<Buffer10<int>> M2() => F[..5][..3];
@@ -5179,7 +5180,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Variable_15()
         {
             var src = @"
@@ -5201,11 +5202,11 @@ class Program
     static System.Span<Buffer10<int>> M2(ref C x) => x.F[..5][..3];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Variable_16()
         {
             var src = @"
@@ -5227,11 +5228,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Variable_17()
         {
             var src = @"
@@ -5257,11 +5258,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Variable_18()
         {
             var src = @"
@@ -5287,11 +5288,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_Variable_IsRValue()
         {
             var src = @"
@@ -5309,7 +5310,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (12,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         x.F[..5] = default;
@@ -5317,7 +5318,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Range_Variable_01()
         {
             var src = @"
@@ -5343,7 +5344,7 @@ class Program
     static System.Range GetRange(System.Range y) => y;
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -5389,7 +5390,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Await_01()
         {
             var src = @"
@@ -5422,7 +5423,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M2>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -5525,7 +5526,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Await_02()
         {
             var src = @"
@@ -5558,7 +5559,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M2>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -5670,7 +5671,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Await_03()
         {
             var src = @"
@@ -5703,7 +5704,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M2>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -5834,7 +5835,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Await_04()
         {
             var src = @"
@@ -5871,7 +5872,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M2>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -5996,7 +5997,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Await_05()
         {
             var src = @"
@@ -6033,7 +6034,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -6172,7 +6173,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_ObjectInitializer_Int_01()
         {
             var src = @"
@@ -6191,7 +6192,7 @@ class Program
     static C M2() => new C() { F = {[0] = 111} };
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             // According to the language specification: "an argument_list enclosed in square brackets shall specify arguments for an accessible indexer on the object being initialized"
             // Buffer10<int> doesn't have an indexer.
@@ -6213,7 +6214,7 @@ class Program
 #endif
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ObjectInitializer_Int_02()
         {
             var src = @"
@@ -6243,9 +6244,9 @@ public struct Buffer10<T>
         set => this[i] = value;
     }
 }
-" + InlineArrayAttributeDefinition;
+";
 
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -6275,7 +6276,7 @@ public struct Buffer10<T>
 #endif
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_ObjectInitializer_Index_01()
         {
             var src = @"
@@ -6294,7 +6295,7 @@ class Program
     static C M2() => new C() { F = {[^10] = 111} };
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             // According to the language specification: "an argument_list enclosed in square brackets shall specify arguments for an accessible indexer on the object being initialized"
             // Buffer10<int> doesn't have an indexer.
@@ -6316,7 +6317,7 @@ class Program
 #endif
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_ObjectInitializer_Index_02()
         {
             var src = @"
@@ -6348,9 +6349,9 @@ public struct Buffer10<T>
 
     public int Length => 10;
 }
-" + InlineArrayAttributeDefinition;
+";
 
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             // This scenario fails due to https://github.com/dotnet/roslyn/issues/67533
             comp.VerifyDiagnostics(
@@ -6371,7 +6372,7 @@ public struct Buffer10<T>
 #endif
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_ObjectInitializer_Range_01()
         {
             var src = @"
@@ -6390,7 +6391,7 @@ class Program
     static C M2() => new C() { F = {[0..1] = 111} };
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             // According to the language specification: "an argument_list enclosed in square brackets shall specify arguments for an accessible indexer on the object being initialized"
             // Buffer10<int> doesn't have an indexer.
@@ -6412,7 +6413,7 @@ class Program
 #endif
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ConditionalAccess_Variable()
         {
             var src = @"
@@ -6434,7 +6435,7 @@ class Program
 }
 " + Buffer10Definition;
 
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -6464,10 +6465,10 @@ class Program
 }
 ");
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (12,9): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         c.F[0] = 111;
@@ -6489,7 +6490,7 @@ class Program
 #endif
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_ConditionalAccess_Variable()
         {
             var src = @"
@@ -6510,7 +6511,7 @@ class Program
     static int? M2(C c) => c?.F[..5][0];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -6557,7 +6558,7 @@ class Program
 #endif
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ConditionalAccess_Value_01()
         {
             var src = @"
@@ -6579,7 +6580,7 @@ class Program
     static int? M2(C c) => c.F?[0];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -6627,7 +6628,7 @@ class Program
 #endif
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ConditionalAccess_Value_02()
         {
             var src = @"
@@ -6651,7 +6652,7 @@ class Program
     static int M3(Buffer10<int> x) => 0;
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -6692,7 +6693,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ConditionalAccess_Value_03()
         {
             var src = @"
@@ -6714,7 +6715,7 @@ class Program
     static int? M2(C? c) => c?.F[0];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -6750,7 +6751,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ConditionalAccess_Value_04()
         {
             var src = @"
@@ -6774,7 +6775,7 @@ class Program
     static int M3(Buffer10<int> x) => 0;
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -6814,7 +6815,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_ConditionalAccess_Value_01()
         {
             var src = @"
@@ -6836,7 +6837,7 @@ class Program
     static int? M2(C c) => c.F?[..5][0];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (17,28): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     static int? M2(C c) => c.F?[..5][0];
@@ -6855,7 +6856,7 @@ class Program
 #endif
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_ConditionalAccess_Value_02()
         {
             var src = @"
@@ -6879,7 +6880,7 @@ class Program
     static int M3(Buffer10<int> x) => 0;
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (17,28): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     static int? M2(C c) => c.F?[M3(default)..][M3(default)];
@@ -6887,7 +6888,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_ConditionalAccess_Value_03()
         {
             var src = @"
@@ -6909,7 +6910,7 @@ class Program
     static int? M2(C? c) => c?.F[..5][0];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (17,31): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     static int? M2(C? c) => c?.F[..5][0];
@@ -6917,7 +6918,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_ConditionalAccess_Value_04()
         {
             var src = @"
@@ -6941,7 +6942,7 @@ class Program
     static int M3(Buffer10<int> x) => 0;
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (17,31): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     static int? M2(C? c) => c?.F[M3(default)..][M3(default)];
@@ -6949,7 +6950,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_NotValue()
         {
             var src = @"
@@ -6961,7 +6962,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0119: 'Buffer10<int>' is a type, which is not valid in the given context
                 //         _ = Buffer10<int>[0];
@@ -6969,7 +6970,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Value_01()
         {
             var src = @"
@@ -6995,7 +6996,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -7037,7 +7038,7 @@ class Program
             //");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Value_02()
         {
             var src = @"
@@ -7063,7 +7064,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -7102,7 +7103,7 @@ class Program
             //");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Value_03()
         {
             var src = @"
@@ -7127,7 +7128,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (11,26): error CS8172: Cannot initialize a by-reference variable with a value
                 //         ref readonly int x = M3()[0];
@@ -7138,7 +7139,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Value_04()
         {
             var src = @"
@@ -7167,7 +7168,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (11,23): error CS1510: A ref or out value must be an assignable variable
                 //         return M4(ref M3()[0]);
@@ -7175,7 +7176,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Value_05()
         {
             var src = @"
@@ -7204,7 +7205,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                     // (11,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                     //         return M4(in M3()[0]);
@@ -7212,7 +7213,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Value_06()
         {
             var src = @"
@@ -7241,7 +7242,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -7280,7 +7281,7 @@ class Program
             //");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_NotValue()
         {
             var src = @"
@@ -7292,7 +7293,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0119: 'Buffer10<int>' is a type, which is not valid in the given context
                 //         _ = Buffer10<int>[..5];
@@ -7300,7 +7301,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_Value_01()
         {
             var src = @"
@@ -7326,7 +7327,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (9,27): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     static int M2() => M4(M3()[..], default);
@@ -7344,7 +7345,7 @@ class Program
             //");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_01()
         {
             var src = @"
@@ -7370,7 +7371,7 @@ class Program
     static int M2(C c) => c.F[0];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -7403,7 +7404,7 @@ class Program
             //");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_02()
         {
             var src = @"
@@ -7433,7 +7434,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -7466,7 +7467,7 @@ class Program
             //");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_03()
         {
             var src = @"
@@ -7500,7 +7501,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -7533,7 +7534,7 @@ class Program
             //");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_ReadonlyContext_04()
         {
             var src = @"
@@ -7567,7 +7568,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
                 // (23,23): error CS8329: Cannot use method 'this.get' as a ref or out value because it is a readonly variable
@@ -7576,7 +7577,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_05()
         {
             var src = @"
@@ -7606,7 +7607,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -7628,7 +7629,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_06()
         {
             var src = @"
@@ -7657,7 +7658,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -7679,7 +7680,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_ReadonlyContext_07()
         {
             var src = @"
@@ -7709,7 +7710,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (24,20): error CS8157: Cannot return 'x' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref x;
@@ -7717,7 +7718,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_ReadonlyContext_08()
         {
             var src = @"
@@ -7746,7 +7747,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (23,20): error CS8167: Cannot return by reference a member of parameter 'c' because it is not a ref or out parameter
                 //         return ref c.F[0];
@@ -7754,7 +7755,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_09()
         {
             var src = @"
@@ -7781,7 +7782,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
@@ -7804,7 +7805,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_10()
         {
             var src = @"
@@ -7835,7 +7836,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
@@ -7858,7 +7859,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_11()
         {
             var src = @"
@@ -7893,7 +7894,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
@@ -7916,7 +7917,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_ReadonlyContext_12()
         {
             var src = @"
@@ -7951,7 +7952,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
                 // (15,23): error CS8329: Cannot use method 'this.get' as a ref or out value because it is a readonly variable
@@ -7960,7 +7961,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_ReadonlyContext_13()
         {
             var src = @"
@@ -7991,7 +7992,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (16,20): error CS8157: Cannot return 'x' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref x;
@@ -7999,7 +8000,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_14()
         {
             var src = @"
@@ -8031,7 +8032,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
@@ -8053,7 +8054,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_ReadonlyContext_15()
         {
             var src = @"
@@ -8083,7 +8084,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (15,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return ref F[0];
@@ -8091,7 +8092,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_16()
         {
             var src = @"
@@ -8122,7 +8123,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
@@ -8144,7 +8145,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_ReadonlyContext_17()
         {
             var src = @"
@@ -8168,7 +8169,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (18,9): error CS8331: Cannot assign to method 'this.get' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         c.F[0] = 1;
@@ -8176,7 +8177,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_ReadonlyContext_18()
         {
             var src = @"
@@ -8197,7 +8198,7 @@ struct C
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (15,9): error CS8331: Cannot assign to method 'this.get' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F[0] = 1;
@@ -8205,7 +8206,7 @@ struct C
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_ReadonlyContext_01()
         {
             var src = @"
@@ -8231,7 +8232,7 @@ class Program
     static System.ReadOnlySpan<int> M2(C c) => c.F[..5];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -8254,7 +8255,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_ReadonlyContext_02()
         {
             var src = @"
@@ -8284,7 +8285,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -8307,7 +8308,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_ReadonlyContext_04()
         {
             var src = @"
@@ -8341,7 +8342,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
                 // (23,19): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<int>' to 'System.Span<int>'
@@ -8350,7 +8351,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_ReadonlyContext_07()
         {
             var src = @"
@@ -8380,7 +8381,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (24,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         return x;
@@ -8388,7 +8389,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_ReadonlyContext_08()
         {
             var src = @"
@@ -8417,7 +8418,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (23,16): error CS8167: Cannot return by reference a member of parameter 'c' because it is not a ref or out parameter
                 //         return c.F[..5];
@@ -8425,7 +8426,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_ReadonlyContext_09()
         {
             var src = @"
@@ -8452,7 +8453,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (13,54): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public readonly System.ReadOnlySpan<int> M2() => F[..5];
@@ -8460,7 +8461,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_ReadonlyContext_10()
         {
             var src = @"
@@ -8491,7 +8492,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (16,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         return x;
@@ -8499,7 +8500,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_ReadonlyContext_12()
         {
             var src = @"
@@ -8534,7 +8535,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
                 // (15,19): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<int>' to 'System.Span<int>'
@@ -8543,7 +8544,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_ReadonlyContext_14()
         {
             var src = @"
@@ -8575,7 +8576,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
@@ -8598,7 +8599,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_ReadonlyContext_16()
         {
             var src = @"
@@ -8626,7 +8627,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
@@ -8649,7 +8650,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_ReadonlyContext_17()
         {
             var src = @"
@@ -8673,7 +8674,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (18,9): error CS8331: Cannot assign to property 'this' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         c.F[..][0] = 1;
@@ -8681,7 +8682,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_ReadonlyContext_18()
         {
             var src = @"
@@ -8702,7 +8703,7 @@ struct C
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (15,9): error CS8331: Cannot assign to property 'this' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F[..][0] = 1;
@@ -8710,7 +8711,7 @@ struct C
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_ReadonlyContext_IsRValue()
         {
             var src = @"
@@ -8734,7 +8735,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
                 // (18,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
@@ -8743,7 +8744,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_01()
         {
             var src = @"
@@ -8770,7 +8771,7 @@ class Program
     static int M2(in C c) => c.F[0];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -8793,7 +8794,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_02()
         {
             var src = @"
@@ -8824,7 +8825,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -8847,7 +8848,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_03()
         {
             var src = @"
@@ -8882,7 +8883,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -8905,7 +8906,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Variable_Readonly_04()
         {
             var src = @"
@@ -8940,7 +8941,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
                 // (24,23): error CS8329: Cannot use method 'this.get' as a ref or out value because it is a readonly variable
@@ -8949,7 +8950,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_05()
         {
             var src = @"
@@ -8980,7 +8981,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -9002,7 +9003,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_06()
         {
             var src = @"
@@ -9032,7 +9033,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -9054,7 +9055,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Variable_Readonly_07()
         {
             var src = @"
@@ -9084,7 +9085,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (24,9): error CS8331: Cannot assign to method 'this.get' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         c.F[0] = 1;
@@ -9092,7 +9093,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_08()
         {
             var src = @"
@@ -9119,11 +9120,11 @@ class Program
     static int M2(in C c) => c.F[0][0];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_09()
         {
             var src = @"
@@ -9154,11 +9155,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_10()
         {
             var src = @"
@@ -9193,11 +9194,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Variable_Readonly_11()
         {
             var src = @"
@@ -9232,7 +9233,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
                 // (24,23): error CS8329: Cannot use method 'this.get' as a ref or out value because it is a readonly variable
@@ -9241,7 +9242,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_12()
         {
             var src = @"
@@ -9272,11 +9273,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_13()
         {
             var src = @"
@@ -9306,11 +9307,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ElementAccess_Variable_Readonly_14()
         {
             var src = @"
@@ -9340,7 +9341,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (24,9): error CS8331: Cannot assign to method 'this.get' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         c.F[0][0] = 1;
@@ -9348,7 +9349,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Variable_Readonly_01()
         {
             var src = @"
@@ -9375,7 +9376,7 @@ class Program
     static System.ReadOnlySpan<int> M2(in C c) => c.F[..5];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -9398,7 +9399,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Variable_Readonly_02()
         {
             var src = @"
@@ -9429,7 +9430,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -9452,7 +9453,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_Variable_Readonly_04()
         {
             var src = @"
@@ -9487,7 +9488,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
                 // (24,19): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<int>' to 'System.Span<int>'
@@ -9496,7 +9497,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Slice_Variable_Readonly_07()
         {
             var src = @"
@@ -9526,7 +9527,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (24,9): error CS8331: Cannot assign to property 'this' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         c.F[..][0] = 1;
@@ -9534,7 +9535,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void ListPattern()
         {
             var src = @"
@@ -9553,7 +9554,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (12,20): error CS8985: List patterns may not be used for a value of type 'Buffer10<int>'. No suitable 'Length' or 'Count' property was found.
                 //         if (x.F is [0, ..])
@@ -9564,7 +9565,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void NoIndex()
         {
             var src = @"
@@ -9582,7 +9583,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (12,17): error CS0443: Syntax error; value expected
                 //         _ = x.F[];
@@ -9590,7 +9591,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void TooManyIndexes()
         {
             var src = @"
@@ -9608,7 +9609,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             // PROTOTYPE(SafeFixedSizeBuffer): The wording is somewhat misleading. Adjust?
             comp.VerifyDiagnostics(
@@ -9618,7 +9619,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void WrongIndexType_01()
         {
             var src = @"
@@ -9636,7 +9637,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             // PROTOTYPE(SafeFixedSizeBuffer): The wording is somewhat misleading. Adjust?
             comp.VerifyDiagnostics(
@@ -9646,7 +9647,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void NamedIndex()
         {
             var src = @"
@@ -9663,7 +9664,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             // PROTOTYPE(InlineArrays): Adjust wording of the message?
             comp.VerifyDiagnostics(
@@ -9673,7 +9674,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void RefOutInIndex()
         {
             var src = @"
@@ -9692,7 +9693,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
                 // (11,21): error CS1615: Argument 1 may not be passed with the 'ref' keyword
@@ -9707,7 +9708,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void AlwaysDefault_01()
         {
             var src = @"
@@ -9716,7 +9717,7 @@ class C
     public Buffer10<int> F;
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
                 // (4,26): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
@@ -9725,7 +9726,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void AlwaysDefault_02()
         {
             var src = @"
@@ -9742,11 +9743,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void AlwaysDefault_03_1()
         {
             var src = @"
@@ -9763,13 +9764,13 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             // PROTOTYPE(InlineArrays): Report ErrorCode.WRN_UnassignedInternalField
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void AlwaysDefault_03_2()
         {
             var src = @"
@@ -9786,13 +9787,13 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             // PROTOTYPE(InlineArrays): Report ErrorCode.WRN_UnassignedInternalField
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void AlwaysDefault_04()
         {
             var src = @"
@@ -9809,13 +9810,13 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             // PROTOTYPE(InlineArrays): Report ErrorCode.WRN_UnassignedInternalField
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void AlwaysDefault_05()
         {
             var src = @"
@@ -9832,11 +9833,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void AlwaysDefault_06_1()
         {
             var src = @"
@@ -9853,13 +9854,13 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             // PROTOTYPE(InlineArrays): Report ErrorCode.WRN_UnassignedInternalField?
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void AlwaysDefault_06_2()
         {
             var src = @"
@@ -9876,7 +9877,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
                 // (4,35): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
@@ -9885,7 +9886,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void AlwaysDefault_07()
         {
             var src = @"
@@ -9902,7 +9903,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
                 // (4,26): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
@@ -9911,7 +9912,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void AlwaysDefault_08()
         {
             var src = @"
@@ -9928,11 +9929,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void AlwaysDefault_09()
         {
             var src = @"
@@ -9949,7 +9950,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (4,26): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
                 //     public Buffer10<int> F;
@@ -9957,7 +9958,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void DefiniteAssignment_01()
         {
             var src = @"
@@ -9975,7 +9976,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
                 // (12,13): error CS0170: Use of possibly unassigned field 'F'
@@ -9984,7 +9985,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void DefiniteAssignment_02()
         {
             var src = @"
@@ -10003,7 +10004,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
                 // (12,9): error CS0170: Use of possibly unassigned field 'F'
@@ -10012,7 +10013,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void DefiniteAssignment_03()
         {
             var src = @"
@@ -10026,7 +10027,7 @@ struct C
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C..ctor",
@@ -10053,7 +10054,7 @@ struct C
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void MissingHelper_01()
         {
             var src = @"
@@ -10070,7 +10071,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Range__get_Start);
             comp.MakeMemberMissing(WellKnownMember.System_Range__get_End);
@@ -10084,7 +10085,7 @@ class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void MissingHelper_02()
         {
             var src = @"
@@ -10101,7 +10102,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Range__get_Start);
             comp.MakeMemberMissing(WellKnownMember.System_Range__get_End);
@@ -10114,7 +10115,7 @@ class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void MissingHelper_03()
         {
             var src = @"
@@ -10131,7 +10132,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Index__GetOffset);
             comp.MakeMemberMissing(WellKnownMember.System_Span_T__get_Item);
@@ -10154,7 +10155,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void MissingHelper_04()
         {
             var src = @"
@@ -10171,7 +10172,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int);
             comp.MakeMemberMissing(WellKnownMember.System_Span_T__get_Item);
@@ -10183,7 +10184,7 @@ class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void MissingHelper_05()
         {
             var src = @"
@@ -10200,7 +10201,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Index__GetOffset);
             comp.MakeMemberMissing(WellKnownMember.System_Range__get_Start);
@@ -10233,7 +10234,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void MissingHelper_06()
         {
             var src = @"#pragma warning disable CS0649
@@ -10250,7 +10251,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Range__get_Start);
             comp.MakeMemberMissing(WellKnownMember.System_Range__get_End);
@@ -10263,7 +10264,7 @@ class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void MissingHelper_07()
         {
             var src = @"#pragma warning disable CS0649
@@ -10280,7 +10281,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Range__get_Start);
             comp.MakeMemberMissing(WellKnownMember.System_Range__get_End);
@@ -10292,7 +10293,7 @@ class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void MissingHelper_08()
         {
             var src = @"#pragma warning disable CS0649
@@ -10309,7 +10310,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Index__GetOffset);
             comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__get_Item);
@@ -10336,7 +10337,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void MissingHelper_09()
         {
             var src = @"#pragma warning disable CS0649
@@ -10353,7 +10354,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int_Int);
             comp.MakeMemberMissing(WellKnownMember.System_Span_T__get_Item);
@@ -10364,7 +10365,7 @@ class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void MissingHelper_10()
         {
             var src = @"#pragma warning disable CS0649
@@ -10381,7 +10382,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Index__GetOffset);
             comp.MakeMemberMissing(WellKnownMember.System_Range__get_Start);
@@ -10418,7 +10419,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void MissingHelper_11()
         {
             var src = @"
@@ -10435,7 +10436,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan);
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T);
@@ -10443,7 +10444,7 @@ class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void MissingHelper_12()
         {
             var src = @"
@@ -10460,14 +10461,14 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan);
 
             comp.VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void MissingHelper_13()
         {
             var src = @"
@@ -10484,7 +10485,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan);
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T);
@@ -10499,7 +10500,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void MissingHelper_14()
         {
             var src = @"
@@ -10516,7 +10517,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan);
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T);
@@ -10535,7 +10536,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void PrivateImplementationDetails_01()
         {
             var src = @"
@@ -10554,7 +10555,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var verifier = CompileAndVerify(comp, verify: Verification.Fails,
                 symbolValidator: m =>
@@ -10579,7 +10580,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void PrivateImplementationDetails_02()
         {
             var src = @"#pragma warning disable CS0649
@@ -10598,7 +10599,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var verifier = CompileAndVerify(comp, verify: Verification.Fails,
                 symbolValidator: m =>
@@ -10624,7 +10625,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void NullableAnalysis_01()
         {
             var src = @"
@@ -10653,7 +10654,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (14,13): warning CS8602: Dereference of a possibly null reference.
                 //         _ = GetC(s2).F[0].Length;
@@ -10664,7 +10665,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void NullableAnalysis_02()
         {
             var src = @"
@@ -10697,7 +10698,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (8,33): warning CS8619: Nullability of reference types in value of type 'Buffer10<string?>' doesn't match target type 'Span<string>'.
                 //         System.Span<string> x = b;
@@ -10714,7 +10715,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void NullableAnalysis_03()
         {
             var src = @"
@@ -10747,7 +10748,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (8,35): warning CS8619: Nullability of reference types in value of type 'Buffer10<string?[]>' doesn't match target type 'Span<string[]>'.
                 //         System.Span<string[]> x = b;
@@ -10764,7 +10765,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void CompoundAssignment_01()
         {
             var src = @"
@@ -10789,7 +10790,7 @@ class Program
     static void M2(C x) => x.F[0] += 111;
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "-1 110", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -10816,7 +10817,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_01()
         {
             var src = @"
@@ -10841,7 +10842,7 @@ class Program
 }
 " + Buffer10Definition;
 
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M1",
@@ -10870,10 +10871,10 @@ class Program
 }
 ");
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (18,48): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static System.ReadOnlySpan<int> M1(C x) => x.F;
@@ -10895,7 +10896,7 @@ class Program
 #endif
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_03()
         {
             var src = @"
@@ -10917,7 +10918,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M1",
@@ -10947,7 +10948,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Variable_04()
         {
             var src = @"
@@ -10973,7 +10974,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (9,40): error CS8167: Cannot return by reference a member of parameter 'x' because it is not a ref or out parameter
                 //     static System.Span<int> M2(C x) => x.F;
@@ -10990,7 +10991,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Variable_05()
         {
             var src = @"
@@ -11015,7 +11016,7 @@ struct C
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (6,37): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public System.Span<int> M2() => F;
@@ -11032,7 +11033,7 @@ struct C
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_06()
         {
             var src = @"
@@ -11054,7 +11055,7 @@ class Program
     static System.Span<int> M2(ref C x) => x.F;
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M1",
@@ -11084,7 +11085,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_07()
         {
             var src = @"
@@ -11109,7 +11110,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M1",
@@ -11139,7 +11140,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_08()
         {
             var src = @"
@@ -11170,7 +11171,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M1",
@@ -11200,7 +11201,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_09()
         {
             var src = @"
@@ -11233,7 +11234,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M1",
@@ -11263,7 +11264,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_10_1()
         {
             var src = @"
@@ -11287,11 +11288,11 @@ class Program
     static System.Span<int> M2(C x) => x.F[..5][0];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_10_2()
         {
             var src = @"
@@ -11315,11 +11316,11 @@ class Program
     static System.Span<Buffer10<int>> M2(C x) => ((System.Span<Buffer10<int>>)x.F)[..3];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_12_1()
         {
             var src = @"
@@ -11341,11 +11342,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_12_2()
         {
             var src = @"
@@ -11367,11 +11368,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_13_1()
         {
             var src = @"
@@ -11397,7 +11398,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (9,40): error CS8167: Cannot return by reference a member of parameter 'x' because it is not a ref or out parameter
                 //     static System.Span<int> M2(C x) => x.F[..5][0];
@@ -11414,7 +11415,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Variable_13_2()
         {
             var src = @"
@@ -11440,7 +11441,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (9,79): error CS8167: Cannot return by reference a member of parameter 'x' because it is not a ref or out parameter
                 //     static System.Span<Buffer10<int>> M2(C x) => ((System.Span<Buffer10<int>>)x.F)[..3];
@@ -11457,7 +11458,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Variable_14_1()
         {
             var src = @"
@@ -11482,7 +11483,7 @@ struct C
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (6,37): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public System.Span<int> M2() => F[..5][0];
@@ -11499,7 +11500,7 @@ struct C
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Variable_14_2()
         {
             var src = @"
@@ -11524,7 +11525,7 @@ struct C
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (6,48): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public System.Span<Buffer10<int>> M2() => ((System.Span<Buffer10<int>>)F)[..3];
@@ -11541,7 +11542,7 @@ struct C
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_15_1()
         {
             var src = @"
@@ -11563,11 +11564,11 @@ class Program
     static System.Span<int> M2(ref C x) => x.F[..5][0];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_15_2()
         {
             var src = @"
@@ -11589,11 +11590,11 @@ class Program
     static System.Span<Buffer10<int>> M2(ref C x) => ((System.Span<Buffer10<int>>)x.F)[..3];
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_16_1()
         {
             var src = @"
@@ -11618,11 +11619,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_16_2()
         {
             var src = @"
@@ -11647,11 +11648,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_17_1()
         {
             var src = @"
@@ -11682,11 +11683,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_17_2()
         {
             var src = @"
@@ -11717,11 +11718,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_18_1()
         {
             var src = @"
@@ -11754,11 +11755,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_18_2()
         {
             var src = @"
@@ -11791,11 +11792,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Variable_IsRValue()
         {
             var src = @"
@@ -11814,7 +11815,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (12,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         ((System.Span<int>)x.F) = default;
@@ -11825,7 +11826,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_Readonly_01()
         {
             var src = @"
@@ -11852,7 +11853,7 @@ class Program
     static System.ReadOnlySpan<int> M2(in C c) => c.F;
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -11869,7 +11870,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Variable_Readonly_02()
         {
             var src = @"
@@ -11900,7 +11901,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -11917,7 +11918,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Variable_Readonly_04()
         {
             var src = @"
@@ -11952,7 +11953,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
                 // (24,19): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
@@ -11961,7 +11962,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_ReadonlyContext_01()
         {
             var src = @"
@@ -11987,7 +11988,7 @@ class Program
     static System.ReadOnlySpan<int> M2(C c) => c.F;
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -12004,7 +12005,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_ReadonlyContext_04()
         {
             var src = @"
@@ -12026,7 +12027,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80);
 
             comp.VerifyDiagnostics(
                 // (11,19): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
@@ -12035,7 +12036,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_ReadonlyContext_12()
         {
             var src = @"
@@ -12061,7 +12062,7 @@ struct C
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80);
 
             comp.VerifyDiagnostics(
                 // (15,19): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
@@ -12070,7 +12071,7 @@ struct C
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_ReadonlyContext_14()
         {
             var src = @"
@@ -12102,7 +12103,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
@@ -12119,7 +12120,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Value_01()
         {
             var src = @"
@@ -12152,7 +12153,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (9,27): error CS9502: Cannot convert expression to 'ReadOnlySpan<int>' because it may not be passed or returned by reference
                 //     static int M2() => M4(M3(), default);
@@ -12173,7 +12174,7 @@ class Program
             //");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Value_02()
         {
             var src = @"
@@ -12201,7 +12202,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (9,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>?' to 'System.ReadOnlySpan<int>?'
                 //     static int M2() => M4(M3(), default);
@@ -12218,7 +12219,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Value_03()
         {
             var src = @"
@@ -12246,7 +12247,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (9,27): error CS0030: Cannot convert type 'Buffer10<int>?' to 'System.ReadOnlySpan<int>'
                 //     static int M2() => M4((System.ReadOnlySpan<int>)M3(), default);
@@ -12257,7 +12258,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Value_04()
         {
             var src = @"
@@ -12285,7 +12286,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             // Once we stop reporting error CS0306: The type 'ReadOnlySpan<int>' may not be used as a type argument
             // We might decide to allow a conversion from an inline array expression to nullable span types, but this scenario 
             // should still remain an error in that case because the expression is a value.
@@ -12305,7 +12306,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Await_01()
         {
             var src = @"
@@ -12338,7 +12339,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
@@ -12545,7 +12546,7 @@ class Program
 }
 " + Buffer10Definition;
 
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (7,16): error CS9507: An expression tree may not contain an inline array access or conversion
                 //         () => ((System.Span<int>)x).Length;
@@ -12556,7 +12557,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_NotFromType_01()
         {
             var src = @"
@@ -12574,7 +12575,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (11,13): error CS0030: Cannot convert type 'Program' to 'System.Span<int>'
                 //         _ = (System.Span<int>)x;
@@ -12585,7 +12586,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_NotFromType_02()
         {
             var src = @"
@@ -12606,13 +12607,13 @@ public struct Buffer10
 
     public static implicit operator System.ReadOnlySpan<int>(Buffer10 x) => new[] { -111 };
 }
-" + InlineArrayAttributeDefinition;
+";
 
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Standard_01()
         {
             var src = @"
@@ -12634,13 +12635,13 @@ class Program
 }
 " + Buffer10Definition;
 
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (14,9): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         b[0] = 111;
@@ -12651,7 +12652,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Standard_02()
         {
             var src = @"
@@ -12672,11 +12673,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Standard_03()
         {
             var src = @"
@@ -12698,7 +12699,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (16,31): error CS0457: Ambiguous user defined conversions 'C.implicit operator C(ReadOnlySpan<int>)' and 'C.implicit operator C(Span<int>)' when converting from 'Buffer10<int>' to 'C'
                 //         System.Console.Write(((C)b).F);
@@ -12706,7 +12707,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Standard_04()
         {
             var src = @"
@@ -12733,7 +12734,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (21,31): error CS0457: Ambiguous user defined conversions 'C.implicit operator C(ReadOnlySpan<int>)' and 'C.implicit operator C(Span<int>)' when converting from 'Buffer10<int>' to 'C'
                 //         System.Console.Write(((C)b).F);
@@ -12741,7 +12742,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Standard_05()
         {
             var src = @"
@@ -12767,7 +12768,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (20,34): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
                 //         System.Console.Write(((C)b).F);
@@ -12775,7 +12776,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Conversion_Standard_06()
         {
             var src = @"
@@ -12801,11 +12802,11 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Standard_07()
         {
             var src = @"
@@ -12826,7 +12827,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (15,34): error CS9502: Cannot convert expression to 'ReadOnlySpan<int>' because it may not be passed or returned by reference
                 //         System.Console.Write(((C)new Buffer10<int>()).F);
@@ -12834,7 +12835,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_Standard_08()
         {
             var src = @"
@@ -12855,7 +12856,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (15,34): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
                 //         System.Console.Write(((C)new Buffer10<int>()).F);
@@ -12863,7 +12864,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [Fact]
         public void Conversion_ElementTypeMismatch()
         {
             var src = @"
@@ -12877,7 +12878,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0030: Cannot convert type 'Buffer10<int>' to 'System.Span<long>'
                 //         _ = (System.Span<long>)b;
@@ -12937,7 +12938,7 @@ public struct A
     public A(int x, System.Span<int> a = default(A)) { }
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
 
             var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
 
@@ -12976,7 +12977,7 @@ public struct A
     public A(int x, int a = default(A)[0]) { }
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
 
             var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
 
@@ -13055,9 +13056,9 @@ public struct Buffer10
 {
     private int _element0;
 }
-" + InlineArrayAttributeDefinition;
+";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             compilation.VerifyDiagnostics(
                 // (8,4): error CS1503: Argument 1: cannot convert from 'Buffer10' to 'System.Span<int>'
                 // [A(default(Buffer10))]
@@ -13082,9 +13083,9 @@ public struct Buffer10
 {
     private int _element0;
 }
-" + InlineArrayAttributeDefinition;
+";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             compilation.VerifyDiagnostics(
                 // (8,4): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10'
                 // [A(default(Buffer10)[0])]
@@ -13109,9 +13110,9 @@ public struct Buffer10
 {
     private int _element0;
 }
-" + InlineArrayAttributeDefinition;
+";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             compilation.VerifyDiagnostics(
                 // (9,47): error CS0030: Cannot convert type 'Buffer10' to 'System.Span<int>'
                 // [System.Runtime.CompilerServices.InlineArray(((System.Span<int>)C.F)[0])]
@@ -13136,9 +13137,9 @@ public struct Buffer10
 {
     private int _element0;
 }
-" + InlineArrayAttributeDefinition;
+";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             compilation.VerifyDiagnostics(
                 // (9,46): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10'
                 // [System.Runtime.CompilerServices.InlineArray(C.F[0])]
@@ -13146,7 +13147,7 @@ public struct Buffer10
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_IndexerIsIgnored_01()
         {
             var src = @"
@@ -13181,9 +13182,9 @@ public struct Buffer10<T>
         set => this[i] = value;
     }
 }
-" + InlineArrayAttributeDefinition;
+";
 
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M1",
@@ -13226,7 +13227,7 @@ public struct Buffer10<T>
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Index_IndexerIsIgnored_01()
         {
             var src = @"
@@ -13263,9 +13264,9 @@ public struct Buffer10<T>
 
     public int Length => 10;
 }
-" + InlineArrayAttributeDefinition;
+";
 
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M1",
@@ -13308,7 +13309,7 @@ public struct Buffer10<T>
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_SliceMethodIsIgnored_01()
         {
             var src = @"
@@ -13346,9 +13347,9 @@ public struct Buffer10<T>
     public int Length => 10;
     public System.Span<int> Slice(int start, int length) => throw null;
 }
-" + InlineArrayAttributeDefinition;
+";
 
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
@@ -13389,7 +13390,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,15): error CS9503: Index is outside the bounds of the inline array
                 //         _ = f[-2];
@@ -13424,7 +13425,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,30): error CS9503: Index is outside the bounds of the inline array
                 //         _ = f[(System.Index)(-2)];
@@ -13460,7 +13461,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,15): error CS9503: Index is outside the bounds of the inline array
                 //         _ = f[^12];
@@ -13518,7 +13519,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,32): error CS9503: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(-2, false)];
@@ -13568,10 +13569,9 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Bounds_05()
         {
-            // PROTOTYPE(InlineArrays): Uncomment Test(f, 9) once testing against .Net 8.
             var src = @"
 class Program
 {
@@ -13579,9 +13579,10 @@ class Program
     {
         Buffer10<int> f = default;
         f[0] = 111;
+        f[9] = 999;
         Test(f, -1);
         Test(f, 0);
-        //Test(f, 9);
+        Test(f, 9);
         Test(f, 10);
     }
 
@@ -13601,8 +13602,8 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: " Throw 111 Throw", verify: Verification.Fails).VerifyDiagnostics();
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: " Throw 111 999 Throw", verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -13624,7 +13625,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,15): error CS9503: Index is outside the bounds of the inline array
                 //         _ = f[-2..];
@@ -13660,7 +13661,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,17): error CS9503: Index is outside the bounds of the inline array
                 //         _ = f[..-2];
@@ -13696,7 +13697,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,32): error CS9503: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(-2)..];
@@ -13732,7 +13733,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,17): error CS9503: Index is outside the bounds of the inline array
                 //         _ = f[..^12];
@@ -13749,7 +13750,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Bounds_05()
         {
             var src = @"
@@ -13781,7 +13782,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: " 10 1 Throw 0 Throw", verify: Verification.Fails).VerifyDiagnostics();
         }
     }
