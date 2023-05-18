@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations;
             }
 
-            var memberNames = GetEnumMemberNames(node, members, ref declFlags);
+            var memberNames = GetEnumMemberNames(node, ref declFlags);
 
             var diagnostics = DiagnosticBag.GetInstance();
             var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
@@ -864,9 +864,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoxedMemberNames GetEnumMemberNames(
             EnumDeclarationSyntax enumDeclaration,
-            SeparatedSyntaxList<EnumMemberDeclarationSyntax> members,
             ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
+            var members = enumDeclaration.Members;
             var cnt = members.Count;
 
             if (cnt != 0)
