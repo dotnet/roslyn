@@ -160,11 +160,7 @@ Interceptors are treated like a post-compilation step in this design. Diagnostic
 
 ### User opt-in
 
-Although interceptors are an experimental feature, there will be no explicit opt-in step needed to use them. We won't publicize the feature (e.g. in blog posts) as something generator authors should onboard to in .NET 8.
-
-PROTOTYPE(ic): The BCL might not ship the attributes required by this feature, instead requiring them to be declared in some library brought in by a package reference, or in the user's project. But we haven't confirmed this.
-
-PROTOTYPE(ic): Feedback from Jared is that we need to have an opt-in step, even if it is only performed by generators, so that any teams adopting this understand the level of support they can expect for this. Most likely, we would do this by checking for `/features=interceptors` on the command line (`<Features>interceptors</Features>` in msbuild). Then generators that want to use interceptors would just ship a bit of msbuild logic to ensure the appropriate feature flag is being passed to the compiler.
+Interceptors will require a feature flag during the experimental phase. The flag can be enabled with `/features=interceptors` on the command line or `<Features>interceptors</Features>` in msbuild.
 
 ### Implementation strategy
 
