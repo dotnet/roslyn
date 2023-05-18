@@ -75,7 +75,8 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
         }
         else
         {
-            return new DynamicFileInfo(responseUri.LocalPath, SourceCodeKind.Regular, EmptyStringTextLoader.Instance, designTimeOnly: true, documentServiceProvider: null);
+            var dynamicFileInfoFilePath = responseUri.IsFile ? responseUri.LocalPath : responseUri.OriginalString;
+            return new DynamicFileInfo(dynamicFileInfoFilePath, SourceCodeKind.Regular, EmptyStringTextLoader.Instance, designTimeOnly: true, documentServiceProvider: null);
         }
     }
 
