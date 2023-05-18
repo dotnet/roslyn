@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
-        <target state="new">Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</target>
+        <target state="translated">Bu bağlamda '{0}' tanımlayıcısı, '{1}' tipi ve '{2}' parametresi arasında belirsizdir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -69,17 +69,17 @@
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseRefLike">
         <source>Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</source>
-        <target state="new">Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</target>
+        <target state="translated">Anonim bir yöntem, lambda ifadesi, sorgu ifadesi veya yerel işlev içinde ref benzeri türe sahip '{0}' parametresi kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured">
         <source>Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</source>
-        <target state="new">Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</target>
+        <target state="translated">Bir yapı içindeki anonim metotlar, lambda ifadeleri, sorgu ifadeleri ve yerel işlevler, bir örnek üye içinde de kullanılan birincil oluşturucu parametresine erişemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember">
         <source>Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</source>
-        <target state="new">Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</target>
+        <target state="translated">Bir yapının örnek üyesi içindeki anonim metotlar, lambda ifadeleri, sorgu ifadeleri ve yerel işlevler, birincil oluşturucu parametresine erişemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgumentNameInITuplePattern">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">Salt okunur bir türün birincil oluşturucu parametresi atanamaz (türün yalnızca init ayarlayıcısı veya bir değişken başlatıcısı dışında)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">Salt okunur bir türün '{0}' birincil oluşturucu parametresinin üyeleri değiştirilemez (türün yalnızca init ayarlayıcısı veya bir değişken başlatıcısı dışında)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignmentInitOnly">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadCaseInSwitchArm">
         <source>A switch expression arm does not begin with a 'case' keyword.</source>
-        <target state="new">A switch expression arm does not begin with a 'case' keyword.</target>
+        <target state="translated">Bir switch ifadesi kolu 'case' anahtar sözcüğüyle başlamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableReferenceTypeInUsingAlias">
         <source>Using alias cannot be a nullable reference type.</source>
-        <target state="new">Using alias cannot be a nullable reference type.</target>
+        <target state="translated">Diğer ad kullanımı null değer atanabilir bir başvuru türü olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -264,17 +264,17 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
         <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+        <target state="translated">'{0}' türündeki bir using deyimi kaynağı, asenkron yöntemlerde veya asenkron lambda ifadelerinde kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRefInUsingAlias">
         <source>Using alias cannot be a 'ref' type.</source>
-        <target state="new">Using alias cannot be a 'ref' type.</target>
+        <target state="translated">Diğer ad kullanımı bir 'ref' türü olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
         <source>'static' modifier must precede 'unsafe' modifier.</source>
-        <target state="new">'static' modifier must precede 'unsafe' modifier.</target>
+        <target state="translated">'static' değiştiricisi 'unsafe' değiştiricisinden önce olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -284,7 +284,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadUnsafeInUsingDirective">
         <source>Only a 'using static' or 'using alias' can be 'unsafe'.</source>
-        <target state="new">Only a 'using static' or 'using alias' can be 'unsafe'.</target>
+        <target state="translated">Yalnızca 'using static' veya 'using alias' 'unsafe' olabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -409,7 +409,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstantValueOfTypeExpected">
         <source>A constant value of type '{0}' is expected</source>
-        <target state="new">A constant value of type '{0}' is expected</target>
+        <target state="translated">'{0}' türünde bir sabit değer bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
@@ -729,7 +729,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in this context is not supported.</source>
-        <target state="needs-review-translation">Öznitelikte bir 'typeof' içinde işlev işaretçisi türü kullanılması desteklenmez.</target>
+        <target state="translated">Bu bağlamda bir işlev işaretçisi türünün kullanılması desteklenmez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -929,7 +929,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidPrimaryConstructorParameterReference">
         <source>Cannot use primary constructor parameter '{0}' in this context.</source>
-        <target state="new">Cannot use primary constructor parameter '{0}' in this context.</target>
+        <target state="translated">Bu bağlamda '{0}' birincil oluşturucu parametresi kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
@@ -1084,7 +1084,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single partial type declaration may have a parameter list</source>
-        <target state="needs-review-translation">Yalnızca tek kaydın kısmi bildiriminde parametre listesi olabilir</target>
+        <target state="translated">Yalnızca tek bir parçalı tür bildiriminde bir parametre listesi olabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1359,7 +1359,7 @@
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="needs-review-translation">Parametre listesiyle bir “kayıt yapısı”nda bildirilen bir oluşturucu, birincil oluşturucuyu veya açıkça bildirilen bir oluşturucuyu çağıran bir “this” başlatıcısına sahip olmalıdır.</target>
+        <target state="translated">Parametre listesiyle bir 'struct' içinde bildirilen bir oluşturucunun, birincil oluşturucuyu veya açıkça bildirilmiş bir oluşturucuyu çağıran bir 'this' başlatıcısı olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1394,12 +1394,12 @@
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">Salt okunur bir türün birincil oluşturucu parametresi, bir ref veya out değeri olarak kullanılamaz (türün yalnızca init ayarlayıcısı veya bir değişken başlatıcısı dışında)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</target>
+        <target state="translated">Salt okunur bir türün '{0}' birincil oluşturucu parametresinin üyeleri, bir ref veya out değeri olarak kullanılamaz (türün yalnızca init ayarlayıcısı veya bir değişken başlatıcı dışında)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnOnlyParameter">
@@ -1414,17 +1414,17 @@
       </trans-unit>
       <trans-unit id="ERR_RefReturnPrimaryConstructorParameter">
         <source>Cannot return primary constructor parameter '{0}' by reference.</source>
-        <target state="new">Cannot return primary constructor parameter '{0}' by reference.</target>
+        <target state="translated">'{0}' birincil oluşturucu parametresi referans olarak döndürülemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be returned by writable reference</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be returned by writable reference</target>
+        <target state="translated">Salt okunur bir türdeki birincil oluşturucu parametresi, yazılabilir referans tarafından döndürülemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter2">
         <source>Members of primary constructor parameter '{0}' of a readonly type cannot be returned by writable reference</source>
-        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be returned by writable reference</target>
+        <target state="translated">Salt okunur bir türün '{0}' birincil oluşturucu parametresinin üyeleri, yazılabilir referans tarafından döndürülemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnScopedParameter">
@@ -1644,7 +1644,7 @@
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
         <source>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</source>
-        <target state="new">Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</target>
+        <target state="translated">'{1}' tipindeki '{0}' yapı birincil oluşturucu parametresi, yapı düzeninde bir döngüye neden olur</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -1729,7 +1729,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
         <source>Unexpected parameter list.</source>
-        <target state="new">Unexpected parameter list.</target>
+        <target state="translated">Beklenmeyen parametre listesi.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
@@ -1744,7 +1744,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <target state="translated">'{0}' tanınmayan bir RefSafetyRulesAttribute sürümüne sahip bir modülde tanımlandı ve '11' bekleniyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -1774,12 +1774,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
         <source>Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</source>
-        <target state="new">Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</target>
+        <target state="translated">Bir örnek üye içinde ref, out veya in '{0}' birincil oluşturucu parametresi kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
         <source>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</source>
-        <target state="new">Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</target>
+        <target state="translated">Bir örnek üye içinde ref benzeri türe sahip '{0}' birincil oluşturucu parametresi kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
@@ -1944,7 +1944,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePrimaryConstructors">
         <source>primary constructors</source>
-        <target state="new">primary constructors</target>
+        <target state="translated">birincil oluşturucular</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRawStringLiterals">
@@ -1994,7 +1994,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUsingTypeAlias">
         <source>using type alias</source>
-        <target state="new">using type alias</target>
+        <target state="translated">tür diğer adı kullanımı</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -2029,12 +2029,12 @@
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
-        <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
+        <target state="translated">'&amp;' işleci, zaman uyumsuz yöntemlerdeki parametrelerde veya yerel değişkenlerde kullanılmamalı.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync_Title">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
-        <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
+        <target state="translated">'&amp;' işleci, zaman uyumsuz yöntemlerdeki parametrelerde veya yerel değişkenlerde kullanılmamalı.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -2139,12 +2139,12 @@
       </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase">
         <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
-        <target state="new">Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</target>
+        <target state="translated">'{0}' parametresi kapsayan türün durumuna yakalandı ve değeri temel oluşturucuya da geçirildi. Değer, temel sınıf tarafından da yakalanamıyor olabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase_Title">
         <source>Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
-        <target state="new">Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</target>
+        <target state="translated">Parametre, çevreleyen türün durumunda yakalanır ve değeri de temel oluşturucuya iletilir. Değer, temel sınıf tarafından da yakalanabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -2549,7 +2549,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
         <source>A constructor declared in a type with parameter list must have 'this' constructor initializer.</source>
-        <target state="needs-review-translation">Parametre listesi içeren bir kayıtta bildirilen bir oluşturucu, 'this' oluşturucu başlatıcısına sahip olmalıdır.</target>
+        <target state="translated">Parametre listesine sahip bir türde bildirilmiş bir oluşturucu, 'this' oluşturucu başlatıcıya sahip olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVarianceStaticMember">
@@ -4433,12 +4433,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
         <source>Parameter '{0}' is unread.</source>
-        <target state="new">Parameter '{0}' is unread.</target>
+        <target state="translated">'{0}' parametresi okunmamış.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter_Title">
         <source>Parameter is unread.</source>
-        <target state="new">Parameter is unread.</target>
+        <target state="translated">Parametre okunmamış.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter">
@@ -10381,22 +10381,22 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat">
         <source>The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</source>
-        <target state="new">The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</target>
+        <target state="translated">Belirtilen '{0}' sürüm dizesi gerekli biçime uymuyor - major[.minor[.build[.revision]]]</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
-        <target state="new">The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
+        <target state="translated">Belirtilen '{0}' sürüm dizesi gerekircilikle uyumlu olmayan joker karakterler içeriyor. Joker karakterleri sürüm dizesinden kaldırın veya bu derleme için gerekirciliği devre dışı bırakın</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
         <source>The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</source>
-        <target state="new">The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</target>
+        <target state="translated">Belirtilen '{0}' sürüm dizesi gerekli biçime uymuyor - major.minor.build.revision (joker karakter olmadan)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat">
         <source>The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="new">The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</target>
+        <target state="translated">Belirtilen '{0}' sürüm dizesi önerilen biçime uymuyor - major.minor.build.revision</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat_Title">

@@ -434,7 +434,7 @@
       </trans-unit>
       <trans-unit id="Enable_document_outline_experimental_requires_restart">
         <source>Enable document outline (experimental, requires restart)</source>
-        <target state="new">Enable document outline (experimental, requires restart)</target>
+        <target state="translated">Activer le plan du document (expérimental, nécessite un redémarrage)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
@@ -1154,7 +1154,7 @@
       </trans-unit>
       <trans-unit id="Prefer_read_only_struct_member">
         <source>Prefer read-only struct member</source>
-        <target state="new">Prefer read-only struct member</target>
+        <target state="translated">Préférer le membre struct en lecture seule</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
@@ -1499,7 +1499,7 @@
       </trans-unit>
       <trans-unit id="Sync_namespaces_changes">
         <source>Sync namespaces changes</source>
-        <target state="new">Sync namespaces changes</target>
+        <target state="translated">Synchroniser les modifications apportées aux espaces de noms</target>
         <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
