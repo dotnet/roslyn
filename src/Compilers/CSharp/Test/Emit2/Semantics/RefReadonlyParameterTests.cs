@@ -220,10 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             {
                 // (3,19): error CS1611: The params parameter cannot be declared as ref
                 //     void M(params ref readonly int[] p) => throw null;
-                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(3, 19),
-                // (3,23): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     void M(params ref readonly int[] p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 23)
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(3, 19)
             };
 
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);

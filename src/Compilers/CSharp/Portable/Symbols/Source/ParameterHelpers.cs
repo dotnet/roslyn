@@ -582,13 +582,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             addERR_DupParamMod(diagnostics, modifier);
                         }
-                        else if (!seenRef || previousModifier?.Kind() != SyntaxKind.RefKeyword)
+                        else if (previousModifier?.Kind() != SyntaxKind.RefKeyword)
                         {
                             diagnostics.Add(ErrorCode.ERR_RefReadOnlyWrongOrdering, modifier);
                         }
-                        else
+                        else if (seenRef)
                         {
-                            Debug.Assert(seenRef);
                             Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefReadonlyParameters, diagnostics);
                             seenReadonly = true;
                         }
