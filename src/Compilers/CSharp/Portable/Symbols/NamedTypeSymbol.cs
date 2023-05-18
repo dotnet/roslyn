@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                CalculateRequiredMembersIfRequired();
+                EnsureRequiredMembersCalculated();
                 Debug.Assert(!_lazyRequiredMembers.IsDefault);
                 return _lazyRequiredMembers == RequiredMembersErrorSentinel;
             }
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                CalculateRequiredMembersIfRequired();
+                EnsureRequiredMembersCalculated();
                 Debug.Assert(!_lazyRequiredMembers.IsDefault);
                 if (_lazyRequiredMembers == RequiredMembersErrorSentinel)
                 {
@@ -571,60 +571,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CalculateRequiredMembersIfRequired()
+        private void EnsureRequiredMembersCalculated()
         {
             if (!_lazyRequiredMembers.IsDefault)
             {
                 return;
             }
 
-            ImmutableSegmentedDictionary<string, Symbol>.Builder? builder = null;
-            bool success = TryCalculateRequiredMembers(ref builder);
+            bool success = tryCalculateRequiredMembers(out ImmutableSegmentedDictionary<string, Symbol>.Builder? builder);
 
             var requiredMembers = success
-                ? builder?.ToImmutable() ?? ImmutableSegmentedDictionary<string, Symbol>.Empty
+                ? builder?.ToImmutable() ?? BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers ?? ImmutableSegmentedDictionary<string, Symbol>.Empty
                 : RequiredMembersErrorSentinel;
 
             RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyRequiredMembers, requiredMembers);
-        }
 
-        /// <summary>
-        /// Attempts to calculate the required members for this type. Returns false if there were errors.
-        /// </summary>
-        private bool TryCalculateRequiredMembers(ref ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
-        {
-            var lazyRequiredMembers = _lazyRequiredMembers;
-            if (lazyRequiredMembers == RequiredMembersErrorSentinel)
+            bool tryCalculateRequiredMembers(out ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
             {
-                return false;
-            }
+                requiredMembersBuilder = null;
+                if (BaseTypeNoUseSiteDiagnostics?.HasRequiredMembersError == true)
+                {
+                    return false;
+                }
 
-            if (BaseTypeNoUseSiteDiagnostics?.TryCalculateRequiredMembers(ref requiredMembersBuilder) == false)
-            {
-                return false;
-            }
-
-            // We need to make sure that members from a base type weren't hidden by members from the current type.
-            if (!HasDeclaredRequiredMembers && requiredMembersBuilder == null)
-            {
-                return true;
-            }
-
-            return addCurrentTypeMembers(ref requiredMembersBuilder);
-
-            bool addCurrentTypeMembers(ref ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
-            {
-                requiredMembersBuilder ??= ImmutableSegmentedDictionary.CreateBuilder<string, Symbol>();
+                var baseAllRequiredMembers = BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers ?? ImmutableSegmentedDictionary<string, Symbol>.Empty;
+                var hasDeclaredRequiredMembers = HasDeclaredRequiredMembers;
 
                 foreach (var member in GetMembersUnordered())
                 {
-                    if (requiredMembersBuilder.ContainsKey(member.Name))
+                    if (member is PropertySymbol { ParameterCount: > 0 } prop)
+                    {
+                        if (prop.IsRequired)
+                        {
+                            // Bad metadata. Indexed properties cannot be required.
+                            return false;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (baseAllRequiredMembers.TryGetValue(member.Name, out var existingMember))
                     {
                         // This is only permitted if the member is an override of a required member from a base type, and is required itself.
                         if (!member.IsRequired()
-                            || member.Kind == SymbolKind.Field
                             || member.GetOverriddenMember() is not { } overriddenMember
-                            || !overriddenMember.Equals(requiredMembersBuilder[member.Name], TypeCompareKind.ConsiderEverything))
+                            || !overriddenMember.Equals(existingMember, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.AllNullableIgnoreOptions))
                         {
                             return false;
                         }
@@ -634,6 +627,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         continue;
                     }
+
+                    if (!hasDeclaredRequiredMembers)
+                    {
+                        // Bad metadata. Type claimed it didn't declare any required members, but we found one.
+                        return false;
+                    }
+
+                    requiredMembersBuilder ??= baseAllRequiredMembers.ToBuilder();
 
                     requiredMembersBuilder[member.Name] = member;
                 }
