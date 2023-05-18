@@ -544,9 +544,6 @@ class C
                 // (6,19): error CS0027: Keyword 'this' is not available in the current context
                 //         delegate*<this string, void> p2,
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 19),
-                // (7,19): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         delegate*<readonly ref string, void> p3,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(7, 19),
                 // (7,19): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //         delegate*<readonly ref string, void> p3,
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(7, 19),

@@ -583,11 +583,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.ReadOnlyKeyword:
-                        if (!seenReadonly)
-                        {
-                            Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefReadonlyParameters, diagnostics);
-                        }
-
                         if (seenReadonly)
                         {
                             addERR_DupParamMod(diagnostics, modifier);
@@ -599,6 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else
                         {
                             Debug.Assert(seenRef);
+                            Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefReadonlyParameters, diagnostics);
                             seenReadonly = true;
                         }
                         break;

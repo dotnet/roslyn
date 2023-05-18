@@ -64,20 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                     void M(readonly readonly int p) { }
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (3,12): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     void M(readonly readonly int p) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 12),
-                // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     void M(readonly readonly int p) { }
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
-                // (3,21): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     void M(readonly readonly int p) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 21),
-                // (3,21): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     void M(readonly readonly int p) { }
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 21));
-
             var expectedDiagnostics = new[]
             {
                 // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
@@ -88,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 21)
             };
 
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -102,9 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 }
                 """;
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (3,12): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     void M(readonly ref readonly int p) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 12),
                 // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //     void M(readonly ref readonly int p) { }
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
@@ -132,20 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                     void M(readonly readonly ref int p) { }
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (3,12): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     void M(readonly readonly ref int p) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 12),
-                // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     void M(readonly readonly ref int p) { }
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
-                // (3,21): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     void M(readonly readonly ref int p) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 21),
-                // (3,21): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     void M(readonly readonly ref int p) { }
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 21));
-
             var expectedDiagnostics = new[]
             {
                 // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
@@ -156,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 21)
             };
 
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -203,14 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                     void M(readonly int p) => throw null;
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (3,12): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     void M(readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 12),
-                // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     void M(readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12));
-
             var expectedDiagnostics = new[]
             {
                 // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
@@ -218,6 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12)
             };
 
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -231,14 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                     void M(readonly params int[] p) => throw null;
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (3,12): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     void M(readonly params int[] p) => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 12),
-                // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     void M(readonly params int[] p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12));
-
             var expectedDiagnostics = new[]
             {
                 // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
@@ -246,6 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12)
             };
 
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -259,17 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                     void M(params ref readonly int[] p) => throw null;
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (3,19): error CS1611: The params parameter cannot be declared as ref
-                //     void M(params ref readonly int[] p) => throw null;
-                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(3, 19),
-                // (3,23): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     void M(params ref readonly int[] p) => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 23),
-                // (3,23): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     void M(params ref readonly int[] p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 23));
-
             var expectedDiagnostics = new[]
             {
                 // (3,19): error CS1611: The params parameter cannot be declared as ref
@@ -280,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 23)
             };
 
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -293,14 +240,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                     void M(in readonly int[] p) => throw null;
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (3,15): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     void M(in readonly int[] p) => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 15),
-                // (3,15): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     void M(in readonly int[] p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 15));
-
             var expectedDiagnostics = new[]
             {
                 // (3,15): error CS9501: 'readonly' modifier must be specified after 'ref'.
@@ -308,6 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 15)
             };
 
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -321,14 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                     void M(out readonly int[] p) => throw null;
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     void M(out readonly int[] p) => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
-                // (3,16): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     void M(out readonly int[] p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 16));
-
             var expectedDiagnostics = new[]
             {
                 // (3,16): error CS9501: 'readonly' modifier must be specified after 'ref'.
@@ -336,6 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 16)
             };
 
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -349,14 +282,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                     public static void M(this readonly int p) => throw null;
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (3,31): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void M(this readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 31),
-                // (3,31): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     public static void M(this readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 31));
-
             var expectedDiagnostics = new[]
             {
                 // (3,31): error CS9501: 'readonly' modifier must be specified after 'ref'.
@@ -364,6 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 31)
             };
 
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -395,14 +321,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                     public static void M(ref this readonly int p) => throw null;
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (3,35): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void M(ref this readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 35),
-                // (3,35): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     public static void M(ref this readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 35));
-
             var expectedDiagnostics = new[]
             {
                 // (3,35): error CS9501: 'readonly' modifier must be specified after 'ref'.
@@ -410,6 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 35)
             };
 
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -459,23 +378,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                     public static void M(ref scoped readonly int p) => throw null;
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (3,30): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //     public static void M(ref scoped readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 30),
-                // (3,37): error CS1001: Identifier expected
-                //     public static void M(ref scoped readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(3, 37),
-                // (3,37): error CS1003: Syntax error, ',' expected
-                //     public static void M(ref scoped readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(3, 37),
-                // (3,37): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void M(ref scoped readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 37),
-                // (3,37): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     public static void M(ref scoped readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 37));
-
             var expectedDiagnostics = new[]
             {
                 // (3,30): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
@@ -492,6 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 37)
             };
 
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -505,23 +408,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                     public static void M(readonly scoped ref int p) => throw null;
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (3,26): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void M(readonly scoped ref int p) => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 26),
-                // (3,26): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     public static void M(readonly scoped ref int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 26),
-                // (3,35): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //     public static void M(readonly scoped ref int p) => throw null;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 35),
-                // (3,42): error CS1001: Identifier expected
-                //     public static void M(readonly scoped ref int p) => throw null;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(3, 42),
-                // (3,42): error CS1003: Syntax error, ',' expected
-                //     public static void M(readonly scoped ref int p) => throw null;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(3, 42));
-
             var expectedDiagnostics = new[]
             {
                 // (3,26): error CS9501: 'readonly' modifier must be specified after 'ref'.
@@ -538,6 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(3, 42)
             };
 
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -551,23 +438,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                     public static void M(scoped readonly int p) => throw null;
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (3,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //     public static void M(scoped readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 26),
-                // (3,33): error CS1001: Identifier expected
-                //     public static void M(scoped readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(3, 33),
-                // (3,33): error CS1003: Syntax error, ',' expected
-                //     public static void M(scoped readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(3, 33),
-                // (3,33): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void M(scoped readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 33),
-                // (3,33): error CS9501: 'readonly' modifier must be specified after 'ref'.
-                //     public static void M(scoped readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 33));
-
             var expectedDiagnostics = new[]
             {
                 // (3,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
@@ -584,6 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 33)
             };
 
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
