@@ -577,6 +577,11 @@
         <target state="translated">Strom výrazů nesmí obsahovat výraz indexu od-do (^).</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsInlineArrayOperation">
+        <source>An expression tree may not contain an inline array access or conversion</source>
+        <target state="new">An expression tree may not contain an inline array access or conversion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
         <source>An expression tree may not contain an interpolated string handler conversion.</source>
         <target state="translated">Strom výrazů nesmí obsahovat převod obslužné rutiny interpolovaného řetězce.</target>

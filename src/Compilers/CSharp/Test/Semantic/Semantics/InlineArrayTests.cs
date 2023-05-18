@@ -1852,6 +1852,28 @@ struct Buffer
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void InlineArrayType_42()
+        {
+            var src = @"
+var b = new Buffer();
+System.Console.WriteLine(b[0]);
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+public struct Buffer
+{
+    private int _element0 = 111;
+
+    public Buffer()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src + InlineArrayAttributeDefinition, targetFramework: TargetFramework.NetCoreApp);
+            // No warning CS0414: The field 'Buffer._element0' is assigned but its value is never used
+            CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ElementAccess_Variable_01()
         {
             var src = @"
@@ -4238,6 +4260,36 @@ public ref struct Buffer10
                 // (11,41): error CS4007: 'await' cannot be used in an expression containing the type 'Buffer10'
                 //     static async Task<int> M2() => M3()[await FromResult(0)];
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await FromResult(0)").WithArguments("Buffer10").WithLocation(11, 41)
+                );
+        }
+
+        [Fact]
+        public void ElementAccess_ExpressionTree_01()
+        {
+            var src = @"
+using System.Linq.Expressions;
+
+class Program
+{
+    static Expression<System.Func<int>> M1(Buffer10<int> x) =>
+        () => x[0];
+
+    static Expression<System.Action> M2(Buffer10<int> x) =>
+        () => x[0] = 111;
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (7,15): error CS9507: An expression tree may not contain an inline array access or conversion
+                //         () => x[0];
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation, "x[0]").WithLocation(7, 15),
+                // (10,15): error CS0832: An expression tree may not contain an assignment operator
+                //         () => x[0] = 111;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "x[0] = 111").WithLocation(10, 15),
+                // (10,15): error CS9507: An expression tree may not contain an inline array access or conversion
+                //         () => x[0] = 111;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation, "x[0]").WithLocation(10, 15)
                 );
         }
 
@@ -12475,6 +12527,33 @@ class Program
   IL_00c2:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void Conversion_ExpressionTree_01()
+        {
+            var src = @"
+using System.Linq.Expressions;
+
+class Program
+{
+    static Expression<System.Func<int>> M1(Buffer10<int> x) =>
+        () => ((System.Span<int>)x).Length;
+
+    static Expression<System.Func<int>> M2(Buffer10<int> x) =>
+        () => ((System.ReadOnlySpan<int>)x).Length;
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS9507: An expression tree may not contain an inline array access or conversion
+                //         () => ((System.Span<int>)x).Length;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation, "(System.Span<int>)x").WithLocation(7, 16),
+                // (10,16): error CS9507: An expression tree may not contain an inline array access or conversion
+                //         () => ((System.ReadOnlySpan<int>)x).Length;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation, "(System.ReadOnlySpan<int>)x").WithLocation(10, 16)
+                );
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
