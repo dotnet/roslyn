@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         [Fact]
-        public void RefReadonlyWithParams()
+        public void RefReadonlyWithParams_01()
         {
             var source = """
                 class C
@@ -227,6 +227,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             };
 
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefReadonlyWithParams_02()
+        {
+            var source = """
+                class C
+                {
+                    void M(ref readonly params int[] p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void M(ref readonly params int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+                // (3,25): error CS8328:  The parameter modifier 'params' cannot be used with 'ref'
+                //     void M(ref readonly params int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(3, 25));
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,25): error CS8328:  The parameter modifier 'params' cannot be used with 'ref'
+                //     void M(ref readonly params int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(3, 25)
+            };
+
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -253,6 +281,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         [Fact]
+        public void RefReadonlyWithIn()
+        {
+            var source = """
+                class C
+                {
+                    void M(ref readonly in int[] p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void M(ref readonly in int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+                // (3,25): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
+                //     void M(ref readonly in int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(3, 25));
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,25): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
+                //     void M(ref readonly in int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(3, 25)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
         public void ReadonlyWithOut()
         {
             var source = """
@@ -269,6 +325,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             };
 
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefReadonlyWithOut()
+        {
+            var source = """
+                class C
+                {
+                    void M(ref readonly out int[] p) => throw null;
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void M(ref readonly out int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+                // (3,25): error CS8328:  The parameter modifier 'out' cannot be used with 'ref'
+                //     void M(ref readonly out int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(3, 25));
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,25): error CS8328:  The parameter modifier 'out' cannot be used with 'ref'
+                //     void M(ref readonly out int[] p) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(3, 25)
+            };
+
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
