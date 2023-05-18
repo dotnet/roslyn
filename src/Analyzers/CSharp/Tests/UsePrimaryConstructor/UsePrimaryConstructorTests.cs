@@ -1641,11 +1641,7 @@ public partial class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.Preview,
             CodeActionIndex = 1,
-#if CODE_STYLE
-            NumberOfFixAllIterations = 2,
-#else
             NumberOfFixAllIterations = 1,
-#endif
         }.RunAsync();
     }
 }
