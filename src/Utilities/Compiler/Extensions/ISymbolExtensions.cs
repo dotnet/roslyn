@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #nullable disable warnings
 
@@ -641,7 +641,7 @@ namespace Analyzer.Utilities.Extensions
         /// </remarks>
         public static bool HasAttribute(this ISymbol symbol, [NotNullWhen(returnValue: true)] INamedTypeSymbol? attribute)
         {
-            return attribute != null && symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute));
+            return attribute != null && symbol.GetAttributes().Any(static (attr, attribute) => attr.AttributeClass.Equals(attribute), attribute);
         }
 
         /// <summary>
