@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -62,6 +63,95 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.RootNamespaces = rootNamespaces;
                 this.LastComputedMemberNames = lastComputedMemberNames;
                 this.DeclarationTable = declarationTable;
+            }
+
+            internal Builder ToReplaceBuilder(bool loadDirectivesHaveChanged)
+            {
+                // For a replace operation we don't convert SyntaxTrees and OrdinalMap to builders.
+                // Instead we either use null for the builders (in the common SetItem case)
+                // or we use empty builders to recreate from scratch (in the uncommon loadDirectivesHaveChanged case)
+                return new Builder
+                {
+                    SyntaxTrees = loadDirectivesHaveChanged ? ArrayBuilder<SyntaxTree>.GetInstance() : null!,
+                    OrdinalMap = loadDirectivesHaveChanged ? PooledDictionary<SyntaxTree, int>.GetInstance() : null!,
+                    LoadDirectiveMap = LoadDirectiveMap.ToBuilder(),
+                    LoadedSyntaxTreeMap = LoadedSyntaxTreeMap.ToBuilder(),
+                    RootNamespaces = RootNamespaces.ToBuilder(),
+                    LastComputedMemberNames = LastComputedMemberNames.ToBuilder(),
+                    DeclarationTable = DeclarationTable
+                };
+            }
+
+            internal Builder ToBuilder()
+            {
+                var syntaxTreesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
+                syntaxTreesBuilder.AddRange(SyntaxTrees);
+
+                return new Builder
+                {
+                    SyntaxTrees = syntaxTreesBuilder,
+                    OrdinalMap = OrdinalMap.ToBuilder(),
+                    LoadDirectiveMap = LoadDirectiveMap.ToBuilder(),
+                    LoadedSyntaxTreeMap = LoadedSyntaxTreeMap.ToBuilder(),
+                    RootNamespaces = RootNamespaces.ToBuilder(),
+                    LastComputedMemberNames = LastComputedMemberNames.ToBuilder(),
+                    DeclarationTable = DeclarationTable
+                };
+            }
+
+            [NonCopyable]
+            internal struct Builder
+            {
+                internal required ArrayBuilder<SyntaxTree> SyntaxTrees { get; init; }
+                internal required IDictionary<SyntaxTree, int> OrdinalMap { get; init; }
+
+                internal required IDictionary<SyntaxTree, ImmutableArray<LoadDirective>> LoadDirectiveMap { get; init; }
+                internal required IDictionary<string, SyntaxTree> LoadedSyntaxTreeMap { get; init; }
+                internal required IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> RootNamespaces { get; init; }
+                internal required IDictionary<SyntaxTree, OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>> LastComputedMemberNames { get; init; }
+                internal required DeclarationTable DeclarationTable;
+
+                public static Builder CreateEmpty()
+                {
+                    return new Builder
+                    {
+                        SyntaxTrees = ArrayBuilder<SyntaxTree>.GetInstance(),
+                        OrdinalMap = PooledDictionary<SyntaxTree, int>.GetInstance(),
+                        LoadDirectiveMap = PooledDictionary<SyntaxTree, ImmutableArray<LoadDirective>>.GetInstance(),
+                        LoadedSyntaxTreeMap = PooledDictionary<string, SyntaxTree>.GetInstance(),
+                        RootNamespaces = PooledDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>>.GetInstance(),
+                        LastComputedMemberNames = PooledDictionary<SyntaxTree, OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>>.GetInstance(),
+                        DeclarationTable = DeclarationTable.Empty
+                    };
+                }
+
+                public State BuildAndFree((ImmutableArray<SyntaxTree> SyntaxTrees, ImmutableDictionary<SyntaxTree, int> OrdinalMap)? replacementSyntaxTreesAndOrdinalMap = null)
+                {
+                    // If replacementSyntaxTreesAndOrdinalMap is specified, this builder must not have SyntaxTrees and OrdinalMap, and vice-versa.
+                    Debug.Assert((SyntaxTrees, OrdinalMap, replacementSyntaxTreesAndOrdinalMap) is (null, null, not null) or (not null, not null, null));
+                    var (syntaxTrees, ordinalMap) = replacementSyntaxTreesAndOrdinalMap ?? (SyntaxTrees.ToImmutableAndFree(), buildDictionary(OrdinalMap));
+
+                    return new State(
+                        syntaxTrees,
+                        ordinalMap,
+                        buildDictionary(LoadDirectiveMap),
+                        buildDictionary(LoadedSyntaxTreeMap),
+                        buildDictionary(RootNamespaces),
+                        buildDictionary(LastComputedMemberNames),
+                        DeclarationTable);
+
+                    static ImmutableDictionary<K, V> buildDictionary<K, V>(IDictionary<K, V> dictionary) where K : notnull
+                    {
+                        if (dictionary is ImmutableDictionary<K, V>.Builder builder)
+                        {
+                            return builder.ToImmutableDictionary();
+                        }
+                        else
+                        {
+                            return ((PooledDictionary<K, V>)dictionary).ToImmutableDictionaryAndFree();
+                        }
+                    }
+                }
             }
         }
     }

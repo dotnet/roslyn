@@ -53,39 +53,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommonMessageProvider messageProvider,
             bool isSubmission)
         {
-            var treesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
-            var ordinalMapBuilder = PooledDictionary<SyntaxTree, int>.GetInstance();
-            var loadDirectiveMapBuilder = PooledDictionary<SyntaxTree, ImmutableArray<LoadDirective>>.GetInstance();
-            var loadedSyntaxTreeMapBuilder = PooledDictionary<string, SyntaxTree>.GetInstance();
-            var declMapBuilder = PooledDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>>.GetInstance();
-            var lastComputedMemberNamesMap = PooledDictionary<SyntaxTree, OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>>.GetInstance();
-            var declTable = DeclarationTable.Empty;
-
+            var builder = State.Builder.CreateEmpty();
             foreach (var tree in externalSyntaxTrees)
             {
                 AppendAllSyntaxTrees(
-                    treesBuilder,
+                    ref builder,
                     tree,
                     scriptClassName,
                     resolver,
                     messageProvider,
-                    isSubmission,
-                    ordinalMapBuilder,
-                    loadDirectiveMapBuilder,
-                    loadedSyntaxTreeMapBuilder,
-                    declMapBuilder,
-                    lastComputedMemberNamesMap,
-                    ref declTable);
+                    isSubmission);
             }
 
-            return new State(
-                treesBuilder.ToImmutableAndFree(),
-                ordinalMapBuilder.ToImmutableDictionaryAndFree(),
-                loadDirectiveMapBuilder.ToImmutableDictionaryAndFree(),
-                loadedSyntaxTreeMapBuilder.ToImmutableDictionaryAndFree(),
-                declMapBuilder.ToImmutableDictionaryAndFree(),
-                lastComputedMemberNamesMap.ToImmutableDictionaryAndFree(),
-                declTable);
+            return builder.BuildAndFree();
         }
 
         public SyntaxAndDeclarationManager AddSyntaxTrees(IEnumerable<SyntaxTree> trees)
@@ -102,41 +82,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.WithExternalSyntaxTrees(newExternalSyntaxTrees);
             }
 
-            var ordinalMapBuilder = state.OrdinalMap.ToBuilder();
-            var loadDirectiveMapBuilder = state.LoadDirectiveMap.ToBuilder();
-            var loadedSyntaxTreeMapBuilder = state.LoadedSyntaxTreeMap.ToBuilder();
-            var declMapBuilder = state.RootNamespaces.ToBuilder();
-            var lastComputedMemberNamesMap = state.LastComputedMemberNames.ToBuilder();
-            var declTable = state.DeclarationTable;
-
-            var treesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
-            treesBuilder.AddRange(state.SyntaxTrees);
+            var builder = state.ToBuilder();
 
             foreach (var tree in trees)
             {
                 AppendAllSyntaxTrees(
-                        treesBuilder,
+                        ref builder,
                         tree,
                         scriptClassName,
                         resolver,
                         messageProvider,
-                        isSubmission,
-                        ordinalMapBuilder,
-                        loadDirectiveMapBuilder,
-                        loadedSyntaxTreeMapBuilder,
-                        declMapBuilder,
-                        lastComputedMemberNamesMap,
-                        ref declTable);
+                        isSubmission);
             }
 
-            state = new State(
-                treesBuilder.ToImmutableAndFree(),
-                ordinalMapBuilder.ToImmutableDictionary(),
-                loadDirectiveMapBuilder.ToImmutableDictionary(),
-                loadedSyntaxTreeMapBuilder.ToImmutableDictionary(),
-                declMapBuilder.ToImmutableDictionary(),
-                lastComputedMemberNamesMap.ToImmutableDictionary(),
-                declTable);
+            state = builder.BuildAndFree();
 
             return new SyntaxAndDeclarationManager(
                 newExternalSyntaxTrees,
@@ -151,23 +110,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Appends all trees (including any trees from #load'ed files).
         /// </summary>
         private static void AppendAllSyntaxTrees(
-            ArrayBuilder<SyntaxTree> treesBuilder,
+            ref State.Builder builder,
             SyntaxTree tree,
             string scriptClassName,
             SourceReferenceResolver resolver,
             CommonMessageProvider messageProvider,
-            bool isSubmission,
-            IDictionary<SyntaxTree, int> ordinalMapBuilder,
-            IDictionary<SyntaxTree, ImmutableArray<LoadDirective>> loadDirectiveMapBuilder,
-            IDictionary<string, SyntaxTree> loadedSyntaxTreeMapBuilder,
-            IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
-            IDictionary<SyntaxTree, OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>> lastComputedMemberNamesMap,
-            ref DeclarationTable declTable)
+            bool isSubmission)
         {
             var sourceCodeKind = tree.Options.Kind;
             if (sourceCodeKind == SourceCodeKind.Script)
             {
-                AppendAllLoadedSyntaxTrees(treesBuilder, tree, scriptClassName, resolver, messageProvider, isSubmission, ordinalMapBuilder, loadDirectiveMapBuilder, loadedSyntaxTreeMapBuilder, declMapBuilder, lastComputedMemberNamesMap, ref declTable);
+                AppendAllLoadedSyntaxTrees(ref builder, tree, scriptClassName, resolver, messageProvider, isSubmission);
             }
 
             // We're adding new trees, so passing in .Empty for lastComputedMemberNames as we do not have prior named
@@ -175,29 +128,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // used as a way to save on memory *if* items are present in it.  If not, we simply do the normal full work
             // to compute the new member names.
             AddSyntaxTreeToDeclarationMapAndTable(
-                tree, scriptClassName, isSubmission, declMapBuilder,
-                lastComputedMemberNames: OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>.Empty, ref declTable);
+                tree, scriptClassName, isSubmission, builder.RootNamespaces,
+                lastComputedMemberNames: OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>.Empty, ref builder.DeclarationTable);
 
-            treesBuilder.Add(tree);
-            ordinalMapBuilder.Add(tree, ordinalMapBuilder.Count);
+            builder.SyntaxTrees.Add(tree);
+            builder.OrdinalMap.Add(tree, builder.OrdinalMap.Count);
 
             // Fresh tree, so we have no computed names for it yet.
-            lastComputedMemberNamesMap.Add(tree, OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>.Empty);
+            builder.LastComputedMemberNames.Add(tree, OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>.Empty);
         }
 
         private static void AppendAllLoadedSyntaxTrees(
-            ArrayBuilder<SyntaxTree> treesBuilder,
+            ref State.Builder builder,
             SyntaxTree tree,
             string scriptClassName,
             SourceReferenceResolver resolver,
             CommonMessageProvider messageProvider,
-            bool isSubmission,
-            IDictionary<SyntaxTree, int> ordinalMapBuilder,
-            IDictionary<SyntaxTree, ImmutableArray<LoadDirective>> loadDirectiveMapBuilder,
-            IDictionary<string, SyntaxTree> loadedSyntaxTreeMapBuilder,
-            IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
-            IDictionary<SyntaxTree, OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>> lastComputedMemberNamesMap,
-            ref DeclarationTable declTable)
+            bool isSubmission)
         {
             ArrayBuilder<LoadDirective> loadDirectives = null;
 
@@ -233,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 path,
                                 CSharpResources.CouldNotFindFile));
                     }
-                    else if (!loadedSyntaxTreeMapBuilder.ContainsKey(resolvedFilePath))
+                    else if (!builder.LoadedSyntaxTreeMap.ContainsKey(resolvedFilePath))
                     {
                         try
                         {
@@ -244,21 +191,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 resolvedFilePath);
 
                             // All #load'ed trees should have unique path information.
-                            loadedSyntaxTreeMapBuilder.Add(loadedTree.FilePath, loadedTree);
+                            builder.LoadedSyntaxTreeMap.Add(loadedTree.FilePath, loadedTree);
 
                             AppendAllSyntaxTrees(
-                                treesBuilder,
+                                ref builder,
                                 loadedTree,
                                 scriptClassName,
                                 resolver,
                                 messageProvider,
-                                isSubmission,
-                                ordinalMapBuilder,
-                                loadDirectiveMapBuilder,
-                                loadedSyntaxTreeMapBuilder,
-                                declMapBuilder,
-                                lastComputedMemberNamesMap,
-                                ref declTable);
+                                isSubmission);
                         }
                         catch (Exception e)
                         {
@@ -284,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (loadDirectives != null)
             {
-                loadDirectiveMapBuilder.Add(tree, loadDirectives.ToImmutableAndFree());
+                builder.LoadDirectiveMap.Add(tree, loadDirectives.ToImmutableAndFree());
             }
         }
 
@@ -492,56 +433,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out totalReferencedTreeCount,
                 out oldLoadDirectives);
 
-            var loadDirectiveMapBuilder = loadDirectiveMap.ToBuilder();
-            var loadedSyntaxTreeMapBuilder = loadedSyntaxTreeMap.ToBuilder();
-            var declMapBuilder = state.RootNamespaces.ToBuilder();
-            var lastComputedMemberNamesMap = state.LastComputedMemberNames.ToBuilder();
-            var declTable = state.DeclarationTable;
+            var builder = state.ToReplaceBuilder(loadDirectivesHaveChanged);
 
             OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>> lastComputedMemberNames = tryGetLastComputedMemberNames(
-                oldTree, declMapBuilder, lastComputedMemberNamesMap);
+                oldTree, builder.RootNamespaces, builder.LastComputedMemberNames);
 
             foreach (var tree in removeSet)
             {
-                loadDirectiveMapBuilder.Remove(tree);
-                loadedSyntaxTreeMapBuilder.Remove(tree.FilePath);
-                lastComputedMemberNamesMap.Remove(tree);
-                RemoveSyntaxTreeFromDeclarationMapAndTable(tree, declMapBuilder, ref declTable);
+                builder.LoadDirectiveMap.Remove(tree);
+                builder.LoadedSyntaxTreeMap.Remove(tree.FilePath);
+                builder.LastComputedMemberNames.Remove(tree);
+                RemoveSyntaxTreeFromDeclarationMapAndTable(tree, builder.RootNamespaces, ref builder.DeclarationTable);
             }
             removeSet.Free();
 
             var oldOrdinal = ordinalMap[oldTree];
-            ImmutableArray<SyntaxTree> newTrees;
+            State newState;
             if (loadDirectivesHaveChanged)
             {
                 // Should have been removed above...
-                Debug.Assert(!loadDirectiveMapBuilder.ContainsKey(oldTree));
-                Debug.Assert(!loadDirectiveMapBuilder.ContainsKey(newTree));
+                Debug.Assert(!builder.LoadDirectiveMap.ContainsKey(oldTree));
+                Debug.Assert(!builder.LoadDirectiveMap.ContainsKey(newTree));
 
                 // If we're inserting new #load'ed trees, we'll rebuild
                 // the whole syntaxTree array and the ordinalMap.
-                var treesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
-                var ordinalMapBuilder = PooledDictionary<SyntaxTree, int>.GetInstance();
                 for (var i = 0; i <= (oldOrdinal - totalReferencedTreeCount); i++)
                 {
                     var tree = syntaxTrees[i];
-                    treesBuilder.Add(tree);
-                    ordinalMapBuilder.Add(tree, i);
+                    builder.SyntaxTrees.Add(tree);
+                    builder.OrdinalMap.Add(tree, i);
                 }
 
                 AppendAllSyntaxTrees(
-                    treesBuilder,
+                    ref builder,
                     newTree,
                     this.ScriptClassName,
                     this.Resolver,
                     this.MessageProvider,
-                    this.IsSubmission,
-                    ordinalMapBuilder,
-                    loadDirectiveMapBuilder,
-                    loadedSyntaxTreeMapBuilder,
-                    declMapBuilder,
-                    lastComputedMemberNamesMap,
-                    ref declTable);
+                    this.IsSubmission);
 
                 for (var i = oldOrdinal + 1; i < syntaxTrees.Length; i++)
                 {
@@ -549,21 +478,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!IsLoadedSyntaxTree(tree, loadedSyntaxTreeMap))
                     {
                         UpdateSyntaxTreesAndOrdinalMapOnly(
-                            treesBuilder,
+                            builder.SyntaxTrees,
                             tree,
-                            ordinalMapBuilder,
+                            builder.OrdinalMap,
                             loadDirectiveMap,
                             loadedSyntaxTreeMap);
                     }
                 }
 
-                newTrees = treesBuilder.ToImmutableAndFree();
-                ordinalMap = ordinalMapBuilder.ToImmutableDictionaryAndFree();
-                Debug.Assert(newTrees.Length == ordinalMap.Count);
+                newState = builder.BuildAndFree();
             }
             else
             {
-                AddSyntaxTreeToDeclarationMapAndTable(newTree, this.ScriptClassName, this.IsSubmission, declMapBuilder, lastComputedMemberNames, ref declTable);
+                AddSyntaxTreeToDeclarationMapAndTable(newTree, this.ScriptClassName, this.IsSubmission, builder.RootNamespaces, lastComputedMemberNames, ref builder.DeclarationTable);
 
                 if (newLoadDirectivesSyntax.Any())
                 {
@@ -572,27 +499,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!oldLoadDirectives.IsDefault);
                     Debug.Assert(!oldLoadDirectives.IsEmpty);
                     Debug.Assert(oldLoadDirectives.Length == newLoadDirectivesSyntax.Count);
-                    loadDirectiveMapBuilder[newTree] = oldLoadDirectives;
+                    builder.LoadDirectiveMap[newTree] = oldLoadDirectives;
                 }
 
                 Debug.Assert(ordinalMap.ContainsKey(oldTree)); // Checked by RemoveSyntaxTreeFromDeclarationMapAndTable
+                Debug.Assert(builder.SyntaxTrees is null);
+                Debug.Assert(builder.OrdinalMap is null);
 
-                newTrees = syntaxTrees.SetItem(oldOrdinal, newTree);
+                var newTrees = syntaxTrees.SetItem(oldOrdinal, newTree);
 
                 ordinalMap = ordinalMap.Remove(oldTree);
                 ordinalMap = ordinalMap.SetItem(newTree, oldOrdinal);
 
-                lastComputedMemberNamesMap.Add(newTree, lastComputedMemberNames);
+                builder.LastComputedMemberNames.Add(newTree, lastComputedMemberNames);
+                newState = builder.BuildAndFree((newTrees, ordinalMap));
             }
-
-            state = new State(
-                newTrees,
-                ordinalMap,
-                loadDirectiveMapBuilder.ToImmutable(),
-                loadedSyntaxTreeMapBuilder.ToImmutable(),
-                declMapBuilder.ToImmutable(),
-                lastComputedMemberNamesMap.ToImmutable(),
-                declTable);
 
             return new SyntaxAndDeclarationManager(
                 newExternalSyntaxTrees,
@@ -600,12 +521,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Resolver,
                 this.MessageProvider,
                 this.IsSubmission,
-                state);
+                newState);
 
             static OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>> tryGetLastComputedMemberNames(
                 SyntaxTree oldTree,
-                ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>>.Builder declMapBuilder,
-                ImmutableDictionary<SyntaxTree, OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>>.Builder lastComputedMemberNamesMap)
+                IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
+                IDictionary<SyntaxTree, OneOrMany<WeakReference<StrongBox<ImmutableSegmentedHashSet<string>>>>> lastComputedMemberNamesMap)
             {
                 var previousRootNamespaceDeclaration = declMapBuilder[oldTree];
                 if (previousRootNamespaceDeclaration.IsValueCreated)
