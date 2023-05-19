@@ -263,6 +263,30 @@ $$"""
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConstructorSnippetInStaticClassTest()
+        {
+            var markupBeforeCommit =
+$$"""
+static class MyClass
+{
+    $$
+}
+""";
+            var expectedCodeAfterCommit =
+$$"""
+static class MyClass
+{
+    public MyClass()
+    {
+        $$
+    }
+}
+""";
+            // Current CSharpConstructorSnippetProvider implementation inserts a constructor even for static classes.
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
         [WpfTheory]
         [InlineData("enum")]
         [InlineData("interface")]
@@ -276,8 +300,127 @@ $$"""
     $$
 }
 """;
-
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("struct")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConstructorSnippetBraceNotClosed(string keyword)
+        {
+            var markupBeforeCommit =
+$$"""
+namespace N
+{
+    {{keyword}} Outer
+    {
+        $$
+        int i;
+""";
+
+            var expectedCodeAfterCommit =
+$$"""
+namespace N
+{
+    {{keyword}} Outer
+    {
+        public Outer()
+        {
+            $$
+        }
+        int i;
+""";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("struct")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConstructorSnippetBraceNotClosedAndEndOfFile(string keyword)
+        {
+            var markupBeforeCommit =
+$$"""
+namespace N
+{
+    {{keyword}} Outer
+    {
+        $$
+""";
+
+            var expectedCodeAfterCommit =
+$$"""
+namespace N
+{
+    {{keyword}} Outer
+    {
+        public Outer()
+        {
+            $$
+        }
+""";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("struct")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConstructorSnippetBraceNotClosedAndEndOfFileAndNested(string keyword)
+        {
+            var markupBeforeCommit =
+$$"""
+namespace N
+{
+    {{keyword}} Outer
+    {
+        class Inner{}
+        $$
+""";
+
+            var expectedCodeAfterCommit =
+$$"""
+namespace N
+{
+    {{keyword}} Outer
+    {
+        class Inner{}
+        public Outer()
+        {
+            $$
+        }
+""";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConstructorSnippetInGenericClassTest()
+        {
+            var markupBeforeCommit =
+@"class MyClass<T> : BaseClass
+{
+    $$
+}";
+
+            var expectedCodeAfterCommit =
+@"class MyClass<T> : BaseClass
+{
+    public MyClass()
+    {
+        $$
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
     }
 }
