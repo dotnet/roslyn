@@ -1532,6 +1532,11 @@
         <target state="translated">"{0}": el entorno de ejecución de destino no admite los tipos de valores devueltos de covariante en las invalidaciones. El tipo de valor devuelto debe ser "{2}" para que coincida con el miembro "{1}" invalidado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportInlineArrayTypes">
+        <source>Target runtime doesn't support inline array types.</source>
+        <target state="new">Target runtime doesn't support inline array types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">El entorno de ejecución de destino no admite la accesibilidad protegida, protegida interna o protegida privada para un miembro de una interfaz.</target>

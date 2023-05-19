@@ -1756,6 +1756,11 @@ next:;
                 {
                     diagnostics.Add(ErrorCode.ERR_InvalidInlineArrayFields, GetFirstLocation());
                 }
+
+                if (!ContainingAssembly.RuntimeSupportsInlineArrayTypes)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, GetFirstLocation());
+                }
             }
         }
     }
