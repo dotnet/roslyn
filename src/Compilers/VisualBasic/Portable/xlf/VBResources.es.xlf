@@ -17,6 +17,11 @@
         <target state="translated">Error de sintaxis de la línea de comandos: "{0}" no es un valor válido para la opción "{1}". El valor debe tener el formato "{2}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
+        <source>Cannot inherit from '{0}' because it has required members.</source>
+        <target state="new">Cannot inherit from '{0}' because it has required members.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
         <target state="translated">Use la versión de lenguaje {0} o superior para usar los comentarios después del carácter de continuación de línea.</target>
@@ -32,9 +37,19 @@
         <target state="translated">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' está reservado solo para el uso del compilador.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoNotUseRequiredMember">
+        <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
+        <target state="new">'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">No es posible que un mismo directorio ("{0}") contenga varios archivos de configuración del analizador.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="new">'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
@@ -50,6 +65,16 @@
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">El tipo "{0}" no se puede insertar porque tiene una reabstracción de un miembro de la interfaz base. Puede establecer la propiedad "Incrustar tipos de interoperabilidad" en false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSet">
+        <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
+        <target state="new">Required member '{0}' must be set in the object initializer or attribute arguments.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersInvalid">
+        <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
+        <target state="new">The required members list for '{0}' is malformed and cannot be interpreted.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

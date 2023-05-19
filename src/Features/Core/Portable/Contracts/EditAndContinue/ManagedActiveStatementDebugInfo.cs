@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
+namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
 {
     /// <summary>
     /// Active statement debug information retrieved from the runtime and the PDB.

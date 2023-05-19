@@ -3,22 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
+using InternalUtilities = Microsoft.Internal.VisualStudio.PlatformUI.Utilities;
+using IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
+using OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
+using OLECMDF = Microsoft.VisualStudio.OLE.Interop.OLECMDF;
+using OleConstants = Microsoft.VisualStudio.OLE.Interop.Constants;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
@@ -26,64 +30,190 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// Interaction logic for DocumentOutlineView.xaml
     /// All operations happen on the UI thread for visual studio
     /// </summary>
-    internal sealed partial class DocumentOutlineView : UserControl, IDisposable
+    internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarget, IDisposable, IVsWindowSearch
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptionService;
         private readonly VsCodeWindowViewTracker _viewTracker;
         private readonly DocumentOutlineViewModel _viewModel;
+        private readonly IVsToolbarTrayHost _toolbarTrayHost;
+        private readonly IVsWindowSearchHost _windowSearchHost;
 
         public DocumentOutlineView(
+            IVsUIShell4 uiShell,
+            IVsWindowSearchHostFactory windowSearchHostFactory,
             IThreadingContext threadingContext,
+            IGlobalOptionService globalOptionService,
             VsCodeWindowViewTracker viewTracker,
             DocumentOutlineViewModel viewModel)
         {
             _threadingContext = threadingContext;
+            _globalOptionService = globalOptionService;
             _viewTracker = viewTracker;
             _viewModel = viewModel;
 
             DataContext = _viewModel;
             InitializeComponent();
-            UpdateSort(SortOption.Location); // Set default sort for top-level items
+            UpdateSort(_globalOptionService.GetOption(DocumentOutlineOptionsStorage.DocumentOutlineSortOrder), userSelected: false);
+
+            ErrorHandler.ThrowOnFailure(uiShell.CreateToolbarTray(this, out _toolbarTrayHost));
+            ErrorHandler.ThrowOnFailure(_toolbarTrayHost.AddToolbar(Guids.RoslynGroupId, ID.RoslynCommands.DocumentOutlineToolbar));
+
+            ErrorHandler.ThrowOnFailure(_toolbarTrayHost.GetToolbarTray(out var toolbarTray));
+            ErrorHandler.ThrowOnFailure(toolbarTray.GetUIObject(out var uiObject));
+            ErrorHandler.ThrowOnFailure(((IVsUIWpfElement)uiObject).GetFrameworkElement(out var frameworkElement));
+            Commands.Content = frameworkElement;
+
+            _windowSearchHost = windowSearchHostFactory.CreateWindowSearchHost(SearchHost);
+            _windowSearchHost.SetupSearch(this);
 
             viewTracker.CaretMovedOrActiveViewChanged += ViewTracker_CaretMovedOrActiveViewChanged;
         }
 
         public void Dispose()
         {
+            _toolbarTrayHost.Close();
+            _windowSearchHost.TerminateSearch();
             _viewTracker.CaretMovedOrActiveViewChanged -= ViewTracker_CaretMovedOrActiveViewChanged;
             _viewModel.Dispose();
         }
 
-        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
-            => _viewModel.SearchText = SearchBox.Text;
+        int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
+        {
+            if (pguidCmdGroup == Guids.RoslynGroupId)
+            {
+                for (var i = 0; i < cCmds; i++)
+                {
+                    switch (prgCmds[i].cmdID)
+                    {
+                        case ID.RoslynCommands.DocumentOutlineExpandAll:
+                            prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
+                            break;
 
-        private void ExpandAll(object sender, RoutedEventArgs e)
-            => _viewModel.ExpandOrCollapseAll(true);
+                        case ID.RoslynCommands.DocumentOutlineCollapseAll:
+                            prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
+                            break;
 
-        private void CollapseAll(object sender, RoutedEventArgs e)
-            => _viewModel.ExpandOrCollapseAll(false);
+                        case ID.RoslynCommands.DocumentOutlineSortByName:
+                            prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
+                            if (_viewModel.SortOption == SortOption.Name)
+                                prgCmds[i].cmdf |= (uint)OLECMDF.OLECMDF_LATCHED;
 
-        private void SortByName(object sender, EventArgs e)
-            => UpdateSort(SortOption.Name);
+                            break;
 
-        private void SortByOrder(object sender, EventArgs e)
-            => UpdateSort(SortOption.Location);
+                        case ID.RoslynCommands.DocumentOutlineSortByOrder:
+                            prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
+                            if (_viewModel.SortOption == SortOption.Location)
+                                prgCmds[i].cmdf |= (uint)OLECMDF.OLECMDF_LATCHED;
 
-        private void SortByType(object sender, EventArgs e)
-            => UpdateSort(SortOption.Type);
+                            break;
 
-        private void UpdateSort(SortOption sortOption)
+                        case ID.RoslynCommands.DocumentOutlineSortByType:
+                            prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
+                            if (_viewModel.SortOption == SortOption.Type)
+                                prgCmds[i].cmdf |= (uint)OLECMDF.OLECMDF_LATCHED;
+
+                            break;
+
+                        default:
+                            prgCmds[i].cmdf = 0;
+                            break;
+                    }
+                }
+
+                return VSConstants.S_OK;
+            }
+
+            return (int)OleConstants.OLECMDERR_E_NOTSUPPORTED;
+        }
+
+        int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
+        {
+            if (pguidCmdGroup == Guids.RoslynGroupId)
+            {
+                switch (nCmdID)
+                {
+                    case ID.RoslynCommands.DocumentOutlineExpandAll:
+                        _viewModel.ExpandOrCollapseAll(true);
+                        return VSConstants.S_OK;
+
+                    case ID.RoslynCommands.DocumentOutlineCollapseAll:
+                        _viewModel.ExpandOrCollapseAll(false);
+                        return VSConstants.S_OK;
+
+                    case ID.RoslynCommands.DocumentOutlineSortByName:
+                        UpdateSort(SortOption.Name, userSelected: true);
+                        return VSConstants.S_OK;
+
+                    case ID.RoslynCommands.DocumentOutlineSortByOrder:
+                        UpdateSort(SortOption.Location, userSelected: true);
+                        return VSConstants.S_OK;
+
+                    case ID.RoslynCommands.DocumentOutlineSortByType:
+                        UpdateSort(SortOption.Type, userSelected: true);
+                        return VSConstants.S_OK;
+                }
+            }
+
+            return (int)OleConstants.OLECMDERR_E_NOTSUPPORTED;
+        }
+
+        bool IVsWindowSearch.SearchEnabled => true;
+
+        Guid IVsWindowSearch.Category => Guids.DocumentOutlineSearchCategoryId;
+
+        IVsEnumWindowSearchFilters? IVsWindowSearch.SearchFiltersEnum => null;
+
+        IVsEnumWindowSearchOptions? IVsWindowSearch.SearchOptionsEnum => null;
+
+        IVsSearchTask IVsWindowSearch.CreateSearch(uint dwCookie, IVsSearchQuery pSearchQuery, IVsSearchCallback pSearchCallback)
+        {
+            _viewModel.SearchText = pSearchQuery.SearchString;
+            return new VsSearchTask(dwCookie, pSearchQuery, pSearchCallback);
+        }
+
+        void IVsWindowSearch.ClearSearch()
+        {
+            _viewModel.SearchText = "";
+        }
+
+        void IVsWindowSearch.ProvideSearchSettings(IVsUIDataSource pSearchSettings)
+        {
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.ControlMaxWidth, uint.MaxValue);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchStartType, (uint)VSSEARCHSTARTTYPE.SST_DELAYED);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchStartDelay, (uint)100);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchUseMRU, true);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.PrefixFilterMRUItems, false);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.MaximumMRUItems, (uint)25);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchWatermark, ServicesVSResources.Document_Outline_Search);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchPopupAutoDropdown, false);
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.ControlBorderThickness, "1");
+            InternalUtilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchProgressType, (uint)VSSEARCHPROGRESSTYPE.SPT_INDETERMINATE);
+        }
+
+        bool IVsWindowSearch.OnNavigationKeyDown(uint dwNavigationKey, uint dwModifiers)
+        {
+            // By default we are not interesting in intercepting navigation keys, so return "not handled"
+            return false;
+        }
+
+        private void UpdateSort(SortOption sortOption, bool userSelected)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            // Log which sort option was used
-            Logger.Log(sortOption switch
+            if (userSelected)
             {
-                SortOption.Name => FunctionId.DocumentOutline_SortByName,
-                SortOption.Location => FunctionId.DocumentOutline_SortByOrder,
-                SortOption.Type => FunctionId.DocumentOutline_SortByType,
-                _ => throw new NotImplementedException(),
-            }, logLevel: LogLevel.Information);
+                // Log which sort option was used and save it back to the global options
+                Logger.Log(sortOption switch
+                {
+                    SortOption.Name => FunctionId.DocumentOutline_SortByName,
+                    SortOption.Location => FunctionId.DocumentOutline_SortByOrder,
+                    SortOption.Type => FunctionId.DocumentOutline_SortByType,
+                    _ => throw new NotImplementedException(),
+                }, logLevel: LogLevel.Information);
+
+                _globalOptionService.SetGlobalOption(DocumentOutlineOptionsStorage.DocumentOutlineSortOrder, sortOption);
+            }
 
             // "DocumentSymbolItems" is the key name we specified for our CollectionViewSource in the XAML file
             var collectionView = ((CollectionViewSource)FindResource("DocumentSymbolItems")).View;
@@ -158,6 +288,40 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 {
                     _viewModel.IsNavigating = false;
                 }
+            }
+        }
+
+        /// <summary>
+        /// When a symbol node in the window is selected, make sure it is visible.
+        /// </summary>
+        private void SymbolTreeItem_Selected(object sender, RoutedEventArgs e)
+        {
+            // Construct a rectangle at the left of the item to avoid horizontal scrolling when the items is longer than
+            // fits in the view. We make the rectangle 25% the width of the containing tree view to ensure at least some
+            // of the text is visible for deeply nested items.
+            if (e.OriginalSource is TreeViewItem item)
+            {
+                double renderHeight;
+                if (item.IsExpanded && item.HasItems)
+                {
+                    // The first child is a container. Inside the container are three children:
+                    // 1. The expander
+                    // 2. The border for the header item
+                    // 3. The container for the children
+                    //
+                    // For expanded items, we want to only consider the render heigh of the header item, since that is
+                    // the specific item which is selected.
+                    var container = VisualTreeHelper.GetChild(item, 0);
+                    var border = VisualTreeHelper.GetChild(container, 1);
+                    renderHeight = ((UIElement)border).RenderSize.Height;
+                }
+                else
+                {
+                    renderHeight = item.RenderSize.Height;
+                }
+
+                var croppedRenderWidth = Math.Min(item.RenderSize.Width, SymbolTree.RenderSize.Width / 4);
+                item.BringIntoView(new Rect(new Point(0, 0), new Size(croppedRenderWidth, renderHeight)));
             }
         }
 

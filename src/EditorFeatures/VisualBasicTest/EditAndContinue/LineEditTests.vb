@@ -5,7 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.EditAndContinue
-Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
+Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols

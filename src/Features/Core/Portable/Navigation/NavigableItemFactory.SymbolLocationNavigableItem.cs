@@ -4,9 +4,12 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Navigation
 {
@@ -17,6 +20,12 @@ namespace Microsoft.CodeAnalysis.Navigation
             private readonly Solution _solution;
             private readonly ISymbol _symbol;
             private readonly Location _location;
+
+            /// <summary>
+            /// Lazily-initialized backing field for <see cref="Document"/>.
+            /// </summary>
+            /// <seealso cref="LazyInitialization.EnsureInitialized{T, U}(ref StrongBox{T}, Func{U, T}, U)"/>
+            private StrongBox<INavigableItem.NavigableDocument> _lazyDocument;
 
             public SymbolLocationNavigableItem(
                 Solution solution,
@@ -38,8 +47,21 @@ namespace Microsoft.CodeAnalysis.Navigation
 
             public bool IsImplicitlyDeclared => _symbol.IsImplicitlyDeclared;
 
-            public Document Document
-                => _location.IsInSource ? _solution.GetDocument(_location.SourceTree) : null;
+            public INavigableItem.NavigableDocument Document
+            {
+                get
+                {
+                    return LazyInitialization.EnsureInitialized(
+                        ref _lazyDocument,
+                        static self =>
+                        {
+                            return (self._location.IsInSource && self._solution.GetDocument(self._location.SourceTree) is { } document)
+                                ? INavigableItem.NavigableDocument.FromDocument(document)
+                                : null;
+                        },
+                        this);
+                }
+            }
 
             public TextSpan SourceSpan => _location.SourceSpan;
 

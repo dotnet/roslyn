@@ -76,6 +76,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_run_code_analysis_in_separate_process As String =
             ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
 
+        Public ReadOnly Property Option_run_code_analysis_on_dotnet As String =
+            ServicesVSResources.Run_code_analysis_on_latest_dotnet_requires_restart
+
         Public ReadOnly Property Option_DisplayLineSeparators As String =
             BasicVSResources.Show_procedure_line_separators
 

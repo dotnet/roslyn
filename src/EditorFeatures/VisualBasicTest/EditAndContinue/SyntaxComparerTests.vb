@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         End Sub
 
         <Fact>
-        Public Sub ComputeDistance1()
+        Public Sub ComputeDistance_Nodes()
             Dim distance = SyntaxComparer.ComputeDistance(
                  {MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)},
                  {MakeLiteral(1), MakeLiteral(3)})
@@ -84,16 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         End Sub
 
         <Fact>
-        Public Sub ComputeDistance2()
-            Dim distance = SyntaxComparer.ComputeDistance(
-                ImmutableArray.Create(MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)),
-                ImmutableArray.Create(MakeLiteral(1), MakeLiteral(3)))
-
-            Assert.Equal(0.67, Math.Round(distance, 2))
-        End Sub
-
-        <Fact>
-        Public Sub ComputeDistance3()
+        Public Sub ComputeDistance_Tokens()
             Dim distance = SyntaxComparer.ComputeDistance(
                  {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)},
                  {SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)})
@@ -159,6 +150,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 Nothing)
 
             Assert.Equal(0.0, Math.Round(distance, 2))
+        End Sub
+
+        <Fact>
+        Public Sub ComputeDistance_LongSequences()
+            Dim t1 = SyntaxFactory.Token(SyntaxKind.PublicKeyword)
+            Dim t2 = SyntaxFactory.Token(SyntaxKind.PrivateKeyword)
+            Dim t3 = SyntaxFactory.Token(SyntaxKind.ProtectedKeyword)
+
+            Dim distance = SyntaxComparer.ComputeDistance(
+                Enumerable.Range(0, 10000).Select(Function(i) If(i < 2000, t1, t2)),
+                Enumerable.Range(0, 10000).Select(Function(i) If(i < 2000, t1, t3)))
+
+            ' long sequences are indistinguishable if they have common prefix shorter then threshold
+            Assert.Equal(0.0, distance)
         End Sub
     End Class
 End Namespace

@@ -90,7 +90,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' NOTE: in case the structure has a constructor with all optional parameters 
                         '       we don't catch it here; this matches Dev10 behavior
 
-                        Dim ctors = DirectCast(type0, NamedTypeSymbol).InstanceConstructors
+                        Dim namedType = DirectCast(type0, NamedTypeSymbol)
+                        Dim ctors = namedType.InstanceConstructors
 
                         If Not ctors.IsEmpty Then
                             For Each constructor In ctors
@@ -113,6 +114,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         '       Emitter will just emit 'initobj' instead of constructor call instead
 
                         '  create a simplified object creation expression
+                        Dim initializerOpt As BoundObjectInitializerExpressionBase = BindObjectCollectionOrMemberInitializer(node,
+                                                                                type0,
+                                                                                asNewVariablePlaceholderOpt,
+                                                                                diagnostics)
+
+                        CheckRequiredMembersInObjectInitializer(constructorSymbol, namedType, If(initializerOpt?.Initializers, ImmutableArray(Of BoundExpression).Empty), typeNode, diagnostics)
+
                         Return New BoundObjectCreationExpression(
                                         node,
                                         constructorSymbol,
@@ -123,10 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              QualificationKind.QualifiedViaTypeName)),
                                         arguments:=ImmutableArray(Of BoundExpression).Empty,
                                         defaultArguments:=BitVector.Null,
-                                        BindObjectCollectionOrMemberInitializer(node,
-                                                                                type0,
-                                                                                asNewVariablePlaceholderOpt,
-                                                                                diagnostics),
+                                        initializerOpt,
                                         type0)
                     End If
 
@@ -491,8 +496,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                   children.ToImmutableAndFree(),
                                                                   type0, hasErrors:=True)
                     Else
+                        Dim constructorSymbol As MethodSymbol = DirectCast(methodResult.Candidate.UnderlyingSymbol, MethodSymbol)
+
+                        CheckRequiredMembersInObjectInitializer(constructorSymbol, constructorSymbol.ContainingType, If(objectInitializerExpressionOpt?.Initializers, ImmutableArray(Of BoundExpression).Empty), typeNode, diagnostics)
+
                         resultExpression = New BoundObjectCreationExpression(node,
-                                                                             DirectCast(methodResult.Candidate.UnderlyingSymbol, MethodSymbol),
+                                                                             constructorSymbol,
                                                                              constructorsGroup,
                                                                              boundArguments,
                                                                              argumentInfo.DefaultArguments,
@@ -507,6 +516,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return resultExpression
         End Function
+
+        Friend Shared Sub CheckRequiredMembersInObjectInitializer(
+            constructor As MethodSymbol,
+            containingType As NamedTypeSymbol,
+            initializers As ImmutableArray(Of BoundExpression),
+            creationSyntax As SyntaxNode,
+            diagnostics As BindingDiagnosticBag)
+
+            ' The only time constructor will be null is if we're trying to invoke a parameterless struct ctor, and it's not accessible (such as being protected).
+            Debug.Assert((constructor IsNot Nothing AndAlso ReferenceEquals(constructor.ContainingType, containingType)) OrElse containingType.IsStructureType())
+
+            If constructor IsNot Nothing AndAlso constructor.HasSetsRequiredMembers Then
+                Return
+            End If
+
+            If containingType.HasRequiredMembersError Then
+                ' A use-site diagnostic will be reported on the use, so we don't need to do any more checking here.
+                Return
+            End If
+
+            Dim requiredMembers = containingType.AllRequiredMembers
+
+            If requiredMembers.Count = 0 Then
+                Return
+            End If
+
+            Dim requiredMembersBuilder = requiredMembers.ToBuilder()
+
+            If Not initializers.IsDefaultOrEmpty Then
+                For Each initializer In initializers
+                    Dim assignmentOperator = TryCast(initializer, BoundAssignmentOperator)
+                    If assignmentOperator Is Nothing Then
+                        Continue For
+                    End If
+
+                    Dim memberSymbol As Symbol = If(
+                        DirectCast(TryCast(assignmentOperator.Left, BoundPropertyAccess)?.PropertySymbol, Symbol),
+                        TryCast(assignmentOperator.Left, BoundFieldAccess)?.FieldSymbol)
+
+                    If memberSymbol Is Nothing Then
+                        Continue For
+                    End If
+
+                    Dim requiredMember As Symbol = Nothing
+                    If Not requiredMembersBuilder.TryGetValue(memberSymbol.Name, requiredMember) Then
+                        Continue For
+                    End If
+
+                    If Not memberSymbol.Equals(requiredMember, TypeCompareKind.AllIgnoreOptionsForVB) Then
+                        Continue For
+                    End If
+
+                    requiredMembersBuilder.Remove(memberSymbol.Name)
+                Next
+            End If
+
+            For Each kvp In requiredMembersBuilder
+                diagnostics.Add(ERRID.ERR_RequiredMemberMustBeSet, creationSyntax.Location, kvp.Value)
+            Next
+        End Sub
 
         Private Function BindNoPiaObjectCreationExpression(
             node As SyntaxNode,

@@ -516,7 +516,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             }
         }
 
-        [Fact]
+        [Fact, Obsolete(message: "IsDiagnosticAnalyzerSuppressed is an obsolete public API")]
         public void TestDisabledAnalyzers()
         {
             var fullyDisabledAnalyzer = new FullyDisabledAnalyzer();

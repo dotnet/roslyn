@@ -5,27 +5,28 @@
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
+using InternalContracts = Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal static class ContractWrappers
     {
-        public static Contracts.ManagedActiveStatementDebugInfo ToContract(this ManagedActiveStatementDebugInfo info)
-            => new(ToContract(info.ActiveInstruction), info.DocumentName, ToContract(info.SourceSpan), (Contracts.ActiveStatementFlags)info.Flags);
+        public static InternalContracts.ManagedActiveStatementDebugInfo ToContract(this ManagedActiveStatementDebugInfo info)
+            => new(ToContract(info.ActiveInstruction), info.DocumentName, ToContract(info.SourceSpan), (InternalContracts.ActiveStatementFlags)info.Flags);
 
-        public static Contracts.ManagedInstructionId ToContract(this ManagedInstructionId id)
+        public static InternalContracts.ManagedInstructionId ToContract(this ManagedInstructionId id)
             => new(ToContract(id.Method), id.ILOffset);
 
-        public static Contracts.ManagedMethodId ToContract(this ManagedMethodId id)
+        public static InternalContracts.ManagedMethodId ToContract(this ManagedMethodId id)
             => new(id.Module, id.Token, id.Version);
 
-        public static Contracts.SourceSpan ToContract(this SourceSpan id)
+        public static InternalContracts.SourceSpan ToContract(this SourceSpan id)
             => new(id.StartLine, id.StartColumn, id.EndLine, id.EndColumn);
 
-        public static Contracts.ManagedHotReloadAvailability ToContract(this ManagedHotReloadAvailability value)
-            => new((Contracts.ManagedHotReloadAvailabilityStatus)value.Status, value.LocalizedMessage);
+        public static InternalContracts.ManagedHotReloadAvailability ToContract(this ManagedHotReloadAvailability value)
+            => new((InternalContracts.ManagedHotReloadAvailabilityStatus)value.Status, value.LocalizedMessage);
 
-        public static ManagedHotReloadUpdate FromContract(this Contracts.ManagedHotReloadUpdate update)
+        public static ManagedHotReloadUpdate FromContract(this InternalContracts.ManagedHotReloadUpdate update)
             => new(
                 module: update.Module,
                 moduleName: update.ModuleName,
@@ -39,31 +40,34 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 activeStatements: update.ActiveStatements.SelectAsArray(FromContract),
                 exceptionRegions: update.ExceptionRegions.SelectAsArray(FromContract));
 
-        public static ImmutableArray<ManagedHotReloadUpdate> FromContract(this ImmutableArray<Contracts.ManagedHotReloadUpdate> diagnostics)
+        public static ManagedHotReloadUpdates FromContract(this InternalContracts.ManagedHotReloadUpdates updates)
+            => new(updates.Updates.FromContract(), updates.Diagnostics.FromContract());
+
+        public static ImmutableArray<ManagedHotReloadUpdate> FromContract(this ImmutableArray<InternalContracts.ManagedHotReloadUpdate> diagnostics)
             => diagnostics.SelectAsArray(FromContract);
 
-        public static SequencePointUpdates FromContract(this Contracts.SequencePointUpdates updates)
+        public static SequencePointUpdates FromContract(this InternalContracts.SequencePointUpdates updates)
             => new(updates.FileName, updates.LineUpdates.SelectAsArray(FromContract));
 
-        public static SourceLineUpdate FromContract(this Contracts.SourceLineUpdate update)
+        public static SourceLineUpdate FromContract(this InternalContracts.SourceLineUpdate update)
             => new(update.OldLine, update.NewLine);
 
-        public static ManagedActiveStatementUpdate FromContract(this Contracts.ManagedActiveStatementUpdate update)
+        public static ManagedActiveStatementUpdate FromContract(this InternalContracts.ManagedActiveStatementUpdate update)
             => new(FromContract(update.Method), update.ILOffset, FromContract(update.NewSpan));
 
-        public static ManagedModuleMethodId FromContract(this Contracts.ManagedModuleMethodId update)
+        public static ManagedModuleMethodId FromContract(this InternalContracts.ManagedModuleMethodId update)
             => new(update.Token, update.Version);
 
-        public static SourceSpan FromContract(this Contracts.SourceSpan id)
+        public static SourceSpan FromContract(this InternalContracts.SourceSpan id)
             => new(id.StartLine, id.StartColumn, id.EndLine, id.EndColumn);
 
-        public static ManagedExceptionRegionUpdate FromContract(this Contracts.ManagedExceptionRegionUpdate update)
+        public static ManagedExceptionRegionUpdate FromContract(this InternalContracts.ManagedExceptionRegionUpdate update)
             => new(FromContract(update.Method), update.Delta, FromContract(update.NewSpan));
 
-        public static ImmutableArray<ManagedHotReloadDiagnostic> FromContract(this ImmutableArray<Contracts.ManagedHotReloadDiagnostic> diagnostics)
+        public static ImmutableArray<ManagedHotReloadDiagnostic> FromContract(this ImmutableArray<InternalContracts.ManagedHotReloadDiagnostic> diagnostics)
             => diagnostics.SelectAsArray(FromContract);
 
-        public static ManagedHotReloadDiagnostic FromContract(this Contracts.ManagedHotReloadDiagnostic diagnostic)
+        public static ManagedHotReloadDiagnostic FromContract(this InternalContracts.ManagedHotReloadDiagnostic diagnostic)
             => new(diagnostic.Id, diagnostic.Message, (ManagedHotReloadDiagnosticSeverity)diagnostic.Severity, diagnostic.FilePath, FromContract(diagnostic.Span));
     }
 }

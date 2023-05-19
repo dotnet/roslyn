@@ -139,14 +139,14 @@
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.5]"
     },
-    "release/dev17.6-vs-deps": {
+    "release/dev17.6": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
       "vsBranch": "rel/d17.6",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.6P3]"
+      "insertionTitlePrefix": "[d17.6]"
     },
     "release/dev17.7": {
       "nugetKind": [
