@@ -135,7 +135,7 @@ if (!$Requester) {
         $Requester = $env:USERNAME
     }
     if (!$Requester) {
-        Write-Error "Unable to determine default value for -Requester."
+        $Requester = $OwnerAlias
     }
 }
 
