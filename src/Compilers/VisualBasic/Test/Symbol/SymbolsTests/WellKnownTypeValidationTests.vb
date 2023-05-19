@@ -455,7 +455,8 @@ End Namespace
                 Assert.NotNull(symbol)
 
                 If special = SpecialType.System_Runtime_CompilerServices_RuntimeFeature OrElse
-                   special = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute Then
+                   special = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute OrElse
+                   special = SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute Then
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind) ' Not available
                 Else
                     Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
@@ -489,7 +490,8 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields OrElse
-                   special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor Then
+                   special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor Then
                     Assert.Null(symbol) ' Not available
                 Else
                     Assert.NotNull(symbol)

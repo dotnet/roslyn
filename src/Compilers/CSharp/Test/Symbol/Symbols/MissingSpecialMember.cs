@@ -530,8 +530,9 @@ namespace System
                 var symbol = comp.GetSpecialType(special);
                 Assert.NotNull(symbol);
 
-                if (special == SpecialType.System_Runtime_CompilerServices_RuntimeFeature ||
-                    special == SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute)
+                if (special is SpecialType.System_Runtime_CompilerServices_RuntimeFeature or
+                               SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute or
+                               SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute)
                 {
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind); // Not available
                 }
@@ -559,7 +560,8 @@ namespace System
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
-                    || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor)
+                    || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
+                    || special == SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor)
                 {
                     Assert.Null(symbol); // Not available
                 }

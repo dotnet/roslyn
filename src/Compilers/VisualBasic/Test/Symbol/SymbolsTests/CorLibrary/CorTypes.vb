@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetCoreApp.SystemRuntime})
             Dim msCorLibRef As MetadataOrSourceAssemblySymbol = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
 
-            Dim knownMissingTypes As HashSet(Of Integer) = New HashSet(Of Integer)
+            Dim knownMissingTypes As HashSet(Of Integer) = New HashSet(Of Integer) From {SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute}
 
             For i As Integer = 1 To SpecialType.Count
                 Dim t = msCorLibRef.GetSpecialType(CType(i, SpecialType))

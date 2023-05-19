@@ -1532,6 +1532,11 @@
         <target state="translated">'{0}': Hedef çalışma zamanı, geçersiz kılmalarda birlikte değişken dönüş türlerini desteklemiyor. Dönüş türü, geçersiz kılınan '{1}' üyesiyle eşleşmek için '{2}' olmalıdır</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportInlineArrayTypes">
+        <source>Target runtime doesn't support inline array types.</source>
+        <target state="new">Target runtime doesn't support inline array types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Hedef çalışma zamanı, bir arabirim üyesi için 'protected', 'protected internal' veya 'private protected' erişilebilirliğini desteklemez.</target>

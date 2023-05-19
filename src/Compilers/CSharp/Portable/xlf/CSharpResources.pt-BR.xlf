@@ -1532,6 +1532,11 @@
         <target state="translated">'{0}': o runtime de destino não dá suporte a tipos de retorno covariantes em substituições. O tipo de retorno precisa ser '{2}' para corresponder ao membro substituído '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportInlineArrayTypes">
+        <source>Target runtime doesn't support inline array types.</source>
+        <target state="new">Target runtime doesn't support inline array types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">O runtime de destino não é compatível com a acessibilidade 'protected', 'protected internal' ou 'private protected' para um membro de uma interface.</target>

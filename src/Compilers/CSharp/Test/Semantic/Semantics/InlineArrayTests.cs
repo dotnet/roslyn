@@ -99,6 +99,15 @@ public class Enclosing
 48
 ";
             CompileAndVerify(comp, expectedOutput: output, verify: Verification.Fails).VerifyDiagnostics();
+
+            var t = comp.GetSpecialType(SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute);
+            Assert.Equal(SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute, t.SpecialType);
+            Assert.Equal(t.IsValueType, SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute.IsValueType());
+
+            Assert.True(comp.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes));
+
+            var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Net80, null));
+            Assert.True(vbComp.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes));
         }
 
         [Fact]
@@ -181,6 +190,8 @@ struct Buffer<T>
         public void InlineArrayType_04_MultipleAttributes()
         {
             var src = @"
+#pragma warning disable CS0436 // The type 'InlineArrayAttribute' conflicts with the imported type
+
 [System.Runtime.CompilerServices.InlineArray(10)]
 [System.Runtime.CompilerServices.InlineArray(100)]
 struct Buffer
@@ -202,7 +213,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
@@ -1239,20 +1250,9 @@ struct Buffer
     public const int Length = 10;
     private int _element0;
 }
-
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
-    public sealed class InlineArrayAttribute : Attribute
-    {
-        public InlineArrayAttribute (int length)
-        {
-        }
-    }
-}
 ";
-            var comp = CreateCompilation(src);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -1276,20 +1276,9 @@ struct Buffer<T>
     public const int Length = 10;
     private int _element0;
 }
-
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
-    public sealed class InlineArrayAttribute : Attribute
-    {
-        public InlineArrayAttribute (int length)
-        {
-        }
-    }
-}
 ";
-            var comp = CreateCompilation(src);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -1318,21 +1307,9 @@ class C1 : System.Attribute
 {
     public Buffer Field = default;
 }
-
-
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
-    public sealed class InlineArrayAttribute : Attribute
-    {
-        public InlineArrayAttribute (int length)
-        {
-        }
-    }
-}
 ";
-            var comp = CreateCompilation(src);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -13784,6 +13761,89 @@ class Program
 
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: " 10 1 Throw 0 Throw", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ElementAccess_RuntimeSupport()
+        {
+            var src = @"
+var b = new Buffer();
+_ = b[2];
+
+
+[System.Runtime.CompilerServices.InlineArray(3)]
+struct Buffer
+{
+    private int _element0;
+}
+" + InlineArrayAttributeDefinition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS9508: Target runtime doesn't support inline array types.
+                // _ = b[2];
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, "b[2]").WithLocation(3, 5),
+                // (7,8): error CS9508: Target runtime doesn't support inline array types.
+                // struct Buffer
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, "Buffer").WithLocation(7, 8)
+                );
+
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes));
+
+            var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Net70, null));
+            Assert.False(vbComp.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes));
+        }
+
+        [Fact]
+        public void Slice_RuntimeSupport()
+        {
+            var src = @"
+var b = new Buffer();
+_ = b[2..];
+
+
+[System.Runtime.CompilerServices.InlineArray(3)]
+struct Buffer
+{
+    private int _element0;
+}
+" + InlineArrayAttributeDefinition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS9508: Target runtime doesn't support inline array types.
+                // _ = b[2..];
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, "b[2..]").WithLocation(3, 5),
+                // (7,8): error CS9508: Target runtime doesn't support inline array types.
+                // struct Buffer
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, "Buffer").WithLocation(7, 8)
+                );
+        }
+
+        [Fact]
+        public void Conversion_RuntimeSupport()
+        {
+            var src = @"
+var b = new Buffer();
+_ = (System.Span<int>)b;
+
+
+[System.Runtime.CompilerServices.InlineArray(3)]
+struct Buffer
+{
+    private int _element0;
+}
+" + InlineArrayAttributeDefinition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS9508: Target runtime doesn't support inline array types.
+                // _ = (System.Span<int>)b;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, "(System.Span<int>)b").WithLocation(3, 5),
+                // (7,8): error CS9508: Target runtime doesn't support inline array types.
+                // struct Buffer
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, "Buffer").WithLocation(7, 8)
+                );
         }
     }
 }

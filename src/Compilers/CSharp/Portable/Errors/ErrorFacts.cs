@@ -2318,6 +2318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InvalidInlineArrayLayout:
                 case ErrorCode.ERR_InvalidInlineArrayFields:
                 case ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation:
+                case ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

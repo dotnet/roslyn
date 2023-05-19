@@ -8114,7 +8114,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     spanType.Construct(ImmutableArray.Create(elementField.TypeWithAnnotations)).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, node.GetLocation(), diagnostics));
                 }
 
-                // PROTOTYPE(InlineArrays): Check runtime support
+                if (!Compilation.Assembly.RuntimeSupportsInlineArrayTypes)
+                {
+                    Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, node);
+                }
+
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureInlineArrays, diagnostics);
                 diagnostics.ReportUseSite(elementField, node);
 

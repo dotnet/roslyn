@@ -410,7 +410,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (conversion.IsInlineArray)
                 {
-                    // PROTOTYPE(InlineArrays): Check runtime support
+                    if (!Compilation.Assembly.RuntimeSupportsInlineArrayTypes)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, syntax);
+                    }
+
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInlineArrays, diagnostics);
                     diagnostics.ReportUseSite(source.Type!.TryGetInlineArrayElementField(), syntax);
 
