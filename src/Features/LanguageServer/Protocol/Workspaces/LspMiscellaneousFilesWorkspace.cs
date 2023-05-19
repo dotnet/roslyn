@@ -55,12 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// </summary>
         public Document? AddMiscellaneousDocument(Uri uri, SourceText documentText, string languageId, ILspLogger logger)
         {
-            // If we have a file:///xyz URI, we'll store the actual file path string in the document file path.
-            // Otherwise we have a URI that doesn't point to an actual file.  In such a scenario, we'll store the full URI string (including schema).
-            // This will allow correct round-tripping of the URI for features that need it until we support URI as a first class document concept.
-            // Tracking issue - https://github.com/dotnet/roslyn/issues/68083
-            var documentFilePath = uri.IsFile ? uri.LocalPath : uri.OriginalString;
-
+            var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
             var languageInformation = GetLanguageInformation(documentFilePath, languageId);
             if (languageInformation == null)
             {
