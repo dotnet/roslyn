@@ -2769,11 +2769,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var value = ComputeValueForCompoundAssignment(operation, targetValue, assignedValue, operation.Target.Type, operation.Value.Type);
             if (operation.Target is IFlowCaptureReferenceOperation flowCaptureReference)
             {
-                HandleFlowCaptureReferenceAssignment(flowCaptureReference, operation.Value, assignedValue);
+                HandleFlowCaptureReferenceAssignment(flowCaptureReference, operation.Value, value);
             }
             else
             {
-                SetAbstractValueForAssignment(operation.Target, operation.Value, assignedValue);
+                SetAbstractValueForAssignment(operation.Target, operation.Value, value);
             }
 
             return value;
