@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // If replacementSyntaxTreesAndOrdinalMap is specified, this builder must not have SyntaxTrees and OrdinalMap, and vice-versa.
                     Debug.Assert((SyntaxTrees, OrdinalMap, replacementSyntaxTreesAndOrdinalMap) is (null, null, not null) or (not null, not null, null));
-                    var (syntaxTrees, ordinalMap) = replacementSyntaxTreesAndOrdinalMap ?? (SyntaxTrees.ToImmutableAndFree(), buildDictionary(OrdinalMap));
+                    var (syntaxTrees, ordinalMap) = replacementSyntaxTreesAndOrdinalMap ?? (SyntaxTrees!.ToImmutableAndFree(), buildDictionary(OrdinalMap!));
 
                     return new State(
                         syntaxTrees,
