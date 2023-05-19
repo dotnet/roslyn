@@ -2324,6 +2324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias:
                 case ErrorCode.ERR_BadStaticAfterUnsafe:
                 case ErrorCode.ERR_BadCaseInSwitchArm:
+                case ErrorCode.ERR_InterceptorsFeatureNotEnabled:
                 case ErrorCode.ERR_InterceptorCannotBeGeneric:
                 case ErrorCode.ERR_InterceptorPathNotInCompilation:
                 case ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate:
