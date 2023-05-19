@@ -416,6 +416,13 @@ function MSBuild {
       export NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS=20
       Write-PipelineSetVariable -name "NUGET_PLUGIN_HANDSHAKE_TIMEOUT_IN_SECONDS" -value "20"
       Write-PipelineSetVariable -name "NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS" -value "20"
+
+      export NUGET_ENABLE_EXPERIMENTAL_HTTP_RETRY=true
+      export NUGET_EXPERIMENTAL_MAX_NETWORK_TRY_COUNT=6
+      export NUGET_EXPERIMENTAL_NETWORK_RETRY_DELAY_MILLISECONDS=1000
+      Write-PipelineSetVariable -name "NUGET_ENABLE_EXPERIMENTAL_HTTP_RETRY" -value "true"
+      Write-PipelineSetVariable -name "NUGET_EXPERIMENTAL_MAX_NETWORK_TRY_COUNT" -value "6"
+      Write-PipelineSetVariable -name "NUGET_EXPERIMENTAL_NETWORK_RETRY_DELAY_MILLISECONDS" -value "1000"
     fi
 
     local toolset_dir="${_InitializeToolset%/*}"
@@ -488,17 +495,6 @@ function MSBuild-Core {
   }
 
   RunBuildTool "$_InitializeBuildToolCommand" /m /nologo /clp:Summary /v:$verbosity /nr:$node_reuse $warnaserror_switch /p:TreatWarningsAsErrors=$warn_as_error /p:ContinuousIntegrationBuild=$ci "$@"
-}
-
-function GetDarc {
-    darc_path="$temp_dir/darc"
-    version="$1"
-
-    if [[ -n "$version" ]]; then
-      version="--darcversion $version"
-    fi
-
-    "$eng_root/common/darc-init.sh" --toolpath "$darc_path" $version
 }
 
 ResolvePath "${BASH_SOURCE[0]}"
