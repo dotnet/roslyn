@@ -72,61 +72,12 @@
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="30" />
-            <RowDefinition Height="23" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="28" />
-                <ColumnDefinition Width="28" />
-                <ColumnDefinition Width="28" />
-                <ColumnDefinition Width="28" />
-                <ColumnDefinition Width="28" />
-            </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Click="ExpandAll" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Expand_All}">
-                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.ExpandAll}" />
-            </Button>
-            <Button Grid.Column="1" Click="CollapseAll" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Collapse_All}">
-                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.CollapseAll}" />
-            </Button>
-            <Button Grid.Column="2" Click="SortByName" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Sort_Name}">
-                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.SortAscending}" />
-            </Button>
-            <Button Grid.Column="3" Click="SortByOrder" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Sort_Order}">
-                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.SortByNamespace}" />
-            </Button>
-            <Button Grid.Column="4" Click="SortByType" ToolTip="{x:Static self:DocumentOutlineStrings.Document_Outline_Sort_Type}">
-                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.SortByType}" />
-            </Button>
-        </Grid>
-        <TextBox Grid.Row="1" x:Name="SearchBox" TextChanged="SearchBox_TextChanged"  VerticalContentAlignment="Center">
-            <TextBox.Style>
-                <Style TargetType="TextBox">
-                    <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}" />
-                    <Setter Property="Padding" Value="3, 0, 0, 0" />
-                    <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
-                    <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
-                    <Setter Property="CaretBrush" Value="{StaticResource {x:Static vsui:HeaderColors.DefaultTextBrushKey}}" />
-                    <Style.Resources>
-                        <VisualBrush x:Key="CueBannerBrush" AlignmentX="Left" AlignmentY="Center" Stretch="None">
-                            <VisualBrush.Visual>
-                                <Label Content="{x:Static self:DocumentOutlineStrings.Document_Outline_Search}"
-                                       Foreground="{DynamicResource {x:Static vsshell:VsBrushes.TitleBarInactiveTextKey}}"
-                                       FontFamily="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}"
-                                       FontSize="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
-                            </VisualBrush.Visual>
-                        </VisualBrush>
-                    </Style.Resources>
-                    <Style.Triggers>
-                        <Trigger Property="Text" Value="">
-                            <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </TextBox.Style>
-        </TextBox>
+        <ContentControl Grid.Row="0" Name="Commands" Focusable="True" />
+        <Grid Grid.Row="1" x:Name="SearchHost" />
         <!-- Two important properties are being set for TreeView:
                We set IsVirtualizing to "True" so that WPF only generates internal data-structures elements that are visible.
                Setting VirtualizationMode to "Recycling" ensures that WPF internal data is reused as items scroll in and out of view.
@@ -140,16 +91,18 @@
              interaction. -->
         <TreeView Grid.Row="2"
                   Name="SymbolTree"
+                  AutomationProperties.Name="{x:Static self:DocumentOutlineStrings.Document_Outline}"
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
                   TreeViewItem.SourceUpdated="SymbolTreeItem_SourceUpdated"
+                  TreeViewItem.Selected="SymbolTreeItem_Selected"
                   ItemsSource="{Binding Source={StaticResource DocumentSymbolItems}}"> <!-- Binding to our CollectionViewSource -->
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolDataViewModel}">
                     <HierarchicalDataTemplate.ItemsSource>
                         <MultiBinding Converter="{StaticResource ItemSorter}"> <!-- This binding ensures our TreeViewItems are sorted if the collection is changed OR the sort option is changed -->
                             <Binding Path="Children" />
-                            <Binding Path="DataContext.SortOption"  RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=UserControl}" />
+                            <Binding Path="DataContext.SortOption" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=UserControl}" />
                         </MultiBinding>
                     </HierarchicalDataTemplate.ItemsSource>
                     <StackPanel Orientation="Horizontal"
@@ -170,6 +123,7 @@
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}">
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="AutomationProperties.Name" Value="{Binding Data.Name, Mode=OneWay}" />
                     <!-- See docs above for why we set `NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False` -->
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False}" />
                     <Setter Property="Padding" Value="4, 0, 6, 1" />

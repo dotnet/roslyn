@@ -146,5 +146,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return other Is Me OrElse
                 (other IsNot Nothing AndAlso TypeSymbol.Equals(Me._containingType, other._containingType, TypeCompareKind.ConsiderEverything) AndAlso Me._underlyingMethod.ConstructedFrom = other._underlyingMethod.ConstructedFrom)
         End Function
+
+        Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return _underlyingMethod.HasSetsRequiredMembers
+            End Get
+        End Property
     End Class
 End Namespace

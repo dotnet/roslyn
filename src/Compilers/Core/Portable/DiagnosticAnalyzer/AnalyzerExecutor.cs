@@ -31,22 +31,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal const string AnalyzerExceptionDiagnosticId = "AD0001";
         internal const string AnalyzerDriverExceptionDiagnosticId = "AD0002";
 
-        private readonly Compilation? _compilation;
-        private readonly AnalyzerOptions? _analyzerOptions;
         private readonly Action<Diagnostic, CancellationToken>? _addNonCategorizedDiagnostic;
         private readonly Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? _addCategorizedLocalDiagnostic;
         private readonly Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? _addCategorizedNonLocalDiagnostic;
         private readonly Action<Suppression>? _addSuppression;
-        private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> _onAnalyzerException;
         private readonly Func<Exception, bool>? _analyzerExceptionFilter;
         private readonly AnalyzerManager _analyzerManager;
-        private readonly Func<DiagnosticAnalyzer, bool>? _isCompilerAnalyzer;
-        private readonly Func<DiagnosticAnalyzer, object?>? _getAnalyzerGate;
-        private readonly Func<SyntaxTree, SemanticModel>? _getSemanticModel;
+        private readonly Func<DiagnosticAnalyzer, bool> _isCompilerAnalyzer;
+        private readonly Func<DiagnosticAnalyzer, object?> _getAnalyzerGate;
+        private readonly Func<SyntaxTree, SemanticModel> _getSemanticModel;
         private readonly Func<DiagnosticAnalyzer, bool> _shouldSkipAnalysisOnGeneratedCode;
         private readonly Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
         private readonly Func<SyntaxTree, TextSpan, CancellationToken, bool> _isGeneratedCodeLocation;
-        private readonly Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, CancellationToken, bool>? _isAnalyzerSuppressedForTree;
+        private readonly Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, CancellationToken, bool> _isAnalyzerSuppressedForTree;
 
         /// <summary>
         /// The values in this map convert to <see cref="TimeSpan"/> using <see cref="TimeSpan.FromTicks(long)"/>.
@@ -63,7 +60,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree, CancellationToken cancellationToken)
         {
-            Debug.Assert(_isAnalyzerSuppressedForTree != null);
             return _isAnalyzerSuppressedForTree(analyzer, tree, Compilation.Options.SyntaxTreeOptionsProvider, cancellationToken);
         }
 
@@ -129,62 +125,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 addSuppression);
         }
 
-        /// <summary>
-        /// Creates <see cref="AnalyzerExecutor"/> to fetch <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/>.
-        /// </summary>
-        /// <param name="onAnalyzerException">
-        /// Optional delegate which is invoked when an analyzer throws an exception.
-        /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
-        /// </param>
-        /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
-        public static AnalyzerExecutor CreateForSupportedDiagnostics(
-            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken>? onAnalyzerException,
-            AnalyzerManager analyzerManager)
-        {
-            onAnalyzerException ??= (ex, analyzer, diagnostic, cancellationToken) => { };
-            return new AnalyzerExecutor(
-                compilation: null,
-                analyzerOptions: null,
-                addNonCategorizedDiagnosticOpt: null,
-                isCompilerAnalyzer: null,
-                shouldSkipAnalysisOnGeneratedCode: _ => false,
-                shouldSuppressGeneratedCodeDiagnostic: (diagnostic, analyzer, compilation, ct) => false,
-                isGeneratedCodeLocation: (_1, _2, _3) => false,
-                isAnalyzerSuppressedForTree: null,
-                getAnalyzerGate: null,
-                getSemanticModel: null,
-                onAnalyzerException: onAnalyzerException,
-                analyzerExceptionFilter: null,
-                analyzerManager: analyzerManager,
-                analyzerExecutionTimeMap: null,
-                addCategorizedLocalDiagnostic: null,
-                addCategorizedNonLocalDiagnostic: null,
-                addSuppression: null);
-        }
-
         private AnalyzerExecutor(
-            Compilation? compilation,
-            AnalyzerOptions? analyzerOptions,
+            Compilation compilation,
+            AnalyzerOptions analyzerOptions,
             Action<Diagnostic, CancellationToken>? addNonCategorizedDiagnosticOpt,
             Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException,
             Func<Exception, bool>? analyzerExceptionFilter,
-            Func<DiagnosticAnalyzer, bool>? isCompilerAnalyzer,
+            Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
             Func<SyntaxTree, TextSpan, CancellationToken, bool> isGeneratedCodeLocation,
-            Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, CancellationToken, bool>? isAnalyzerSuppressedForTree,
-            Func<DiagnosticAnalyzer, object?>? getAnalyzerGate,
-            Func<SyntaxTree, SemanticModel>? getSemanticModel,
+            Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, CancellationToken, bool> isAnalyzerSuppressedForTree,
+            Func<DiagnosticAnalyzer, object?> getAnalyzerGate,
+            Func<SyntaxTree, SemanticModel> getSemanticModel,
             ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>? analyzerExecutionTimeMap,
             Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? addCategorizedLocalDiagnostic,
             Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? addCategorizedNonLocalDiagnostic,
             Action<Suppression>? addSuppression)
         {
-            _compilation = compilation;
-            _analyzerOptions = analyzerOptions;
+            Compilation = compilation;
+            AnalyzerOptions = analyzerOptions;
             _addNonCategorizedDiagnostic = addNonCategorizedDiagnosticOpt;
-            _onAnalyzerException = onAnalyzerException;
+            OnAnalyzerException = onAnalyzerException;
             _analyzerExceptionFilter = analyzerExceptionFilter;
             _isCompilerAnalyzer = isCompilerAnalyzer;
             _analyzerManager = analyzerManager;
@@ -202,33 +165,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilationAnalysisValueProviderFactory = new CompilationAnalysisValueProviderFactory();
         }
 
-        internal bool TryGetCompilationAndAnalyzerOptions(
-            [NotNullWhen(true)] out Compilation? compilation,
-            [NotNullWhen(true)] out AnalyzerOptions? analyzerOptions)
-        {
-            (compilation, analyzerOptions) = (_compilation, _analyzerOptions);
-            return compilation != null && analyzerOptions != null;
-        }
+        internal Compilation Compilation { get; }
 
-        internal Compilation Compilation
-        {
-            get
-            {
-                Debug.Assert(_compilation != null);
-                return _compilation;
-            }
-        }
+        internal AnalyzerOptions AnalyzerOptions { get; }
 
-        internal AnalyzerOptions AnalyzerOptions
-        {
-            get
-            {
-                Debug.Assert(_analyzerOptions != null);
-                return _analyzerOptions;
-            }
-        }
-
-        internal Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> OnAnalyzerException => _onAnalyzerException;
+        internal Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> OnAnalyzerException { get; }
         internal ImmutableDictionary<DiagnosticAnalyzer, TimeSpan> AnalyzerExecutionTimes
         {
             get
@@ -335,7 +276,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void ExecuteSuppressionAction(DiagnosticSuppressor suppressor, ImmutableArray<Diagnostic> reportedDiagnostics, CancellationToken cancellationToken)
         {
             Debug.Assert(_addSuppression != null);
-            Debug.Assert(_getSemanticModel != null);
 
             if (reportedDiagnostics.IsEmpty)
             {
@@ -1178,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 timer = SharedStopwatch.StartNew();
             }
 
-            var gate = _getAnalyzerGate?.Invoke(analyzer);
+            var gate = _getAnalyzerGate(analyzer);
             if (gate != null)
             {
                 lock (gate)
@@ -1209,34 +1149,51 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken.ThrowIfCancellationRequested();
                 analyze(argument);
             }
-            catch (Exception e) when (ExceptionFilter(e, cancellationToken))
+            catch (Exception ex) when (HandleAnalyzerException(ex, analyzer, info, OnAnalyzerException, _analyzerExceptionFilter, cancellationToken))
             {
-                // Diagnostic for analyzer exception.
-                var diagnostic = CreateAnalyzerExceptionDiagnostic(analyzer, e, info);
-                try
-                {
-                    _onAnalyzerException(e, analyzer, diagnostic, cancellationToken);
-                }
-                catch (Exception)
-                {
-                    // Ignore exceptions from exception handlers.
-                }
             }
         }
 
-        internal bool ExceptionFilter(Exception ex, CancellationToken cancellationToken)
+        internal static bool HandleAnalyzerException(
+            Exception exception,
+            DiagnosticAnalyzer analyzer,
+            AnalysisContextInfo? info,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException,
+            Func<Exception, bool>? analyzerExceptionFilter,
+            CancellationToken cancellationToken)
         {
-            if ((ex as OperationCanceledException)?.CancellationToken == cancellationToken)
+            if (!ExceptionFilter(exception, analyzerExceptionFilter, cancellationToken))
             {
                 return false;
             }
 
-            if (_analyzerExceptionFilter != null)
+            // Diagnostic for analyzer exception.
+            var diagnostic = CreateAnalyzerExceptionDiagnostic(analyzer, exception, info);
+            try
             {
-                return _analyzerExceptionFilter(ex);
+                onAnalyzerException(exception, analyzer, diagnostic, cancellationToken);
+            }
+            catch (Exception)
+            {
+                // Ignore exceptions from exception handlers.
             }
 
             return true;
+
+            static bool ExceptionFilter(Exception ex, Func<Exception, bool>? analyzerExceptionFilter, CancellationToken cancellationToken)
+            {
+                if ((ex as OperationCanceledException)?.CancellationToken == cancellationToken)
+                {
+                    return false;
+                }
+
+                if (analyzerExceptionFilter != null)
+                {
+                    return analyzerExceptionFilter(ex);
+                }
+
+                return true;
+            }
         }
 
         internal static Diagnostic CreateAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e, AnalysisContextInfo? info = null)
@@ -1359,8 +1316,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool IsSupportedDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            Debug.Assert(_isCompilerAnalyzer != null);
-
             if (diagnostic is DiagnosticWithInfo)
             {
                 // Compiler diagnostic

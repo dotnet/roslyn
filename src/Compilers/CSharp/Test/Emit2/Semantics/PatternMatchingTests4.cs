@@ -4748,5 +4748,35 @@ public class C
 """);
         }
 #endif
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67923")]
+        public void VarPatternCapturingAfterDisjunctiveTypeTest()
+        {
+            var source = """
+A a = new B();
+
+if (a is (B or C) and var x)
+{
+    if (x is null)
+        throw null;
+    else
+        System.Console.WriteLine("OK");
+}
+
+class A { }
+class B : A { }
+class C : A { }
+class D : A { }
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "OK");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var x = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().First();
+            Assert.Equal("x", x.ToString());
+            Assert.Equal("A? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+        }
     }
 }

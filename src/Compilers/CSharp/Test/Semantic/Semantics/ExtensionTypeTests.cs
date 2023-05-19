@@ -57,7 +57,7 @@ public class ExtensionTypeTests : CompilingTestBase
         Assert.Empty(namedType.AllInterfacesNoUseSiteDiagnostics); // PROTOTYPE
         Assert.False(namedType.IsReadOnly);
         Assert.False(namedType.IsRefLikeType);
-        Assert.False(namedType.IsUnsafe());
+        Assert.False(namedType.IsPointerOrFunctionPointer());
         Assert.Equal(TypeKind.Extension, namedType.TypeKind);
         Assert.False(namedType.IsInterfaceType());
         Assert.False(namedType.IsAbstract);
