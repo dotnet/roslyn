@@ -210,6 +210,32 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
         Assert.Null(GetMiscellaneousDocument(testLspServer));
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestLooseFile_OpenedWithLanguageId(bool mutatingLspWorkspace)
+    {
+        var source =
+@"class A
+{
+    void M()
+    {
+    }
+}";
+
+        // Create a server that supports LSP misc files and verify no misc files present.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        Assert.Null(GetMiscellaneousDocument(testLspServer));
+
+        // Open an empty loose file that hasn't been saved with a name.
+        var looseFileUri = new Uri(@"untitled:untitledFile");
+        await testLspServer.OpenDocumentAsync(looseFileUri, source, languageId: "csharp").ConfigureAwait(false);
+
+        // Verify file is added to the misc file workspace.
+        await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
+        var miscDoc = GetMiscellaneousDocument(testLspServer);
+        AssertEx.NotNull(miscDoc);
+        Assert.Equal(LanguageNames.CSharp, miscDoc.Project.Language);
+    }
+
     private static async Task AssertFileInMiscWorkspaceAsync(TestLspServer testLspServer, Uri fileUri)
     {
         var (lspWorkspace, _, _) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = fileUri }, CancellationToken.None);

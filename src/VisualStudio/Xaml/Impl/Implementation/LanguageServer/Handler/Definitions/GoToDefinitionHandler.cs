@@ -159,10 +159,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             var items = NavigableItemFactory.GetItemsFromPreferredSourceLocations(context.Solution, symbol, displayTaggedParts: null, cancellationToken);
             if (items.Any())
             {
+                RoslynDebug.AssertNotNull(context.Solution);
                 foreach (var item in items)
                 {
+                    var document = await item.Document.GetRequiredDocumentAsync(context.Solution, cancellationToken).ConfigureAwait(false);
                     var location = await ProtocolConversions.TextSpanToLocationAsync(
-                        item.Document, item.SourceSpan, item.IsStale, cancellationToken).ConfigureAwait(false);
+                        document, item.SourceSpan, item.IsStale, cancellationToken).ConfigureAwait(false);
                     locations.AddIfNotNull(location);
                 }
             }

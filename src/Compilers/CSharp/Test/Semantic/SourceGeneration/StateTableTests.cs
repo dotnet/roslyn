@@ -585,6 +585,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 });
         }
 
+        [Fact, WorkItem(61162, "https://github.com/dotnet/roslyn/issues/61162")]
+        public void Batch_Node_Remove_From_Beginning()
+        {
+            // [A], [B]
+            var input = new[] { ("A", EntryState.Added), ("B", EntryState.Added) };
+            var inputNode = new CallbackNode<string>((_, _) =>
+            {
+                // Simulate syntax node.
+                var builder = NodeStateTable<string>.Empty.ToBuilder(null, false);
+                foreach (var (value, state) in input)
+                {
+                    builder.AddEntry(value, state, TimeSpan.Zero, default, state);
+                }
+                return builder.ToImmutableAndFree();
+            });
+            var dstBuilder = GetBuilder(DriverStateTable.Empty);
+            var table1 = dstBuilder.GetLatestStateTableForNode(inputNode);
+            AssertTableEntries(table1, new[] { ("A", EntryState.Added, 0), ("B", EntryState.Added, 0) });
+            AssertTableEntries(table1.AsCached(), new[] { ("A", EntryState.Cached, 0), ("B", EntryState.Cached, 0) });
+
+            // batch => [[A], [B]]
+            var batchNode = new BatchNode<string>(inputNode);
+            var table2 = dstBuilder.GetLatestStateTableForNode(batchNode);
+            AssertTableEntries(table2, new[] { (ImmutableArray.Create("A", "B"), EntryState.Added, 0) });
+            AssertTableEntries(table2.AsCached(), new[] { (ImmutableArray.Create("A", "B"), EntryState.Cached, 0) });
+
+            // [B]
+            input = new[] { ("B", EntryState.Cached) };
+            dstBuilder = GetBuilder(dstBuilder.ToImmutable());
+            table1 = dstBuilder.GetLatestStateTableForNode(inputNode);
+            AssertTableEntries(table1, new[] { ("B", EntryState.Cached, 0) });
+            AssertTableEntries(table1.AsCached(), new[] { ("B", EntryState.Cached, 0) });
+
+            // batch => [[B]]
+            table2 = dstBuilder.GetLatestStateTableForNode(batchNode);
+            AssertTableEntries(table2, new[] { (ImmutableArray.Create("B"), EntryState.Modified, 0) });
+            AssertTableEntries(table2.AsCached(), new[] { (ImmutableArray.Create("B"), EntryState.Cached, 0) });
+        }
+
         [Fact]
         [WorkItem(54832, "https://github.com/dotnet/roslyn/issues/54832")]
         public void Transform_Node_Records_NewInput_OnFirst_Run()
@@ -967,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             values = ImmutableArray.Create(1, 2, 3);
 
-            // second time we'll see that the "Input" step is modified, but the outputs of the "SelectMany" step are modified.
+            // second time we'll see that the "Input" step is modified, but the outputs of the "SelectMany" step are new.
             dstBuilder = GetBuilder(dstBuilder.ToImmutable(), trackIncrementalGeneratorSteps: true);
             var table = dstBuilder.GetLatestStateTableForNode(transformNode);
 
@@ -979,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             Assert.All(step.Outputs, output =>
             {
-                Assert.Equal(IncrementalStepRunReason.Modified, output.Reason);
+                Assert.Equal(IncrementalStepRunReason.New, output.Reason);
             });
         }
 

@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected async Task<bool?> IsTriggerOnDotAsync(Document document, int characterPosition, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (text[characterPosition] != '.')
                 return null;
 

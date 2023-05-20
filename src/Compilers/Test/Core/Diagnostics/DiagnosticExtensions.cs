@@ -344,6 +344,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
         /// </summary>
+        [Obsolete("This API is no longer supported. See https://github.com/dotnet/roslyn/issues/67592 for details")]
         public static bool IsDiagnosticAnalyzerSuppressed(this DiagnosticAnalyzer analyzer, CompilationOptions options)
         {
             return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options);

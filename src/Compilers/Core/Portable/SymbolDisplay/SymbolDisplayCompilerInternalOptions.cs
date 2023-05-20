@@ -69,10 +69,9 @@ namespace Microsoft.CodeAnalysis
         IncludeContainingFileForFileTypes = 1 << 8,
 
         /// <summary>
-        /// Equivalent to <see cref="SymbolDisplayParameterOptions.IncludeName"/>
-        /// but only if the parameter is displayed on its own
+        /// Does not include parameter name if the parameter is displayed on its own
         /// (i.e., not as part of a method, delegate, or indexer).
         /// </summary>
-        IncludeParameterNameIfStandalone = 1 << 9,
+        ExcludeParameterNameIfStandalone = 1 << 9,
     }
 }

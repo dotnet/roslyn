@@ -32,11 +32,10 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone);
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         internal static SymbolDisplayFormat CSharpErrorMessageNoParameterNamesFormat { get; } = CSharpErrorMessageFormat
-            .RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone);
+            .AddCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.ExcludeParameterNameIfStandalone);
 
         /// <summary>
         /// Formats a symbol description as in a C# compiler short error message.
@@ -59,8 +58,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone);
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         /// <summary>
         /// Formats a symbol description as in a Visual Basic compiler error message.

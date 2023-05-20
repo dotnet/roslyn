@@ -53,20 +53,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// Calls to this method and <see cref="TryRemoveMiscellaneousDocument(Uri)"/> are made
         /// from LSP text sync request handling which do not run concurrently.
         /// </summary>
-        public Document? AddMiscellaneousDocument(Uri uri, SourceText documentText, ILspLogger logger)
+        public Document? AddMiscellaneousDocument(Uri uri, SourceText documentText, string languageId, ILspLogger logger)
         {
-            var uriAbsolutePath = uri.AbsolutePath;
-            if (!s_extensionToLanguageInformation.TryGetValue(Path.GetExtension(uriAbsolutePath), out var languageInformation))
+            // If we have a file:///xyz URI, we'll store the actual file path string in the document file path.
+            // Otherwise we have a URI that doesn't point to an actual file.  In such a scenario, we'll store the full URI string (including schema).
+            // This will allow correct round-tripping of the URI for features that need it until we support URI as a first class document concept.
+            // Tracking issue - https://github.com/dotnet/roslyn/issues/68083
+            var documentFilePath = uri.IsFile ? uri.LocalPath : uri.OriginalString;
+
+            var languageInformation = GetLanguageInformation(documentFilePath, languageId);
+            if (languageInformation == null)
             {
                 // Only log here since throwing here could take down the LSP server.
-                logger.LogError($"Could not find language information for {uri} with absolute path {uriAbsolutePath}");
+                logger.LogError($"Could not find language information for {uri} with absolute path {documentFilePath}");
                 return null;
             }
 
-            var sourceTextLoader = new SourceTextLoader(documentText, uriAbsolutePath);
+            var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
 
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-                this, uri.AbsolutePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, ImmutableArray<MetadataReference>.Empty);
+                this, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, ImmutableArray<MetadataReference>.Empty);
             OnProjectAdded(projectInfo);
 
             var id = projectInfo.Documents.Single().Id;
@@ -76,15 +82,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <summary>
         /// Removes a document with the matching file path from this workspace.
         /// 
-        /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri, SourceText, ILspLogger)"/> are made
+        /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri, SourceText, string, ILspLogger)"/> are made
         /// from LSP text sync request handling which do not run concurrently.
         /// </summary>
         public void TryRemoveMiscellaneousDocument(Uri uri)
         {
-            var uriAbsolutePath = uri.AbsolutePath;
-
-            // We only add misc files to this workspace using the absolute file path.
-            var matchingDocument = CurrentSolution.GetDocumentIdsWithFilePath(uriAbsolutePath).SingleOrDefault();
+            // We'll only ever have a single document matching this URI in the misc solution.
+            var matchingDocument = CurrentSolution.GetDocumentIds(uri).SingleOrDefault();
             if (matchingDocument != null)
             {
                 OnDocumentRemoved(matchingDocument);
@@ -100,6 +104,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
             return ValueTaskFactory.CompletedTask;
+        }
+
+        private static LanguageInformation? GetLanguageInformation(string documentPath, string languageId)
+        {
+            if (s_extensionToLanguageInformation.TryGetValue(Path.GetExtension(documentPath), out var languageInformation))
+            {
+                return languageInformation;
+            }
+
+            // It is totally possible to not find language based on the file path (e.g. a newly created file that hasn't been saved to disk).
+            // In that case, we use the languageId that the client gave us.
+            return languageId switch
+            {
+                "csharp" => s_csharpLanguageInformation,
+                "vb" => s_vbLanguageInformation,
+                _ => null,
+            };
         }
 
         private sealed class SourceTextLoader : TextLoader

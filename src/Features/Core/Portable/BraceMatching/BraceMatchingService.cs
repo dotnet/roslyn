@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
 
         public async Task<BraceMatchingResult?> GetMatchingBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (position < 0 || position > text.Length)
             {
                 throw new ArgumentException(nameof(position));

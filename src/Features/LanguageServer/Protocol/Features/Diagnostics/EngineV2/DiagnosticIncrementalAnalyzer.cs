@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
 
-            GlobalOptions.OptionChanged += OnGlobalOptionChanged;
+            GlobalOptions.AddOptionChangedHandler(this, OnGlobalOptionChanged);
         }
 
         private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public void Shutdown()
         {
-            GlobalOptions.OptionChanged -= OnGlobalOptionChanged;
+            GlobalOptions.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
 
             var stateSets = _stateManager.GetAllStateSets();
 
