@@ -3408,6 +3408,7 @@ Microsoft.CodeAnalysis.VisualBasicExtensions.Any(list As Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.VisualBasicExtensions.Any(list As Microsoft.CodeAnalysis.SyntaxTriviaList, kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
 Microsoft.CodeAnalysis.VisualBasicExtensions.Any(Of TNode)(list As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of TNode), kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
 Microsoft.CodeAnalysis.VisualBasicExtensions.Any(Of TNode)(list As Microsoft.CodeAnalysis.SyntaxList(Of TNode), kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
+Microsoft.CodeAnalysis.VisualBasicExtensions.ContainsDirective(node As Microsoft.CodeAnalysis.SyntaxNode, kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
 Microsoft.CodeAnalysis.VisualBasicExtensions.IndexOf(list As Microsoft.CodeAnalysis.SyntaxTokenList, kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Integer
 Microsoft.CodeAnalysis.VisualBasicExtensions.IndexOf(list As Microsoft.CodeAnalysis.SyntaxTriviaList, kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Integer
 Microsoft.CodeAnalysis.VisualBasicExtensions.IndexOf(Of TNode)(list As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of TNode), kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Integer
