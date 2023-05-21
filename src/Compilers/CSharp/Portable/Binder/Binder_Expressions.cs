@@ -6476,7 +6476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 if (leftSymbol is SourceFieldSymbolWithSyntaxReference fieldLeft)
                                 {
-                                    boundValue = RebindColorColorConstField(left, boundValue, fieldLeft, diagnostics);
+                                    boundValue = RebindColorColorConstField(left, boundValue, fieldLeft);
                                     leftSymbol = boundValue.ExpressionSymbol;
                                     ConstantFieldsInProgress.RemoveDepencency(fieldLeft);
                                 }
@@ -6503,7 +6503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return boundValue;
         }
 
-        private BoundExpression RebindColorColorConstField(IdentifierNameSyntax left, BoundExpression boundValue, FieldSymbol leftSymbol, BindingDiagnosticBag diagnostics)
+        private BoundExpression RebindColorColorConstField(IdentifierNameSyntax left, BoundExpression boundValue, FieldSymbol leftSymbol)
         {
             if (!leftSymbol.IsConst)
             {
