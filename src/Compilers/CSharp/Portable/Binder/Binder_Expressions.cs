@@ -6474,6 +6474,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Debug.Assert(!leftType.IsDynamic());
                                 Debug.Assert(IsPotentialColorColorReceiver(left, leftType));
 
+                                if (leftSymbol is SourceFieldSymbolWithSyntaxReference fieldLeft)
+                                {
+                                    boundValue = RebindColorColorConstField(left, boundValue, fieldLeft, diagnostics);
+                                    leftSymbol = boundValue.ExpressionSymbol;
+                                    ConstantFieldsInProgress.RemoveDepencency(fieldLeft);
+                                }
+
                                 // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
                                 boundValue = BindToNaturalType(boundValue, valueDiagnostics);
                                 return new BoundTypeOrValueExpression(left,
@@ -6494,6 +6501,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: it is up to the caller to call CheckValue on the result.
             diagnostics.AddRangeAndFree(valueDiagnostics);
             return boundValue;
+        }
+
+        private BoundExpression RebindColorColorConstField(IdentifierNameSyntax left, BoundExpression boundValue, FieldSymbol leftSymbol, BindingDiagnosticBag diagnostics)
+        {
+            if (!leftSymbol.IsConst)
+            {
+                return boundValue;
+            }
+
+            var memberAccessParent = left.Parent as MemberAccessExpressionSyntax;
+            Debug.Assert(memberAccessParent is not null);
+
+            var targetBoundValue = boundValue;
+
+            var binderSymbol = ContainingType;
+            Debug.Assert(binderSymbol is TypeSymbol);
+
+            var firstOuterScopeBinder = this;
+            while (true)
+            {
+                firstOuterScopeBinder = firstOuterScopeBinder.Next;
+
+                if (firstOuterScopeBinder is null)
+                {
+                    break;
+                }
+
+                // We found the first container that does not apply to our same symbol
+                if (!binderSymbol.Equals(firstOuterScopeBinder.ContainingType))
+                {
+                    break;
+                }
+            }
+
+            // The first in container binder reflects the current scope, so we begin at the outer scope of the binder
+            for (var binder = firstOuterScopeBinder; binder is not null; binder = binder.Next)
+            {
+                // While trying to find a suitable binder for the expression, we do not report diagnostics
+                targetBoundValue = binder.BindMemberAccess(memberAccessParent, false, false, BindingDiagnosticBag.Discarded);
+
+                // We want to avoid binding to the const field symbol,
+                // so we break on the first symbol that does not equal that
+                if (!boundValue.ExpressionSymbol.Equals(targetBoundValue.ExpressionSymbol))
+                {
+                    // We might be missing some diagnostics in our way of binding to the enum
+                    break;
+                }
+            }
+
+            return targetBoundValue;
         }
 
         private bool IsPotentialColorColorReceiver(IdentifierNameSyntax id, TypeSymbol type)

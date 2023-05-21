@@ -2366,5 +2366,29 @@ public class Tree2 : Tree1
 
             compilation.VerifyDiagnostics();
         }
+
+        [WorkItem(45739, "https://github.com/dotnet/roslyn/issues/45739")]
+        [Fact]
+        public void ConstFieldColorColorEnum()
+        {
+            string source = @"
+enum Color
+{
+    Red,
+    Green,
+    Blue,
+    Yellow,
+}
+
+class M
+{
+    public const Color Color = Color.Red;
+}
+";
+
+            var compilation = CreateCompilation(source, assemblyName: "Color");
+
+            compilation.VerifyDiagnostics();
+        }
     }
 }

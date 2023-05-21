@@ -39,5 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _dependencies.Add(field);
         }
+        internal void RemoveDepencency(SourceFieldSymbolWithSyntaxReference field)
+        {
+            _dependencies?.Remove(field);
+        }
     }
 }
