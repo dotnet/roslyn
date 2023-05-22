@@ -1844,4 +1844,71 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                [Serializable]
+                class C
+                {
+                    [CLSCompliant(false)]
+                    [Obsolete("", error: true)]
+                    public [|C|](int i)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                [Serializable]
+                [method: CLSCompliant(false)]
+                [method: Obsolete("", error: true)]
+                class C(int i)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes4A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                [Serializable]
+                class C
+                {
+                    int x;
+                
+                    [CLSCompliant(false)]
+                    [Obsolete("", error: true)]
+                    public [|C|](int i)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                [Serializable]
+                [method: CLSCompliant(false)]
+                [method: Obsolete("", error: true)]
+                class C(int i)
+                {
+                    int x;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }
