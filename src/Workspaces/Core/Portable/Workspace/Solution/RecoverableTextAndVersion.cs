@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A recoverable TextAndVersion source that saves its text to temporary storage.
     /// </summary>
-    internal sealed class RecoverableTextAndVersion : ITextAndVersionSource
+    internal sealed partial class RecoverableTextAndVersion : ITextAndVersionSource
     {
         private readonly SolutionServices _services;
 
@@ -136,77 +136,6 @@ namespace Microsoft.CodeAnalysis
         {
             var recoverableText = await GetRecoverableTextAsync(useAsync: true, options, cancellationToken).ConfigureAwait(false);
             return recoverableText.Version;
-        }
-
-        private sealed class RecoverableText : WeaklyCachedRecoverableValueSource<SourceText>
-        {
-            private readonly ITemporaryStorageServiceInternal _storageService;
-            public readonly VersionStamp Version;
-            public readonly Diagnostic? LoadDiagnostic;
-            public readonly ITextAndVersionSource? InitialSource;
-            public readonly LoadTextOptions LoadTextOptions;
-
-            public ITemporaryTextStorageInternal? _storage;
-
-            public RecoverableText(ITextAndVersionSource source, TextAndVersion textAndVersion, LoadTextOptions options, SolutionServices services)
-                : base(textAndVersion.Text)
-            {
-                _storageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
-
-                Version = textAndVersion.Version;
-                LoadDiagnostic = textAndVersion.LoadDiagnostic;
-                LoadTextOptions = options;
-
-                if (source.CanReloadText)
-                {
-                    // reloadable source must not cache results
-                    Contract.ThrowIfTrue(source is LoadableTextAndVersionSource { CacheResult: true });
-
-                    InitialSource = source;
-                }
-            }
-
-            public TextAndVersion ToTextAndVersion(SourceText text)
-                => TextAndVersion.Create(text, Version, LoadDiagnostic);
-
-            public ITemporaryTextStorageInternal? Storage => _storage;
-
-            protected override async Task<SourceText> RecoverAsync(CancellationToken cancellationToken)
-            {
-                Contract.ThrowIfNull(_storage);
-
-                using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverTextAsync, cancellationToken))
-                {
-                    return await _storage.ReadTextAsync(cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            protected override SourceText Recover(CancellationToken cancellationToken)
-            {
-                Contract.ThrowIfNull(_storage);
-
-                using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverText, cancellationToken))
-                {
-                    return _storage.ReadText(cancellationToken);
-                }
-            }
-
-            protected override async Task SaveAsync(SourceText text, CancellationToken cancellationToken)
-            {
-                Contract.ThrowIfFalse(_storage == null); // Cannot save more than once
-
-                var storage = _storageService.CreateTemporaryTextStorage();
-                await storage.WriteTextAsync(text, cancellationToken).ConfigureAwait(false);
-
-                // make sure write is done before setting _storage field
-                Interlocked.CompareExchange(ref _storage, storage, null);
-            }
-
-            public bool TryGetTextVersion(LoadTextOptions options, out VersionStamp version)
-            {
-                version = Version;
-                return options == LoadTextOptions;
-            }
         }
     }
 }
