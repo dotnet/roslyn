@@ -1652,7 +1652,6 @@ public partial class UsePrimaryConstructorTests
         {
             TestCode = """
                using System;
-
                class C
                {
                    [Obsolete("", error: true)]
@@ -1663,7 +1662,6 @@ public partial class UsePrimaryConstructorTests
                """,
             FixedCode = """
                using System;
-               
                [method: Obsolete("", error: true)]
                class C(int i)
                {
