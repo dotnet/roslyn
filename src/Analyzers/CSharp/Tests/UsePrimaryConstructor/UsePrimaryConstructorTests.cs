@@ -220,6 +220,84 @@ public partial class UsePrimaryConstructorTests
     }
 
     [Fact]
+    public async Task TestWithBaseChainedConstructor3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class B(int i, int j)
+                {
+                }
+
+                class C : B
+                {
+                    public [|C|](int i, int j) : base(i,
+                        j)
+                    {
+                    }
+
+                    public C() : this(0, 0)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                class B(int i, int j)
+                {
+                }
+
+                class C(int i, int j) : B(i,
+                    j)
+                {
+                    public C() : this(0, 0)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithBaseChainedConstructor4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class B(int i, int j)
+                {
+                }
+
+                class C : B
+                {
+                    public [|C|](int i, int j) : base(
+                        i, j)
+                    {
+                    }
+
+                    public C() : this(0, 0)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                class B(int i, int j)
+                {
+                }
+
+                class C(int i, int j) : B(
+                    i, j)
+                {
+                    public C() : this(0, 0)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestNotWithBadExpressionBody()
     {
         await new VerifyCS.Test
