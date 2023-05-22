@@ -175,13 +175,49 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                     .WithAttributeLists(finalAttributeLists)
                     .WithIdentifier(typeParameterList != null ? currentTypeDeclaration.Identifier : currentTypeDeclaration.Identifier.WithoutTrailingTrivia())
                     .WithTypeParameterList(typeParameterList?.WithoutTrailingTrivia())
-                    .WithParameterList(constructorDeclaration.ParameterList
+                    .WithParameterList(FixupParameterTrivia(typeDeclaration, constructorDeclaration, constructorDeclaration.ParameterList)
                         .WithoutLeadingTrivia()
                         .WithTrailingTrivia(triviaAfterName)
                         .WithAdditionalAnnotations(Formatter.Annotation));
             });
 
         return;
+
+        static ParameterListSyntax FixupParameterTrivia(
+            TypeDeclarationSyntax typeDeclaration,
+            ConstructorDeclarationSyntax constructorDeclaration,
+            ParameterListSyntax parameterList)
+        {
+            // Since we're moving parameters from the constructor to the type, attempt to dedent them if appropriate.
+
+            var typeLeadingWhitespace = GetLeadingWhitespace(typeDeclaration);
+            var constructorLeadingWhitespace = GetLeadingWhitespace(constructorDeclaration);
+
+            if (constructorLeadingWhitespace.Length > typeLeadingWhitespace.Length &&
+                constructorLeadingWhitespace.StartsWith(typeLeadingWhitespace))
+            {
+                var indentation = constructorLeadingWhitespace[typeLeadingWhitespace.Length..];
+                return parameterList.ReplaceNodes(
+                    parameterList.Parameters,
+                    (p, _) =>
+                    {
+                        var parameterLeadingWhitespace = GetLeadingWhitespace(p);
+                        if (parameterLeadingWhitespace.EndsWith(indentation))
+                        {
+                            var leadingTrivia = p.GetLeadingTrivia();
+                            return p.WithLeadingTrivia(
+                                leadingTrivia.Take(leadingTrivia.Count - 1).Concat(Whitespace(parameterLeadingWhitespace[..^indentation.Length])));
+                        }
+
+                        return p;
+                    });
+            }
+
+            return parameterList;
+        }
+
+        static string GetLeadingWhitespace(SyntaxNode node)
+            => node.GetLeadingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia) whitespace] ? whitespace.ToString() : "";
 
         async ValueTask MoveBaseConstructorArgumentsAsync()
         {
