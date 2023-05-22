@@ -11,10 +11,5 @@
     <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.CSharp.CodeStyle/*" />
     <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.VisualBasic.CodeStyle/*" />
     <UsagePattern IdentityGlob="Microsoft.Net.Compilers.Toolset/*" />
-
-    <!-- The ref pack versions should be updated to the p3 released versions, along with the SDK. At that
-         point the 8.0 ref pack prebuilts should go away -->
-    <UsagePattern IdentityGlob="Microsoft.AspNetCore.App.Ref/*8.0.0-preview.3.23164.14*" />
-    <UsagePattern IdentityGlob="Microsoft.NETCore.App.Ref/*8.0.0-preview.3.23165.3*" />
   </IgnorePatterns>
 </UsageData>
