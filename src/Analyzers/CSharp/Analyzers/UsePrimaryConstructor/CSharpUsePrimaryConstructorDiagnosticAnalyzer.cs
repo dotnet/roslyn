@@ -154,6 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                         .Where(kvp => !_membersThatCannotBeRemoved.Contains(kvp.Key))
                         .ToImmutableDictionary(static kvp => kvp.Key.Name, static kvp => (string?)kvp.Value.Name);
 
+                    // To provide better user-facing-strings, keep track of whether or not all the members we'd be
+                    // removing are all fields or all properties.
                     if (_candidateMembersToRemove.Any(kvp => kvp.Key is IFieldSymbol) &&
                         _candidateMembersToRemove.All(kvp => kvp.Key is IFieldSymbol))
                     {
