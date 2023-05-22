@@ -370,6 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // * [
             if (currentToken.IsKind(SyntaxKind.OpenBracketToken) &&
+                !currentToken.Parent.IsKind(SyntaxKind.CollectionCreationExpression) &&
                 !currentToken.Parent.IsKind(SyntaxKind.AttributeList) &&
                 !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
             {
