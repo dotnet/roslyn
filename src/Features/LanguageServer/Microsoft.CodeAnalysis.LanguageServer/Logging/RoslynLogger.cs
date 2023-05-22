@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -134,6 +130,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
             catch
             {
             }
+        }
+
+        public static void ShutdownAndReportSessionTelemetry()
+        {
+            if (_instance is null)
+            {
+                return;
+            }
+
+            FeaturesSessionTelemetry.Report();
+
+            (var currentReporter, _telemetryReporter) = (_telemetryReporter, null);
+            currentReporter?.Dispose();
+            _instance = null;
         }
 
         private static string GetDescription(Exception exception)

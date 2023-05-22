@@ -19,7 +19,16 @@ using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 
-Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
+// Setting the title can fail if the process is run without a window, such
+// as when launched detached from nodejs
+try
+{
+    Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
+}
+catch (IOException)
+{
+}
+
 var parser = CreateCommandLineParser();
 return await parser.InvokeAsync(args);
 
@@ -92,10 +101,18 @@ static async Task RunAsync(
     var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
     server.Start();
 
-    await server.WaitForExitAsync();
+    try
+    {
+        await server.WaitForExitAsync();
+    }
+    finally
+    {
+        // After the LSP server shutdown, report session wide telemetry
+        RoslynLogger.ShutdownAndReportSessionTelemetry();
 
-    // Server has exited, cancel our service broker service
-    await serviceBrokerFactory.ShutdownAndWaitForCompletionAsync();
+        // Server has exited, cancel our service broker service
+        await serviceBrokerFactory.ShutdownAndWaitForCompletionAsync();
+    }
 }
 
 static Parser CreateCommandLineParser()

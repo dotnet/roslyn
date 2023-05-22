@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Contracts.Telemetry;
 
-internal interface ITelemetryReporter
+internal interface ITelemetryReporter : IDisposable
 {
     void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession);
     void Log(string name, ImmutableDictionary<string, object?> properties);

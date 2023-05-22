@@ -121,6 +121,12 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
         _telemetrySession.PostEvent(faultEvent);
     }
 
+    public void Dispose()
+    {
+        _telemetrySession?.Dispose();
+        _telemetrySession = null;
+    }
+
     private static string CreateSessionSettingsJson(string telemetryLevel, string? sessionId)
     {
         sessionId ??= Guid.NewGuid().ToString();
