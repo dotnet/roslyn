@@ -1646,7 +1646,7 @@ public partial class UsePrimaryConstructorTests
     }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes()
+    public async Task TestMoveConstructorAttributes1()
     {
         await new VerifyCS.Test
         {
@@ -1669,6 +1669,40 @@ public partial class UsePrimaryConstructorTests
                {
                }
                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+     
+                namespace N
+                {
+                    class C
+                    {
+                        [Obsolete("", error: true)]
+                        public [|C|](int i)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                namespace N
+                {
+                    [method: Obsolete("", error: true)]
+                    class C(int i)
+                    {
+                    }
+                }
+                """,
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
