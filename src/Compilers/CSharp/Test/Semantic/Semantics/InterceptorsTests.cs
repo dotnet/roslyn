@@ -3426,6 +3426,99 @@ partial struct CustomHandler
     }
 
     [Fact]
+    public void InterceptGetEnumerator()
+    {
+        var source = """
+            using System.Collections;
+            using System.Runtime.CompilerServices;
+
+            var myEnumerable = new MyEnumerable();
+            foreach (var item in myEnumerable)
+            {
+            }
+
+            class MyEnumerable : IEnumerable
+            {
+                public IEnumerator GetEnumerator() => throw null!;
+            }
+
+            static class MyEnumerableExt
+            {
+                [InterceptsLocation("Program.cs", 5, 22)] // 1
+                public static IEnumerator GetEnumerator1(this MyEnumerable en) => throw null!;
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(16,6): error CS27014: Possible method name 'myEnumerable' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 5, 22)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 5, 22)").WithArguments("myEnumerable").WithLocation(16, 6));
+    }
+
+    [Fact]
+    public void InterceptDispose()
+    {
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            var myDisposable = new MyDisposable();
+            using (myDisposable)
+            {
+            }
+
+            class MyDisposable : IDisposable
+            {
+                public void Dispose() => throw null!;
+            }
+
+            static class MyDisposeExt
+            {
+                [InterceptsLocation("Program.cs", 5, 8)] // 1
+                public static void Dispose1(this MyDisposable md) => throw null!;
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(16,6): error CS27014: Possible method name 'myDisposable' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 5, 8)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 5, 8)").WithArguments("myDisposable").WithLocation(16, 6)
+            );
+    }
+
+    [Fact]
+    public void InterceptDeconstruct()
+    {
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            var myDeconstructable = new MyDeconstructable();
+            var (x, y) = myDeconstructable;
+
+            class MyDeconstructable
+            {
+                public void Deconstruct(out int x, out int y) => throw null!;
+            }
+
+            static class MyDeconstructableExt
+            {
+                [InterceptsLocation("Program.cs", 5, 14)] // 1
+                public static void Deconstruct1(this MyDeconstructable md, out int x, out int y) => throw null!;
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(14,6): error CS27014: Possible method name 'myDeconstructable' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 5, 14)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 5, 14)").WithArguments("myDeconstructable").WithLocation(14, 6)
+            );
+    }
+
+    [Fact]
     public void PathMapping_01()
     {
         var source = """
