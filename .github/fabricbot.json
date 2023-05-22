@@ -235,7 +235,7 @@
           {
             "name": "requestChangesPullRequest",
             "parameters": {
-              "comment": "This PR changes the .NET SDK version. Review required from @dotnet/roslyn-infrastructure before merging.\nTasks:\n- [ ] Getting Started Documentation has been updated\n- [ ] NuGet dependency version updated to match version shipping in SDK"
+              "comment": "This PR changes the .NET SDK version. Review required from @dotnet/roslyn-infrastructure-current-swat before merging.\nTasks:\n- [ ] Getting Started Documentation has been updated\n- [ ] NuGet dependency version updated to match version shipping in SDK"
             }
           }
         ],
@@ -866,7 +866,7 @@
             "parameters": {
               "comment": "InfraSwat needs to sign off on PRs to release branches.",
               "reRequest": true,
-              "reviewer": "@dotnet/roslyn-infrastructure"
+              "reviewer": "@dotnet/roslyn-infrastructure-current-swat"
             }
           },
           {

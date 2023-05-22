@@ -250,7 +250,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 phwnd = default;
 
-                var enabled = _globalOptions.GetOption(DocumentOutlineOptionsStorage.EnableDocumentOutline);
+                var enabled = _globalOptions.GetOption(DocumentOutlineOptionsStorage.EnableDocumentOutline)
+                    ?? !_globalOptions.GetOption(DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag);
                 if (!enabled)
                     return;
 

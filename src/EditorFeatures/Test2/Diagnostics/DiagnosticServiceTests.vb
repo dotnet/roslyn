@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Function
 
         Private Shared Async Function GetDiagnosticsForSpanAsync(diagnosticService As IDiagnosticAnalyzerService, document As Document, range As TextSpan, diagnosticKind As DiagnosticKind) As Task(Of ImmutableArray(Of DiagnosticData))
-            Return Await diagnosticService.GetDiagnosticsForSpanAsync(document, range, diagnosticKind, CancellationToken.None)
+            Return Await diagnosticService.GetDiagnosticsForSpanAsync(document, range, diagnosticKind, includeSuppressedDiagnostics:=False, CancellationToken.None)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>

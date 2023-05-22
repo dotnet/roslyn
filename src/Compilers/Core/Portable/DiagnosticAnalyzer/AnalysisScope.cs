@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Syntax trees on which we need to perform syntax analysis.
         /// </summary>
-        public IEnumerable<SyntaxTree> SyntaxTrees { get; }
+        public ImmutableArray<SyntaxTree> SyntaxTrees { get; }
 
         /// <summary>
         /// Non-source files on which we need to perform analysis.
         /// </summary>
-        public IEnumerable<AdditionalText> AdditionalFiles { get; }
+        public ImmutableArray<AdditionalText> AdditionalFiles { get; }
 
         public bool ConcurrentAnalysis { get; }
 
@@ -87,21 +87,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static AnalysisScope Create(Compilation compilation, AnalyzerOptions? analyzerOptions, ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers, bool concurrentAnalysis)
         {
             var additionalFiles = analyzerOptions?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty;
-            return new AnalysisScope(compilation.SyntaxTrees, additionalFiles,
+            return new AnalysisScope(compilation.CommonSyntaxTrees, additionalFiles,
                    analyzers, hasAllAnalyzers, filterFile: null, filterSpanOpt: null, isSyntacticSingleFileAnalysis: false,
                    concurrentAnalysis: concurrentAnalysis);
         }
 
         public static AnalysisScope Create(ImmutableArray<DiagnosticAnalyzer> analyzers, SourceOrAdditionalFile filterFile, TextSpan? filterSpan, bool isSyntacticSingleFileAnalysis, CompilationWithAnalyzers compilationWithAnalyzers)
         {
-            var trees = filterFile.SourceTree != null ? SpecializedCollections.SingletonEnumerable(filterFile.SourceTree) : SpecializedCollections.EmptyEnumerable<SyntaxTree>();
-            var additionalFiles = filterFile.AdditionalFile != null ? SpecializedCollections.SingletonEnumerable(filterFile.AdditionalFile) : SpecializedCollections.EmptyEnumerable<AdditionalText>();
+            var trees = filterFile.SourceTree != null ? ImmutableArray.Create(filterFile.SourceTree) : ImmutableArray<SyntaxTree>.Empty;
+            var additionalFiles = filterFile.AdditionalFile != null ? ImmutableArray.Create(filterFile.AdditionalFile) : ImmutableArray<AdditionalText>.Empty;
             var hasAllAnalyzers = ComputeHasAllAnalyzers(analyzers, compilationWithAnalyzers);
             var concurrentAnalysis = compilationWithAnalyzers.AnalysisOptions.ConcurrentAnalysis;
             return new AnalysisScope(trees, additionalFiles, analyzers, hasAllAnalyzers, filterFile, filterSpan, isSyntacticSingleFileAnalysis, concurrentAnalysis);
         }
 
-        private AnalysisScope(IEnumerable<SyntaxTree> trees, IEnumerable<AdditionalText> additionalFiles, ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers, SourceOrAdditionalFile? filterFile, TextSpan? filterSpanOpt, bool isSyntacticSingleFileAnalysis, bool concurrentAnalysis)
+        private AnalysisScope(ImmutableArray<SyntaxTree> trees, ImmutableArray<AdditionalText> additionalFiles, ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers, SourceOrAdditionalFile? filterFile, TextSpan? filterSpanOpt, bool isSyntacticSingleFileAnalysis, bool concurrentAnalysis)
         {
             Debug.Assert(!filterSpanOpt.HasValue || filterFile.HasValue);
             Debug.Assert(!isSyntacticSingleFileAnalysis || filterFile.HasValue);

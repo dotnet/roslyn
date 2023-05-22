@@ -387,6 +387,11 @@
         <target state="translated">Usa i criteri di ricerca (può cambiare il significato del codice)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_primary_constructor">
+        <source>Use primary constructor</source>
+        <target state="new">Use primary constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="translated">Usa l'operatore di intervallo</target>
