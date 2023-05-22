@@ -1644,4 +1644,32 @@ public partial class UsePrimaryConstructorTests
             NumberOfFixAllIterations = 1,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+               using System;
+
+               class C
+               {
+                   [Obsolete("", error: true)]
+                   public [|C|](int i)
+                   {
+                   }
+               }
+               """,
+            FixedCode = """
+               using System;
+               
+               [method: Obsolete("", error: true)]
+               class C(int i)
+               {
+               }
+               """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }
