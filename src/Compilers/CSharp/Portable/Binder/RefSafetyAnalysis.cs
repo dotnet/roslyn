@@ -996,6 +996,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.Expression);
             uint collectionEscape = GetValEscape(node.Expression, _localScopeDepth);
+
+            if (node.EnumeratorInfoOpt is { InlineArraySpanType: not WellKnownType.Unknown and var spanType, InlineArrayUsedAsValue: false })
+            {
+                // PROTOTYPE(InlineArrays): Confirm the rules
+                collectionEscape = Math.Max(collectionEscape,
+                                            GetRefEscape(node.Expression, _localScopeDepth));
+            }
+
             using var _ = new LocalScope(this, ImmutableArray<LocalSymbol>.Empty);
 
             foreach (var local in node.IterationVariables)

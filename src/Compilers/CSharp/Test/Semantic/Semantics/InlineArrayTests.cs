@@ -42,6 +42,16 @@ public struct Buffer10<T>
     private T _element0;
 }
 ";
+
+        public const string Buffer4Definition =
+@"
+[System.Runtime.CompilerServices.InlineArray(4)]
+public struct Buffer4<T>
+{
+    private T _element0;
+}
+";
+
         private static Verification VerifyOnMonoOrCoreClr
         {
             get
@@ -5368,6 +5378,76 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void Slice_Range_Variable_Readonly_01()
+        {
+            var src = @"
+class C
+{
+    readonly public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Runtime.CompilerServices.Unsafe.AsRef(in M2(x, ..5)[0]) = 111;
+        System.Console.Write(M1(x));
+    }
+
+    static int M1(C x) => x.F[0];
+    static System.ReadOnlySpan<int> M2(C x, System.Range y) => GetBuffer(x)[GetRange(y)];
+    static ref readonly Buffer10<int> GetBuffer(C x) => ref x.F;
+    static System.Range GetRange(System.Range y) => y;
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       70 (0x46)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
+                System.Index V_3,
+                System.ReadOnlySpan<int> V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref readonly Buffer10<int> Program.GetBuffer(C)""
+  IL_0006:  ldarg.1
+  IL_0007:  call       ""System.Range Program.GetRange(System.Range)""
+  IL_000c:  stloc.0
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""System.Index System.Range.Start.get""
+  IL_0014:  stloc.3
+  IL_0015:  ldloca.s   V_3
+  IL_0017:  ldc.i4.s   10
+  IL_0019:  call       ""int System.Index.GetOffset(int)""
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  call       ""System.Index System.Range.End.get""
+  IL_0026:  stloc.3
+  IL_0027:  ldloca.s   V_3
+  IL_0029:  ldc.i4.s   10
+  IL_002b:  call       ""int System.Index.GetOffset(int)""
+  IL_0030:  ldloc.1
+  IL_0031:  sub
+  IL_0032:  stloc.2
+  IL_0033:  ldc.i4.s   10
+  IL_0035:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_003a:  stloc.s    V_4
+  IL_003c:  ldloca.s   V_4
+  IL_003e:  ldloc.1
+  IL_003f:  ldloc.2
+  IL_0040:  call       ""System.ReadOnlySpan<int> System.ReadOnlySpan<int>.Slice(int, int)""
+  IL_0045:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Slice_Await_01()
         {
             var src = @"
@@ -10514,6 +10594,101 @@ class Program
         }
 
         [Fact]
+        public void MissingHelper_15()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F = default;
+}
+
+class Program
+{
+    static void M3(C x)
+    {
+        foreach (var y in x.F)
+        {}
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void MissingHelper_16()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F = default;
+}
+
+class Program
+{
+    static void M3(C x)
+    {
+        foreach (var y in x.F)
+        {}
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T);
+
+            comp.VerifyEmitDiagnostics(
+                // (11,27): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.Add'
+                //         foreach (var y in x.F)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x.F").WithArguments("System.Runtime.CompilerServices.Unsafe", "Add").WithLocation(11, 27),
+                // (11,27): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.As'
+                //         foreach (var y in x.F)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x.F").WithArguments("System.Runtime.CompilerServices.Unsafe", "As").WithLocation(11, 27)
+                );
+        }
+
+        [Fact]
+        public void MissingHelper_17()
+        {
+            var src = @"#pragma warning disable CS0649 // Field 'C.F' is never assigned to
+struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void M3(in C x)
+    {
+        foreach (var y in x.F)
+        {}
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T);
+
+            comp.VerifyEmitDiagnostics(
+                // (11,27): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.AsRef'
+                //         foreach (var y in x.F)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x.F").WithArguments("System.Runtime.CompilerServices.Unsafe", "AsRef").WithLocation(11, 27),
+                // (11,27): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.Add'
+                //         foreach (var y in x.F)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x.F").WithArguments("System.Runtime.CompilerServices.Unsafe", "Add").WithLocation(11, 27),
+                // (11,27): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.As'
+                //         foreach (var y in x.F)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x.F").WithArguments("System.Runtime.CompilerServices.Unsafe", "As").WithLocation(11, 27)
+                );
+        }
+
+        [Fact]
         public void PrivateImplementationDetails_01()
         {
             var src = @"
@@ -10541,6 +10716,8 @@ class Program
                     AssertEx.Equal("System.Span<TElement> <PrivateImplementationDetails>.InlineArrayAsSpan<TBuffer, TElement>(ref TBuffer buffer, System.Int32 length)",
                                    t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName).ToTestDisplayString());
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName));
                 }).VerifyDiagnostics();
 
             verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName,
@@ -10585,6 +10762,8 @@ class Program
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName));
                     AssertEx.Equal("System.ReadOnlySpan<TElement> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<TBuffer, TElement>(in TBuffer buffer, System.Int32 length)",
                                    t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName).ToTestDisplayString());
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName));
                 }).VerifyDiagnostics();
 
             verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName,
@@ -10597,6 +10776,97 @@ class Program
   IL_0006:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
   IL_000b:  ldarg.1
   IL_000c:  call       ""System.ReadOnlySpan<TElement> System.Runtime.InteropServices.MemoryMarshal.CreateReadOnlySpan<TElement>(scoped ref TElement, int)""
+  IL_0011:  ret
+}
+");
+        }
+
+        [Fact]
+        public void PrivateImplementationDetails_03()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F = default;
+}
+
+class Program
+{
+    static void M3(C x)
+    {
+        foreach (var y in x.F)
+        {}
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr,
+                symbolValidator: m =>
+                {
+                    var t = m.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName));
+                    Assert.Equal("ref TElement <PrivateImplementationDetails>.InlineArrayElementRef<TBuffer, TElement>(ref TBuffer buffer, System.Int32 index)",
+                                 t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName).ToTestDisplayString());
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName));
+                }).VerifyDiagnostics();
+
+            verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName,
+@"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
+  IL_0006:  ldarg.1
+  IL_0007:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.Add<TElement>(ref TElement, int)""
+  IL_000c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void PrivateImplementationDetails_04()
+        {
+            var src = @"#pragma warning disable CS0649
+struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void M3(in C x)
+    {
+        foreach (var y in x.F)
+        {}
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr,
+                symbolValidator: m =>
+                {
+                    var t = m.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName));
+                    Assert.Equal("ref readonly TElement <PrivateImplementationDetails>.InlineArrayElementReadOnlyRef<TBuffer, TElement>(in TBuffer buffer, System.Int32 index)",
+                                 t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName).ToTestDisplayString());
+                }).VerifyDiagnostics();
+
+            verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName,
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped in TBuffer)""
+  IL_0006:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
+  IL_000b:  ldarg.1
+  IL_000c:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.Add<TElement>(ref TElement, int)""
   IL_0011:  ret
 }
 ");
@@ -10739,6 +11009,58 @@ class Program
                 // (27,44): warning CS8619: Nullability of reference types in value of type 'Buffer10<string[]>' doesn't match target type 'ReadOnlySpan<string?[]>'.
                 //         System.ReadOnlySpan<string?[]> y = b4;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b4").WithArguments("Buffer10<string[]>", "System.ReadOnlySpan<string?[]>").WithLocation(27, 44)
+                );
+        }
+
+        [Fact]
+        public void NullableAnalysis_04()
+        {
+            var src = @"
+#nullable enable
+
+class C<T>
+{
+    public Buffer10<T> F = default;
+}
+
+class Program
+{
+    static void M2(string s1, string? s2)
+    {
+        foreach(var x in GetC(s1).F)
+            _ = x.Length;
+
+        foreach(var y in GetC(s2).F)
+            _ = y.Length;
+
+        foreach(string a in GetC(s1).F)
+        {}
+
+        foreach(string b in GetC(s2).F)
+        {}
+
+        foreach(string? c in GetC(s1).F)
+        {}
+
+        foreach(string? d in GetC(s2).F)
+        {}
+    }
+
+    static C<T> GetC<T>(T x)
+    {
+        var c = new C<T>();
+        return c;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (17,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = y.Length;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(17, 17),
+                // (22,24): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach(string b in GetC(s2).F)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "b").WithLocation(22, 24)
                 );
         }
 
@@ -13843,6 +14165,1240 @@ struct Buffer
                 // (7,8): error CS9508: Target runtime doesn't support inline array types.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, "Buffer").WithLocation(7, 8)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_Variable_01()
+        {
+            var src = @"
+class C
+{
+    public Buffer4<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.F[0] = 111;
+        x.F[1] = 112;
+        x.F[2] = 113;
+        x.F[3] = 114;
+        Test(x);
+        Test(x);
+    }
+
+    static void Test(C x)
+    {
+        foreach (ref int y in x.F)
+        {
+            System.Console.Write(' ');
+            System.Console.Write(y);
+            y *= -1;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       46 (0x2e)
+  .maxstack  3
+  .locals init (Buffer4<int>& V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer4<int> C.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
+  IL_0009:  br.s       IL_0029
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  call       ""InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
+  IL_0012:  ldc.i4.s   32
+  IL_0014:  call       ""void System.Console.Write(char)""
+  IL_0019:  dup
+  IL_001a:  ldind.i4
+  IL_001b:  call       ""void System.Console.Write(int)""
+  IL_0020:  dup
+  IL_0021:  ldind.i4
+  IL_0022:  ldc.i4.m1
+  IL_0023:  mul
+  IL_0024:  stind.i4
+  IL_0025:  ldloc.1
+  IL_0026:  ldc.i4.1
+  IL_0027:  add
+  IL_0028:  stloc.1
+  IL_0029:  ldloc.1
+  IL_002a:  ldc.i4.4
+  IL_002b:  blt.s      IL_000b
+  IL_002d:  ret
+}
+");
+#if false // PROTOTYPE(InlineArrays):
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var m1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M1").Single();
+            var m1Operation = model.GetOperation(m1);
+            VerifyOperationTree(comp, m1Operation,
+@"
+");
+
+            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
+            var m2Operation = model.GetOperation(m2);
+            VerifyOperationTree(comp, m2Operation,
+@"
+");
+#endif
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_Variable_02()
+        {
+            var src = @"
+class C
+{
+    public Buffer4<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.F[0] = 111;
+        x.F[1] = 112;
+        x.F[2] = 113;
+        x.F[3] = 114;
+        Test(x);
+        Test(x);
+    }
+
+    static void Test(C x)
+    {
+        foreach (ref readonly int y in x.F)
+        {
+            System.Console.Write(' ');
+            System.Console.Write(y);
+            System.Runtime.CompilerServices.Unsafe.AsRef(in y) *= -1;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  .locals init (Buffer4<int>& V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer4<int> C.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
+  IL_0009:  br.s       IL_002e
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  call       ""InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
+  IL_0012:  ldc.i4.s   32
+  IL_0014:  call       ""void System.Console.Write(char)""
+  IL_0019:  dup
+  IL_001a:  ldind.i4
+  IL_001b:  call       ""void System.Console.Write(int)""
+  IL_0020:  call       ""ref int System.Runtime.CompilerServices.Unsafe.AsRef<int>(scoped in int)""
+  IL_0025:  dup
+  IL_0026:  ldind.i4
+  IL_0027:  ldc.i4.m1
+  IL_0028:  mul
+  IL_0029:  stind.i4
+  IL_002a:  ldloc.1
+  IL_002b:  ldc.i4.1
+  IL_002c:  add
+  IL_002d:  stloc.1
+  IL_002e:  ldloc.1
+  IL_002f:  ldc.i4.4
+  IL_0030:  blt.s      IL_000b
+  IL_0032:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_Variable_03()
+        {
+            var src = @"
+class C
+{
+    public Buffer4<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.F[0] = 111;
+        x.F[1] = 112;
+        x.F[2] = 113;
+        x.F[3] = 114;
+        Test(x);
+    }
+
+    static void Test(C x)
+    {
+        foreach (var y in x.F)
+        {
+            System.Console.Write(' ');
+            System.Console.Write(y);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (Buffer4<int>& V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer4<int> C.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
+  IL_0009:  br.s       IL_0023
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  call       ""InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
+  IL_0012:  ldind.i4
+  IL_0013:  ldc.i4.s   32
+  IL_0015:  call       ""void System.Console.Write(char)""
+  IL_001a:  call       ""void System.Console.Write(int)""
+  IL_001f:  ldloc.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  add
+  IL_0022:  stloc.1
+  IL_0023:  ldloc.1
+  IL_0024:  ldc.i4.4
+  IL_0025:  blt.s      IL_000b
+  IL_0027:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Foreach_Variable_04()
+        {
+            var src = @"
+class Program
+{
+    static ref int Test(Buffer4<int> x)
+    {
+        foreach (ref int y in x)
+        {
+            return ref y;
+        }
+
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,24): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
+                //             return ref y;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(8, 24)
+                );
+        }
+
+        [Fact]
+        public void Foreach_Variable_05_MissingSpan()
+        {
+            var src = @"
+class Program
+{
+    static void Test(Buffer4<int> x)
+    {
+        foreach (var y in x)
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.MakeTypeMissing(WellKnownType.System_Span_T);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS0518: Predefined type 'System.Span`1' is not defined or imported
+                //         foreach (var y in x)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "x").WithArguments("System.Span`1").WithLocation(6, 27)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_Variable_ReadOnly_01()
+        {
+            var src = @"
+struct C
+{
+    public Buffer4<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.F[0] = 111;
+        x.F[1] = 112;
+        x.F[2] = 113;
+        x.F[3] = 114;
+        Test(in x);
+        Test(in x);
+    }
+
+    static void Test(in C x)
+    {
+        foreach (ref readonly int y in x.F)
+        {
+            System.Console.Write(' ');
+            System.Console.Write(y);
+            System.Runtime.CompilerServices.Unsafe.AsRef(in y) *= -1;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  .locals init (Buffer4<int>& V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer4<int> C.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
+  IL_0009:  br.s       IL_002e
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_0012:  ldc.i4.s   32
+  IL_0014:  call       ""void System.Console.Write(char)""
+  IL_0019:  dup
+  IL_001a:  ldind.i4
+  IL_001b:  call       ""void System.Console.Write(int)""
+  IL_0020:  call       ""ref int System.Runtime.CompilerServices.Unsafe.AsRef<int>(scoped in int)""
+  IL_0025:  dup
+  IL_0026:  ldind.i4
+  IL_0027:  ldc.i4.m1
+  IL_0028:  mul
+  IL_0029:  stind.i4
+  IL_002a:  ldloc.1
+  IL_002b:  ldc.i4.1
+  IL_002c:  add
+  IL_002d:  stloc.1
+  IL_002e:  ldloc.1
+  IL_002f:  ldc.i4.4
+  IL_0030:  blt.s      IL_000b
+  IL_0032:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Foreach_Variable_ReadOnly_02()
+        {
+            var src = @"
+public struct C
+{
+    public Buffer4<int> F;
+}
+
+class Program
+{
+    static void Test(in C x)
+    {
+        foreach (ref int y in x.F)
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (11,31): error CS8332: Cannot assign to a member of variable 'x' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         foreach (ref int y in x.F)
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "x.F").WithArguments("variable", "x").WithLocation(11, 31)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_Variable_ReadOnly_03()
+        {
+            var src = @"
+struct C
+{
+    public Buffer4<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.F[0] = 111;
+        x.F[1] = 112;
+        x.F[2] = 113;
+        x.F[3] = 114;
+        Test(in x);
+    }
+
+    static void Test(in C x)
+    {
+        foreach (var y in x.F)
+        {
+            System.Console.Write(' ');
+            System.Console.Write(y);
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+public struct Buffer4<T>
+{
+    private T _element0;
+
+    public System.Collections.Generic.IEnumerator<T> GetEnumerator()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            yield return this[i];
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (Buffer4<int>& V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer4<int> C.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
+  IL_0009:  br.s       IL_0023
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_0012:  ldind.i4
+  IL_0013:  ldc.i4.s   32
+  IL_0015:  call       ""void System.Console.Write(char)""
+  IL_001a:  call       ""void System.Console.Write(int)""
+  IL_001f:  ldloc.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  add
+  IL_0022:  stloc.1
+  IL_0023:  ldloc.1
+  IL_0024:  ldc.i4.4
+  IL_0025:  blt.s      IL_000b
+  IL_0027:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Foreach_Variable_ReadOnly_04()
+        {
+            var src = @"
+class Program
+{
+    static ref readonly int Test(in Buffer4<int> x)
+    {
+        foreach (ref readonly int y in x)
+        {
+            return ref y;
+        }
+
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,24): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
+                //             return ref y;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(8, 24)
+                );
+        }
+
+        [Fact]
+        public void Foreach_Variable_ReadOnly_05_MissingSpan()
+        {
+            var src = @"
+class Program
+{
+    static void Test(in Buffer4<int> x)
+    {
+        foreach (var y in x)
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.MakeTypeMissing(WellKnownType.System_ReadOnlySpan_T);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS0518: Predefined type 'System.ReadOnlySpan`1' is not defined or imported
+                //         foreach (var y in x)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "x").WithArguments("System.ReadOnlySpan`1").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        public void Foreach_Value_01()
+        {
+            var src = @"
+class C
+{
+    public Buffer4<int> F = default;
+}
+
+class Program
+{
+    static void Test(C x)
+    {
+        foreach (ref readonly int y in GetBuffer(x))
+        {
+        }
+    }
+
+    static Buffer4<int> GetBuffer(C x) => x.F;
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // PROTOTYPE(InlineArrays): The error is somewhat confusing because 'ref readonly' doesn't require assignability, but requires a variable. 
+                // (11,40): error CS1510: A ref or out value must be an assignable variable
+                //         foreach (ref readonly int y in GetBuffer(x))
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetBuffer(x)").WithLocation(11, 40)
+                );
+        }
+
+        [Fact]
+        public void Foreach_Value_02()
+        {
+            var src = @"
+class C
+{
+    public Buffer4<int> F = default;
+}
+
+class Program
+{
+    static void Test(C x)
+    {
+        foreach (ref int y in GetBuffer(x))
+        {
+        }
+    }
+
+    static Buffer4<int> GetBuffer(C x) => x.F;
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (11,31): error CS1510: A ref or out value must be an assignable variable
+                //         foreach (ref int y in GetBuffer(x))
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetBuffer(x)").WithLocation(11, 31)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_Value_03()
+        {
+            var src = @"
+class C
+{
+    public Buffer4<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.F[0] = 111;
+        x.F[1] = 112;
+        x.F[2] = 113;
+        x.F[3] = 114;
+        Test(x);
+    }
+
+    static void Test(C x)
+    {
+        foreach (var y in GetBuffer(x))
+        {
+            System.Console.Write(' ');
+            System.Console.Write(y);
+            _ = new Buffer4<int>().ToString();
+        }
+    }
+
+    static Buffer4<int> GetBuffer(C x) => x.F;
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       64 (0x40)
+  .maxstack  2
+  .locals init (Buffer4<int> V_0,
+                Buffer4<int>& V_1,
+                int V_2,
+                Buffer4<int> V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""Buffer4<int> Program.GetBuffer(C)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  stloc.1
+  IL_000a:  ldc.i4.0
+  IL_000b:  stloc.2
+  IL_000c:  br.s       IL_003b
+  IL_000e:  ldloc.1
+  IL_000f:  ldloc.2
+  IL_0010:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_0015:  ldind.i4
+  IL_0016:  ldc.i4.s   32
+  IL_0018:  call       ""void System.Console.Write(char)""
+  IL_001d:  call       ""void System.Console.Write(int)""
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  dup
+  IL_0025:  initobj    ""Buffer4<int>""
+  IL_002b:  constrained. ""Buffer4<int>""
+  IL_0031:  callvirt   ""string object.ToString()""
+  IL_0036:  pop
+  IL_0037:  ldloc.2
+  IL_0038:  ldc.i4.1
+  IL_0039:  add
+  IL_003a:  stloc.2
+  IL_003b:  ldloc.2
+  IL_003c:  ldc.i4.4
+  IL_003d:  blt.s      IL_000e
+  IL_003f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Foreach_Value_04()
+        {
+            var src = @"
+class Program
+{
+    static ref int Test()
+    {
+        foreach (var y in GetBuffer())
+        {
+            return ref y;
+        }
+
+        throw null;
+    }
+
+    static Buffer4<int> GetBuffer() => default;
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,24): error CS1657: Cannot use 'y' as a ref or out value because it is a 'foreach iteration variable'
+                //             return ref y;
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "y").WithArguments("y", "foreach iteration variable").WithLocation(8, 24)
+                );
+        }
+
+        [Fact]
+        public void AwaitForeach_01()
+        {
+            var src = @"
+class Program
+{
+    public static async void M()
+    {
+        await foreach(var s in GetBuffer())
+        {
+        }
+    }
+
+    static Buffer4<int> GetBuffer() => default;
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,32): error CS8415: Asynchronous foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+                //         await foreach(var s in GetBuffer())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync, "GetBuffer()").WithArguments("Buffer4<int>", "GetAsyncEnumerator").WithLocation(6, 32)
+                );
+        }
+
+        [Fact]
+        public void Foreach_Extension_01()
+        {
+            var src = @"
+class Program
+{
+    public static void M(Buffer4<int> x)
+    {
+        foreach(var s in x)
+        {
+        }
+    }
+}
+
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+    }
+}
+
+static class Ext 
+{
+    public static Enumerator<T> GetEnumerator<T>(this System.Span<T> f) => default;
+
+    public ref struct Enumerator<T>
+    {
+        public ref T Current => throw null;
+
+        public bool MoveNext() => false;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,26): error CS1061: 'Buffer4<int>' does not contain a definition for 'GetEnumerator' and no accessible extension method 'GetEnumerator' accepting a first argument of type 'Buffer4<int>' could be found (are you missing a using directive or an assembly reference?)
+                //         foreach(var s in x)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26),
+                // (6,26): error CS1579: foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach(var s in x)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26),
+                // (21,62): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+                //     public static Enumerator<T> GetEnumerator<T>(this System.Span<T> f) => default;
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<T>").WithArguments("", "System.Span<T>", "System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Span<T>").WithLocation(21, 62)
+                );
+        }
+
+        [Fact]
+        public void Foreach_RefMismatch_01()
+        {
+            var src = @"
+class Program
+{
+    public static void M(Buffer4<int> x)
+    {
+        foreach(var s in x)
+        {
+        }
+    }
+}
+
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+
+        public Enumerator GetEnumerator() => default;
+
+        public ref struct Enumerator
+        {
+            public ref readonly T Current => throw null;
+
+            public bool MoveNext() => false;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,26): error CS1579: foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach(var s in x)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void Foreach_RefMismatch_02()
+        {
+            var src = @"
+class Program
+{
+    public static void M(Buffer4<int> x)
+    {
+        foreach(var s in x)
+        {
+        }
+    }
+}
+
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+
+        public Enumerator GetEnumerator() => default;
+
+        public ref struct Enumerator
+        {
+            public T Current => throw null;
+
+            public bool MoveNext() => false;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,26): error CS1579: foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach(var s in x)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void Foreach_RefMismatch_03()
+        {
+            var src = @"
+class Program
+{
+    public static void M(in Buffer4<int> x)
+    {
+        foreach(var s in x)
+        {
+        }
+    }
+}
+
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+
+        public Enumerator GetEnumerator() => default;
+
+        public ref struct Enumerator
+        {
+            public ref T Current => throw null;
+
+            public bool MoveNext() => false;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,26): error CS1579: foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach(var s in x)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void Foreach_RefMismatch_04()
+        {
+            var src = @"
+class Program
+{
+    public static void M(in Buffer4<int> x)
+    {
+        foreach(var s in x)
+        {
+        }
+    }
+}
+
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+
+        public Enumerator GetEnumerator() => default;
+
+        public ref struct Enumerator
+        {
+            public T Current => throw null;
+
+            public bool MoveNext() => false;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,26): error CS1579: foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach(var s in x)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void Foreach_ElementTypeMismatch_01()
+        {
+            var src = @"
+class Program
+{
+    public static void M(in Buffer4<int> x)
+    {
+        foreach(var s in x)
+        {
+        }
+    }
+}
+
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        public Enumerator GetEnumerator() => default;
+
+        public ref struct Enumerator
+        {
+            public ref readonly object Current => throw null;
+
+            public bool MoveNext() => false;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,26): error CS1579: foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach(var s in x)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void Foreach_NotEnumerableSpan_01()
+        {
+            var src = @"
+class Program
+{
+    public static void M(in Buffer4<int> x)
+    {
+        foreach(var s in x)
+        {
+        }
+    }
+}
+
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,26): error CS1579: foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach(var s in x)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void Foreach_NotEnumerableSpan_02()
+        {
+            var src = @"
+class Program
+{
+    public static void M(in Buffer4<int> x)
+    {
+        foreach(var s in x)
+        {
+        }
+    }
+}
+
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        public Enumerator GetEnumerator() => default;
+
+        public ref struct Enumerator
+        {
+            public bool MoveNext() => false;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,26): error CS0117: 'ReadOnlySpan<int>.Enumerator' does not contain a definition for 'Current'
+                //         foreach(var s in x)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("System.ReadOnlySpan<int>.Enumerator", "Current").WithLocation(6, 26),
+                // (6,26): error CS0202: foreach requires that the return type 'ReadOnlySpan<int>.Enumerator' of 'ReadOnlySpan<int>.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+                //         foreach(var s in x)
+                Diagnostic(ErrorCode.ERR_BadGetEnumerator, "x").WithArguments("System.ReadOnlySpan<int>.Enumerator", "System.ReadOnlySpan<int>.GetEnumerator()").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void Foreach_UnsupportedElementType()
+        {
+            var src = @"
+class Program
+{
+    public void M()
+    {
+        foreach(var s in GetBuffer())
+        {
+        }
+    }
+
+    static Buffer GetBuffer() => default;
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+unsafe struct Buffer
+{
+    private void* _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (6,26): error CS0306: The type 'void*' may not be used as a type argument
+                //         foreach(var s in GetBuffer())
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer()").WithArguments("void*").WithLocation(6, 26)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_NotEnumerableSpan_03_Fallback()
+        {
+            var src = @"
+struct C
+{
+    public Buffer4<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        x.F[0] = 111;
+        x.F[1] = 112;
+        x.F[2] = 113;
+        x.F[3] = 114;
+        Test(in x);
+    }
+
+    static void Test(in C x)
+    {
+        foreach (var y in x.F)
+        {
+            System.Console.Write(' ');
+            System.Console.Write(y);
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+public struct Buffer4<T>
+{
+    private T _element0;
+
+    public System.Collections.Generic.IEnumerator<T> GetEnumerator()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            yield return this[i];
+        }
+    }
+}
+
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                Buffer4<int> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Buffer4<int> C.F""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""System.Collections.Generic.IEnumerator<int> Buffer4<int>.GetEnumerator()""
+  IL_000e:  stloc.0
+  .try
+  {
+    IL_000f:  br.s       IL_0023
+    IL_0011:  ldloc.0
+    IL_0012:  callvirt   ""int System.Collections.Generic.IEnumerator<int>.Current.get""
+    IL_0017:  ldc.i4.s   32
+    IL_0019:  call       ""void System.Console.Write(char)""
+    IL_001e:  call       ""void System.Console.Write(int)""
+    IL_0023:  ldloc.0
+    IL_0024:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0029:  brtrue.s   IL_0011
+    IL_002b:  leave.s    IL_0037
+  }
+  finally
+  {
+    IL_002d:  ldloc.0
+    IL_002e:  brfalse.s  IL_0036
+    IL_0030:  ldloc.0
+    IL_0031:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0036:  endfinally
+  }
+  IL_0037:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Foreach_InAsync_01()
+        {
+            var src = @"
+class Program
+{
+    static async void Test()
+    {
+        foreach (var y in GetBuffer())
+        {
+        }
+
+        await System.Threading.Tasks.Task.Yield();
+    }
+
+    static ref Buffer4<int> GetBuffer() => throw null;
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8344: foreach statement cannot operate on enumerators of type 'Span<int>.Enumerator' in async or iterator methods because 'Span<int>.Enumerator' is a ref struct.
+                //         foreach (var y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("System.Span<int>.Enumerator").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void Foreach_InAsync_02()
+        {
+            var src = @"
+class C
+{
+    public Buffer4<int> F = default;
+}
+
+class Program
+{
+    static async void Test(C x)
+    {
+        foreach (var y in x.F)
+        {
+            await System.Threading.Tasks.Task.Yield();
+            await System.Threading.Tasks.Task.Delay(2);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS8344: foreach statement cannot operate on enumerators of type 'Span<int>.Enumerator' in async or iterator methods because 'Span<int>.Enumerator' is a ref struct.
+                //         foreach (var y in x.F)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("System.Span<int>.Enumerator").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void Foreach_InIterator_01()
+        {
+            var src = @"
+class Program
+{
+    static System.Collections.Generic.IEnumerator<int> Test()
+    {
+        foreach (var y in GetBuffer())
+        {
+        }
+
+        yield return 0;
+    }
+
+    static ref Buffer4<int> GetBuffer() => throw null;
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8344: foreach statement cannot operate on enumerators of type 'Span<int>.Enumerator' in async or iterator methods because 'Span<int>.Enumerator' is a ref struct.
+                //         foreach (var y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("System.Span<int>.Enumerator").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void Foreach_InIterator_02()
+        {
+            var src = @"
+class C
+{
+    public Buffer4<int> F = default;
+}
+
+class Program
+{
+    static System.Collections.Generic.IEnumerator<int> Test(C x)
+    {
+        foreach (var y in x.F)
+        {
+            yield return y;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS8344: foreach statement cannot operate on enumerators of type 'Span<int>.Enumerator' in async or iterator methods because 'Span<int>.Enumerator' is a ref struct.
+                //         foreach (var y in x.F)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("System.Span<int>.Enumerator").WithLocation(11, 9)
                 );
         }
     }

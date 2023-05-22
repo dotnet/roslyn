@@ -1967,6 +1967,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName)!.GetInternalSymbol()!;
         }
 
+        internal MethodSymbol EnsureInlineArrayElementRefExists(SyntaxNode syntaxNode, NamedTypeSymbol intType, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(intType.SpecialType == SpecialType.System_Int32);
+
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
+            var inlineArrayAsSpanAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedInlineArrayElementRefName);
+            if (inlineArrayAsSpanAdapter is not null)
+            {
+                return (MethodSymbol)inlineArrayAsSpanAdapter.GetInternalSymbol()!;
+            }
+
+            // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
+            privateImplClass.TryAddSynthesizedMethod(new SynthesizedInlineArrayElementRefMethod(
+                SourceModule,
+                privateImplClass,
+                PrivateImplementationDetails.SynthesizedInlineArrayElementRefName,
+                intType).GetCciAdapter());
+            return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedInlineArrayElementRefName)!.GetInternalSymbol()!;
+        }
+
+        internal MethodSymbol EnsureInlineArrayElementReadOnlyRefExists(SyntaxNode syntaxNode, NamedTypeSymbol intType, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(intType.SpecialType == SpecialType.System_Int32);
+
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
+            var inlineArrayAsSpanAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName);
+            if (inlineArrayAsSpanAdapter is not null)
+            {
+                return (MethodSymbol)inlineArrayAsSpanAdapter.GetInternalSymbol()!;
+            }
+
+            // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
+            privateImplClass.TryAddSynthesizedMethod(new SynthesizedInlineArrayElementReadOnlyRefMethod(
+                SourceModule,
+                privateImplClass,
+                PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName,
+                intType).GetCciAdapter());
+            return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName)!.GetInternalSymbol()!;
+        }
+
 #nullable disable
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)

@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// method returns a BoundBadExpression node. The method returns the original
         /// expression without generating any error if the expression has errors.
         /// </summary>
-        private BoundExpression CheckValue(BoundExpression expr, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
+        internal BoundExpression CheckValue(BoundExpression expr, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
             switch (expr.Kind)
             {

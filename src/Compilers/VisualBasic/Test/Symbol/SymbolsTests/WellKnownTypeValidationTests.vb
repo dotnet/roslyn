@@ -795,6 +795,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
                          WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan,
                          WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan,
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T,
                          WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T,
                          WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T
                         ' Not always available.
@@ -990,6 +991,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
                          WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan,
                          WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan,
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T,
                          WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T,
                          WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T
                         ' Not always available.
