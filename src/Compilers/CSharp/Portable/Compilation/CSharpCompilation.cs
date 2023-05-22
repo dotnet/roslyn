@@ -1037,6 +1037,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> _mappedPathToSyntaxTree;
+        internal OneOrMany<SyntaxTree> GetSyntaxTreesByMappedPath(string mappedPath)
+        {
+            // We could consider storing this on SyntaxAndDeclarationManager instead, and updating it incrementally.
+            // However, this would make it more difficult for it to be "pay-for-play",
+            // i.e. only created in compilations where interceptors are used.
+            var mappedPathToSyntaxTree = _mappedPathToSyntaxTree;
+            if (mappedPathToSyntaxTree.IsDefault)
+            {
+                RoslynImmutableInterlocked.InterlockedInitialize(ref _mappedPathToSyntaxTree, computeMappedPathToSyntaxTree());
+                mappedPathToSyntaxTree = _mappedPathToSyntaxTree;
+            }
+
+            return mappedPathToSyntaxTree.TryGetValue(mappedPath, out var value) ? value : OneOrMany<SyntaxTree>.Empty;
+
+            ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> computeMappedPathToSyntaxTree()
+            {
+                var builder = ImmutableSegmentedDictionary.CreateBuilder<string, OneOrMany<SyntaxTree>>();
+                var resolver = Options.SourceReferenceResolver;
+                foreach (var tree in SyntaxTrees)
+                {
+                    var path = resolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
+                    builder[path] = builder.ContainsKey(path) ? builder[path].Add(tree) : OneOrMany.Create(tree);
+                }
+                return builder.ToImmutable();
+            }
+        }
+
         #endregion
 
         #region References
