@@ -2585,6 +2585,18 @@ class C
         }
 
         [WpfFact]
+        public void FormatCollectionLiteralAfterEquals()
+        {
+            var code = @"$$
+var   v  =   [  1  , 2  , 3  ]  ;";
+
+            var expected = @"$$
+var v = [1, 2, 3];";
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
         public void FormatUnsignedRightShiftOnType()
         {
             var code = @"
