@@ -1672,6 +1672,34 @@ public partial class UsePrimaryConstructorTests
     }
 
     [Fact]
+    public async Task TestMoveConstructorAttributes1A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+               using System;
+               [Obsolete("", error: true)]
+               class C
+               {
+                   [Obsolete("", error: true)]
+                   public [|C|](int i)
+                   {
+                   }
+               }
+               """,
+            FixedCode = """
+               using System;
+               [Obsolete("", error: true)]
+               [method: Obsolete("", error: true)]
+               class C(int i)
+               {
+               }
+               """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestMoveConstructorAttributes2()
     {
         await new VerifyCS.Test
@@ -1698,6 +1726,118 @@ public partial class UsePrimaryConstructorTests
                     [method: Obsolete("", error: true)]
                     class C(int i)
                     {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes2A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+     
+                namespace N
+                {
+                    [Obsolete("", error: true)]
+                    class C
+                    {
+                        [Obsolete("", error: true)]
+                        public [|C|](int i)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                namespace N
+                {
+                    [Obsolete("", error: true)]
+                    [method: Obsolete("", error: true)]
+                    class C(int i)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+     
+                namespace N
+                {
+                    class C
+                    {
+                        int x;
+
+                        [Obsolete("", error: true)]
+                        public [|C|](int i)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                namespace N
+                {
+                    [method: Obsolete("", error: true)]
+                    class C(int i)
+                    {
+                        int x;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes3A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+     
+                namespace N
+                {
+                    [Obsolete("", error: true)]
+                    class C
+                    {
+                        int x;
+
+                        [Obsolete("", error: true)]
+                        public [|C|](int i)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                namespace N
+                {
+                    [Obsolete("", error: true)]
+                    [method: Obsolete("", error: true)]
+                    class C(int i)
+                    {
+                        int x;
                     }
                 }
                 """,
