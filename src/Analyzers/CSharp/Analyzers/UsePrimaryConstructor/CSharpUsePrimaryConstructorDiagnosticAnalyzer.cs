@@ -154,11 +154,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                         .Where(kvp => !_membersThatCannotBeRemoved.Contains(kvp.Key))
                         .ToImmutableDictionary(static kvp => kvp.Key.Name, static kvp => (string?)kvp.Value.Name);
 
-                    if (_candidateMembersToRemove.All(kvp => kvp.Key is IFieldSymbol))
+                    if (_candidateMembersToRemove.Any(kvp => kvp.Key is IFieldSymbol) &&
+                        _candidateMembersToRemove.All(kvp => kvp.Key is IFieldSymbol))
                     {
                         properties = properties.Add(AllFieldsName, AllFieldsName);
                     }
-                    else if (_candidateMembersToRemove.All(kvp => kvp.Key is IPropertySymbol))
+                    else if (
+                        _candidateMembersToRemove.Any(kvp => kvp.Key is IPropertySymbol) &&
+                        _candidateMembersToRemove.All(kvp => kvp.Key is IPropertySymbol))
                     {
                         properties = properties.Add(AllPropertiesName, AllPropertiesName);
                     }
