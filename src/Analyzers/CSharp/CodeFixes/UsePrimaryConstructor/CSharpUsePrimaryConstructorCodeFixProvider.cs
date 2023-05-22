@@ -5,6 +5,7 @@
 // Ignore Spelling: loc kvp
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -170,12 +171,15 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                     constructorDeclaration.AttributeLists.Select(
                         a => a.WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.MethodKeyword))).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation)));
 
+                var parameterList = RemoveElementIndentation(
+                    typeDeclaration, constructorDeclaration, constructorDeclaration.ParameterList,
+                    static list => list.Parameters);
                 return currentTypeDeclaration
                     .WithLeadingTrivia(finalTrivia)
                     .WithAttributeLists(finalAttributeLists)
                     .WithIdentifier(typeParameterList != null ? currentTypeDeclaration.Identifier : currentTypeDeclaration.Identifier.WithoutTrailingTrivia())
                     .WithTypeParameterList(typeParameterList?.WithoutTrailingTrivia())
-                    .WithParameterList(FixupParameterTrivia(typeDeclaration, constructorDeclaration, constructorDeclaration.ParameterList)
+                    .WithParameterList(parameterList
                         .WithoutLeadingTrivia()
                         .WithTrailingTrivia(triviaAfterName)
                         .WithAdditionalAnnotations(Formatter.Annotation));
@@ -183,10 +187,12 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
 
         return;
 
-        static ParameterListSyntax FixupParameterTrivia(
+        static TListSyntax RemoveElementIndentation<TListSyntax>(
             TypeDeclarationSyntax typeDeclaration,
             ConstructorDeclarationSyntax constructorDeclaration,
-            ParameterListSyntax parameterList)
+            TListSyntax list,
+            Func<TListSyntax, IEnumerable<SyntaxNode>> getElements)
+            where TListSyntax : SyntaxNode
         {
             // Since we're moving parameters from the constructor to the type, attempt to dedent them if appropriate.
 
@@ -197,8 +203,8 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                 constructorLeadingWhitespace.StartsWith(typeLeadingWhitespace))
             {
                 var indentation = constructorLeadingWhitespace[typeLeadingWhitespace.Length..];
-                return parameterList.ReplaceNodes(
-                    parameterList.Parameters,
+                return list.ReplaceNodes(
+                    getElements(list),
                     (p, _) =>
                     {
                         var parameterLeadingWhitespace = GetLeadingWhitespace(p);
@@ -213,7 +219,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                     });
             }
 
-            return parameterList;
+            return list;
         }
 
         static string GetLeadingWhitespace(SyntaxNode node)
@@ -236,9 +242,13 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                 var document = solution.GetRequiredDocument(baseType.SyntaxTree);
                 var documentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
 
+                var argumentList = RemoveElementIndentation(
+                    typeDeclaration, constructorDeclaration, constructorDeclaration.Initializer.ArgumentList,
+                    static list => list.Arguments);
+
                 documentEditor.ReplaceNode(
                     baseType,
-                    PrimaryConstructorBaseType(baseType.Type.WithoutTrailingTrivia(), constructorDeclaration.Initializer.ArgumentList.WithoutLeadingTrivia())
+                    PrimaryConstructorBaseType(baseType.Type.WithoutTrailingTrivia(), argumentList.WithoutLeadingTrivia())
                         .WithTrailingTrivia(baseType.GetTrailingTrivia()));
                 return;
             }
