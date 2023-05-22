@@ -37,6 +37,11 @@ internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService,
 
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken _)
     {
+        if (creationInfo.BuildSystemProperties.TryGetValue("SolutionPath", out var solutionPath))
+        {
+            _workspaceFactory.ProjectSystemProjectFactory.SolutionPath = solutionPath;
+        }
+
         var project = await _workspaceFactory.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
             creationInfo.DisplayName,
             creationInfo.Language,
