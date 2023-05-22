@@ -166,8 +166,12 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                     ? typeParameterList.GetTrailingTrivia()
                     : currentTypeDeclaration.Identifier.GetAllTrailingTrivia();
 
+                var finalAttributeLists = currentTypeDeclaration.AttributeLists.AddRange(
+                    constructorDeclaration.AttributeLists.Select(a => a.WithTarget(AttributeTargetSpecifier(Identifier("method")))));
+
                 return currentTypeDeclaration
                     .WithLeadingTrivia(finalTrivia)
+                    .WithAttributeLists(finalAttributeLists)
                     .WithIdentifier(typeParameterList != null ? currentTypeDeclaration.Identifier : currentTypeDeclaration.Identifier.WithoutTrailingTrivia())
                     .WithTypeParameterList(typeParameterList?.WithoutTrailingTrivia())
                     .WithParameterList(constructorDeclaration.ParameterList
