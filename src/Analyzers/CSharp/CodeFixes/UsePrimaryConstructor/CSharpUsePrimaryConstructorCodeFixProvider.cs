@@ -300,27 +300,43 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
             // documents containing our named type.
             var references = await SymbolFinder.FindReferencesAsync(
                 member, solution, namedTypeDocuments, cancellationToken).ConfigureAwait(false);
+
+            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var nodesToReplace);
             foreach (var reference in references)
             {
-                foreach (var group in reference.Locations.GroupBy(loc => loc.Document))
+                foreach (var location in reference.Locations)
                 {
-                    var document = group.Key;
-                    var documentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+                    if (location.IsImplicit)
+                        continue;
 
-                    foreach (var location in group)
+                    if (location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) is not IdentifierNameSyntax identifier)
+                        continue;
+
+                    if (identifier.IsRightSideOfDot())
                     {
-                        if (location.IsImplicit)
-                            continue;
-
-                        var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) as IdentifierNameSyntax;
-                        if (node is null)
-                            continue;
-
-                        var nodeToReplace = node.IsRightSideOfDot() ? node.GetRequiredParent() : node;
-                        documentEditor.ReplaceNode(
-                            nodeToReplace,
-                            parameterNameNode.WithTriviaFrom(nodeToReplace));
+                        if (identifier.GetRequiredParent() is ExpressionSyntax expression)
+                            nodesToReplace.Add(expression);
                     }
+                    else
+                    {
+                        nodesToReplace.Add(identifier);
+                    }
+                }
+            }
+
+            foreach (var group in nodesToReplace.GroupBy(n => n.SyntaxTree))
+            {
+                var document = solution.GetDocument(group.Key);
+                if (document is null)
+                    continue;
+
+                var documentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+
+                foreach (var nodeToReplace in group)
+                {
+                    documentEditor.ReplaceNode(
+                        nodeToReplace,
+                        parameterNameNode.WithTriviaFrom(nodeToReplace));
                 }
             }
         }
