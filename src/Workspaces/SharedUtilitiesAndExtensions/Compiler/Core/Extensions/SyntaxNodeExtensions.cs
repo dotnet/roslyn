@@ -795,10 +795,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         /// <summary>
-        /// Gets the node within the given <paramref name="root"/> corresponding to the given <paramref name="span"/>.
+        /// Finds the node within the given <paramref name="root"/> corresponding to the given <paramref name="span"/>.
         /// If the <paramref name="span"/> is <see langword="null"/>, then returns the given <paramref name="root"/> node.
         /// </summary>
-        public static SyntaxNode GetNodeForSpan(this SyntaxNode root, TextSpan? span, bool findInTrivia, bool getInnermostNodeForTie)
+        public static SyntaxNode FindNode(this SyntaxNode root, TextSpan? span, bool findInTrivia, bool getInnermostNodeForTie)
         {
             return span.HasValue
                 ? root.FindNode(span.Value, findInTrivia, getInnermostNodeForTie)

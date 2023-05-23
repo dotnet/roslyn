@@ -81,8 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             // Bail out if the potential diagnostic location is outside the analysis span.
-            var diagnosticLocation = localDeclarationStatement.GetLocation();
-            if (!syntaxContext.ShouldAnalyzeSpan(diagnosticLocation.SourceSpan))
+            if (!syntaxContext.ShouldAnalyzeSpan(localDeclarationStatement.Span))
                 return;
 
             // It's of the form:
@@ -153,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // Put a diagnostic with the appropriate severity on the declaration-statement itself.
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
-                diagnosticLocation,
+                localDeclarationStatement.GetLocation(),
                 styleOption.Notification.Severity,
                 additionalLocations,
                 properties: null));

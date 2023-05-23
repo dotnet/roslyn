@@ -22,11 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
                        unusedValueAssignmentOption:=VisualBasicCodeStyleOptions.UnusedValueAssignment)
         End Sub
 
-        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
-            Get
-                Return VisualBasicSyntaxFacts.Instance
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
         Protected Overrides Function GetUnusedValueExpressionStatementOption(provider As AnalyzerOptionsProvider) As CodeStyleOption2(Of UnusedValuePreference)
             Return CType(provider, VisualBasicAnalyzerOptionsProvider).UnusedValueExpressionStatement

@@ -25,14 +25,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public SourceOrAdditionalFile? FilterFileOpt { get; }
         public TextSpan? FilterSpanOpt { get; }
 
-        // Original filter file and filter span for the input analysis scope.
-        // Normally, these are the same as the above FilterFileOpt and FilterSpanOpt,
-        // except for SymbolStart/End action execution where original input
-        // file/span for diagnostic request can require analyzing other files/spans
-        // which have partial definitions for the symbol being analyzed.
-        // Below properties are used to ensure that SymbolStart action and SymbolEnd
-        // action both receive this same original filter file and span.
+        /// <summary>
+        /// Original filter file for the input analysis scope.
+        /// Normally, this is the same as <see cref="FilterFileOpt"/>,
+        /// except for SymbolStart/End action execution where original input
+        /// file/span for diagnostic request can require analyzing other files/spans
+        /// which have partial definitions for the symbol being analyzed.
+        /// This property is used to ensure that SymbolStart action and SymbolEnd
+        /// action both receive this same original filter file.
+        /// </summary>
         public SourceOrAdditionalFile? OriginalFilterFile { get; }
+
+        /// <summary>
+        /// Original filter span for the input analysis scope.
+        /// Normally, this is the same as <see cref="FilterSpanOpt"/>,
+        /// except for SymbolStart/End action execution where original input
+        /// file/span for diagnostic request can require analyzing other files/spans
+        /// which have partial definitions for the symbol being analyzed.
+        /// This property is used to ensure that SymbolStart action and SymbolEnd
+        /// action both receive this same original filter span.
+        /// </summary>
         public TextSpan? OriginalFilterSpan { get; }
 
         public ImmutableArray<DiagnosticAnalyzer> Analyzers { get; }

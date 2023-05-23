@@ -69,13 +69,16 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                     return false;
 
                 // Skip analysis if the analysis filter span does not contain the primary location where we would report a diagnostic.
-                if (context.FilterSpan.HasValue)
+                if (context.FilterSpan is not null)
                 {
                     Contract.ThrowIfNull(context.FilterTree);
                     var shouldAnalyze = false;
                     foreach (var member in structType.GetMembers())
                     {
-                        var location = GetDiagnosticLocation(member, cancellationToken, out _);
+                        if (member is not IMethodSymbol method)
+                            continue;
+
+                        var (location, _) = GetDiagnosticLocation(method, cancellationToken);
                         if (location != null && context.ShouldAnalyzeLocation(location))
                         {
                             shouldAnalyze = true;
@@ -97,7 +100,10 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
     {
         var cancellationToken = context.CancellationToken;
 
-        var location = GetDiagnosticLocation(context.OwningSymbol, cancellationToken, out var additionalLocation);
+        if (context.OwningSymbol is not IMethodSymbol owningMethod)
+            return;
+
+        var (location, additionalLocation) = GetDiagnosticLocation(owningMethod, cancellationToken);
         if (location == null || !context.ShouldAnalyzeSpan(location.SourceSpan))
             return;
 
@@ -109,7 +115,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             if (blockOperation is IBlockOperation { Operations: [IThrowOperation or IExpressionStatementOperation { Operation: IThrowOperation }] })
                 return;
 
-            if (BlockOperationPotentiallyMutatesThis((IMethodSymbol)context.OwningSymbol, blockOperation, cancellationToken))
+            if (BlockOperationPotentiallyMutatesThis(owningMethod, blockOperation, cancellationToken))
                 return;
         }
 
@@ -121,26 +127,20 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             properties: null));
     }
 
-    private static Location? GetDiagnosticLocation(
-        ISymbol symbol,
-        CancellationToken cancellationToken,
-        [NotNullWhen(true)] out Location? additionalLocation)
+    private static (Location? location, Location? additionalLocation) GetDiagnosticLocation(
+        IMethodSymbol owningMethod,
+        CancellationToken cancellationToken)
     {
-        additionalLocation = null;
-
         // if it's not a method, or it's already readonly, nothing to do.
-        if (symbol is not IMethodSymbol
-            {
-                MethodKind: MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.PropertyGet or MethodKind.PropertySet,
-                IsReadOnly: false,
-                IsStatic: false,
-                IsImplicitlyDeclared: false,
-                DeclaringSyntaxReferences: [var methodReference, ..],
-            } owningMethod)
+        if (owningMethod.MethodKind is not (MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.PropertyGet or MethodKind.PropertySet)
+            || owningMethod.IsReadOnly
+            || owningMethod.IsStatic
+            || owningMethod.IsImplicitlyDeclared)
         {
-            return null;
+            return (null, null);
         }
 
+        var methodReference = owningMethod.DeclaringSyntaxReferences[0];
         var declaration = methodReference.GetSyntax(cancellationToken);
 
         var nameToken = declaration switch
@@ -157,10 +157,9 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             declaration = declaration.GetRequiredParent();
 
         if (nameToken is null)
-            return null;
+            return (null, null);
 
-        additionalLocation = declaration.GetLocation();
-        return nameToken.Value.GetLocation();
+        return (nameToken.Value.GetLocation(), declaration.GetLocation());
     }
 
     private static bool BlockOperationPotentiallyMutatesThis(
