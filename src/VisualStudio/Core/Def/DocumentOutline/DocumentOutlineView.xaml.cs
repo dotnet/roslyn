@@ -302,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (e.OriginalSource is TreeViewItem item)
             {
                 double renderHeight;
-                if (item.IsExpanded)
+                if (item.IsExpanded && item.HasItems)
                 {
                     // The first child is a container. Inside the container are three children:
                     // 1. The expander

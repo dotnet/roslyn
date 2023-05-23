@@ -120,6 +120,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseDeconstruction\CSharpUseDeconstructionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullCheckHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndMemberAccessCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\CSharpUsePrimaryConstructorCodeFixProvider_DocComments.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\CSharpUsePrimaryConstructorCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\CSharpUsePrimaryConstructorFixAllProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\CSharpUseTupleSwapCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDefaultLiteral\CSharpUseDefaultLiteralCodeFixProvider.cs" />

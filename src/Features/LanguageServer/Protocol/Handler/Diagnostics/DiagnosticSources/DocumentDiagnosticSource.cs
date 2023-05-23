@@ -26,8 +26,9 @@ internal sealed class DocumentDiagnosticSource
         // We call GetDiagnosticsForSpanAsync here instead of GetDiagnosticsForIdsAsync as it has faster perf
         // characteristics. GetDiagnosticsForIdsAsync runs analyzers against the entire compilation whereas
         // GetDiagnosticsForSpanAsync will only run analyzers against the request document.
+        // Also ensure we pass in "includeSuppressedDiagnostics = true" for unnecessary suppressions to be reported.
         var allSpanDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
-            Document, range: null, diagnosticKind: this.DiagnosticKind, cancellationToken: cancellationToken).ConfigureAwait(false);
+            Document, range: null, diagnosticKind: this.DiagnosticKind, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
         return allSpanDiagnostics;
     }
 }

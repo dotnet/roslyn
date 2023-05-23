@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(this IDiagnosticAnalyzerService service,
             TextDocument document, TextSpan? range, CancellationToken cancellationToken)
-            => service.GetDiagnosticsForSpanAsync(document, range, DiagnosticKind.All, cancellationToken);
+            => service.GetDiagnosticsForSpanAsync(document, range, DiagnosticKind.All, includeSuppressedDiagnostics: false, cancellationToken);
 
         /// <summary>
         /// Return up to date diagnostics of the given <paramref name="diagnosticKind"/> for the given <paramref name="range"/>
@@ -122,9 +122,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </para>
         /// </summary>
         public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(this IDiagnosticAnalyzerService service,
-            TextDocument document, TextSpan? range, DiagnosticKind diagnosticKind, CancellationToken cancellationToken)
+            TextDocument document, TextSpan? range, DiagnosticKind diagnosticKind, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             => service.GetDiagnosticsForSpanAsync(document, range,
-                diagnosticId: null, includeSuppressedDiagnostics: false,
+                diagnosticId: null, includeSuppressedDiagnostics,
                 priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
                 addOperationScope: null, diagnosticKind, isExplicit: false, cancellationToken);
 

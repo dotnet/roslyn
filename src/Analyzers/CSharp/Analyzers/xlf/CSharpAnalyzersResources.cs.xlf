@@ -387,6 +387,11 @@
         <target state="translated">Použít porovnávání vzorů (může změnit význam kódu)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_primary_constructor">
+        <source>Use primary constructor</source>
+        <target state="new">Use primary constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="translated">Použít operátor rozsahu</target>

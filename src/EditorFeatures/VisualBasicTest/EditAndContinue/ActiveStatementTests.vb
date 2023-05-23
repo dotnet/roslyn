@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
+Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     <UseExportProvider>

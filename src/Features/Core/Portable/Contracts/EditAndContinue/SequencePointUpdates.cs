@@ -5,7 +5,7 @@
 using System.Runtime.Serialization;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
+namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
 {
     /// <summary>
     /// Sequence points affected by an update on a specified file.
