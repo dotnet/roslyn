@@ -220,6 +220,125 @@ public partial class UsePrimaryConstructorTests
     }
 
     [Fact]
+    public async Task TestWithBaseChainedConstructor3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class B(int i, int j)
+                {
+                }
+
+                class C : B
+                {
+                    public [|C|](int i, int j) : base(i,
+                        j)
+                    {
+                    }
+
+                    public C() : this(0, 0)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                class B(int i, int j)
+                {
+                }
+
+                class C(int i, int j) : B(i,
+                    j)
+                {
+                    public C() : this(0, 0)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithBaseChainedConstructor4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class B(int i, int j)
+                {
+                }
+
+                class C : B
+                {
+                    public [|C|](int i, int j) : base(
+                        i, j)
+                    {
+                    }
+
+                    public C() : this(0, 0)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                class B(int i, int j)
+                {
+                }
+
+                class C(int i, int j) : B(
+                    i, j)
+                {
+                    public C() : this(0, 0)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithBaseChainedConstructor5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class B(int i, int j)
+                {
+                }
+
+                class C : B
+                {
+                    public [|C|](int i, int j) : base(
+                        i,
+                        j)
+                    {
+                    }
+
+                    public C() : this(0, 0)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                class B(int i, int j)
+                {
+                }
+
+                class C(int i, int j) : B(
+                    i,
+                    j)
+                {
+                    public C() : this(0, 0)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestNotWithBadExpressionBody()
     {
         await new VerifyCS.Test
@@ -1642,6 +1761,529 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
             CodeActionIndex = 1,
             NumberOfFixAllIterations = 1,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+               using System;
+               class C
+               {
+                   [Obsolete("", error: true)]
+                   public [|C|](int i)
+                   {
+                   }
+               }
+               """,
+            FixedCode = """
+               using System;
+               [method: Obsolete("", error: true)]
+               class C(int i)
+               {
+               }
+               """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes1A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+               using System;
+               [Obsolete("", error: true)]
+               class C
+               {
+                   [Obsolete("", error: true)]
+                   public [|C|](int i)
+                   {
+                   }
+               }
+               """,
+            FixedCode = """
+               using System;
+               [Obsolete("", error: true)]
+               [method: Obsolete("", error: true)]
+               class C(int i)
+               {
+               }
+               """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+     
+                namespace N
+                {
+                    class C
+                    {
+                        [Obsolete("", error: true)]
+                        public [|C|](int i)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                namespace N
+                {
+                    [method: Obsolete("", error: true)]
+                    class C(int i)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes2A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+     
+                namespace N
+                {
+                    [Obsolete("", error: true)]
+                    class C
+                    {
+                        [Obsolete("", error: true)]
+                        public [|C|](int i)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                namespace N
+                {
+                    [Obsolete("", error: true)]
+                    [method: Obsolete("", error: true)]
+                    class C(int i)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+     
+                namespace N
+                {
+                    class C
+                    {
+                        int x;
+
+                        [Obsolete("", error: true)]
+                        public [|C|](int i)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                namespace N
+                {
+                    [method: Obsolete("", error: true)]
+                    class C(int i)
+                    {
+                        int x;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes3A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+     
+                namespace N
+                {
+                    [Obsolete("", error: true)]
+                    class C
+                    {
+                        int x;
+
+                        [Obsolete("", error: true)]
+                        public [|C|](int i)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                namespace N
+                {
+                    [Obsolete("", error: true)]
+                    [method: Obsolete("", error: true)]
+                    class C(int i)
+                    {
+                        int x;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                [Serializable]
+                class C
+                {
+                    [CLSCompliant(false)]
+                    [Obsolete("", error: true)]
+                    public [|C|](int i)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                [Serializable]
+                [method: CLSCompliant(false)]
+                [method: Obsolete("", error: true)]
+                class C(int i)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorAttributes4A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                [Serializable]
+                class C
+                {
+                    int x;
+                
+                    [CLSCompliant(false)]
+                    [Obsolete("", error: true)]
+                    public [|C|](int i)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                [Serializable]
+                [method: CLSCompliant(false)]
+                [method: Obsolete("", error: true)]
+                class C(int i)
+                {
+                    int x;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultipleParametersMove1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public [|C|](int i,
+                        int j)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C(int i,
+                    int j)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultipleParametersMove1A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                namespace N
+                {
+                    class C
+                    {
+                        public [|C|](int i,
+                            int j)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                namespace N
+                {
+                    class C(int i,
+                        int j)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultipleParametersMove2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public [|C|](
+                        int i,
+                        int j)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C(
+                    int i,
+                    int j)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultipleParametersMove2A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                namespace N
+                {
+                    class C
+                    {
+                        public [|C|](
+                            int i,
+                            int j)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                namespace N
+                {
+                    class C(
+                        int i,
+                        int j)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultipleParametersMove3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public [|C|](
+                        int i, int j)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C(
+                    int i, int j)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultipleParametersMove3A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                namespace N
+                {
+                    class C
+                    {
+                        public [|C|](
+                            int i, int j)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                namespace N
+                {
+                    class C(
+                        int i, int j)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultipleParametersMove4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public [|C|](
+                int i,
+                int j)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C(
+                int i,
+                int j)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultipleParametersMove4A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                namespace N
+                {
+                    class C
+                    {
+                        public [|C|](
+                int i,
+                int j)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                namespace N
+                {
+                    class C(
+                int i,
+                int j)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
 }
