@@ -459,6 +459,16 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        protected static LSP.Location GetLocationPlusOne(LSP.Location originalLocation)
+        {
+            var newPosition = new LSP.Position { Character = originalLocation.Range.Start.Character + 1, Line = originalLocation.Range.Start.Line };
+            return new LSP.Location
+            {
+                Uri = originalLocation.Uri,
+                Range = new LSP.Range { Start = newPosition, End = newPosition }
+            };
+        }
+
         private static string GetDocumentFilePathFromName(string documentName)
             => "C:\\" + documentName;
 

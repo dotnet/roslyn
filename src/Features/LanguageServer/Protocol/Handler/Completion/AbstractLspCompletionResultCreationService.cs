@@ -92,7 +92,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             if (completionList.ItemDefaults.EditRange is null && completionList.ItemDefaults.CommitCharacters is null && completionList.ItemDefaults.Data is null)
                 completionList.ItemDefaults = null;
 
-            return new LSP.OptimizedVSCompletionList(completionList);
+            return capabilityHelper.SupportVSInternalClientCapabilities
+                ? new LSP.OptimizedVSCompletionList(completionList)
+                : completionList;
 
             async Task<LSP.CompletionItem> CreateLSPCompletionItemAsync(CompletionItem item, string typedText)
             {
@@ -114,9 +116,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                     lspItem.FilterText = item.FilterText;
 
                 lspItem.Kind = GetCompletionKind(item.Tags, capabilityHelper.SupportedItemKinds);
-                lspItem.Preselect = CompletionHandler.ShouldItemBePreselected(item);
+                lspItem.Preselect = item.Rules.MatchPriority == MatchPriority.Preselect;
 
-                lspItem.CommitCharacters = GetCommitCharacters(item, commitCharactersRuleCache, lspVSClientCapability);
+                if (!lspItem.Preselect &&
+                    !lspVSClientCapability &&
+                    typedText.Length == 0 &&
+                    item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
+                {
+                    // VSCode does not have the concept of soft selection, the list is always hard selected.
+                    // In order to emulate soft selection behavior for things like argument completion, regex completion,
+                    // datetime completion, etc. we create a completion item without any specific commit characters.
+                    // This means only tab / enter will commit. VS supports soft selection, so we only do this for non-VS clients.
+                    //
+                    // Note this only applies when user hasn't actually typed anything and completion provider does not request the item
+                    // to be hard-selected. Otherwise, we set its commit characters as normal. This also means we'd need to set IsIncomplete to true
+                    // to make sure the client will ask us again when user starts typing so we can provide items with proper commit characters.
+                    lspItem.CommitCharacters = Array.Empty<string>();
+                    isIncomplete = true;
+                }
+                else
+                {
+                    lspItem.CommitCharacters = GetCommitCharacters(item, commitCharactersRuleCache, lspVSClientCapability);
+                }
 
                 return lspItem;
             }
@@ -152,13 +173,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]> currentRuleCache,
                 bool supportsVSExtensions)
             {
-                // VSCode does not have the concept of soft selection, the list is always hard selected.
-                // In order to emulate soft selection behavior for things like argument completion, regex completion, datetime completion, etc
-                // we create a completion item without any specific commit characters.  This means only tab / enter will commit.
-                // VS supports soft selection, so we only do this for non-VS clients.
-                if (!supportsVSExtensions && item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.SoftSelection)
-                    return Array.Empty<string>();
-
                 var commitCharacterRules = item.Rules.CommitCharacterRules;
 
                 // VS will use the default commit characters if no items are specified on the completion item.

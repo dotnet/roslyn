@@ -796,7 +796,7 @@ class A
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             Assert.NotNull(results);
             Assert.NotEmpty(results.Items);
-            Assert.All(results.Items, (item) => Assert.Null(item.CommitCharacters));
+            Assert.All(results.Items, (item) => Assert.Empty(item.CommitCharacters));
         }
 
         [Theory, CombinatorialData]
@@ -1340,16 +1340,6 @@ class A
             Assert.True(results.Items.Length < 1000);
             Assert.DoesNotContain(results.Items, item => item.Label == "Saaa");
             Assert.Contains(results.Items, item => item.Label == "Taaa");
-
-            static LSP.Location GetLocationPlusOne(LSP.Location originalLocation)
-            {
-                var newPosition = new LSP.Position { Character = originalLocation.Range.Start.Character + 1, Line = originalLocation.Range.Start.Line };
-                return new LSP.Location
-                {
-                    Uri = originalLocation.Uri,
-                    Range = new LSP.Range { Start = newPosition, End = newPosition }
-                };
-            }
         }
 
         [Theory, CombinatorialData]
@@ -1471,35 +1461,6 @@ class A
             Assert.False(list.IsIncomplete);
             Assert.NotEmpty(list.Items); // it client's responsibility to filter, server should return all items available regardless of the filter text (unless item counts exceeds the limit)
             Assert.True(list.SuggestionMode);
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1755955")]
-        public async Task TestNotTriggerCompletionInArgumentListAsync(bool mutatingLspWorkspace)
-        {
-            var markup =
-@"
-using System;
-using System.Text;
-
-public class A
-{
-    public void M()
-    {
-        var x = new StringBuilder();
-        x.Append({|caret:|}
-    }
-}";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new VSInternalClientCapabilities { SupportsVisualStudioExtensions = false });
-            var completionParams = CreateCompletionParams(
-                testLspServer.GetLocations("caret").Single(),
-                invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
-                triggerCharacter: "(",
-                triggerKind: LSP.CompletionTriggerKind.Invoked);
-
-            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-
-            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            Assert.Null(results);
         }
 
         internal static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)

@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Finally, truncate the list to 1000 items plus any preselected items that occur after the first 1000.
             var filteredList = matchResultsBuilder
                 .Take(completionListMaxSize)
-                .Concat(matchResultsBuilder.Skip(completionListMaxSize).Where(match => ShouldItemBePreselected(match.CompletionItem)))
+                .Concat(matchResultsBuilder.Skip(completionListMaxSize).Where(match => match.CompletionItem.Rules.MatchPriority == MatchPriority.Preselect))
                 .Select(matchResult => matchResult.CompletionItem)
                 .ToImmutableArray();
             var newCompletionList = completionList.WithItemsList(filteredList);
@@ -209,14 +209,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        public static bool ShouldItemBePreselected(CompletionItem completionItem)
-        {
-            // An item should be preselected for LSP when the match priority is preselect and the item is hard selected.
-            // LSP does not support soft preselection, so we do not preselect in that scenario to avoid interfering with
-            // typing.
-            return completionItem.Rules.MatchPriority == MatchPriority.Preselect && completionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection;
-        }
-
         private CompletionOptions GetCompletionOptions(Document document, CompletionCapabilityHelper capabilityHelper)
         {
             var options = _globalOptions.GetCompletionOptions(document.Project.Language);
@@ -241,9 +233,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var updateImportCompletionCacheInBackground = options.ShowItemsFromUnimportedNamespaces is true;
                 options = options with
                 {
-                    // Don't trigger completion in argument list automatically, since LSP currently has no concept of soft selection.
-                    // We want to avoid committing selected item with commit chars like `"` and `)`.
-                    TriggerInArgumentLists = false,
                     ShowNewSnippetExperienceUserOption = false,
                     UpdateImportCompletionCacheInBackground = updateImportCompletionCacheInBackground
                 };
