@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol getEnumeratorType = getEnumeratorMethod.ReturnType;
 
-            if (getEnumeratorType.IsRestrictedType() && (IsDirectlyInIterator || IsInAsyncMethod()))
+            if (builder.InlineArraySpanType == WellKnownType.Unknown && getEnumeratorType.IsRestrictedType() && (IsDirectlyInIterator || IsInAsyncMethod()))
             {
                 diagnostics.Add(ErrorCode.ERR_BadSpecialByRefIterator, foreachKeyword.GetLocation(), getEnumeratorType);
             }
@@ -804,6 +804,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.InlineArraySpanType = wellKnownSpan;
                     builder.InlineArrayUsedAsValue = usedAsValue;
                     diagnostics.AddRangeAndFree(enumeratorInfoDiagnostics);
+
+                    CheckFeatureAvailability(collectionExpr.Syntax, MessageID.IDS_FeatureInlineArrays, diagnostics);
 
                     if (result == EnumeratorResult.Succeeded)
                     {

@@ -14447,6 +14447,34 @@ class Program
                 );
         }
 
+        [Fact]
+        public void Foreach_Variable_06_LanguageVersion()
+        {
+            var src = @"
+class Program
+{
+    static void Test(Buffer4<int> x)
+    {
+        foreach (var y in x)
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (var y in x)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("inline arrays").WithLocation(6, 27)
+                );
+        }
+
         [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_Variable_ReadOnly_01()
         {
@@ -15169,36 +15197,6 @@ namespace System
                 );
         }
 
-        [Fact]
-        public void Foreach_UnsupportedElementType()
-        {
-            var src = @"
-class Program
-{
-    public void M()
-    {
-        foreach(var s in GetBuffer())
-        {
-        }
-    }
-
-    static Buffer GetBuffer() => default;
-}
-
-[System.Runtime.CompilerServices.InlineArray(10)]
-unsafe struct Buffer
-{
-    private void* _element0;
-}
-";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithAllowUnsafe(true));
-            comp.VerifyDiagnostics(
-                // (6,26): error CS0306: The type 'void*' may not be used as a type argument
-                //         foreach(var s in GetBuffer())
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer()").WithArguments("void*").WithLocation(6, 26)
-                );
-        }
-
         [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_NotEnumerableSpan_03_Fallback()
         {
@@ -15294,14 +15292,433 @@ namespace System
         }
 
         [Fact]
+        public void Foreach_UnsupportedElementType()
+        {
+            var src = @"
+class Program
+{
+    public void M()
+    {
+        foreach(var s in GetBuffer())
+        {
+        }
+    }
+
+    static Buffer GetBuffer() => default;
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+unsafe struct Buffer
+{
+    private void* _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (6,26): error CS0306: The type 'void*' may not be used as a type argument
+                //         foreach(var s in GetBuffer())
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer()").WithArguments("void*").WithLocation(6, 26)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_InAsync_01()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static private Buffer4<int> F = default;
+    private static int index = 0;
+
+    static void Main()
+    {
+        Test().Wait();
+    }
+
+    static async Task Test()
+    {
+        await Task.Yield();
+
+        foreach (var y in GetBuffer())
+        {
+            Increment();
+            System.Console.Write(' ');
+            System.Console.Write(y);
+        }
+
+        await Task.Yield();
+    }
+
+    static ref Buffer4<int> GetBuffer()
+    {
+        System.Console.Write(-1);
+        return ref F;
+    }
+
+    static void Increment()
+    {
+        index++;
+
+        if (index < 4)
+        {
+            F[index] = index;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "-1 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<Test>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      295 (0x127)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                System.Runtime.CompilerServices.YieldAwaitable V_2,
+                Buffer4<int>& V_3,
+                int V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004b
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq        IL_00d5
+    IL_0011:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_0016:  stloc.2
+    IL_0017:  ldloca.s   V_2
+    IL_0019:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_001e:  stloc.1
+    IL_001f:  ldloca.s   V_1
+    IL_0021:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_0026:  brtrue.s   IL_0067
+    IL_0028:  ldarg.0
+    IL_0029:  ldc.i4.0
+    IL_002a:  dup
+    IL_002b:  stloc.0
+    IL_002c:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_0031:  ldarg.0
+    IL_0032:  ldloc.1
+    IL_0033:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_0038:  ldarg.0
+    IL_0039:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+    IL_003e:  ldloca.s   V_1
+    IL_0040:  ldarg.0
+    IL_0041:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<Test>d__3>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<Test>d__3)""
+    IL_0046:  leave      IL_0126
+    IL_004b:  ldarg.0
+    IL_004c:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_0051:  stloc.1
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_0058:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_005e:  ldarg.0
+    IL_005f:  ldc.i4.m1
+    IL_0060:  dup
+    IL_0061:  stloc.0
+    IL_0062:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_0067:  ldloca.s   V_1
+    IL_0069:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_006e:  call       ""ref Buffer4<int> Program.GetBuffer()""
+    IL_0073:  stloc.3
+    IL_0074:  ldc.i4.0
+    IL_0075:  stloc.s    V_4
+    IL_0077:  br.s       IL_0099
+    IL_0079:  ldloc.3
+    IL_007a:  ldloc.s    V_4
+    IL_007c:  call       ""InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
+    IL_0081:  ldind.i4
+    IL_0082:  call       ""void Program.Increment()""
+    IL_0087:  ldc.i4.s   32
+    IL_0089:  call       ""void System.Console.Write(char)""
+    IL_008e:  call       ""void System.Console.Write(int)""
+    IL_0093:  ldloc.s    V_4
+    IL_0095:  ldc.i4.1
+    IL_0096:  add
+    IL_0097:  stloc.s    V_4
+    IL_0099:  ldloc.s    V_4
+    IL_009b:  ldc.i4.4
+    IL_009c:  blt.s      IL_0079
+    IL_009e:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_00a3:  stloc.2
+    IL_00a4:  ldloca.s   V_2
+    IL_00a6:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_00ab:  stloc.1
+    IL_00ac:  ldloca.s   V_1
+    IL_00ae:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_00b3:  brtrue.s   IL_00f1
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldc.i4.1
+    IL_00b7:  dup
+    IL_00b8:  stloc.0
+    IL_00b9:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_00be:  ldarg.0
+    IL_00bf:  ldloc.1
+    IL_00c0:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_00c5:  ldarg.0
+    IL_00c6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+    IL_00cb:  ldloca.s   V_1
+    IL_00cd:  ldarg.0
+    IL_00ce:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<Test>d__3>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<Test>d__3)""
+    IL_00d3:  leave.s    IL_0126
+    IL_00d5:  ldarg.0
+    IL_00d6:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_00db:  stloc.1
+    IL_00dc:  ldarg.0
+    IL_00dd:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_00e2:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_00e8:  ldarg.0
+    IL_00e9:  ldc.i4.m1
+    IL_00ea:  dup
+    IL_00eb:  stloc.0
+    IL_00ec:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_00f1:  ldloca.s   V_1
+    IL_00f3:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_00f8:  leave.s    IL_0113
+  }
+  catch System.Exception
+  {
+    IL_00fa:  stloc.s    V_5
+    IL_00fc:  ldarg.0
+    IL_00fd:  ldc.i4.s   -2
+    IL_00ff:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_0104:  ldarg.0
+    IL_0105:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+    IL_010a:  ldloc.s    V_5
+    IL_010c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0111:  leave.s    IL_0126
+  }
+  IL_0113:  ldarg.0
+  IL_0114:  ldc.i4.s   -2
+  IL_0116:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_011b:  ldarg.0
+  IL_011c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+  IL_0121:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0126:  ret
+}
+");
+
+            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "-1 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_InAsync_02()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class C
+{
+    public Buffer4<int> F = default;
+}
+
+class Program
+{
+    private static C c = new C();
+    private static int index = 0;
+
+    static void Main()
+    {
+        Test(c).Wait();
+    }
+
+    static async Task Test(C x)
+    {
+        foreach (var y in x.F)
+        {
+            Increment();    
+            System.Console.Write(' ');
+            System.Console.Write(y);
+
+            await Task.Yield();
+            await Task.Delay(2);
+        }
+    }
+
+    static void Increment()
+    {
+        index++;
+
+        if (index < 4)
+        {
+            c.F[index] = index;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<Test>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      357 (0x165)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                System.Runtime.CompilerServices.YieldAwaitable V_2,
+                System.Runtime.CompilerServices.TaskAwaiter V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_009a
+    IL_000d:  ldloc.0
+    IL_000e:  ldc.i4.1
+    IL_000f:  beq        IL_00f2
+    IL_0014:  ldarg.0
+    IL_0015:  ldarg.0
+    IL_0016:  ldfld      ""C Program.<Test>d__3.x""
+    IL_001b:  stfld      ""C Program.<Test>d__3.<>7__wrap2""
+    IL_0020:  ldarg.0
+    IL_0021:  ldfld      ""C Program.<Test>d__3.<>7__wrap2""
+    IL_0026:  ldfld      ""Buffer4<int> C.F""
+    IL_002b:  pop
+    IL_002c:  ldarg.0
+    IL_002d:  ldc.i4.0
+    IL_002e:  stfld      ""int Program.<Test>d__3.<>7__wrap1""
+    IL_0033:  br         IL_0123
+    IL_0038:  ldarg.0
+    IL_0039:  ldfld      ""C Program.<Test>d__3.<>7__wrap2""
+    IL_003e:  ldflda     ""Buffer4<int> C.F""
+    IL_0043:  ldarg.0
+    IL_0044:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
+    IL_0049:  call       ""InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
+    IL_004e:  ldind.i4
+    IL_004f:  call       ""void Program.Increment()""
+    IL_0054:  ldc.i4.s   32
+    IL_0056:  call       ""void System.Console.Write(char)""
+    IL_005b:  call       ""void System.Console.Write(int)""
+    IL_0060:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_0065:  stloc.2
+    IL_0066:  ldloca.s   V_2
+    IL_0068:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_006d:  stloc.1
+    IL_006e:  ldloca.s   V_1
+    IL_0070:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_0075:  brtrue.s   IL_00b6
+    IL_0077:  ldarg.0
+    IL_0078:  ldc.i4.0
+    IL_0079:  dup
+    IL_007a:  stloc.0
+    IL_007b:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_0080:  ldarg.0
+    IL_0081:  ldloc.1
+    IL_0082:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_0087:  ldarg.0
+    IL_0088:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+    IL_008d:  ldloca.s   V_1
+    IL_008f:  ldarg.0
+    IL_0090:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<Test>d__3>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<Test>d__3)""
+    IL_0095:  leave      IL_0164
+    IL_009a:  ldarg.0
+    IL_009b:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_00a0:  stloc.1
+    IL_00a1:  ldarg.0
+    IL_00a2:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_00a7:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_00ad:  ldarg.0
+    IL_00ae:  ldc.i4.m1
+    IL_00af:  dup
+    IL_00b0:  stloc.0
+    IL_00b1:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_00b6:  ldloca.s   V_1
+    IL_00b8:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_00bd:  ldc.i4.2
+    IL_00be:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)""
+    IL_00c3:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+    IL_00c8:  stloc.3
+    IL_00c9:  ldloca.s   V_3
+    IL_00cb:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+    IL_00d0:  brtrue.s   IL_010e
+    IL_00d2:  ldarg.0
+    IL_00d3:  ldc.i4.1
+    IL_00d4:  dup
+    IL_00d5:  stloc.0
+    IL_00d6:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_00db:  ldarg.0
+    IL_00dc:  ldloc.3
+    IL_00dd:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter Program.<Test>d__3.<>u__2""
+    IL_00e2:  ldarg.0
+    IL_00e3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+    IL_00e8:  ldloca.s   V_3
+    IL_00ea:  ldarg.0
+    IL_00eb:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, Program.<Test>d__3>(ref System.Runtime.CompilerServices.TaskAwaiter, ref Program.<Test>d__3)""
+    IL_00f0:  leave.s    IL_0164
+    IL_00f2:  ldarg.0
+    IL_00f3:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter Program.<Test>d__3.<>u__2""
+    IL_00f8:  stloc.3
+    IL_00f9:  ldarg.0
+    IL_00fa:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter Program.<Test>d__3.<>u__2""
+    IL_00ff:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_0105:  ldarg.0
+    IL_0106:  ldc.i4.m1
+    IL_0107:  dup
+    IL_0108:  stloc.0
+    IL_0109:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_010e:  ldloca.s   V_3
+    IL_0110:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    IL_0115:  ldarg.0
+    IL_0116:  ldarg.0
+    IL_0117:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
+    IL_011c:  ldc.i4.1
+    IL_011d:  add
+    IL_011e:  stfld      ""int Program.<Test>d__3.<>7__wrap1""
+    IL_0123:  ldarg.0
+    IL_0124:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
+    IL_0129:  ldc.i4.4
+    IL_012a:  blt        IL_0038
+    IL_012f:  ldarg.0
+    IL_0130:  ldnull
+    IL_0131:  stfld      ""C Program.<Test>d__3.<>7__wrap2""
+    IL_0136:  leave.s    IL_0151
+  }
+  catch System.Exception
+  {
+    IL_0138:  stloc.s    V_4
+    IL_013a:  ldarg.0
+    IL_013b:  ldc.i4.s   -2
+    IL_013d:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_0142:  ldarg.0
+    IL_0143:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+    IL_0148:  ldloc.s    V_4
+    IL_014a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_014f:  leave.s    IL_0164
+  }
+  IL_0151:  ldarg.0
+  IL_0152:  ldc.i4.s   -2
+  IL_0154:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0159:  ldarg.0
+  IL_015a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+  IL_015f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0164:  ret
+}
+");
+            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Foreach_InAsync_03()
         {
             var src = @"
 class Program
 {
     static async void Test()
     {
-        foreach (var y in GetBuffer())
+        foreach (ref int y in GetBuffer())
         {
         }
 
@@ -15313,68 +15730,752 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8344: foreach statement cannot operate on enumerators of type 'Span<int>.Enumerator' in async or iterator methods because 'Span<int>.Enumerator' is a ref struct.
-                //         foreach (var y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("System.Span<int>.Enumerator").WithLocation(6, 9)
+                // (6,26): error CS8177: Async methods cannot have by-reference locals
+                //         foreach (ref int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "y").WithLocation(6, 26)
                 );
         }
 
         [Fact]
-        public void Foreach_InAsync_02()
+        public void Foreach_InAsync_04()
         {
             var src = @"
-class C
-{
-    public Buffer4<int> F = default;
-}
-
 class Program
 {
-    static async void Test(C x)
+    static async void Test()
     {
-        foreach (var y in x.F)
+        foreach (int y in GetBuffer())
         {
             await System.Threading.Tasks.Task.Yield();
-            await System.Threading.Tasks.Task.Delay(2);
         }
-    }
-}
-";
-            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (11,9): error CS8344: foreach statement cannot operate on enumerators of type 'Span<int>.Enumerator' in async or iterator methods because 'Span<int>.Enumerator' is a ref struct.
-                //         foreach (var y in x.F)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("System.Span<int>.Enumerator").WithLocation(11, 9)
-                );
-        }
-
-        [Fact]
-        public void Foreach_InIterator_01()
-        {
-            var src = @"
-class Program
-{
-    static System.Collections.Generic.IEnumerator<int> Test()
-    {
-        foreach (var y in GetBuffer())
-        {
-        }
-
-        yield return 0;
     }
 
     static ref Buffer4<int> GetBuffer() => throw null;
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            // PROTOTYPE(InlineArrays): The wording should be adjusted to not talk only about expressions, and to cover iterators as well.
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.GetBuffer()' because it returns by reference
+                //         foreach (int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait,
+        @"foreach (int y in GetBuffer())
+        {
+            await System.Threading.Tasks.Task.Yield();
+        }").WithArguments("Program.GetBuffer()").WithLocation(6, 9)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_InAsync_05()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static private Buffer4<int> F = default;
+    private static int index = 0;
+
+    static void Main()
+    {
+        Test().Wait();
+    }
+
+    static async Task Test()
+    {
+        await Task.Yield();
+
+        foreach (var y in GetBuffer())
+        {
+            Increment();
+            System.Console.Write(' ');
+            System.Console.Write(y);
+        }
+
+        await Task.Yield();
+    }
+
+    static ref readonly Buffer4<int> GetBuffer()
+    {
+        System.Console.Write(-1);
+        return ref F;
+    }
+
+    static void Increment()
+    {
+        index++;
+
+        if (index < 4)
+        {
+            F[index] = index;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "-1 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<Test>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      295 (0x127)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                System.Runtime.CompilerServices.YieldAwaitable V_2,
+                Buffer4<int>& V_3,
+                int V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004b
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq        IL_00d5
+    IL_0011:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_0016:  stloc.2
+    IL_0017:  ldloca.s   V_2
+    IL_0019:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_001e:  stloc.1
+    IL_001f:  ldloca.s   V_1
+    IL_0021:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_0026:  brtrue.s   IL_0067
+    IL_0028:  ldarg.0
+    IL_0029:  ldc.i4.0
+    IL_002a:  dup
+    IL_002b:  stloc.0
+    IL_002c:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_0031:  ldarg.0
+    IL_0032:  ldloc.1
+    IL_0033:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_0038:  ldarg.0
+    IL_0039:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+    IL_003e:  ldloca.s   V_1
+    IL_0040:  ldarg.0
+    IL_0041:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<Test>d__3>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<Test>d__3)""
+    IL_0046:  leave      IL_0126
+    IL_004b:  ldarg.0
+    IL_004c:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_0051:  stloc.1
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_0058:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_005e:  ldarg.0
+    IL_005f:  ldc.i4.m1
+    IL_0060:  dup
+    IL_0061:  stloc.0
+    IL_0062:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_0067:  ldloca.s   V_1
+    IL_0069:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_006e:  call       ""ref readonly Buffer4<int> Program.GetBuffer()""
+    IL_0073:  stloc.3
+    IL_0074:  ldc.i4.0
+    IL_0075:  stloc.s    V_4
+    IL_0077:  br.s       IL_0099
+    IL_0079:  ldloc.3
+    IL_007a:  ldloc.s    V_4
+    IL_007c:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+    IL_0081:  ldind.i4
+    IL_0082:  call       ""void Program.Increment()""
+    IL_0087:  ldc.i4.s   32
+    IL_0089:  call       ""void System.Console.Write(char)""
+    IL_008e:  call       ""void System.Console.Write(int)""
+    IL_0093:  ldloc.s    V_4
+    IL_0095:  ldc.i4.1
+    IL_0096:  add
+    IL_0097:  stloc.s    V_4
+    IL_0099:  ldloc.s    V_4
+    IL_009b:  ldc.i4.4
+    IL_009c:  blt.s      IL_0079
+    IL_009e:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_00a3:  stloc.2
+    IL_00a4:  ldloca.s   V_2
+    IL_00a6:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_00ab:  stloc.1
+    IL_00ac:  ldloca.s   V_1
+    IL_00ae:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_00b3:  brtrue.s   IL_00f1
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldc.i4.1
+    IL_00b7:  dup
+    IL_00b8:  stloc.0
+    IL_00b9:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_00be:  ldarg.0
+    IL_00bf:  ldloc.1
+    IL_00c0:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_00c5:  ldarg.0
+    IL_00c6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+    IL_00cb:  ldloca.s   V_1
+    IL_00cd:  ldarg.0
+    IL_00ce:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<Test>d__3>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<Test>d__3)""
+    IL_00d3:  leave.s    IL_0126
+    IL_00d5:  ldarg.0
+    IL_00d6:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_00db:  stloc.1
+    IL_00dc:  ldarg.0
+    IL_00dd:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_00e2:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_00e8:  ldarg.0
+    IL_00e9:  ldc.i4.m1
+    IL_00ea:  dup
+    IL_00eb:  stloc.0
+    IL_00ec:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_00f1:  ldloca.s   V_1
+    IL_00f3:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_00f8:  leave.s    IL_0113
+  }
+  catch System.Exception
+  {
+    IL_00fa:  stloc.s    V_5
+    IL_00fc:  ldarg.0
+    IL_00fd:  ldc.i4.s   -2
+    IL_00ff:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_0104:  ldarg.0
+    IL_0105:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+    IL_010a:  ldloc.s    V_5
+    IL_010c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0111:  leave.s    IL_0126
+  }
+  IL_0113:  ldarg.0
+  IL_0114:  ldc.i4.s   -2
+  IL_0116:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_011b:  ldarg.0
+  IL_011c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+  IL_0121:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0126:  ret
+}
+");
+            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "-1 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_InAsync_06()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    private static C c = new C();
+    private static int index = 0;
+
+    static void Main()
+    {
+        Test(c).Wait();
+    }
+
+    static async Task Test(C x)
+    {
+        foreach (var y in x.F)
+        {
+            Increment();    
+            System.Console.Write(' ');
+            System.Console.Write(y);
+
+            await Task.Yield();
+            await Task.Delay(2);
+        }
+    }
+
+    static void Increment()
+    {
+        index++;
+
+        if (index < 4)
+        {
+            System.Runtime.CompilerServices.Unsafe.AsRef(in c.F)[index] = index;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<Test>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      357 (0x165)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                System.Runtime.CompilerServices.YieldAwaitable V_2,
+                System.Runtime.CompilerServices.TaskAwaiter V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_009a
+    IL_000d:  ldloc.0
+    IL_000e:  ldc.i4.1
+    IL_000f:  beq        IL_00f2
+    IL_0014:  ldarg.0
+    IL_0015:  ldarg.0
+    IL_0016:  ldfld      ""C Program.<Test>d__3.x""
+    IL_001b:  stfld      ""C Program.<Test>d__3.<>7__wrap2""
+    IL_0020:  ldarg.0
+    IL_0021:  ldfld      ""C Program.<Test>d__3.<>7__wrap2""
+    IL_0026:  ldfld      ""Buffer4<int> C.F""
+    IL_002b:  pop
+    IL_002c:  ldarg.0
+    IL_002d:  ldc.i4.0
+    IL_002e:  stfld      ""int Program.<Test>d__3.<>7__wrap1""
+    IL_0033:  br         IL_0123
+    IL_0038:  ldarg.0
+    IL_0039:  ldfld      ""C Program.<Test>d__3.<>7__wrap2""
+    IL_003e:  ldflda     ""Buffer4<int> C.F""
+    IL_0043:  ldarg.0
+    IL_0044:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
+    IL_0049:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+    IL_004e:  ldind.i4
+    IL_004f:  call       ""void Program.Increment()""
+    IL_0054:  ldc.i4.s   32
+    IL_0056:  call       ""void System.Console.Write(char)""
+    IL_005b:  call       ""void System.Console.Write(int)""
+    IL_0060:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_0065:  stloc.2
+    IL_0066:  ldloca.s   V_2
+    IL_0068:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_006d:  stloc.1
+    IL_006e:  ldloca.s   V_1
+    IL_0070:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_0075:  brtrue.s   IL_00b6
+    IL_0077:  ldarg.0
+    IL_0078:  ldc.i4.0
+    IL_0079:  dup
+    IL_007a:  stloc.0
+    IL_007b:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_0080:  ldarg.0
+    IL_0081:  ldloc.1
+    IL_0082:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_0087:  ldarg.0
+    IL_0088:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+    IL_008d:  ldloca.s   V_1
+    IL_008f:  ldarg.0
+    IL_0090:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<Test>d__3>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<Test>d__3)""
+    IL_0095:  leave      IL_0164
+    IL_009a:  ldarg.0
+    IL_009b:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_00a0:  stloc.1
+    IL_00a1:  ldarg.0
+    IL_00a2:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__3.<>u__1""
+    IL_00a7:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_00ad:  ldarg.0
+    IL_00ae:  ldc.i4.m1
+    IL_00af:  dup
+    IL_00b0:  stloc.0
+    IL_00b1:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_00b6:  ldloca.s   V_1
+    IL_00b8:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_00bd:  ldc.i4.2
+    IL_00be:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)""
+    IL_00c3:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+    IL_00c8:  stloc.3
+    IL_00c9:  ldloca.s   V_3
+    IL_00cb:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+    IL_00d0:  brtrue.s   IL_010e
+    IL_00d2:  ldarg.0
+    IL_00d3:  ldc.i4.1
+    IL_00d4:  dup
+    IL_00d5:  stloc.0
+    IL_00d6:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_00db:  ldarg.0
+    IL_00dc:  ldloc.3
+    IL_00dd:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter Program.<Test>d__3.<>u__2""
+    IL_00e2:  ldarg.0
+    IL_00e3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+    IL_00e8:  ldloca.s   V_3
+    IL_00ea:  ldarg.0
+    IL_00eb:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, Program.<Test>d__3>(ref System.Runtime.CompilerServices.TaskAwaiter, ref Program.<Test>d__3)""
+    IL_00f0:  leave.s    IL_0164
+    IL_00f2:  ldarg.0
+    IL_00f3:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter Program.<Test>d__3.<>u__2""
+    IL_00f8:  stloc.3
+    IL_00f9:  ldarg.0
+    IL_00fa:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter Program.<Test>d__3.<>u__2""
+    IL_00ff:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_0105:  ldarg.0
+    IL_0106:  ldc.i4.m1
+    IL_0107:  dup
+    IL_0108:  stloc.0
+    IL_0109:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_010e:  ldloca.s   V_3
+    IL_0110:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    IL_0115:  ldarg.0
+    IL_0116:  ldarg.0
+    IL_0117:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
+    IL_011c:  ldc.i4.1
+    IL_011d:  add
+    IL_011e:  stfld      ""int Program.<Test>d__3.<>7__wrap1""
+    IL_0123:  ldarg.0
+    IL_0124:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
+    IL_0129:  ldc.i4.4
+    IL_012a:  blt        IL_0038
+    IL_012f:  ldarg.0
+    IL_0130:  ldnull
+    IL_0131:  stfld      ""C Program.<Test>d__3.<>7__wrap2""
+    IL_0136:  leave.s    IL_0151
+  }
+  catch System.Exception
+  {
+    IL_0138:  stloc.s    V_4
+    IL_013a:  ldarg.0
+    IL_013b:  ldc.i4.s   -2
+    IL_013d:  stfld      ""int Program.<Test>d__3.<>1__state""
+    IL_0142:  ldarg.0
+    IL_0143:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+    IL_0148:  ldloc.s    V_4
+    IL_014a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_014f:  leave.s    IL_0164
+  }
+  IL_0151:  ldarg.0
+  IL_0152:  ldc.i4.s   -2
+  IL_0154:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0159:  ldarg.0
+  IL_015a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__3.<>t__builder""
+  IL_015f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0164:  ret
+}
+");
+            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Foreach_InAsync_07()
+        {
+            var src = @"
+class Program
+{
+    static async void Test()
+    {
+        foreach (ref readonly int y in GetBuffer())
+        {
+        }
+
+        await System.Threading.Tasks.Task.Yield();
+    }
+
+    static ref readonly Buffer4<int> GetBuffer() => throw null;
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8344: foreach statement cannot operate on enumerators of type 'Span<int>.Enumerator' in async or iterator methods because 'Span<int>.Enumerator' is a ref struct.
-                //         foreach (var y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("System.Span<int>.Enumerator").WithLocation(6, 9)
+                // (6,35): error CS8177: Async methods cannot have by-reference locals
+                //         foreach (ref readonly int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "y").WithLocation(6, 35)
                 );
         }
 
         [Fact]
+        public void Foreach_InAsync_08()
+        {
+            var src = @"
+class Program
+{
+    static async void Test()
+    {
+        foreach (int y in GetBuffer())
+        {
+            await System.Threading.Tasks.Task.Yield();
+        }
+    }
+
+    static ref readonly Buffer4<int> GetBuffer() => throw null;
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            // PROTOTYPE(InlineArrays): The wording should be adjusted to not talk only about expressions, and to cover iterators as well.
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.GetBuffer()' because it returns by reference
+                //         foreach (int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait,
+        @"foreach (int y in GetBuffer())
+        {
+            await System.Threading.Tasks.Task.Yield();
+        }").WithArguments("Program.GetBuffer()").WithLocation(6, 9)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_InAsync_09()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main()
+    {
+        Test().Wait();
+    }
+
+    static async Task Test()
+    {
+        foreach (var y in GetBuffer())
+        {
+            System.Console.Write(' ');
+            System.Console.Write(y);
+            await System.Threading.Tasks.Task.Yield();
+        }
+    }
+
+    static Buffer4<int> GetBuffer()
+    {
+        Buffer4<int> x = default;
+        x[0] = 111;
+        x[1] = 112;
+        x[2] = 113;
+        x[3] = 114;
+ 
+        System.Console.Write(-1);
+        return x;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<Test>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      224 (0xe0)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                System.Runtime.CompilerServices.YieldAwaitable V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Test>d__1.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0076
+    IL_000a:  ldarg.0
+    IL_000b:  call       ""Buffer4<int> Program.GetBuffer()""
+    IL_0010:  stfld      ""Buffer4<int> Program.<Test>d__1.<>7__wrap1""
+    IL_0015:  ldarg.0
+    IL_0016:  ldc.i4.0
+    IL_0017:  stfld      ""int Program.<Test>d__1.<>7__wrap2""
+    IL_001c:  br         IL_00a7
+    IL_0021:  ldarg.0
+    IL_0022:  ldflda     ""Buffer4<int> Program.<Test>d__1.<>7__wrap1""
+    IL_0027:  ldarg.0
+    IL_0028:  ldfld      ""int Program.<Test>d__1.<>7__wrap2""
+    IL_002d:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+    IL_0032:  ldind.i4
+    IL_0033:  ldc.i4.s   32
+    IL_0035:  call       ""void System.Console.Write(char)""
+    IL_003a:  call       ""void System.Console.Write(int)""
+    IL_003f:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_0044:  stloc.2
+    IL_0045:  ldloca.s   V_2
+    IL_0047:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_004c:  stloc.1
+    IL_004d:  ldloca.s   V_1
+    IL_004f:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_0054:  brtrue.s   IL_0092
+    IL_0056:  ldarg.0
+    IL_0057:  ldc.i4.0
+    IL_0058:  dup
+    IL_0059:  stloc.0
+    IL_005a:  stfld      ""int Program.<Test>d__1.<>1__state""
+    IL_005f:  ldarg.0
+    IL_0060:  ldloc.1
+    IL_0061:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__1.<>u__1""
+    IL_0066:  ldarg.0
+    IL_0067:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__1.<>t__builder""
+    IL_006c:  ldloca.s   V_1
+    IL_006e:  ldarg.0
+    IL_006f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<Test>d__1>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<Test>d__1)""
+    IL_0074:  leave.s    IL_00df
+    IL_0076:  ldarg.0
+    IL_0077:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__1.<>u__1""
+    IL_007c:  stloc.1
+    IL_007d:  ldarg.0
+    IL_007e:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Test>d__1.<>u__1""
+    IL_0083:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_0089:  ldarg.0
+    IL_008a:  ldc.i4.m1
+    IL_008b:  dup
+    IL_008c:  stloc.0
+    IL_008d:  stfld      ""int Program.<Test>d__1.<>1__state""
+    IL_0092:  ldloca.s   V_1
+    IL_0094:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_0099:  ldarg.0
+    IL_009a:  ldarg.0
+    IL_009b:  ldfld      ""int Program.<Test>d__1.<>7__wrap2""
+    IL_00a0:  ldc.i4.1
+    IL_00a1:  add
+    IL_00a2:  stfld      ""int Program.<Test>d__1.<>7__wrap2""
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldfld      ""int Program.<Test>d__1.<>7__wrap2""
+    IL_00ad:  ldc.i4.4
+    IL_00ae:  blt        IL_0021
+    IL_00b3:  leave.s    IL_00cc
+  }
+  catch System.Exception
+  {
+    IL_00b5:  stloc.3
+    IL_00b6:  ldarg.0
+    IL_00b7:  ldc.i4.s   -2
+    IL_00b9:  stfld      ""int Program.<Test>d__1.<>1__state""
+    IL_00be:  ldarg.0
+    IL_00bf:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__1.<>t__builder""
+    IL_00c4:  ldloc.3
+    IL_00c5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00ca:  leave.s    IL_00df
+  }
+  IL_00cc:  ldarg.0
+  IL_00cd:  ldc.i4.s   -2
+  IL_00cf:  stfld      ""int Program.<Test>d__1.<>1__state""
+  IL_00d4:  ldarg.0
+  IL_00d5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__1.<>t__builder""
+  IL_00da:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00df:  ret
+}
+");
+            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_InIterator_01()
+        {
+            var src = @"
+class Program
+{
+    static private Buffer4<int> F = default;
+    private static int index = 0;
+
+    static void Main()
+    {
+        foreach (var a in Test())
+        {}
+    }
+
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        yield return -1;
+
+        foreach (var y in GetBuffer())
+        {
+            Increment();
+            System.Console.Write(' ');
+            System.Console.Write(y);
+        }
+
+        yield return -2;
+    }
+
+    static ref Buffer4<int> GetBuffer()
+    {
+        System.Console.Write(-1);
+        return ref F;
+    }
+
+    static void Increment()
+    {
+        index++;
+
+        if (index < 4)
+        {
+            F[index] = index;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "-1 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<Test>d__3.System.Collections.IEnumerator.MoveNext",
+@"
+{
+  // Code size      126 (0x7e)
+  .maxstack  2
+  .locals init (int V_0,
+                Buffer4<int>& V_1,
+                int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  switch    (
+        IL_001b,
+        IL_0032,
+        IL_0075)
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldarg.0
+  IL_001c:  ldc.i4.m1
+  IL_001d:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.m1
+  IL_0024:  stfld      ""int Program.<Test>d__3.<>2__current""
+  IL_0029:  ldarg.0
+  IL_002a:  ldc.i4.1
+  IL_002b:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0030:  ldc.i4.1
+  IL_0031:  ret
+  IL_0032:  ldarg.0
+  IL_0033:  ldc.i4.m1
+  IL_0034:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0039:  call       ""ref Buffer4<int> Program.GetBuffer()""
+  IL_003e:  stloc.1
+  IL_003f:  ldc.i4.0
+  IL_0040:  stloc.2
+  IL_0041:  br.s       IL_0060
+  IL_0043:  ldloc.1
+  IL_0044:  ldloc.2
+  IL_0045:  call       ""InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
+  IL_004a:  ldind.i4
+  IL_004b:  call       ""void Program.Increment()""
+  IL_0050:  ldc.i4.s   32
+  IL_0052:  call       ""void System.Console.Write(char)""
+  IL_0057:  call       ""void System.Console.Write(int)""
+  IL_005c:  ldloc.2
+  IL_005d:  ldc.i4.1
+  IL_005e:  add
+  IL_005f:  stloc.2
+  IL_0060:  ldloc.2
+  IL_0061:  ldc.i4.4
+  IL_0062:  blt.s      IL_0043
+  IL_0064:  ldarg.0
+  IL_0065:  ldc.i4.s   -2
+  IL_0067:  stfld      ""int Program.<Test>d__3.<>2__current""
+  IL_006c:  ldarg.0
+  IL_006d:  ldc.i4.2
+  IL_006e:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0073:  ldc.i4.1
+  IL_0074:  ret
+  IL_0075:  ldarg.0
+  IL_0076:  ldc.i4.m1
+  IL_0077:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_007c:  ldc.i4.0
+  IL_007d:  ret
+}
+");
+            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "-1 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_InIterator_02()
         {
             var src = @"
@@ -15385,21 +16486,569 @@ class C
 
 class Program
 {
-    static System.Collections.Generic.IEnumerator<int> Test(C x)
+    private static C c = new C();
+    private static int index = 0;
+
+    static void Main()
+    {
+        foreach (var a in Test(c))
+        {}
+    }
+
+    static System.Collections.Generic.IEnumerable<int> Test(C x)
     {
         foreach (var y in x.F)
         {
-            yield return y;
+            Increment();    
+            System.Console.Write(' ');
+            System.Console.Write(y);
+
+            yield return -1;
+        }
+    }
+
+    static void Increment()
+    {
+        index++;
+
+        if (index < 4)
+        {
+            c.F[index] = index;
         }
     }
 }
 ";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<Test>d__3.System.Collections.IEnumerator.MoveNext",
+@"
+{
+  // Code size      151 (0x97)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0010
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  beq.s      IL_0070
+  IL_000e:  ldc.i4.0
+  IL_000f:  ret
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.i4.m1
+  IL_0012:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0017:  ldarg.0
+  IL_0018:  ldarg.0
+  IL_0019:  ldfld      ""C Program.<Test>d__3.x""
+  IL_001e:  stfld      ""C Program.<Test>d__3.<>7__wrap2""
+  IL_0023:  ldarg.0
+  IL_0024:  ldfld      ""C Program.<Test>d__3.<>7__wrap2""
+  IL_0029:  ldfld      ""Buffer4<int> C.F""
+  IL_002e:  pop
+  IL_002f:  ldarg.0
+  IL_0030:  ldc.i4.0
+  IL_0031:  stfld      ""int Program.<Test>d__3.<>7__wrap1""
+  IL_0036:  br.s       IL_0085
+  IL_0038:  ldarg.0
+  IL_0039:  ldfld      ""C Program.<Test>d__3.<>7__wrap2""
+  IL_003e:  ldflda     ""Buffer4<int> C.F""
+  IL_0043:  ldarg.0
+  IL_0044:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
+  IL_0049:  call       ""InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
+  IL_004e:  ldind.i4
+  IL_004f:  call       ""void Program.Increment()""
+  IL_0054:  ldc.i4.s   32
+  IL_0056:  call       ""void System.Console.Write(char)""
+  IL_005b:  call       ""void System.Console.Write(int)""
+  IL_0060:  ldarg.0
+  IL_0061:  ldc.i4.m1
+  IL_0062:  stfld      ""int Program.<Test>d__3.<>2__current""
+  IL_0067:  ldarg.0
+  IL_0068:  ldc.i4.1
+  IL_0069:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_006e:  ldc.i4.1
+  IL_006f:  ret
+  IL_0070:  ldarg.0
+  IL_0071:  ldc.i4.m1
+  IL_0072:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0077:  ldarg.0
+  IL_0078:  ldarg.0
+  IL_0079:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
+  IL_007e:  ldc.i4.1
+  IL_007f:  add
+  IL_0080:  stfld      ""int Program.<Test>d__3.<>7__wrap1""
+  IL_0085:  ldarg.0
+  IL_0086:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
+  IL_008b:  ldc.i4.4
+  IL_008c:  blt.s      IL_0038
+  IL_008e:  ldarg.0
+  IL_008f:  ldnull
+  IL_0090:  stfld      ""C Program.<Test>d__3.<>7__wrap2""
+  IL_0095:  ldc.i4.0
+  IL_0096:  ret
+}
+");
+            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Foreach_InIterator_03()
+        {
+            var src = @"
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        foreach (ref int y in GetBuffer())
+        {
+        }
+
+        yield return -1;
+    }
+
+    static ref Buffer4<int> GetBuffer() => throw null;
+}
+";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (11,9): error CS8344: foreach statement cannot operate on enumerators of type 'Span<int>.Enumerator' in async or iterator methods because 'Span<int>.Enumerator' is a ref struct.
-                //         foreach (var y in x.F)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("System.Span<int>.Enumerator").WithLocation(11, 9)
+                // (6,26): error CS8176: Iterators cannot have by-reference locals
+                //         foreach (ref int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "y").WithLocation(6, 26)
                 );
+        }
+
+        [Fact]
+        public void Foreach_InIterator_04()
+        {
+            var src = @"
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        foreach (int y in GetBuffer())
+        {
+            yield return -1;
+        }
+    }
+
+    static ref Buffer4<int> GetBuffer() => throw null;
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            // PROTOTYPE(InlineArrays): The wording should be adjusted to not talk only about expressions, and to cover iterators as well.
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.GetBuffer()' because it returns by reference
+                //         foreach (int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait,
+        @"foreach (int y in GetBuffer())
+        {
+            yield return -1;
+        }").WithArguments("Program.GetBuffer()").WithLocation(6, 9)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_InIterator_05()
+        {
+            var src = @"
+class Program
+{
+    static private Buffer4<int> F = default;
+    private static int index = 0;
+
+    static void Main()
+    {
+        foreach (var a in Test())
+        {}
+    }
+
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        yield return -1;
+
+        foreach (var y in GetBuffer())
+        {
+            Increment();
+            System.Console.Write(' ');
+            System.Console.Write(y);
+        }
+
+        yield return -2;
+    }
+
+    static ref readonly Buffer4<int> GetBuffer()
+    {
+        System.Console.Write(-1);
+        return ref F;
+    }
+
+    static void Increment()
+    {
+        index++;
+
+        if (index < 4)
+        {
+            F[index] = index;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "-1 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<Test>d__3.System.Collections.IEnumerator.MoveNext",
+@"
+{
+  // Code size      126 (0x7e)
+  .maxstack  2
+  .locals init (int V_0,
+                Buffer4<int>& V_1,
+                int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  switch    (
+        IL_001b,
+        IL_0032,
+        IL_0075)
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldarg.0
+  IL_001c:  ldc.i4.m1
+  IL_001d:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.m1
+  IL_0024:  stfld      ""int Program.<Test>d__3.<>2__current""
+  IL_0029:  ldarg.0
+  IL_002a:  ldc.i4.1
+  IL_002b:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0030:  ldc.i4.1
+  IL_0031:  ret
+  IL_0032:  ldarg.0
+  IL_0033:  ldc.i4.m1
+  IL_0034:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0039:  call       ""ref readonly Buffer4<int> Program.GetBuffer()""
+  IL_003e:  stloc.1
+  IL_003f:  ldc.i4.0
+  IL_0040:  stloc.2
+  IL_0041:  br.s       IL_0060
+  IL_0043:  ldloc.1
+  IL_0044:  ldloc.2
+  IL_0045:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_004a:  ldind.i4
+  IL_004b:  call       ""void Program.Increment()""
+  IL_0050:  ldc.i4.s   32
+  IL_0052:  call       ""void System.Console.Write(char)""
+  IL_0057:  call       ""void System.Console.Write(int)""
+  IL_005c:  ldloc.2
+  IL_005d:  ldc.i4.1
+  IL_005e:  add
+  IL_005f:  stloc.2
+  IL_0060:  ldloc.2
+  IL_0061:  ldc.i4.4
+  IL_0062:  blt.s      IL_0043
+  IL_0064:  ldarg.0
+  IL_0065:  ldc.i4.s   -2
+  IL_0067:  stfld      ""int Program.<Test>d__3.<>2__current""
+  IL_006c:  ldarg.0
+  IL_006d:  ldc.i4.2
+  IL_006e:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0073:  ldc.i4.1
+  IL_0074:  ret
+  IL_0075:  ldarg.0
+  IL_0076:  ldc.i4.m1
+  IL_0077:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_007c:  ldc.i4.0
+  IL_007d:  ret
+}
+");
+            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "-1 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_InIterator_06()
+        {
+            var src = @"
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    private static C c = new C();
+    private static int index = 0;
+
+    static void Main()
+    {
+        foreach (var a in Test(c))
+        {}
+    }
+
+    static System.Collections.Generic.IEnumerable<int> Test(C x)
+    {
+        foreach (var y in x.F)
+        {
+            Increment();    
+            System.Console.Write(' ');
+            System.Console.Write(y);
+
+            yield return -1;
+        }
+    }
+
+    static void Increment()
+    {
+        index++;
+
+        if (index < 4)
+        {
+            System.Runtime.CompilerServices.Unsafe.AsRef(in c.F)[index] = index;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<Test>d__3.System.Collections.IEnumerator.MoveNext",
+@"
+{
+  // Code size      151 (0x97)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0010
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  beq.s      IL_0070
+  IL_000e:  ldc.i4.0
+  IL_000f:  ret
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.i4.m1
+  IL_0012:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0017:  ldarg.0
+  IL_0018:  ldarg.0
+  IL_0019:  ldfld      ""C Program.<Test>d__3.x""
+  IL_001e:  stfld      ""C Program.<Test>d__3.<>7__wrap2""
+  IL_0023:  ldarg.0
+  IL_0024:  ldfld      ""C Program.<Test>d__3.<>7__wrap2""
+  IL_0029:  ldfld      ""Buffer4<int> C.F""
+  IL_002e:  pop
+  IL_002f:  ldarg.0
+  IL_0030:  ldc.i4.0
+  IL_0031:  stfld      ""int Program.<Test>d__3.<>7__wrap1""
+  IL_0036:  br.s       IL_0085
+  IL_0038:  ldarg.0
+  IL_0039:  ldfld      ""C Program.<Test>d__3.<>7__wrap2""
+  IL_003e:  ldflda     ""Buffer4<int> C.F""
+  IL_0043:  ldarg.0
+  IL_0044:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
+  IL_0049:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_004e:  ldind.i4
+  IL_004f:  call       ""void Program.Increment()""
+  IL_0054:  ldc.i4.s   32
+  IL_0056:  call       ""void System.Console.Write(char)""
+  IL_005b:  call       ""void System.Console.Write(int)""
+  IL_0060:  ldarg.0
+  IL_0061:  ldc.i4.m1
+  IL_0062:  stfld      ""int Program.<Test>d__3.<>2__current""
+  IL_0067:  ldarg.0
+  IL_0068:  ldc.i4.1
+  IL_0069:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_006e:  ldc.i4.1
+  IL_006f:  ret
+  IL_0070:  ldarg.0
+  IL_0071:  ldc.i4.m1
+  IL_0072:  stfld      ""int Program.<Test>d__3.<>1__state""
+  IL_0077:  ldarg.0
+  IL_0078:  ldarg.0
+  IL_0079:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
+  IL_007e:  ldc.i4.1
+  IL_007f:  add
+  IL_0080:  stfld      ""int Program.<Test>d__3.<>7__wrap1""
+  IL_0085:  ldarg.0
+  IL_0086:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
+  IL_008b:  ldc.i4.4
+  IL_008c:  blt.s      IL_0038
+  IL_008e:  ldarg.0
+  IL_008f:  ldnull
+  IL_0090:  stfld      ""C Program.<Test>d__3.<>7__wrap2""
+  IL_0095:  ldc.i4.0
+  IL_0096:  ret
+}
+");
+            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Foreach_InIterator_07()
+        {
+            var src = @"
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        foreach (ref readonly int y in GetBuffer())
+        {
+        }
+
+        yield return -1;
+    }
+
+    static ref readonly Buffer4<int> GetBuffer() => throw null;
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,35): error CS8176: Iterators cannot have by-reference locals
+                //         foreach (ref readonly int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "y").WithLocation(6, 35)
+                );
+        }
+
+        [Fact]
+        public void Foreach_InIterator_08()
+        {
+            var src = @"
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        foreach (int y in GetBuffer())
+        {
+            yield return -1;
+        }
+    }
+
+    static ref readonly Buffer4<int> GetBuffer() => throw null;
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            // PROTOTYPE(InlineArrays): The wording should be adjusted to not talk only about expressions, and to cover iterators as well.
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.GetBuffer()' because it returns by reference
+                //         foreach (int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait,
+        @"foreach (int y in GetBuffer())
+        {
+            yield return -1;
+        }").WithArguments("Program.GetBuffer()").WithLocation(6, 9)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_InIterator_09()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        foreach (var a in Test())
+        {}
+    }
+
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        foreach (var y in GetBuffer())
+        {
+            System.Console.Write(' ');
+            System.Console.Write(y);
+            yield return -1;
+        }
+    }
+
+    static Buffer4<int> GetBuffer()
+    {
+        Buffer4<int> x = default;
+        x[0] = 111;
+        x[1] = 112;
+        x[2] = 113;
+        x[3] = 114;
+ 
+        System.Console.Write(-1);
+        return x;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<Test>d__1.System.Collections.IEnumerator.MoveNext",
+@"
+{
+  // Code size      121 (0x79)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Test>d__1.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0010
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  beq.s      IL_0059
+  IL_000e:  ldc.i4.0
+  IL_000f:  ret
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.i4.m1
+  IL_0012:  stfld      ""int Program.<Test>d__1.<>1__state""
+  IL_0017:  ldarg.0
+  IL_0018:  call       ""Buffer4<int> Program.GetBuffer()""
+  IL_001d:  stfld      ""Buffer4<int> Program.<Test>d__1.<>7__wrap1""
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.0
+  IL_0024:  stfld      ""int Program.<Test>d__1.<>7__wrap2""
+  IL_0029:  br.s       IL_006e
+  IL_002b:  ldarg.0
+  IL_002c:  ldflda     ""Buffer4<int> Program.<Test>d__1.<>7__wrap1""
+  IL_0031:  ldarg.0
+  IL_0032:  ldfld      ""int Program.<Test>d__1.<>7__wrap2""
+  IL_0037:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_003c:  ldind.i4
+  IL_003d:  ldc.i4.s   32
+  IL_003f:  call       ""void System.Console.Write(char)""
+  IL_0044:  call       ""void System.Console.Write(int)""
+  IL_0049:  ldarg.0
+  IL_004a:  ldc.i4.m1
+  IL_004b:  stfld      ""int Program.<Test>d__1.<>2__current""
+  IL_0050:  ldarg.0
+  IL_0051:  ldc.i4.1
+  IL_0052:  stfld      ""int Program.<Test>d__1.<>1__state""
+  IL_0057:  ldc.i4.1
+  IL_0058:  ret
+  IL_0059:  ldarg.0
+  IL_005a:  ldc.i4.m1
+  IL_005b:  stfld      ""int Program.<Test>d__1.<>1__state""
+  IL_0060:  ldarg.0
+  IL_0061:  ldarg.0
+  IL_0062:  ldfld      ""int Program.<Test>d__1.<>7__wrap2""
+  IL_0067:  ldc.i4.1
+  IL_0068:  add
+  IL_0069:  stfld      ""int Program.<Test>d__1.<>7__wrap2""
+  IL_006e:  ldarg.0
+  IL_006f:  ldfld      ""int Program.<Test>d__1.<>7__wrap2""
+  IL_0074:  ldc.i4.4
+  IL_0075:  blt.s      IL_002b
+  IL_0077:  ldc.i4.0
+  IL_0078:  ret
+}
+");
+            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
         }
     }
 }
