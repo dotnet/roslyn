@@ -78,6 +78,10 @@ internal static class StarredCompletionAssemblyHelper
         // At this point, we have everything we need to go and create the provider, so let's do it
         using (await s_gate.DisposableWaitAsync(cancellationToken))
         {
+            // Re-check this inside the lock, since we could have had a success between the earlier check and now
+            if (s_completionProvider is CompletionProvider completionProviderInsideLock)
+                return completionProviderInsideLock;
+
             // Re-check this inside the lock, since we could have had a failure between the earlier check and now
             if (s_previousCreationFailed)
                 return null;
