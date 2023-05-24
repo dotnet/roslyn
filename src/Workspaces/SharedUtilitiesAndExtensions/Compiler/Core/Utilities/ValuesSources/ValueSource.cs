@@ -22,12 +22,6 @@ namespace Roslyn.Utilities
             => new AsyncLazy<T>(value);
     }
 
-    internal static class ValueSource
-    {
-        public static ValueSource<T> Constant<T>(T value)
-            => ValueSource<T>.Constant(value);
-    }
-
     internal static class ValueSourceExtensions
     {
         internal static T GetValueOrDefault<T>(this Optional<T> optional) where T : struct
