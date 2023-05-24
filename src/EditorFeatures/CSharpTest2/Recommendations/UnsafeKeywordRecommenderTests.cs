@@ -321,20 +321,6 @@ $$");
         }
 
         [Fact]
-        public async Task TestNotAfterStaticInUsingDirective()
-        {
-            await VerifyAbsenceAsync(
-@"using static $$");
-        }
-
-        [Fact]
-        public async Task TestNotAfterStaticInGlobalUsingDirective()
-        {
-            await VerifyAbsenceAsync(
-@"global using static $$");
-        }
-
-        [Fact]
         public async Task TestNotAfterClass()
             => await VerifyAbsenceAsync(@"class $$");
 
@@ -432,6 +418,18 @@ $$"));
         public async Task TestAfterStaticKeywordInUsingDirective()
         {
             await VerifyKeywordAsync("using static $$");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67984")]
+        public async Task TestAfterUsingKeywordInGlobalUsingDirective()
+        {
+            await VerifyKeywordAsync("global using $$");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67984")]
+        public async Task TestAfterStaticKeywordInGlobalUsingDirective()
+        {
+            await VerifyKeywordAsync("global using static $$");
         }
     }
 }
