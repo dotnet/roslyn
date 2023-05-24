@@ -780,5 +780,80 @@ class C
                 //         int tmp2; // unused
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "tmp2").WithArguments("tmp2").WithLocation(9, 13));
         }
+
+        [ConditionalFact(typeof(IsRelease))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67926")]
+        public void ExtensionOverloadsDistinctClasses_01()
+        {
+            const int n = 30000;
+
+            var builder = new StringBuilder();
+            builder.AppendLine(
+                $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new C0();
+                        var y = new C{{n / 2}}();
+                        x.F(y);
+                    }
+                }
+                """);
+
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine(
+                    $$"""
+                    class C{{i}} { }
+                    static class E{{i}}
+                    {
+                        public static void F(this object x, C{{i}} y) { }
+                    }
+                    """);
+            }
+
+            string source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(IsRelease))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67926")]
+        public void ExtensionOverloadsDistinctClasses_02()
+        {
+            const int n = 30000;
+
+            var builder = new StringBuilder();
+            builder.AppendLine(
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                        new C0().F(
+                    }
+                }
+                """);
+
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine(
+                    $$"""
+                    class C{{i}} { }
+                    static class E{{i}}
+                    {
+                        public static void F(this object x, C{{i}} y) { }
+                    }
+                    """);
+            }
+
+            string source = builder.ToString();
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<Syntax.InvocationExpressionSyntax>().Single();
+            _ = model.GetTypeInfo(expr);
+        }
     }
 }
