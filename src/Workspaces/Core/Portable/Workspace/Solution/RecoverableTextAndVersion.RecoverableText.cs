@@ -20,7 +20,7 @@ internal sealed partial class RecoverableTextAndVersion
     /// or <see cref="GetValueAsync"/> is called.  At that point, it will be dumped to secondary storage, and retrieved
     /// and weakly held from that point on in the future.
     /// </summary>
-    private sealed partial class RecoverableText : ValueSource<SourceText>
+    private sealed partial class RecoverableText
     {
         // enforce saving in a queue so save's don't overload the thread pool.
         private static Task s_latestTask = Task.CompletedTask;
@@ -75,10 +75,10 @@ internal sealed partial class RecoverableTextAndVersion
             return TryGetWeakValue(out value);
         }
 
-        public override bool TryGetValue([MaybeNullWhen(false)] out SourceText value)
+        public bool TryGetValue([MaybeNullWhen(false)] out SourceText value)
             => TryGetStrongOrWeakValue(out value);
 
-        public override SourceText GetValue(CancellationToken cancellationToken)
+        public SourceText GetValue(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -100,7 +100,7 @@ internal sealed partial class RecoverableTextAndVersion
             }
         }
 
-        public override async Task<SourceText> GetValueAsync(CancellationToken cancellationToken)
+        public async Task<SourceText> GetValueAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
