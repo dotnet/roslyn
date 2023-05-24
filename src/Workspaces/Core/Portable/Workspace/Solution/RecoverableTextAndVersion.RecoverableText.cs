@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis;
 internal sealed partial class RecoverableTextAndVersion
 {
     /// <summary>
-    /// This class is a <see cref="ValueSource{T}"/> that holds onto a value weakly, but can save its value and recover
-    /// it on demand if needed.  The value is initially strongly held, until the first time that <see cref="GetValue"/>
-    /// or <see cref="GetValueAsync"/> is called.  At that point, it will be dumped to secondary storage, and retrieved
-    /// and weakly held from that point on in the future.
+    /// This class holds onto a <see cref="SourceText"/> value weakly, but can save its value and recover it on demand
+    /// if needed.  The value is initially strongly held, until the first time that <see cref="GetValue"/> or <see
+    /// cref="GetValueAsync"/> is called.  At that point, it will be dumped to secondary storage, and retrieved and
+    /// weakly held from that point on in the future.
     /// </summary>
     private sealed partial class RecoverableText
     {
