@@ -30,16 +30,7 @@ namespace Roslyn.Utilities
 
     internal static class ValueSourceExtensions
     {
-        internal static T? GetValueOrNull<T>(this Optional<T> optional) where T : class
-            => optional.Value;
-
         internal static T GetValueOrDefault<T>(this Optional<T> optional) where T : struct
             => optional.Value;
-
-        internal static T? GetValueOrNull<T>(this ValueSource<Optional<T>> optional, CancellationToken cancellationToken = default) where T : class
-            => optional.GetValue(cancellationToken).GetValueOrNull();
-
-        internal static T GetValueOrDefault<T>(this ValueSource<Optional<T>> optional, CancellationToken cancellationToken = default) where T : struct
-            => optional.GetValue(cancellationToken).GetValueOrDefault();
     }
 }
