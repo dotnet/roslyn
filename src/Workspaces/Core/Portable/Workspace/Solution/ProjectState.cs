@@ -439,9 +439,9 @@ namespace Microsoft.CodeAnalysis
 
         private sealed class ProjectSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
         {
-            private readonly ValueSource<AnalyzerConfigOptionsCache> _lazyAnalyzerConfigSet;
+            private readonly AsyncLazy<AnalyzerConfigOptionsCache> _lazyAnalyzerConfigSet;
 
-            public ProjectSyntaxTreeOptionsProvider(ValueSource<AnalyzerConfigOptionsCache> lazyAnalyzerConfigSet)
+            public ProjectSyntaxTreeOptionsProvider(AsyncLazy<AnalyzerConfigOptionsCache> lazyAnalyzerConfigSet)
                 => _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
 
             public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
