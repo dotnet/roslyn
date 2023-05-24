@@ -38,6 +38,7 @@ static async Task RunAsync(
     string? starredCompletionPath,
     string? telemetryLevel,
     string? sessionId,
+    string? sharedDependenciesPath,
     IEnumerable<string> extensionAssemblyPaths,
     CancellationToken cancellationToken)
 {
@@ -79,7 +80,7 @@ static async Task RunAsync(
         }
     }
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyPaths, loggerFactory);
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyPaths, sharedDependenciesPath, loggerFactory);
 
     // Initialize the fault handler if it's available
     var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
@@ -156,6 +157,12 @@ static Parser CreateCommandLineParser()
         IsRequired = false
     };
 
+    var sharedDependenciesOption = new Option<string?>("--sharedDependencies")
+    {
+        Description = "Full path of the directory containing shared assemblies (optional).",
+        IsRequired = false
+    };
+
     var extensionAssemblyPathsOption = new Option<string[]?>(new string[] { "--extension", "--extensions" }) // TODO: remove plural form
     {
         Description = "Full paths of extension assemblies to load (optional).",
@@ -170,6 +177,7 @@ static Parser CreateCommandLineParser()
         starredCompletionsPathOption,
         telemetryLevelOption,
         sessionIdOption,
+        sharedDependenciesOption,
         extensionAssemblyPathsOption,
     };
     rootCommand.SetHandler(context =>
@@ -180,9 +188,10 @@ static Parser CreateCommandLineParser()
         var starredCompletionsPath = context.ParseResult.GetValueForOption(starredCompletionsPathOption);
         var telemetryLevel = context.ParseResult.GetValueForOption(telemetryLevelOption);
         var sessionId = context.ParseResult.GetValueForOption(sessionIdOption);
+        var sharedDependenciesPath = context.ParseResult.GetValueForOption(sharedDependenciesOption);
         var extensionAssemblyPaths = context.ParseResult.GetValueForOption(extensionAssemblyPathsOption) ?? Array.Empty<string>();
 
-        return RunAsync(launchDebugger, logLevel, starredCompletionsPath, telemetryLevel, sessionId, extensionAssemblyPaths, cancellationToken);
+        return RunAsync(launchDebugger, logLevel, starredCompletionsPath, telemetryLevel, sessionId, sharedDependenciesPath, extensionAssemblyPaths, cancellationToken);
     });
 
     return new CommandLineBuilder(rootCommand).UseDefaults().Build();
