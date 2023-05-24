@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     canBePartial: false,
                     cancellationToken: cancellationToken) ||
                 syntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken) ||
-                context.IsInImportsDirective && context.TargetToken.Kind() is SyntaxKind.UsingKeyword or SyntaxKind.StaticKeyword;
+                (context.IsInImportsDirective && context.TargetToken.Kind() is SyntaxKind.UsingKeyword or SyntaxKind.StaticKeyword);
         }
     }
 }
