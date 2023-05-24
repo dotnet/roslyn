@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis
             return recoverableText.Version;
         }
 
-        private sealed partial class RecoverableText : ValueSource<SourceText>
+        private sealed partial class RecoverableText
         {
             private readonly ITemporaryStorageServiceInternal _storageService;
             public readonly VersionStamp Version;
