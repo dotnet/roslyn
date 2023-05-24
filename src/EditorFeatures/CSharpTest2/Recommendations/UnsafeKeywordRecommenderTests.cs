@@ -421,5 +421,17 @@ $$"));
             await VerifyKeywordAsync(
 @"public $$ interface IBinaryDocumentMemoryBlock {");
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67984")]
+        public async Task TestAfterUsingKeywordInUsingDirective()
+        {
+            await VerifyKeywordAsync("using $$");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67984")]
+        public async Task TestAfterStaticKeywordInUsingDirective()
+        {
+            await VerifyKeywordAsync("using static $$");
+        }
     }
 }
