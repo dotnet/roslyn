@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return InferTypeInInvocationExpression(invocation, index, argument);
                     }
 
-                    if (argument.Parent?.Parent is ObjectCreationExpressionSyntax creation)
+                    if (argument.Parent?.Parent is BaseObjectCreationExpressionSyntax creation)
                     {
                         // new Outer(Goo());
                         //
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (argument.Parent.IsParentKind(SyntaxKind.ImplicitElementAccess) &&
                     argument.Parent.Parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression) &&
                     argument.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression) &&
-                    argument.Parent.Parent.Parent.Parent?.Parent is ObjectCreationExpressionSyntax objectCreation)
+                    argument.Parent.Parent.Parent.Parent?.Parent is BaseObjectCreationExpressionSyntax objectCreation)
                 {
                     var types = GetTypes(objectCreation).Select(t => t.InferredType);
 
