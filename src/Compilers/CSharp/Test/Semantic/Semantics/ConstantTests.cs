@@ -3292,7 +3292,8 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 36),
                 // (6,14): warning CS8321: The local function 'f' is declared but never used
                 //         void f() { if () const int i = 0; }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(6, 14));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(6, 14)
+                );
         }
 
         [Fact]
@@ -3308,9 +3309,10 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,51): error CS0133: The expression being assigned to 'b' must be constant
-                //         const Func<int> a = () => { const int b = a(); return 1; };
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51));
+    // (6,51): error CS0133: The expression being assigned to 'b' must be constant
+    //         const Func<int> a = () => { const int b = a(); return 1; };
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51)
+                );
         }
 
         [Fact]
@@ -3325,9 +3327,10 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,27): error CS0110: The evaluation of the constant value for 'z' involves a circular definition
-                //         const int z = 1 + z + 1;
-                Diagnostic(ErrorCode.ERR_CircConstValue, "z").WithArguments("z").WithLocation(5, 27));
+    // (5,27): error CS0110: The evaluation of the constant value for 'z' involves a circular definition
+    //         const int z = 1 + z + 1;
+    Diagnostic(ErrorCode.ERR_CircConstValue, "z").WithArguments("z").WithLocation(5, 27)
+                );
         }
 
         [Fact, WorkItem(1098197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098197")]
@@ -3338,18 +3341,19 @@ class C
 void f() { if () const int i = 0; }
 ";
             CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (2,6): warning CS8321: The local function 'f' is declared but never used
-                // void f() { if () const int i = 0; }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(2, 6),
-                // (2,16): error CS1525: Invalid expression term ')'
-                // void f() { if () const int i = 0; }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 16),
-                // (2,18): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                // void f() { if () const int i = 0; }
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(2, 18),
-                // (2,28): warning CS0219: The variable 'i' is assigned but its value is never used
-                // void f() { if () const int i = 0; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(2, 28));
+    // (2,6): warning CS8321: The local function 'f' is declared but never used
+    // void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(2, 6),
+    // (2,16): error CS1525: Invalid expression term ')'
+    // void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 16),
+    // (2,18): error CS1023: Embedded statement cannot be a declaration or labeled statement
+    // void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(2, 18),
+    // (2,28): warning CS0219: The variable 'i' is assigned but its value is never used
+    // void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(2, 28)
+                );
         }
 
         [Fact, WorkItem(1098605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098605")]
