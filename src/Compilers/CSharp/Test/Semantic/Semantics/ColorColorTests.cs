@@ -2371,7 +2371,7 @@ public class Tree2 : Tree1
         [Fact]
         public void ConstFieldEnum()
         {
-            string source = @"
+            const string source = @"
 using Color2 = Color;
 
 enum Color
@@ -2387,18 +2387,26 @@ class M
     public const Color Color = Color.Red;
     public const Color2 Color2 = Color2.Yellow;
 }
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(M.Color == Color.Red);
+        System.Console.Write(M.Color2 == Color.Yellow);
+    }
+}
 ";
 
-            var compilation = CreateCompilation(source, assemblyName: "Color");
-
-            compilation.VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "TrueTrue")
+                .VerifyDiagnostics();
         }
 
         [WorkItem(45739, "https://github.com/dotnet/roslyn/issues/45739")]
         [Fact]
         public void ConstFieldPrimitives()
         {
-            string source = @"
+            const string source = @"
 using System;
 using SystemChar = System.Char;
 
@@ -2407,11 +2415,19 @@ class M
     public const Int32 Int32 = Int32.MaxValue;
     public const SystemChar SystemChar = SystemChar.MaxValue;
 }
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(M.Int32 == Int32.MaxValue);
+        System.Console.Write(M.SystemChar == SystemChar.MaxValue);
+    }
+}
 ";
 
-            var compilation = CreateCompilation(source, assemblyName: "Color");
-
-            compilation.VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "TrueTrue")
+                .VerifyDiagnostics();
         }
     }
 }
