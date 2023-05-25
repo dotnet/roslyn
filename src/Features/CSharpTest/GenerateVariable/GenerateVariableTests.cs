@@ -11107,5 +11107,35 @@ $@"class Program
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68322")]
+        public async Task TestImplicitCollectionCreationExpression()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class Example
+                {
+                    void M()
+                    {
+                        List<int> list = new() { [|_field|] };
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+
+                class Example
+                {
+                    private int _field;
+
+                    void M()
+                    {
+                        List<int> list = new() { [|_field|] };
+                    }
+                }
+                """);
+        }
     }
 }
