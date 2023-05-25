@@ -11065,15 +11065,47 @@ $@"class Program
         public async Task TestMissingWhenGeneratingFunctionPointer()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-public unsafe class Bar
-{
-    public static ZZZ()
-    {
-         delegate*<void> i = &[|Goo|];
-    }
-}");
+                public unsafe class Bar
+                {
+                    public static ZZZ()
+                    {
+                         delegate*<void> i = &[|Goo|];
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68322")]
+        public async Task TestImplicitObjectCreationExpression()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class Example
+                {
+                    public Example(int argument) { }
+
+                    void M()
+                    {
+                        Example e = new([|_field|]);
+                    }
+                }
+                """,
+                """
+                class Example
+                {
+                    private int _field;
+
+                    public Example(int argument) { }
+
+                    void M()
+                    {
+                        Example e = new(_field);
+                    }
+                }
+                """);
         }
     }
 }
