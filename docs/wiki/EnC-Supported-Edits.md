@@ -1,4 +1,4 @@
-# Supported Edits in Edit & Continue (EnC) and Hot Reload on NET 8
+# Supported Edits in Edit & Continue (EnC) and Hot Reload on .NET 8
 Hot Reload lets you modify/add to your source code while the application is running, either with debugger attached to the process (F5) or not attached (Ctrl+F5).
 Edit & Continue lets you modify/add to your source code in break-mode while debugging without having to restart your debugging session.
 
