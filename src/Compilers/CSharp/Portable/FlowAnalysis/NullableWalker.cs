@@ -6566,8 +6566,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!parametersOpt.IsDefault)
             {
                 parameterAnnotationsOpt = arguments.SelectAsArray(
-                    (argument, i, arg) => GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, arg.expanded).Annotations,
-                    (parametersOpt, argsToParamsOpt, expanded));
+                    static (argument, i, arg) => arg.self.GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, arg.expanded).Annotations,
+                    (self: this, parametersOpt, argsToParamsOpt, expanded));
             }
 
             return parameterAnnotationsOpt;
