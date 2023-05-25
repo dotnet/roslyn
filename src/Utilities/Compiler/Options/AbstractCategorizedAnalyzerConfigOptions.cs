@@ -28,7 +28,24 @@ namespace Analyzer.Utilities
 
         public T GetOptionValue<T>(string optionName, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, T defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
         {
-            if (TryGetOptionValue(optionName, kind, rule, tryParseValue, defaultValue, out var value))
+            if (TryGetOptionValue(
+                optionName,
+                kind,
+                rule,
+                static (string s, TryParseValue<T> tryParseValue, [MaybeNullWhen(returnValue: false)] out T parsedValue) => tryParseValue(s, out parsedValue),
+                tryParseValue,
+                defaultValue,
+                out var value))
+            {
+                return value;
+            }
+
+            return defaultValue;
+        }
+
+        public T GetOptionValue<T, TArg>(string optionName, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T, TArg> tryParseValue, TArg arg, T defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
+        {
+            if (TryGetOptionValue(optionName, kind, rule, tryParseValue, arg, defaultValue, out var value))
             {
                 return value;
             }
@@ -45,7 +62,7 @@ namespace Analyzer.Utilities
             };
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn-analyzers/issues/4905", AllowCaptures = false)]
-        public bool TryGetOptionValue<T>(string optionName, OptionKind kind, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, T defaultValue, out T value)
+        public bool TryGetOptionValue<T, TArg>(string optionName, OptionKind kind, DiagnosticDescriptor? rule, TryParseValue<T, TArg> tryParseValue, TArg arg, T defaultValue, out T value)
         {
             if (this.IsEmpty)
             {
@@ -56,7 +73,7 @@ namespace Analyzer.Utilities
             var key = OptionKey.GetOrCreate(rule?.Id, optionName);
             if (!_computedOptionValuesMap.TryGetValue(key, out var computedValue))
             {
-                computedValue = _computedOptionValuesMap.GetOrAdd(key, ComputeOptionValue(optionName, kind, rule, tryParseValue));
+                computedValue = _computedOptionValuesMap.GetOrAdd(key, ComputeOptionValue(optionName, kind, rule, tryParseValue, arg));
             }
 
             if (computedValue.found)
@@ -71,7 +88,7 @@ namespace Analyzer.Utilities
             }
         }
 
-        private (bool found, object? value) ComputeOptionValue<T>(string optionName, OptionKind kind, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue)
+        private (bool found, object? value) ComputeOptionValue<T, TArg>(string optionName, OptionKind kind, DiagnosticDescriptor? rule, TryParseValue<T, TArg> tryParseValue, TArg arg)
         {
             var optionKeyPrefix = MapOptionKindToKeyPrefix(kind);
 
@@ -95,7 +112,7 @@ namespace Analyzer.Utilities
             {
                 if (TryGetOptionValue(optionKeyPrefix, specificOptionKey, optionName, out var valueString))
                 {
-                    return tryParseValue(valueString, out specificOptionValue);
+                    return tryParseValue(valueString, arg, out specificOptionValue);
                 }
 
                 specificOptionValue = default;
@@ -120,7 +137,7 @@ namespace Analyzer.Utilities
             {
                 if (TryGetOptionValue(optionKeyPrefix, optionKeySuffix: null, optionName, out var valueString))
                 {
-                    return tryParseValue(valueString, out generalOptionValue);
+                    return tryParseValue(valueString, arg, out generalOptionValue);
                 }
 
                 generalOptionValue = default;

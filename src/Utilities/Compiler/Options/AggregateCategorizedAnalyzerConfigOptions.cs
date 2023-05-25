@@ -81,7 +81,15 @@ namespace Analyzer.Utilities
 
         public T GetOptionValue<T>(string optionName, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, T defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
         {
-            if (TryGetOptionValue(optionName, kind, tree, rule, tryParseValue, defaultValue, out var value))
+            if (TryGetOptionValue(
+                optionName,
+                kind,
+                tree,
+                rule,
+                static (string s, TryParseValue<T> tryParseValue, [MaybeNullWhen(returnValue: false)] out T parsedValue) => tryParseValue(s, out parsedValue),
+                tryParseValue,
+                defaultValue,
+                out var value))
             {
                 return value;
             }
@@ -89,7 +97,17 @@ namespace Analyzer.Utilities
             return defaultValue;
         }
 
-        private bool TryGetOptionValue<T>(string optionName, OptionKind kind, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, T defaultValue, [MaybeNullWhen(false)] out T value)
+        public T GetOptionValue<T, TArg>(string optionName, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T, TArg> tryParseValue, TArg arg, T defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
+        {
+            if (TryGetOptionValue(optionName, kind, tree, rule, tryParseValue, arg, defaultValue, out var value))
+            {
+                return value;
+            }
+
+            return defaultValue;
+        }
+
+        private bool TryGetOptionValue<T, TArg>(string optionName, OptionKind kind, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T, TArg> tryParseValue, TArg arg, T defaultValue, [MaybeNullWhen(false)] out T value)
         {
             value = defaultValue;
 
@@ -105,11 +123,11 @@ namespace Analyzer.Utilities
                     return false;
                 }
 
-                return _globalOptions.Value.TryGetOptionValue(optionName, kind, rule, tryParseValue, defaultValue, out value);
+                return _globalOptions.Value.TryGetOptionValue(optionName, kind, rule, tryParseValue, arg, defaultValue, out value);
             }
 
             return _perTreeOptions.TryGetValue(tree, out var lazyTreeOptions) &&
-                lazyTreeOptions.Value.TryGetOptionValue(optionName, kind, rule, tryParseValue, defaultValue, out value);
+                lazyTreeOptions.Value.TryGetOptionValue(optionName, kind, rule, tryParseValue, arg, defaultValue, out value);
         }
     }
 }
