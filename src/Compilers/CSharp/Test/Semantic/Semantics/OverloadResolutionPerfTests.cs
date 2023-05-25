@@ -785,7 +785,7 @@ class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/67926")]
         public void ExtensionOverloadsDistinctClasses_01()
         {
-            const int n = 30000;
+            const int n = 1000;
 
             var builder = new StringBuilder();
             builder.AppendLine(
@@ -794,9 +794,9 @@ class C
                 {
                     static void Main()
                     {
-                        var x = new C0();
-                        var y = new C{{n / 2}}();
-                        x.F(y);
+                        var o = new object();
+                        var c = new C1();
+                        o.F(c, c => o.F(c, null));
                     }
                 }
                 """);
@@ -808,7 +808,7 @@ class C
                     class C{{i}} { }
                     static class E{{i}}
                     {
-                        public static void F(this object x, C{{i}} y) { }
+                        public static void F(this object o, C{{i}} c, System.Action<C{{i}}> a) { }
                     }
                     """);
             }
@@ -822,16 +822,17 @@ class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/67926")]
         public void ExtensionOverloadsDistinctClasses_02()
         {
-            const int n = 30000;
+            const int n = 1000;
 
             var builder = new StringBuilder();
             builder.AppendLine(
-                """
+                $$"""
                 class Program
                 {
                     static void Main()
                     {
-                        new C0().F(
+                        var o = new object();
+                        o.F(null, c => o.F(c, null));
                     }
                 }
                 """);
@@ -843,7 +844,47 @@ class C
                     class C{{i}} { }
                     static class E{{i}}
                     {
-                        public static void F(this object x, C{{i}} y) { }
+                        public static void F(this object o, C{{i}} c, System.Action<C{{i}}> a) { }
+                    }
+                    """);
+            }
+
+            string source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0121: The call is ambiguous between the following methods or properties: 'E0.F(object, C0, Action<C0>)' and 'E1.F(object, C1, Action<C1>)'
+                //         o.F(null, c => o.F(c, null));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("E0.F(object, C0, System.Action<C0>)", "E1.F(object, C1, System.Action<C1>)").WithLocation(6, 11));
+        }
+
+        [ConditionalFact(typeof(IsRelease))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67926")]
+        public void ExtensionOverloadsDistinctClasses_03()
+        {
+            const int n = 1000;
+
+            var builder = new StringBuilder();
+            builder.AppendLine(
+                $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        var o = new object();
+                        var c = new C1();
+                        o.F(c, c => { o.F( });
+                    }
+                }
+                """);
+
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine(
+                    $$"""
+                    class C{{i}} { }
+                    static class E{{i}}
+                    {
+                        public static void F(this object o, C{{i}} c, System.Action<C{{i}}> a) { }
                     }
                     """);
             }
@@ -852,7 +893,8 @@ class C
             var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<Syntax.InvocationExpressionSyntax>().Single();
+            var expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<Syntax.InvocationExpressionSyntax>().Last();
+            Assert.Equal("o.F( ", expr.ToString());
             _ = model.GetTypeInfo(expr);
         }
     }
