@@ -30,13 +30,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
                 SupportsVisualStudioExtensions = true,
                 TextDocument = new()
                 {
-                    Completion = new()
+                    Completion = new VSInternalCompletionSetting()
                     {
-                        CompletionListSetting = new()
+                        CompletionListSetting = new CompletionListSetting()
                         {
                             ItemDefaults = new[] { CompletionCapabilityHelper.EditRangePropertyName },
                         },
                         CompletionItemKind = new(),
+
+                        CompletionList = new VSInternalCompletionListSetting()
+                        {
+                            CommitCharacters = true,
+                        }
                     },
                 },
             };
@@ -564,7 +569,13 @@ class A
                         {
                             ItemDefaults = null,
                         },
+
+                        CompletionList = new VSInternalCompletionListSetting
+                        {
+                            CommitCharacters = true,
+                        }
                     },
+
                 }
             };
 
@@ -743,33 +754,6 @@ partial class C
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             Assert.Null(results.Items.First().TextEdit);
             Assert.Null(results.Items.First().InsertText);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task TestAlwaysHasCommitCharactersWithoutVSCapabilityAsync(bool mutatingLspWorkspace)
-        {
-            var markup =
-@"using System;
-class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-            var completionParams = CreateCompletionParams(
-                testLspServer.GetLocations("caret").Single(),
-                invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
-                triggerCharacter: "\0",
-                triggerKind: LSP.CompletionTriggerKind.Invoked);
-
-            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-
-            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            Assert.NotNull(results);
-            Assert.NotEmpty(results.Items);
-            Assert.All(results.Items, (item) => Assert.NotNull(item.CommitCharacters));
         }
 
         [Theory, CombinatorialData]

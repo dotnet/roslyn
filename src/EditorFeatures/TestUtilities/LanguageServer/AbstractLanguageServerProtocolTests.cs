@@ -314,12 +314,12 @@ namespace Roslyn.Test.Utilities
         private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null)
             => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.VisualBasic, mutatingLspWorkspace, initializationOptions);
 
-        private Task<TestLspServer> CreateTestLspServerAsync(
-            string[] markups, string languageName, bool mutatingLspWorkspace, InitializationOptions? initializationOptions)
+        private protected Task<TestLspServer> CreateTestLspServerAsync(
+            string[] markups, string languageName, bool mutatingLspWorkspace, InitializationOptions? initializationOptions, List<Type>? excludedTypes = null, List<Type>? extraExportedTypes = null)
         {
             var lspOptions = initializationOptions ?? new InitializationOptions();
 
-            var workspace = CreateWorkspace(lspOptions, workspaceKind: null, mutatingLspWorkspace);
+            var workspace = CreateWorkspace(lspOptions, workspaceKind: null, mutatingLspWorkspace, excludedTypes, extraExportedTypes);
 
             workspace.InitializeDocuments(TestWorkspace.CreateWorkspaceElement(languageName, files: markups, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups), openDocuments: false);
 
@@ -379,10 +379,18 @@ namespace Roslyn.Test.Utilities
         }
 
         internal TestWorkspace CreateWorkspace(
-            InitializationOptions? options, string? workspaceKind, bool mutatingLspWorkspace)
+            InitializationOptions? options, string? workspaceKind, bool mutatingLspWorkspace, List<Type>? excludedTypes = null, List<Type>? extraExportedTypes = null)
         {
+            var composition = Composition;
+
+            if (excludedTypes is not null)
+                composition = composition.AddExcludedPartTypes(excludedTypes);
+
+            if (extraExportedTypes is not null)
+                composition = composition.AddParts(extraExportedTypes);
+
             var workspace = new TestWorkspace(
-                Composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true), supportsLspMutation: mutatingLspWorkspace);
+                composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true), supportsLspMutation: mutatingLspWorkspace);
             options?.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 
             workspace.GetService<LspWorkspaceRegistrationService>().Register(workspace);

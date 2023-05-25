@@ -4,12 +4,20 @@
 
 #nullable disable
 
+using System;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -269,6 +277,189 @@ public class A
             Assert.NotEmpty(results.ItemDefaults.CommitCharacters);
             Assert.False(someTextItem.Preselect);
             Assert.Null(someTextItem.CommitCharacters);
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestPromotingDefaultCommitCharactersAsync(bool mutatingLspWorkspace, bool hasDefaultCommitCharCapability)
+    {
+        var markup =
+@"using System;
+class A
+{
+    void M()
+    {
+        item{|caret:|}
+    }
+}";
+        var clientCapability = DefaultClientCapabilities;
+        if (!hasDefaultCommitCharCapability)
+        {
+            clientCapability.TextDocument.Completion.CompletionListSetting.ItemDefaults
+                = new string[] { CompletionCapabilityHelper.EditRangePropertyName, CompletionCapabilityHelper.DataPropertyName };
+        }
+
+        await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
+            new InitializationOptions { ClientCapabilities = clientCapability, CallInitialized = true },
+            extraExportedTypes: new[] { typeof(CSharpLspMockCompletionService.Factory) }.ToList());
+
+        var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspMockCompletionService;
+        // return 10 items, all use default commit characters
+        mockService.ItemCounts = (10, 0);
+
+        var completionParams = CreateCompletionParams(
+            testLspServer.GetLocations("caret").Single(),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+            triggerCharacter: "\0",
+            triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+        var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+
+        Assert.NotNull(results);
+        Assert.NotEmpty(results.Items);
+
+        var defaultCharArray = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
+
+        if (hasDefaultCommitCharCapability)
+        {
+            // if default commit char on list is supported, then it should be set to default array
+            // and all item commit chars should be null
+            Assert.NotNull(results.ItemDefaults.CommitCharacters);
+            AssertEx.SetEqual(defaultCharArray, results.ItemDefaults.CommitCharacters);
+
+            Assert.All(results.Items, (item) => Assert.Null(item.CommitCharacters));
+        }
+        else
+        {
+            // otherwise, the list default should be null, and all item commit chars should be set to null too
+            // so client will use the default array we returned as part of server capability.
+            Assert.Null(results.ItemDefaults.CommitCharacters);
+            Assert.All(results.Items, (item) => Assert.Null(item.CommitCharacters));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestUsingServerDefaultCommitCharacters(bool mutatingLspWorkspace, bool shouldPromoteDefaultCommitCharsToList)
+    {
+        var markup = "Item{|caret:|}";
+        await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
+            new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true },
+            extraExportedTypes: new[] { typeof(CSharpLspMockCompletionService.Factory) }.ToList());
+
+        var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspMockCompletionService;
+        mockService.ItemCounts = shouldPromoteDefaultCommitCharsToList ? (20, 10) : (10, 20);
+
+        var caret = testLspServer.GetLocations("caret").Single();
+        var completionParams = new LSP.CompletionParams()
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Position = caret.Range.Start,
+            Context = new LSP.CompletionContext()
+            {
+                TriggerKind = LSP.CompletionTriggerKind.Invoked,
+            }
+        };
+
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+        var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        Assert.NotNull(results.ItemDefaults.CommitCharacters);
+
+        var defaultCharArray = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
+        var nonDefaultCharArray = AbstractLspCompletionResultCreationService.CreateCommitCharacterArrayFromRules(mockService.NonDefaultRule);
+
+        if (shouldPromoteDefaultCommitCharsToList)
+        {
+            AssertEx.SetEqual(defaultCharArray, results.ItemDefaults.CommitCharacters);
+            foreach (var item in results.Items)
+            {
+                if (item.Label.StartsWith("ItemWithDefaultChar"))
+                {
+                    Assert.Null(item.CommitCharacters);
+                }
+                else if (item.Label.StartsWith("ItemWithNonDefaultChar"))
+                {
+                    Assert.NotNull(item.CommitCharacters);
+                    AssertEx.SetEqual(nonDefaultCharArray, item.CommitCharacters);
+                }
+            }
+        }
+        else
+        {
+            AssertEx.SetEqual(nonDefaultCharArray, results.ItemDefaults.CommitCharacters);
+            foreach (var item in results.Items)
+            {
+                if (item.Label.StartsWith("ItemWithDefaultChar"))
+                {
+                    Assert.NotNull(item.CommitCharacters);
+                    AssertEx.SetEqual(defaultCharArray, item.CommitCharacters);
+                }
+                else if (item.Label.StartsWith("ItemWithNonDefaultChar"))
+                {
+                    Assert.Null(item.CommitCharacters);
+                }
+            }
+        }
+    }
+
+    private sealed class CSharpLspMockCompletionService : CompletionService
+    {
+        private CSharpLspMockCompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider) : base(services, listenerProvider)
+        {
+        }
+
+        public override string Language => LanguageNames.CSharp;
+
+        internal override CompletionRules GetRules(CodeAnalysis.Completion.CompletionOptions options)
+            => CompletionRules.Default;
+
+        internal override bool ShouldTriggerCompletion(
+            Project project, LanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger,
+            CodeAnalysis.Completion.CompletionOptions options, OptionSet passThroughOptions, ImmutableHashSet<string> roles = null)
+        {
+            return true;
+        }
+
+        public CompletionItemRules NonDefaultRule { get; } = CompletionItemRules.Default.WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ', '('));
+
+        public (int defaultItemCount, int nonDefaultItemCount) ItemCounts { get; set; }
+
+        internal override async Task<CodeAnalysis.Completion.CompletionList> GetCompletionsAsync(
+            Document document, int caretPosition, CodeAnalysis.Completion.CompletionOptions options, OptionSet passThroughOptions,
+            CompletionTrigger trigger = default, ImmutableHashSet<string> roles = null, CancellationToken cancellationToken = default)
+        {
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var defaultItemSpan = GetDefaultCompletionListSpan(text, caretPosition);
+
+            var builder = ImmutableArray.CreateBuilder<CodeAnalysis.Completion.CompletionItem>();
+
+            for (var i = 0; i < ItemCounts.defaultItemCount; ++i)
+                builder.Add(CodeAnalysis.Completion.CompletionItem.Create($"ItemWithDefaultChar{i}", rules: CompletionItemRules.Default));
+
+            for (var i = 0; i < ItemCounts.nonDefaultItemCount; ++i)
+                builder.Add(CodeAnalysis.Completion.CompletionItem.Create($"ItemNonDefaultChar{i}", rules: NonDefaultRule));
+
+            return CodeAnalysis.Completion.CompletionList.Create(defaultItemSpan, builder.ToImmutable());
+        }
+
+        [ExportLanguageServiceFactory(typeof(CompletionService), LanguageNames.CSharp, ServiceLayer.Test), Shared]
+        internal sealed class Factory : ILanguageServiceFactory
+        {
+            private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Factory(IAsynchronousOperationListenerProvider listenerProvider)
+            {
+                _listenerProvider = listenerProvider;
+            }
+
+            public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+            {
+                return new CSharpLspMockCompletionService(languageServices.LanguageServices.SolutionServices, _listenerProvider);
+            }
         }
     }
 }

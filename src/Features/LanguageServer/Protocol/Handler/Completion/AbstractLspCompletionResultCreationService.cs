@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         protected abstract Task<LSP.CompletionItem> CreateItemAndPopulateTextEditAsync(Document document, SourceText documentText, bool snippetsSupported, bool itemDefaultsSupported, TextSpan defaultSpan, string typedText, CompletionItem item, CompletionService completionService, CancellationToken cancellationToken);
         public abstract Task<LSP.CompletionItem> ResolveAsync(LSP.CompletionItem lspItem, CompletionItem roslynItem, LSP.TextDocumentIdentifier textDocumentIdentifier, Document document, CompletionCapabilityHelper capabilityHelper, CompletionService completionService, CompletionOptions completionOptions, SymbolDescriptionOptions symbolDescriptionOptions, CancellationToken cancellationToken);
 
+        public static string[] DefaultCommitCharactersArray { get; } = CreateCommitCharacterArrayFromRules(CompletionItemRules.Default);
+
         public async Task<LSP.CompletionList> ConvertToLspCompletionListAsync(
             Document document,
             CompletionCapabilityHelper capabilityHelper,
@@ -86,8 +88,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 Data = capabilityHelper.SupportVSInternalCompletionListData ? resolveData : null,
             };
 
-            if (capabilityHelper.SupportDefaultCommitCharacters || capabilityHelper.SupportVSInternalDefaultCommitCharacters)
-                PromoteCommonCommitCharactersOntoList();
+            PromoteCommonCommitCharactersOntoList();
 
             if (completionList.ItemDefaults.EditRange is null && completionList.ItemDefaults.CommitCharacters is null && completionList.ItemDefaults.Data is null)
                 completionList.ItemDefaults = null;
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 }
                 else
                 {
-                    lspItem.CommitCharacters = GetCommitCharacters(item, commitCharactersRuleCache, lspVSClientCapability);
+                    lspItem.CommitCharacters = GetCommitCharacters(item, commitCharactersRuleCache);
                 }
 
                 return lspItem;
@@ -168,41 +169,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 return LSP.CompletionItemKind.Text;
             }
 
-            static string[]? GetCommitCharacters(
+            static string[] GetCommitCharacters(
                 CompletionItem item,
-                Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]> currentRuleCache,
-                bool supportsVSExtensions)
+                Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]> currentRuleCache)
             {
-                var commitCharacterRules = item.Rules.CommitCharacterRules;
+                if (item.Rules.CommitCharacterRules.IsEmpty)
+                    return DefaultCommitCharactersArray;
 
-                // VS will use the default commit characters if no items are specified on the completion item.
-                // However, other clients like VSCode do not support this behavior so we must specify
-                // commit characters on every completion item - https://github.com/microsoft/vscode/issues/90987
-                if (supportsVSExtensions && commitCharacterRules.IsEmpty)
-                    return null;
-
-                if (!currentRuleCache.TryGetValue(commitCharacterRules, out var cachedCommitCharacters))
+                if (!currentRuleCache.TryGetValue(item.Rules.CommitCharacterRules, out var cachedCommitCharacters))
                 {
-                    using var _ = PooledHashSet<char>.GetInstance(out var commitCharacters);
-                    commitCharacters.AddAll(CompletionRules.Default.DefaultCommitCharacters);
-                    foreach (var rule in commitCharacterRules)
-                    {
-                        switch (rule.Kind)
-                        {
-                            case CharacterSetModificationKind.Add:
-                                commitCharacters.UnionWith(rule.Characters);
-                                continue;
-                            case CharacterSetModificationKind.Remove:
-                                commitCharacters.ExceptWith(rule.Characters);
-                                continue;
-                            case CharacterSetModificationKind.Replace:
-                                commitCharacters.Clear();
-                                commitCharacters.AddRange(rule.Characters);
-                                break;
-                        }
-                    }
-
-                    cachedCommitCharacters = commitCharacters.Select(c => c.ToString()).ToArray();
+                    cachedCommitCharacters = CreateCommitCharacterArrayFromRules(item.Rules);
                     currentRuleCache.Add(item.Rules.CommitCharacterRules, cachedCommitCharacters);
                 }
 
@@ -211,20 +187,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 
             void PromoteCommonCommitCharactersOntoList()
             {
+                // If client doesn't support default commit characters on list, we want to set commit characters for each item with default to null.
+                // This way client will default to the commit chars server provided in ServerCapabilities.CompletionProvider.AllCommitCharacters.
+                if (!(capabilityHelper.SupportDefaultCommitCharacters || capabilityHelper.SupportVSInternalDefaultCommitCharacters))
+                {
+                    foreach (var completionItem in completionList.Items)
+                    {
+                        if (completionItem.CommitCharacters == DefaultCommitCharactersArray)
+                            completionItem.CommitCharacters = null;
+                    }
+
+                    return;
+                }
+
                 if (completionList.Items.IsEmpty())
                     return;
 
-                var defaultCommitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
                 var commitCharacterReferences = new Dictionary<object, int>();
                 var mostUsedCount = 0;
                 string[]? mostUsedCommitCharacters = null;
+
                 for (var i = 0; i < completionList.Items.Length; i++)
                 {
                     var completionItem = completionList.Items[i];
                     var commitCharacters = completionItem.CommitCharacters;
-                    // The commit characters on the item are null, this means the commit characters are actually
-                    // the default commit characters we passed in the initialize request.
-                    commitCharacters ??= defaultCommitCharacters;
+
+                    Contract.ThrowIfNull(commitCharacters);
 
                     commitCharacterReferences.TryGetValue(commitCharacters, out var existingCount);
                     existingCount++;
@@ -239,8 +227,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                     commitCharacterReferences[commitCharacters] = existingCount;
                 }
 
-                Contract.ThrowIfNull(mostUsedCommitCharacters);
-
                 // Promoted the most used commit characters onto the list and then remove these from child items.
                 // public LSP
                 if (capabilityHelper.SupportDefaultCommitCharacters)
@@ -254,15 +240,38 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                     completionList.CommitCharacters = mostUsedCommitCharacters;
                 }
 
-                for (var i = 0; i < completionList.Items.Length; i++)
+                foreach (var completionItem in completionList.Items)
                 {
-                    var completionItem = completionList.Items[i];
                     if (completionItem.CommitCharacters == mostUsedCommitCharacters)
                     {
                         completionItem.CommitCharacters = null;
                     }
                 }
             }
+        }
+
+        public static string[] CreateCommitCharacterArrayFromRules(CompletionItemRules rules)
+        {
+            using var _ = PooledHashSet<char>.GetInstance(out var commitCharacters);
+            commitCharacters.AddAll(CompletionRules.Default.DefaultCommitCharacters);
+            foreach (var rule in rules.CommitCharacterRules)
+            {
+                switch (rule.Kind)
+                {
+                    case CharacterSetModificationKind.Add:
+                        commitCharacters.UnionWith(rule.Characters);
+                        continue;
+                    case CharacterSetModificationKind.Remove:
+                        commitCharacters.ExceptWith(rule.Characters);
+                        continue;
+                    case CharacterSetModificationKind.Replace:
+                        commitCharacters.Clear();
+                        commitCharacters.AddRange(rule.Characters);
+                        break;
+                }
+            }
+
+            return commitCharacters.Select(c => c.ToString()).ToArray();
         }
 
         private sealed class CommitCharacterArrayComparer : IEqualityComparer<ImmutableArray<CharacterSetModificationRule>>
