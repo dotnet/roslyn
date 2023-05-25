@@ -2369,9 +2369,11 @@ public class Tree2 : Tree1
 
         [WorkItem(45739, "https://github.com/dotnet/roslyn/issues/45739")]
         [Fact]
-        public void ConstFieldColorColorEnum()
+        public void ConstFieldEnum()
         {
             string source = @"
+using Color2 = Color;
+
 enum Color
 {
     Red,
@@ -2383,6 +2385,27 @@ enum Color
 class M
 {
     public const Color Color = Color.Red;
+    public const Color2 Color2 = Color2.Yellow;
+}
+";
+
+            var compilation = CreateCompilation(source, assemblyName: "Color");
+
+            compilation.VerifyDiagnostics();
+        }
+
+        [WorkItem(45739, "https://github.com/dotnet/roslyn/issues/45739")]
+        [Fact]
+        public void ConstFieldPrimitives()
+        {
+            string source = @"
+using System;
+using SystemChar = System.Char;
+
+class M
+{
+    public const Int32 Int32 = Int32.MaxValue;
+    public const SystemChar SystemChar = SystemChar.MaxValue;
 }
 ";
 
