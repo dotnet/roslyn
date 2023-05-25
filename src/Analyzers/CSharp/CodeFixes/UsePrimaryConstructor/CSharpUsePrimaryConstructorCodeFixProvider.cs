@@ -5,6 +5,7 @@
 // Ignore Spelling: loc kvp
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -166,17 +167,63 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                     ? typeParameterList.GetTrailingTrivia()
                     : currentTypeDeclaration.Identifier.GetAllTrailingTrivia();
 
+                var finalAttributeLists = currentTypeDeclaration.AttributeLists.AddRange(
+                    constructorDeclaration.AttributeLists.Select(
+                        a => a.WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.MethodKeyword))).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation)));
+
+                var parameterList = RemoveElementIndentation(
+                    typeDeclaration, constructorDeclaration, constructorDeclaration.ParameterList,
+                    static list => list.Parameters);
                 return currentTypeDeclaration
                     .WithLeadingTrivia(finalTrivia)
+                    .WithAttributeLists(finalAttributeLists)
                     .WithIdentifier(typeParameterList != null ? currentTypeDeclaration.Identifier : currentTypeDeclaration.Identifier.WithoutTrailingTrivia())
                     .WithTypeParameterList(typeParameterList?.WithoutTrailingTrivia())
-                    .WithParameterList(constructorDeclaration.ParameterList
+                    .WithParameterList(parameterList
                         .WithoutLeadingTrivia()
                         .WithTrailingTrivia(triviaAfterName)
                         .WithAdditionalAnnotations(Formatter.Annotation));
             });
 
         return;
+
+        static TListSyntax RemoveElementIndentation<TListSyntax>(
+            TypeDeclarationSyntax typeDeclaration,
+            ConstructorDeclarationSyntax constructorDeclaration,
+            TListSyntax list,
+            Func<TListSyntax, IEnumerable<SyntaxNode>> getElements)
+            where TListSyntax : SyntaxNode
+        {
+            // Since we're moving parameters from the constructor to the type, attempt to dedent them if appropriate.
+
+            var typeLeadingWhitespace = GetLeadingWhitespace(typeDeclaration);
+            var constructorLeadingWhitespace = GetLeadingWhitespace(constructorDeclaration);
+
+            if (constructorLeadingWhitespace.Length > typeLeadingWhitespace.Length &&
+                constructorLeadingWhitespace.StartsWith(typeLeadingWhitespace))
+            {
+                var indentation = constructorLeadingWhitespace[typeLeadingWhitespace.Length..];
+                return list.ReplaceNodes(
+                    getElements(list),
+                    (p, _) =>
+                    {
+                        var parameterLeadingWhitespace = GetLeadingWhitespace(p);
+                        if (parameterLeadingWhitespace.EndsWith(indentation))
+                        {
+                            var leadingTrivia = p.GetLeadingTrivia();
+                            return p.WithLeadingTrivia(
+                                leadingTrivia.Take(leadingTrivia.Count - 1).Concat(Whitespace(parameterLeadingWhitespace[..^indentation.Length])));
+                        }
+
+                        return p;
+                    });
+            }
+
+            return list;
+        }
+
+        static string GetLeadingWhitespace(SyntaxNode node)
+            => node.GetLeadingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia) whitespace] ? whitespace.ToString() : "";
 
         async ValueTask MoveBaseConstructorArgumentsAsync()
         {
@@ -195,9 +242,13 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                 var document = solution.GetRequiredDocument(baseType.SyntaxTree);
                 var documentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
 
+                var argumentList = RemoveElementIndentation(
+                    typeDeclaration, constructorDeclaration, constructorDeclaration.Initializer.ArgumentList,
+                    static list => list.Arguments);
+
                 documentEditor.ReplaceNode(
                     baseType,
-                    PrimaryConstructorBaseType(baseType.Type.WithoutTrailingTrivia(), constructorDeclaration.Initializer.ArgumentList.WithoutLeadingTrivia())
+                    PrimaryConstructorBaseType(baseType.Type.WithoutTrailingTrivia(), argumentList.WithoutLeadingTrivia())
                         .WithTrailingTrivia(baseType.GetTrailingTrivia()));
                 return;
             }
@@ -300,27 +351,43 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
             // documents containing our named type.
             var references = await SymbolFinder.FindReferencesAsync(
                 member, solution, namedTypeDocuments, cancellationToken).ConfigureAwait(false);
+
+            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var nodesToReplace);
             foreach (var reference in references)
             {
-                foreach (var group in reference.Locations.GroupBy(loc => loc.Document))
+                foreach (var location in reference.Locations)
                 {
-                    var document = group.Key;
-                    var documentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+                    if (location.IsImplicit)
+                        continue;
 
-                    foreach (var location in group)
+                    if (location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) is not IdentifierNameSyntax identifier)
+                        continue;
+
+                    if (identifier.IsRightSideOfDot())
                     {
-                        if (location.IsImplicit)
-                            continue;
-
-                        var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) as IdentifierNameSyntax;
-                        if (node is null)
-                            continue;
-
-                        var nodeToReplace = node.IsRightSideOfDot() ? node.GetRequiredParent() : node;
-                        documentEditor.ReplaceNode(
-                            nodeToReplace,
-                            parameterNameNode.WithTriviaFrom(nodeToReplace));
+                        if (identifier.GetRequiredParent() is ExpressionSyntax expression)
+                            nodesToReplace.Add(expression);
                     }
+                    else
+                    {
+                        nodesToReplace.Add(identifier);
+                    }
+                }
+            }
+
+            foreach (var group in nodesToReplace.GroupBy(n => n.SyntaxTree))
+            {
+                var document = solution.GetDocument(group.Key);
+                if (document is null)
+                    continue;
+
+                var documentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+
+                foreach (var nodeToReplace in group)
+                {
+                    documentEditor.ReplaceNode(
+                        nodeToReplace,
+                        parameterNameNode.WithTriviaFrom(nodeToReplace));
                 }
             }
         }

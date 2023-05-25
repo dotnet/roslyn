@@ -7,17 +7,20 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis;
+
+internal sealed partial class RecoverableTextAndVersion
 {
     /// <summary>
-    /// This class is a <see cref="ValueSource{T}"/> that holds onto a value weakly, but can save its value and recover
-    /// it on demand if needed.  The value is initially strongly held, until the first time that <see cref="GetValue"/>
-    /// or <see cref="GetValueAsync"/> is called.  At that point, it will be dumped to secondary storage, and retrieved
-    /// and weakly held from that point on in the future.
+    /// This class holds onto a <see cref="SourceText"/> value weakly, but can save its value and recover it on demand
+    /// if needed.  The value is initially strongly held, until the first time that <see cref="GetValue"/> or <see
+    /// cref="GetValueAsync"/> is called.  At that point, it will be dumped to secondary storage, and retrieved and
+    /// weakly held from that point on in the future.
     /// </summary>
-    internal abstract class WeaklyCachedRecoverableValueSource<T> : ValueSource<T> where T : class
+    private sealed partial class RecoverableText
     {
         // enforce saving in a queue so save's don't overload the thread pool.
         private static Task s_latestTask = Task.CompletedTask;
@@ -34,37 +37,16 @@ namespace Microsoft.CodeAnalysis.Host
         private bool _saved;
 
         /// <summary>
-        /// Initial strong value that this value source is initialized with.  Will be used to respond to the first
+        /// Initial strong reference to the SourceText this is initialized with.  Will be used to respond to the first
         /// request to get the value, at which point it will be dumped into secondary storage.
         /// </summary>
-        private T? _initialValue;
+        private SourceText? _initialValue;
 
         /// <summary>
         /// Weak reference to the value last returned from this value source.  Will thus return the same value as long
         /// as something external is holding onto it.
         /// </summary>
-        private WeakReference<T>? _weakReference;
-
-        public WeaklyCachedRecoverableValueSource(T initialValue)
-            => _initialValue = initialValue;
-
-        /// <summary>
-        /// Override this to save the state of the instance so it can be recovered.
-        /// This method will only ever be called once.
-        /// </summary>
-        protected abstract Task SaveAsync(T instance, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Override this method to implement asynchronous recovery semantics.
-        /// This method may be called multiple times.
-        /// </summary>
-        protected abstract Task<T> RecoverAsync(CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Override this method to implement synchronous recovery semantics.
-        /// This method may be called multiple times.
-        /// </summary>
-        protected abstract T Recover(CancellationToken cancellationToken);
+        private WeakReference<SourceText>? _weakReference;
 
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _lazyGate, SemaphoreSlimFactory.Instance);
 
@@ -72,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// Attempts to get the value, but only through the weak reference.  This will only succeed *after* the value
         /// has been retrieved at least once, and has thus then been save to secondary storage.
         /// </summary>
-        private bool TryGetWeakValue([NotNullWhen(true)] out T? value)
+        private bool TryGetWeakValue([NotNullWhen(true)] out SourceText? value)
         {
             value = null;
             var weakReference = _weakReference;
@@ -82,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// Attempts to get the value, either through our strong or weak reference.
         /// </summary>
-        private bool TryGetStrongOrWeakValue([NotNullWhen(true)] out T? value)
+        private bool TryGetStrongOrWeakValue([NotNullWhen(true)] out SourceText? value)
         {
             // See if we still have the constant value stored.  If so, we can trivially return that.
             value = _initialValue;
@@ -93,10 +75,10 @@ namespace Microsoft.CodeAnalysis.Host
             return TryGetWeakValue(out value);
         }
 
-        public override bool TryGetValue([MaybeNullWhen(false)] out T value)
+        public bool TryGetValue([MaybeNullWhen(false)] out SourceText value)
             => TryGetStrongOrWeakValue(out value);
 
-        public override T GetValue(CancellationToken cancellationToken)
+        public SourceText GetValue(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -118,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        public override async Task<T> GetValueAsync(CancellationToken cancellationToken)
+        public async Task<SourceText> GetValueAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -143,11 +125,11 @@ namespace Microsoft.CodeAnalysis.Host
         /// Kicks off the work to save this instance to secondary storage at some point in the future.  Once that save
         /// occurs successfully, we will drop our cached data and return values from that storage instead.
         /// </summary>
-        private void UpdateWeakReferenceAndEnqueueSaveTask_NoLock(T instance)
+        private void UpdateWeakReferenceAndEnqueueSaveTask_NoLock(SourceText instance)
         {
             Contract.ThrowIfTrue(Gate.CurrentCount != 0);
 
-            _weakReference ??= new WeakReference<T>(instance);
+            _weakReference ??= new WeakReference<SourceText>(instance);
             _weakReference.SetTarget(instance);
 
             // Ensure we only save once.
