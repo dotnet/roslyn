@@ -108,8 +108,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
-        <source>A call to a method or property that returns by reference may not be used in this context.</source>
-        <target state="new">A call to a method or property that returns by reference may not be used in this context.</target>
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="new">A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">

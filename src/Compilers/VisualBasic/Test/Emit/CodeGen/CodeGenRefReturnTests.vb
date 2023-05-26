@@ -2680,7 +2680,7 @@ End Module",
                 compilationOptions:=TestOptions.DebugDll)
             comp2.AssertTheseDiagnostics(
 <expected>
-BC37326: A call to a method or property that returns by reference may not be used in this context.
+BC37326: A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.
         With o.GetP()
              ~~~~~~~~
 </expected>)
@@ -2713,7 +2713,7 @@ End Module",
                 compilationOptions:=TestOptions.DebugDll)
             comp2.AssertTheseDiagnostics(
 <expected>
-BC37326: A call to a method or property that returns by reference may not be used in this context.
+BC37326: A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.
         With o.GetP()
              ~~~~~~~~
 </expected>)
@@ -2751,7 +2751,7 @@ End Module",
                 compilationOptions:=TestOptions.DebugDll)
             comp2.AssertTheseDiagnostics(
 <expected>
-BC37326: A call to a method or property that returns by reference may not be used in this context.
+BC37326: A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.
                     With o.GetP()
                          ~~~~~~~~
 </expected>)
@@ -2786,7 +2786,7 @@ End Module",
                 compilationOptions:=TestOptions.DebugDll)
             comp2.AssertTheseDiagnostics(
 <expected>
-BC37326: A call to a method or property that returns by reference may not be used in this context.
+BC37326: A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.
                     With o.GetP()
                          ~~~~~~~~
 </expected>)
@@ -2821,7 +2821,7 @@ End Module",
 
             comp2.AssertTheseDiagnostics(
 <expected>
-BC37326: A call to a method or property that returns by reference may not be used in this context.
+BC37326: A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.
         With o.GetP()
              ~~~~~~~~
 </expected>)
@@ -2930,7 +2930,7 @@ End Module",
 
             comp2.AssertTheseDiagnostics(
 <expected>
-BC37326: A call to a method or property that returns by reference may not be used in this context.
+BC37326: A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.
         With o.P
              ~~~
 </expected>)
