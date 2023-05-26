@@ -29,6 +29,12 @@ internal sealed class DocumentDiagnosticSource
         // Also ensure we pass in "includeSuppressedDiagnostics = true" for unnecessary suppressions to be reported.
         var allSpanDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
             Document, range: null, diagnosticKind: this.DiagnosticKind, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        // Drop the source suppressed diagnostics.
+        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1824321 tracks
+        // adding LSP support for returning source suppressed diagnostics.
+        allSpanDiagnostics = allSpanDiagnostics.WhereAsArray(diagnostic => !diagnostic.IsSuppressed);
+
         return allSpanDiagnostics;
     }
 }
