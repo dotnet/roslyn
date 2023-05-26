@@ -9058,6 +9058,28 @@ namespace N
             await VerifyItemExistsAsync(markup, "M");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
+        public async Task UsingDirectives7()
+        {
+            var markup = @"
+using static unsafe $$
+
+class A { }
+static class B { }
+
+namespace N
+{
+    class C { }
+    static class D { }
+
+    namespace M { }
+}";
+
+            await VerifyItemExistsAsync(markup, "A");
+            await VerifyItemExistsAsync(markup, "B");
+            await VerifyItemExistsAsync(markup, "N");
+        }
+
         [Fact]
         public async Task UsingStaticDoesNotShowDelegates1()
         {
@@ -9102,6 +9124,28 @@ namespace N
             await VerifyItemExistsAsync(markup, "M");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
+        public async Task UsingStaticDoesNotShowDelegates3()
+        {
+            var markup = @"
+using static unsafe $$
+
+class A { }
+delegate void B();
+
+namespace N
+{
+    class C { }
+    static class D { }
+
+    namespace M { }
+}";
+
+            await VerifyItemExistsAsync(markup, "A");
+            await VerifyItemIsAbsentAsync(markup, "B");
+            await VerifyItemExistsAsync(markup, "N");
+        }
+
         [Fact]
         public async Task UsingStaticDoesNotShowInterfaces1()
         {
@@ -9129,6 +9173,28 @@ namespace N
         {
             var markup = @"
 using static $$
+
+class A { }
+interface I { }
+
+namespace N
+{
+    class C { }
+    static class D { }
+
+    namespace M { }
+}";
+
+            await VerifyItemExistsAsync(markup, "A");
+            await VerifyItemIsAbsentAsync(markup, "I");
+            await VerifyItemExistsAsync(markup, "N");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
+        public async Task UsingStaticDoesNotShowInterfaces3()
+        {
+            var markup = @"
+using static unsafe $$
 
 class A { }
 interface I { }

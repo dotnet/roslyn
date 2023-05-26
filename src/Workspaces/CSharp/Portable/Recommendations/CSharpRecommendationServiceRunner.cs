@@ -261,7 +261,7 @@ internal partial class CSharpRecommendationService
                 return symbols.WhereAsArray(s => s.IsNamespace());
             }
 
-            if (_context.TargetToken.IsStaticKeywordInUsingDirective())
+            if (_context.TargetToken.IsStaticKeywordContextInUsingDirective())
             {
                 return symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType());
             }

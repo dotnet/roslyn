@@ -654,7 +654,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // using static |
-            if (token.IsStaticKeywordInUsingDirective())
+            // using static unsafe |
+            if (token.IsStaticKeywordContextInUsingDirective())
             {
                 return true;
             }
@@ -803,11 +804,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsUsingStaticContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             // using static |
+            // using static unsafe |
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            return token.IsStaticKeywordInUsingDirective();
+            return token.IsStaticKeywordContextInUsingDirective();
         }
 
         public static bool IsTypeArgumentOfConstraintClause(
