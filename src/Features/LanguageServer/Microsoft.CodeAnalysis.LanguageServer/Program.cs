@@ -29,6 +29,8 @@ catch (IOException)
 {
 }
 
+WindowsErrorReporting.SetErrorModeOnWindows();
+
 var parser = CreateCommandLineParser();
 return await parser.InvokeAsync(args);
 
