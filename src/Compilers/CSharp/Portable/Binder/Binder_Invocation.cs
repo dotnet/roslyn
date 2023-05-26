@@ -1584,6 +1584,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        // If we resort to rebinding back to the field, we attempt to add the dependency back
+                        if (typeOrValue.Data.ValueExpression.ExpressionSymbol is SourceFieldSymbolWithSyntaxReference sourceField
+                            && sourceField.IsConst)
+                        {
+                            ConstantFieldsInProgress.AddDependency(sourceField);
+                        }
+
                         diagnostics.AddRange(typeOrValue.Data.ValueDiagnostics);
                         return CheckValue(typeOrValue.Data.ValueExpression, BindValueKind.RValue, diagnostics);
                     }

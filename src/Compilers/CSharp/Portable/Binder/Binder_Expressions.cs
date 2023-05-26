@@ -6476,7 +6476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 if (leftSymbol is SourceFieldSymbolWithSyntaxReference fieldLeft)
                                 {
-                                    ConstantFieldsInProgress.RemoveDepencency(fieldLeft);
+                                    ConstantFieldsInProgress.RemoveIfEqualsRecentDependency(fieldLeft);
                                 }
 
                                 // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
@@ -6500,6 +6500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRangeAndFree(valueDiagnostics);
             return boundValue;
         }
+
         private bool IsPotentialColorColorReceiver(IdentifierNameSyntax id, TypeSymbol type)
         {
             string name = id.Identifier.ValueText;

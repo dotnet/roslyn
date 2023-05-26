@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SourceFieldSymbol _fieldOpt;
         private readonly HashSet<SourceFieldSymbolWithSyntaxReference> _dependencies;
 
+        private SourceFieldSymbolWithSyntaxReference? _recentDependency;
+
         internal static readonly ConstantFieldsInProgress Empty = new ConstantFieldsInProgress(null, null);
 
         internal ConstantFieldsInProgress(
@@ -38,10 +40,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void AddDependency(SourceFieldSymbolWithSyntaxReference field)
         {
             _dependencies.Add(field);
+            _recentDependency = field;
         }
+
         internal void RemoveDepencency(SourceFieldSymbolWithSyntaxReference field)
         {
             _dependencies?.Remove(field);
+        }
+
+        private void RemoveRecentDependency()
+        {
+            if (_recentDependency is not null)
+            {
+                _dependencies.Remove(_recentDependency);
+                _recentDependency = null;
+            }
+        }
+
+        private bool EqualsRecentDependency(SourceFieldSymbolWithSyntaxReference field)
+        {
+            return _recentDependency == field;
+        }
+
+        internal void RemoveIfEqualsRecentDependency(SourceFieldSymbolWithSyntaxReference field)
+        {
+            if (EqualsRecentDependency(field))
+            {
+                RemoveRecentDependency();
+            }
         }
     }
 }
