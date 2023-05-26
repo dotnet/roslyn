@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -17,8 +18,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Services
 {
-    internal class AssemblyLoadContextWrapper : IDisposable
+    internal sealed class AssemblyLoadContextWrapper : IDisposable
     {
+        private static readonly ConcurrentDictionary<AssemblyName, Assembly?> s_loadedSharedAssemblies = new(AssemblyNameComparer.Default);
+
         private AssemblyLoadContext? _assemblyLoadContext;
         private readonly ImmutableDictionary<string, Assembly> _loadedAssemblies;
         private readonly ILogger? _logger;
@@ -30,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services
             _logger = logger;
         }
 
-        public static bool TryLoadExtension(string assemblyFilePath, ILogger? logger, [NotNullWhen(true)] out Assembly? assembly)
+        public static bool TryLoadExtension(string assemblyFilePath, string? sharedDependenciesPath, ILogger? logger, [NotNullWhen(true)] out Assembly? assembly)
         {
             var dir = Path.GetDirectoryName(assemblyFilePath);
             var fileName = Path.GetFileName(assemblyFilePath);
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services
             Contract.ThrowIfNull(fileName);
             Contract.ThrowIfNull(fileNameNoExt);
 
-            var loadContext = TryCreate(fileNameNoExt, dir, logger);
+            var loadContext = TryCreate(fileNameNoExt, dir, sharedDependenciesPath, logger);
             if (loadContext != null)
             {
                 assembly = loadContext.GetAssembly(fileName);
@@ -51,25 +54,61 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services
             return false;
         }
 
-        public static AssemblyLoadContextWrapper? TryCreate(string name, string assembliesDirectoryPath, ILogger? logger)
+        public static AssemblyLoadContextWrapper? TryCreate(string name, string assembliesDirectoryPath, string? sharedDependenciesPath, ILogger? logger)
         {
             try
             {
-                var alc = new AssemblyLoadContext(name);
+                var loadContext = CreateLoadContext(name, sharedDependenciesPath);
                 var directory = new DirectoryInfo(assembliesDirectoryPath);
                 var builder = new Dictionary<string, Assembly>();
                 foreach (var file in directory.GetFiles("*.dll"))
                 {
-                    builder.Add(file.Name, alc.LoadFromAssemblyPath(file.FullName));
+                    builder.Add(file.Name, loadContext.LoadFromAssemblyPath(file.FullName));
                 }
 
-                return new AssemblyLoadContextWrapper(alc, builder.ToImmutableDictionary(), logger);
+                return new AssemblyLoadContextWrapper(loadContext, builder.ToImmutableDictionary(), logger);
             }
             catch (Exception ex)
             {
                 logger?.LogError(ex, "Failed to initialize AssemblyLoadContext {name}", name);
                 return null;
             }
+        }
+
+        private static AssemblyLoadContext CreateLoadContext(string name, string? sharedDependenciesPath)
+        {
+            var loadContext = new AssemblyLoadContext(name);
+
+            if (sharedDependenciesPath != null)
+            {
+                loadContext.Resolving += (_, assemblyName) =>
+                {
+                    if (assemblyName.Name is null)
+                    {
+                        return null;
+                    }
+
+                    if (s_loadedSharedAssemblies.TryGetValue(assemblyName, out var loadedAssembly))
+                    {
+                        return loadedAssembly;
+                    }
+
+                    var candidatePath = assemblyName.CultureName is not null
+                        ? Path.Combine(sharedDependenciesPath, assemblyName.CultureName, $"{assemblyName.Name}.dll")
+                        : Path.Combine(sharedDependenciesPath, $"{assemblyName.Name}.dll");
+
+                    if (File.Exists(candidatePath))
+                    {
+                        loadedAssembly = loadContext.LoadFromAssemblyPath(candidatePath);
+                    }
+
+                    s_loadedSharedAssemblies.TryAdd(assemblyName, loadedAssembly);
+
+                    return s_loadedSharedAssemblies[assemblyName];
+                };
+            }
+
+            return loadContext;
         }
 
         public Assembly GetAssembly(string name) => _loadedAssemblies[name];
@@ -107,6 +146,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services
         {
             _assemblyLoadContext?.Unload();
             _assemblyLoadContext = null;
+        }
+
+        private sealed class AssemblyNameComparer : IEqualityComparer<AssemblyName>
+        {
+            public static readonly AssemblyNameComparer Default = new();
+
+            public bool Equals(AssemblyName? x, AssemblyName? y)
+            {
+                if (ReferenceEquals(x, y))
+                    return true;
+
+                if (x == null || y == null)
+                    return false;
+
+                return string.Equals(x.Name, y.Name, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(x.CultureName, y.CultureName, StringComparison.OrdinalIgnoreCase);
+            }
+
+            public int GetHashCode(AssemblyName obj)
+                => HashCode.Combine(
+                    StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Name ?? string.Empty),
+                    StringComparer.OrdinalIgnoreCase.GetHashCode(obj.CultureName ?? string.Empty));
         }
     }
 }
