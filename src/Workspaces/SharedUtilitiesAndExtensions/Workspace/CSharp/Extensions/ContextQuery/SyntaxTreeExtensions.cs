@@ -577,8 +577,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            // using static | is never a type declaration context
-            if (token.IsStaticKeywordInUsingDirective())
+            // using directive is never a type declaration context
+            if (token.GetAncestor<UsingDirectiveSyntax>() is not null)
             {
                 return false;
             }
