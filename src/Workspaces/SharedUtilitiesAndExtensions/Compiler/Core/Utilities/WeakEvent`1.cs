@@ -25,7 +25,9 @@ internal sealed class WeakEvent<TEventArgs>
     /// </remarks>
     private readonly ConditionalWeakTable<object, EventHandler<TEventArgs>> _keepAliveTable = new();
 
+#if !NET6_0_OR_GREATER
     private ImmutableList<WeakReference<EventHandler<TEventArgs>>> _weakHandlers = ImmutableList<WeakReference<EventHandler<TEventArgs>>>.Empty;
+#endif
 
     public void AddHandler(object target, EventHandler<TEventArgs> handler)
     {
@@ -49,6 +51,7 @@ internal sealed class WeakEvent<TEventArgs>
             }
         }
 
+#if !NET6_0_OR_GREATER
         ImmutableInterlocked.Update(
             ref _weakHandlers,
             static (weakHandlers, handler) =>
@@ -60,6 +63,7 @@ internal sealed class WeakEvent<TEventArgs>
                     .Add(new WeakReference<EventHandler<TEventArgs>>(handler));
             },
             handler);
+#endif
     }
 
     public void RemoveHandler(object target, EventHandler<TEventArgs> handler)
@@ -85,6 +89,7 @@ internal sealed class WeakEvent<TEventArgs>
             }
         }
 
+#if !NET6_0_OR_GREATER
         ImmutableInterlocked.Update(
             ref _weakHandlers,
             static (weakHandlers, handler) =>
@@ -116,10 +121,20 @@ internal sealed class WeakEvent<TEventArgs>
                 return builder.ToImmutable();
             },
             handler);
+#endif
     }
 
     public void RaiseEvent(object? sender, TEventArgs e)
     {
+#if NET6_0_OR_GREATER
+        // ConditionalWeakTable<TKey, TValue> supports concurrent enumeration and internally
+        // synchronizes mutating operations, so we don't have to take a lock here, and we can
+        // just go over the registered handlers normally.
+        foreach (var pair in _keepAliveTable)
+        {
+            pair.Value(sender, e);
+        }
+#else
         foreach (var weakHandler in _weakHandlers)
         {
             if (!weakHandler.TryGetTarget(out var handler))
@@ -127,5 +142,6 @@ internal sealed class WeakEvent<TEventArgs>
 
             handler(sender, e);
         }
+#endif
     }
 }
