@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourceOrdinaryMethodSymbol : SourceOrdinaryMethodSymbolBase
+    internal abstract partial class SourceOrdinaryMethodSymbol : SourceOrdinaryMethodSymbolBase
     {
         public static SourceOrdinaryMethodSymbol CreateMethodSymbol(
             NamedTypeSymbol containingType,
@@ -55,20 +55,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                  name,
                  location,
                  syntax,
-                 methodKind,
-                 refKind: syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                  isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
-                 isExtensionMethod: syntax.ParameterList.Parameters.FirstOrDefault() is ParameterSyntax firstParam &&
-                                    !firstParam.IsArgList &&
-                                    firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
-                 isReadOnly: false,
-                 hasAnyBody: syntax.Body != null || syntax.ExpressionBody != null,
-                 isExpressionBodied: syntax is { Body: null, ExpressionBody: not null },
-                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                 isVarArg: syntax.ParameterList.Parameters.Any(p => p.IsArgList),
-                 diagnostics)
+                 MakeModifiersAndFlags(containingType, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics, out bool hasExplicitAccessMod))
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
+
+            this.CheckUnsafeModifier(DeclarationModifiers, diagnostics);
+
+            HasExplicitAccessModifier = hasExplicitAccessMod;
+            bool hasAnyBody = syntax.HasAnyBody();
+
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasAnyBody, diagnostics);
+
+            if (hasAnyBody)
+            {
+                CheckModifiersForBody(location, diagnostics);
+            }
+
+            ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation, diagnostics, location);
 
             Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
 
@@ -81,7 +85,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(
+            NamedTypeSymbol containingType, Location location, MethodDeclarationSyntax syntax, MethodKind methodKind,
+            bool isNullableAnalysisEnabled, BindingDiagnosticBag diagnostics, out bool hasExplicitAccessMod)
+        {
+            (DeclarationModifiers declarationModifiers, hasExplicitAccessMod) = MakeModifiers(syntax, containingType, methodKind, hasBody: syntax.HasAnyBody(), location, diagnostics);
+            Flags flags = MakeFlags(
+                                    methodKind, refKind: syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
+                                    declarationModifiers,
+                                    returnsVoid: false, // The correct value will be computed lazily later and then the flags will be fixed up.
+                                    hasAnyBody: syntax.HasAnyBody(), isExpressionBodied: syntax.IsExpressionBodied(),
+                                    isExtensionMethod: syntax.ParameterList.Parameters.FirstOrDefault() is ParameterSyntax firstParam &&
+                                                       !firstParam.IsArgList &&
+                                                       firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
+                                    isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                                    isVarArg: syntax.IsVarArg(),
+                                    isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation);
+
+            return (declarationModifiers, flags);
+        }
+
+        private static Flags MakeFlags(
+            MethodKind methodKind,
+            RefKind refKind,
+            DeclarationModifiers declarationModifiers,
+            bool returnsVoid,
+            bool hasAnyBody,
+            bool isExpressionBodied,
+            bool isExtensionMethod,
+            bool isNullableAnalysisEnabled,
+            bool isVarArg,
+            bool isExplicitInterfaceImplementation)
+        {
+            return new Flags(methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody, isExpressionBodied, isExtensionMethod, isNullableAnalysisEnabled, isVarArg, isExplicitInterfaceImplementation);
+        }
+
+        private bool HasAnyBody => flags.HasAnyBody;
+
+        private (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
             var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
@@ -396,11 +437,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected sealed override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
+        private static DeclarationModifiers MakeDeclarationModifiers(MethodDeclarationSyntax syntax, NamedTypeSymbol containingType, Location location, DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
-            var syntax = GetSyntax();
-            return ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: true, isForInterfaceMember: ContainingType.IsInterface,
-                                                                    syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, GetFirstLocation(), diagnostics, out _);
+            return ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: true, isForInterfaceMember: containingType.IsInterface,
+                                                                    syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out _);
         }
 
         internal sealed override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)

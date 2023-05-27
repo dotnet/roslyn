@@ -16,20 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedRecordBaseEquals : SynthesizedRecordOrdinaryMethod
     {
-        public SynthesizedRecordBaseEquals(SourceMemberContainerTypeSymbol containingType, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.ObjectEquals, isReadOnly: false, hasBody: true, memberOffset, diagnostics)
+        public SynthesizedRecordBaseEquals(SourceMemberContainerTypeSymbol containingType, int memberOffset)
+            : base(containingType, WellKnownMemberNames.ObjectEquals, memberOffset, DeclarationModifiers.Public | DeclarationModifiers.Override | DeclarationModifiers.Sealed)
         {
             Debug.Assert(!containingType.IsRecordStruct);
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
-        {
-            const DeclarationModifiers result = DeclarationModifiers.Public | DeclarationModifiers.Override | DeclarationModifiers.Sealed;
-            Debug.Assert((result & ~allowedModifiers) == 0);
-            return result;
-        }
-
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -37,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
                                                                     TypeWithAnnotations.Create(ContainingType.BaseTypeNoUseSiteDiagnostics, NullableAnnotation.Annotated),
-                                                                    ordinal: 0, RefKind.None, ScopedKind.None, "other", Locations)),
-                    DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
+                                                                    ordinal: 0, RefKind.None, ScopedKind.None, "other", Locations)));
         }
 
         protected override int GetParameterCountFromSyntax() => 1;

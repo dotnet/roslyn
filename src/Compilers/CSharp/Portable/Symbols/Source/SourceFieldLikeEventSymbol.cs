@@ -113,11 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // Accessors will assume that Type is available. We consider abstract/extern accessors to not have a
-            // body, but all others do have one.
-            var hasAnyBody = !IsAbstract && !IsExtern;
-            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, hasAnyBody: hasAnyBody, isExpressionBodied: false);
-            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, hasAnyBody: hasAnyBody, isExpressionBodied: false);
+            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, isExpressionBodied: false);
+            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, isExpressionBodied: false);
 
             if (declarationSyntax.Variables[0] == declaratorSyntax)
             {

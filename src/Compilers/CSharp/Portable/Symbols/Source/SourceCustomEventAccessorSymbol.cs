@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    isAdder: syntax.Kind() == SyntaxKind.AddAccessorDeclaration,
                    isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                    isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                   hasAnyBody: syntax.Body is not null || syntax.ExpressionBody is not null,
                    isExpressionBodied: syntax is { Body: null, ExpressionBody: not null })
         {
             Debug.Assert(syntax != null);

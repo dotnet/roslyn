@@ -23,8 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             Location location,
             CSharpSyntaxNode syntax,
-            bool isIterator)
-            : base(containingType, syntax.GetReference(), location, isIterator)
+            bool isIterator,
+            (DeclarationModifiers declarationModifiers, Flags flags) modifiersAndFlags)
+            : base(containingType, syntax.GetReference(), location, isIterator, modifiersAndFlags)
         {
             Debug.Assert(syntax.Kind() is SyntaxKind.ConstructorDeclaration or SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration);
         }

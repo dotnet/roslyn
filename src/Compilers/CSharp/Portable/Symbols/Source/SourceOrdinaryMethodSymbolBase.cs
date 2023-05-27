@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// on any specific kind of syntax node associated with it. Any syntax node is good enough
     /// for it.
     /// </summary>
-    internal abstract class SourceOrdinaryMethodSymbolBase : SourceOrdinaryMethodOrUserDefinedOperatorSymbol
+    internal abstract partial class SourceOrdinaryMethodSymbolBase : SourceOrdinaryMethodOrUserDefinedOperatorSymbol
     {
         private readonly string _name;
 
@@ -30,53 +30,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             CSharpSyntaxNode syntax,
-            MethodKind methodKind,
-            RefKind refKind,
             bool isIterator,
-            bool isExtensionMethod,
-            bool isReadOnly,
-            bool hasAnyBody,
-            bool isExpressionBodied,
-            bool isNullableAnalysisEnabled,
-            bool isVarArg,
-            BindingDiagnosticBag diagnostics) :
+            (DeclarationModifiers declarationModifiers, Flags flags) modifiersAndFlags) :
             base(containingType,
                  syntax.GetReference(),
                  location,
-                 isIterator: isIterator)
+                 isIterator: isIterator,
+                 modifiersAndFlags)
         {
-            Debug.Assert(diagnostics.DiagnosticBag is object);
-            Debug.Assert(!isReadOnly || this.IsImplicitlyDeclared, "We only expect synthesized methods to use this flag to make a method readonly. Explicitly declared methods should get this value from modifiers in syntax.");
-
             _name = name;
-
-            // The following two values are used to compute and store the initial value of the flags
-            // However, these two components are placeholders; the correct value will be
-            // computed lazily later and then the flags will be fixed up.
-            const bool returnsVoid = false;
-
-            DeclarationModifiers declarationModifiers;
-            (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isReadOnly, hasAnyBody, location, diagnostics);
-
-            //explicit impls must be marked metadata virtual unless static
-            bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
-            var isMetadataVirtualIgnoringModifiers = isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0;
-
-            this.MakeFlags(
-                methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
-                isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isVarArg: isVarArg,
-                isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
-
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasAnyBody, diagnostics);
-
-            if (hasAnyBody)
-            {
-                CheckModifiersForBody(location, diagnostics);
-            }
-
-            ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: isExplicitInterfaceImplementation, diagnostics, location);
         }
+    }
 
+    partial class SourceOrdinaryMethodSymbol
+    {
 #nullable enable
         protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
@@ -125,12 +92,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            CheckModifiers(MethodKind == MethodKind.ExplicitInterfaceImplementation, HasAnyBody, _location, diagnostics);
+            CheckModifiers(MethodKind == MethodKind.ExplicitInterfaceImplementation, _location, diagnostics);
         }
 #nullable disable
+    }
 
-        protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics);
-
+    partial class SourceOrdinaryMethodSymbolBase
+    {
         protected sealed override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
         {
             Debug.Assert(this.IsPartial == state.HasComplete(CompletionPart.FinishMethodChecks),
@@ -185,12 +153,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract override SourceMemberMethodSymbol BoundAttributesSource { get; }
 
         internal abstract override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations();
+    }
 
+    partial class SourceOrdinaryMethodSymbol
+    {
+        // Consider moving this to flags to save space
         internal bool HasExplicitAccessModifier { get; }
 
-        private (DeclarationModifiers mods, bool hasExplicitAccessMod) MakeModifiers(MethodKind methodKind, bool isReadOnly, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
+        private static (DeclarationModifiers mods, bool hasExplicitAccessMod) MakeModifiers(MethodDeclarationSyntax syntax, NamedTypeSymbol containingType, MethodKind methodKind, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
         {
-            bool isInterface = this.ContainingType.IsInterface;
+            bool isInterface = containingType.IsInterface;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
 
             // This is needed to make sure we can detect 'public' modifier specified explicitly and
@@ -240,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
 
-            if (ContainingType.IsStructType())
+            if (containingType.IsStructType())
             {
                 allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
@@ -248,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // In order to detect whether explicit accessibility mods were provided, we pass the default value
             // for 'defaultAccess' and manually add in the 'defaultAccess' flags after the call.
             bool hasExplicitAccessMod;
-            DeclarationModifiers mods = MakeDeclarationModifiers(allowedModifiers, diagnostics);
+            DeclarationModifiers mods = MakeDeclarationModifiers(syntax, containingType, location, allowedModifiers, diagnostics);
             if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
             {
                 hasExplicitAccessMod = false;
@@ -259,15 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasExplicitAccessMod = true;
             }
 
-            if (isReadOnly)
-            {
-                Debug.Assert(ContainingType.IsStructType());
-                mods |= DeclarationModifiers.ReadOnly;
-            }
-
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
-
-            this.CheckUnsafeModifier(mods, diagnostics);
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                         defaultInterfaceImplementationModifiers,
@@ -276,8 +240,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             mods = AddImpliedModifiers(mods, isInterface, methodKind, hasBody);
             return (mods, hasExplicitAccessMod);
         }
-
-        protected abstract DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics);
 
         private static DeclarationModifiers AddImpliedModifiers(DeclarationModifiers mods, bool containingTypeIsInterface, MethodKind methodKind, bool hasBody)
         {
@@ -302,9 +264,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers.Sealed |
             DeclarationModifiers.Extern;
 
-        internal bool HasExtendedPartialModifier => (DeclarationModifiers & PartialMethodExtendedModifierMask) != 0;
+        private bool HasExtendedPartialModifier => (DeclarationModifiers & PartialMethodExtendedModifierMask) != 0;
 
-        private void CheckModifiers(bool isExplicitInterfaceImplementation, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
+        private void CheckModifiers(bool isExplicitInterfaceImplementation, Location location, BindingDiagnosticBag diagnostics)
         {
             bool isVararg = this.IsVararg;
 
@@ -395,11 +357,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' is a new virtual member in sealed type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
-            else if (!hasBody && IsAsync)
+            else if (!HasAnyBody && IsAsync)
             {
                 diagnostics.Add(ErrorCode.ERR_BadAsyncLacksBody, location);
             }
-            else if (!hasBody && !IsExtern && !IsAbstract && !IsPartial && !IsExpressionBodied)
+            else if (!HasAnyBody && !IsExtern && !IsAbstract && !IsPartial && !IsExpressionBodied)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -420,7 +382,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_VarargsAsync, location);
             }
         }
+    }
 
+    partial class SourceOrdinaryMethodSymbolBase
+    {
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);

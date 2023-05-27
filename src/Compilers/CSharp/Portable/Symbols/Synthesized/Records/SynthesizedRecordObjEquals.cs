@@ -15,15 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly MethodSymbol _typedRecordEquals;
 
-        public SynthesizedRecordObjEquals(SourceMemberContainerTypeSymbol containingType, MethodSymbol typedRecordEquals, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.ObjectEquals, memberOffset, isReadOnly: containingType.IsRecordStruct, diagnostics)
+        public SynthesizedRecordObjEquals(SourceMemberContainerTypeSymbol containingType, MethodSymbol typedRecordEquals, int memberOffset)
+            : base(containingType, WellKnownMemberNames.ObjectEquals, memberOffset, isReadOnly: containingType.IsRecordStruct)
         {
             _typedRecordEquals = typedRecordEquals;
         }
 
         protected override SpecialMember OverriddenSpecialMember => SpecialMember.System_Object__Equals;
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters)
             MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
                                                                     TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Object, location, diagnostics), annotation),
-                                                                    ordinal: 0, RefKind.None, ScopedKind.None, "obj", Locations)),
-                    DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
+                                                                    ordinal: 0, RefKind.None, ScopedKind.None, "obj", Locations)));
         }
 
         protected override int GetParameterCountFromSyntax() => 1;
