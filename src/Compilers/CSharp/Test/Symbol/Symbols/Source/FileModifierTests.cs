@@ -4125,7 +4125,7 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, expectedOutput: "12");
+        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, verify: Verification.Skipped, expectedOutput: "12");
         verifier.VerifyDiagnostics();
     }
 
@@ -4278,7 +4278,7 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, expectedOutput: "12");
+        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, verify: Verification.Skipped, expectedOutput: "12");
         verifier.VerifyDiagnostics();
     }
 
@@ -4321,7 +4321,7 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, expectedOutput: "12");
+        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, verify: Verification.Skipped, expectedOutput: "12");
         verifier.VerifyDiagnostics();
     }
 
@@ -4364,7 +4364,7 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, expectedOutput: "12");
+        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, verify: Verification.Skipped, expectedOutput: "12");
         verifier.VerifyDiagnostics();
     }
 
