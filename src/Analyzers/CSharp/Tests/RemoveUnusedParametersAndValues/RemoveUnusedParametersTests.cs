@@ -1502,7 +1502,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57814")]
         public async Task ParameterInPartialMethodDefinition_NoDiagnostic()
         {
             await VerifyAnalyzerAsync("""
