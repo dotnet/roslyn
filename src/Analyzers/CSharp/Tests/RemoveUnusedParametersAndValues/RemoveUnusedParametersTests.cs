@@ -2,59 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
-using static Roslyn.Test.Utilities.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer,
+        CSharpRemoveUnusedValuesCodeFixProvider>;
+
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
-    public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class RemoveUnusedParametersTests
     {
-        public RemoveUnusedParametersTests(ITestOutputHelper logger)
-          : base(logger)
+        private static async Task VerifyAnalyzerAsync(string source)
         {
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                // This test is about unused parameters, so disable other diagnostics from the analyzer to not make additional noise
+                DisabledDiagnostics = { "IDE0058", "IDE0059" },
+                LanguageVersion = LanguageVersion.Preview,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60
+            }.RunAsync();
         }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new CSharpRemoveUnusedValuesCodeFixProvider());
-
-        private OptionsCollection NonPublicMethodsOnly
-            => Option(CodeStyleOptions2.UnusedParameters,
-                new CodeStyleOption2<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption2.Suggestion));
-
-        // Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).
-        private Task TestDiagnosticMissingAsync(string initialMarkup, ParseOptions? parseOptions = null)
-            => TestDiagnosticMissingAsync(initialMarkup, options: null, parseOptions);
-        private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
-            => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions: null, expectedDiagnostics);
-        private Task TestDiagnosticMissingAsync(string initialMarkup, OptionsCollection? options, ParseOptions? parseOptions = null)
-            => TestDiagnosticMissingAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true));
-        private Task TestDiagnosticsAsync(string initialMarkup, OptionsCollection options, params DiagnosticDescription[] expectedDiagnostics)
-            => TestDiagnosticsAsync(initialMarkup, options, parseOptions: null, expectedDiagnostics);
-        private Task TestDiagnosticsAsync(string initialMarkup, OptionsCollection? options, ParseOptions? parseOptions, params DiagnosticDescription[] expectedDiagnostics)
-            => TestDiagnosticsAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true), expectedDiagnostics);
 
         [Fact]
         public async Task Parameter_Used()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(int [|p|])
+                    void M(int p)
                     {
                         var x = p;
                     }
@@ -65,16 +51,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [Fact]
         public async Task Parameter_Unused()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(int [|p|])
+                    void M(int {|IDE0060:p|})
                     {
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Theory]
@@ -82,13 +66,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [InlineData("public", "protected")]
         public async Task Parameter_Unused_NonPrivate_NotApplicable(string typeAccessibility, string methodAccessibility)
         {
-            await TestDiagnosticMissingAsync(
-$@"{typeAccessibility} class C
-{{
-    {methodAccessibility} void M(int [|p|])
-    {{
-    }}
-}}", NonPublicMethodsOnly);
+            await new VerifyCS.Test
+            {
+                TestCode = $$"""
+                    {{typeAccessibility}} class C
+                    {
+                        {{methodAccessibility}} void M(int p)
+                        {
+                        }
+                    }
+                    """,
+                Options =
+                {
+                    { CodeStyleOptions2.UnusedParameters, UnusedParametersPreference.NonPublicMethods, NotificationOption2.Suggestion }
+                }
+            }.RunAsync();
         }
 
         [Theory]
@@ -100,75 +92,81 @@ $@"{typeAccessibility} class C
         [InlineData("internal", "protected")]
         public async Task Parameter_Unused_NonPublicMethod(string typeAccessibility, string methodAccessibility)
         {
-            await TestDiagnosticsAsync(
-$@"{typeAccessibility} class C
-{{
-    {methodAccessibility} void M(int [|p|])
-    {{
-    }}
-}}", NonPublicMethodsOnly,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            await new VerifyCS.Test
+            {
+                TestCode = $$"""
+                    {{typeAccessibility}} class C
+                    {
+                        {{methodAccessibility}} void M(int {|IDE0060:p|})
+                        {
+                        }
+                    }
+                    """,
+                Options =
+                {
+                    { CodeStyleOptions2.UnusedParameters, UnusedParametersPreference.NonPublicMethods, NotificationOption2.Suggestion }
+                }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task Parameter_Unused_UnusedExpressionAssignment_PreferNone()
         {
-            var unusedValueAssignmentOptionSuppressed = Option(CSharpCodeStyleOptions.UnusedValueAssignment,
-                new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
-
-            await TestDiagnosticMissingAsync(
-                """
-                class C
-                {
-                    void M(int [|p|])
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    class C
                     {
-                        var x = p;
+                        void M(int p)
+                        {
+                            var x = p;
+                        }
                     }
-                }
-                """, options: unusedValueAssignmentOptionSuppressed);
+                    """,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable, NotificationOption2.None }
+                },
+                DisabledDiagnostics = { "IDE0059" }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task Parameter_WrittenOnly()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(int [|p|])
+                    void M(int {|IDE0060:p|})
                     {
                         p = 1;
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact]
         public async Task Parameter_WrittenThenRead()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(int [|p|])
+                    void M(int {|IDE0060:p|})
                     {
                         p = 1;
                         var x = p;
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact]
         public async Task Parameter_WrittenOnAllControlPaths_BeforeRead()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(int [|p|], bool flag)
+                    void M(int {|IDE0060:p|}, bool flag)
                     {
                         if (flag)
                         {
@@ -182,18 +180,16 @@ $@"{typeAccessibility} class C
                         var x = p;
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact]
         public async Task Parameter_WrittenOnSomeControlPaths_BeforeRead()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(int [|p|], bool flag, bool flag2)
+                    void M(int p, bool flag, bool flag2)
                     {
                         if (flag)
                         {
@@ -216,31 +212,28 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task OptionalParameter_Unused()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(int [|p|] = 0)
+                    void M(int {|IDE0060:p|} = 0)
                     {
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact]
         public async Task Parameter_UsedInConstructorInitializerOnly()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class B
                 {
-                    protected B(int p) { }
+                    protected B(int p) { var x = p; }
                 }
 
                 class C: B
                 {
-                    C(int [|p|])
+                    C(int p)
                     : base(p)
                     {
                     }
@@ -251,16 +244,15 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task Parameter_NotUsedInConstructorInitializer_UsedInConstructorBody()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class B
                 {
-                    protected B(int p) { }
+                    protected B(int p) { var x = p; }
                 }
 
                 class C: B
                 {
-                    C(int [|p|])
+                    C(int p)
                     : base(0)
                     {
                         var x = p;
@@ -272,16 +264,15 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task Parameter_UsedInConstructorInitializerAndConstructorBody()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class B
                 {
-                    protected B(int p) { }
+                    protected B(int p) { var x = p; }
                 }
 
                 class C: B
                 {
-                    C(int [|p|])
+                    C(int p)
                     : base(p)
                     {
                         var x = p;
@@ -293,52 +284,47 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task UnusedLocalFunctionParameter()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
                     void M(int y)
                     {
                         LocalFunction(y);
-                        void LocalFunction(int [|p|])
+                        void LocalFunction(int {|IDE0060:p|})
                         {
                         }
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact]
         public async Task UnusedLocalFunctionParameter_02()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
                     void M()
                     {
                         LocalFunction(0);
-                        void LocalFunction(int [|p|])
+                        void LocalFunction(int {|IDE0060:p|})
                         {
                         }
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact]
         public async Task UnusedLocalFunctionParameter_Discard()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
                     void M()
                     {
                         LocalFunction(0);
-                        void LocalFunction(int [|_|])
+                        void LocalFunction(int _)
                         {
                         }
                     }
@@ -349,8 +335,7 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task UnusedLocalFunctionParameter_PassedAsDelegateArgument()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
@@ -358,7 +343,7 @@ $@"{typeAccessibility} class C
                     void M()
                     {
                         M2(LocalFunction);
-                        void LocalFunction(int [|p|])
+                        void LocalFunction(int p)
                         {
                         }
                     }
@@ -372,13 +357,12 @@ $@"{typeAccessibility} class C
         public async Task UsedInLambda_ReturnsDelegate()
         {
             // Currently we bail out from analysis for method returning delegate types.
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
-                    private static Action<int> M(object [|p|] = null, Action<object> myDelegate)
+                    private static Action<int> M(Action<object> myDelegate, object p = null)
                     {
                         return d => { myDelegate(p); };
                     }
@@ -391,19 +375,17 @@ $@"{typeAccessibility} class C
         {
             // We bail out from unused value analysis for method returning delegate types.
             // We should still report unused parameters.
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
-                    private static Action M(object [|p|])
+                    private static Action M(object {|IDE0060:p|})
                     {
                         return () => { };
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact]
@@ -411,40 +393,37 @@ $@"{typeAccessibility} class C
         {
             // We bail out from unused value analysis when lambda is passed as argument.
             // We should still report unused parameters.
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
-                    private static void M(object [|p|])
+                    private static void M(object {|IDE0060:p|})
                     {
                         M2(() => { });
                     }
 
-                    private static void M2(Action a) { }
+                    private static void M2(Action a) { var x = a; }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact]
         public async Task ReadInLambda_LambdaPassedAsArgument()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
-                    private static void M(object [|p|])
+                    private static void M(object p)
                     {
                         M2(() => { M3(p); });
                     }
 
-                    private static void M2(Action a) { }
+                    private static void M2(Action a) { var x = a; }
 
-                    private static void M3(object o) { }
+                    private static void M3(object o) { var x = o; }
                 }
                 """);
         }
@@ -452,18 +431,17 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task OnlyWrittenInLambda_LambdaPassedAsArgument()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
-                    private static void M(object [|p|])
+                    private static void M(object p)
                     {
                         M2(() => { M3(out p); });
                     }
 
-                    private static void M2(Action a) { }
+                    private static void M2(Action a) { var x = a; }
 
                     private static void M3(out object o) { o = null; }
                 }
@@ -473,42 +451,39 @@ $@"{typeAccessibility} class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31744")]
         public async Task UnusedInExpressionTree_PassedAsArgument()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
                 using System.Linq.Expressions;
 
                 class C
                 {
-                    public static void M1(object [|p|])
+                    public static void M1(object {|IDE0060:p|})
                     {
                         M2(x => x.M3());
                     }
 
-                    private static C M2(Expression<Func<C, int>> a) { return null; }
+                    private static C M2(Expression<Func<C, int>> a) { var x = a; return null; }
                     private int M3() { return 0; }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31744")]
         public async Task ReadInExpressionTree_PassedAsArgument()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
                 using System.Linq.Expressions;
 
                 class C
                 {
-                    public static void M1(object [|p|])
+                    public static void M1(object p)
                     {
                         M2(x => x.M3(p));
                     }
 
-                    private static C M2(Expression<Func<C, int>> a) { return null; }
-                    private int M3(object o) { return 0; }
+                    private static C M2(Expression<Func<C, int>> a) { var x = a; return null; }
+                    private int M3(object o) { var x = o; return 0; }
                 }
                 """);
         }
@@ -516,19 +491,18 @@ $@"{typeAccessibility} class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31744")]
         public async Task OnlyWrittenInExpressionTree_PassedAsArgument()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
                 using System.Linq.Expressions;
 
                 class C
                 {
-                    public static void M1(object [|p|])
+                    public static void M1(object p)
                     {
                         M2(x => x.M3(out p));
                     }
 
-                    private static C M2(Expression<Func<C, int>> a) { return null; }
+                    private static C M2(Expression<Func<C, int>> a) { var x = a; return null; }
                     private int M3(out object o) { o = null; return 0; }
                 }
                 """);
@@ -539,14 +513,13 @@ $@"{typeAccessibility} class C
         {
             // Currently we bail out from analysis if we have a delegate creation that is not assigned
             // too a local/parameter.
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
                     private Action _field;
-                    private static void M(object [|p|])
+                    private void M(object p)
                     {
                         _field = () => { Console.WriteLine(p); };
                     }
@@ -557,27 +530,26 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task MethodWithLockAndControlFlow()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
                     private static readonly object s_gate = new object();
 
-                    public static C M(object [|p|], bool flag, C c1, C c2)
+                    public static C M(object p, bool flag, C c1, C c2)
                     {
                         C c;
                         lock (s_gate)
                         {
-                            c = flag > 0 ? c1 : c2;
+                            c = flag ? c1 : c2;
                         }
 
                         c.M2(p);
                         return c;
                     }
 
-                    private void M2(object p) { }
+                    private void M2(object p) { var x = p; }
                 }
                 """);
         }
@@ -585,15 +557,14 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task UnusedLambdaParameter()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
                     void M(int y)
                     {
-                        Action<int> myLambda = [|p|] =>
+                        Action<int> myLambda = p =>
                         {
                         };
 
@@ -606,15 +577,14 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task UnusedLambdaParameter_Discard()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
                     void M(int y)
                     {
-                        Action<int> myLambda = [|_|] =>
+                        Action<int> myLambda = _ =>
                         {
                         };
 
@@ -627,15 +597,14 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task UnusedLambdaParameter_DiscardTwo()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
                     void M(int y)
                     {
-                        Action<int, int> myLambda = ([|_|], _) =>
+                        Action<int, int> myLambda = (_, _) =>
                         {
                         };
 
@@ -648,56 +617,63 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task UnusedLocalFunctionParameter_DiscardTwo()
         {
-            await TestDiagnosticMissingAsync(
-                """
-                using System;
+            // Not legal C#
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
 
-                class C
-                {
-                    void M(int y)
+                    class C
                     {
-                        void local([|_|], _)
+                        void M(int y)
                         {
-                        }
+                            void local(_, _)
+                            {
+                            }
 
-                        local(y, y);
+                            local(y, y);
+                        }
                     }
-                }
-                """);
+                    """,
+                CompilerDiagnostics = CompilerDiagnostics.None
+            }.RunAsync();
         }
 
         [Fact]
         public async Task UnusedMethodParameter_DiscardTwo()
         {
-            await TestDiagnosticMissingAsync(
-                """
-                using System;
+            // Not legal C#
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
 
-                class C
-                {
-                    void M([|_|], _)
+                    class C
                     {
-                    }
+                        void M(_, _)
+                        {
+                        }
 
-                    void M2(int y)
-                    {
-                        M(y, y);
+                        void M2(int y)
+                        {
+                            M(y, y);
+                        }
                     }
-                }
-                """);
+                    """,
+                CompilerDiagnostics = CompilerDiagnostics.None
+            }.RunAsync();
         }
 
         [Fact]
         public async Task UsedLocalFunctionParameter()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
                     void M(int y)
                     {
                         LocalFunction(y);
-                        void LocalFunction(int [|p|])
+                        void LocalFunction(int p)
                         {
                             var x = p;
                         }
@@ -709,18 +685,17 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task UsedLambdaParameter()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
                     void M(int y)
                     {
-                        Action<int> myLambda = [|p|] =>
+                        Action<int> myLambda = p =>
                         {
                             var x = p;
-                        }
+                        };
 
                         myLambda(y);
                     }
@@ -731,11 +706,10 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task OptionalParameter_Used()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(int [|p = 0|])
+                    void M(int p = 0)
                     {
                         var x = p;
                     }
@@ -746,41 +720,36 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task InParameter()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(in int [|p|])
+                    void M(in int {|IDE0060:p|})
                     {
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact]
         public async Task RefParameter_Unused()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(ref int [|p|])
+                    void M(ref int {|IDE0060:p|})
                     {
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact]
         public async Task RefParameter_WrittenOnly()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(ref int [|p|])
+                    void M(ref int p)
                     {
                         p = 0;
                     }
@@ -791,11 +760,10 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task RefParameter_ReadOnly()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(ref int [|p|])
+                    void M(ref int p)
                     {
                         var x = p;
                     }
@@ -806,11 +774,10 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task RefParameter_ReadThenWritten()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(ref int [|p|])
+                    void M(ref int p)
                     {
                         var x = p;
                         p = 1;
@@ -822,11 +789,10 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task RefParameter_WrittenAndThenRead()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(ref int [|p|])
+                    void M(ref int p)
                     {
                         p = 1;
                         var x = p;
@@ -838,11 +804,10 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task RefParameter_WrittenTwiceNotRead()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(ref int [|p|])
+                    void M(ref int p)
                     {
                         p = 0;
                         p = 1;
@@ -854,26 +819,23 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task OutParameter_Unused()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(out int [|p|])
+                    void {|CS0177:M|}(out int {|IDE0060:p|})
                     {
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact]
         public async Task OutParameter_WrittenOnly()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(out int [|p|])
+                    void M(out int p)
                     {
                         p = 0;
                     }
@@ -884,11 +846,10 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task OutParameter_WrittenAndThenRead()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(out int [|p|])
+                    void M(out int p)
                     {
                         p = 0;
                         var x = p;
@@ -900,11 +861,10 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task OutParameter_WrittenTwiceNotRead()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(out int [|p|])
+                    void M(out int p)
                     {
                         p = 0;
                         p = 1;
@@ -916,12 +876,11 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task Parameter_ExternMethod()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
                     [System.Runtime.InteropServices.DllImport(nameof(M))]
-                    static extern void M(int [|p|]);
+                    static extern void M(int p);
                 }
                 """);
         }
@@ -929,11 +888,10 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task Parameter_AbstractMethod()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 abstract class C
                 {
-                    protected abstract void M(int [|p|]);
+                    protected abstract void M(int p);
                 }
                 """);
         }
@@ -941,11 +899,10 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task Parameter_VirtualMethod()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    protected virtual void M(int [|p|])
+                    protected virtual void M(int p)
                     {
                     }
                 }
@@ -955,8 +912,7 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task Parameter_OverriddenMethod()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
                     protected virtual void M(int p)
@@ -967,7 +923,7 @@ $@"{typeAccessibility} class C
 
                 class D : C
                 {
-                    protected override void M(int [|p|])
+                    protected override void M(int p)
                     {
                     }
                 }
@@ -977,15 +933,14 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task Parameter_ImplicitInterfaceImplementationMethod()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 interface I
                 {
                     void M(int p);
                 }
                 class C: I
                 {
-                    public void M(int [|p|])
+                    public void M(int p)
                     {
                     }
                 }
@@ -995,15 +950,14 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task Parameter_ExplicitInterfaceImplementationMethod()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 interface I
                 {
                     void M(int p);
                 }
                 class C: I
                 {
-                    void I.M(int [|p|])
+                    void I.M(int p)
                     {
                     }
                 }
@@ -1013,11 +967,10 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task Parameter_IndexerMethod()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    int this[int [|p|]]
+                    int this[int p]
                     {
                         get { return 0; }
                     }
@@ -1028,11 +981,10 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task Parameter_ConditionalDirective()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(int [|p|])
+                    void M(int p)
                     {
                 #if DEBUG
                         System.Console.WriteLine(p);
@@ -1043,27 +995,12 @@ $@"{typeAccessibility} class C
         }
 
         [Fact]
-        public async Task Parameter_EventHandler_FirstParameter()
+        public async Task Parameter_EventHandler()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    public void MyHandler(object [|obj|], System.EventArgs args)
-                    {
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task Parameter_EventHandler_SecondParameter()
-        {
-            await TestDiagnosticMissingAsync(
-                """
-                class C
-                {
-                    public void MyHandler(object obj, System.EventArgs [|args|])
+                    public void MyHandler(object obj, System.EventArgs args)
                     {
                     }
                 }
@@ -1073,8 +1010,7 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task Parameter_MethodUsedAsEventHandler()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 public delegate void MyDelegate(int x);
@@ -1088,7 +1024,7 @@ $@"{typeAccessibility} class C
                         c.myDel += Handler;
                     }
 
-                    void Handler(int [|x|])
+                    void Handler(int x)
                     {
                     }
                 }
@@ -1098,15 +1034,14 @@ $@"{typeAccessibility} class C
         [Fact]
         public async Task Parameter_CustomEventArgs()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
                     public class CustomEventArgs : System.EventArgs
                     {
                     }
 
-                    public void MyHandler(object [|obj|], CustomEventArgs args)
+                    public void MyHandler(object obj, CustomEventArgs args)
                     {
                     }
                 }
@@ -1122,14 +1057,15 @@ $@"{typeAccessibility} class C
         [InlineData(@"[System.Runtime.Serialization.OnSerializedAttribute]")]
         public async Task Parameter_MethodsWithSpecialAttributes(string attribute)
         {
-            await TestDiagnosticMissingAsync(
-$@"class C
-{{
-    {attribute}
-    void M(int [|p|])
-    {{
-    }}
-}}");
+            await VerifyAnalyzerAsync($$"""
+                class C
+                {
+                    {{attribute}}
+                    void M(int p)
+                    {
+                    }
+                }
+                """);
         }
 
         [Theory]
@@ -1137,27 +1073,26 @@ $@"class C
         [InlineData("System.ComponentModel.Composition", "ImportingConstructorAttribute")]
         public async Task Parameter_ConstructorsWithSpecialAttributes(string attributeNamespace, string attributeName)
         {
-            await TestDiagnosticMissingAsync(
-$@"
-namespace {attributeNamespace}
-{{
-    public class {attributeName} : System.Attribute {{ }}
-}}
+            await VerifyAnalyzerAsync($$"""
+                namespace {{attributeNamespace}}
+                {
+                    public class {{attributeName}} : System.Attribute { }
+                }
 
-class C
-{{
-    [{attributeNamespace}.{attributeName}()]
-    public C(int [|p|])
-    {{
-    }}
-}}");
+                class C
+                {
+                    [{{attributeNamespace}}.{{attributeName}}()]
+                    public C(int p)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32133")]
         public async Task Parameter_SerializationConstructor()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
                 using System.Runtime.Serialization;
 
@@ -1173,7 +1108,7 @@ class C
                 {
                     private readonly NonSerializable _nonSerializable;
 
-                    public CustomSerializingType(SerializationInfo info, StreamingContext [|context|])
+                    public CustomSerializingType(SerializationInfo info, StreamingContext context)
                     {
                         _nonSerializable = new NonSerializable(info.GetString("KEY"));
                     }
@@ -1189,58 +1124,51 @@ class C
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task Parameter_DiagnosticMessages()
         {
-            var source =
-                """
-                public class C
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    public class C
+                    {
+                        // p1 is unused.
+                        // p2 is written before read.
+                        int M(int {|#0:p1|}, int {|#1:p2|})
+                        {
+                            p2 = 0;
+                            return p2;
+                        }
+
+                        // p3 is unused parameter of a public API.
+                        // p4 is written before read parameter of a public API.
+                        public int M2(int {|#2:p3|}, int {|#3:p4|})
+                        {
+                            p4 = 0;
+                            return p4;
+                        }
+
+                        void M3(int {|#4:p5|})
+                        {
+                            _ = nameof(p5);
+                        }
+                    }
+                    """,
+                ExpectedDiagnostics =
                 {
-                    // p1 is unused.
-                    // p2 is written before read.
-                    [|int M(int p1, int p2)
-                    {
-                        p2 = 0;
-                        return p2;
-                    }
-
-                    // p3 is unused parameter of a public API.
-                    // p4 is written before read parameter of a public API.
-                    public int M2(int p3, int p4)
-                    {
-                        p4 = 0;
-                        return p4;
-                    }
-
-                    void M3(int p5)
-                    {
-                        _ = nameof(p5);
-                    }|]
+                    VerifyCS.Diagnostic("IDE0060").WithLocation(0).WithMessage("Remove unused parameter 'p1'"),
+                    VerifyCS.Diagnostic("IDE0060").WithLocation(1).WithMessage("Parameter 'p2' can be removed; its initial value is never used"),
+                    VerifyCS.Diagnostic("IDE0060").WithLocation(2).WithMessage("Remove unused parameter 'p3' if it is not part of a shipped public API"),
+                    VerifyCS.Diagnostic("IDE0060").WithLocation(3).WithMessage("Parameter 'p4' can be removed if it is not part of a shipped public API; its initial value is never used"),
+                    VerifyCS.Diagnostic("IDE0060").WithLocation(4).WithMessage("Parameter 'p5' can be removed; its initial value is never used"),
                 }
-                """;
-            var testParameters = new TestParameters(retainNonFixableDiagnostics: true);
-            using var workspace = CreateWorkspaceFromOptions(source, testParameters);
-            var diagnostics = await GetDiagnosticsAsync(workspace, testParameters).ConfigureAwait(false);
-            diagnostics.Verify(
-                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p1").WithLocation(5, 15),
-                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p2").WithLocation(5, 23),
-                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p3").WithLocation(13, 23),
-                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p4").WithLocation(13, 31),
-                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p5").WithLocation(19, 17));
-            var sortedDiagnostics = diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
-
-            Assert.Equal("Remove unused parameter 'p1'", sortedDiagnostics[0].GetMessage());
-            Assert.Equal("Parameter 'p2' can be removed; its initial value is never used", sortedDiagnostics[1].GetMessage());
-            Assert.Equal("Remove unused parameter 'p3' if it is not part of a shipped public API", sortedDiagnostics[2].GetMessage());
-            Assert.Equal("Parameter 'p4' can be removed if it is not part of a shipped public API; its initial value is never used", sortedDiagnostics[3].GetMessage());
-            Assert.Equal("Parameter 'p5' can be removed; its initial value is never used", sortedDiagnostics[4].GetMessage());
+            }.RunAsync();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32287")]
         public async Task Parameter_DeclarationPatternWithNullDeclaredSymbol()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(object [|o|])
+                    void M(object o)
                     {
                         if (o is int _)
                         {
@@ -1253,11 +1181,10 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32851")]
         public async Task Parameter_Unused_SpecialNames()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    [|void M(int _, char _1, C _3)|]
+                    void M(int _, char _1, C _3)
                     {
                     }
                 }
@@ -1267,16 +1194,14 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32851")]
         public async Task Parameter_Used_SemanticError()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(int [|x|])
+                    void M(int x)
                     {
-                        // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
-                        Invoke<string>(() => x);
+                        Invoke<string>(() => {|CS0029:{|CS1662:x|}|});
 
-                        T Invoke<T>(Func<T> a) { return a(); }
+                        T Invoke<T>(System.Func<T> a) { return a(); }
                     }
                 }
                 """);
@@ -1285,34 +1210,30 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32851")]
         public async Task Parameter_Unused_SemanticError()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    void M(int [|x|])
+                    void M(int {|IDE0060:x|})
                     {
-                        // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
-                        Invoke<string>(() => 0);
+                        Invoke<string>(() => {|CS0029:{|CS1662:0|}|});
 
-                        T Invoke<T>(Func<T> a) { return a(); }
+                        T Invoke<T>(System.Func<T> a) { return a(); }
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32973")]
         public async Task OutParameter_LocalFunction()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
                     public static bool M(out int x)
                     {
                         return LocalFunction(out x);
 
-                        bool LocalFunction(out int [|y|])
+                        bool LocalFunction(out int y)
                         {
                             y = 0;
                             return true;
@@ -1325,36 +1246,33 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32973")]
         public async Task RefParameter_Unused_LocalFunction()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
                     public static bool M(ref int x)
                     {
                         return LocalFunction(ref x);
 
-                        bool LocalFunction(ref int [|y|])
+                        bool LocalFunction(ref int {|IDE0060:y|})
                         {
                             return true;
                         }
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32973")]
         public async Task RefParameter_Used_LocalFunction()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
                     public static bool M(ref int x)
                     {
                         return LocalFunction(ref x);
 
-                        bool LocalFunction(ref int [|y|])
+                        bool LocalFunction(ref int y)
                         {
                             y = 0;
                             return true;
@@ -1367,48 +1285,44 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33299")]
         public async Task NullCoalesceAssignment()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
-                    public static void M(C [|x|])
+                    public static void M(C x)
                     {
                         x ??= new C();
                     }
                 }
-                """, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34301")]
         public async Task GenericLocalFunction()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 class C
                 {
                     void M()
                     {
                         LocalFunc(0);
 
-                        void LocalFunc<T>(T [|value|])
+                        void LocalFunc<T>(T {|IDE0060:value|})
                         {
                         }
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36715")]
         public async Task GenericLocalFunction_02()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System.Collections.Generic;
 
                 class C
                 {
-                    void M(object [|value|])
+                    void M(object {|IDE0060:value|})
                     {
                         try
                         {
@@ -1427,21 +1341,19 @@ class C
                         }
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36715")]
         public async Task GenericLocalFunction_03()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
                 using System.Collections.Generic;
 
                 class C
                 {
-                    void M(object [|value|])
+                    void M(object value)
                     {
                         Func<object, IEnumerable<object>> myDel = LocalFunc;
                         try
@@ -1467,77 +1379,82 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34830")]
         public async Task RegressionTest_ShouldReportUnusedParameter()
         {
-            var options = Option(CodeStyleOptions2.UnusedParameters,
-                new CodeStyleOption2<UnusedParametersPreference>(default, NotificationOption2.Suggestion));
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    using System.Threading.Tasks;
 
-            await TestDiagnosticMissingAsync(
-                """
-                using System;
-                using System.Threading.Tasks;
+                    public interface I { event Action MyAction; }
 
-                public interface I { event Action MyAction; }
-
-                public sealed class C : IDisposable
-                {
-                    private readonly Task<I> task;
-
-                    public C(Task<I> [|task|])
+                    public sealed class C : IDisposable
                     {
-                        this.task = task;
-                        Task.Run(async () => (await task).MyAction += myAction);
+                        private readonly Task<I> task;
+
+                        public C(Task<I> task)
+                        {
+                            this.task = task;
+                            Task.Run(async () => (await task).MyAction += myAction);
+                        }
+
+                        private void myAction() { }
+
+                        public void Dispose() => task.Result.MyAction -= myAction;
                     }
-
-                    private void myAction() { }
-
-                    public void Dispose() => task.Result.MyAction -= myAction;
-                }
-                """, options);
+                    """,
+                Options =
+                {
+                    { CodeStyleOptions2.UnusedParameters, default, NotificationOption2.Suggestion }
+                },
+                DisabledDiagnostics = { "IDE0058" }
+            }.RunAsync();
         }
 
 #if !CODE_STYLE // Below test is not applicable for CodeStyle layer as attempting to fetch an editorconfig string representation for this invalid option fails.
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37326")]
         public async Task RegressionTest_ShouldReportUnusedParameter_02()
         {
-            var options = Option(CodeStyleOptions2.UnusedParameters,
-                new CodeStyleOption2<UnusedParametersPreference>((UnusedParametersPreference)2, NotificationOption2.Suggestion));
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    using System.Threading.Tasks;
 
-            var parameters = new TestParameters(globalOptions: options, retainNonFixableDiagnostics: true);
+                    public interface I { event Action MyAction; }
 
-            await TestDiagnosticMissingAsync(
-                """
-                using System;
-                using System.Threading.Tasks;
-
-                public interface I { event Action MyAction; }
-
-                public sealed class C : IDisposable
-                {
-                    private readonly Task<I> task;
-
-                    public C(Task<I> [|task|])
+                    public sealed class C : IDisposable
                     {
-                        this.task = task;
-                        Task.Run(async () => (await task).MyAction += myAction);
+                        private readonly Task<I> task;
+
+                        public C(Task<I> task)
+                        {
+                            this.task = task;
+                            Task.Run(async () => (await task).MyAction += myAction);
+                        }
+
+                        private void myAction() { }
+
+                        public void Dispose() => task.Result.MyAction -= myAction;
                     }
-
-                    private void myAction() { }
-
-                    public void Dispose() => task.Result.MyAction -= myAction;
-                }
-                """, parameters);
+                    """,
+                Options =
+                {
+                    { CodeStyleOptions2.UnusedParameters, (UnusedParametersPreference)2, NotificationOption2.Suggestion }
+                },
+                DisabledDiagnostics = { "IDE0058" }
+            }.RunAsync();
         }
 #endif
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37483")]
         public async Task MethodUsedAsDelegateInGeneratedCode_NoDiagnostic()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 public partial class C
                 {
-                    private void M(int [|x|])
+                    private void M(int x)
                     {
                     }
                 }
@@ -1556,24 +1473,21 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37483")]
         public async Task UnusedParameterInGeneratedCode_NoDiagnostic()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 public partial class C
                 {
                     [System.CodeDom.Compiler.GeneratedCodeAttribute("", "")]
-                    private void M(int [|x|])
+                    private void M(int x)
                     {
                     }
                 }
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57814")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57814")]
         public async Task UnusedParameterInPartialMethodImplementation_NoDiagnostic()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 public partial class C
                 {
                     public partial void M(int x);
@@ -1581,21 +1495,20 @@ class C
 
                 public partial class C
                 {
-                    public partial void M(int [|x|])
+                    public partial void M(int x)
                     {
                     }
                 }
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        [Fact]
         public async Task ParameterInPartialMethodDefinition_NoDiagnostic()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 public partial class C
                 {
-                    public partial void M(int [|x|]);
+                    public partial void {|CS8795:M|}(int x);
                 }
                 """);
         }
@@ -1603,11 +1516,10 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36817")]
         public async Task ParameterWithoutName_NoDiagnostic()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 public class C
                 {
-                    public void M[|(int )|]
+                    public void M(int {|CS1001:)|}
                     {
                     }
                 }
@@ -1617,13 +1529,12 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")]
         public async Task NotImplementedException_NoDiagnostic1()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
-                    private void Goo(int [|i|])
+                    private void Goo(int i)
                     {
                         throw new NotImplementedException();
                     }
@@ -1634,13 +1545,12 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")]
         public async Task NotImplementedException_NoDiagnostic2()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
-                    private void Goo(int [|i|])
+                    private void Goo(int i)
                         => throw new NotImplementedException();
                 }
                 """);
@@ -1649,13 +1559,12 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")]
         public async Task NotImplementedException_NoDiagnostic3()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
-                    public C(int [|i|])
+                    public C(int i)
                         => throw new NotImplementedException();
                 }
                 """);
@@ -1664,13 +1573,12 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56317")]
         public async Task NotImplementedException_NoDiagnostic4()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
-                    private int Goo(int [|i|])
+                    private int Goo(int i)
                         => throw new NotImplementedException();
                 }
                 """);
@@ -1679,13 +1587,12 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56317")]
         public async Task NotImplementedException_NoDiagnostic5()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
-                    private int Goo(int [|i|])
+                    private int Goo(int i)
                     {
                         throw new NotImplementedException();
                     }
@@ -1696,87 +1603,78 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")]
         public async Task NotImplementedException_MultipleStatements1()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
-                    private void Goo(int [|i|])
+                    private void Goo(int {|IDE0060:i|})
                     {
                         throw new NotImplementedException();
                         return;
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")]
         public async Task NotImplementedException_MultipleStatements2()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 using System;
 
                 class C
                 {
-                    private void Goo(int [|i|])
+                    private void Goo(int {|IDE0060:i|})
                     {
                         if (true)
                             throw new NotImplementedException();
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47142")]
         public async Task Record_PrimaryConstructorParameter()
         {
-            await TestMissingAsync(
-                @"record A(int [|X|]);");
+            await VerifyAnalyzerAsync("record A(int X);");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47142")]
         public async Task Record_NonPrimaryConstructorParameter()
         {
-            await TestDiagnosticsAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 record A
                 {
-                    public A(int [|X|])
+                    public A(int {|IDE0060:X|})
                     {
                     }
                 }
-                """,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47142")]
         public async Task Record_DelegatingPrimaryConstructorParameter()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 record A(int X);
-                record B(int X, int [|Y|]) : A(X);
+                record B(int X, int Y) : A(X);
                 """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47174")]
         public async Task RecordPrimaryConstructorParameter_PublicRecord()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 public record Base(int I) { }
-                public record Derived(string [|S|]) : Base(42) { }
+                public record Derived(string S) : Base(42) { }
                 """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45743")]
         public async Task RequiredGetInstanceMethodByICustomMarshaler()
         {
-            await TestDiagnosticMissingAsync("""
+            await VerifyAnalyzerAsync("""
                 using System;
                 using System.Runtime.InteropServices;
 
@@ -1798,7 +1696,7 @@ class C
                     public object MarshalNativeToManaged(IntPtr pNativeData)
                         => throw new NotImplementedException();
 
-                    public static ICustomMarshaler GetInstance(string [|s|])
+                    public static ICustomMarshaler GetInstance(string s)
                         => null;
                 }
                 """);
@@ -1807,11 +1705,10 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65275")]
         public async Task TestMethodWithUnusedParameterThrowsExpressionBody()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 public class Class
                 {
-                    public void Method(int [|x|]) => throw new System.Exception();
+                    public void Method(int x) => throw new System.Exception();
                 }
                 """);
         }
@@ -1819,11 +1716,10 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65275")]
         public async Task TestMethodWithUnusedParameterThrowsMethodBody()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 public class Class
                 {
-                    public void Method(int [|x|])
+                    public void Method(int x)
                     {
                         throw new System.Exception();
                     }
@@ -1834,11 +1730,10 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65275")]
         public async Task TestMethodWithUnusedParameterThrowsConstructorBody()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 public class Class
                 {
-                    public Class(int [|x|])
+                    public Class(int x)
                     {
                         throw new System.Exception();
                     }
@@ -1849,11 +1744,10 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65275")]
         public async Task TestMethodWithUnusedParameterThrowsConstructorExpressionBody()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 public class Class
                 {
-                    public Class(int [|x|]) => throw new System.Exception();
+                    public Class(int x) => throw new System.Exception();
                 }
                 """);
         }
@@ -1861,39 +1755,40 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65275")]
         public async Task TestMethodWithUnusedParameterThrowsLocalFunctionExpressionBody()
         {
-            await TestDiagnosticMissingAsync(
-                """
+            await VerifyAnalyzerAsync("""
                 public class Class
                 {
                     public void Method()
                     {
-                        void LocalMethod(int [|x|]) => throw new System.Exception();
+                        void LocalMethod(int x) => throw new System.Exception();
                     }
                 }
                 """);
         }
 
-        [Fact, WorkItem(67013, "https://github.com/dotnet/roslyn/issues/67013")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67013")]
         public async Task Test_PrimaryConstructor1()
         {
-            await TestDiagnosticMissingAsync(
-@"using System;
+            await VerifyAnalyzerAsync("""
+                using System;
 
-class C(int [|a100|])
-{
-}");
+                class C(int a100)
+                {
+                }
+                """);
         }
 
         [Fact, WorkItem(67013, "https://github.com/dotnet/roslyn/issues/67013")]
         public async Task Test_PrimaryConstructor2()
         {
-            await TestDiagnosticMissingAsync(
-@"using System;
+            await VerifyAnalyzerAsync("""
+                using System;
 
-class C(int [|a100|]) : Object()
-{
-    int M1() => a100;
-}");
+                class C(int a100) : Object()
+                {
+                    int M1() => a100;
+                }
+                """);
         }
     }
 }
