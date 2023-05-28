@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 
@@ -17,8 +15,8 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        public string After { get; set; }
+        public string? After { get; set; }
 
-        public string Before { get; set; }
+        public string? Before { get; set; }
     }
 }
