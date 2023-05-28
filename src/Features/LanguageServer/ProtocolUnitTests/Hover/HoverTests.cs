@@ -65,7 +65,77 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
-            VerifyVSContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Exceptions_colon}|  System.NullReferenceException");
+            VerifyVSContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Exceptions_colon}|  System.NullReferenceException: Oh no!");
+        }
+
+        [Fact]
+        public async Task TestGetHoverAsync_WithExceptionsNewLines()
+        {
+            var markup =
+@"class A
+{
+    /// <summary>
+    /// A great method
+    /// </summary>
+    /// <exception cref='System.NullReferenceException'>
+    /// Line 1.<br></br>
+    /// Line 2.<br></br>
+    /// Line 3.
+    /// </exception>
+    private string {|caret:Method|}(int i)
+    {
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            var expectedLocation = testLspServer.GetLocations("caret").Single();
+            var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
+            VerifyVSContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Exceptions_colon}|  System.NullReferenceException: Line 1.|Line 2.|Line 3.");
+        }
+
+        [Fact]
+        public async Task TestGetHoverAsync_WithExceptionsTruncated()
+        {
+            var markup =
+@"class A
+{
+    /// <summary>
+    /// A great method
+    /// </summary>
+    /// <exception cref='System.NullReferenceException'>
+    /// Oh no! This will get truncated as this should be super long. See it right here just about now!
+    /// </exception>
+    private string {|caret:Method|}(int i)
+    {
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            var expectedLocation = testLspServer.GetLocations("caret").Single();
+
+            var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
+            VerifyVSContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Exceptions_colon}|  System.NullReferenceException: Oh no! This will get truncated as this should be super long. S...");
+        }
+
+        [Fact]
+        public async Task TestGetHoverAsync_WithExceptionsFormattingTruncation()
+        {
+            var markup =
+@"class A
+{
+    /// <summary>
+    /// A great method
+    /// </summary>
+    /// <exception cref='System.NullReferenceException'>
+    /// Oh no! This will get truncated <see langword=""as""/> this should be super long. See it right here just about now!
+    /// </exception>
+    private string {|caret:Method|}(int i)
+    {
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            var expectedLocation = testLspServer.GetLocations("caret").Single();
+
+            var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
+            VerifyVSContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Exceptions_colon}|  System.NullReferenceException: Oh no! This will get truncated as this shou...");
         }
 
         [Theory, CombinatorialData]
@@ -261,7 +331,7 @@ Remarks&nbsp;are&nbsp;cool&nbsp;too\.
 &nbsp;&nbsp;a&nbsp;string  
   
 {FeaturesResources.Exceptions_colon}  
-&nbsp;&nbsp;System\.NullReferenceException  
+&nbsp;&nbsp;System\.NullReferenceException:&nbsp;Oh&nbsp;no\!  
 ";
 
             var results = await RunGetHoverAsync(
@@ -328,7 +398,7 @@ Remarks are cool too.
   a string
 
 {FeaturesResources.Exceptions_colon}
-  System.NullReferenceException
+  System.NullReferenceException: Oh no!
 ";
 
             var results = await RunGetHoverAsync(
