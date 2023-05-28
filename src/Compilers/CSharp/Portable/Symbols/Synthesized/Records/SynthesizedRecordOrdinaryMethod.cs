@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(Arity == 0);
             var (returnType, parameters) = MakeParametersAndBindReturnType(diagnostics);
             MethodChecks(returnType, parameters, diagnostics);
         }
