@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.ComponentModel;
 
 namespace Roslyn.Test.Utilities
 {
@@ -14,15 +13,9 @@ namespace Roslyn.Test.Utilities
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
     public sealed class WorkItemAttribute : Attribute
     {
-        public int Id
-        {
-            get;
-        }
+        public int Id { get; }
 
-        public string Location
-        {
-            get;
-        }
+        public string Location { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkItemAttribute"/>.
@@ -31,6 +24,7 @@ namespace Roslyn.Test.Utilities
         /// could be a GitHub issue or pull request number, or the number of a Microsoft-internal bug.</param>
         /// <param name="issueUri">The URI where the work item can be viewed. This is a link to work item
         /// <paramref name="id"/> in the original source.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public WorkItemAttribute(int id, string issueUri)
         {
             Id = id;
@@ -42,7 +36,8 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         /// <param name="issueUri">The URI where the work item can be viewed. This is a link to work item in the
         /// original source.</param>
-        public WorkItemAttribute(string issueUri) : this(-1, issueUri)
+        public WorkItemAttribute(string issueUri)
+            : this(-1, issueUri)
         {
         }
     }
