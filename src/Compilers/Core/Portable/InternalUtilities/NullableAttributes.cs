@@ -2,6 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if WORKSPACE && NETCOREAPP3_1_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+
+#pragma warning disable RS0016 // Add public types and members to the declared API
+[assembly: TypeForwardedTo(typeof(AllowNullAttribute))]
+[assembly: TypeForwardedTo(typeof(DisallowNullAttribute))]
+[assembly: TypeForwardedTo(typeof(MaybeNullAttribute))]
+[assembly: TypeForwardedTo(typeof(NotNullAttribute))]
+[assembly: TypeForwardedTo(typeof(MaybeNullWhenAttribute))]
+[assembly: TypeForwardedTo(typeof(NotNullWhenAttribute))]
+[assembly: TypeForwardedTo(typeof(NotNullIfNotNullAttribute))]
+[assembly: TypeForwardedTo(typeof(DoesNotReturnAttribute))]
+[assembly: TypeForwardedTo(typeof(DoesNotReturnIfAttribute))]
+#if NET5_0_OR_GREATER
+[assembly: TypeForwardedTo(typeof(MemberNotNullAttribute))]
+[assembly: TypeForwardedTo(typeof(MemberNotNullWhenAttribute))]
+#endif
+#pragma warning restore RS0016 // Add public types and members to the declared API
+#endif
+
 // This was copied from https://github.com/dotnet/runtime/blob/39b9607807f29e48cae4652cd74735182b31182e/src/libraries/System.Private.CoreLib/src/System/Diagnostics/CodeAnalysis/NullableAttributes.cs
 // and updated to have the scope of the attributes be internal.
 namespace System.Diagnostics.CodeAnalysis

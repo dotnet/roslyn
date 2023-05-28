@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61233")]
         public async Task IsCommitCharacterTest()
         {
             var commitCharacters = PathUtilities.IsUnixLikePlatform ? new[] { '"', '/' } : new[] { '"', '\\', '/', ',' };
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task GacReference()
             => await VerifyItemExistsAsync("#r \"$$", "System.Windows.Forms", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task GacReferenceFullyQualified()
         {
             await VerifyItemExistsAsync(

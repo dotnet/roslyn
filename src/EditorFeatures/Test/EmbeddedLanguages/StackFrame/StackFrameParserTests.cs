@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Xunit;
 using System.Collections.Immutable;
+using Roslyn.Test.Utilities;
+using Xunit;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame.StackFrameSyntaxFactory;
 using static Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame.StackFrameExtensions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
@@ -320,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                     argumentList: EmptyParams)
             );
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61225")]
         public void TestFileInformation()
             => Verify(
                 @"M.M() in C:\folder\m.cs:line 1",
@@ -334,19 +335,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                     Line(1))
             );
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61225")]
         public void TestFileInformation_PartialPath()
             => Verify(@"M.M() in C:\folder\m.cs:line", expectFailure: true);
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61225")]
         public void TestFileInformation_PartialPath2()
             => Verify(@"M.M() in C:\folder\m.cs:", expectFailure: true);
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61225")]
         public void TestFileInformation_PartialPath3()
             => Verify(@"M.M() in C:\folder\m.cs:[trailingtrivia]", expectFailure: true);
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61225")]
         [InlineData(@"C:\folder\m.cs", 1)]
         [InlineData(@"m.cs", 1)]
         [InlineData(@"C:\folder\m.cs", 123456789)]
@@ -365,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                     Line(line))
             );
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61225")]
         public void TestFileInformation_TrailingTrivia()
             => Verify(
                 @"M.M() in C:\folder\m.cs:line 1[trailingtrivia]",
@@ -381,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 eolTokenOpt: EOLToken
             );
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61225")]
         public void TestFileInformation_InvalidDirectory()
             => Verify(@"M.M() in <\m.cs", expectFailure: true);
 

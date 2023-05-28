@@ -34,6 +34,7 @@ using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
@@ -117,9 +118,11 @@ public class GlobalOptionsTests
                 {
                     // value initialized from global options:
                     var value = property.GetValue(options);
+                    Contract.ThrowIfNull(value);
 
                     // default value for the option -- may be different then default(T):
                     var defaultValue = property.GetValue(defaultOptions);
+                    Contract.ThrowIfNull(defaultValue);
 
                     if (OptionDefinition.IsSupportedOptionType(property.PropertyType))
                     {
@@ -134,9 +137,9 @@ public class GlobalOptionsTests
 
                         if (propertyType != property.PropertyType)
                         {
-                            var getValueOrDefault = property.PropertyType.GetMethod("GetValueOrDefault", Array.Empty<Type>());
-                            value = getValueOrDefault.Invoke(value, Array.Empty<object>());
-                            defaultValue = getValueOrDefault.Invoke(defaultValue, Array.Empty<object>());
+                            var getValueOrDefault = property.PropertyType.GetMethod("GetValueOrDefault", Array.Empty<Type>())!;
+                            value = getValueOrDefault.Invoke(value, Array.Empty<object>())!;
+                            defaultValue = getValueOrDefault.Invoke(defaultValue, Array.Empty<object>())!;
                         }
 
                         Recurse(propertyType, value, defaultValue, language);

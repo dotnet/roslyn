@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return translatedSpan.Span.ToTextSpan();
             }
 
-            private void OnTextViewClosed(object sender, EventArgs e)
+            private void OnTextViewClosed(object? sender, EventArgs e)
                 => Dispose();
 
             public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)

@@ -26,11 +26,13 @@ namespace Roslyn.Test.Utilities
 
         static StaTaskScheduler()
         {
+#if NETFRAMEWORK
             // Overwrite xunit's app domain handling to not call AppDomain.Unload
             var getDefaultDomain = typeof(AppDomain).GetMethod("GetDefaultDomain", BindingFlags.NonPublic | BindingFlags.Static);
             var defaultDomain = (AppDomain)getDefaultDomain.Invoke(null, null);
             var hook = (XunitDisposeHook)defaultDomain.CreateInstanceFromAndUnwrap(typeof(XunitDisposeHook).Assembly.CodeBase, typeof(XunitDisposeHook).FullName, ignoreCase: false, BindingFlags.CreateInstance, binder: null, args: null, culture: null, activationAttributes: null);
             hook.Execute();
+#endif
 
             // We've created an STA thread, which has some extra requirements for COM Runtime
             // Callable Wrappers (RCWs). If any COM object is created on the STA thread, calls to that

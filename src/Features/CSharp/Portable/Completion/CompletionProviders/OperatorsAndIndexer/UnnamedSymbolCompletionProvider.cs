@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// characters as the start of our item's name. This doesn't affect what we insert though as all derived
         /// providers have specialized logic for what they need to do.
         /// </summary> 
-        private const string SortingPrefix = "\uFFFD";
+        internal const string SortingPrefix = "\uFFFD";
 
         /// <summary>
         /// Used to store what sort of unnamed symbol a completion item represents.

@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 embeddedTexts = null;
                 for (var i = 0; i < sources.Length; i++)
                 {
-                    File.WriteAllText(sourceCodePaths[i], sources[i].ToString(), sources[i].Encoding);
+                    File.WriteAllText(sourceCodePaths[i], sources[i].ToString(), sources[i].Encoding ?? throw new InvalidOperationException());
                 }
             }
             else

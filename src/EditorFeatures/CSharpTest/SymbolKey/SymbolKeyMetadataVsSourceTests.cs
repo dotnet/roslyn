@@ -229,7 +229,7 @@ class Test
             var comp20 = (Compilation)CreateEmptyCompilation(src1, new[] { Net40.mscorlib });
 
             // "Compilation 2 Assembly"
-            var comp40 = (Compilation)CreateCompilation(src2, new MetadataReference[] { comp20.EmitToImageReference() });
+            var comp40 = (Compilation)CreateCompilation(src2, new MetadataReference[] { comp20.EmitToImageReference() }, targetFramework: TargetFramework.NetFramework);
 
             var typeA = comp20.SourceModule.GlobalNamespace.GetTypeMembers("A").Single();
             var mem20_1 = typeA.GetMembers("GetFileInfo").Single() as IMethodSymbol;
@@ -327,7 +327,7 @@ class Test
             var comp20 = CreateEmptyCompilation(src1, new[] { Net40.mscorlib });
 
             // "Compilation ref Compilation"
-            var comp40 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp20) });
+            var comp40 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp20) }, targetFramework: TargetFramework.NetFramework);
 
             var originals = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember | SymbolCategory.Parameter);
             var originalSymbols = originals.Where(s => !s.IsAccessor() && s.Kind != SymbolKind.Parameter).OrderBy(s => s.Name).ToList();
@@ -409,7 +409,7 @@ class Test
             var comp20 = CreateEmptyCompilation(src1, new[] { Net40.mscorlib });
 
             // "Compilation ref Compilation"
-            var comp40 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp20) });
+            var comp40 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp20) }, targetFramework: TargetFramework.NetFramework);
 
             var originals = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember | SymbolCategory.Parameter);
             var originalSymbols = originals.Where(s => !s.IsAccessor() && s.Kind != SymbolKind.Parameter).OrderBy(s => s.Name).ToList();

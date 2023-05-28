@@ -60,6 +60,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // build-injected module initializer, but VB projects can ensure initialization occurs by applying the
             // UseExportProviderAttribute to test classes that rely on it.
             RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
+
+#if !NETFRAMEWORK
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
         }
 
         public override void Before(MethodInfo? methodUnderTest)

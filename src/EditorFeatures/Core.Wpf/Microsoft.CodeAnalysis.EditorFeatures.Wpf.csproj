@@ -4,9 +4,12 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net6.0-windows8.0;net472</TargetFrameworks>
     <UseWpf>true</UseWpf>
+    <UseWindowsForms>true</UseWindowsForms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
+
     <!--Temporarily bypass ibcmerge due to an error
       https://github.com/dotnet/roslyn/issues/57863 -->
     <ApplyNgenOptimization></ApplyNgenOptimization>

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
         }
 
         public override string ToString()
-            => IsExisting ? OldIndex.ToString() : (_addedParameterWithoutTypeSymbol?.ToString() ?? string.Empty);
+            => IsExisting ? OldIndex.ToString()! : (_addedParameterWithoutTypeSymbol?.ToString() ?? string.Empty);
 
         internal AddedParameter GetAddedParameter(Document document)
         {

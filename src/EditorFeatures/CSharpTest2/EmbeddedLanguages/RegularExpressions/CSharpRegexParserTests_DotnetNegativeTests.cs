@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Text.RegularExpressions;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
@@ -1202,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61232")]
         public void NegativeTest41()
         {
             Test(@"@""(?(?i))""", @"<Tree>
@@ -1260,7 +1261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61232")]
         public void NegativeTest43()
         {
             Test(@"@""(?(?I))""", @"<Tree>
@@ -1287,7 +1288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61232")]
         public void NegativeTest44()
         {
             Test(@"@""(?(?M))""", @"<Tree>
@@ -1314,7 +1315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61232")]
         public void NegativeTest45()
         {
             Test(@"@""(?(?s))""", @"<Tree>
@@ -1341,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61232")]
         public void NegativeTest46()
         {
             Test(@"@""(?(?S))""", @"<Tree>
@@ -1368,7 +1369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61232")]
         public void NegativeTest47()
         {
             Test(@"@""(?(?x))""", @"<Tree>
@@ -1395,7 +1396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61232")]
         public void NegativeTest48()
         {
             Test(@"@""(?(?X))""", @"<Tree>
@@ -1422,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61232")]
         public void NegativeTest49()
         {
             Test(@"@""(?(?n))""", @"<Tree>
@@ -1449,7 +1450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None, allowNullReference: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61232")]
         public void NegativeTest50()
         {
             Test(@"@""(?(?m))""", @"<Tree>
@@ -2091,7 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61232")]
         public void NegativeTest69()
         {
             Test(@"@""(?(?N))""", @"<Tree>

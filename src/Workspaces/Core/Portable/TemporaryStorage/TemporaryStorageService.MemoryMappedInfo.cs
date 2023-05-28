@@ -8,6 +8,7 @@ using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -69,6 +70,9 @@ namespace Microsoft.CodeAnalysis.Host
                 Size = size;
             }
 
+#if NET
+            [SupportedOSPlatform("windows")]
+#endif
             public MemoryMappedInfo(string name, long offset, long size)
                 : this(new ReferenceCountedDisposable<MemoryMappedFile>(MemoryMappedFile.OpenExisting(name)), name, offset, size)
             {

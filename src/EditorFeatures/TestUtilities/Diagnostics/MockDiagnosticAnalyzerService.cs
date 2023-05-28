@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -42,7 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
-            => DocumentsToReanalyze.AddRange(documentIds);
+        {
+            Contract.ThrowIfNull(documentIds);
+            DocumentsToReanalyze.AddRange(documentIds);
+        }
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache
             => throw new NotImplementedException();

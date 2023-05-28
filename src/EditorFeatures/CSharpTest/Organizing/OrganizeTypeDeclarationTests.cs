@@ -645,7 +645,8 @@ $@"{typeKind} C {{
             await CheckAsync(initial, final);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [ConditionalTheory(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61229")]
+        [Trait(Traits.Feature, Traits.Features.Organizing)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestSensitivity(string typeKind)

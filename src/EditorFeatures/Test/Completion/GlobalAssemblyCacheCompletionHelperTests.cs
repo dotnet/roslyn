@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
     [Trait(Traits.Feature, Traits.Features.Completion)]
     public class GlobalAssemblyCacheCompletionHelperTests
     {
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void ExistingReference()
         {
             var code = "System.Windows";
             VerifyPresence(code, "System.Windows.Forms");
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void FullReferenceIdentity()
         {
             var code = "System,";

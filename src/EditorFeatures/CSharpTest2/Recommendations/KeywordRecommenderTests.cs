@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -25,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 {
                     try
                     {
-                        var recommender = Activator.CreateInstance(recommenderType);
-                        var field = recommenderType.GetField(nameof(AbstractSyntacticSingleKeywordRecommender.KeywordKind), BindingFlags.Public | BindingFlags.Instance);
-                        var kind = (SyntaxKind)field.GetValue(recommender);
+                        var recommender = Activator.CreateInstance(recommenderType)!;
+                        var field = recommenderType.GetField(nameof(AbstractSyntacticSingleKeywordRecommender.KeywordKind), BindingFlags.Public | BindingFlags.Instance)!;
+                        var kind = (SyntaxKind)field.GetValue(recommender)!;
 
                         s_recommenderMap.Add(kind, (AbstractSyntacticSingleKeywordRecommender)recommender);
                     }
@@ -43,12 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             var name = GetType().Name;
             var kindName = name[..^"RecommenderTests".Length]; // e.g. ForEachKeywordRecommenderTests -> ForEachKeyword
 
-            var field = typeof(SyntaxKind).GetField(kindName);
-            var kind = (SyntaxKind)field.GetValue(null);
+            var field = typeof(SyntaxKind).GetField(kindName)!;
+            var kind = (SyntaxKind)field.GetValue(null)!;
             KeywordText = SyntaxFacts.GetText(kind);
 
             s_recommenderMap.TryGetValue(kind, out var recommender);
-            Assert.NotNull(recommender);
+            Contract.ThrowIfNull(recommender);
 
             RecommendKeywordsAsync = (position, context) => Task.FromResult(recommender.GetTestAccessor().RecommendKeywords(position, context));
         }
