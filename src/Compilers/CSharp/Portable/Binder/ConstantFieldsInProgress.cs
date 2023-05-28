@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SourceFieldSymbol _fieldOpt;
         private readonly HashSet<SourceFieldSymbolWithSyntaxReference> _dependencies;
 
-        private SourceFieldSymbolWithSyntaxReference? _recentDependency;
+        private SourceFieldSymbolWithSyntaxReference _recentDependency;
 
         internal static readonly ConstantFieldsInProgress Empty = new ConstantFieldsInProgress(null, null);
 
