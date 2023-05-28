@@ -1153,11 +1153,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                     """,
                 ExpectedDiagnostics =
                 {
-                    VerifyCS.Diagnostic("IDE0060").WithLocation(0).WithMessage("Remove unused parameter 'p1'"),
-                    VerifyCS.Diagnostic("IDE0060").WithLocation(1).WithMessage("Parameter 'p2' can be removed; its initial value is never used"),
-                    VerifyCS.Diagnostic("IDE0060").WithLocation(2).WithMessage("Remove unused parameter 'p3' if it is not part of a shipped public API"),
-                    VerifyCS.Diagnostic("IDE0060").WithLocation(3).WithMessage("Parameter 'p4' can be removed if it is not part of a shipped public API; its initial value is never used"),
-                    VerifyCS.Diagnostic("IDE0060").WithLocation(4).WithMessage("Parameter 'p5' can be removed; its initial value is never used"),
+                    VerifyCS.Diagnostic("IDE0060").WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithMessage("Remove unused parameter 'p1'"),
+                    VerifyCS.Diagnostic("IDE0060").WithSeverity(DiagnosticSeverity.Info).WithLocation(1).WithMessage("Parameter 'p2' can be removed; its initial value is never used"),
+                    VerifyCS.Diagnostic("IDE0060").WithSeverity(DiagnosticSeverity.Info).WithLocation(2).WithMessage("Remove unused parameter 'p3' if it is not part of a shipped public API"),
+                    VerifyCS.Diagnostic("IDE0060").WithSeverity(DiagnosticSeverity.Info).WithLocation(3).WithMessage("Parameter 'p4' can be removed if it is not part of a shipped public API; its initial value is never used"),
+                    VerifyCS.Diagnostic("IDE0060").WithSeverity(DiagnosticSeverity.Info).WithLocation(4).WithMessage("Parameter 'p5' can be removed; its initial value is never used"),
                 }
             }.RunAsync();
         }
