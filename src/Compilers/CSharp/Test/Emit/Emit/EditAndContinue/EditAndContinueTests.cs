@@ -5051,6 +5051,96 @@ class C
         }
 
         [Fact]
+        public void ReplaceType_UpdateNestedType()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: $$"""
+                        using System;
+                        
+                        class C
+                        {
+                            class D
+                            {
+                                void M()
+                                {
+                                    Console.WriteLine("1");
+                                }
+                            }
+
+                            void N()
+                            {
+                                Console.WriteLine("1");
+                            }
+                        }
+                        """ + MetadataUpdateOriginalTypeAttributeSource,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "MetadataUpdateOriginalTypeAttribute", "D");
+                        g.VerifyMethodDefNames("N", ".ctor", ".ctor", "get_OriginalType", "M", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        using System;
+
+                        class C
+                        {
+                            class D
+                            {
+                                void M()
+                                {
+                                    Console.WriteLine("2");
+                                }
+                            }
+
+                            void N()
+                            {
+                                Console.WriteLine("2");
+                            }
+                        }
+                        """ + MetadataUpdateOriginalTypeAttributeSource,
+                    edits: new[] {
+                        // Note: Nested type edit needs to be seen first to repro the bug. Real world scenario requires the nested
+                        // class to be in a separate file.
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.D")),
+                        Edit(SemanticEditKind.Replace, c => null, newSymbolProvider: c => c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("D", "C#1");
+                        g.VerifyMethodDefNames("N", ".ctor", "M", ".ctor");
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(7, TableIndex.MethodDef),
+                            Handle(8, TableIndex.MethodDef),
+                            Handle(9, TableIndex.MethodDef),
+                            Handle(10, TableIndex.MethodDef),
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.NestedClass)
+                        });
+                    })
+                .Verify();
+        }
+
+        [Fact]
         public void EventFields_Attributes()
         {
             var source0 = MarkedSource(@"

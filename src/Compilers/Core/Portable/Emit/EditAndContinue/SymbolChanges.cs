@@ -494,7 +494,17 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
 
                 AddContainingTypesAndNamespaces(changesBuilder, member);
-                changesBuilder.Add(member, change);
+
+                // If we saw an edit for a symbol that is a nested type of this symbol, we might already have a dictionary entry
+                // for it, flagging that it contains changes. If so we "upgrade" the change to the real one.
+                if (changesBuilder.TryGetValue(member, out var existingChange) && existingChange == SymbolChange.ContainsChanges)
+                {
+                    changesBuilder[member] = change;
+                }
+                else
+                {
+                    changesBuilder.Add(member, change);
+                }
             }
 
             changes = changesBuilder;
