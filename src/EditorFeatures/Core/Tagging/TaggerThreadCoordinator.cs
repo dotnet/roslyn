@@ -41,6 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private readonly Func<CancellationToken, Task> _work;
 
             /// <summary>
+            /// Listener for tracking the fire and forget work we do.
+            /// </summary>
+            private readonly IAsynchronousOperationListener _asyncListener;
+
+            /// <summary>
             /// Original cancellation token controlling the work the tagger needs to do.
             /// </summary>
             private readonly CancellationToken _cancellationToken;
@@ -60,10 +65,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly CancellationTokenRegistration _registration;
 
-            public TaggerUIWork(Func<CancellationToken, Task> work, CancellationToken cancellationToken)
+            public TaggerUIWork(Func<CancellationToken, Task> work, IAsynchronousOperationListener asyncListener, CancellationToken cancellationToken)
             {
                 _work = work;
+                _asyncListener = asyncListener;
                 _cancellationToken = cancellationToken;
+
                 var completionSource = new TaskCompletionSource<bool>();
                 _completionSource = completionSource;
                 _registration = cancellationToken.Register(() => completionSource.TrySetCanceled(cancellationToken));
@@ -90,12 +97,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // is doing shouldn't impact the ability for the threading coordinator to move to the next batch of
                     // work (once the tagging work moves to the bg).
                     //
-                    // Note: it is intentional that there is no async tracking token here.  While this queue operates by
+                    // Note: it is not required for there to be async tracking done here.  While this queue operates by
                     // use of work that it fires-and-forgets, this work itself is exposed to the outer client through a
                     // real Task that itself tracks the async work, and which the outer client tagger itself awaits.  So
                     // from the perspective of that outer tagger, the existing tracking of async work they're doing is
                     // already sufficient.
-                    _ = PerformWorkAsync();
+                    //
+                    // That said, we *do* still use async tracking here as there's no way to statically enforce the
+                    // above nature of the system.  So this keeps us safe for the future in case something goes awry and
+                    // external clients do not wait on the task returned from PerformUIWorkAsync.
+                    var token = _asyncListener.BeginAsyncOperation(nameof(PerformWork));
+                    PerformWorkAsync().CompletesAsyncOperation(token);
                 }
             }
 
@@ -134,6 +146,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         private readonly AsyncBatchingWorkQueue<TaggerUIWork> _queue;
 
+        private IAsynchronousOperationListener _asyncListener;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TaggerThreadCoordinator(
@@ -141,11 +155,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.Tagging);
 
             _queue = new AsyncBatchingWorkQueue<TaggerUIWork>(
                 TaggerDelay.NearImmediate.ComputeTimeDelay(),
                 ProcessActionsAsync,
-                listenerProvider.GetListener(FeatureAttribute.Tagging),
+                _asyncListener,
                 threadingContext.DisposalToken);
         }
 
@@ -188,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public Task AddUIWorkAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken)
         {
             // Make the cold work item that will actually perform action when we get around to the next timeslice.
-            var work = new TaggerUIWork(action, cancellationToken);
+            var work = new TaggerUIWork(action, _asyncListener, cancellationToken);
             _queue.AddWork(work);
 
             // Let the caller keep track of that work item's progress.
