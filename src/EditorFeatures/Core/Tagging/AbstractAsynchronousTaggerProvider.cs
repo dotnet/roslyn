@@ -5,20 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 #if DEBUG
 using System.Diagnostics;
 #endif
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Tagging;
@@ -43,7 +38,33 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected readonly IThreadingContext ThreadingContext;
         protected readonly IGlobalOptionService GlobalOptions;
 
+        /// <summary>
+        /// Used to keep track of if the tagger's <see cref="TagSource._subjectBuffer"/> is visible or not (e.g. is in
+        /// some <see cref="ITextView"/> that has some part visible or not.  This is used so we can <see
+        /// cref="TagSource.PauseIfNotVisible"/> tagging when not visible to avoid wasting machine resources. Note: we
+        /// do not examine <see cref="TagSource._textView"/> for this as that is only available for "view taggers"
+        /// (taggers which only tag portions of the view) whereas we want this for all taggers (including just buffer
+        /// taggers which tag the entire document).
+        /// </summary>
         private readonly ITextBufferVisibilityTracker? _visibilityTracker;
+
+        /// <summary>
+        /// Optional threading coordinator used so that all the different tagger's that are running can cooperatively
+        /// access the UI thread with each other.  Specifically, taggers need the UI thread for a few reasons:
+        /// <list type="number">
+        /// <item>To determine if their buffer is visible or not (so they can delay updating if not).</item>
+        /// <item>To collect UI state for tagging, like what portion of the view is visible, and what the current text
+        /// snapshot is.  Once collected, the actual tagging work can happen on the background.</item>
+        /// <item>To notify attached listeners of what portions of the document changed.</item>
+        /// </list>
+        /// As there can be many taggers running simultaneously, it is very normal for them all to wake up and then
+        /// attempt to switch to the UI thread (with their own independent UI message) to do their work.  This means
+        /// there are a lot of messages queued up on the UI thread for it to go through, interspersed between all the
+        /// other important pieces of work the UI needs to do.
+        /// <para/> To help alleviate this issue, the coordinator keeps its own internal queue of work, and then
+        /// processes all that work on the UI thread in one go when it wakes up.  This allows all taggers within that
+        /// timeslice to do their work in one UI message instead of N of them.
+        /// </summary>
         private readonly TaggerThreadCoordinator? _threadCoordinator;
 
         /// <summary>
