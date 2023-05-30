@@ -9,6 +9,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -133,12 +134,28 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             // Come back to the UI Thread to do all the UI work we collected.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(disposalToken);
 
+            var stopwatch = SharedStopwatch.StartNew();
+
             foreach (var work in actions)
             {
+                _threadingContext.ThrowIfNotOnUIThread();
+
+                // If we're being torn down, don't bother doing any more work.  Note: this won't clean up the
+                // cancellation token registrations.  But that's fine since we're shutting down anyways.
                 if (disposalToken.IsCancellationRequested)
                     return;
 
                 work.PerformWork();
+
+                var elapsedTime = stopwatch.Elapsed;
+
+                if (elapsedTime.TotalMilliseconds > 50)
+                {
+                    // We don't want to hog the UI thread too much.  If enough time has passed processing the work
+                    // items, yield the UI thread so other important work can happen.
+                    await Task.Yield().ConfigureAwait(true);
+                    stopwatch = SharedStopwatch.StartNew();
+                }
             }
         }
 
