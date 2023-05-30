@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             if (!this.TryRetrieveTagSource(textView, subjectBuffer, out var tagSource))
             {
-                tagSource = new TagSource(textView, subjectBuffer, _visibilityTracker, this, AsyncListener);
+                tagSource = new TagSource(textView, subjectBuffer, this, AsyncListener);
                 this.StoreTagSource(textView, subjectBuffer, tagSource);
             }
 

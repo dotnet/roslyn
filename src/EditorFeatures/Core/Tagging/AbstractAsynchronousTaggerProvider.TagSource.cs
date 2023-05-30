@@ -133,7 +133,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public TagSource(
                 ITextView? textView,
                 ITextBuffer subjectBuffer,
-                ITextBufferVisibilityTracker? visibilityTracker,
                 AbstractAsynchronousTaggerProvider<TTag> dataSource,
                 IAsynchronousOperationListener asyncListener)
             {
@@ -143,7 +142,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 _textView = textView;
                 _subjectBuffer = subjectBuffer;
-                _visibilityTracker = visibilityTracker;
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
 
@@ -205,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                     // Register to hear about visibility changes so we can pause/resume this tagger.
-                    _visibilityTracker?.RegisterForVisibilityChanges(subjectBuffer, _onVisibilityChanged);
+                    _dataSource._visibilityTracker?.RegisterForVisibilityChanges(subjectBuffer, _onVisibilityChanged);
 
                     _eventSource.Changed += OnEventSourceChanged;
 
@@ -259,12 +257,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     _eventSource.Changed -= OnEventSourceChanged;
 
-                    _visibilityTracker?.UnregisterForVisibilityChanges(_subjectBuffer, _onVisibilityChanged);
+                    _dataSource._visibilityTracker?.UnregisterForVisibilityChanges(_subjectBuffer, _onVisibilityChanged);
                 }
             }
 
             private bool IsVisible()
-                => _visibilityTracker == null || _visibilityTracker.IsVisible(_subjectBuffer);
+                => _dataSource._visibilityTracker == null || _dataSource._visibilityTracker.IsVisible(_subjectBuffer);
 
             private void PauseIfNotVisible()
             {
