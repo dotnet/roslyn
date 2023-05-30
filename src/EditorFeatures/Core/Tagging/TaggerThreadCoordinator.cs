@@ -27,6 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     [Export(typeof(TaggerThreadCoordinator)), Shared]
     internal sealed class TaggerThreadCoordinator
     {
+        /// <summary>
+        /// Single piece of work that a tagger would like to perform on the UI thread.  Contains the actual callback
+        /// function to execute the tagger work, and all the extract information we need to track that and map that work
+        /// into TPL space.  This is effectively a cold-task, that will appear to the rest of the system as a normal TPL
+        /// hot task.
+        /// </summary>
         private readonly struct TaggerWork
         {
             /// <summary>
@@ -65,12 +71,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             public Task Task => _completionSource.Task;
 
+            /// <summary>
+            /// Go and execute the desired tagger work once the coordinator wakes up and attempts to execute a batch of items.
+            /// </summary>
             public void PerformWork()
             {
                 if (_cancellationToken.IsCancellationRequested)
                 {
                     // Reasonable chance the tagger was canceled between when it enqueued work and when we're running.
-                    // Just clear it out and return.  
+                    // Just clear it out and return.  Fast path that to avoid any actual async/await task work.
                     _completionSource.TrySetCanceled(_cancellationToken);
                     _registration.Dispose();
                 }
@@ -108,7 +117,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
         }
 
+        /// <summary>
+        /// Context we use to get back to the UI thread, and to know if the host is shutting down.
+        /// </summary>
         private readonly IThreadingContext _threadingContext;
+
+        /// <summary>
+        /// Queue that batches up all the work we've been requested to do so we can execute all of it at once in one
+        /// single UI thread message.
+        /// </summary>
         private readonly AsyncBatchingWorkQueue<TaggerWork> _queue;
 
         [ImportingConstructor]
