@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     if (member.DeclaredAccessibility == Accessibility.Private &&
                         !member.GetAttributes().Any() &&
                         semanticModel.GetSymbolInfo(assignmentExpression.Right, cancellationToken).GetAnySymbol() is IParameterSymbol parameter &&
-                        parameter.Type.Equals(member.GetType()))
+                        parameter.Type.Equals(member.GetMemberType()))
                     {
                         candidateMembersToRemove[member] = parameter;
                     }
