@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
 
                     // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
-                    // Try to bucket this UI work with any other UI work that is going on with any other tagger so as to 
+                    // Try to coordinate this UI work with any other UI work that is going on with any other tagger so as to 
                     // not oversaturate the UI thread.
                     await _dataSource.PerformUIWorkAsync(
                         cancellationToken =>
