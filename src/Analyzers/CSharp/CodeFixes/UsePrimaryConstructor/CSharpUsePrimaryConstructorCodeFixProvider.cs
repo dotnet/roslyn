@@ -171,8 +171,12 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                     constructorDeclaration.AttributeLists.Select(
                         a => a.WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.MethodKeyword))).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation)));
 
-                var parameterList = RemoveElementIndentation(
-                    typeDeclaration, constructorDeclaration, constructorDeclaration.ParameterList,
+                // When moving the parameter list from the constructor to the type, we will no longer have nested types
+                // in scope.  So rewrite references to them if that's the case.
+                var parameterList = UpdateReferencesToNestedTypes(constructorDeclaration.ParameterList);
+
+                parameterList = RemoveElementIndentation(
+                    typeDeclaration, constructorDeclaration, parameterList,
                     static list => list.Parameters);
                 return currentTypeDeclaration
                     .WithLeadingTrivia(finalTrivia)
@@ -186,6 +190,25 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
             });
 
         return;
+
+        ParameterListSyntax UpdateReferencesToNestedTypes(ParameterListSyntax parameterList)
+        {
+            return parameterList.ReplaceNodes(
+                parameterList.DescendantNodes().OfType<SimpleNameSyntax>(),
+                (typeSyntax, updatedTypeSyntax) =>
+                {
+                    // Don't have to update if the type is already qualified.
+                    if (typeSyntax.Parent is QualifiedNameSyntax qualifiedNameSyntax && qualifiedNameSyntax.Right == typeSyntax)
+                        return updatedTypeSyntax;
+
+                    var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
+                    if (typeSymbol is not INamedTypeSymbol { ContainingType: not null } || !namedType.Equals(typeSymbol.ContainingType.OriginalDefinition))
+                        return updatedTypeSyntax;
+
+                    // reference to a nested type in an unqualified fashion.  Have to qualify this.
+                    return QualifiedName(namedType.GenerateNameSyntax(), updatedTypeSyntax);
+                });
+        }
 
         static TListSyntax RemoveElementIndentation<TListSyntax>(
             TypeDeclarationSyntax typeDeclaration,

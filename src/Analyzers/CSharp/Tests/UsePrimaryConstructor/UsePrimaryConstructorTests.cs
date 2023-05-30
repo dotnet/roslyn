@@ -2354,4 +2354,128 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestReferenceToNestedType1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public class D
+                    {
+                    }
+
+                    public [|C|](D d)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(C.D d)
+                {
+                    public class D
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReferenceToNestedType2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C<T>
+                {
+                    public class D
+                    {
+                    }
+
+                    public [|C|](List<D> d)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C<T>(List<C<T>.D> d)
+                {
+                    public class D
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReferenceToNestedType3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public class D
+                    {
+                    }
+
+                    public [|C|](C.D d)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(C.D d)
+                {
+                    public class D
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReferenceToNestedType4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C<T>
+                {
+                    public class D
+                    {
+                    }
+
+                    public [|C|](List<C<T>.D> d)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C<T>(List<C<T>.D> d)
+                {
+                    public class D
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }
