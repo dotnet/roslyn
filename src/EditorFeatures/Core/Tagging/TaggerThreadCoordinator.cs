@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly CancellationTokenRegistration _registration;
 
-            public TaggerWork(Func<CancellationToken, Task> work, CancellationToken cancellationToken)
+            public TaggerUIWork(Func<CancellationToken, Task> work, CancellationToken cancellationToken)
             {
                 _work = work;
                 _cancellationToken = cancellationToken;
