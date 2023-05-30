@@ -598,6 +598,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.NotNull(operation.IndexerSymbol);
         }
 
+        public override void VisitInlineArrayAccess(IInlineArrayAccessOperation operation)
+        {
+            Assert.Equal(OperationKind.InlineArrayAccess, operation.Kind);
+            AssertEx.Equal(new[] { operation.Instance, operation.Argument }, operation.ChildOperations);
+        }
+
         internal override void VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);

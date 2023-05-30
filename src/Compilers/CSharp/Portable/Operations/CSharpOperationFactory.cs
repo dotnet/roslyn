@@ -137,6 +137,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundArrayAccessOperation((BoundArrayAccess)boundNode);
                 case BoundKind.ImplicitIndexerAccess:
                     return CreateBoundImplicitIndexerAccessOperation((BoundImplicitIndexerAccess)boundNode);
+                case BoundKind.InlineArrayAccess:
+                    return CreateBoundInlineArrayAccessOperation((BoundInlineArrayAccess)boundNode);
                 case BoundKind.NameOfOperator:
                     return CreateBoundNameOfOperatorOperation((BoundNameOfOperator)boundNode);
                 case BoundKind.ThrowExpression:
@@ -300,7 +302,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
-                case BoundKind.InlineArrayAccess: // PROTOTYPE(InlineArrays): Add special node?
 
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -1587,6 +1588,17 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(indexerSymbol is not null);
 
             return new ImplicitIndexerReferenceOperation(instance, argument, lengthSymbol, indexerSymbol, _semanticModel, syntax, type, isImplicit);
+        }
+
+        private IInlineArrayAccessOperation CreateBoundInlineArrayAccessOperation(BoundInlineArrayAccess boundInlineArrayAccess)
+        {
+            IOperation arrayReference = Create(boundInlineArrayAccess.Expression);
+            IOperation argument = Create(boundInlineArrayAccess.Argument);
+            SyntaxNode syntax = boundInlineArrayAccess.Syntax;
+            ITypeSymbol? type = boundInlineArrayAccess.GetPublicTypeSymbol();
+            bool isImplicit = boundInlineArrayAccess.WasCompilerGenerated;
+
+            return new InlineArrayAccessOperation(arrayReference, argument, _semanticModel, syntax, type, isImplicit);
         }
 
         private INameOfOperation CreateBoundNameOfOperatorOperation(BoundNameOfOperator boundNameOfOperator)
