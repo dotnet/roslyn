@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             {
                 TestCode = source,
                 // This test is about unused parameters, so disable other diagnostics from the analyzer to not make additional noise
-                DisabledDiagnostics = { "IDE0058", "IDE0059" },
+                DisabledDiagnostics = { IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId, IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId },
                 LanguageVersion = LanguageVersion.Preview,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60
             }.RunAsync();
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                 {
                     { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable, NotificationOption2.None }
                 },
-                DisabledDiagnostics = { "IDE0059" }
+                DisabledDiagnostics = { IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId }
             }.RunAsync();
         }
 
@@ -1153,11 +1154,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                     """,
                 ExpectedDiagnostics =
                 {
-                    VerifyCS.Diagnostic("IDE0060").WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithMessage("Remove unused parameter 'p1'"),
-                    VerifyCS.Diagnostic("IDE0060").WithSeverity(DiagnosticSeverity.Info).WithLocation(1).WithMessage("Parameter 'p2' can be removed; its initial value is never used"),
-                    VerifyCS.Diagnostic("IDE0060").WithSeverity(DiagnosticSeverity.Info).WithLocation(2).WithMessage("Remove unused parameter 'p3' if it is not part of a shipped public API"),
-                    VerifyCS.Diagnostic("IDE0060").WithSeverity(DiagnosticSeverity.Info).WithLocation(3).WithMessage("Parameter 'p4' can be removed if it is not part of a shipped public API; its initial value is never used"),
-                    VerifyCS.Diagnostic("IDE0060").WithSeverity(DiagnosticSeverity.Info).WithLocation(4).WithMessage("Parameter 'p5' can be removed; its initial value is never used"),
+                    VerifyCS.Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId).WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithMessage("Remove unused parameter 'p1'"),
+                    VerifyCS.Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId).WithSeverity(DiagnosticSeverity.Info).WithLocation(1).WithMessage("Parameter 'p2' can be removed; its initial value is never used"),
+                    VerifyCS.Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId).WithSeverity(DiagnosticSeverity.Info).WithLocation(2).WithMessage("Remove unused parameter 'p3' if it is not part of a shipped public API"),
+                    VerifyCS.Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId).WithSeverity(DiagnosticSeverity.Info).WithLocation(3).WithMessage("Parameter 'p4' can be removed if it is not part of a shipped public API; its initial value is never used"),
+                    VerifyCS.Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId).WithSeverity(DiagnosticSeverity.Info).WithLocation(4).WithMessage("Parameter 'p5' can be removed; its initial value is never used"),
                 }
             }.RunAsync();
         }
@@ -1406,7 +1407,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                 {
                     { CodeStyleOptions2.UnusedParameters, default, NotificationOption2.Suggestion }
                 },
-                DisabledDiagnostics = { "IDE0058" }
+                DisabledDiagnostics = { IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId }
             }.RunAsync();
         }
 
@@ -1441,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                 {
                     { CodeStyleOptions2.UnusedParameters, (UnusedParametersPreference)2, NotificationOption2.Suggestion }
                 },
-                DisabledDiagnostics = { "IDE0058" }
+                DisabledDiagnostics = { IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId }
             }.RunAsync();
         }
 #endif
