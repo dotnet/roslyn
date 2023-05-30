@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
     internal abstract class VSTypeScriptAsynchronousTaggerProvider<TTag> : AsynchronousViewTaggerProvider<TTag>
         where TTag : ITag
     {
-        [Obsolete("Use constructor that takes ITextBufferVisibilityTracker.  Use `[Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker`")]
+        [Obsolete("Use constructor that takes ITextBufferVisibilityTracker.  Use `[Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker`", error: false)]
         protected VSTypeScriptAsynchronousTaggerProvider(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider asyncListenerProvider,
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         {
         }
 
-        [Obsolete("Use constructor that takes TaggerThreadCoordinator.")]
+        [Obsolete("Use constructor that takes TaggerThreadCoordinator.", error: false)]
         protected VSTypeScriptAsynchronousTaggerProvider(
             IThreadingContext threadingContext,
             VSTypeScriptGlobalOptions globalOptions,
