@@ -174,6 +174,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 // If any of the requests was high priority, then compute at that speed.
                 var highPriority = changes.Contains(true);
+
+                // Delegate back to the UI thread to actually start the tagging work.  Coordinate with the other taggers
+                // so all of them can try to work on the same UI timeslice to start their work.  All of them will have
+                // to check if their buffer is visible, and all will be trying to determine what portion of the
+                // buffer/view to tag, so this helps reduce that from N messages on the UI thread for N taggers to just 1.
                 await _dataSource.PerformUIWorkAsync(
                     cancellationToken => RecomputeTagsOnUIThreadAsync(highPriority, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
