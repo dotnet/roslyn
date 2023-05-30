@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             await VerifyAnalyzerAsync("""
                 class B
                 {
-                    protected B(int p) { var x = p; }
+                    protected B(int {|IDE0060:p|}) { }
                 }
 
                 class C: B
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             await VerifyAnalyzerAsync("""
                 class B
                 {
-                    protected B(int p) { var x = p; }
+                    protected B(int {|IDE0060:p|}) { }
                 }
 
                 class C: B
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             await VerifyAnalyzerAsync("""
                 class B
                 {
-                    protected B(int p) { var x = p; }
+                    protected B(int {|IDE0060:p|}) { }
                 }
 
                 class C: B
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                         M2(() => { });
                     }
 
-                    private static void M2(Action a) { var x = a; }
+                    private static void M2(Action {|IDE0060:a|}) { }
                 }
                 """);
         }
@@ -422,9 +422,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                         M2(() => { M3(p); });
                     }
 
-                    private static void M2(Action a) { var x = a; }
+                    private static void M2(Action {|IDE0060:a|}) { }
 
-                    private static void M3(object o) { var x = o; }
+                    private static void M3(object {|IDE0060:o|}) { }
                 }
                 """);
         }
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                         M2(() => { M3(out p); });
                     }
 
-                    private static void M2(Action a) { var x = a; }
+                    private static void M2(Action {|IDE0060:a|}) { }
 
                     private static void M3(out object o) { o = null; }
                 }
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                         M2(x => x.M3());
                     }
 
-                    private static C M2(Expression<Func<C, int>> a) { var x = a; return null; }
+                    private static C M2(Expression<Func<C, int>> {|IDE0060:a|}) { return null; }
                     private int M3() { return 0; }
                 }
                 """);
@@ -483,8 +483,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                         M2(x => x.M3(p));
                     }
 
-                    private static C M2(Expression<Func<C, int>> a) { var x = a; return null; }
-                    private int M3(object o) { var x = o; return 0; }
+                    private static C M2(Expression<Func<C, int>> {|IDE0060:a|}) { return null; }
+                    private int M3(object {|IDE0060:o|}) { return 0; }
                 }
                 """);
         }
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                         M2(x => x.M3(out p));
                     }
 
-                    private static C M2(Expression<Func<C, int>> a) { var x = a; return null; }
+                    private static C M2(Expression<Func<C, int>> {|IDE0060:a|}) { return null; }
                     private int M3(out object o) { o = null; return 0; }
                 }
                 """);
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                         return c;
                     }
 
-                    private void M2(object p) { var x = p; }
+                    private void M2(object {|IDE0060:p|}) { }
                 }
                 """);
         }
