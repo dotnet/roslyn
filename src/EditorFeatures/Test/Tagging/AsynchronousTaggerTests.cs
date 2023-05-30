@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 tagProducer,
                 eventSource,
                 workspace.GetService<IGlobalOptionService>(),
+                workspace.GetService<TaggerThreadCoordinator>(),
                 asyncListener);
 
             var document = workspace.Documents.First();
@@ -157,8 +158,9 @@ class Program
                 Callback callback,
                 ITaggerEventSource eventSource,
                 IGlobalOptionService globalOptions,
+                TaggerThreadCoordinator threadCoordinator,
                 IAsynchronousOperationListener asyncListener)
-                : base(threadingContext, globalOptions, visibilityTracker: null, threadCoordinator: null, asyncListener)
+                : base(threadingContext, globalOptions, visibilityTracker: null, threadCoordinator, asyncListener)
             {
                 _callback = callback;
                 _eventSource = eventSource;
