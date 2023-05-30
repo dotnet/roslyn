@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         private readonly AsyncBatchingWorkQueue<TaggerUIWork> _queue;
 
-        private IAsynchronousOperationListener _asyncListener;
+        private readonly IAsynchronousOperationListener _asyncListener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
