@@ -111,6 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         MustNotBeParameter = 1 << 16,
 
+        // PROTOTYPE consider using an "ignore" flag instead of an "include" flag
+        //   ("include" will likely be more common, so can be default)
         /// <summary>
         /// Broaden the lookup to include members from extension types.
         /// </summary>

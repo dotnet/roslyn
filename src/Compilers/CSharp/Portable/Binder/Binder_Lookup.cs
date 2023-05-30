@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void LookupExtensionMethods(LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            foreach (var scope in new ExtensionMethodScopes(this))
+            foreach (var scope in new ExtensionScopes(this))
             {
                 this.LookupExtensionMethodsInSingleBinder(scope, result, name, arity, options, ref useSiteInfo);
             }
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Look for symbols that are members of the specified namespace or type.
         /// </summary>
-        private void LookupMembersWithExtensionsAndFallback(LookupResult result, NamespaceOrTypeSymbol nsOrType, string name, int arity,
+        private void LookupMembersWithFallback(LookupResult result, NamespaceOrTypeSymbol nsOrType, string name, int arity,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved = null, LookupOptions options = LookupOptions.Default)
         {
             Debug.Assert(options.AreValid());
@@ -183,6 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options,
             Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(!type.IsTypeParameter());
+
             var compatibleExtensions = ArrayBuilder<TypeSymbol>.GetInstance();
             getCompatibleExtensions(binder, type, compatibleExtensions);
             // PROTOTYPE test use-site diagnostics
@@ -227,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
 
                 var baseType = type;
-                while (baseType is not null)
+                do
                 {
                     if (matches(extended, baseType))
                     {
@@ -236,6 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     baseType = baseType.BaseTypeNoUseSiteDiagnostics;
                 }
+                while (baseType is not null);
 
                 foreach (var implementedInterface in type.AllInterfacesNoUseSiteDiagnostics)
                 {
@@ -299,7 +302,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: Diagnose ambiguity problems here, and conflicts between non-method and method? Or is that
             // done in the caller?
 
-            if ((options & LookupOptions.SearchInExtensionTypes) != 0 && !result.IsMultiViable)
+            if ((options & LookupOptions.SearchInExtensionTypes) != 0 && !result.IsMultiViable &&
+                !type.IsTypeParameter())
             {
                 var extensionResult = LookupResult.GetInstance();
                 LookupMembersInExtensions(extensionResult, name, arity, basesBeingResolved, ref useSiteInfo, options, type);
@@ -316,15 +320,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, LookupOptions options, TypeSymbol type)
         {
             Debug.Assert((options & LookupOptions.SearchInExtensionTypes) != 0);
+            Debug.Assert(!type.IsTypeParameter());
 
-            foreach (Binder scope in new ExtensionTypeScopes(this))
+            foreach (ExtensionScope scope in new ExtensionScopes(this))
             {
                 if (!result.IsClear)
                 {
                     result.Clear();
                 }
 
-                LookupImplicitExtensionMembersInSingleBinder(result, scope, type, name, arity,
+                LookupImplicitExtensionMembersInSingleBinder(result, scope.Binder, type, name, arity,
                     basesBeingResolved, options, originalBinder: this, ref useSiteInfo);
 
                 if (result.IsMultiViable)
@@ -575,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// binder because extension method search stops at the first applicable
         /// method group from the nearest enclosing namespace.
         /// </summary>
-        private void LookupExtensionMethodsInSingleBinder(ExtensionMethodScope scope, LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void LookupExtensionMethodsInSingleBinder(ExtensionScope scope, LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var methods = ArrayBuilder<MethodSymbol>.GetInstance();
             var binder = scope.Binder;
@@ -856,7 +861,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        internal virtual bool SupportsExtensionMethods
+        /// <summary>
+        /// Indicates whether a scope should be inspected for candidate extension methods or types
+        /// when looking up the scope chain.
+        /// </summary>
+        internal virtual bool SupportsExtensions
         {
             get { return false; }
         }
@@ -878,12 +887,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        /// <summary>
-        /// Indicates whether a scope should be inspected for candidate extension types
-        /// when looking up the scope chain.
-        /// </summary>
-        internal virtual bool SupportsExtensionTypes => false;
-
         /// <summary>
         /// Return the extension types from this specific binding scope 
         /// Since the lookup of extension members is iterative, proceeding one binding scope at a time,

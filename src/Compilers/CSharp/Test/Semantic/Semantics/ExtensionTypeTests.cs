@@ -9550,6 +9550,43 @@ implicit extension Base for object
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_Simple_Static_MethodGroupExists()
+    {
+        var src = """
+C.M();
+
+class C
+{
+    public static void M(int i) { }
+    public static void M(string s) { }
+}
+
+implicit extension E for C
+{
+    public static void M()
+    {
+        System.Console.Write("M");
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,3): error CS1501: No overload for method 'M' takes 0 arguments
+            // C.M();
+            Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "0").WithLocation(1, 3)
+            );
+
+        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
+        //CompileAndVerify(comp, expectedOutput: "M");
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(method).Symbol);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_VariousScopes()
     {
         var cSrc = """
@@ -12184,7 +12221,7 @@ implicit extension E for C
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public void ExtensionMemberLookup_PatternBasedForEach()
+    public void ExtensionMemberLookup_PatternBasedForEach_NoMethod()
     {
         var src = """
 foreach (var x in new C())
@@ -12217,6 +12254,48 @@ implicit extension E2 for D
         Assert.Equal("D E1.GetEnumerator()", model.GetForEachStatementInfo(loop).GetEnumeratorMethod.ToTestDisplayString());
         Assert.Equal("System.Boolean E2.MoveNext()", model.GetForEachStatementInfo(loop).MoveNextMethod.ToTestDisplayString());
         Assert.Equal("System.Int32 E2.Current { get; }", model.GetForEachStatementInfo(loop).CurrentProperty.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_PatternBasedForEach_NoApplicableMethod()
+    {
+        var src = """
+foreach (var x in new C())
+{
+    System.Console.Write(x);
+    break;
+}
+
+class C
+{
+    public void GetEnumerator(int notApplicable) { } // not applicable
+}
+class D { }
+
+implicit extension E1 for C
+{
+    public D GetEnumerator() => new D();
+}
+implicit extension E2 for D
+{
+    public bool MoveNext() => true;
+    public int Current => 42;
+}
+""";
+        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+            // foreach (var x in new C())
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(1, 19)
+            );
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+        Assert.Null(model.GetForEachStatementInfo(loop).GetEnumeratorMethod);
+        Assert.Null(model.GetForEachStatementInfo(loop).MoveNextMethod);
+        Assert.Null(model.GetForEachStatementInfo(loop).CurrentProperty);
     }
 
     [Fact]
@@ -12279,7 +12358,7 @@ implicit extension E for C
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public void ExtensionMemberLookup_PatternBasedDeconstruct()
+    public void ExtensionMemberLookup_PatternBasedDeconstruct_NoMethod()
     {
         var src = """
 var (x, y) = new C();
@@ -12310,7 +12389,51 @@ implicit extension E for C
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public void ExtensionMemberLookup_PatternBasedDispose_Async()
+    public void ExtensionMemberLookup_PatternBasedDeconstruct_NoApplicableMethod()
+    {
+        var src = """
+var (x, y) = new C();
+System.Console.Write((x, y));
+
+class C
+{
+    public void Deconstruct() { } // not applicable
+}
+
+implicit extension E for C
+{
+    public void Deconstruct(out int i, out int j)
+    {
+        i = 42;
+        j = 43;
+    }
+}
+""";
+        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
+            // var (x, y) = new C();
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(1, 6),
+            // (1,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+            // var (x, y) = new C();
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(1, 9),
+            // (1,14): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
+            // var (x, y) = new C();
+            Diagnostic(ErrorCode.ERR_BadArgCount, "new C()").WithArguments("Deconstruct", "2").WithLocation(1, 14),
+            // (1,14): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+            // var (x, y) = new C();
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(1, 14)
+            );
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
+        Assert.Null(model.GetDeconstructionInfo(deconstruction).Method);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_PatternBasedDispose_Async_NoMethod()
     {
         var src = """
 using System.Threading.Tasks;
@@ -12357,6 +12480,42 @@ DeclarationGroup:
             expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
     }
 
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_PatternBasedDispose_Async_NoApplicableMethod()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+/*<bind>*/
+await using var x = new C();
+/*</bind>*/
+
+class C
+{
+    public Task DisposeAsync(int notApplicable) => throw null; // not applicable
+}
+
+implicit extension E for C
+{
+    public async Task DisposeAsync()
+    {
+        System.Console.Write("RAN");
+        await Task.Yield();
+    }
+}
+""";
+        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (4,1): error CS7036: There is no argument given that corresponds to the required parameter 'notApplicable' of 'C.DisposeAsync(int)'
+            // await using var x = new C();
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "await using var x = new C();").WithArguments("notApplicable", "C.DisposeAsync(int)").WithLocation(4, 1),
+            // (4,1): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            // await using var x = new C();
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new C();").WithArguments("C").WithLocation(4, 1)
+            );
+    }
+
     [Fact]
     public void ExtensionMemberLookup_PatternBasedDispose_RefStruct()
     {
@@ -12384,7 +12543,7 @@ implicit extension E for S
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public void ExtensionMemberLookup_PatternBasedFixed()
+    public void ExtensionMemberLookup_PatternBasedFixed_NoMethod()
     {
         var text = @"
 unsafe class C
@@ -12440,6 +12599,47 @@ implicit extension E for Fixable
 """);
     }
 
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_PatternBasedFixed_NoApplicableMethod()
+    {
+        var src = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable())
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+}
+
+class Fixable
+{
+    public ref int GetPinnableReference(int notApplicable) => throw null; // not applicable
+}
+
+implicit extension E for Fixable
+{
+    public ref int GetPinnableReference()
+    {
+        return ref (new int[] { 1, 2, 3 })[0];
+    }
+}
+";
+
+        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeReleaseExe);
+        comp.VerifyDiagnostics(
+            // (6,25): error CS7036: There is no argument given that corresponds to the required parameter 'notApplicable' of 'Fixable.GetPinnableReference(int)'
+            //         fixed (int* p = new Fixable())
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new Fixable()").WithArguments("notApplicable", "Fixable.GetPinnableReference(int)").WithLocation(6, 25),
+            // (6,25): error CS8385: The given expression cannot be used in a fixed statement
+            //         fixed (int* p = new Fixable())
+            Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable()").WithLocation(6, 25)
+            );
+    }
+
     [Fact]
     public void ExtensionMemberLookup_PatternBasedFixed_Static()
     {
@@ -12474,7 +12674,7 @@ implicit extension E for Fixable
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBasedAwait()
+    public void ExtensionMemberLookup_PatternBasedAwait_NoMethod()
     {
         var text = @"
 using System;
@@ -12513,7 +12713,48 @@ implicit extension E2 for D : INotifyCompletion
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBasedIndexIndexer()
+    public void ExtensionMemberLookup_PatternBasedAwait_NoApplicableGetAwaiterMethod()
+    {
+        var text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public D GetAwaiter(int notApplicable) => throw null; // not applicable
+}
+class D { }
+
+implicit extension E1 for C
+{
+    public D GetAwaiter() => new D();
+}
+
+implicit extension E2 for D : INotifyCompletion
+{
+    public bool IsCompleted => true;
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null;
+}
+";
+
+        // PROTOTYPE Revisit when adding support for emitting non-static members and adding interfaces
+        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (5,9): error CS7036: There is no argument given that corresponds to the required parameter 'notApplicable' of 'C.GetAwaiter(int)'
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "await new C()").WithArguments("notApplicable", "C.GetAwaiter(int)").WithLocation(5, 9),
+            // (19,31): error CS9207: A base extension must be an extension type.
+            // implicit extension E2 for D : INotifyCompletion
+            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "INotifyCompletion").WithLocation(19, 31)
+            );
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBasedIndexIndexer_NoIndexer()
     {
         var src = """
 var c = new C();
@@ -12573,7 +12814,56 @@ Right:
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBasedRangeIndexer()
+    public void ExtensionMemberLookup_PatternBasedIndexIndexer_NoApplicableIndexer()
+    {
+        var src = """
+var c = new C();
+
+/*<bind>*/
+_ = c[^1];
+/*</bind>*/
+
+class C
+{
+    public int this[string notApplicable] { } // not applicable
+}
+
+implicit extension E for C
+{
+    public int this[int i]
+    {
+        get
+        {
+            System.Console.Write("indexer ");
+            return 0;
+        }
+    }
+
+    public int Length
+    {
+        get
+        {
+            System.Console.Write("length ");
+            return 42;
+        }
+    }
+}
+""";
+
+        // PROTOTYPE this scenario should work (based on updated "indexer access" rules)
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (4,7): error CS1503: Argument 1: cannot convert from 'System.Index' to 'string'
+            // _ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "string").WithLocation(4, 7),
+            // (9,16): error CS0548: 'C.this[string]': property or indexer must have at least one accessor
+            //     public int this[string notApplicable] { } // not applicable
+            Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("C.this[string]").WithLocation(9, 16)
+            );
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBasedRangeIndexer_NoMethod()
     {
         var src = """
 var c = new C();
@@ -12634,6 +12924,49 @@ Right:
 
         VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
             expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBasedRangeIndexer_NoApplicableMethod()
+    {
+        var src = """
+var c = new C();
+
+/*<bind>*/
+_ = c[1..^1];
+/*</bind>*/
+
+class C
+{
+    public int Slice(int notApplicable) => throw null; // not applicable
+}
+
+implicit extension E for C
+{
+    public int Slice(int i, int j)
+    {
+        System.Console.Write("slice ");
+        return 0;
+    }
+
+    public int Length
+    {
+        get
+        {
+            System.Console.Write("length ");
+            return 42;
+        }
+    }
+}
+""";
+
+        // PROTOTYPE this scenario should work (based on updated "indexer access" rules)
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(4, 5)
+            );
     }
 
     [Fact]
@@ -12802,7 +13135,7 @@ Right:
     }
 
     [Fact]
-    public void ExtensionMemberLookup_CollectionInitializer()
+    public void ExtensionMemberLookup_CollectionInitializer_NoMethod()
     {
         var src = """
 using System.Collections;
@@ -12858,7 +13191,46 @@ Right:
     }
 
     [Fact]
-    public void ExtensionMemberLookup_InterpolationHandler()
+    public void ExtensionMemberLookup_CollectionInitializer_NoApplicableMethod()
+    {
+        var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+/*<bind>*/
+_ = new C() { 42 };
+/*</bind>*/
+
+class C : IEnumerable<int>, IEnumerable
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(string notApplicable) => throw null;
+}
+
+implicit extension E for C
+{
+    public void Add(int i)
+    {
+        System.Console.Write("add");
+    }
+}
+""";
+
+        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (5,15): error CS1950: The best overloaded Add method 'C.Add(string)' for the collection initializer has some invalid arguments
+            // _ = new C() { 42 };
+            Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "42").WithArguments("C.Add(string)").WithLocation(5, 15),
+            // (5,15): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+            // _ = new C() { 42 };
+            Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("1", "int", "string").WithLocation(5, 15)
+            );
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_InterpolationHandler_NoMethods()
     {
         var src = """
 /*<bind>*/
@@ -12981,18 +13353,103 @@ Right:
     }
 
     [Fact]
-    public void ExtensionMemberLookup_Query()
+    public void ExtensionMemberLookup_InterpolationHandler_NoApplicableAppendLiteralMethod()
     {
         var src = """
 /*<bind>*/
-string query = from x in new object() select x;
+_ = f($"{(object)1} {f2()}");
+/*</bind>*/
+
+static int f(InterpolationHandler s) => 0;
+static string f2() => "hello";
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct InterpolationHandler
+{
+    public InterpolationHandler(int literalLength, int formattedCount) => throw null;
+    public void AppendLiteral(int notApplicable) => throw null; // not applicable
+}
+
+implicit extension E for InterpolationHandler
+{
+    public void AppendLiteral(string value)
+    {
+        System.Console.Write("AppendLiteral ");
+    }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null)
+    {
+        System.Console.Write("AppendFormatted ");
+    }
+}
+""";
+
+        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,20): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            // _ = f($"{(object)1} {f2()}");
+            Diagnostic(ErrorCode.ERR_BadArgType, " ").WithArguments("1", "string", "int").WithLocation(2, 20)
+            );
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_InterpolationHandler_NoApplicableAppendFormattedMethod()
+    {
+        var src = """
+/*<bind>*/
+_ = f($"{(object)1} {f2()}");
+/*</bind>*/
+
+static int f(InterpolationHandler s) => 0;
+static string f2() => "hello";
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct InterpolationHandler
+{
+    public InterpolationHandler(int literalLength, int formattedCount) => throw null;
+    public void AppendFormatted(int notApplicable) => throw null; // not applicable
+}
+
+implicit extension E for InterpolationHandler
+{
+    public void AppendLiteral(string value)
+    {
+        System.Console.Write("AppendLiteral ");
+    }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null)
+    {
+        System.Console.Write("AppendFormatted ");
+    }
+}
+""";
+
+        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,10): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+            // _ = f($"{(object)1} {f2()}");
+            Diagnostic(ErrorCode.ERR_BadArgType, "(object)1").WithArguments("1", "object", "int").WithLocation(2, 10),
+            // (2,22): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            // _ = f($"{(object)1} {f2()}");
+            Diagnostic(ErrorCode.ERR_BadArgType, "f2()").WithArguments("1", "string", "int").WithLocation(2, 22)
+            );
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Query_NoMethod()
+    {
+        var src = """
+/*<bind>*/
+string query = from x in new C() select x;
 /*</bind>*/
 
 System.Console.Write(query);
 
-implicit extension E for object
+class C { }
+
+implicit extension E for C
 {
-    public string Select(System.Func<object, object> selector) => "hello";
+    public string Select(System.Func<C, C> selector) => "hello";
 }
 """;
 
@@ -13011,21 +13468,21 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= from x in ... () select x')
             ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.String) (Syntax: 'from x in n ... () select x')
               Expression:
-                IInvocationOperation ( System.String E.Select(System.Func<System.Object, System.Object> selector)) (OperationKind.Invocation, Type: System.String, IsImplicit) (Syntax: 'select x')
+                IInvocationOperation ( System.String E.Select(System.Func<C, C> selector)) (OperationKind.Invocation, Type: System.String, IsImplicit) (Syntax: 'select x')
                   Instance Receiver:
-                    IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new object()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
                       Arguments(0)
                       Initializer:
                         null
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
-                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Object, System.Object>, IsImplicit) (Syntax: 'x')
+                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<C, C>, IsImplicit) (Syntax: 'x')
                           Target:
                             IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'x')
                               IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
                                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
                                   ReturnedValue:
-                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
+                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Initializer:
@@ -13033,6 +13490,36 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
 """;
         VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(src,
             expectedOperationTree, DiagnosticDescription.None, targetFramework: TargetFramework.Net70);
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Query_NoApplicableMethod()
+    {
+        var src = """
+/*<bind>*/
+string query = from x in new C() select x;
+/*</bind>*/
+
+System.Console.Write(query);
+
+class C
+{
+    public string Select(int notApplicable) => throw null; // not applicable
+}
+
+implicit extension E for C
+{
+    public string Select(System.Func<C, C> selector) => "hello";
+}
+""";
+
+        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,41): error CS1660: Cannot convert query expression to type 'int' because it is not a delegate type
+            // string query = from x in new C() select x;
+            Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x").WithArguments("query expression", "int").WithLocation(2, 41)
+            );
     }
 
     [Fact]
@@ -13191,5 +13678,48 @@ implicit extension E for C
             // C1::ExtensionType.M(); // 1
             Diagnostic(ErrorCode.ERR_ColColWithTypeAlias, "C1").WithArguments("C1").WithLocation(3, 1)
             );
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_TypeParameter()
+    {
+        var src = """
+class C<T>
+{
+    explicit extension R for T
+    {
+        void M1() { }
+
+        class Type
+        {
+            static void M2() { }
+        }
+    }
+
+    void M3()
+    {
+        T.M1();
+        T.Type.M2();
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (15,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+            //         T.M1();
+            Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(15, 9),
+            // (16,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+            //         T.Type.M2();
+            Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(16, 9)
+            );
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var invocation = GetSyntax<MemberAccessExpressionSyntax>(tree, "T.M1");
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+
+        var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "T.Type");
+        Assert.Null(model.GetSymbolInfo(type).Symbol);
     }
 }

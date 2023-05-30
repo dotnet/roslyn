@@ -1083,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (qualifierOpt is not null)
             {
-                // Extension member lookup comes into play for member access (ie. with a qualified),
+                // Extension member lookup comes into play for member access (ie. with a qualifier),
                 // but not for simple names (ie. without a qualifier).
                 result |= LookupOptions.SearchInExtensionTypes;
             }
@@ -1526,7 +1526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!haveInstanceCandidates && members[0].Kind == SymbolKind.Method)
             {
                 // See if there could be extension methods in scope
-                foreach (var scope in new ExtensionMethodScopes(this))
+                foreach (var scope in new ExtensionScopes(this))
                 {
                     lookupResult ??= LookupResult.GetInstance();
                     LookupExtensionMethods(lookupResult, scope, plainName, arity, ref useSiteInfo);

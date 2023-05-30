@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.GetForwardedToAssemblyInUsingNamespaces(name, ref qualifierOpt, diagnostics, location);
         }
 
-        internal override bool SupportsExtensionMethods
+        internal override bool SupportsExtensions
         {
             get { return true; }
         }
@@ -126,8 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methods.RemoveDuplicates();
             }
         }
-
-        internal override bool SupportsExtensionTypes => true;
 
         internal override void GetImplicitExtensionTypes(ArrayBuilder<TypeSymbol> extensions, Binder originalBinder)
         {

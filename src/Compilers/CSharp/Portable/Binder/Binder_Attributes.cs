@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var name = identifierName.Identifier.ValueText;
             LookupResult result = LookupResult.GetInstance();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            this.LookupMembersWithExtensionsAndFallback(result, attributeType, name, 0, ref useSiteInfo);
+            this.LookupMembersWithFallback(result, attributeType, name, 0, ref useSiteInfo);
             diagnostics.Add(identifierName, useSiteInfo);
             Symbol resultSymbol = this.ResultSymbol(result, name, 0, identifierName, diagnostics, false, out wasError, qualifierOpt: null);
             resultKind = result.Kind;

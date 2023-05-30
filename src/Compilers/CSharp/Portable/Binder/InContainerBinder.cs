@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool SupportsExtensionMethods
+        internal override bool SupportsExtensions
         {
             get { return true; }
         }
@@ -84,8 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((NamespaceSymbol)_container).GetExtensionMethods(methods, name, arity, options);
             }
         }
-
-        internal override bool SupportsExtensionTypes => true;
 
         internal override void GetImplicitExtensionTypes(ArrayBuilder<TypeSymbol> extensions, Binder originalBinder)
         {

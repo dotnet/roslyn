@@ -377,18 +377,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void GetImplicitExtensionTypes(ArrayBuilder<TypeSymbol> extensions)
-        {
-            // PROTOTYPE needs optimizing
-            foreach (var type in this.GetTypeMembersUnordered())
-            {
-                if (type.IsExtension && !type.IsExplicitExtension)
-                {
-                    extensions.Add(type);
-                }
-            }
-        }
-
         // TODO: Probably should provide similar accessors for static constructor, destructor, 
         // TODO: operators, conversions.
 

@@ -4608,7 +4608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 binder = binder.WithAdditionalFlags(BinderFlags.SemanticModel);
-                foreach (var scope in new ExtensionMethodScopes(binder))
+                foreach (var scope in new ExtensionScopes(binder))
                 {
                     var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
                     var otherBinder = scope.Binder;

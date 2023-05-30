@@ -6764,7 +6764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // then the result is that namespace.
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                this.LookupMembersWithExtensionsAndFallback(lookupResult, ns, rightName, rightArity, ref useSiteInfo, options: options);
+                this.LookupMembersWithFallback(lookupResult, ns, rightName, rightArity, ref useSiteInfo, options: options);
                 diagnostics.Add(right, useSiteInfo);
 
                 ArrayBuilder<Symbol> symbols = lookupResult.Symbols;
@@ -6838,7 +6838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (leftType.TypeKind == TypeKind.TypeParameter)
                 {
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    this.LookupMembersWithExtensionsAndFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options | LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstractOrVirtual);
+                    this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options | LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstractOrVirtual);
                     diagnostics.Add(right, useSiteInfo);
                     if (lookupResult.IsMultiViable)
                     {
@@ -6859,7 +6859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    this.LookupMembersWithExtensionsAndFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
+                    this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
                     diagnostics.Add(right, useSiteInfo);
                     if (lookupResult.IsMultiViable)
                     {
@@ -7013,7 +7013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.UseBaseReferenceAccessibility;
             }
 
-            this.LookupMembersWithExtensionsAndFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
+            this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
         }
 
         private void BindMemberAccessReportError(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
@@ -7348,7 +7348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var firstResult = new MethodGroupResolution();
             AnalyzedArguments actualArguments = null;
 
-            foreach (var scope in new ExtensionMethodScopes(this))
+            foreach (var scope in new ExtensionScopes(this))
             {
                 var methodGroup = MethodGroup.GetInstance();
                 var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies);
@@ -7440,7 +7440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void PopulateExtensionMethodsFromSingleBinder(
-            ExtensionMethodScope scope,
+            ExtensionScope scope,
             MethodGroup methodGroup,
             SyntaxNode node,
             BoundExpression left,
@@ -7478,7 +7478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             lookupResult.Free();
         }
 
-        private void LookupExtensionMethods(LookupResult lookupResult, ExtensionMethodScope scope, string rightName, int arity, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void LookupExtensionMethods(LookupResult lookupResult, ExtensionScope scope, string rightName, int arity, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             LookupOptions options;
             if (arity == 0)
@@ -8325,7 +8325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-            this.LookupMembersWithExtensionsAndFallback(lookupResult, expr.Type, WellKnownMemberNames.Indexer, arity: 0,
+            this.LookupMembersWithFallback(lookupResult, expr.Type, WellKnownMemberNames.Indexer, arity: 0,
                 useSiteInfo: ref useSiteInfo, options: lookupOptions);
 
             diagnostics.Add(node, useSiteInfo);
@@ -9216,7 +9216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.SearchExtensionMethods)
             {
                 var receiver = node.ReceiverOpt!;
-                foreach (var scope in new ExtensionMethodScopes(this))
+                foreach (var scope in new ExtensionScopes(this))
                 {
                     var methodGroup = MethodGroup.GetInstance();
                     PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, BindingDiagnosticBag.Discarded);
