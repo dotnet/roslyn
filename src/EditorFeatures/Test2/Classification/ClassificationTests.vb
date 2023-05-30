@@ -266,8 +266,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                     workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of ClassificationTypeMap),
                     workspace.GetService(Of IGlobalOptionService),
-                    workspace.GetService(Of TaggerThreadCoordinator),
                     visibilityTracker:=Nothing,
+                    workspace.GetService(Of TaggerThreadCoordinator),
                     listenerProvider)
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
