@@ -154,6 +154,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly ConcurrentCache<TypeSymbol, NamedTypeSymbol> _typeToNullableVersion = new ConcurrentCache<TypeSymbol, NamedTypeSymbol>(size: 100);
 
+        /// <summary>Lazily caches SyntaxTrees by their mapped path. Used to look up the syntax tree referenced by an interceptor. <see cref="TryGetInterceptor"/></summary>
+        private ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> _mappedPathToSyntaxTree;
+
         public override string Language
         {
             get
@@ -1037,7 +1040,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> _mappedPathToSyntaxTree;
         internal OneOrMany<SyntaxTree> GetSyntaxTreesByMappedPath(string mappedPath)
         {
             // We could consider storing this on SyntaxAndDeclarationManager instead, and updating it incrementally.

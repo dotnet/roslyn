@@ -3578,14 +3578,10 @@ partial struct CustomHandler
             parseOptions: RegularWithInterceptors,
             options: TestOptions.DebugExe.WithSourceReferenceResolver(
                 new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)));
-        comp.VerifyEmitDiagnostics(PlatformInformation.IsWindows
+        comp.VerifyEmitDiagnostics(
                 // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS27008: Cannot intercept: Path 'C:\My\Machine\Specific\Path\Program.cs' is unmapped. Expected mapped path '/_/Program.cs'.
                 //     [InterceptsLocation(@"C:\My\Machine\Specific\Path\Program.cs", 5, 3)]
-                ? Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate, @"@""C:\My\Machine\Specific\Path\Program.cs""").WithArguments(@"C:\My\Machine\Specific\Path\Program.cs", "/_/Program.cs").WithLocation(11, 25)
-
-                // /My/Machine/Specific/Path/Program.cs(11,25): error CS27008: Cannot intercept: Path '/My/Machine/Specific/Path/Program.cs' is unmapped. Expected mapped path '/_/Program.cs'.
-                //     [InterceptsLocation(@"/My/Machine/Specific/Path/Program.cs", 5, 3)]
-                : Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate, @"@""/My/Machine/Specific/Path/Program.cs""").WithArguments("/My/Machine/Specific/Path/Program.cs", "/_/Program.cs").WithLocation(11, 25)
+                Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate, $@"@""{path}""").WithArguments(path, "/_/Program.cs").WithLocation(11, 25)
             );
     }
 

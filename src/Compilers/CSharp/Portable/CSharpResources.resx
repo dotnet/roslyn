@@ -7544,9 +7544,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_InterceptorSignatureMismatch_Title" xml:space="preserve">
     <value>Signatures of interceptable and interceptor methods do not match.</value>
   </data>
-  <data name="ERR_InterceptableMethodMustBeOrdinary" xml:space="preserve">
-    <value>An interceptable method must be an ordinary member method.</value>
-  </data>
   <data name="ERR_InterceptorMethodMustBeOrdinary" xml:space="preserve">
     <value>An interceptor method must be an ordinary member method.</value>
   </data>

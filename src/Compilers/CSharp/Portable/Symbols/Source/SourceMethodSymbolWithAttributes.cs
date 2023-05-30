@@ -987,10 +987,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var syntaxTrees = DeclaringCompilation.SyntaxTrees;
-            var referenceResolver = DeclaringCompilation.Options.SourceReferenceResolver;
             var matchingTrees = DeclaringCompilation.GetSyntaxTreesByMappedPath(attributeFilePath);
             if (matchingTrees.Count == 0)
             {
+                var referenceResolver = DeclaringCompilation.Options.SourceReferenceResolver;
                 // if we expect '/_/Program.cs':
 
                 // we might get: 'C:\Project\Program.cs' <-- path not mapped
