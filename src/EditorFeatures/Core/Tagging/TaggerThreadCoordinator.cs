@@ -89,6 +89,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // when it is finished.  We do this in a fire-and-forget fashion.  The async tagging work the queue
                     // is doing shouldn't impact the ability for the threading coordinator to move to the next batch of
                     // work (once the tagging work moves to the bg).
+                    //
+                    // Note: it is intentional that there is no async tracking token here.  While this queue operates by
+                    // use of work that it fires-and-forgets, this work itself is exposed to the outer client through a
+                    // real Task that itself tracks the async work, and which the outer client tagger itself awaits.  So
+                    // from the perspective of that outer tagger, the existing tracking of async work they're doing is
+                    // already sufficient.
                     _ = PerformWorkAsync();
                 }
             }
