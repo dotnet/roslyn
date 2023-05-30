@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                     """,
                 Options =
                 {
-                    { CodeStyleOptions2.UnusedParameters, UnusedParametersPreference.NonPublicMethods, NotificationOption2.Suggestion }
+                    { CodeStyleOptions2.UnusedParameters, UnusedParametersPreference.NonPublicMethods },
                 }
             }.RunAsync();
         }
