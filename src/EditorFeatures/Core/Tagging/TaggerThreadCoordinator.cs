@@ -168,6 +168,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 {
                     // We don't want to hog the UI thread too much.  If enough time has passed processing the work
                     // items, yield the UI thread so other important work can happen.
+                    //
+                    // Note: this should be exceeding unlikely to be hit as the work the taggers do themselves is
+                    // extremely minimal.  However, it is possible for this to happen, as the taggers are required to
+                    // notify their event handlers on the UI thread.  The listeners on the other end of those events
+                    // might not be well-behaved, and might hog the UI thread for longer than desired.
                     await Task.Yield().ConfigureAwait(true);
                     stopwatch = SharedStopwatch.StartNew();
                 }
@@ -176,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         public Task AddUIWorkAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken)
         {
-            // Make the work item that will actually perform action when we get around to the next timeslice.
+            // Make the cold work item that will actually perform action when we get around to the next timeslice.
             var work = new TaggerWork(action, cancellationToken);
             _queue.AddWork(work);
 
