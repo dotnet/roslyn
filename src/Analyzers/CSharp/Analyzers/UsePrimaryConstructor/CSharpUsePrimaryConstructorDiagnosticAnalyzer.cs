@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -152,7 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     // Pass along a mapping of field/property name to the constructor parameter name that will replace it.
                     var properties = _candidateMembersToRemove
                         .Where(kvp => !_membersThatCannotBeRemoved.Contains(kvp.Key))
-                        .ToImmutableDictionary(static kvp => kvp.Key.Name, static kvp => (string?)kvp.Value.Name);
+                        .ToImmutableDictionary(
+                            static kvp => kvp.Key.Name,
+                            static kvp => (string?)CSharpSyntaxFacts.Instance.EscapeIdentifier(kvp.Value.Name));
 
                     // To provide better user-facing-strings, keep track of whether or not all the members we'd be
                     // removing are all fields or all properties.

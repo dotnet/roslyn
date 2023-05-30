@@ -748,6 +748,45 @@ public partial class UsePrimaryConstructorTests
     }
 
     [Fact]
+    public async Task TestRemoveMembersUpdateReferences2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                class C
+                {
+                    private int i;
+                    private int j;
+
+                    public [|C|](int @this, int @delegate)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+
+                    void M()
+                    {
+                        Console.WriteLine(this.i + this.j);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                class C(int @this, int @delegate)
+                {
+                    void M()
+                    {
+                        Console.WriteLine(@this + @delegate);
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestRemoveMembersUpdateReferencesWithRename1()
     {
         await new VerifyCS.Test

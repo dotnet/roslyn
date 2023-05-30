@@ -157,8 +157,7 @@
   -->
   <Target Name="GeneratePkgDef"          
           DependsOnTargets="$(GeneratePkgDefDependsOn);_SetGeneratePkgDefInputsOutputs"
-          Inputs="$(MSBuildAllProjects);@(PkgDefFileContent)"
-          Outputs="$(_GeneratePkgDefOutputFile)">
+          Condition="'$(DesignTimeBuild)' != 'true'">
     <ItemGroup>
       <_AssemblyDependencyEntry Include="@(PkgDefBindingRedirect)" Kind="BindingRedirect" />
       <_AssemblyDependencyEntry Include="@(PkgDefCodeBase)" Kind="CodeBase" />
