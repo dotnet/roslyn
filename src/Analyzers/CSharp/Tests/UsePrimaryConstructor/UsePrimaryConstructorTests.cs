@@ -761,8 +761,8 @@ public partial class UsePrimaryConstructorTests
 
                     public [|C|](int @this, int @delegate)
                     {
-                        this.i = i;
-                        this.j = j;
+                        this.i = @this;
+                        this.j = @delegate;
                     }
 
                     void M()
