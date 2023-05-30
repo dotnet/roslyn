@@ -372,7 +372,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     // If we have an assignment of the form `private_member = param`, then that member can be a candidate for removal.
                     if (member.DeclaredAccessibility == Accessibility.Private &&
                         !member.GetAttributes().Any() &&
-                        semanticModel.GetSymbolInfo(assignmentExpression.Right, cancellationToken).GetAnySymbol() is IParameterSymbol parameter)
+                        semanticModel.GetSymbolInfo(assignmentExpression.Right, cancellationToken).GetAnySymbol() is IParameterSymbol parameter &&
+                        parameter.Type.Equals(member.GetType()))
                     {
                         candidateMembersToRemove[member] = parameter;
                     }
