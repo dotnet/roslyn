@@ -68,6 +68,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 await _visibilityTracker.DelayWhileNonVisibleAsync(
                     _threadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
 
+                // DelayWhileNonVisibleAsync returns-early (but doesn't throw) in the event of cancellation.
+                // Gracefully bail out here to avoid excess cancellation exceptions from being thrown.
+                if (cancellationToken.IsCancellationRequested)
+                    return null;
+
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                 {
                     var items = await itemService.GetItemsAsync(

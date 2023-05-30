@@ -206,6 +206,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 {
                     await _visibilityTracker.DelayWhileNonVisibleAsync(
                         _dataSource.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(true);
+
+                    // DelayWhileNonVisibleAsync returns-early (but doesn't throw) in the event of cancellation.
+                    // Gracefully bail out here to avoid excess cancellation exceptions from being thrown.
+                    if (cancellationToken.IsCancellationRequested)
+                        return;
                 }
 
                 await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

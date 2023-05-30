@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Workspaces
 {
@@ -37,8 +38,11 @@ namespace Microsoft.CodeAnalysis.Workspaces
     internal static class ITextBufferVisibilityTrackerExtensions
     {
         /// <summary>
-        /// Waits the specified amount of time while the specified <paramref name="subjectBuffer"/> is not visible.  If any
-        /// document visibility changes happen, the delay will cancel.
+        /// Waits the specified amount of time while the specified <paramref name="subjectBuffer"/> is not visible.  If
+        /// any document visibility changes happen, the delay will cancel. Note: in the event of cancellation, the
+        /// returned task will transition to the <see cref="TaskStatus.RanToCompletion"/> state not the <see
+        /// cref="TaskStatus.Canceled"/> state. This is to prevent excess exception throws in the common case of
+        /// cancellation.  Callers should check if they are canceled after this returns and bail out gracefully.
         /// </summary>
         public static async Task DelayWhileNonVisibleAsync(
             this ITextBufferVisibilityTracker? service,
@@ -49,6 +53,9 @@ namespace Microsoft.CodeAnalysis.Workspaces
         {
             // Only add a delay if we have access to a service that will tell us when the buffer become visible or not.
             if (service is null)
+                return;
+
+            if (cancellationToken.IsCancellationRequested)
                 return;
 
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -66,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             {
                 // Listen to when the active document changed so that we startup work on a document once it becomes visible.
                 var delayTask = Task.Delay(timeSpan, cancellationToken);
-                await Task.WhenAny(delayTask, visibilityChangedTaskSource.Task).ConfigureAwait(false);
+                await Task.WhenAny(delayTask, visibilityChangedTaskSource.Task).NoThrowAwaitable(captureContext: false);
             }
             finally
             {
