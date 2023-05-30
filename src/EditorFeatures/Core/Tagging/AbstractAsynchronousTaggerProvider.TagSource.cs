@@ -94,16 +94,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private readonly ITextBuffer _subjectBuffer;
 
             /// <summary>
-            /// Used to keep track of if this <see cref="_subjectBuffer"/> is visible or not (e.g. is in some <see
-            /// cref="ITextView"/> that has some part visible or not.  This is used so we can <see
-            /// cref="PauseIfNotVisible"/> tagging when not visible to avoid wasting machine resources. Note: we do not
-            /// examine <see cref="_textView"/> for this as that is only available for "view taggers" (taggers which
-            /// only tag portions of the view) whereas we want this for all taggers (including just buffer taggers which
-            /// tag the entire document).
-            /// </summary>
-            private readonly ITextBufferVisibilityTracker? _visibilityTracker;
-
-            /// <summary>
             /// Callback to us when the visibility of our <see cref="_subjectBuffer"/> changes.
             /// </summary>
             private readonly Action _onVisibilityChanged;
