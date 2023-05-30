@@ -345,7 +345,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
 
         async ValueTask ReplaceReferencesToMemberWithParameterAsync(ISymbol member, string parameterName)
         {
-            var parameterNameNode = IdentifierName(parameterName);
+            var parameterNameNode = IdentifierName(ParseToken(parameterName));
 
             // find all the references to member within this project.  We can immediately filter down just to the
             // documents containing our named type.
