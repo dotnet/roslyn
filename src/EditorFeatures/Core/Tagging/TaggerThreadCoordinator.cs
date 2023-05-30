@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <summary>
         /// Single piece of work that a tagger would like to perform on the UI thread.  Contains the actual callback
         /// function to execute the tagger work, and all the extract information we need to track that and map that work
-        /// into TPL space.  This is effectively a cold-task, that will appear to the rest of the system as a normal TPL
+        /// into TPL space.  This is effectively a "cold" Task, that will appear to the rest of the system as a normal TPL
         /// hot task.
         /// </summary>
         private readonly struct TaggerWork
