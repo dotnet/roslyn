@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// into TPL space.  This is effectively a cold-task, that will appear to the rest of the system as a normal TPL
         /// hot task.
         /// </summary>
-        private readonly struct TaggerWork
+        private readonly struct TaggerUIWork
         {
             /// <summary>
             /// The actual tagger specific work to do.
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// Queue that batches up all the work we've been requested to do so we can execute all of it at once in one
         /// single UI thread message.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<TaggerWork> _queue;
+        private readonly AsyncBatchingWorkQueue<TaggerUIWork> _queue;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             _threadingContext = threadingContext;
 
-            _queue = new AsyncBatchingWorkQueue<TaggerWork>(
+            _queue = new AsyncBatchingWorkQueue<TaggerUIWork>(
                 TaggerDelay.NearImmediate.ComputeTimeDelay(),
                 ProcessActionsAsync,
                 listenerProvider.GetListener(FeatureAttribute.Tagging),
@@ -144,14 +144,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         }
 
         private async ValueTask ProcessActionsAsync(
-            ImmutableSegmentedList<TaggerWork> actions, CancellationToken disposalToken)
+            ImmutableSegmentedList<TaggerUIWork> uiWorkItems, CancellationToken disposalToken)
         {
             // Come back to the UI Thread to do all the UI work we collected.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(disposalToken);
 
             var stopwatch = SharedStopwatch.StartNew();
 
-            foreach (var work in actions)
+            foreach (var uiWork in uiWorkItems)
             {
                 _threadingContext.ThrowIfNotOnUIThread();
 
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (disposalToken.IsCancellationRequested)
                     return;
 
-                work.PerformWork();
+                uiWork.PerformWork();
 
                 var elapsedTime = stopwatch.Elapsed;
 
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public Task AddUIWorkAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken)
         {
             // Make the cold work item that will actually perform action when we get around to the next timeslice.
-            var work = new TaggerWork(action, cancellationToken);
+            var work = new TaggerUIWork(action, cancellationToken);
             _queue.AddWork(work);
 
             // Let the caller keep track of that work item's progress.
