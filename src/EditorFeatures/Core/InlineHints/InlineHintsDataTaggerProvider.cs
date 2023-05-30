@@ -55,8 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] IInlineHintKeyProcessor inlineHintKeyProcessor,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+            TaggerThreadCoordinator threadCoordinator,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.InlineHints))
+            : base(threadingContext, globalOptions, visibilityTracker, threadCoordinator, listenerProvider.GetListener(FeatureAttribute.InlineHints))
         {
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
             _inlineHintKeyProcessor = inlineHintKeyProcessor;

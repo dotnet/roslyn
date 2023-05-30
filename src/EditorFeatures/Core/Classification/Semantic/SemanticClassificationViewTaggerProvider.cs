@@ -6,6 +6,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
@@ -31,8 +32,9 @@ namespace Microsoft.CodeAnalysis.Classification
             ClassificationTypeMap typeMap,
             IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+            TaggerThreadCoordinator threadCoordinator,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, typeMap, globalOptions, visibilityTracker, listenerProvider, ClassificationType.Semantic)
+            : base(threadingContext, typeMap, globalOptions, visibilityTracker, threadCoordinator, listenerProvider, ClassificationType.Semantic)
         {
         }
     }

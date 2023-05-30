@@ -53,8 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             IHighlightingService highlightingService,
             IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
+            TaggerThreadCoordinator threadCoordinator,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
+            : base(threadingContext, globalOptions, visibilityTracker, threadCoordinator, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
         {
             _highlightingService = highlightingService;
         }

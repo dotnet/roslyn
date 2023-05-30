@@ -52,8 +52,9 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
             IDiagnosticAnalyzerService analyzerService,
             IGlobalOptionService globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
+            TaggerThreadCoordinator? threadCoordinator,
             IAsynchronousOperationListener listener)
-            : base(threadingContext, globalOptions, visibilityTracker, listener)
+            : base(threadingContext, globalOptions, visibilityTracker, threadCoordinator, listener)
         {
             _callback = callback;
             _diagnosticKind = diagnosticKind;

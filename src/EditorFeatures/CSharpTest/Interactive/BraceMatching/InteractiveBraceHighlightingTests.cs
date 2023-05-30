@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
                 workspace.GetService<IBraceMatchingService>(),
                 workspace.GetService<IGlobalOptionService>(),
                 visibilityTracker: null,
+                workspace.GetService<TaggerThreadCoordinator>(),
                 AsynchronousOperationListenerProvider.NullProvider);
 
             var context = new TaggerContext<BraceHighlightTag>(

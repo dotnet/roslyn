@@ -55,8 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
+            TaggerThreadCoordinator threadCoordinator,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting))
+            : base(threadingContext, globalOptions, visibilityTracker, threadCoordinator, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting))
         {
             _globalOptions = globalOptions;
         }

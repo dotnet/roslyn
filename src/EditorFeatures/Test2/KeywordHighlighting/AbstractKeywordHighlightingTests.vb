@@ -38,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                     workspace.GetService(Of IHighlightingService)(),
                     globalOptions,
                     visibilityTracker:=Nothing,
+                    workspace.GetService(Of TaggerThreadCoordinator),
                     AsynchronousOperationListenerProvider.NullProvider)
 
                 Dim context = New TaggerContext(Of KeywordHighlightTag)(document, snapshot, New SnapshotPoint(snapshot, caretPosition))

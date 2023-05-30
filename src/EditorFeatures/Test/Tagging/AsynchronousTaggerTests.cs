@@ -158,7 +158,7 @@ class Program
                 ITaggerEventSource eventSource,
                 IGlobalOptionService globalOptions,
                 IAsynchronousOperationListener asyncListener)
-                : base(threadingContext, globalOptions, visibilityTracker: null, asyncListener)
+                : base(threadingContext, globalOptions, visibilityTracker: null, threadCoordinator: null, asyncListener)
             {
                 _callback = callback;
                 _eventSource = eventSource;

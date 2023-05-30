@@ -5,15 +5,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 #if DEBUG
 using System.Diagnostics;
 #endif
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Tagging;
@@ -37,7 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected readonly IAsynchronousOperationListener AsyncListener;
         protected readonly IThreadingContext ThreadingContext;
         protected readonly IGlobalOptionService GlobalOptions;
+
         private readonly ITextBufferVisibilityTracker? _visibilityTracker;
+        private readonly TaggerThreadCoordinator? _threadCoordinator;
 
         /// <summary>
         /// The behavior the tagger engine will have when text changes happen to the subject buffer
@@ -118,16 +125,34 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
+            TaggerThreadCoordinator? threadCoordinator,
             IAsynchronousOperationListener asyncListener)
         {
             ThreadingContext = threadingContext;
             GlobalOptions = globalOptions;
             AsyncListener = asyncListener;
             _visibilityTracker = visibilityTracker;
+            _threadCoordinator = threadCoordinator;
 
 #if DEBUG
             StackTrace = new StackTrace().ToString();
 #endif
+        }
+
+        private async Task PerformUIWorkAsync(Func<CancellationToken, Task> work, CancellationToken cancellationToken)
+        {
+            if (_threadCoordinator is null)
+            {
+                // If we have no thread coordinator then just switch to the UI thread and do the work now.
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await work(cancellationToken).ConfigureAwait(true);
+            }
+            else
+            {
+                // Otherwise, let the coordinator take this and perform it with other UI work to reduce the amount of UI
+                // thread context switching we have to do.
+                await _threadCoordinator.AddUIWorkAsync(work, cancellationToken).ConfigureAwait(true);
+            }
         }
 
         protected ITagger<T>? CreateTaggerWorker<T>(ITextView? textView, ITextBuffer subjectBuffer) where T : ITag

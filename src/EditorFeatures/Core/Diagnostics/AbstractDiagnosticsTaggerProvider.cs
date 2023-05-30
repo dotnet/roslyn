@@ -39,6 +39,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
         IDiagnosticAnalyzerService analyzerService,
         IGlobalOptionService globalOptions,
         ITextBufferVisibilityTracker? visibilityTracker,
+        TaggerThreadCoordinator threadCoordinator,
         IAsynchronousOperationListener listener)
     {
         GlobalOptions = globalOptions;
@@ -52,7 +53,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
         return;
 
         SingleDiagnosticKindPullTaggerProvider CreateDiagnosticsTaggerProvider(DiagnosticKind diagnosticKind)
-            => new(this, diagnosticKind, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
+            => new(this, diagnosticKind, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, threadCoordinator, listener);
     }
 
     // Functionality for subclasses to control how this diagnostic tagging operates.  All the individual

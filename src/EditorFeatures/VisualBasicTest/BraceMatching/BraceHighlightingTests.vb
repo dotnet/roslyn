@@ -32,6 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
                 workspace.GetService(Of IBraceMatchingService),
                 workspace.GetService(Of IGlobalOptionService),
                 visibilityTracker:=Nothing,
+                workspace.GetService(Of TaggerThreadCoordinator),
                 AsynchronousOperationListenerProvider.NullProvider)
 
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()

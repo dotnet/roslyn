@@ -19,7 +19,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider asyncListenerProvider,
             VSTypeScriptGlobalOptions globalOptions)
-            : base(threadingContext, globalOptions.Service, visibilityTracker: null, asyncListenerProvider.GetListener(FeatureAttribute.Classification))
+            : this(threadingContext, globalOptions, visibilityTracker: null, asyncListenerProvider)
+        {
+        }
+
+        [Obsolete("Use constructor that takes TaggerThreadCoordinator.")]
+        protected VSTypeScriptAsynchronousTaggerProvider(
+            IThreadingContext threadingContext,
+            VSTypeScriptGlobalOptions globalOptions,
+            ITextBufferVisibilityTracker? visibilityTracker,
+            IAsynchronousOperationListenerProvider asyncListenerProvider)
+            : this(threadingContext, globalOptions, visibilityTracker, threadCoordinator: null, asyncListenerProvider)
         {
         }
 
@@ -27,8 +37,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             IThreadingContext threadingContext,
             VSTypeScriptGlobalOptions globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
+            TaggerThreadCoordinator? threadCoordinator,
             IAsynchronousOperationListenerProvider asyncListenerProvider)
-            : base(threadingContext, globalOptions.Service, visibilityTracker, asyncListenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, globalOptions.Service, visibilityTracker, threadCoordinator, asyncListenerProvider.GetListener(FeatureAttribute.Classification))
         {
         }
     }

@@ -5,11 +5,11 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -29,8 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             EditorOptionsService editorOptionsService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+            TaggerThreadCoordinator threadCoordinator,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, editorOptionsService, projectionBufferFactoryService, visibilityTracker, listenerProvider)
+            : base(threadingContext, editorOptionsService, projectionBufferFactoryService, visibilityTracker, threadCoordinator, listenerProvider)
         {
         }
 

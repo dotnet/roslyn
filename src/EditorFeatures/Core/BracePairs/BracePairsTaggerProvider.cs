@@ -38,10 +38,12 @@ internal sealed class BracePairsTaggerProvider : AsynchronousViewportTaggerProvi
         IThreadingContext threadingContext,
         IGlobalOptionService globalOptionService,
         [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+        TaggerThreadCoordinator threadCoordinator,
         IAsynchronousOperationListenerProvider listenerProvider)
         : base(threadingContext,
               globalOptionService,
               visibilityTracker,
+              threadCoordinator,
               listenerProvider.GetListener(FeatureAttribute.BracePairs))
     {
     }

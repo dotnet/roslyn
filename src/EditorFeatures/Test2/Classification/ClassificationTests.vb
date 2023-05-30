@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Classification
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -265,6 +266,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                     workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of ClassificationTypeMap),
                     workspace.GetService(Of IGlobalOptionService),
+                    workspace.GetService(Of TaggerThreadCoordinator),
                     visibilityTracker:=Nothing,
                     listenerProvider)
 
