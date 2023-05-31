@@ -771,17 +771,10 @@ public partial class UsePrimaryConstructorTests
             FixedCode = """
                 using System;
 
-                class C
+                class C(int i, int j)
                 {
-                    private int I { get; }
-                    private int J { get; }
-                
-                    public C(int i, int j)
-                    {
-                        this.I = i;
-                        this.J = j;
-                    }
-                
+                    private int I { get; } = i;
+
                     public struct Enumerator
                     {
                         private int _i;
