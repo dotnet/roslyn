@@ -300,7 +300,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
                     // Now ensure the constructor body is something that could be converted to a primary constructor (i.e.
                     // only assignments to instance fields/props on this).
-                    var semanticModel = compilation.GetSemanticModel(primaryConstructorDeclaration.SyntaxTree);
                     if (!AnalyzeConstructorBody(primaryConstructorDeclaration))
                         return false;
 
