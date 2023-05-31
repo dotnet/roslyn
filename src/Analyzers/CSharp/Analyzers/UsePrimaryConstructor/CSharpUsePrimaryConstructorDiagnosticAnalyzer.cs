@@ -5,6 +5,7 @@
 // Ignore Spelling: kvp
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -78,7 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 if (!context.Compilation.LanguageVersion().IsCSharp12OrAbove())
                     return;
 
-                context.RegisterSymbolStartAction(context => Analyzer.AnalyzeNamedTypeStart(this, context), SymbolKind.NamedType);
+                // Mapping from a named type to a particular analyzer we have created for it. Needed because nested
+                // types need to update the information for their containing types while they themselves are being
+                // analyzed.  Specifically, 
+                var namedTypeToAnalyzer = new ConcurrentDictionary<INamedTypeSymbol, Analyzer>();
+                context.RegisterSymbolStartAction(context => Analyzer.AnalyzeNamedTypeStart(this, context, namedTypeToAnalyzer), SymbolKind.NamedType);
             });
         }
 
@@ -156,6 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 _candidateMembersToRemove = candidateMembersToRemove;
             }
 
+            public bool HasCandidateMembersToRemove => _candidateMembersToRemove.Count > 0;
+
             private void OnSymbolEnd(SymbolAnalysisContext context)
             {
                 // See if the constructor analysis found a viable constructor to convert to a primary constructor.
@@ -196,76 +203,111 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
             public static void AnalyzeNamedTypeStart(
                 CSharpUsePrimaryConstructorDiagnosticAnalyzer diagnosticAnalyzer,
-                SymbolStartAnalysisContext context)
+                SymbolStartAnalysisContext context,
+                ConcurrentDictionary<INamedTypeSymbol, Analyzer> namedTypeToAnalyzer)
             {
                 var compilation = context.Compilation;
                 var cancellationToken = context.CancellationToken;
 
                 // Bail immediately if the user has disabled this feature.
                 var namedType = (INamedTypeSymbol)context.Symbol;
-                if (namedType.DeclaringSyntaxReferences is not [var reference, ..])
-                    return;
+                var options = context.Options;
 
-                var styleOption = context.Options.GetCSharpAnalyzerOptions(reference.SyntaxTree).PreferPrimaryConstructors;
-                if (!styleOption.Value)
-                    return;
+                // If any of our containing types are being analyzed, then register to tell it about field/prop refs within this nested type.
+                for (var currentType = namedType.ContainingType; currentType != null; currentType = currentType.ContainingType)
+                {
+                    if (namedTypeToAnalyzer.TryGetValue(currentType, out var containingTypeAnalyzer))
+                    {
+                        context.RegisterOperationAction(
+                            containingTypeAnalyzer.AnalyzeFieldOrPropertyReference, OperationKind.FieldReference, OperationKind.PropertyReference);
+                    }
+                }
 
-                // only classes/structs can have primary constructors (not interfaces, enums or delegates).
-                if (namedType.TypeKind is not (TypeKind.Class or TypeKind.Struct))
-                    return;
-
-                // Don't want to offer on records.  It's completely fine for records to not use primary constructs and
-                // instead use init-properties.
-                if (namedType.IsRecord)
-                    return;
-
-                // No need to offer this if the type already has a primary constructor.
-                if (namedType.TryGetPrimaryConstructor(out _))
-                    return;
-
-                // Need to see if there is a single constructor that either calls `base(...)` or has no constructor
-                // initializer (and thus implicitly calls `base()`), and that all other constructors call `this(...)`.
-                if (!TryFindPrimaryConstructorCandidate(out var primaryConstructor, out var primaryConstructorDeclaration))
-                    return;
-
-                if (primaryConstructor.Parameters.Length == 0)
-                    return;
-
-                if (primaryConstructor.DeclaredAccessibility != Accessibility.Public)
-                    return;
-
-                // Constructor has to have a real body (can't be extern/etc.).
-                if (primaryConstructorDeclaration is { Body: null, ExpressionBody: null })
-                    return;
-
-                if (primaryConstructorDeclaration.Parent is not TypeDeclarationSyntax)
-                    return;
-
-                if (primaryConstructor.Parameters.Any(static p => p.RefKind is RefKind.Ref or RefKind.Out))
-                    return;
-
-                // Now ensure the constructor body is something that could be converted to a primary constructor (i.e.
-                // only assignments to instance fields/props on this).
-                var semanticModel = compilation.GetSemanticModel(primaryConstructorDeclaration.SyntaxTree);
                 var candidateMembersToRemove = PooledDictionary<ISymbol, IParameterSymbol>.GetInstance();
-                if (!AnalyzeConstructorBody())
+                if (!TryCreateAnalyzer(
+                        compilation, namedType, options, cancellationToken, out var analyzer))
                 {
                     candidateMembersToRemove.Free();
                     return;
                 }
 
-                var analyzer = new Analyzer(diagnosticAnalyzer, styleOption, primaryConstructor, primaryConstructorDeclaration, candidateMembersToRemove);
+                namedTypeToAnalyzer.TryAdd(namedType, analyzer);
 
                 // Look to see if we have trivial `_x = x` or `this.x = x` assignments.  If so, then the field/prop
                 // could be a candidate for removal (as long as we determine that all use sites of the field/prop would
                 // be able to use the captured primary constructor parameter).
 
-                if (candidateMembersToRemove.Count > 0)
+                if (analyzer.HasCandidateMembersToRemove)
                     context.RegisterOperationAction(analyzer.AnalyzeFieldOrPropertyReference, OperationKind.FieldReference, OperationKind.PropertyReference);
 
-                context.RegisterSymbolEndAction(analyzer.OnSymbolEnd);
+                context.RegisterSymbolEndAction(context =>
+                {
+                    analyzer.OnSymbolEnd(context);
+                    namedTypeToAnalyzer.TryRemove(namedType, out _);
+                });
 
                 return;
+
+                bool TryCreateAnalyzer(
+                    Compilation compilation,
+                    INamedTypeSymbol namedType,
+                    AnalyzerOptions options,
+                    CancellationToken cancellationToken,
+                    [NotNullWhen(true)] out Analyzer? analyzer)
+                {
+                    analyzer = null;
+
+                    // Bail immediately if the user has disabled this feature.
+                    if (namedType.DeclaringSyntaxReferences is not [var reference, ..])
+                        return false;
+
+                    var styleOption = options.GetCSharpAnalyzerOptions(reference.SyntaxTree).PreferPrimaryConstructors;
+                    if (!styleOption.Value)
+                        return false;
+
+                    // only classes/structs can have primary constructors (not interfaces, enums or delegates).
+                    if (namedType.TypeKind is not (TypeKind.Class or TypeKind.Struct))
+                        return false;
+
+                    // Don't want to offer on records.  It's completely fine for records to not use primary constructs and
+                    // instead use init-properties.
+                    if (namedType.IsRecord)
+                        return false;
+
+                    // No need to offer this if the type already has a primary constructor.
+                    if (namedType.TryGetPrimaryConstructor(out _))
+                        return false;
+
+                    // Need to see if there is a single constructor that either calls `base(...)` or has no constructor
+                    // initializer (and thus implicitly calls `base()`), and that all other constructors call `this(...)`.
+                    if (!TryFindPrimaryConstructorCandidate(out var primaryConstructor, out var primaryConstructorDeclaration))
+                        return false;
+
+                    if (primaryConstructor.Parameters.Length == 0)
+                        return false;
+
+                    if (primaryConstructor.DeclaredAccessibility != Accessibility.Public)
+                        return false;
+
+                    // Constructor has to have a real body (can't be extern/etc.).
+                    if (primaryConstructorDeclaration is { Body: null, ExpressionBody: null })
+                        return false;
+
+                    if (primaryConstructorDeclaration.Parent is not TypeDeclarationSyntax)
+                        return false;
+
+                    if (primaryConstructor.Parameters.Any(static p => p.RefKind is RefKind.Ref or RefKind.Out))
+                        return false;
+
+                    // Now ensure the constructor body is something that could be converted to a primary constructor (i.e.
+                    // only assignments to instance fields/props on this).
+                    var semanticModel = compilation.GetSemanticModel(primaryConstructorDeclaration.SyntaxTree);
+                    if (!AnalyzeConstructorBody(primaryConstructorDeclaration))
+                        return false;
+
+                    analyzer = new Analyzer(diagnosticAnalyzer, styleOption, primaryConstructor, primaryConstructorDeclaration, candidateMembersToRemove);
+                    return true;
+                }
 
                 bool TryFindPrimaryConstructorCandidate(
                     [NotNullWhen(true)] out IMethodSymbol? primaryConstructor,
@@ -308,17 +350,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     return primaryConstructor != null;
                 }
 
-                bool AnalyzeConstructorBody()
+                bool AnalyzeConstructorBody(ConstructorDeclarationSyntax primaryConstructorDeclaration)
                 {
+                    var semanticModel = compilation.GetSemanticModel(primaryConstructorDeclaration.SyntaxTree);
                     return primaryConstructorDeclaration switch
                     {
-                        { ExpressionBody.Expression: AssignmentExpressionSyntax assignmentExpression } => IsAssignmentToInstanceMember(assignmentExpression, out _),
-                        { Body: { } body } => AnalyzeBlockBody(body),
+                        { ExpressionBody.Expression: AssignmentExpressionSyntax assignmentExpression } => IsAssignmentToInstanceMember(semanticModel, assignmentExpression, out _),
+                        { Body: { } body } => AnalyzeBlockBody(semanticModel, body),
                         _ => false,
                     };
                 }
 
-                bool AnalyzeBlockBody(BlockSyntax block)
+                bool AnalyzeBlockBody(SemanticModel semanticModel, BlockSyntax block)
                 {
                     // Quick pass.  Must all be assignment expressions.  Don't have to do any more analysis if we see anything beyond that.
                     if (!block.Statements.All(static s => s is ExpressionStatementSyntax { Expression: AssignmentExpressionSyntax }))
@@ -329,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     foreach (var statement in block.Statements)
                     {
                         if (statement is not ExpressionStatementSyntax { Expression: AssignmentExpressionSyntax assignmentExpression } ||
-                            !IsAssignmentToInstanceMember(assignmentExpression, out var member))
+                            !IsAssignmentToInstanceMember(semanticModel, assignmentExpression, out var member))
                         {
                             return false;
                         }
@@ -343,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 }
 
                 bool IsAssignmentToInstanceMember(
-                    AssignmentExpressionSyntax assignmentExpression, [NotNullWhen(true)] out ISymbol? member)
+                    SemanticModel semanticModel, AssignmentExpressionSyntax assignmentExpression, [NotNullWhen(true)] out ISymbol? member)
                 {
                     member = null;
 
