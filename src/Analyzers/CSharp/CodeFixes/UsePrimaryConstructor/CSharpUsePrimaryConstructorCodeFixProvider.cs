@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -171,9 +172,16 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                     constructorDeclaration.AttributeLists.Select(
                         a => a.WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.MethodKeyword))).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation)));
 
-                var parameterList = RemoveElementIndentation(
-                    typeDeclaration, constructorDeclaration, constructorDeclaration.ParameterList,
+                // When moving the parameter list from the constructor to the type, we will no longer have nested types
+                // in scope.  So rewrite references to them if that's the case.
+                var parameterList = UpdateReferencesToNestedTypes(constructorDeclaration.ParameterList);
+
+                parameterList = RemoveElementIndentation(
+                    typeDeclaration, constructorDeclaration, parameterList,
                     static list => list.Parameters);
+
+                parameterList = RemoveInModifierIfMemberIsRemoved(parameterList);
+
                 return currentTypeDeclaration
                     .WithLeadingTrivia(finalTrivia)
                     .WithAttributeLists(finalAttributeLists)
@@ -186,6 +194,46 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
             });
 
         return;
+
+        ParameterListSyntax RemoveInModifierIfMemberIsRemoved(ParameterListSyntax parameterList)
+        {
+            if (!removeMembers)
+                return parameterList;
+
+            return parameterList.ReplaceNodes(
+                parameterList.Parameters,
+                (_, current) =>
+                {
+                    var inKeyword = current.Modifiers.FirstOrDefault(t => t.Kind() == SyntaxKind.InKeyword);
+                    if (inKeyword == default)
+                        return current;
+
+                    // remove the 'in' modifier if we're removing the field.  Captures can't refer to an in-parameter.
+                    if (!properties.Values.Any(v => v == current.Identifier.ValueText))
+                        return current;
+
+                    return current.WithModifiers(current.Modifiers.Remove(inKeyword)).WithTriviaFrom(current);
+                });
+        }
+
+        ParameterListSyntax UpdateReferencesToNestedTypes(ParameterListSyntax parameterList)
+        {
+            return parameterList.ReplaceNodes(
+                parameterList.DescendantNodes().OfType<SimpleNameSyntax>(),
+                (typeSyntax, updatedTypeSyntax) =>
+                {
+                    // Don't have to update if the type is already qualified.
+                    if (typeSyntax.Parent is QualifiedNameSyntax qualifiedNameSyntax && qualifiedNameSyntax.Right == typeSyntax)
+                        return updatedTypeSyntax;
+
+                    var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
+                    if (typeSymbol is not INamedTypeSymbol { ContainingType: not null } || !namedType.Equals(typeSymbol.ContainingType.OriginalDefinition))
+                        return updatedTypeSyntax;
+
+                    // reference to a nested type in an unqualified fashion.  Have to qualify this.
+                    return QualifiedName(namedType.GenerateNameSyntax(), updatedTypeSyntax);
+                });
+        }
 
         static TListSyntax RemoveElementIndentation<TListSyntax>(
             TypeDeclarationSyntax typeDeclaration,
@@ -318,7 +366,8 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                     continue;
 
                 removedMembers[member] = nodeToRemove;
-                await ReplaceReferencesToMemberWithParameterAsync(member, parameterName).ConfigureAwait(false);
+                await ReplaceReferencesToMemberWithParameterAsync(
+                    member, CSharpSyntaxFacts.Instance.EscapeIdentifier(parameterName)).ConfigureAwait(false);
             }
 
             foreach (var group in removedMembers.Values.GroupBy(n => n.SyntaxTree))
@@ -345,7 +394,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
 
         async ValueTask ReplaceReferencesToMemberWithParameterAsync(ISymbol member, string parameterName)
         {
-            var parameterNameNode = IdentifierName(parameterName);
+            var parameterNameNode = IdentifierName(ParseToken(parameterName));
 
             // find all the references to member within this project.  We can immediately filter down just to the
             // documents containing our named type.
