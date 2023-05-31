@@ -501,23 +501,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundAssignmentOperator BindNamedAttributeArgument(AttributeArgumentSyntax namedArgument, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics)
         {
-            bool wasError;
-            LookupResultKind resultKind;
-            Symbol? namedArgumentNameSymbol;
+            Debug.Assert(namedArgument.NameEquals is not null);
+            IdentifierNameSyntax nameSyntax = namedArgument.NameEquals.Name;
 
             if (attributeType.IsErrorType())
             {
-                namedArgumentNameSymbol = null;
-                wasError = true;
-                resultKind = LookupResultKind.Empty;
-            }
-            else
-            {
-                namedArgumentNameSymbol = BindNamedAttributeArgumentName(namedArgument, attributeType, diagnostics, out wasError, out resultKind);
-                ReportDiagnosticsIfObsolete(diagnostics, namedArgumentNameSymbol, namedArgument, hasBaseReceiver: false);
+                var badLHS = BadExpression(nameSyntax, lookupResultKind: LookupResultKind.Empty);
+                var badRHS = this.BindValue(namedArgument.Expression, diagnostics, BindValueKind.RValue);
+                return new BoundAssignmentOperator(namedArgument, badLHS, badRHS, CreateErrorType());
             }
 
-            if (namedArgumentNameSymbol?.Kind == SymbolKind.Property)
+            bool wasError;
+            LookupResultKind resultKind;
+            Symbol namedArgumentNameSymbol = BindNamedAttributeArgumentName(namedArgument, attributeType, diagnostics, out wasError, out resultKind);
+            ReportDiagnosticsIfObsolete(diagnostics, namedArgumentNameSymbol, namedArgument, hasBaseReceiver: false);
+
+            if (namedArgumentNameSymbol.Kind == SymbolKind.Property)
             {
                 var propertySymbol = (PropertySymbol)namedArgumentNameSymbol;
                 var setMethod = propertySymbol.GetOwnOrInheritedSetMethod();
@@ -542,7 +541,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Debug.Assert(namedArgumentNameSymbol is not null);
                 namedArgumentType = BindNamedAttributeArgumentType(namedArgument, namedArgumentNameSymbol, attributeType, diagnostics);
             }
 
@@ -553,8 +551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // TODO: should we create an entry even if there are binding errors?
             var fieldSymbol = namedArgumentNameSymbol as FieldSymbol;
-            RoslynDebug.Assert(namedArgument.NameEquals is object);
-            IdentifierNameSyntax nameSyntax = namedArgument.NameEquals.Name;
             BoundExpression lvalue;
             if (fieldSymbol is object)
             {
