@@ -507,8 +507,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (attributeType.IsErrorType())
             {
                 var badLHS = BadExpression(nameSyntax, lookupResultKind: LookupResultKind.Empty);
-                var badRHS = this.BindValue(namedArgument.Expression, diagnostics, BindValueKind.RValue);
-                return new BoundAssignmentOperator(namedArgument, badLHS, badRHS, CreateErrorType());
+                var rhs = BindRValueWithoutTargetType(namedArgument.Expression, diagnostics);
+                return new BoundAssignmentOperator(namedArgument, badLHS, rhs, CreateErrorType());
             }
 
             bool wasError;
