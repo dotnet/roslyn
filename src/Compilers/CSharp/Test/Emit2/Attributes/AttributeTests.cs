@@ -11291,6 +11291,23 @@ class A<T> : System.Attribute
                 // [A<int*[]>] // 1
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 4));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68370")]
+        public void AvoidCascadingDiagnosticsOnMissingAttribute()
+        {
+            var source = @"
+[assembly: Inexistent(SomeProperty = 1, F = null)]
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,12): error CS0246: The type or namespace name 'InexistentAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [assembly: Inexistent(SomeProperty = 1, F = null)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Inexistent").WithArguments("InexistentAttribute").WithLocation(2, 12),
+                // (2,12): error CS0246: The type or namespace name 'Inexistent' could not be found (are you missing a using directive or an assembly reference?)
+                // [assembly: Inexistent(SomeProperty = 1, F = null)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Inexistent").WithArguments("Inexistent").WithLocation(2, 12)
+                );
+        }
         #endregion
     }
 }

@@ -503,11 +503,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool wasError;
             LookupResultKind resultKind;
-            Symbol namedArgumentNameSymbol = BindNamedAttributeArgumentName(namedArgument, attributeType, diagnostics, out wasError, out resultKind);
+            Symbol? namedArgumentNameSymbol;
 
-            ReportDiagnosticsIfObsolete(diagnostics, namedArgumentNameSymbol, namedArgument, hasBaseReceiver: false);
+            if (attributeType.IsErrorType())
+            {
+                namedArgumentNameSymbol = null;
+                wasError = true;
+                resultKind = LookupResultKind.Empty;
+            }
+            else
+            {
+                namedArgumentNameSymbol = BindNamedAttributeArgumentName(namedArgument, attributeType, diagnostics, out wasError, out resultKind);
+                ReportDiagnosticsIfObsolete(diagnostics, namedArgumentNameSymbol, namedArgument, hasBaseReceiver: false);
+            }
 
-            if (namedArgumentNameSymbol.Kind == SymbolKind.Property)
+            if (namedArgumentNameSymbol?.Kind == SymbolKind.Property)
             {
                 var propertySymbol = (PropertySymbol)namedArgumentNameSymbol;
                 var setMethod = propertySymbol.GetOwnOrInheritedSetMethod();
@@ -532,6 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                Debug.Assert(namedArgumentNameSymbol is not null);
                 namedArgumentType = BindNamedAttributeArgumentType(namedArgument, namedArgumentNameSymbol, attributeType, diagnostics);
             }
 
