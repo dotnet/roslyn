@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -132,8 +132,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Workspace = workspace;
         }
 
-        private IEditAndContinueWorkspaceService GetLocalService()
-            => Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        private IEditAndContinueService GetLocalService()
+            => Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         public async ValueTask<RemoteDebuggingSessionProxy?> StartDebuggingSessionAsync(
             Solution solution,

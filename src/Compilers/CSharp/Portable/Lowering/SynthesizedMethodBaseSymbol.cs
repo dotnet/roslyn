@@ -46,11 +46,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.MakeFlags(
                 methodKind: MethodKind.Ordinary,
+                refKind: baseMethod.RefKind,
                 declarationModifiers: declarationModifiers,
                 returnsVoid: baseMethod.ReturnsVoid,
+                // Consider synthesized methods to always have bodies.
+                hasAnyBody: true,
                 isExtensionMethod: false,
                 isNullableAnalysisEnabled: false,
-                isMetadataVirtualIgnoringModifiers: false);
+                isVarArg: baseMethod.IsVararg,
+                isMetadataVirtualIgnoringModifiers: false,
+                isExpressionBodied: false);
         }
 
         protected void AssignTypeMapAndTypeParameters(TypeMap typeMap, ImmutableArray<TypeParameterSymbol> typeParameters)
@@ -196,11 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable disable
 
-        public sealed override RefKind RefKind
-        {
-            get { return this.BaseMethod.RefKind; }
-        }
-
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnTypeWithAnnotations); }
@@ -212,11 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
-        public sealed override bool IsVararg
-        {
-            get { return this.BaseMethod.IsVararg; }
-        }
-
         public sealed override string Name
         {
             get { return _name; }
@@ -225,11 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool IsImplicitlyDeclared
         {
             get { return true; }
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get { return false; }
         }
     }
 }

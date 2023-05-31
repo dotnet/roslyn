@@ -35,6 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 (New WithExpressionRewriter(statementSyntax)).AnalyzeWithExpression(Me._currentMethodOrLambda,
                                                              rewrittenExpression,
                                                              doNotUseByRefLocal,
+                                                             isDraftRewrite:=False,
                                                              Nothing)
 
             RestoreUnstructuredExceptionHandlingContext(node, saveState)

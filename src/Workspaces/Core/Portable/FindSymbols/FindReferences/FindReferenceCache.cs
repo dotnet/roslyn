@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -70,6 +71,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             string identifier,
             CancellationToken cancellationToken)
         {
+            if (identifier == "")
+            {
+                // Certain symbols don't have a name, so we return without further searching since the text-based index
+                // and lookup never terminates if searching for an empty string.
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655431
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1744118
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1820930
+                return ImmutableArray<SyntaxToken>.Empty;
+            }
+
             // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
             // any unicode escapes in it, then we do simple string matching to find the tokens.
             var info = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
@@ -91,7 +102,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             else
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 return _identifierCache.GetOrAdd(identifier, _ => FindMatchingIdentifierTokensFromText(text));
             }
 

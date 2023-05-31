@@ -997,6 +997,30 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class SemanticModelAnalyzerWithId : DiagnosticAnalyzer
+        {
+            public SemanticModelAnalyzerWithId(string diagnosticId)
+            {
+                Descriptor = new DiagnosticDescriptor(
+                    diagnosticId,
+                    "Description1",
+                    string.Empty,
+                    "Analysis",
+                    DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context) =>
+                context.RegisterSemanticModelAction(context =>
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(Descriptor, context.SemanticModel.SyntaxTree.GetRoot().GetLocation())));
+        }
+
         /// <summary>
         /// This analyzer is intended to be used only when concurrent execution is enabled for analyzers.
         /// This analyzer will deadlock if the driver runs analyzers on a single thread OR takes a lock around callbacks into this analyzer to prevent concurrent analyzer execution
@@ -2069,6 +2093,42 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressorForMultipleIds : DiagnosticSuppressor
+        {
+            public DiagnosticSuppressorForMultipleIds(params string[] suppressedDiagnosticIds)
+            {
+                var builder = ImmutableArray.CreateBuilder<SuppressionDescriptor>();
+                int i = 1;
+                foreach (var suppressedDiagnosticId in suppressedDiagnosticIds)
+                {
+                    var descriptor = new SuppressionDescriptor(
+                        id: $"SPR000{i++}",
+                        suppressedDiagnosticId: suppressedDiagnosticId,
+                        justification: $"Suppress {suppressedDiagnosticId}");
+                    builder.Add(descriptor);
+                }
+
+                SupportedSuppressions = builder.ToImmutable();
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions { get; }
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    foreach (var suppressionDescriptor in SupportedSuppressions)
+                    {
+                        if (suppressionDescriptor.SuppressedDiagnosticId == diagnostic.Id)
+                        {
+                            context.ReportSuppression(Suppression.Create(suppressionDescriptor, diagnostic));
+                        }
+                    }
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class DiagnosticSuppressorForId_ThrowsOperationCancelledException : DiagnosticSuppressor
         {
             public CancellationTokenSource CancellationTokenSource { get; } = new CancellationTokenSource();
@@ -2881,6 +2941,41 @@ namespace Microsoft.CodeAnalysis
                         codeBlockStartContext.RegisterSyntaxNodeAction(syntaxNodeContext => AnalyzedSyntaxNodesInsideCodeBlock.Add(syntaxNodeContext.Node), SyntaxKind.LocalDeclarationStatement);
                         codeBlockStartContext.RegisterCodeBlockEndAction(codeBlockEndContext => AnalyzedCodeBlockEndSymbols.Add(codeBlockEndContext.OwningSymbol));
                     });
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public sealed class FilterSpanTestAnalyzer : DiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+                    "ID0001",
+                    "Title",
+                    "Message",
+                    "Category",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true);
+
+            private readonly bool _testSyntaxTreeAction;
+
+            public FilterSpanTestAnalyzer(bool testSyntaxTreeAction)
+            {
+                _testSyntaxTreeAction = testSyntaxTreeAction;
+            }
+
+            public TextSpan? CallbackFilterSpan { get; private set; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_testSyntaxTreeAction)
+                {
+                    context.RegisterSyntaxTreeAction(context => CallbackFilterSpan = context.FilterSpan);
+                }
+                else
+                {
+                    context.RegisterSemanticModelAction(context => CallbackFilterSpan = context.FilterSpan);
                 }
             }
         }

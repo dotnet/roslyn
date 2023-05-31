@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -144,7 +142,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // Local functions
             static async Task<char> GetInsertionCharacterAsync(Document document, int position, CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // We use 'position - 1' here since we want to find the character that was just inserted.
                 Contract.ThrowIfTrue(position < 1);
@@ -197,7 +195,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             => new LinePosition(position.Line, position.Character);
 
         public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
-            => new LinePositionSpan(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
+            => new(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
 
         public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
         {
@@ -209,10 +207,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 {
                     return text.Lines.GetTextSpan(linePositionSpan);
                 }
-                catch (ArgumentException)
+                catch (ArgumentException ex)
                 {
                     // Create a custom error for this so we can examine the data we're getting.
-                    throw new ArgumentException($"Range={RangeToString(range)}. text.Length={text.Length}. text.Lines.Count={text.Lines.Count}");
+                    throw new ArgumentException($"Range={RangeToString(range)}. text.Length={text.Length}. text.Lines.Count={text.Lines.Count}", ex);
                 }
             }
             // Temporary exception reporting to investigate https://github.com/dotnet/roslyn/issues/66258.
@@ -284,7 +282,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 var newDocument = getNewDocumentFunc(docId);
                 var oldDocument = getOldDocumentFunc(docId);
 
-                var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 ImmutableArray<TextChange> textChanges;
 
@@ -297,7 +295,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
                 else
                 {
-                    var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                     textChanges = newText.GetTextChanges(oldText).ToImmutableArray();
                 }
 
@@ -384,7 +382,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 if (uri == null)
                     return null;
 
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 if (isStale)
                 {
                     // in the case of a stale item, the span may be out of bounds of the document. Cap

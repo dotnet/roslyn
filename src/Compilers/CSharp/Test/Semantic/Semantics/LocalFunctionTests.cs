@@ -2382,16 +2382,16 @@ class C
             Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
 
             comp.VerifyDiagnostics(
-                // (8,37): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (8,37): error CS1637: Iterators cannot have pointer type parameters
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
-                // (17,41): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (17,41): error CS1637: Iterators cannot have pointer type parameters
                 //             IEnumerable<int> Local(int* x) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "x").WithLocation(17, 41),
-                // (27,37): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (27,37): error CS1637: Iterators cannot have pointer type parameters
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
-                // (33,44): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (33,44): error CS1637: Iterators cannot have pointer type parameters
                 //     public unsafe IEnumerable<int> M4(int* a)
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
                 // (33,36): error CS1629: Unsafe code may not appear in iterators
@@ -2406,7 +2406,7 @@ class C
                 // (39,17): error CS1629: Unsafe code may not appear in iterators
                 //                 Local(&x);
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17),
-                // (37,45): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (37,45): error CS1637: Iterators cannot have pointer type parameters
                 //                 IEnumerable<int> Local(int* b) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45));
         }

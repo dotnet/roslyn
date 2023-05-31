@@ -359,6 +359,18 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
+            public bool TryModifyEntries(ImmutableArray<T> outputs, IEqualityComparer<T> comparer, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState, out TableEntry entry)
+            {
+                if (!TryModifyEntries(outputs, comparer, elapsedTime, stepInputs, overallInputState))
+                {
+                    entry = default;
+                    return false;
+                }
+
+                entry = _states[^1];
+                return true;
+            }
+
             public void AddEntry(T value, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
                 _states.Add(new TableEntry(OneOrMany.Create(value), state));
@@ -411,7 +423,7 @@ namespace Microsoft.CodeAnalysis
                     (EntryState.Cached, EntryState.Cached) => IncrementalStepRunReason.Cached,
                     (EntryState.Removed, EntryState.Removed) => IncrementalStepRunReason.Removed,
                     (EntryState.Modified, EntryState.Removed) => IncrementalStepRunReason.Removed,
-                    (EntryState.Modified, EntryState.Added) => IncrementalStepRunReason.Modified,
+                    (EntryState.Modified, EntryState.Added) => IncrementalStepRunReason.New,
                     _ => throw ExceptionUtilities.UnexpectedValue((inputState, outputState))
                 };
             }
