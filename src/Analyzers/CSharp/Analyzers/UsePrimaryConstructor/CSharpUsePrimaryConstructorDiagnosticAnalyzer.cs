@@ -240,11 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 if (analyzer.HasCandidateMembersToRemove)
                     context.RegisterOperationAction(analyzer.AnalyzeFieldOrPropertyReference, OperationKind.FieldReference, OperationKind.PropertyReference);
 
-                context.RegisterSymbolEndAction(context =>
-                {
-                    analyzer.OnSymbolEnd(context);
-                    namedTypeToAnalyzer.TryRemove(namedType, out _);
-                });
+                context.RegisterSymbolEndAction(analyzer.OnSymbolEnd);
 
                 return;
 
