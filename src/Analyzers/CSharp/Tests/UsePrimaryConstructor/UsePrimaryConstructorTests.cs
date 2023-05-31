@@ -2499,4 +2499,56 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestInParameter1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int i;
+
+                    public [|C|](in int i)
+                    {
+                        this.i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(in int i)
+                {
+                    private int i = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInParameter2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int i;
+
+                    public [|C|](in int i)
+                    {
+                        this.i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i)
+                {
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }

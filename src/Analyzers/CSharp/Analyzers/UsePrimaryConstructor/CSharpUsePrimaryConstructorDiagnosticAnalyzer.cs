@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                         .Where(kvp => !_membersThatCannotBeRemoved.Contains(kvp.Key))
                         .ToImmutableDictionary(
                             static kvp => kvp.Key.Name,
-                            static kvp => (string?)CSharpSyntaxFacts.Instance.EscapeIdentifier(kvp.Value.Name));
+                            static kvp => (string?)kvp.Value.Name);
 
                     // To provide better user-facing-strings, keep track of whether or not all the members we'd be
                     // removing are all fields or all properties.
@@ -239,6 +239,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     return;
 
                 if (primaryConstructorDeclaration.Parent is not TypeDeclarationSyntax)
+                    return;
+
+                if (primaryConstructor.Parameters.Any(static p => p.RefKind is RefKind.Ref or RefKind.Out))
                     return;
 
                 // Now ensure the constructor body is something that could be converted to a primary constructor (i.e.

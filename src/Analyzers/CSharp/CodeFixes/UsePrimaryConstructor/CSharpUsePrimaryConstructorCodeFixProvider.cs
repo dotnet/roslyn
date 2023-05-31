@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -178,6 +179,9 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                 parameterList = RemoveElementIndentation(
                     typeDeclaration, constructorDeclaration, parameterList,
                     static list => list.Parameters);
+
+                parameterList = RemoveInModifierIfMemberIsRemoved(parameterList);
+
                 return currentTypeDeclaration
                     .WithLeadingTrivia(finalTrivia)
                     .WithAttributeLists(finalAttributeLists)
@@ -190,6 +194,27 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
             });
 
         return;
+
+        ParameterListSyntax RemoveInModifierIfMemberIsRemoved(ParameterListSyntax parameterList)
+        {
+            if (!removeMembers)
+                return parameterList;
+
+            return parameterList.ReplaceNodes(
+                parameterList.Parameters,
+                (_, current) =>
+                {
+                    var inKeyword = current.Modifiers.FirstOrDefault(t => t.Kind() == SyntaxKind.InKeyword);
+                    if (inKeyword == default)
+                        return current;
+
+                    // remove the 'in' modifier if we're removing the field.  Captures can't refer to an in-parameter.
+                    if (!properties.Values.Any(v => v == current.Identifier.ValueText))
+                        return current;
+
+                    return current.WithModifiers(current.Modifiers.Remove(inKeyword)).WithTriviaFrom(current);
+                });
+        }
 
         ParameterListSyntax UpdateReferencesToNestedTypes(ParameterListSyntax parameterList)
         {
@@ -341,7 +366,8 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                     continue;
 
                 removedMembers[member] = nodeToRemove;
-                await ReplaceReferencesToMemberWithParameterAsync(member, parameterName).ConfigureAwait(false);
+                await ReplaceReferencesToMemberWithParameterAsync(
+                    member, CSharpSyntaxFacts.Instance.EscapeIdentifier(parameterName)).ConfigureAwait(false);
             }
 
             foreach (var group in removedMembers.Values.GroupBy(n => n.SyntaxTree))
