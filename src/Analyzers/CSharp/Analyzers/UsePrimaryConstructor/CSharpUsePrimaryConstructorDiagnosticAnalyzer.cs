@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 _candidateMembersToRemove = candidateMembersToRemove;
                 _namedTypeToAnalyzer = namedTypeToAnalyzer;
 
-                namedTypeToAnalyzer.TryAdd(primaryConstructor.ContainingType.OriginalDefinition, this);
+                namedTypeToAnalyzer.TryAdd(primaryConstructor.ContainingType, this);
             }
 
             public bool HasCandidateMembersToRemove => _candidateMembersToRemove.Count > 0;
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 _candidateMembersToRemove.Free();
                 s_concurrentSetPool.ClearAndFree(_membersThatCannotBeRemoved);
 
-                _namedTypeToAnalyzer.TryRemove(_primaryConstructor.ContainingType.OriginalDefinition, out _);
+                _namedTypeToAnalyzer.TryRemove(_primaryConstructor.ContainingType, out _);
             }
 
             public static void AnalyzeNamedTypeStart(
