@@ -255,14 +255,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 }
 
                 var analyzer = new Analyzer(diagnosticAnalyzer, styleOption, primaryConstructor, primaryConstructorDeclaration, candidateMembersToRemove);
-                context.RegisterSymbolEndAction(analyzer.OnSymbolEnd);
 
                 // Look to see if we have trivial `_x = x` or `this.x = x` assignments.  If so, then the field/prop
                 // could be a candidate for removal (as long as we determine that all use sites of the field/prop would
-                // be able to use the captured primary constructor parameter.
+                // be able to use the captured primary constructor parameter).
 
                 if (candidateMembersToRemove.Count > 0)
                     context.RegisterOperationAction(analyzer.AnalyzeFieldOrPropertyReference, OperationKind.FieldReference, OperationKind.PropertyReference);
+
+                context.RegisterSymbolEndAction(analyzer.OnSymbolEnd);
 
                 return;
 
