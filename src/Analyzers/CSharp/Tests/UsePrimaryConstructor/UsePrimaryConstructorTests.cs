@@ -2478,4 +2478,25 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestNotWithNonAutoProperty()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // Can't assign a primary constructor parameter to a non-auto property.
+                    private int I { get { return 0; } set { } }
+
+                    public C(int i)
+                    {
+                        this.I = i;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }

@@ -108,6 +108,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             if (nodeToRemove is not VariableDeclaratorSyntax and not PropertyDeclarationSyntax)
                 return false;
 
+            // If it's a property, then it has to be an auto property in order for us to be able to initialize is
+            // directly outside of a constructor.
+            if (nodeToRemove is PropertyDeclarationSyntax property)
+            {
+                if (property.AccessorList is null ||
+                    property.AccessorList.Accessors.Any(static a => a.ExpressionBody != null || a.Body != null))
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
