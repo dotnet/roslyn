@@ -65,11 +65,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 // If these are navbars for a file that isn't even visible, then avoid doing any unnecessary computation
                 // work until far in the future (or if visibility changes).  This ensures our non-visible docs do settle
                 // once enough time has passed, while greatly reducing their impact on the system.
+                //
+                // Use NoThrow as this is a high source of cancellation exceptions.  This avoids the exception and instead
+                // bails gracefully by checking below.
                 await _visibilityTracker.DelayWhileNonVisibleAsync(
-                    _threadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
+                    _threadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(false);
 
-                // DelayWhileNonVisibleAsync returns-early (but doesn't throw) in the event of cancellation.
-                // Gracefully bail out here to avoid excess cancellation exceptions from being thrown.
                 if (cancellationToken.IsCancellationRequested)
                     return null;
 

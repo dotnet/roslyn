@@ -39,46 +39,69 @@ namespace Microsoft.CodeAnalysis.Workspaces
     {
         /// <summary>
         /// Waits the specified amount of time while the specified <paramref name="subjectBuffer"/> is not visible.  If
-        /// any document visibility changes happen, the delay will cancel. Note: in the event of cancellation, the
-        /// returned task will transition to the <see cref="TaskStatus.RanToCompletion"/> state not the <see
-        /// cref="TaskStatus.Canceled"/> state. This is to prevent excess exception throws in the common case of
-        /// cancellation.  Callers should check if they are canceled after this returns and bail out gracefully.
+        /// any document visibility changes happen, the delay will cancel.
         /// </summary>
-        public static async Task DelayWhileNonVisibleAsync(
+        public static Task DelayWhileNonVisibleAsync(
             this ITextBufferVisibilityTracker? service,
             IThreadingContext threadingContext,
             ITextBuffer subjectBuffer,
             TimeSpan timeSpan,
             CancellationToken cancellationToken)
         {
-            // Only add a delay if we have access to a service that will tell us when the buffer become visible or not.
-            if (service is null)
-                return;
-
-            if (cancellationToken.IsCancellationRequested)
-                return;
-
-            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            if (service.IsVisible(subjectBuffer))
-                return;
-
-            // ensure we listen for visibility changes before checking.  That way we don't have a race where we check
-            // something see it is not visible, but then do not hear about its visibility change because we've hooked up
-            // our event after that happens.
-            var visibilityChangedTaskSource = new TaskCompletionSource<bool>();
-            var callback = void () => visibilityChangedTaskSource.TrySetResult(true);
-            service.RegisterForVisibilityChanges(subjectBuffer, callback);
-
-            try
+            var completionSource = new TaskCompletionSource<bool>();
+            var underlyingTask = DelayWhileNonVisibleWorkerAsync();
+            underlyingTask.ContinueWith(task =>
             {
-                // Listen to when the active document changed so that we startup work on a document once it becomes visible.
-                var delayTask = Task.Delay(timeSpan, cancellationToken);
-                await Task.WhenAny(delayTask, visibilityChangedTaskSource.Task).NoThrowAwaitable(captureContext: false);
-            }
-            finally
+                if (cancellationToken.IsCancellationRequested || task.IsCanceled)
+                {
+                    completionSource.TrySetCanceled(cancellationToken);
+                }
+                else if (task.IsFaulted)
+                {
+                    completionSource.TrySetException(task.Exception);
+                }
+                else
+                {
+                    completionSource.TrySetResult(true);
+                }
+            }, cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
+            return completionSource.Task;
+
+            // Normal delay logic, except that this does not throw in the event of cancellation, but instead returns 
+            // gracefully.  The above task continuation logic then ensures we return a canceled task without needing
+            // exceptions.
+            async Task DelayWhileNonVisibleWorkerAsync()
             {
+                // Only add a delay if we have access to a service that will tell us when the buffer become visible or not.
+                if (service is null)
+                    return;
+
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                service.UnregisterForVisibilityChanges(subjectBuffer, callback);
+                if (service.IsVisible(subjectBuffer))
+                    return;
+
+                // ensure we listen for visibility changes before checking.  That way we don't have a race where we check
+                // something see it is not visible, but then do not hear about its visibility change because we've hooked up
+                // our event after that happens.
+                var visibilityChangedTaskSource = new TaskCompletionSource<bool>();
+                var callback = void () => visibilityChangedTaskSource.TrySetResult(true);
+                service.RegisterForVisibilityChanges(subjectBuffer, callback);
+
+                try
+                {
+                    // Listen to when the active document changed so that we startup work on a document once it becomes visible.
+                    var delayTask = Task.Delay(timeSpan, cancellationToken);
+                    await Task.WhenAny(delayTask, visibilityChangedTaskSource.Task).NoThrowAwaitable(captureContext: false);
+                }
+                finally
+                {
+                    await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    service.UnregisterForVisibilityChanges(subjectBuffer, callback);
+                }
             }
         }
     }

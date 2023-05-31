@@ -204,11 +204,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // possible.
                 if (!highPriority)
                 {
+                    // Use NoThrow as this is a high source of cancellation exceptions.  This avoids the exception and instead
+                    // bails gracefully by checking below.
                     await _visibilityTracker.DelayWhileNonVisibleAsync(
-                        _dataSource.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(true);
+                        _dataSource.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(captureContext: true);
 
-                    // DelayWhileNonVisibleAsync returns-early (but doesn't throw) in the event of cancellation.
-                    // Gracefully bail out here to avoid excess cancellation exceptions from being thrown.
                     if (cancellationToken.IsCancellationRequested)
                         return;
                 }
