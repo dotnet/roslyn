@@ -155,7 +155,7 @@
   <!--
     Generates a .pkgdef file based on items in PkgDef* groups.
   -->
-  <Target Name="GeneratePkgDef"          
+  <Target Name="GeneratePkgDef"
           DependsOnTargets="$(GeneratePkgDefDependsOn);_SetGeneratePkgDefInputsOutputs"
           Inputs="$(MSBuildAllProjects);@(PkgDefFileContent)"
           Outputs="$(_GeneratePkgDefOutputFile)">
