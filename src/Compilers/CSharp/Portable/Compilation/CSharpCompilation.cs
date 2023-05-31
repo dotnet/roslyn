@@ -3392,7 +3392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override void VisitNamedType(NamedTypeSymbol symbol)
             {
                 Debug.Assert(symbol.ContainingSymbol.Kind == SymbolKind.Namespace); // avoid unnecessary traversal of nested types
-                if (symbol.AssociatedFileIdentifier is not null)
+                if (symbol.IsFileLocal)
                 {
                     var location = symbol.GetFirstLocation();
                     var filePath = location.SourceTree?.FilePath;

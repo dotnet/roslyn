@@ -495,6 +495,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal abstract bool IsFileLocal { get; }
+
         /// <summary>
         /// If this type is a file-local type, returns an identifier for the file this type was declared in. Otherwise, returns null.
         /// </summary>

@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool MangleName => Arity > 0;
 
 #nullable enable
+        internal sealed override bool IsFileLocal => false;
         internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
 #nullable disable
 
