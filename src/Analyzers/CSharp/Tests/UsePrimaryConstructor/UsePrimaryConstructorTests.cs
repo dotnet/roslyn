@@ -740,6 +740,7 @@ public partial class UsePrimaryConstructorTests
     [Fact]
     public async Task TestDoNotRemoveMembersUsedInNestedTypes()
     {
+        // Ensure nested types work.
         await new VerifyCS.Test
         {
             TestCode = """
