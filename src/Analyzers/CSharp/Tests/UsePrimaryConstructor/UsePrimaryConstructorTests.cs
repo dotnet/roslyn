@@ -738,6 +738,68 @@ public partial class UsePrimaryConstructorTests
     }
 
     [Fact]
+    public async Task TestDoNotRemoveMembersUsedInNestedTypes()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    private int _i;
+                    private int _j;
+
+                    public [|C|](int i, int j)
+                    {
+                        _i = i;
+                        _j = j;
+                    }
+
+                    public struct Enumerator
+                    {
+                        private int _i;
+
+                        public Enumerator(C c)
+                        {
+                            _i = c._i;
+                            Console.WriteLine(c);
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    private int I { get; }
+                    private int J { get; }
+                
+                    public C(int i, int j)
+                    {
+                        this.I = i;
+                        this.J = j;
+                    }
+                
+                    public struct Enumerator
+                    {
+                        private int _i;
+                
+                        public Enumerator(C c)
+                        {
+                            _i = c.I;
+                            Console.WriteLine(c);
+                        }
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestRemoveMembersUpdateReferences1()
     {
         await new VerifyCS.Test
