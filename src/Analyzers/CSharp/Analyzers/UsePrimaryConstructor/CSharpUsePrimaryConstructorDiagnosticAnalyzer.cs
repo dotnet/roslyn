@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
                 // Mapping from a named type to a particular analyzer we have created for it. Needed because nested
                 // types need to update the information for their containing types while they themselves are being
-                // analyzed.  Specifically, 
+                // analyzed.  Specifically, we need to look for 
                 var namedTypeToAnalyzer = new ConcurrentDictionary<INamedTypeSymbol, Analyzer>();
                 context.RegisterSymbolStartAction(context => Analyzer.AnalyzeNamedTypeStart(this, context, namedTypeToAnalyzer), SymbolKind.NamedType);
             });
@@ -216,7 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 // If any of our containing types are being analyzed, then register to tell it about field/prop refs within this nested type.
                 for (var currentType = namedType.ContainingType; currentType != null; currentType = currentType.ContainingType)
                 {
-                    if (namedTypeToAnalyzer.TryGetValue(currentType, out var containingTypeAnalyzer))
+                    if (namedTypeToAnalyzer.TryGetValue(currentType, out var containingTypeAnalyzer) &&
+                        containingTypeAnalyzer.HasCandidateMembersToRemove)
                     {
                         context.RegisterOperationAction(
                             containingTypeAnalyzer.AnalyzeFieldOrPropertyReference, OperationKind.FieldReference, OperationKind.PropertyReference);
