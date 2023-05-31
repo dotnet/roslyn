@@ -737,7 +737,7 @@ public partial class UsePrimaryConstructorTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact(Skip = "Currently broken due to nested type IOp callbacks not running")]
     public async Task TestDoNotRemoveMembersUsedInNestedTypes()
     {
         await new VerifyCS.Test
