@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             private readonly ConstructorDeclarationSyntax _primaryConstructorDeclaration;
 
             private readonly PooledDictionary<ISymbol, IParameterSymbol> _candidateMembersToRemove;
+            private readonly ConcurrentDictionary<INamedTypeSymbol, Analyzer> _namedTypeToAnalyzer;
 
             /// <summary>
             /// Needs to be concurrent as we can process members in parallel in <see
@@ -152,53 +153,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 CodeStyleOption2<bool> styleOption,
                 IMethodSymbol primaryConstructor,
                 ConstructorDeclarationSyntax primaryConstructorDeclaration,
-                PooledDictionary<ISymbol, IParameterSymbol> candidateMembersToRemove)
+                PooledDictionary<ISymbol, IParameterSymbol> candidateMembersToRemove,
+                ConcurrentDictionary<INamedTypeSymbol, Analyzer> namedTypeToAnalyzer)
             {
                 _diagnosticAnalyzer = diagnosticAnalyzer;
                 _styleOption = styleOption;
                 _primaryConstructor = primaryConstructor;
                 _primaryConstructorDeclaration = primaryConstructorDeclaration;
                 _candidateMembersToRemove = candidateMembersToRemove;
+                _namedTypeToAnalyzer = namedTypeToAnalyzer;
+
+                namedTypeToAnalyzer.TryAdd(primaryConstructor.ContainingType.OriginalDefinition, this);
             }
 
             public bool HasCandidateMembersToRemove => _candidateMembersToRemove.Count > 0;
 
             private void OnSymbolEnd(SymbolAnalysisContext context)
             {
-                // See if the constructor analysis found a viable constructor to convert to a primary constructor.
-                if (_primaryConstructor is not null)
+                // Pass along a mapping of field/property name to the constructor parameter name that will replace it.
+                var properties = _candidateMembersToRemove
+                    .Where(kvp => !_membersThatCannotBeRemoved.Contains(kvp.Key))
+                    .ToImmutableDictionary(
+                        static kvp => kvp.Key.Name,
+                        static kvp => (string?)kvp.Value.Name);
+
+                // To provide better user-facing-strings, keep track of whether or not all the members we'd be
+                // removing are all fields or all properties.
+                if (_candidateMembersToRemove.Any(kvp => kvp.Key is IFieldSymbol) &&
+                    _candidateMembersToRemove.All(kvp => kvp.Key is IFieldSymbol))
                 {
-                    // Pass along a mapping of field/property name to the constructor parameter name that will replace it.
-                    var properties = _candidateMembersToRemove
-                        .Where(kvp => !_membersThatCannotBeRemoved.Contains(kvp.Key))
-                        .ToImmutableDictionary(
-                            static kvp => kvp.Key.Name,
-                            static kvp => (string?)kvp.Value.Name);
-
-                    // To provide better user-facing-strings, keep track of whether or not all the members we'd be
-                    // removing are all fields or all properties.
-                    if (_candidateMembersToRemove.Any(kvp => kvp.Key is IFieldSymbol) &&
-                        _candidateMembersToRemove.All(kvp => kvp.Key is IFieldSymbol))
-                    {
-                        properties = properties.Add(AllFieldsName, AllFieldsName);
-                    }
-                    else if (
-                        _candidateMembersToRemove.Any(kvp => kvp.Key is IPropertySymbol) &&
-                        _candidateMembersToRemove.All(kvp => kvp.Key is IPropertySymbol))
-                    {
-                        properties = properties.Add(AllPropertiesName, AllPropertiesName);
-                    }
-
-                    context.ReportDiagnostic(DiagnosticHelper.Create(
-                        _diagnosticAnalyzer.Descriptor,
-                        _primaryConstructorDeclaration.Identifier.GetLocation(),
-                        _styleOption.Notification.Severity,
-                        ImmutableArray.Create(_primaryConstructorDeclaration.GetLocation()),
-                        properties));
+                    properties = properties.Add(AllFieldsName, AllFieldsName);
                 }
+                else if (
+                    _candidateMembersToRemove.Any(kvp => kvp.Key is IPropertySymbol) &&
+                    _candidateMembersToRemove.All(kvp => kvp.Key is IPropertySymbol))
+                {
+                    properties = properties.Add(AllPropertiesName, AllPropertiesName);
+                }
+
+                context.ReportDiagnostic(DiagnosticHelper.Create(
+                    _diagnosticAnalyzer.Descriptor,
+                    _primaryConstructorDeclaration.Identifier.GetLocation(),
+                    _styleOption.Notification.Severity,
+                    ImmutableArray.Create(_primaryConstructorDeclaration.GetLocation()),
+                    properties));
 
                 _candidateMembersToRemove.Free();
                 s_concurrentSetPool.ClearAndFree(_membersThatCannotBeRemoved);
+
+                _namedTypeToAnalyzer.TryRemove(_primaryConstructor.ContainingType.OriginalDefinition, out _);
             }
 
             public static void AnalyzeNamedTypeStart(
@@ -213,43 +216,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 var namedType = (INamedTypeSymbol)context.Symbol;
                 var options = context.Options;
 
-                // If any of our containing types are being analyzed, then register to tell it about field/prop refs within this nested type.
-                for (var currentType = namedType.ContainingType; currentType != null; currentType = currentType.ContainingType)
-                {
-                    if (namedTypeToAnalyzer.TryGetValue(currentType, out var containingTypeAnalyzer) &&
-                        containingTypeAnalyzer.HasCandidateMembersToRemove)
-                    {
-                        context.RegisterOperationAction(
-                            containingTypeAnalyzer.AnalyzeFieldOrPropertyReference, OperationKind.FieldReference, OperationKind.PropertyReference);
-                    }
-                }
-
                 var candidateMembersToRemove = PooledDictionary<ISymbol, IParameterSymbol>.GetInstance();
-                if (!TryCreateAnalyzer(
-                        compilation, namedType, options, cancellationToken, out var analyzer))
+                if (!TryCreateAnalyzer(out var analyzer))
                 {
                     candidateMembersToRemove.Free();
-                    return;
+
+                    // We're not analyzing this type itself.  But we still need to hear about field/property references
+                    // within it if it's a nested type and one of its containers is a type we're analyzing.
+
+                    for (var currentType = namedType.ContainingType; currentType != null; currentType = currentType.ContainingType)
+                    {
+                        if (namedTypeToAnalyzer.TryGetValue(currentType, out var containingTypeAnalyzer))
+                            RegisterFieldOrPropertyAnalysisIfNecessary(containingTypeAnalyzer);
+                    }
                 }
+                else
+                {
+                    // Look to see if we have trivial `_x = x` or `this.x = x` assignments.  If so, then the field/prop
+                    // could be a candidate for removal (as long as we determine that all use sites of the field/prop would
+                    // be able to use the captured primary constructor parameter).
+                    RegisterFieldOrPropertyAnalysisIfNecessary(analyzer);
 
-                namedTypeToAnalyzer.TryAdd(namedType, analyzer);
-
-                // Look to see if we have trivial `_x = x` or `this.x = x` assignments.  If so, then the field/prop
-                // could be a candidate for removal (as long as we determine that all use sites of the field/prop would
-                // be able to use the captured primary constructor parameter).
-                if (analyzer.HasCandidateMembersToRemove)
-                    context.RegisterOperationAction(analyzer.AnalyzeFieldOrPropertyReference, OperationKind.FieldReference, OperationKind.PropertyReference);
-
-                context.RegisterSymbolEndAction(analyzer.OnSymbolEnd);
+                    context.RegisterSymbolEndAction(analyzer.OnSymbolEnd);
+                }
 
                 return;
 
-                bool TryCreateAnalyzer(
-                    Compilation compilation,
-                    INamedTypeSymbol namedType,
-                    AnalyzerOptions options,
-                    CancellationToken cancellationToken,
-                    [NotNullWhen(true)] out Analyzer? analyzer)
+                void RegisterFieldOrPropertyAnalysisIfNecessary(Analyzer analyzer)
+                {
+                    if (analyzer.HasCandidateMembersToRemove)
+                    {
+                        context.RegisterOperationAction(
+                            context => AnalyzeFieldOrPropertyReference(context, namedTypeToAnalyzer),
+                            OperationKind.FieldReference, OperationKind.PropertyReference);
+                    }
+                }
+
+                bool TryCreateAnalyzer([NotNullWhen(true)] out Analyzer? analyzer)
                 {
                     analyzer = null;
 
@@ -301,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     if (!AnalyzeConstructorBody(primaryConstructorDeclaration))
                         return false;
 
-                    analyzer = new Analyzer(diagnosticAnalyzer, styleOption, primaryConstructor, primaryConstructorDeclaration, candidateMembersToRemove);
+                    analyzer = new Analyzer(diagnosticAnalyzer, styleOption, primaryConstructor, primaryConstructorDeclaration, candidateMembersToRemove, namedTypeToAnalyzer);
                     return true;
                 }
 
@@ -436,27 +439,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 }
             }
 
-            private void AnalyzeFieldOrPropertyReference(OperationAnalysisContext context)
+            private static void AnalyzeFieldOrPropertyReference(OperationAnalysisContext context, ConcurrentDictionary<INamedTypeSymbol, Analyzer> namedTypeToAnalyzer)
             {
                 var operation = (IMemberReferenceOperation)context.Operation;
                 var semanticModel = operation.SemanticModel;
                 Contract.ThrowIfNull(semanticModel);
 
-                var member = operation.Member.OriginalDefinition;
                 var instance = operation.Instance;
 
                 // static field/property.  not something we're interested in.
                 if (instance is null)
                     return;
 
+                var member = operation.Member.OriginalDefinition;
+                var namedType = member.ContainingType.OriginalDefinition;
+
+                // See if this is field/prop access on a named type that we're analyzing.
+                if (!namedTypeToAnalyzer.TryGetValue(namedType, out var analyzer))
+                    return;
+
+                // Don't need to analyze this again, if it's already in the list of members we can't remove.
+                if (analyzer._membersThatCannotBeRemoved.Contains(member))
+                    return;
+
                 // we only care about reference to members in our candidate-removal set.  Can ignore everything else.
-                if (!_candidateMembersToRemove.TryGetValue(member, out var parameter))
+                if (!analyzer._candidateMembersToRemove.TryGetValue(member, out var parameter))
                     return;
 
                 // not a reference off of 'this'.  e.g. `== other.fieldName`, we could not remove this member.
                 if (instance is not IInstanceReferenceOperation)
                 {
-                    _membersThatCannotBeRemoved.Add(member);
+                    analyzer._membersThatCannotBeRemoved.Add(member);
                     return;
                 }
 
@@ -465,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 var symbols = semanticModel.LookupSymbols(operation.Syntax.SpanStart, name: parameter.Name);
                 if (symbols.Any(s => !Equals(s, parameter) && !Equals(s, member)))
                 {
-                    _membersThatCannotBeRemoved.Add(member);
+                    analyzer._membersThatCannotBeRemoved.Add(member);
                     return;
                 }
 
