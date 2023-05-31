@@ -94,11 +94,10 @@ namespace Microsoft.CodeAnalysis.Workspaces
                 {
                     // Listen to when the active document changed so that we startup work on a document once it becomes visible.
                     var delayTask = Task.Delay(timeSpan, cancellationToken);
-                    await Task.WhenAny(delayTask, visibilityChangedTaskSource.Task).NoThrowAwaitable(captureContext: false);
+                    await Task.WhenAny(delayTask, visibilityChangedTaskSource.Task).NoThrowAwaitable(captureContext: true);
                 }
                 finally
                 {
-                    await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     service.UnregisterForVisibilityChanges(subjectBuffer, callback);
                 }
             }
