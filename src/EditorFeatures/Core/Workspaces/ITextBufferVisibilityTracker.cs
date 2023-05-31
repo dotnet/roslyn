@@ -49,10 +49,9 @@ namespace Microsoft.CodeAnalysis.Workspaces
             CancellationToken cancellationToken)
         {
             var completionSource = new TaskCompletionSource<bool>();
-            var underlyingTask = DelayWhileNonVisibleWorkerAsync();
-            underlyingTask.ContinueWith(task =>
+            DelayWhileNonVisibleWorkerAsync().ContinueWith(task =>
             {
-                if (cancellationToken.IsCancellationRequested || task.IsCanceled)
+                if (cancellationToken.IsCancellationRequested)
                 {
                     completionSource.TrySetCanceled(cancellationToken);
                 }
