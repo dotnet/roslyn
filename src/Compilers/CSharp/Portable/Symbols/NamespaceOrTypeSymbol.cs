@@ -153,7 +153,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>An ImmutableArray containing all the types that are members of this symbol with the given name.
         /// If this symbol has no type members with this name,
         /// returns an empty ImmutableArray. Never returns null.</returns>
-        public abstract ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name);
+        public ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+            => GetTypeMembers(name.AsMemory());
 
         /// <summary>
         /// Get all the members of this symbol that are types that have a particular name and arity
@@ -161,11 +162,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>An IEnumerable containing all the types that are members of this symbol with the given name and arity.
         /// If this symbol has no type members with this name and arity,
         /// returns an empty IEnumerable. Never returns null.</returns>
-        public virtual ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+            => GetTypeMembers(name.AsMemory(), arity);
+
+        /// <inheritdoc cref="GetTypeMembers(string)"/>
+        public abstract ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name);
+
+        /// <inheritdoc cref="GetTypeMembers(string, int)"/>
+        public virtual ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             // default implementation does a post-filter. We can override this if its a performance burden, but 
             // experience is that it won't be.
-            return GetTypeMembers(name).WhereAsArray((t, arity) => t.Arity == arity, arity);
+            return GetTypeMembers(name).WhereAsArray(static (t, arity) => t.Arity == arity, arity);
         }
 
         /// <summary>
@@ -266,9 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (emittedTypeName.ForcedArity == -1 || emittedTypeName.ForcedArity == emittedTypeName.InferredArity)
                 {
                     // Let's handle mangling case first.
-                    namespaceOrTypeMembers = isTopLevel
-                        ? ((NamespaceSymbol)scope).GetTypeMembers(emittedTypeName.UnmangledTypeNameMemory)
-                        : ((NamedTypeSymbol)scope).GetTypeMembers(emittedTypeName.UnmangledTypeNameMemory);
+                    namespaceOrTypeMembers = scope.GetTypeMembers(emittedTypeName.UnmangledTypeNameMemory);
 
                     foreach (var named in namespaceOrTypeMembers)
                     {
@@ -316,9 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            namespaceOrTypeMembers = isTopLevel
-                ? ((NamespaceSymbol)scope).GetTypeMembers(emittedTypeName.TypeNameMemory)
-                : ((NamedTypeSymbol)scope).GetTypeMembers(emittedTypeName.TypeNameMemory);
+            namespaceOrTypeMembers = scope.GetTypeMembers(emittedTypeName.TypeNameMemory);
 
             foreach (var named in namespaceOrTypeMembers)
             {
