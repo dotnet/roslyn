@@ -483,7 +483,7 @@ ExitDecodeTypeName:
             return InferTypeArityFromMetadataName(emittedTypeName, out suffixStartsAt);
         }
 
-        private static short InferTypeArityFromMetadataName(string emittedTypeName, out int suffixStartsAt)
+        private static short InferTypeArityFromMetadataName(ReadOnlySpan<char> emittedTypeName, out int suffixStartsAt)
         {
             Debug.Assert(emittedTypeName != null, "NULL actual name unexpected!!!");
             int emittedTypeNameLength = emittedTypeName.Length;
@@ -507,7 +507,7 @@ ExitDecodeTypeName:
 
             // Given a name corresponding to <unmangledName>`<arity>,
             // extract the arity.
-            string stringRepresentingArity = emittedTypeName.Substring(indexOfManglingChar);
+            var stringRepresentingArity = emittedTypeName.Slice(indexOfManglingChar);
 
             int arity;
             bool nonNumericCharFound = !int.TryParse(stringRepresentingArity, NumberStyles.None, CultureInfo.InvariantCulture, out arity);
@@ -525,8 +525,14 @@ ExitDecodeTypeName:
 
         internal static string InferTypeArityAndUnmangleMetadataName(string emittedTypeName, out short arity)
         {
+            var resultMemory = InferTypeArityAndUnmangleMetadataName(emittedTypeName.AsMemory(), out arity);
+            return resultMemory.ToString();
+        }
+
+        internal static ReadOnlyMemory<char> InferTypeArityAndUnmangleMetadataName(ReadOnlyMemory<char> emittedTypeName, out short arity)
+        {
             int suffixStartsAt;
-            arity = InferTypeArityFromMetadataName(emittedTypeName, out suffixStartsAt);
+            arity = InferTypeArityFromMetadataName(emittedTypeName.Span, out suffixStartsAt);
 
             if (arity == 0)
             {
@@ -535,7 +541,7 @@ ExitDecodeTypeName:
             }
 
             Debug.Assert(suffixStartsAt > 0 && suffixStartsAt < emittedTypeName.Length - 1);
-            return emittedTypeName.Substring(0, suffixStartsAt);
+            return emittedTypeName[..suffixStartsAt];
         }
 
         internal static string UnmangleMetadataNameForArity(string emittedTypeName, int arity)

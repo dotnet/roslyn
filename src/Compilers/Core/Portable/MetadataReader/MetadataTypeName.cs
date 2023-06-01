@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private string _unmangledTypeName;
 
+        private ReadOnlyMemory<char> _unmangledTypeNameMemory;
+
         /// <summary>
         /// Arity of the type inferred based on the name mangling. It doesn't have to match the actual
         /// arity of the type.
@@ -105,6 +107,7 @@ namespace Microsoft.CodeAnalysis
             name._typeName = null;
             name._typeNameMemory = default;
             name._unmangledTypeName = null;
+            name._unmangledTypeNameMemory = default;
             name._inferredArity = -1;
             name._useCLSCompliantNameArityEncoding = useCLSCompliantNameArityEncoding;
             name._forcedArity = (short)forcedArity;
@@ -136,6 +139,7 @@ namespace Microsoft.CodeAnalysis
             name._typeName = typeName;
             name._typeNameMemory = typeName.AsMemory();
             name._unmangledTypeName = null;
+            name._unmangledTypeNameMemory = null;
             name._inferredArity = -1;
             name._useCLSCompliantNameArityEncoding = useCLSCompliantNameArityEncoding;
             name._forcedArity = (short)forcedArity;
@@ -163,6 +167,7 @@ namespace Microsoft.CodeAnalysis
             name._typeName = typeName;
             name._typeNameMemory = typeName.AsMemory();
             name._unmangledTypeName = null;
+            name._unmangledTypeNameMemory = default;
             name._inferredArity = -1;
             name._useCLSCompliantNameArityEncoding = useCLSCompliantNameArityEncoding;
             name._forcedArity = (short)forcedArity;
@@ -197,12 +202,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_namespaceName == null)
-                {
-                    Debug.Assert(_fullName != null);
-                    _typeName = MetadataHelpers.SplitQualifiedName(_fullName, out _namespaceName);
-                }
-
+                _namespaceName ??= NamespaceNameMemory.ToString();
                 return _namespaceName;
             }
         }
@@ -214,12 +214,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_typeName == null)
-                {
-                    Debug.Assert(_fullName != null);
-                    _typeName = MetadataHelpers.SplitQualifiedName(_fullName, out _namespaceName);
-                }
-
+                _typeName ??= TypeNameMemory.ToString();
                 return _typeName;
             }
         }
@@ -259,13 +254,22 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_unmangledTypeName == null)
+                _unmangledTypeName ??= _unmangledTypeNameMemory.ToString();
+                return _unmangledTypeName;
+            }
+        }
+
+        public ReadOnlyMemory<char> UnmangledTypeNameMemory
+        {
+            get
+            {
+                if (_unmangledTypeNameMemory.Equals(default))
                 {
                     Debug.Assert(_inferredArity == -1);
-                    _unmangledTypeName = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(TypeName, out _inferredArity);
+                    _unmangledTypeNameMemory = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(TypeNameMemory, out _inferredArity);
                 }
 
-                return _unmangledTypeName;
+                return _unmangledTypeNameMemory;
             }
         }
 
@@ -279,8 +283,8 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_inferredArity == -1)
                 {
-                    Debug.Assert(_unmangledTypeName == null);
-                    _unmangledTypeName = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(TypeName, out _inferredArity);
+                    Debug.Assert(_unmangledTypeName == null || _unmangledTypeNameMemory.Equals(default));
+                    _unmangledTypeNameMemory = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(TypeNameMemory, out _inferredArity);
                 }
 
                 return _inferredArity;

@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!named.MangleName &&
                     (forcedArity == -1 || forcedArity == named.Arity) &&
-                    named.MetadataName == emittedTypeName.TypeName)
+                    named.MetadataName.AsSpan().SequenceEqual(emittedTypeName.TypeNameMemory.Span))
                 {
                     if (namedType is not null)
                     {
@@ -336,6 +336,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 Done:
             if (isTopLevel
                 && (emittedTypeName.ForcedArity == -1 || emittedTypeName.ForcedArity == emittedTypeName.InferredArity)
+                // Quick check so we don't have to realize the expensive `UnmangledTypeName` in the common case.
+                && emittedTypeName.TypeNameMemory.Span is ['<', ..]
                 && GeneratedNameParser.TryParseFileTypeName(
                     emittedTypeName.UnmangledTypeName,
                     out string? displayFileName,
