@@ -22,14 +22,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> s_emptyMap =
             ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparers(ReferenceEqualityComparer.Instance);
 
+        private static readonly ObjectPool<Dictionary<ReadOnlyMemory<char>, object>> s_nameToObjectPool = new ObjectPool<Dictionary<ReadOnlyMemory<char>, object>>(
+            () => new Dictionary<ReadOnlyMemory<char>, object>(ReadOnlyMemoryOfCharComparer.Instance));
+
         private readonly SourceModuleSymbol _module;
         private readonly Symbol _container;
         private readonly MergedNamespaceDeclaration _mergedDeclaration;
 
         private SymbolCompletionState _state;
         private ImmutableArray<Location> _locations;
-        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> _nameToMembersMap;
-        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>> _nameToMembersMap;
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
         private ImmutableArray<Symbol> _lazyAllMembers;
         private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
 
@@ -166,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<Symbol> GetMembers(string name)
+        public override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
         {
             ImmutableArray<NamespaceOrTypeSymbol> members;
             return this.GetNameToMembersMap().TryGetValue(name, out members)
@@ -193,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
         {
             ImmutableArray<NamedTypeSymbol> members;
-            return this.GetNameToTypeMembersMap().TryGetValue(name, out members)
+            return this.GetNameToTypeMembersMap().TryGetValue(name.AsMemory(), out members)
                 ? members
                 : ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -219,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> GetNameToMembersMap()
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>> GetNameToMembersMap()
         {
             if (_nameToMembersMap == null)
             {
@@ -243,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _nameToMembersMap;
         }
 
-        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> GetNameToTypeMembersMap()
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>> GetNameToTypeMembersMap()
         {
             if (_nameToTypeMembersMap == null)
             {
@@ -251,14 +254,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NOTE: type of the array, see comments in MakeNameToMembersMap() for details
                 Interlocked.CompareExchange(
                     ref _nameToTypeMembersMap,
-                    ImmutableArrayExtensions.GetTypesFromMemberMap<NamespaceOrTypeSymbol, NamedTypeSymbol>(GetNameToMembersMap(), StringOrdinalComparer.Instance),
+                    ImmutableArrayExtensions.GetTypesFromMemberMap<ReadOnlyMemory<char>, NamespaceOrTypeSymbol, NamedTypeSymbol>(
+                        GetNameToMembersMap(), ReadOnlyMemoryOfCharComparer.Instance),
                     comparand: null);
             }
 
             return _nameToTypeMembersMap;
         }
 
-        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(BindingDiagnosticBag diagnostics)
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(BindingDiagnosticBag diagnostics)
         {
             // NOTE: Even though the resulting map stores ImmutableArray<NamespaceOrTypeSymbol> as
             // NOTE: values if the name is mapped into an array of named types, which is frequently
@@ -269,23 +273,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: a name maps into values collection containing types only instead of allocating another
             // NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray<NamedTypeSymbol>
 
-            var builder = PooledDictionary<string, object>.GetInstance();
+            var builder = s_nameToObjectPool.Allocate();
             foreach (var declaration in _mergedDeclaration.Children)
             {
                 NamespaceOrTypeSymbol symbol = BuildSymbol(declaration, diagnostics);
-                ImmutableArrayExtensions.AddToMultiValueDictionaryBuilder(builder, symbol.Name, symbol);
+                ImmutableArrayExtensions.AddToMultiValueDictionaryBuilder(builder, symbol.Name.AsMemory(), symbol);
             }
 
-            var result = new Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>>(builder.Count);
-            ImmutableArrayExtensions.CreateNameToMembersMap<NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(builder, result);
-            builder.Free();
+            var result = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>>(builder.Count, ReadOnlyMemoryOfCharComparer.Instance);
+            ImmutableArrayExtensions.CreateNameToMembersMap<ReadOnlyMemory<char>, NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(builder, result);
+
+            builder.Clear();
+            s_nameToObjectPool.Free(builder);
 
             CheckMembers(this, result, diagnostics);
 
             return result;
         }
 
-        private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> result, BindingDiagnosticBag diagnostics)
+        private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>> result, BindingDiagnosticBag diagnostics)
         {
             var memberOfArity = new Symbol[10];
             MergedNamespaceSymbol mergedAssemblyNamespace = null;

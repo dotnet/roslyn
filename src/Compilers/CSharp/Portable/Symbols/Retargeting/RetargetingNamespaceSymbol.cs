@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return RetargetMembers(_underlyingNamespace.GetMembersUnordered());
         }
 
-        public override ImmutableArray<Symbol> GetMembers(string name)
+        public override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
         {
             return RetargetMembers(_underlyingNamespace.GetMembers(name));
         }

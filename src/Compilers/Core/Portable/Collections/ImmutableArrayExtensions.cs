@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.MetadataTypeName;
 
 #if DEBUG
 using System.Linq;
@@ -921,9 +922,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static void CreateNameToMembersMap
-            <TNamespaceOrTypeSymbol, TNamedTypeSymbol, TNamespaceSymbol>
-            (Dictionary<string, object> dictionary, Dictionary<string, ImmutableArray<TNamespaceOrTypeSymbol>> result)
+        internal static void CreateNameToMembersMap<TKey, TNamespaceOrTypeSymbol, TNamedTypeSymbol, TNamespaceSymbol>
+            (Dictionary<TKey, object> dictionary, Dictionary<TKey, ImmutableArray<TNamespaceOrTypeSymbol>> result)
+            where TKey : notnull
             where TNamespaceOrTypeSymbol : class
             where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
             where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
@@ -956,12 +957,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static Dictionary<string, ImmutableArray<TNamedTypeSymbol>> GetTypesFromMemberMap<TNamespaceOrTypeSymbol, TNamedTypeSymbol>
-            (Dictionary<string, ImmutableArray<TNamespaceOrTypeSymbol>> map, IEqualityComparer<string> comparer)
+        internal static Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>> GetTypesFromMemberMap<TKey, TNamespaceOrTypeSymbol, TNamedTypeSymbol>
+            (Dictionary<TKey, ImmutableArray<TNamespaceOrTypeSymbol>> map, IEqualityComparer<TKey> comparer)
+            where TKey : notnull
             where TNamespaceOrTypeSymbol : class
             where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
         {
-            var dictionary = new Dictionary<string, ImmutableArray<TNamedTypeSymbol>>(comparer);
+            var dictionary = new Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>>(comparer);
 
             foreach (var (name, members) in map)
             {
