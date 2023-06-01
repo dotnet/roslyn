@@ -2135,8 +2135,8 @@ public class FileModifierTests : CSharpTestBase
             {
                 private C<int> F; // 1
                 private event Del<int> E; // 2
-                private void M(C<int> input) { } // 3
-                private C<int> M() => throw null!; // 4
+                private void M1(C<int> input) { } // 3
+                private C<int> M2() => throw null!; // 4
 
                 private C<int> P { get; set; } // 5
                 private C<int> this[int i] => throw null!; // 6
@@ -2146,8 +2146,8 @@ public class FileModifierTests : CSharpTestBase
             {
                 private C<int> F;
                 private event Del<int> E;
-                private void M(C<int> input) { }
-                private C<int> M() => throw null!;
+                private void M1(C<int> input) { }
+                private C<int> M2() => throw null!;
 
                 private C<int> P { get; set; }
                 private C<int> this[int i] => throw null!;
@@ -2163,11 +2163,11 @@ public class FileModifierTests : CSharpTestBase
             //     private event Del<int> E; // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "E").WithArguments("Del<int>", "C1").WithLocation(9, 28),
             // (10,18): error CS9051: File-local type 'C<int>' cannot be used in a member signature in non-file-local type 'C1'.
-            //     private void M(C<int> input) { } // 3
-            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("C<int>", "C1").WithLocation(10, 18),
+            //     private void M1(C<int> input) { } // 3
+            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M1").WithArguments("C<int>", "C1").WithLocation(10, 18),
             // (11,20): error CS9051: File-local type 'C<int>' cannot be used in a member signature in non-file-local type 'C1'.
-            //     private C<int> M() => throw null!; // 4
-            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("C<int>", "C1").WithLocation(11, 20),
+            //     private C<int> M2() => throw null!; // 4
+            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M2").WithArguments("C<int>", "C1").WithLocation(11, 20),
             // (13,20): error CS9051: File-local type 'C<int>' cannot be used in a member signature in non-file-local type 'C1'.
             //     private C<int> P { get; set; } // 5
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "P").WithArguments("C<int>", "C1").WithLocation(13, 20),
@@ -2177,10 +2177,10 @@ public class FileModifierTests : CSharpTestBase
 
         verifyConstructedFileType(comp.GetMember<FieldSymbol>("C1.F").Type);
         verifyConstructedFileType(comp.GetMember<EventSymbol>("C1.E").Type);
-        verifyConstructedFileType(comp.GetMember<MethodSymbol>("C1.M(C<int>)").Parameters[0].Type);
-        verifyConstructedFileType(comp.GetMember<MethodSymbol>("C1.M()").ReturnType);
+        verifyConstructedFileType(comp.GetMember<MethodSymbol>("C1.M1").Parameters[0].Type);
+        verifyConstructedFileType(comp.GetMember<MethodSymbol>("C1.M2").ReturnType);
         verifyConstructedFileType(comp.GetMember<PropertySymbol>("C1.P").Type);
-        verifyConstructedFileType(comp.GetMember<PropertySymbol>("C1.Item").Type);
+        verifyConstructedFileType(comp.GetMember<PropertySymbol>("C1.this[]").Type);
 
         void verifyConstructedFileType(TypeSymbol type)
         {
