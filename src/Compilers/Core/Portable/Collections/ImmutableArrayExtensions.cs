@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.MetadataTypeName;
 
 #if DEBUG
 using System.Linq;
