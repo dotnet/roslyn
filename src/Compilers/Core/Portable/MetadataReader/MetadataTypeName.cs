@@ -32,6 +32,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private string _namespaceName;
 
+        /// <summary>
+        /// <see cref="ReadOnlyMemory{T}"/> version of <see cref="_namespaceName"/>.  Preferred when possible to avoid
+        /// the copy of the portion of <see cref="_fullName"/> used for <see cref="_namespaceName"/>.
+        /// </summary>
         private ReadOnlyMemory<char> _namespaceNameMemory;
 
         /// <summary>
@@ -39,6 +43,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private string _typeName;
 
+        /// <summary>
+        /// <see cref="ReadOnlyMemory{T}"/> version of <see cref="_typeName"/>.  Preferred when possible to avoid
+        /// the copy of the portion of <see cref="_fullName"/> used for <see cref="_typeName"/>.
+        /// </summary>
         private ReadOnlyMemory<char> _typeNameMemory;
 
         /// <summary>
@@ -74,6 +82,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private ImmutableArray<string> _namespaceSegments;
 
+        /// <summary>
+        /// <see cref="ReadOnlyMemory{T}"/> version of <see cref="_namespaceSegments"/>.  Preferred when possible to
+        /// avoid the copies of the portions of <see cref="_fullName"/> used for <see cref="_namespaceSegments"/>.
+        /// </summary>
         private ImmutableArray<ReadOnlyMemory<char>> _namespaceSegmentsMemory;
 
         public static MetadataTypeName FromFullName(string fullName, bool useCLSCompliantNameArityEncoding = false, int forcedArity = -1)

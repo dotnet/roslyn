@@ -559,17 +559,17 @@ ExitDecodeTypeName:
         private static readonly ImmutableArray<ReadOnlyMemory<char>> s_splitQualifiedNameSystemMemory = ImmutableArray.Create(SystemString.AsMemory());
 
         internal static ImmutableArray<string> SplitQualifiedName(string name)
-            => SplitQualifiedNameWorker(name, s_splitQualifiedNameSystem, static memory => memory.ToString());
+            => SplitQualifiedNameWorker(name.AsMemory(), s_splitQualifiedNameSystem, static memory => memory.ToString());
 
-        internal static ImmutableArray<ReadOnlyMemory<char>> SplitQualifiedNameMemory(string name)
+        internal static ImmutableArray<ReadOnlyMemory<char>> SplitQualifiedNameMemory(ReadOnlyMemory<char> name)
             => SplitQualifiedNameWorker(name, s_splitQualifiedNameSystemMemory, static memory => memory);
 
         internal static ImmutableArray<T> SplitQualifiedNameWorker<T>(
-            string name, ImmutableArray<T> splitSystemString, Func<ReadOnlyMemory<char>, T> convert)
+            ReadOnlyMemory<char> nameMemory, ImmutableArray<T> splitSystemString, Func<ReadOnlyMemory<char>, T> convert)
         {
-            Debug.Assert(name != null);
+            Debug.Assert(!nameMemory.Equals(default));
 
-            if (name.Length == 0)
+            if (nameMemory.Length == 0)
             {
                 return ImmutableArray<T>.Empty;
             }
@@ -578,7 +578,8 @@ ExitDecodeTypeName:
             // for "System" if it is the first or only part.
 
             int dots = 0;
-            foreach (char ch in name)
+            var nameSpan = nameMemory.Span;
+            foreach (char ch in nameSpan)
             {
                 if (ch == DotDelimiter)
                 {
@@ -586,10 +587,9 @@ ExitDecodeTypeName:
                 }
             }
 
-            var nameMemory = name.AsMemory();
             if (dots == 0)
             {
-                return name == SystemString ? splitSystemString : ImmutableArray.Create(convert(nameMemory));
+                return nameMemory.Span.SequenceEqual(SystemString.AsSpan()) ? splitSystemString : ImmutableArray.Create(convert(nameMemory));
             }
 
             var result = ArrayBuilder<T>.GetInstance(dots + 1);
@@ -597,10 +597,10 @@ ExitDecodeTypeName:
             int start = 0;
             for (int i = 0; dots > 0; i++)
             {
-                if (name[i] == DotDelimiter)
+                if (nameSpan[i] == DotDelimiter)
                 {
                     int len = i - start;
-                    if (len == 6 && start == 0 && name.StartsWith(SystemString, StringComparison.Ordinal))
+                    if (len == 6 && start == 0 && nameSpan.StartsWith(SystemString, StringComparison.Ordinal))
                     {
                         result.Add(convert(SystemString.AsMemory()));
                     }
