@@ -571,7 +571,7 @@ ExitDecodeTypeName:
         internal static ImmutableArray<string> SplitQualifiedName(string name)
             => SplitQualifiedNameWorker(name.AsMemory(), s_splitQualifiedNameSystem, static memory => memory.ToString());
 
-        internal static ImmutableArray<ReadOnlyMemory<char>> SplitQualifiedNameMemory(ReadOnlyMemory<char> name)
+        internal static ImmutableArray<ReadOnlyMemory<char>> SplitQualifiedName(ReadOnlyMemory<char> name)
             => SplitQualifiedNameWorker(name, s_splitQualifiedNameSystemMemory, static memory => memory);
 
         internal static ImmutableArray<T> SplitQualifiedNameWorker<T>(

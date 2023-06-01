@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis
                 if (_namespaceNameMemory.Equals(default))
                 {
                     Debug.Assert(_fullName != null);
-                    _typeNameMemory = MetadataHelpers.SplitQualifiedNameMemory(_fullName, out _namespaceNameMemory);
+                    _typeNameMemory = MetadataHelpers.SplitQualifiedName(_fullName, out _namespaceNameMemory);
                 }
 
                 return _namespaceNameMemory;
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis
                 if (_typeNameMemory.Equals(default))
                 {
                     Debug.Assert(_fullName != null);
-                    _typeNameMemory = MetadataHelpers.SplitQualifiedNameMemory(_fullName, out _namespaceNameMemory);
+                    _typeNameMemory = MetadataHelpers.SplitQualifiedName(_fullName, out _namespaceNameMemory);
                 }
 
                 return _typeNameMemory;
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_namespaceSegmentsMemory.IsDefault)
                 {
-                    _namespaceSegmentsMemory = MetadataHelpers.SplitQualifiedNameMemory(NamespaceNameMemory);
+                    _namespaceSegmentsMemory = MetadataHelpers.SplitQualifiedName(NamespaceNameMemory);
                 }
 
                 return _namespaceSegmentsMemory;
