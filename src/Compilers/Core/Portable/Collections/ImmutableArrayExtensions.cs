@@ -848,6 +848,11 @@ namespace Microsoft.CodeAnalysis
             return sum;
         }
 
+        /// <summary>
+        /// Helper type to give us a PooledDictionary cache in the case where the key for the dictionary is a <see
+        /// cref="ReadOnlyMemory{T}"/>.  These dictionaries need a special comparer, so we cannot use the standard
+        /// pattern of <c>PooledDictionary.GetInstance()</c>.
+        /// </summary>
         private static class AccumulatorCache<K>
              where K : notnull
         {
@@ -872,8 +877,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
-
-        // private static readonly ObjectPool<PooledDictionary<ReadOnlyMemory<char>>>
 
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(
             this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? equalityComparer = null)
