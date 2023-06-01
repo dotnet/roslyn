@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (emittedTypeName.InferredArity == named.Arity &&
                             named.MangleName &&
-                            named.MetadataName == emittedTypeName.TypeName)
+                            named.MetadataName.AsSpan().SequenceEqual(emittedTypeName.TypeNameMemory.Span))
                         {
                             if (namedType is not null)
                             {
