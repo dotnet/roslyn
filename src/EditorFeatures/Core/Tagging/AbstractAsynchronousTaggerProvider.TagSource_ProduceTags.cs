@@ -170,32 +170,31 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private void EnqueueWork(bool highPriority)
                 => _eventChangeQueue.AddWork(highPriority, _dataSource.CancelOnNewWork);
 
-            private async ValueTask ProcessEventChangeAsync(ImmutableSegmentedList<bool> changes, CancellationToken cancellationToken)
+            private ValueTask ProcessEventChangeAsync(ImmutableSegmentedList<bool> changes, CancellationToken cancellationToken)
             {
-                await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                // no point preceding if we're already disposed.  We check this on the UI thread so that we will know
-                // about any prior disposal on the UI thread.
-                if (cancellationToken.IsCancellationRequested)
-                    return;
-
                 // If any of the requests was high priority, then compute at that speed.
                 var highPriority = changes.Contains(true);
-                await RecomputeTagsAsync(highPriority, cancellationToken).ConfigureAwait(false);
+                return new ValueTask(RecomputeTagsAsync(highPriority, cancellationToken));
             }
 
             /// <summary>
-            /// Called on the foreground thread.  Passed a boolean to say if we're computing the
+            /// Passed a boolean to say if we're computing the
             /// initial set of tags or not.  If we're computing the initial set of tags, we lower
             /// all our delays so that we can get results to the screen as quickly as possible.
-            /// <para/> This gives a good experience when a document is opened as the document appears complete almost
-            /// immediately.  Once open though, our normal delays come into play so as to not cause a flashy experience.
+            /// <para>This gives a good experience when a document is opened as the document appears complete almost
+            /// immediately.  Once open though, our normal delays come into play so as to not cause a flashy experience.</para>
             /// </summary>
+            /// <remarks>
+            /// In the event of a cancellation request, this method may <em>either</em> return at the next availability
+            /// or throw a cancellation exception.
+            /// </remarks>
             /// <param name="highPriority">
             /// If this tagging request should be processed as quickly as possible with no extra delays added for it.
             /// </param>
             private async Task RecomputeTagsAsync(bool highPriority, CancellationToken cancellationToken)
             {
+                await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
                 // consuming machine resources on work the user isn't likely to see.  ConfigureAwait(true) so that if
                 // we're on the UI thread that we stay on it.
@@ -212,8 +211,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     if (cancellationToken.IsCancellationRequested)
                         return;
                 }
-
-                await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 if (cancellationToken.IsCancellationRequested)
@@ -232,18 +229,18 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var textChangeRange = this.AccumulatedTextChanges;
                     this.AccumulatedTextChanges = null;
 
-                    // Technically not necessary since we ConfigureAwait(false) right above this.  But we want to ensure
-                    // we're always moving to the threadpool here in case the above code ever changes.
                     await TaskScheduler.Default;
 
-                    cancellationToken.ThrowIfCancellationRequested();
+                    if (cancellationToken.IsCancellationRequested)
+                        return;
 
                     // Create a context to store pass the information along and collect the results.
                     var context = new TaggerContext<TTag>(
                         oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees);
                     await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
 
-                    cancellationToken.ThrowIfCancellationRequested();
+                    if (cancellationToken.IsCancellationRequested)
+                        return;
 
                     // Process the result to determine what changed.
                     var newTagTrees = ComputeNewTagTrees(oldTagTrees, context);
