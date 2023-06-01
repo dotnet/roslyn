@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> s_emptyMap =
             ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparers(ReferenceEqualityComparer.Instance);
 
-        private static readonly ObjectPool<Dictionary<ReadOnlyMemory<char>, object>> s_nameToObjectPool = new ObjectPool<Dictionary<ReadOnlyMemory<char>, object>>(
-            () => new Dictionary<ReadOnlyMemory<char>, object>(ReadOnlyMemoryOfCharComparer.Instance));
+        private static readonly ObjectPool<PooledDictionary<ReadOnlyMemory<char>, object>> s_nameToObjectPool =
+            PooledDictionary<ReadOnlyMemory<char>, object>.CreatePool(ReadOnlyMemoryOfCharComparer.Instance);
 
         private readonly SourceModuleSymbol _module;
         private readonly Symbol _container;
@@ -283,8 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>>(builder.Count, ReadOnlyMemoryOfCharComparer.Instance);
             ImmutableArrayExtensions.CreateNameToMembersMap<ReadOnlyMemory<char>, NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(builder, result);
 
-            builder.Clear();
-            s_nameToObjectPool.Free(builder);
+            builder.Free();
 
             CheckMembers(this, result, diagnostics);
 
