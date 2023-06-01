@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get;
         }
 
-        internal sealed override bool IsFileLocal => AssociatedFileIdentifier is not null;
+        internal sealed override bool IsFileLocal => _lazyUncommonProperties is { lazyFilePathChecksum: { IsDefault: false }, lazyDisplayFileName: { } };
         internal sealed override FileIdentifier? AssociatedFileIdentifier
         {
             get
