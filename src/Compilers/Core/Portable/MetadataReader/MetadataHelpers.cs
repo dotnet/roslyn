@@ -600,7 +600,7 @@ ExitDecodeTypeName:
                 if (nameSpan[i] == DotDelimiter)
                 {
                     int len = i - start;
-                    if (len == 6 && start == 0 && nameSpan.StartsWith(SystemString, StringComparison.Ordinal))
+                    if (len == 6 && start == 0 && nameSpan.StartsWith(SystemString.AsSpan(), StringComparison.Ordinal))
                     {
                         result.Add(convert(SystemString.AsMemory()));
                     }
