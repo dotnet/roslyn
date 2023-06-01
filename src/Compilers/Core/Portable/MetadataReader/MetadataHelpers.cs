@@ -507,17 +507,17 @@ ExitDecodeTypeName:
 
             // Given a name corresponding to <unmangledName>`<arity>,
             // extract the arity.
-            var stringRepresentingArity = emittedTypeName[indexOfManglingChar..];
+            var aritySpan = emittedTypeName[indexOfManglingChar..];
 
             int arity;
 #if NET
-            bool nonNumericCharFound = !int.TryParse(stringRepresentingArity, NumberStyles.None, CultureInfo.InvariantCulture, out arity);
+            bool nonNumericCharFound = !int.TryParse(aritySpan, NumberStyles.None, CultureInfo.InvariantCulture, out arity);
 #else
-            bool nonNumericCharFound = !int.TryParse(stringRepresentingArity.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out arity);
+            bool nonNumericCharFound = !int.TryParse(aritySpan.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out arity);
 #endif
 
             if (nonNumericCharFound || arity < 0 || arity > short.MaxValue ||
-                !stringRepresentingArity.SequenceEqual(arity.ToString().AsSpan()))
+                !aritySpan.SequenceEqual(arity.ToString().AsSpan()))
             {
                 suffixStartsAt = -1;
                 return 0;
