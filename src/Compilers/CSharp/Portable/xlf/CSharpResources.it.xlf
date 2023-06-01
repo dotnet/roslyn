@@ -8536,7 +8536,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
         <source>Iterators cannot have pointer type parameters</source>
-        <target state="needs-review-translation">Gli iteratori non possono avere parametri unsafe o tipi yield</target>
+        <target state="new">Iterators cannot have pointer type parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9879,7 +9879,7 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
         <source>Async methods cannot have pointer type parameters</source>
-        <target state="needs-review-translation">I metodi asincroni non possono avere parametri non sicuri o tipi restituiti</target>
+        <target state="new">Async methods cannot have pointer type parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
