@@ -313,7 +313,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            namespaceOrTypeMembers = scope.GetTypeMembers(emittedTypeName.TypeName);
+            namespaceOrTypeMembers = isTopLevel
+                ? ((NamespaceSymbol)scope).GetTypeMembers(emittedTypeName.TypeNameMemory)
+                : scope.GetTypeMembers(emittedTypeName.TypeName);
 
             foreach (var named in namespaceOrTypeMembers)
             {

@@ -193,15 +193,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.GetNameToTypeMembersMap().Flatten(LexicalOrderSymbolComparer.Instance);
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             ImmutableArray<NamedTypeSymbol> members;
-            return this.GetNameToTypeMembersMap().TryGetValue(name.AsMemory(), out members)
+            return this.GetNameToTypeMembersMap().TryGetValue(name, out members)
                 ? members
                 : ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return GetTypeMembers(name).WhereAsArray((s, arity) => s.Arity == arity, arity);
         }

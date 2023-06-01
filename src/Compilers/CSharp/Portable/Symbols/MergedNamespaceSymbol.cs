@@ -233,10 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray.CreateRange<NamedTypeSymbol>(GetMembers().OfType<NamedTypeSymbol>());
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             // TODO - This is really inefficient. Creating a new array on each lookup needs to fixed!
-            return ImmutableArray.CreateRange<NamedTypeSymbol>(_cachedLookup[name.AsMemory()].OfType<NamedTypeSymbol>());
+            return ImmutableArray.CreateRange<NamedTypeSymbol>(_cachedLookup[name].OfType<NamedTypeSymbol>());
         }
 
         public override Symbol ContainingSymbol

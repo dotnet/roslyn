@@ -275,10 +275,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        public abstract ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name);
+        public abstract ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name);
+
+        public virtual ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
+        {
+            // default implementation does a post-filter. We can override this if its a performance burden, but 
+            // experience is that it won't be.
+            return GetTypeMembers(name).WhereAsArray(static (type, arity) => type.Arity == arity, arity);
+        }
+
         public sealed override ImmutableArray<Symbol> GetMembers(string name)
             => GetMembers(name.AsMemory());
 
-        public abstract ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name);
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+            => GetTypeMembers(name.AsMemory());
+
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+            => GetTypeMembers(name.AsMemory(), arity);
 
         internal NamespaceSymbol GetNestedNamespace(NameSyntax name)
         {

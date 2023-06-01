@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
             => ImmutableArray<NamedTypeSymbol>.Empty;
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
             => ImmutableArray<NamedTypeSymbol>.Empty;
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
             => ImmutableArray<NamedTypeSymbol>.Empty;
 
         public override ImmutableArray<Symbol> GetMembers()

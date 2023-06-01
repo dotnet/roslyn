@@ -121,18 +121,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return GetMemberTypesPrivate();
         }
 
-        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             EnsureAllMembersLoaded();
 
             ImmutableArray<PENamedTypeSymbol> t;
 
-            return lazyTypes.TryGetValue(name.AsMemory(), out t)
+            return lazyTypes.TryGetValue(name, out t)
                 ? StaticCast<NamedTypeSymbol>.From(t)
                 : ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return GetTypeMembers(name).WhereAsArray((type, arity) => type.Arity == arity, arity);
         }

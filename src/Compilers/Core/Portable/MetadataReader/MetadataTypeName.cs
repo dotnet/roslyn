@@ -242,6 +242,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public ReadOnlyMemory<char> TypeNameMemory
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         /// <summary>
         /// Name of the type without namespace prefix and without generic arity mangling.
         /// </summary>
