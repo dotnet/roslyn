@@ -633,12 +633,12 @@ ExitDecodeTypeName:
             string pstrName,
             out string qualifier)
         {
-            var nameMemory = SplitQualifiedNameMemory(pstrName, out var qualifierMemory);
+            ReadOnlyMemory<char> nameMemory = SplitQualifiedName(pstrName, out ReadOnlyMemory<char> qualifierMemory);
             qualifier = qualifierMemory.ToString();
             return nameMemory.ToString();
         }
 
-        internal static ReadOnlyMemory<char> SplitQualifiedNameMemory(
+        internal static ReadOnlyMemory<char> SplitQualifiedName(
             string pstrName,
             out ReadOnlyMemory<char> qualifier)
         {

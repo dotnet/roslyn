@@ -202,7 +202,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                _namespaceName ??= NamespaceNameMemory.ToString();
+                if (_namespaceName == null)
+                {
+                    Debug.Assert(_fullName != null);
+                    _typeName = MetadataHelpers.SplitQualifiedName(_fullName, out _namespaceName);
+                }
+
                 return _namespaceName;
             }
         }
@@ -214,7 +219,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                _typeName ??= TypeNameMemory.ToString();
+                if (_typeName == null)
+                {
+                    Debug.Assert(_fullName != null);
+                    _typeName = MetadataHelpers.SplitQualifiedName(_fullName, out _namespaceName);
+                }
+
                 return _typeName;
             }
         }
@@ -254,7 +264,11 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                _unmangledTypeName ??= _unmangledTypeNameMemory.ToString();
+                if (_unmangledTypeName == null)
+                {
+                    _unmangledTypeName = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(TypeName, out _inferredArity);
+                }
+
                 return _unmangledTypeName;
             }
         }
