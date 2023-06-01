@@ -265,7 +265,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (emittedTypeName.ForcedArity == -1 || emittedTypeName.ForcedArity == emittedTypeName.InferredArity)
                 {
                     // Let's handle mangling case first.
-                    namespaceOrTypeMembers = scope.GetTypeMembers(emittedTypeName.UnmangledTypeName);
+                    namespaceOrTypeMembers = isTopLevel
+                        ? ((NamespaceSymbol)scope).GetTypeMembers(emittedTypeName.UnmangledTypeNameMemory)
+                        : scope.GetTypeMembers(emittedTypeName.UnmangledTypeName);
 
                     foreach (var named in namespaceOrTypeMembers)
                     {

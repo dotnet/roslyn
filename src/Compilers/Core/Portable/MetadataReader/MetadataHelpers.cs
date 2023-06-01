@@ -480,7 +480,7 @@ ExitDecodeTypeName:
         internal static int InferTypeArityFromMetadataName(string emittedTypeName)
         {
             int suffixStartsAt;
-            return InferTypeArityFromMetadataName(emittedTypeName, out suffixStartsAt);
+            return InferTypeArityFromMetadataName(emittedTypeName.AsSpan(), out suffixStartsAt);
         }
 
         private static short InferTypeArityFromMetadataName(ReadOnlySpan<char> emittedTypeName, out int suffixStartsAt)
@@ -507,13 +507,17 @@ ExitDecodeTypeName:
 
             // Given a name corresponding to <unmangledName>`<arity>,
             // extract the arity.
-            var stringRepresentingArity = emittedTypeName.Slice(indexOfManglingChar);
+            var stringRepresentingArity = emittedTypeName[indexOfManglingChar..];
 
             int arity;
+#if NET
             bool nonNumericCharFound = !int.TryParse(stringRepresentingArity, NumberStyles.None, CultureInfo.InvariantCulture, out arity);
+#else
+            bool nonNumericCharFound = !int.TryParse(stringRepresentingArity.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out arity);
+#endif
 
             if (nonNumericCharFound || arity < 0 || arity > short.MaxValue ||
-                stringRepresentingArity != arity.ToString())
+                stringRepresentingArity.SequenceEqual(arity.ToString().AsSpan()))
             {
                 suffixStartsAt = -1;
                 return 0;
@@ -549,10 +553,10 @@ ExitDecodeTypeName:
             Debug.Assert(arity > 0);
 
             int suffixStartsAt;
-            if (arity == InferTypeArityFromMetadataName(emittedTypeName, out suffixStartsAt))
+            if (arity == InferTypeArityFromMetadataName(emittedTypeName.AsSpan(), out suffixStartsAt))
             {
                 Debug.Assert(suffixStartsAt > 0 && suffixStartsAt < emittedTypeName.Length - 1);
-                return emittedTypeName.Substring(0, suffixStartsAt);
+                return emittedTypeName[..suffixStartsAt];
             }
 
             return emittedTypeName;
