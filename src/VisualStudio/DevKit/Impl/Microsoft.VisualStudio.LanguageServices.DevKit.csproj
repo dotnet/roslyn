@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.NpmPack" PrivateAssets="all" Version="$(MicrosoftVisualStudioInternalMicroBuildNpmPackVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.NpmPack" PrivateAssets="all" Version="$(MicrosoftVisualStudioInternalMicroBuildNpmPackVersion)" Condition="'$(IsNpmPackable)' == 'true'" />
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
 
@@ -59,6 +59,10 @@
     Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgSystem_Configuration_ConfigurationManager
     -->
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" GeneratePathProperty="True" />
+
+    <!--
+    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgSystem_Configuration_ConfigurationManager
+    -->
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="$(MicrosoftVisualStudioDebuggerContractsVersion)" GeneratePathProperty="True" />
   </ItemGroup>
 
