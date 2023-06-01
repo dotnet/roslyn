@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var oldState = this.State;
 
                     var textChangeRange = this.AccumulatedTextChanges;
-                    this.AccumulatedTextChanges = null;
+                    var subjectBufferVersion = _subjectBuffer.CurrentSnapshot.Version.VersionNumber;
 
                     await TaskScheduler.Default;
 
@@ -255,6 +255,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     this.CachedTagTrees = newTagTrees;
                     this.State = context.State;
+                    if (this._subjectBuffer.CurrentSnapshot.Version.VersionNumber == subjectBufferVersion)
+                    {
+                        // Only clear the accumulated text changes if the subject buffer didn't change during the
+                        // tagging operation. Otherwise, it is impossible to know which changes occurred prior to the
+                        // request to tag, and which ones occurred during the tagging itself. Since
+                        // AccumulatedTextChanges is a conservative representation of the work that needs to be done, in
+                        // the event this value is not cleared the only potential impact will be slightly more work
+                        // being done during the next classification pass.
+                        this.AccumulatedTextChanges = null;
+                    }
 
                     OnTagsChangedForBuffer(bufferToChanges, highPriority);
 
