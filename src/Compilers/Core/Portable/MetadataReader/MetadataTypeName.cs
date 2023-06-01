@@ -77,10 +77,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private string _namespaceName;
 
+        private ReadOnlyMemory<char> _namespaceNameMemory;
+
         /// <summary>
         /// Name of the type without namespace prefix, but possibly with generic arity mangling present.
         /// </summary>
         private string _typeName;
+
+        private ReadOnlyMemory<char> _typeNameMemory;
 
         /// <summary>
         /// Name of the type without namespace prefix and without generic arity mangling.
@@ -115,6 +119,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private ImmutableArray<string> _namespaceSegments;
 
+        private ImmutableArray<ReadOnlyMemory<char>> _namespaceSegmentsMemory;
+
         public static MetadataTypeName FromFullName(string fullName, bool useCLSCompliantNameArityEncoding = false, int forcedArity = -1)
         {
             Debug.Assert(fullName != null);
@@ -128,12 +134,15 @@ namespace Microsoft.CodeAnalysis
 
             name._fullName = fullName;
             name._namespaceName = null;
+            name._namespaceNameMemory = default;
             name._typeName = null;
+            name._typeNameMemory = default;
             name._unmangledTypeName = null;
             name._inferredArity = -1;
             name._useCLSCompliantNameArityEncoding = useCLSCompliantNameArityEncoding;
             name._forcedArity = (short)forcedArity;
             name._namespaceSegments = default(ImmutableArray<string>);
+            name._namespaceSegmentsMemory = default;
 
             return name;
         }
@@ -156,12 +165,15 @@ namespace Microsoft.CodeAnalysis
 
             name._fullName = null;
             name._namespaceName = namespaceName;
+            name._namespaceNameMemory = namespaceName.AsMemory();
             name._typeName = typeName;
+            name._typeNameMemory = typeName.AsMemory();
             name._unmangledTypeName = null;
             name._inferredArity = -1;
             name._useCLSCompliantNameArityEncoding = useCLSCompliantNameArityEncoding;
             name._forcedArity = (short)forcedArity;
             name._namespaceSegments = default(ImmutableArray<string>);
+            name._namespaceSegmentsMemory = default;
 
             return name;
         }
@@ -180,12 +192,15 @@ namespace Microsoft.CodeAnalysis
 
             name._fullName = typeName;
             name._namespaceName = string.Empty;
+            name._namespaceNameMemory = string.Empty.AsMemory();
             name._typeName = typeName;
+            name._typeNameMemory = typeName.AsMemory();
             name._unmangledTypeName = null;
             name._inferredArity = -1;
             name._useCLSCompliantNameArityEncoding = useCLSCompliantNameArityEncoding;
             name._forcedArity = (short)forcedArity;
             name._namespaceSegments = ImmutableArray<string>.Empty;
+            name._namespaceSegmentsMemory = ImmutableArray<ReadOnlyMemory<char>>.Empty;
 
             return name;
         }
@@ -242,11 +257,31 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public ReadOnlyMemory<char> NamespaceNameMemory
+        {
+            get
+            {
+                if (_namespaceNameMemory.Equals(default))
+                {
+                    Debug.Assert(_fullName != null);
+                    _typeNameMemory = MetadataHelpers.SplitQualifiedNameMemory(_fullName, out _namespaceNameMemory);
+                }
+
+                return _namespaceNameMemory;
+            }
+        }
+
         public ReadOnlyMemory<char> TypeNameMemory
         {
             get
             {
-                throw new NotImplementedException();
+                if (_typeNameMemory.Equals(default))
+                {
+                    Debug.Assert(_fullName != null);
+                    _typeNameMemory = MetadataHelpers.SplitQualifiedNameMemory(_fullName, out _namespaceNameMemory);
+                }
+
+                return _typeNameMemory;
             }
         }
 
@@ -344,7 +379,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                throw new NotImplementedException();
+                if (_namespaceSegmentsMemory.IsDefault)
+                {
+                    _namespaceSegmentsMemory = MetadataHelpers.SplitQualifiedNameMemory(NamespaceNameMemory);
+                }
+
+                return _namespaceSegmentsMemory;
             }
         }
 

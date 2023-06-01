@@ -556,15 +556,22 @@ ExitDecodeTypeName:
         /// An ImmutableArray representing the single string "System"
         /// </summary>
         private static readonly ImmutableArray<string> s_splitQualifiedNameSystem = ImmutableArray.Create(SystemString);
+        private static readonly ImmutableArray<ReadOnlyMemory<char>> s_splitQualifiedNameSystemMemory = ImmutableArray.Create(SystemString.AsMemory());
 
-        internal static ImmutableArray<string> SplitQualifiedName(
-              string name)
+        internal static ImmutableArray<string> SplitQualifiedName(string name)
+            => SplitQualifiedNameWorker(name, s_splitQualifiedNameSystem, static memory => memory.ToString());
+
+        internal static ImmutableArray<ReadOnlyMemory<char>> SplitQualifiedNameMemory(string name)
+            => SplitQualifiedNameWorker(name, s_splitQualifiedNameSystemMemory, static memory => memory);
+
+        internal static ImmutableArray<T> SplitQualifiedNameWorker<T>(
+            string name, ImmutableArray<T> splitSystemString, Func<ReadOnlyMemory<char>, T> convert)
         {
             Debug.Assert(name != null);
 
             if (name.Length == 0)
             {
-                return ImmutableArray<string>.Empty;
+                return ImmutableArray<T>.Empty;
             }
 
             // PERF: Avoid String.Split because of the allocations. Also, we can special-case
@@ -579,12 +586,13 @@ ExitDecodeTypeName:
                 }
             }
 
+            var nameMemory = name.AsMemory();
             if (dots == 0)
             {
-                return name == SystemString ? s_splitQualifiedNameSystem : ImmutableArray.Create(name);
+                return name == SystemString ? splitSystemString : ImmutableArray.Create(convert(nameMemory));
             }
 
-            var result = ArrayBuilder<string>.GetInstance(dots + 1);
+            var result = ArrayBuilder<T>.GetInstance(dots + 1);
 
             int start = 0;
             for (int i = 0; dots > 0; i++)
@@ -594,11 +602,11 @@ ExitDecodeTypeName:
                     int len = i - start;
                     if (len == 6 && start == 0 && name.StartsWith(SystemString, StringComparison.Ordinal))
                     {
-                        result.Add(SystemString);
+                        result.Add(convert(SystemString.AsMemory()));
                     }
                     else
                     {
-                        result.Add(name.Substring(start, len));
+                        result.Add(convert(nameMemory.Slice(start, len)));
                     }
 
                     dots--;
@@ -606,7 +614,7 @@ ExitDecodeTypeName:
                 }
             }
 
-            result.Add(name.Substring(start));
+            result.Add(convert(nameMemory[start..]));
 
             return result.ToImmutableAndFree();
         }
@@ -614,6 +622,15 @@ ExitDecodeTypeName:
         internal static string SplitQualifiedName(
             string pstrName,
             out string qualifier)
+        {
+            var nameMemory = SplitQualifiedNameMemory(pstrName, out var qualifierMemory);
+            qualifier = qualifierMemory.ToString();
+            return nameMemory.ToString();
+        }
+
+        internal static ReadOnlyMemory<char> SplitQualifiedNameMemory(
+            string pstrName,
+            out ReadOnlyMemory<char> qualifier)
         {
             Debug.Assert(pstrName != null);
 
@@ -647,20 +664,20 @@ ExitDecodeTypeName:
 
             if (delimiter < 0)
             {
-                qualifier = string.Empty;
-                return pstrName;
+                qualifier = string.Empty.AsMemory();
+                return pstrName.AsMemory();
             }
 
             if (delimiter == 6 && pstrName.StartsWith(SystemString, StringComparison.Ordinal))
             {
-                qualifier = SystemString;
+                qualifier = SystemString.AsMemory();
             }
             else
             {
-                qualifier = pstrName.Substring(0, delimiter);
+                qualifier = pstrName.AsMemory()[..delimiter];
             }
 
-            return pstrName.Substring(delimiter + 1);
+            return pstrName.AsMemory()[(delimiter + 1)..];
         }
 
         internal static string BuildQualifiedName(
