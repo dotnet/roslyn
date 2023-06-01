@@ -848,14 +848,42 @@ namespace Microsoft.CodeAnalysis
             return sum;
         }
 
-        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector)
+        private static class AccumulatorCache<K>
+             where K : notnull
+        {
+            private static readonly ObjectPool<PooledDictionary<ReadOnlyMemory<char>, object>> s_readOnlyMemoryCache =
+                PooledDictionary<ReadOnlyMemory<char>, object>.CreatePool(ReadOnlyMemoryOfCharComparer.Instance);
+
+            public static PooledDictionary<K, object> GetInstance(IEqualityComparer<K>? equalityComparer)
+            {
+                if (typeof(K) == typeof(ReadOnlyMemory<char>))
+                {
+                    Debug.Assert(
+                        ReferenceEquals(equalityComparer, ReadOnlyMemoryOfCharComparer.Instance),
+                        "When creating a dictionary keyed off of ReadOnlyMemory<char>, ReadOnlyMemoryOfCharComparer.Instance must be passed as the equality comparer.");
+                    return (PooledDictionary<K, object>)(object)s_readOnlyMemoryCache.Allocate();
+                }
+                else
+                {
+                    Debug.Assert(
+                        equalityComparer == null,
+                        "When converting any array of elements to a dictionary, only the default equality semantics are supported");
+                    return PooledDictionary<K, object>.GetInstance();
+                }
+            }
+        }
+
+        // private static readonly ObjectPool<PooledDictionary<ReadOnlyMemory<char>>>
+
+        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(
+            this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? equalityComparer = null)
             where K : notnull
             where T : notnull
         {
             if (items.Length == 1)
             {
                 T value = items[0];
-                return new Dictionary<K, ImmutableArray<T>>(1)
+                return new Dictionary<K, ImmutableArray<T>>(1, equalityComparer)
                 {
                     {  keySelector(value), ImmutableArray.Create(value) },
                 };
@@ -863,7 +891,7 @@ namespace Microsoft.CodeAnalysis
 
             if (items.Length == 0)
             {
-                return new Dictionary<K, ImmutableArray<T>>();
+                return new Dictionary<K, ImmutableArray<T>>(equalityComparer);
             }
 
             // bucketize
@@ -872,14 +900,14 @@ namespace Microsoft.CodeAnalysis
             // We store a mapping from keys to either a single item (very common in practice as this is used from
             // callers that maps names to symbols with that name, and most names are unique), or an array builder of items.
 
-            var accumulator = PooledDictionary<K, object>.GetInstance();
+            var accumulator = AccumulatorCache<K>.GetInstance(equalityComparer);
             foreach (var item in items)
             {
                 var key = keySelector(item);
                 AddToMultiValueDictionaryBuilder(accumulator, key, item);
             }
 
-            var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count);
+            var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count, equalityComparer);
 
             // freeze
             foreach (var pair in accumulator)

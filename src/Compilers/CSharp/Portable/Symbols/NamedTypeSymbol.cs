@@ -683,7 +683,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>An ImmutableArray containing all the types that are members of this symbol with the given name.
         /// If this symbol has no type members with this name,
         /// returns an empty ImmutableArray. Never returns null.</returns>
-        public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name);
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+            => GetTypeMembers(name.AsMemory());
 
         /// <summary>
         /// Get all the members of this symbol that are types that have a particular name and arity
@@ -691,7 +692,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>An ImmutableArray containing all the types that are members of this symbol with the given name and arity.
         /// If this symbol has no type members with this name and arity,
         /// returns an empty ImmutableArray. Never returns null.</returns>
-        public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity);
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+            => GetTypeMembers(name.AsMemory(), arity);
+
+        /// <inheritdoc cref="GetTypeMembers(string)"/>
+        public abstract ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name);
+        /// <inheritdoc cref="GetTypeMembers(string, int)"/>
+        public abstract ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity);
 
         /// <summary>
         /// Get all instance field and event members.

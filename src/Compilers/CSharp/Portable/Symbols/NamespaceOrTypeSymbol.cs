@@ -253,9 +253,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol? namedType = null;
 
-            ImmutableArray<NamedTypeSymbol> namespaceOrTypeMembers;
+            Debug.Assert(scope is NamespaceSymbol or NamedTypeSymbol);
             bool isTopLevel = scope.IsNamespace;
 
+            ImmutableArray<NamedTypeSymbol> namespaceOrTypeMembers;
             Debug.Assert(!isTopLevel || scope.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat) == emittedTypeName.NamespaceName);
 
             if (emittedTypeName.IsMangled)
@@ -267,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Let's handle mangling case first.
                     namespaceOrTypeMembers = isTopLevel
                         ? ((NamespaceSymbol)scope).GetTypeMembers(emittedTypeName.UnmangledTypeNameMemory)
-                        : scope.GetTypeMembers(emittedTypeName.UnmangledTypeName);
+                        : ((NamedTypeSymbol)scope).GetTypeMembers(emittedTypeName.UnmangledTypeNameMemory);
 
                     foreach (var named in namespaceOrTypeMembers)
                     {
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             namespaceOrTypeMembers = isTopLevel
                 ? ((NamespaceSymbol)scope).GetTypeMembers(emittedTypeName.TypeNameMemory)
-                : scope.GetTypeMembers(emittedTypeName.TypeName);
+                : ((NamedTypeSymbol)scope).GetTypeMembers(emittedTypeName.TypeNameMemory);
 
             foreach (var named in namespaceOrTypeMembers)
             {

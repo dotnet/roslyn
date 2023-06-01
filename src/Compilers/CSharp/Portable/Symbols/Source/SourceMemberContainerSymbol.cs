@@ -200,11 +200,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private DeclaredMembersAndInitializers? _lazyDeclaredMembersAndInitializers = DeclaredMembersAndInitializers.UninitializedSentinel;
 
         private MembersAndInitializers? _lazyMembersAndInitializers;
-        private Dictionary<string, ImmutableArray<Symbol>>? _lazyMembersDictionary;
-        private Dictionary<string, ImmutableArray<Symbol>>? _lazyEarlyAttributeDecodingMembersDictionary;
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>? _lazyMembersDictionary;
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>? _lazyEarlyAttributeDecodingMembersDictionary;
 
-        private static readonly Dictionary<string, ImmutableArray<NamedTypeSymbol>> s_emptyTypeMembers = new Dictionary<string, ImmutableArray<NamedTypeSymbol>>(EmptyComparer.Instance);
-        private Dictionary<string, ImmutableArray<NamedTypeSymbol>>? _lazyTypeMembers;
+        private static readonly Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>> s_emptyTypeMembers =
+            new Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>>(EmptyReadOnlyMemoryOfCharComparer.Instance);
+
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>>? _lazyTypeMembers;
         private ImmutableArray<Symbol> _lazyMembersFlattened;
         private SynthesizedExplicitImplementations? _lazySynthesizedExplicitImplementations;
         private int _lazyKnownCircularStruct;
@@ -1267,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetTypeMembersDictionary().Flatten(LexicalOrderSymbolComparer.Instance);
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             ImmutableArray<NamedTypeSymbol> members;
             if (GetTypeMembersDictionary().TryGetValue(name, out members))
@@ -1278,12 +1280,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return GetTypeMembers(name).WhereAsArray((t, arity) => t.Arity == arity, arity);
         }
 
-        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> GetTypeMembersDictionary()
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>> GetTypeMembersDictionary()
         {
             if (_lazyTypeMembers == null)
             {
@@ -1301,7 +1303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyTypeMembers;
         }
 
-        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> MakeTypeMembers(BindingDiagnosticBag diagnostics)
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>> MakeTypeMembers(BindingDiagnosticBag diagnostics)
         {
             var symbols = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             var conflictDict = new Dictionary<(string name, int arity, SyntaxTree? syntaxTree), SourceNamedTypeSymbol>();
@@ -1346,7 +1348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 Debug.Assert(s_emptyTypeMembers.Count == 0);
                 return symbols.Count > 0 ?
-                    symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance) :
+                    symbols.ToDictionary(s => s.Name.AsMemory(), ReadOnlyMemoryOfCharComparer.Instance) :
                     s_emptyTypeMembers;
             }
             finally
@@ -1429,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<Symbol> GetMembers(string name)
         {
             ImmutableArray<Symbol> members;
-            if (GetMembersByName().TryGetValue(name, out members))
+            if (GetMembersByName().TryGetValue(name.AsMemory(), out members))
             {
                 return members;
             }
@@ -1510,14 +1512,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name)
         {
             ImmutableArray<Symbol> result;
-            return GetEarlyAttributeDecodingMembersDictionary().TryGetValue(name, out result) ? result : ImmutableArray<Symbol>.Empty;
+            return GetEarlyAttributeDecodingMembersDictionary().TryGetValue(name.AsMemory(), out result) ? result : ImmutableArray<Symbol>.Empty;
         }
 
-        private Dictionary<string, ImmutableArray<Symbol>> GetEarlyAttributeDecodingMembersDictionary()
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> GetEarlyAttributeDecodingMembersDictionary()
         {
             if (_lazyEarlyAttributeDecodingMembersDictionary == null)
             {
-                if (Volatile.Read(ref _lazyMembersDictionary) is Dictionary<string, ImmutableArray<Symbol>> result)
+                if (Volatile.Read(ref _lazyMembersDictionary) is Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> result)
                 {
                     return result;
                 }
@@ -1527,11 +1529,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NOTE: members were added in a single pass over the syntax, so they're already
                 // in lexical order.
 
-                Dictionary<string, ImmutableArray<Symbol>> membersByName;
+                Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName;
 
                 if (!membersAndInitializers.HaveIndexers)
                 {
-                    membersByName = membersAndInitializers.NonTypeMembers.ToDictionary(static s => s.Name);
+                    membersByName = membersAndInitializers.NonTypeMembers.ToDictionary(static s => s.Name.AsMemory(), ReadOnlyMemoryOfCharComparer.Instance);
                 }
                 else
                 {
@@ -1540,7 +1542,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // IndexerNameAttribute).
                     membersByName = membersAndInitializers.NonTypeMembers.
                         WhereAsArray(s => !s.IsIndexer() && (!s.IsAccessor() || ((MethodSymbol)s).AssociatedSymbol?.IsIndexer() != true)).
-                        ToDictionary(static s => s.Name);
+                        ToDictionary(static s => s.Name.AsMemory(), ReadOnlyMemoryOfCharComparer.Instance);
                 }
 
                 AddNestedTypesToDictionary(membersByName, GetTypeMembersDictionary());
@@ -1653,7 +1655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected Dictionary<string, ImmutableArray<Symbol>> GetMembersByName()
+        protected Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> GetMembersByName()
         {
             if (this.state.HasComplete(CompletionPart.Members))
             {
@@ -1663,7 +1665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetMembersByNameSlow();
         }
 
-        private Dictionary<string, ImmutableArray<Symbol>> GetMembersByNameSlow()
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> GetMembersByNameSlow()
         {
             if (_lazyMembersDictionary == null)
             {
@@ -1848,7 +1850,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckMemberNameConflicts(BindingDiagnosticBag diagnostics)
         {
-            Dictionary<string, ImmutableArray<Symbol>> membersByName = GetMembersByName();
+            Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName = GetMembersByName();
 
             // Collisions involving indexers are handled specially.
             CheckIndexerNameConflicts(diagnostics, membersByName);
@@ -2082,7 +2084,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, method1.GetFirstLocation(), methodName, this);
         }
 
-        private void CheckIndexerNameConflicts(BindingDiagnosticBag diagnostics, Dictionary<string, ImmutableArray<Symbol>> membersByName)
+        private void CheckIndexerNameConflicts(BindingDiagnosticBag diagnostics, Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName)
         {
             PooledHashSet<string>? typeParameterNames = null;
             if (this.Arity > 0)
@@ -2135,7 +2137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckIndexerSignatureCollisions(
             PropertySymbol indexer,
             BindingDiagnosticBag diagnostics,
-            Dictionary<string, ImmutableArray<Symbol>> membersByName,
+            Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName,
             Dictionary<PropertySymbol, PropertySymbol> indexersBySignature,
             ref string? lastIndexerName)
         {
@@ -2159,10 +2161,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (Locations.Length == 1 || IsPartial)
                 {
-                    if (membersByName.ContainsKey(indexerName))
+                    if (membersByName.ContainsKey(indexerName.AsMemory()))
                     {
                         // The name of the indexer is reserved - it can only be used by other indexers.
-                        Debug.Assert(!membersByName[indexerName].Any(SymbolExtensions.IsIndexer));
+                        Debug.Assert(!membersByName[indexerName.AsMemory()].Any(SymbolExtensions.IsIndexer));
                         diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, indexer.GetFirstLocation(), this, indexerName);
                     }
                 }
@@ -2707,9 +2709,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private Dictionary<string, ImmutableArray<Symbol>> MakeAllMembers(BindingDiagnosticBag diagnostics)
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> MakeAllMembers(BindingDiagnosticBag diagnostics)
         {
-            Dictionary<string, ImmutableArray<Symbol>> membersByName;
+            Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName;
             var membersAndInitializers = GetMembersAndInitializers();
 
             // Most types don't have indexers.  If this is one of those types,
@@ -2721,7 +2723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                membersByName = membersAndInitializers.NonTypeMembers.ToDictionary(static s => s.Name);
+                membersByName = membersAndInitializers.NonTypeMembers.ToDictionary(static s => s.Name.AsMemory(), ReadOnlyMemoryOfCharComparer.Instance);
 
                 // Merge types into the member dictionary
                 AddNestedTypesToDictionary(membersByName, GetTypeMembersDictionary());
@@ -2732,12 +2734,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return membersByName;
         }
 
-        private static void AddNestedTypesToDictionary(Dictionary<string, ImmutableArray<Symbol>> membersByName, Dictionary<string, ImmutableArray<NamedTypeSymbol>> typesByName)
+        private static void AddNestedTypesToDictionary(
+            Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName,
+            Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>> typesByName)
         {
-            foreach (var pair in typesByName)
+            foreach ((ReadOnlyMemory<char> name, ImmutableArray<NamedTypeSymbol> types) in typesByName)
             {
-                string name = pair.Key;
-                ImmutableArray<NamedTypeSymbol> types = pair.Value;
                 ImmutableArray<Symbol> typesAsSymbols = StaticCast<Symbol>.From(types);
 
                 ImmutableArray<Symbol> membersForName;
@@ -3476,10 +3478,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private void MergePartialMembers(
-            ref Dictionary<string, ImmutableArray<Symbol>> membersByName,
+            ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName,
             BindingDiagnosticBag diagnostics)
         {
-            var memberNames = ArrayBuilder<string>.GetInstance(membersByName.Count);
+            var memberNames = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance(membersByName.Count);
             memberNames.AddRange(membersByName.Keys);
 
             //key and value will be the same object
@@ -3518,7 +3520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)membersByName == _lazyEarlyAttributeDecodingMembersDictionary)
                             {
                                 // Avoid mutating the cached dictionary and especially avoid doing this possibly on multiple threads in parallel.
-                                membersByName = new Dictionary<string, ImmutableArray<Symbol>>(membersByName);
+                                membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
                             }
 
                             membersByName[name] = FixPartialMember(membersByName[name], prevPart, methodPart);
@@ -4356,7 +4358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 bool checkMemberNotHidden(Symbol symbol, ParameterSymbol param)
                 {
-                    if (memberNames.Contains(symbol.Name) || this.GetTypeMembersDictionary().ContainsKey(symbol.Name))
+                    if (memberNames.Contains(symbol.Name) || this.GetTypeMembersDictionary().ContainsKey(symbol.Name.AsMemory()))
                     {
                         diagnostics.Add(ErrorCode.ERR_HiddenPositionalMember, param.GetFirstLocation(), symbol);
                         return false;
