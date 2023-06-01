@@ -282,7 +282,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var result = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>>(builder.Count, ReadOnlyMemoryOfCharComparer.Instance);
             ImmutableArrayExtensions.CreateNameToMembersMap<ReadOnlyMemory<char>, NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(builder, result);
-
             builder.Free();
 
             CheckMembers(this, result, diagnostics);
