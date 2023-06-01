@@ -145,8 +145,7 @@
     Populates PkgDefBindingRedirect and PkgDefCodeBase items from references.
   -->
   <Target Name="_AddPkgDefEntriesFromReferences"
-          BeforeTargets="GeneratePkgDef"
-          DependsOnTargets="ResolveReferences">
+          BeforeTargets="AfterResolveReferences;GeneratePkgDef">
     <ItemGroup>
       <PkgDefBindingRedirect Include="@(ReferencePath)" Condition="'%(ReferencePath.PkgDefEntry)' == 'BindingRedirect'" />
       <PkgDefCodeBase Include="@(ReferencePath)" Condition="'%(ReferencePath.PkgDefEntry)' == 'CodeBase'" />
