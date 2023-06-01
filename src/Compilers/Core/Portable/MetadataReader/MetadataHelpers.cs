@@ -517,7 +517,7 @@ ExitDecodeTypeName:
 #endif
 
             if (nonNumericCharFound || arity < 0 || arity > short.MaxValue ||
-                stringRepresentingArity.SequenceEqual(arity.ToString().AsSpan()))
+                !stringRepresentingArity.SequenceEqual(arity.ToString().AsSpan()))
             {
                 suffixStartsAt = -1;
                 return 0;
