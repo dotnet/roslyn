@@ -5,9 +5,11 @@
     Roslyn version
   -->
 
+<!-- <Metalama> -->
 <PropertyGroup>
     <MetalamaBackstageVersion></MetalamaBackstageVersion>
-    <PostSharpEngineeringVersion>2023.1.13-preview</PostSharpEngineeringVersion>
+    <PostSharpEngineeringVersion>2023.2.2-preview</PostSharpEngineeringVersion>
+    <RoslynVersion>4.5.0</RoslynVersion>
 </PropertyGroup>
 
   <Import Project="..\eng-Metalama\MainVersion.props" />
@@ -17,7 +19,6 @@
   <Import Project="..\eng-Metalama\Versions.g.props" Condition="Exists('..\eng-Metalama\Versions.g.props')" />
  
   <PropertyGroup>
-  <!-- <Metalama> -->
   <!-- The Roslyn version must be changed in ..\eng-Metalama\MainVersion.props.
 
     <MajorVersion>4</MajorVersion>
