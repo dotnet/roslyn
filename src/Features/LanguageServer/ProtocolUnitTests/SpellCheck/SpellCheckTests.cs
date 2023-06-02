@@ -72,11 +72,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         [Theory, CombinatorialData]
         public async Task TestLotsOfResults(bool mutatingLspWorkspace)
         {
-            var markup = string.Join(Environment.NewLine, Enumerable.Repeat(
-@"class {|Identifier:A|}
+            // Produce an 'interesting' large string, with varying length identifiers, and varying distances between the spans. 
+            var random = new Random(0);
+            var markup = string.Join(Environment.NewLine, Enumerable.Range(0, 5500).Select(v =>
+$$"""
+class {|Identifier:A{{v}}|}
 {
 }
-", 5500));
+{{string.Join(Environment.NewLine, Enumerable.Repeat("", random.Next() % 5))}}
+"""));
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             // Calling GetTextBuffer will effectively open the file.
