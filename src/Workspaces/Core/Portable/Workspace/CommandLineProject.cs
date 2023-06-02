@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,12 +21,12 @@ namespace Microsoft.CodeAnalysis
         /// Create a <see cref="ProjectInfo"/> structure initialized from a compilers command line arguments.
         /// </summary>
 #pragma warning disable RS0026 // Type is forwarded from MS.CA.Workspaces.Desktop.
-        public static ProjectInfo CreateProjectInfo(string projectName, string language, IEnumerable<string> commandLineArgs, string projectDirectory, Workspace workspace = null)
+        public static ProjectInfo CreateProjectInfo(string projectName, string language, IEnumerable<string> commandLineArgs, string projectDirectory, Workspace? workspace = null)
 #pragma warning restore RS0026 // Type is forwarded from MS.CA.Workspaces.Desktop.
         {
             // TODO (tomat): the method may throw all sorts of exceptions.
-            var tmpWorkspace = workspace ?? new AdhocWorkspace();
-            var languageServices = tmpWorkspace.Services.SolutionServices.GetLanguageServices(language);
+            workspace ??= new AdhocWorkspace();
+            var languageServices = workspace.Services.SolutionServices.GetLanguageServices(language);
             if (languageServices == null)
             {
                 throw new ArgumentException(WorkspacesResources.Unrecognized_language_name);
@@ -202,7 +200,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a <see cref="ProjectInfo"/> structure initialized with data from a compiler command line.
         /// </summary>
 #pragma warning disable RS0026 // Type is forwarded from MS.CA.Workspaces.Desktop.
-        public static ProjectInfo CreateProjectInfo(string projectName, string language, string commandLine, string baseDirectory, Workspace workspace = null)
+        public static ProjectInfo CreateProjectInfo(string projectName, string language, string commandLine, string baseDirectory, Workspace? workspace = null)
 #pragma warning restore RS0026 // Type is forwarded from MS.CA.Workspaces.Desktop.
         {
             var args = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: true);
