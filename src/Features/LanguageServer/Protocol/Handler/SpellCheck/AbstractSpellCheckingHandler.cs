@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                 // Each span is encoded as a triple of ints.  The 'kind', the 'relative start', and the 'length'.
                 // 'relative start' is the absolute-start for the first span, and then the offset from the end of the
                 // last span for all others.
-                var triples = new int[batchSize];
+                var triples = new int[batchSize * 3];
                 var triplesIndex = 0;
                 var lastSpanEnd = 0;
                 for (var i = batchStart; i < batchEnd; i++)
