@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
@@ -161,6 +162,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 
             // protocol requires the results be in sorted order
             spans = spans.Sort(static (s1, s2) => s1.TextSpan.CompareTo(s1.TextSpan));
+
+            if (spans.Length == 0)
+            {
+                yield return CreateReport(textDocumentIdentifier, Array.Empty<int>(), resultId);
+                yield break;
+            }
 
             // break things up into batches of 1000 items.  That way we can send smaller messages to the client instead
             // of one enormous one.
