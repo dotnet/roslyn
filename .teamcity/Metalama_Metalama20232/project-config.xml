@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Metalama" uuid="3fa7250e-45a7-40e7-b23d-4ede8ff759e8" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2021.1/project-config.xsd">
+  <name>Metalama 2023.2</name>
+  <parameters />
+  <project-extensions>
+    <extension id="PROJECT_EXT_9" type="versionedSettings">
+      <parameters>
+        <param name="buildSettings" value="PREFER_VCS" />
+        <param name="credentialsStorageType" value="credentialsJSON" />
+        <param name="enabled" value="true" />
+        <param name="rootId" value="Metalama_Metalama20232_MetalamaCompiler" />
+        <param name="showChanges" value="true" />
+        <param name="twoWaySynchronization" value="false" />
+      </parameters>
+    </extension>
+  </project-extensions>
+  <cleanup />
+</project>
+
