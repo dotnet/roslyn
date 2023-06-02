@@ -216,6 +216,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 var namedType = (INamedTypeSymbol)context.Symbol;
                 var options = context.Options;
 
+                if (namedType.Name == "OuterType")
+                    Thread.Sleep(2000);
+
                 var candidateMembersToRemove = PooledDictionary<ISymbol, IParameterSymbol>.GetInstance();
                 if (!TryCreateAnalyzer(out var analyzer))
                 {
@@ -223,7 +226,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
                     // We're not analyzing this type itself.  But we still need to hear about field/property references
                     // within it if it's a nested type and one of its containers is a type we're analyzing.
-
                     for (var currentType = namedType.ContainingType; currentType != null; currentType = currentType.ContainingType)
                     {
                         if (namedTypeToAnalyzer.TryGetValue(currentType, out var containingTypeAnalyzer))

@@ -745,12 +745,12 @@ public partial class UsePrimaryConstructorTests
             TestCode = """
                 using System;
 
-                class C
+                class OuterType
                 {
                     private int _i;
                     private int _j;
 
-                    public [|C|](int i, int j)
+                    public [|OuterType|](int i, int j)
                     {
                         _i = i;
                         _j = j;
@@ -760,7 +760,7 @@ public partial class UsePrimaryConstructorTests
                     {
                         private int _i;
 
-                        public Enumerator(C c)
+                        public Enumerator(OuterType c)
                         {
                             _i = c._i;
                             Console.WriteLine(c);
@@ -771,7 +771,7 @@ public partial class UsePrimaryConstructorTests
             FixedCode = """
                 using System;
 
-                class C(int i, int j)
+                class OuterType(int i, int j)
                 {
                     private int _i = i;
 
@@ -779,7 +779,7 @@ public partial class UsePrimaryConstructorTests
                     {
                         private int _i;
                 
-                        public Enumerator(C c)
+                        public Enumerator(OuterType c)
                         {
                             _i = c._i;
                             Console.WriteLine(c);
