@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         public SpellCheckTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
         }
+
         #region Document
 
         [Theory, CombinatorialData]
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
                 ResultId = "DocumentSpellCheckHandler:0",
-                Ranges = GetRanges(sourceText, testDocument.AnnotatedSpans),
+                Ranges = GetRanges(testDocument.AnnotatedSpans),
             });
         }
 
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
                 ResultId = "DocumentSpellCheckHandler:0",
-                Ranges = GetRanges(sourceText, workspace.Documents.Single().AnnotatedSpans),
+                Ranges = GetRanges(workspace.Documents.Single().AnnotatedSpans),
             });
 
             // Now remove the doc.
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
                 ResultId = "DocumentSpellCheckHandler:0",
-                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
+                Ranges = GetRanges(testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
             });
 
             var resultId = results.Single().ResultId;
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
                 ResultId = "DocumentSpellCheckHandler:0",
-                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
+                Ranges = GetRanges(testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
             });
 
             await InsertTextAsync(testLspServer, document, buffer.CurrentSnapshot.Length, "// comment");
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
                 ResultId = "DocumentSpellCheckHandler:1",
-                Ranges = GetRanges(sourceText, annotatedSpans),
+                Ranges = GetRanges(annotatedSpans),
             });
         }
 
@@ -214,7 +215,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
                 ResultId = "DocumentSpellCheckHandler:0",
-                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
+                Ranges = GetRanges(testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
             });
 
             await InsertTextAsync(testLspServer, document, sourceText.Length, text: " ");
@@ -228,7 +229,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
                 ResultId = "DocumentSpellCheckHandler:1",
-                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
+                Ranges = GetRanges(testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
             });
         }
 
@@ -256,7 +257,7 @@ class {|Identifier:A|}
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
                 ResultId = "DocumentSpellCheckHandler:0",
-                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
+                Ranges = GetRanges(testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
             });
         }
 
@@ -283,7 +284,7 @@ class {|Identifier:A|}
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
                 ResultId = "DocumentSpellCheckHandler:0",
-                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
+                Ranges = GetRanges(testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
             });
         }
 
@@ -311,7 +312,7 @@ class {|Identifier:A|}
             {
                 TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
                 ResultId = "WorkspaceSpellCheckHandler:0",
-                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
+                Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
             Assert.Empty(results[1].Ranges);
         }
@@ -384,7 +385,7 @@ class {|Identifier:A|}
             {
                 TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
                 ResultId = "WorkspaceSpellCheckHandler:0",
-                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
+                Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
             Assert.Empty(results[1].Ranges);
 
@@ -422,7 +423,7 @@ class {|Identifier:A|}
             {
                 TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
                 ResultId = "WorkspaceSpellCheckHandler:0",
-                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
+                Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
             Assert.Empty(results[1].Ranges);
 
@@ -458,7 +459,7 @@ class {|Identifier:A|}
             {
                 TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
                 ResultId = "WorkspaceSpellCheckHandler:0",
-                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
+                Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
             Assert.Empty(results[1].Ranges);
 
@@ -483,7 +484,7 @@ class {|Identifier:A|}
             {
                 TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
                 ResultId = "WorkspaceSpellCheckHandler:2",
-                Ranges = GetRanges(sourceText, annotatedSpans),
+                Ranges = GetRanges(annotatedSpans),
             });
             Assert.Null(results2[1].Ranges);
 
@@ -511,7 +512,7 @@ class {|Identifier:A|}
             {
                 TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
                 ResultId = "WorkspaceSpellCheckHandler:0",
-                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
+                Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
             Assert.Empty(results[1].Ranges);
 
@@ -524,17 +525,26 @@ class {|Identifier:A|}
 
         #endregion
 
-        private static VSInternalSpellCheckableRange[] GetRanges(SourceText sourceText, IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans)
+        private static int[] GetRanges(IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans)
         {
-            var allSpans = annotatedSpans.SelectMany(kvp => kvp.Value.Select(textSpan => (kind: kvp.Key, textSpan)).OrderBy(t => t.textSpan.Start));
-            var ranges = allSpans.Select(t => new VSInternalSpellCheckableRange
-            {
-                Kind = Convert(t.kind),
-                Start = ProtocolConversions.LinePositionToPosition(sourceText.Lines.GetLinePosition(t.textSpan.Start)),
-                End = ProtocolConversions.LinePositionToPosition(sourceText.Lines.GetLinePosition(t.textSpan.End)),
-            });
+            var allSpans = annotatedSpans
+                .SelectMany(kvp => kvp.Value.Select(textSpan => (kind: kvp.Key, textSpan))
+                .OrderBy(t => t.textSpan.Start))
+                .ToImmutableArray();
 
-            return ranges.ToArray();
+            var ranges = new int[allSpans.Length * 3];
+            var index = 0;
+            var lastSpanEnd = 0;
+            foreach (var (kind, span) in allSpans)
+            {
+                ranges[index++] = (int)Convert(kind);
+                ranges[index++] = span.Start - lastSpanEnd;
+                ranges[index++] = span.Length;
+
+                lastSpanEnd = span.End;
+            }
+
+            return ranges;
         }
 
         private static VSInternalSpellCheckableRangeKind Convert(string kind)
