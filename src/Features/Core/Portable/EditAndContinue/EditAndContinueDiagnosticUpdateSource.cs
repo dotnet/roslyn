@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (documentDiagnostics.Length > 0)
             {
-                foreach (var (documentId, diagnosticData) in ToDictionary(documentDiagnostics, static data => data.DocumentId!))
+                foreach (var (documentId, diagnosticData) in documentDiagnostics.GroupBy(static data => data.DocumentId!))
                 {
                     var diagnosticGroupId = (this, documentId);
 
@@ -114,13 +114,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         solution,
                         documentId.ProjectId,
                         documentId: documentId,
-                        diagnostics: diagnosticData));
+                        diagnostics: diagnosticData.ToImmutableArray()));
                 }
             }
 
             if (projectDiagnostics.Length > 0)
             {
-                foreach (var (projectId, diagnosticData) in ToDictionary(projectDiagnostics, static data => data.ProjectId!))
+                foreach (var (projectId, diagnosticData) in projectDiagnostics.GroupBy(static data => data.ProjectId!))
                 {
                     var diagnosticGroupId = (this, projectId);
 
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         solution,
                         projectId,
                         documentId: null,
-                        diagnostics: diagnosticData));
+                        diagnostics: diagnosticData.ToImmutableArray()));
                 }
             }
 
@@ -146,39 +146,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     documentId: null,
                     diagnostics: solutionDiagnostics));
             }
-        }
-
-        private static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(
-            ImmutableArray<T> items, Func<T, K> keySelector)
-            where K : notnull
-            where T : notnull
-        {
-            if (items.Length == 0)
-                return new Dictionary<K, ImmutableArray<T>>();
-
-            if (items is [var value])
-            {
-                return new Dictionary<K, ImmutableArray<T>>(1)
-                {
-                    {  keySelector(value), ImmutableArray.Create(value) },
-                };
-            }
-
-            using var _ = PooledDictionary<K, object>.GetInstance(out var accumulator);
-            foreach (var item in items)
-                ImmutableArrayExtensions.AddToMultiValueDictionaryBuilder(accumulator, keySelector(item), item);
-
-            var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count);
-
-            // freeze
-            foreach (var pair in accumulator)
-            {
-                dictionary.Add(pair.Key, pair.Value is ArrayBuilder<T> arrayBuilder
-                    ? arrayBuilder.ToImmutableAndFree()
-                    : ImmutableArray.Create((T)pair.Value));
-            }
-
-            return dictionary;
         }
     }
 }
