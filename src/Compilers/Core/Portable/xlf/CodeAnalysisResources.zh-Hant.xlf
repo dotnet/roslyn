@@ -66,7 +66,7 @@
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
-        <target state="new">'end' must not be less than 'start'. start='{0}' end='{1}'.</target>
+        <target state="translated">'end' 不可小於 'start'。start='{0}' end='{1}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
@@ -131,7 +131,7 @@
       </trans-unit>
       <trans-unit id="LineCannotBeGreaterThanEnd">
         <source>The requested line number {0} must be less than the number of lines {1}.</source>
-        <target state="new">The requested line number {0} must be less than the number of lines {1}.</target>
+        <target state="translated">要求的行號{0}必須小於{1}的行數。</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodSymbolExpected">
@@ -696,13 +696,13 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="needs-review-translation">分析器失敗</target>
+        <target state="translated">分析器失敗</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="needs-review-translation">分析器 '{0}' 擲回了類型為 '{1}' 的例外狀況。訊息: '{2}'。
+        <target state="translated">分析器 '{0}' 擲回了類型為 '{1}' 的例外狀況。訊息: '{2}'。
 {3}</target>
         <note>{0}: Analyzer name
 {1}: Type name

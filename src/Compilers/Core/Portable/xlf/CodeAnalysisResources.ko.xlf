@@ -696,13 +696,13 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="needs-review-translation">분석기 오류</target>
+        <target state="translated">분석기 오류</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="needs-review-translation">분석기 '{0}'에서 '{2}' 메시지와 함께 '{1}' 형식의 예외를 throw했습니다.
+        <target state="translated">분석기 '{0}'에서 '{2}' 메시지와 함께 '{1}' 형식의 예외를 throw했습니다.
 {3}</target>
         <note>{0}: Analyzer name
 {1}: Type name

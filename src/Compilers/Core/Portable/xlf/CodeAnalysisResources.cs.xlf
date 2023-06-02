@@ -696,13 +696,13 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="needs-review-translation">Chyba analyzátoru</target>
+        <target state="translated">Chyba analyzátoru</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="needs-review-translation">Analyzátor {0} způsobil výjimku typu {1} se zprávou {2}.
+        <target state="translated">Analyzátor {0} způsobil výjimku typu {1} se zprávou {2}.
 {3}</target>
         <note>{0}: Analyzer name
 {1}: Type name
