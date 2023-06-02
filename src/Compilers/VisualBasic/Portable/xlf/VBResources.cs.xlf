@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiredMembersInvalid">
         <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
-        <target state="new">The required members list for '{0}' is malformed and cannot be interpreted.</target>
+        <target state="translated">Seznam požadovaných členů pro {0} má chybný formát a nelze ho interpretovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
