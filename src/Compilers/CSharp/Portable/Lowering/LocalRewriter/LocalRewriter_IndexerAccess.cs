@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = _factory.Call(_factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true), getItemOrSliceHelper, VisitExpression(node.Argument));
 
                 // PROTOTYPE(InlineArrays): If we know at compile time that the index is within bounds of the array,
-                //                          we can use InlineArrayElementRef/InlineArrayElementReadOnlyRef helpers and
+                //                          we can use InlineArrayElementRef/InlineArrayElementRefReadOnly helpers and
                 //                          avoid span creation.
                 //                          Also, if the index is 0, we can optimize the code even more by using a helper
                 //                          that doesn't take an offset.
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = _factory.Call(_factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true), getItemOrSliceHelper, integerArgument);
 
                     // PROTOTYPE(InlineArrays): If we know at compile time that the index is within bounds of the array,
-                    //                          we can use InlineArrayElementRef/InlineArrayElementReadOnlyRef helpers and
+                    //                          we can use InlineArrayElementRef/InlineArrayElementRefReadOnly helpers and
                     //                          avoid span creation.
                     //                          Also, if the index is 0, we can optimize the code even more by using a helper
                     //                          that doesn't take an offset.

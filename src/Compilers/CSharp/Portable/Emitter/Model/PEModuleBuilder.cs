@@ -1987,24 +1987,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedInlineArrayElementRefName)!.GetInternalSymbol()!;
         }
 
-        internal MethodSymbol EnsureInlineArrayElementReadOnlyRefExists(SyntaxNode syntaxNode, NamedTypeSymbol intType, DiagnosticBag diagnostics)
+        internal MethodSymbol EnsureInlineArrayElementRefReadOnlyExists(SyntaxNode syntaxNode, NamedTypeSymbol intType, DiagnosticBag diagnostics)
         {
             Debug.Assert(intType.SpecialType == SpecialType.System_Int32);
 
             var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
-            var inlineArrayAsSpanAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName);
+            var inlineArrayAsSpanAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName);
             if (inlineArrayAsSpanAdapter is not null)
             {
                 return (MethodSymbol)inlineArrayAsSpanAdapter.GetInternalSymbol()!;
             }
 
             // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
-            privateImplClass.TryAddSynthesizedMethod(new SynthesizedInlineArrayElementReadOnlyRefMethod(
+            privateImplClass.TryAddSynthesizedMethod(new SynthesizedInlineArrayElementRefReadOnlyMethod(
                 SourceModule,
                 privateImplClass,
-                PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName,
+                PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName,
                 intType).GetCciAdapter());
-            return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName)!.GetInternalSymbol()!;
+            return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName)!.GetInternalSymbol()!;
         }
 
 #nullable disable

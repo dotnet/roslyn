@@ -668,12 +668,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                         {
                                                                             BoundLocal boundLocal = rewriter._factory.StoreToTemp(rewrittenExpression, out BoundAssignmentOperator? valueStore);
                                                                             rewrittenExpression = boundLocal;
-
-                                                                            if (valueStore is object)
-                                                                            {
-                                                                                collectionVarInitializationPreamble = rewriter._factory.ExpressionStatement(valueStore);
-                                                                                preambleLocal = boundLocal.LocalSymbol; ;
-                                                                            }
+                                                                            collectionVarInitializationPreamble = rewriter._factory.ExpressionStatement(valueStore);
+                                                                            preambleLocal = boundLocal.LocalSymbol;
                                                                         }
 
                                                                         collectionTempRefKind = enumeratorInfo.InlineArraySpanType == WellKnownType.System_Span_T ? RefKind.Ref : RefKindExtensions.StrictIn;
@@ -696,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                     else
                                                                     {
                                                                         Debug.Assert(enumeratorInfo.InlineArraySpanType == WellKnownType.System_ReadOnlySpan_T);
-                                                                        elementRef = rewriter._factory.ModuleBuilderOpt.EnsureInlineArrayElementReadOnlyRefExists(node.Syntax, intType, rewriter._diagnostics.DiagnosticBag);
+                                                                        elementRef = rewriter._factory.ModuleBuilderOpt.EnsureInlineArrayElementRefReadOnlyExists(node.Syntax, intType, rewriter._diagnostics.DiagnosticBag);
                                                                     }
 
                                                                     TypeSymbol inlineArrayType = boundArrayVar.Type;

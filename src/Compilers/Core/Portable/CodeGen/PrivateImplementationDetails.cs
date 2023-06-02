@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal const string SynthesizedInlineArrayAsReadOnlySpanName = "InlineArrayAsReadOnlySpan";
 
         internal const string SynthesizedInlineArrayElementRefName = "InlineArrayElementRef";
-        internal const string SynthesizedInlineArrayElementReadOnlyRefName = "InlineArrayElementReadOnlyRef";
+        internal const string SynthesizedInlineArrayElementRefReadOnlyName = "InlineArrayElementRefReadOnly";
 
         private readonly CommonPEModuleBuilder _moduleBuilder;       //the module builder
         private readonly Cci.ITypeReference _systemObject;           //base type

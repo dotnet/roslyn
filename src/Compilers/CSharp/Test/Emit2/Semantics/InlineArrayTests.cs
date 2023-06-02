@@ -10717,7 +10717,7 @@ class Program
                                    t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName).ToTestDisplayString());
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName));
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName));
-                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName));
                 }).VerifyDiagnostics();
 
             verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName,
@@ -10763,7 +10763,7 @@ class Program
                     AssertEx.Equal("System.ReadOnlySpan<TElement> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<TBuffer, TElement>(in TBuffer buffer, System.Int32 length)",
                                    t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName).ToTestDisplayString());
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName));
-                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName));
                 }).VerifyDiagnostics();
 
             verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName,
@@ -10809,7 +10809,7 @@ class Program
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName));
                     Assert.Equal("ref TElement <PrivateImplementationDetails>.InlineArrayElementRef<TBuffer, TElement>(ref TBuffer buffer, System.Int32 index)",
                                  t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName).ToTestDisplayString());
-                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName));
                 }).VerifyDiagnostics();
 
             verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName,
@@ -10853,11 +10853,11 @@ class Program
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName));
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName));
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName));
-                    Assert.Equal("ref readonly TElement <PrivateImplementationDetails>.InlineArrayElementReadOnlyRef<TBuffer, TElement>(in TBuffer buffer, System.Int32 index)",
-                                 t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName).ToTestDisplayString());
+                    Assert.Equal("ref readonly TElement <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<TBuffer, TElement>(in TBuffer buffer, System.Int32 index)",
+                                 t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName).ToTestDisplayString());
                 }).VerifyDiagnostics();
 
-            verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementReadOnlyRefName,
+            verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName,
 @"
 {
   // Code size       18 (0x12)
@@ -14526,7 +14526,7 @@ class Program
   IL_0009:  br.s       IL_002e
   IL_000b:  ldloc.0
   IL_000c:  ldloc.1
-  IL_000d:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_000d:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
   IL_0012:  ldc.i4.s   32
   IL_0014:  call       ""void System.Console.Write(char)""
   IL_0019:  dup
@@ -14615,10 +14615,7 @@ public struct Buffer4<T>
 
     public System.Collections.Generic.IEnumerator<T> GetEnumerator()
     {
-        for (int i = 0; i < 4; i++)
-        {
-            yield return this[i];
-        }
+        throw null;
     }
 }
 ";
@@ -14640,7 +14637,7 @@ public struct Buffer4<T>
   IL_0009:  br.s       IL_0023
   IL_000b:  ldloc.0
   IL_000c:  ldloc.1
-  IL_000d:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_000d:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
   IL_0012:  ldind.i4
   IL_0013:  ldc.i4.s   32
   IL_0015:  call       ""void System.Console.Write(char)""
@@ -14820,7 +14817,7 @@ class Program
   IL_000c:  br.s       IL_003b
   IL_000e:  ldloc.1
   IL_000f:  ldloc.2
-  IL_0010:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_0010:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
   IL_0015:  ldind.i4
   IL_0016:  ldc.i4.s   32
   IL_0018:  call       ""void System.Console.Write(char)""
@@ -15880,7 +15877,7 @@ class Program
     IL_0077:  br.s       IL_0099
     IL_0079:  ldloc.3
     IL_007a:  ldloc.s    V_4
-    IL_007c:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+    IL_007c:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
     IL_0081:  ldind.i4
     IL_0082:  call       ""void Program.Increment()""
     IL_0087:  ldc.i4.s   32
@@ -16040,7 +16037,7 @@ class Program
     IL_003e:  ldflda     ""Buffer4<int> C.F""
     IL_0043:  ldarg.0
     IL_0044:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
-    IL_0049:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+    IL_0049:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
     IL_004e:  ldind.i4
     IL_004f:  call       ""void Program.Increment()""
     IL_0054:  ldc.i4.s   32
@@ -16278,7 +16275,7 @@ class Program
     IL_0022:  ldflda     ""Buffer4<int> Program.<Test>d__1.<>7__wrap1""
     IL_0027:  ldarg.0
     IL_0028:  ldfld      ""int Program.<Test>d__1.<>7__wrap2""
-    IL_002d:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+    IL_002d:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
     IL_0032:  ldind.i4
     IL_0033:  ldc.i4.s   32
     IL_0035:  call       ""void System.Console.Write(char)""
@@ -16740,7 +16737,7 @@ class Program
   IL_0041:  br.s       IL_0060
   IL_0043:  ldloc.1
   IL_0044:  ldloc.2
-  IL_0045:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_0045:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
   IL_004a:  ldind.i4
   IL_004b:  call       ""void Program.Increment()""
   IL_0050:  ldc.i4.s   32
@@ -16854,7 +16851,7 @@ class Program
   IL_003e:  ldflda     ""Buffer4<int> C.F""
   IL_0043:  ldarg.0
   IL_0044:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
-  IL_0049:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_0049:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
   IL_004e:  ldind.i4
   IL_004f:  call       ""void Program.Increment()""
   IL_0054:  ldc.i4.s   32
@@ -17017,7 +17014,7 @@ class Program
   IL_002c:  ldflda     ""Buffer4<int> Program.<Test>d__1.<>7__wrap1""
   IL_0031:  ldarg.0
   IL_0032:  ldfld      ""int Program.<Test>d__1.<>7__wrap2""
-  IL_0037:  call       ""InlineArrayElementReadOnlyRef<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_0037:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
   IL_003c:  ldind.i4
   IL_003d:  ldc.i4.s   32
   IL_003f:  call       ""void System.Console.Write(char)""
