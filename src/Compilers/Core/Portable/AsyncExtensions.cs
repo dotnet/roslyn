@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 
 // PROTOTYPE this should come from the BCL
-internal static class TaskAwaiterExceptionExtensions
+public static class TaskAwaiterExceptionExtensions
 {
     // !!!WARNING!!!: These depend on the exact layout of awaiters having the stored task
     // as the first field of the struct.  That is the case in both .NET Framework and .NET Core.
@@ -85,7 +85,7 @@ internal static class TaskAwaiterExceptionExtensions
     }
 }
 
-internal static class ValueTaskAwaiterExceptionExtensions
+public static class ValueTaskAwaiterExceptionExtensions
 {
     // !!!WARNING!!!: These depend on the exact layout of awaiters having the stored task
     // as the first field of the struct.  That _should_ be the case in both .NET Framework
