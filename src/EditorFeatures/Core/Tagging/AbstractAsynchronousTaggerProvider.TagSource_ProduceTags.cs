@@ -170,11 +170,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private void EnqueueWork(bool highPriority)
                 => _eventChangeQueue.AddWork(highPriority, _dataSource.CancelOnNewWork);
 
-            private ValueTask ProcessEventChangeAsync(ImmutableSegmentedList<bool> changes, CancellationToken cancellationToken)
+            private ValueTask<VoidResult> ProcessEventChangeAsync(ImmutableSegmentedList<bool> changes, CancellationToken cancellationToken)
             {
                 // If any of the requests was high priority, then compute at that speed.
                 var highPriority = changes.Contains(true);
-                return new ValueTask(RecomputeTagsAsync(highPriority, cancellationToken));
+                return new ValueTask<VoidResult>(RecomputeTagsAsync(highPriority, cancellationToken));
             }
 
             /// <summary>
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// <param name="highPriority">
             /// If this tagging request should be processed as quickly as possible with no extra delays added for it.
             /// </param>
-            private async Task RecomputeTagsAsync(bool highPriority, CancellationToken cancellationToken)
+            private async Task<VoidResult> RecomputeTagsAsync(bool highPriority, CancellationToken cancellationToken)
             {
                 await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -209,12 +209,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         _dataSource.ThreadingContext, _dataSource.AsyncListener, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(captureContext: true);
 
                     if (cancellationToken.IsCancellationRequested)
-                        return;
+                        return default;
                 }
 
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 if (cancellationToken.IsCancellationRequested)
-                    return;
+                    return default;
 
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, cancellationToken))
                 {
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     await TaskScheduler.Default;
 
                     if (cancellationToken.IsCancellationRequested)
-                        return;
+                        return default;
 
                     // Create a context to store pass the information along and collect the results.
                     var context = new TaggerContext<TTag>(
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
 
                     if (cancellationToken.IsCancellationRequested)
-                        return;
+                        return default;
 
                     // Process the result to determine what changed.
                     var newTagTrees = ComputeNewTagTrees(oldTagTrees, context);
@@ -272,6 +272,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // machine resources that the user won't even notice.
                     PauseIfNotVisible();
                 }
+
+                return default;
             }
 
             private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
