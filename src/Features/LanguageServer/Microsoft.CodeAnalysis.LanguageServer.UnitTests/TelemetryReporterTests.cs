@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.Extensions.Logging;
+using Roslyn.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -16,9 +17,9 @@ public sealed class TelemetryReporterTests : AbstractLanguageServerHostTests
     {
     }
 
-    private static async Task<ITelemetryReporter> CreateReporterAsync()
+    private async Task<ITelemetryReporter> CreateReporterAsync()
     {
-        var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(new LoggerFactory(), includeDevKitComponents: true);
+        var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(TestOutputLogger.Factory, includeDevKitComponents: true);
 
         var reporter = exportProvider.GetExport<ITelemetryReporter>().Value;
         Assert.NotNull(reporter);

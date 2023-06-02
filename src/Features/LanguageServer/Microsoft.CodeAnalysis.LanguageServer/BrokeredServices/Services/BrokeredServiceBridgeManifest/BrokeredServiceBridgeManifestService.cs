@@ -36,11 +36,15 @@ internal class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, I
 
     public ServiceRpcDescriptor Descriptor => s_serviceDescriptor;
 
+    /// <summary>
+    /// Returns a subset of services registered to Microsoft.VisualStudio.Code.Server container that are proferred by the Language Server process.
+    /// </summary>
     public ValueTask<IReadOnlyCollection<ServiceMoniker>> GetAvailableServicesAsync(CancellationToken cancellationToken)
     {
         var services = (IReadOnlyCollection<ServiceMoniker>)_serviceBrokerFactory.GetRequiredServiceBrokerContainer().GetRegisteredServices()
             .Select(s => s.Key)
             .Where(s => s.Name.StartsWith("Microsoft.CodeAnalysis.LanguageServer.", StringComparison.Ordinal) ||
+                        s.Name.StartsWith("Microsoft.VisualStudio.LanguageServer.", StringComparison.Ordinal) ||
                         s.Name.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal))
             .ToImmutableArray();
         _logger.LogDebug($"Proffered services: {string.Join(',', services.Select(s => s.ToString()))}");

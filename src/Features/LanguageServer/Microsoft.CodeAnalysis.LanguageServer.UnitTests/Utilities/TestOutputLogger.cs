@@ -7,13 +7,15 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-internal class TestOutputLogger : ILogger
+public class TestOutputLogger : ILogger
 {
     private readonly ITestOutputHelper _testOutputHelper;
+    public readonly ILoggerFactory Factory;
 
     public TestOutputLogger(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
+        Factory = new LoggerFactory(new[] { new TestLoggerProvider(this) });
     }
 
     public IDisposable BeginScope<TState>(TState state)

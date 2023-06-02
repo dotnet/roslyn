@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public abstract class AbstractLanguageServerHostTests
 {
-    protected ILogger TestOutputLogger { get; }
+    protected TestOutputLogger TestOutputLogger { get; }
 
     protected AbstractLanguageServerHostTests(ITestOutputHelper testOutputHelper)
     {
@@ -32,10 +32,9 @@ public abstract class AbstractLanguageServerHostTests
         private readonly Task _languageServerHostCompletionTask;
         private readonly JsonRpc _clientRpc;
 
-        public static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, ILogger logger, bool includeDevKitComponents = true)
+        public static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, TestOutputLogger logger, bool includeDevKitComponents = true)
         {
-            var loggerFactory = new LoggerFactory(SpecializedCollections.SingletonEnumerable(new TestLoggerProvider(logger)));
-            var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(loggerFactory, includeDevKitComponents);
+            var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(logger.Factory, includeDevKitComponents);
             var testLspServer = new TestLspServer(exportProvider, logger);
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);
@@ -91,24 +90,6 @@ public abstract class AbstractLanguageServerHostTests
 #pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
 
             _clientRpc.Dispose();
-        }
-    }
-
-    private class TestLoggerProvider : ILoggerProvider
-    {
-        private readonly ILogger _testLogger;
-        public TestLoggerProvider(ILogger testLogger)
-        {
-            _testLogger = testLogger;
-        }
-
-        public ILogger CreateLogger(string categoryName)
-        {
-            return _testLogger;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }
