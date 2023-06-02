@@ -505,26 +505,41 @@ ExitDecodeTypeName:
                 return 0;
             }
 
-            // Given a name corresponding to <unmangledName>`<arity>,
-            // extract the arity.
-            var aritySpan = emittedTypeName[indexOfManglingChar..];
-
-            int arity;
-#if NET
-            bool nonNumericCharFound = !int.TryParse(aritySpan, NumberStyles.None, CultureInfo.InvariantCulture, out arity);
-#else
-            bool nonNumericCharFound = !int.TryParse(aritySpan.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out arity);
-#endif
-
-            if (nonNumericCharFound || arity < 0 || arity > short.MaxValue ||
-                !aritySpan.SequenceEqual(arity.ToString().AsSpan()))
+            // Given a name corresponding to <unmangledName>`<arity>, extract the arity.
+            if (!tryScanArity(emittedTypeName[indexOfManglingChar..], out var arity))
             {
                 suffixStartsAt = -1;
                 return 0;
             }
 
             suffixStartsAt = indexOfManglingChar - 1;
-            return (short)arity;
+            return arity;
+
+            static bool tryScanArity(ReadOnlySpan<char> aritySpan, out short arity)
+            {
+                // Common case: aritySpan is 1 digit between 0-9.  No need for any complex parsing logic in that case.
+                if (aritySpan is [var firstChar and >= '0' and <= '9'])
+                {
+                    arity = (short)(firstChar - '0');
+                    return true;
+                }
+
+#if NET
+                bool nonNumericCharFound = !int.TryParse(aritySpan, NumberStyles.None, CultureInfo.InvariantCulture, out var intArity);
+#else
+                bool nonNumericCharFound = !int.TryParse(aritySpan.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out var intArity);
+#endif
+
+                if (nonNumericCharFound || intArity < 0 || intArity > short.MaxValue ||
+                    !aritySpan.SequenceEqual(intArity.ToString().AsSpan()))
+                {
+                    arity = -1;
+                    return false;
+                }
+
+                arity = (short)intArity;
+                return true;
+            }
         }
 
         internal static string InferTypeArityAndUnmangleMetadataName(string emittedTypeName, out short arity)
