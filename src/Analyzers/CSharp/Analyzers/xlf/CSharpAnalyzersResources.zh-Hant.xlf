@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Member_can_be_made_readonly">
         <source>Member can be made 'readonly'</source>
-        <target state="new">Member can be made 'readonly'</target>
+        <target state="translated">成員可以設為 'readonly'</target>
         <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
@@ -389,7 +389,7 @@
       </trans-unit>
       <trans-unit id="Use_primary_constructor">
         <source>Use primary constructor</source>
-        <target state="new">Use primary constructor</target>
+        <target state="translated">使用主要建構函式</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">
