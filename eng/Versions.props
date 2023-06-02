@@ -9,7 +9,6 @@
 <PropertyGroup>
     <MetalamaBackstageVersion></MetalamaBackstageVersion>
     <PostSharpEngineeringVersion>2023.2.2-preview</PostSharpEngineeringVersion>
-    <RoslynVersion>4.5.0</RoslynVersion>
 </PropertyGroup>
 
   <Import Project="..\eng-Metalama\MainVersion.props" />
