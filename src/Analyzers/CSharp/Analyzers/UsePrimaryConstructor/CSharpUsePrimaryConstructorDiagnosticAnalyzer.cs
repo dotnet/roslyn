@@ -224,13 +224,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 {
                     candidateMembersToRemove.Free();
 
+                    var foundOuterType = false;
+
                     // We're not analyzing this type itself.  But we still need to hear about field/property references
                     // within it if it's a nested type and one of its containers is a type we're analyzing.
                     for (var currentType = namedType.ContainingType; currentType != null; currentType = currentType.ContainingType)
                     {
                         if (namedTypeToAnalyzer.TryGetValue(currentType, out var containingTypeAnalyzer))
+                        {
                             RegisterFieldOrPropertyAnalysisIfNecessary(containingTypeAnalyzer);
+                            foundOuterType = true;
+                        }
                     }
+
+                    context.RegisterSymbolEndAction(_ => { });
+
+                    if (!foundOuterType && namedType.Name == "Enumerator")
+                        throw new InvalidOperationException("Processed the inner type even without the outer type being there");
                 }
                 else
                 {
