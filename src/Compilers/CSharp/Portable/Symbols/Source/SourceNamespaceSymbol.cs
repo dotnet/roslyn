@@ -22,9 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> s_emptyMap =
             ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparers(ReferenceEqualityComparer.Instance);
 
-        private static readonly ObjectPool<PooledDictionary<ReadOnlyMemory<char>, object>> s_nameToObjectPool =
-            PooledDictionary<ReadOnlyMemory<char>, object>.CreatePool(ReadOnlyMemoryOfCharComparer.Instance);
-
         private readonly SourceModuleSymbol _module;
         private readonly Symbol _container;
         private readonly MergedNamespaceDeclaration _mergedDeclaration;

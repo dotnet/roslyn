@@ -1533,16 +1533,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!membersAndInitializers.HaveIndexers)
                 {
-                    membersByName = membersAndInitializers.NonTypeMembers.ToDictionary(static s => s.Name.AsMemory(), ReadOnlyMemoryOfCharComparer.Instance);
+                    membersByName = ToNameKeyedDictionary(membersAndInitializers.NonTypeMembers);
                 }
                 else
                 {
                     // We can't include indexer symbol yet, because we don't know
                     // what name it will have after attribute binding (because of
                     // IndexerNameAttribute).
-                    membersByName = membersAndInitializers.NonTypeMembers.
-                        WhereAsArray(s => !s.IsIndexer() && (!s.IsAccessor() || ((MethodSymbol)s).AssociatedSymbol?.IsIndexer() != true)).
-                        ToDictionary(static s => s.Name.AsMemory(), ReadOnlyMemoryOfCharComparer.Instance);
+                    membersByName = ToNameKeyedDictionary(membersAndInitializers.NonTypeMembers.
+                        WhereAsArray(s => !s.IsIndexer() && (!s.IsAccessor() || ((MethodSymbol)s).AssociatedSymbol?.IsIndexer() != true)));
                 }
 
                 AddNestedTypesToDictionary(membersByName, GetTypeMembersDictionary());
@@ -1551,6 +1550,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return _lazyEarlyAttributeDecodingMembersDictionary;
+        }
+
+        private static Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> ToNameKeyedDictionary(ImmutableArray<Symbol> symbols)
+        {
+            if (symbols is [var symbol])
+            {
+                return new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(1, ReadOnlyMemoryOfCharComparer.Instance)
+                {
+                    {  symbol.Name.AsMemory(), ImmutableArray.Create(symbol) },
+                };
+            }
+
+            if (symbols.Length == 0)
+            {
+                return new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(ReadOnlyMemoryOfCharComparer.Instance);
+            }
+
+            // bucketize
+            // prevent reallocation. it may not have 'count' entries, but it won't have more. 
+            //
+            // We store a mapping from keys to either a single item (very common in practice as this is used from
+            // callers that maps names to symbols with that name, and most names are unique), or an array builder of items.
+
+            var accumulator = s_nameToObjectPool.Allocate();
+            foreach (var item in symbols)
+                ImmutableArrayExtensions.AddToMultiValueDictionaryBuilder(accumulator, item.Name.AsMemory(), item);
+
+            var dictionary = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(accumulator.Count, ReadOnlyMemoryOfCharComparer.Instance);
+
+            // freeze
+            foreach (var pair in accumulator)
+            {
+                dictionary.Add(pair.Key, pair.Value is ArrayBuilder<Symbol> arrayBuilder
+                    ? arrayBuilder.ToImmutableAndFree()
+                    : ImmutableArray.Create((Symbol)pair.Value));
+            }
+
+            accumulator.Free();
+
+            return dictionary;
         }
 
         // NOTE: this method should do as little work as possible
@@ -2723,7 +2762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                membersByName = membersAndInitializers.NonTypeMembers.ToDictionary(static s => s.Name.AsMemory(), ReadOnlyMemoryOfCharComparer.Instance);
+                membersByName = ToNameKeyedDictionary(membersAndInitializers.NonTypeMembers);
 
                 // Merge types into the member dictionary
                 AddNestedTypesToDictionary(membersByName, GetTypeMembersDictionary());
