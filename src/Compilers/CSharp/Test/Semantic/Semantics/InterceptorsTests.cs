@@ -26,7 +26,7 @@ public class InterceptorsTests : CSharpTestBase
         }
         """, "attributes.cs");
 
-    private static readonly CSharpParseOptions RegularWithInterceptors = TestOptions.Regular.WithFeature("interceptors");
+    private static readonly CSharpParseOptions RegularWithInterceptors = TestOptions.Regular.WithFeature("InterceptorsPreview");
 
     [Fact]
     public void FeatureFlag()
@@ -51,23 +51,23 @@ public class InterceptorsTests : CSharpTestBase
 
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
         comp.VerifyEmitDiagnostics(
-            // Program.cs(13,6): error CS27000: The 'interceptors' experimental feature is not enabled. Add '<Features>interceptors</Features>' to your project.
+            // Program.cs(13,6): error CS27000: The 'interceptors' experimental feature is not enabled. Add '<Features>InterceptorsPreview</Features>' to your project.
             //     [InterceptsLocation("Program.cs", 4, 3)]
             Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(13, 6));
 
-        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("interceptors-experimental"));
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview-experimental"));
         comp.VerifyEmitDiagnostics(
-            // Program.cs(13,6): error CS27000: The 'interceptors' experimental feature is not enabled. Add '<Features>interceptors</Features>' to your project.
+            // Program.cs(13,6): error CS27000: The 'interceptors' experimental feature is not enabled. Add '<Features>InterceptorsPreview</Features>' to your project.
             //     [InterceptsLocation("Program.cs", 4, 3)]
             Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(13, 6));
 
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
 
-        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("interceptors", "false"), expectedOutput: "1");
+        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview", "false"), expectedOutput: "1");
         verifier.VerifyDiagnostics();
 
-        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("Interceptors"), expectedOutput: "1");
+        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("interceptorspreview"), expectedOutput: "1");
         verifier.VerifyDiagnostics();
 
     }
