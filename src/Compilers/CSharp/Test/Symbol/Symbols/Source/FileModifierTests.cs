@@ -2459,9 +2459,9 @@ public class FileModifierTests : CSharpTestBase
             // F1.cs(8,30): error CS0528: 'FI<nint>' is already listed in interface list
             // internal class C : FI<nint>, FI<IntPtr>
             Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "FI<IntPtr>").WithArguments("FI<nint>").WithLocation(8, 30),
-            // F1.cs(11,23): error CS0102: The type 'C' already contains a definition for 'FI<nint>.Prop'
+            // F1.cs(11,23): error CS0102: The type 'C' already contains a definition for '<F1>F2A62B10769F2595F65CAD631A41E2B54F5D1B3601B00884A41306FA9AD9BACDB__FI<nint>.Prop'
             //     IntPtr FI<IntPtr>.Prop { get; }
-            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Prop").WithArguments("C", "FI<nint>.Prop").WithLocation(11, 23)
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Prop").WithArguments("C", "<F1>F2A62B10769F2595F65CAD631A41E2B54F5D1B3601B00884A41306FA9AD9BACDB__FI<nint>.Prop").WithLocation(11, 23)
             );
     }
 
@@ -4125,7 +4125,7 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, verify: Verification.Skipped, expectedOutput: "12");
+        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, expectedOutput: "12");
         verifier.VerifyDiagnostics();
     }
 
@@ -4234,9 +4234,9 @@ public class FileModifierTests : CSharpTestBase
             // F1.cs(6,30): error CS0535: 'Foo' does not implement interface member 'IFoo.Bar'
             // internal partial class Foo : IFoo
             Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo").WithArguments("Foo", "IFoo.Bar").WithLocation(6, 30),
-            // F2.cs(9,14): error CS0102: The type 'Foo' already contains a definition for 'IFoo.Bar'
+            // F2.cs(9,14): error CS0102: The type 'Foo' already contains a definition for '<F2>F141A34209AF0D3C8CA844A7D9A360C895EB14E557F17D27626C519D9BE96AF4A__IFoo.Bar'
             //     int IFoo.Bar => 2;
-            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Bar").WithArguments("Foo", "IFoo.Bar").WithLocation(9, 14));
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Bar").WithArguments("Foo", "<F2>F141A34209AF0D3C8CA844A7D9A360C895EB14E557F17D27626C519D9BE96AF4A__IFoo.Bar").WithLocation(9, 14));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68219")]
@@ -4278,7 +4278,7 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, verify: Verification.Skipped, expectedOutput: "12");
+        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, expectedOutput: "12");
         verifier.VerifyDiagnostics();
     }
 
@@ -4321,7 +4321,7 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, verify: Verification.Skipped, expectedOutput: "12");
+        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, expectedOutput: "12");
         verifier.VerifyDiagnostics();
     }
 
@@ -4364,7 +4364,7 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, verify: Verification.Skipped, expectedOutput: "12");
+        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, expectedOutput: "12");
         verifier.VerifyDiagnostics();
     }
 
@@ -4451,9 +4451,9 @@ public class FileModifierTests : CSharpTestBase
             // F2.cs(9,28): error CS9051: File-local type 'FI' cannot be used in a member signature in non-file-local type 'C'.
             //     static int FI.operator +(FI fi, int i) => throw null!; // 4, 5
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "+").WithArguments("FI", "C").WithLocation(9, 28),
-            // F2.cs(9,28): error CS0111: Type 'C' already defines a member called 'FI.op_Addition' with the same parameter types
+            // F2.cs(9,28): error CS0111: Type 'C' already defines a member called '<F2>F141A34209AF0D3C8CA844A7D9A360C895EB14E557F17D27626C519D9BE96AF4A__FI.op_Addition' with the same parameter types
             //     static int FI.operator +(FI fi, int i) => throw null!; // 4, 5
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "+").WithArguments("FI.op_Addition", "C").WithLocation(9, 28)
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "+").WithArguments("<F2>F141A34209AF0D3C8CA844A7D9A360C895EB14E557F17D27626C519D9BE96AF4A__FI.op_Addition", "C").WithLocation(9, 28)
             );
     }
 
@@ -4497,5 +4497,49 @@ public class FileModifierTests : CSharpTestBase
             //     static int FI.operator +(FI fi, int i) => throw null!;
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "+").WithArguments("FI", "C").WithLocation(8, 28)
             );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68219")]
+    public void PartialExplicitImplementation_11()
+    {
+        var source0 = """
+            var c = new C();
+            c.Use1();
+            c.Use2();
+
+            interface I<T>
+            {
+                void M();
+            }
+            """;
+
+        var source1 = """
+            using System;
+
+            file interface FI { }
+
+            partial class C : I<FI>
+            {
+                void I<FI>.M() { Console.Write(1); }
+
+                public void Use1() { ((I<FI>)this).M(); }
+            }
+            """;
+
+        var source2 = """
+            using System;
+
+            file interface FI { }
+
+            partial class C : I<FI>
+            {
+                void I<FI>.M() { Console.Write(2); }
+
+                public void Use2() { ((I<FI>)this).M(); }
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, expectedOutput: "12");
+        verifier.VerifyDiagnostics();
     }
 }

@@ -1948,23 +1948,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if (symbol.Kind != SymbolKind.Field || !symbol.IsImplicitlyDeclared)
                             {
-                                var explicitImplementations = symbol.GetExplicitInterfaceImplementations();
-                                var lastExplicitImplementations = lastSym.GetExplicitInterfaceImplementations();
-
-                                // Source symbols can only explicitly implement at most 1 member
-                                Debug.Assert(explicitImplementations.Length is 0 or 1 && explicitImplementations.Length == lastExplicitImplementations.Length);
-
-                                // Sometimes two non-overloadable members can have exactly the same source name, but be explicit implementations of different members.
-                                // For example, when explicitly implementing members of file-local interfaces.
-                                // We don't consider such members to be duplicates.
-                                if (explicitImplementations.Length == 0
-                                    || explicitImplementations[0].Equals(lastExplicitImplementations[0], TypeCompareKind.AllIgnoreOptions))
+                                // The type '{0}' already contains a definition for '{1}'
+                                if (Locations.Length == 1 || IsPartial)
                                 {
-                                    // The type '{0}' already contains a definition for '{1}'
-                                    if (Locations.Length == 1 || IsPartial)
-                                    {
-                                        diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, symbol.GetFirstLocation(), this, symbol.Name);
-                                    }
+                                    diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, symbol.GetFirstLocation(), this, symbol.Name);
                                 }
                             }
 
