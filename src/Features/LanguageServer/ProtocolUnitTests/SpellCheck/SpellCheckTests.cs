@@ -70,6 +70,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         }
 
         [Theory, CombinatorialData]
+        public async Task TestLotsOfResults(bool mutatingLspWorkspace)
+        {
+            var markup = string.Join(Environment.NewLine, Enumerable.Repeat(
+@"class {|Identifier:A|}
+{
+}
+", 5500));
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            // Calling GetTextBuffer will effectively open the file.
+            var testDocument = testLspServer.TestWorkspace.Documents.Single();
+            testDocument.GetTextBuffer();
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, document.GetURI());
+
+            var sourceText = await document.GetTextAsync();
+            Assert.True(results.Length == 6);
+
+            for (var i = 0; i < results.Length; i++)
+            {
+                AssertJsonEquals(results[i], new VSInternalSpellCheckableRangeReport
+                {
+                    ResultId = "DocumentSpellCheckHandler:0",
+                    Ranges = GetRanges(testDocument.AnnotatedSpans, 1000 * i, 1000),
+                });
+            }
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestDocumentResultsForRemovedDocument(bool mutatingLspWorkspace)
         {
             var markup =
@@ -525,18 +558,23 @@ class {|Identifier:A|}
 
         #endregion
 
-        private static int[] GetRanges(IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans)
+        private static int[] GetRanges(IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans, int start = 0, int length = 1000)
         {
             var allSpans = annotatedSpans
                 .SelectMany(kvp => kvp.Value.Select(textSpan => (kind: kvp.Key, textSpan))
                 .OrderBy(t => t.textSpan.Start))
                 .ToImmutableArray();
 
-            var ranges = new int[allSpans.Length * 3];
+            var end = Math.Min(start + length, allSpans.Length);
+            length = end - start;
+            var ranges = new int[length * 3];
             var index = 0;
             var lastSpanEnd = 0;
-            foreach (var (kind, span) in allSpans)
+
+            for (var i = start; i < end; i++)
             {
+                var (kind, span) = allSpans[i];
+
                 ranges[index++] = (int)Convert(kind);
                 ranges[index++] = span.Start - lastSpanEnd;
                 ranges[index++] = span.Length;
