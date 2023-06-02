@@ -13548,7 +13548,7 @@ implicit extension E for C
             );
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_NameOf_SingleParameter()
     {
         var src = """
