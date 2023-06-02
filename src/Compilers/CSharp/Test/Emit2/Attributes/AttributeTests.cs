@@ -11329,7 +11329,6 @@ IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'I
                       IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
                     Value:
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
 """;
             var expectedDiagnostics = new[]
             {
@@ -11342,6 +11341,22 @@ IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'I
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var firstArgument = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().First();
+            Assert.Equal("SomeProperty = 1", firstArgument.ToString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(firstArgument.Expression).Type.ToTestDisplayString());
+
+            var secondArgument = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Skip(1).First();
+            Assert.Equal("F = null", secondArgument.ToString());
+            Assert.Null(model.GetTypeInfo(secondArgument.Expression).Type);
+
+            var thirdArgument = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Skip(2).Single();
+            Assert.Equal("G = 0 switch { _ => 1 }", thirdArgument.ToString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(thirdArgument.Expression).Type.ToTestDisplayString());
         }
         #endregion
     }
