@@ -115,9 +115,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 generateMethodBodies: false,
                 generateMembers: false);
 
-            var options = await destinationEditor.OriginalDocument.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var info = options.GetInfo(context, document.Project);
-            var destinationWithMembersAdded = codeGenerationService.AddMembers(destinationSyntaxNode, symbolsToPullUp, info, cancellationToken);
+            var info = await destinationEditor.OriginalDocument.GetCodeGenerationInfoAsync(context, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var destinationWithMembersAdded = info.Service.AddMembers(destinationSyntaxNode, symbolsToPullUp, info, cancellationToken);
 
             destinationEditor.ReplaceNode(destinationSyntaxNode, (syntaxNode, generator) => destinationWithMembersAdded);
 
@@ -311,8 +310,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 generateMethodBodies: false);
 
             var options = await destinationEditor.OriginalDocument.GetCleanCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-
-            var info = options.GenerationOptions.GetInfo(context, destinationEditor.OriginalDocument.Project);
+            var info = codeGenerationService.GetInfo(context, options.GenerationOptions, destinationEditor.OriginalDocument.Project.ParseOptions);
 
             var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, info, cancellationToken);
             using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var sourceImports);

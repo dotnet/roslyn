@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(expr != null);
 
-            if ((object)expr.Type == null && expr.ConstantValue == ConstantValue.Null)
+            if ((object)expr.Type == null && expr.ConstantValueOpt == ConstantValue.Null)
             {
                 return true;
             }

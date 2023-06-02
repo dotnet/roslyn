@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// can be decoded here.
         /// </summary>
         /// <remarks>
-        /// NOTE: If you are early decoding any new well-known attribute, make sure to update PostEarlyDecodeWellKnownAttributeTypes 
+        /// NOTE: If you are early decoding any new well-known attribute, make sure to update PostEarlyDecodeWellKnownAttributeTypes
         /// to default initialize this data.
         /// </remarks>
         internal virtual void EarlyDecodeWellKnownAttributeType(NamedTypeSymbol attributeType, AttributeSyntax attributeSyntax)
@@ -237,9 +238,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method is called by the binder from <see cref="LoadAndValidateAttributes"/> after it has finished binding attributes on the symbol,
         /// has executed <see cref="DecodeWellKnownAttribute"/> for attributes applied on the symbol and has stored the decoded data in the
         /// lazyCustomAttributesBag on the symbol. Bound attributes haven't been stored on the bag yet.
-        /// 
+        ///
         /// Post-validation for attributes that is dependent on other attributes can be done here.
-        /// 
+        ///
         /// This method should not have any side effects on the symbol, i.e. it SHOULD NOT change the symbol state.
         /// </remarks>
         /// <param name="boundAttributes">Bound attributes.</param>
@@ -438,12 +439,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // The TypeForwardedTo attribute takes only one argument, which must be System.Type and it
                     // designates the forwarded type. The only form of System.Type value accepted
                     // as an argument for an attribute is a 'typeof' expression. The only obsolete diagnostics
-                    // that can be reported for a 'typeof' expression, is diagnostics for its argument, which is 
+                    // that can be reported for a 'typeof' expression, is diagnostics for its argument, which is
                     // the reference to a type. A forwarded type, when we are dealing with a TypeForwardedTo
                     // application.
 
                     // The general strategy:
-                    //    1. Collect locations of the first argument of each TypeForwardedTo attribute application.  
+                    //    1. Collect locations of the first argument of each TypeForwardedTo attribute application.
                     //    2. Collect obsolete diagnostics reported within the span of those locations.
                     //    3. Remove the collected diagnostics, if any.
 
@@ -452,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Debug.Assert(totalAttributesCount == boundAttributes.Length);
 
-                    //    1. Collect locations of the first argument of each TypeForwardedTo attribute application.  
+                    //    1. Collect locations of the first argument of each TypeForwardedTo attribute application.
                     for (int i = 0; i < totalAttributesCount; i++)
                     {
                         CSharpAttributeData boundAttribute = boundAttributes[i];
@@ -657,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             IAttributeTargetSymbol attributesOwner = attributeTarget.AttributesOwner;
 
-            // Determine if the target symbol owns the attribute declaration. 
+            // Determine if the target symbol owns the attribute declaration.
             // We need to report diagnostics only once, so do it when visiting attributes for the owner.
             bool isOwner = symbolPart == AttributeLocation.None && ReferenceEquals(attributesOwner, attributeTarget);
 

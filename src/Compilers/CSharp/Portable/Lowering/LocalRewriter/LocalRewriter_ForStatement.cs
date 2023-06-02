@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the containing method is edited while methods invoked in the condition are being executed.
             if (rewrittenCondition != null && this.Instrument)
             {
-                rewrittenCondition = _instrumenter.InstrumentForStatementCondition(node, rewrittenCondition, _factory);
+                rewrittenCondition = Instrumenter.InstrumentForStatementCondition(node, rewrittenCondition, _factory);
             }
 
             return RewriteForStatement(
@@ -147,10 +147,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (original.Kind)
                 {
                     case BoundKind.ForEachStatement:
-                        branchBack = _instrumenter.InstrumentForEachStatementConditionalGotoStart((BoundForEachStatement)original, branchBack);
+                        branchBack = Instrumenter.InstrumentForEachStatementConditionalGotoStart((BoundForEachStatement)original, branchBack);
                         break;
                     case BoundKind.ForStatement:
-                        branchBack = _instrumenter.InstrumentForStatementConditionalGotoStartOrBreak((BoundForStatement)original, branchBack);
+                        branchBack = Instrumenter.InstrumentForStatementConditionalGotoStartOrBreak((BoundForStatement)original, branchBack);
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(original.Kind);
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (this.Instrument)
                 {
-                    ifNotConditionGotoBreak = _instrumenter.InstrumentForStatementConditionalGotoStartOrBreak(node, ifNotConditionGotoBreak);
+                    ifNotConditionGotoBreak = Instrumenter.InstrumentForStatementConditionalGotoStartOrBreak(node, ifNotConditionGotoBreak);
                 }
 
                 blockBuilder.Add(ifNotConditionGotoBreak);

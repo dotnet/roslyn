@@ -2415,24 +2415,9 @@ class C
                 // (7,10): error CS1513: } expected
                 //         {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(7, 10),
-                // (8,16): error CS1525: Invalid expression term 'case'
+                // (8,16): error CS1003: Syntax error, 'switch' expected
                 //             [A]
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("case").WithLocation(8, 16),
-                // (8,16): error CS1002: ; expected
-                //             [A]
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 16),
-                // (8,16): error CS1513: } expected
-                //             [A]
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 16),
-                // (9,19): error CS1002: ; expected
-                //             case 0:
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(9, 19),
-                // (9,19): error CS1513: } expected
-                //             case 0:
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(9, 19),
-                // (13,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(13, 1));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("switch").WithLocation(8, 16));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2468,7 +2453,7 @@ class C
                                 N(SyntaxKind.OpenBraceToken);
                                 M(SyntaxKind.CloseBraceToken);
                             }
-                            N(SyntaxKind.ExpressionStatement);
+                            N(SyntaxKind.SwitchStatement);
                             {
                                 N(SyntaxKind.AttributeList);
                                 {
@@ -2482,24 +2467,32 @@ class C
                                     }
                                     N(SyntaxKind.CloseBracketToken);
                                 }
+                                M(SyntaxKind.SwitchKeyword);
+                                M(SyntaxKind.OpenParenToken);
                                 M(SyntaxKind.IdentifierName);
                                 {
                                     M(SyntaxKind.IdentifierToken);
                                 }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.ExpressionStatement);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
+                                M(SyntaxKind.CloseParenToken);
+                                M(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SwitchSection);
                                 {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                    N(SyntaxKind.CaseSwitchLabel);
+                                    {
+                                        N(SyntaxKind.CaseKeyword);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.ReturnStatement);
+                                    {
+                                        N(SyntaxKind.ReturnKeyword);
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
                                 }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.ReturnStatement);
-                            {
-                                N(SyntaxKind.ReturnKeyword);
-                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.CloseBraceToken);
                             }
                             N(SyntaxKind.CloseBraceToken);
                         }
@@ -2520,24 +2513,9 @@ class C
                 // (8,13): error CS7014: Attributes are not valid in this context.
                 //             [A]
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(8, 13),
-                // (8,16): error CS1525: Invalid expression term 'case'
+                // (8,16): error CS1003: Syntax error, 'switch' expected
                 //             [A]
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("case").WithLocation(8, 16),
-                // (8,16): error CS1002: ; expected
-                //             [A]
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 16),
-                // (8,16): error CS1513: } expected
-                //             [A]
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 16),
-                // (9,19): error CS1002: ; expected
-                //             case 0:
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(9, 19),
-                // (9,19): error CS1513: } expected
-                //             case 0:
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(9, 19),
-                // (13,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(13, 1));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("switch").WithLocation(8, 16));
         }
 
         [Fact]

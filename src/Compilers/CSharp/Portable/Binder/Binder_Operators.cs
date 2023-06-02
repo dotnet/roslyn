@@ -1771,8 +1771,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return nullableEqualityResult;
             }
 
-            var valueLeft = left.ConstantValue;
-            var valueRight = right.ConstantValue;
+            var valueLeft = left.ConstantValueOpt;
+            var valueRight = right.ConstantValueOpt;
             if (valueLeft == null || valueRight == null)
             {
                 return null;
@@ -1916,8 +1916,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BoundConversion leftConv = (BoundConversion)left;
                         BoundConversion rightConv = (BoundConversion)right;
-                        ConstantValue? leftConstant = leftConv.Operand.ConstantValue;
-                        ConstantValue? rightConstant = rightConv.Operand.ConstantValue;
+                        ConstantValue? leftConstant = leftConv.Operand.ConstantValueOpt;
+                        ConstantValue? rightConstant = rightConv.Operand.ConstantValueOpt;
 
                         if (leftConstant != null && rightConstant != null)
                         {
@@ -2528,7 +2528,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// variables have underlying memory which may be moved by the runtime. The spec defines anything
         /// not fixed as moveable and specifies the expressions which are fixed.
         /// </summary>
-
         internal bool IsMoveableVariable(BoundExpression expr, out Symbol accessedLocalOrParameterOpt)
         {
             accessedLocalOrParameterOpt = null;
@@ -2598,7 +2597,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundParameter parameterAccess = (BoundParameter)expr;
                             ParameterSymbol parameterSymbol = parameterAccess.ParameterSymbol;
                             accessedLocalOrParameterOpt = parameterSymbol;
-                            return parameterSymbol.RefKind != RefKind.None;
+
+                            if (parameterSymbol.RefKind != RefKind.None)
+                            {
+                                return true;
+                            }
+
+                            if (parameterSymbol.ContainingSymbol is SynthesizedPrimaryConstructor primaryConstructor &&
+                                primaryConstructor.GetCapturedParameters().ContainsKey(parameterSymbol))
+                            {
+                                // See 'case BoundKind.FieldAccess' above. Receiver in our case is 'this' parameter.
+                                // If we are in a class, its type is reference type.
+                                // If we are in a struct, 'this' RefKind is not None.
+                                // Therefore, movable in either case. 
+                                return true;
+                            }
+
+                            return false;
                         }
                     case BoundKind.ThisReference:
                     case BoundKind.BaseReference:
@@ -2796,7 +2811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var value = operand.ConstantValue;
+            var value = operand.ConstantValueOpt;
             if (value == null || value.IsBad)
             {
                 return value;
@@ -3227,7 +3242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-            if (operand.ConstantValue == ConstantValue.Null ||
+            if (operand.ConstantValueOpt == ConstantValue.Null ||
                 operand.Kind == BoundKind.MethodGroup ||
                 operand.Type.IsVoidType())
             {
@@ -3269,7 +3284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
-            ReportIsOperatorDiagnostics(node, diagnostics, operandType, targetType, conversion.Kind, operand.ConstantValue);
+            ReportIsOperatorDiagnostics(node, diagnostics, operandType, targetType, conversion.Kind, operand.ConstantValueOpt);
             return new BoundIsOperator(node, operand, typeExpression, conversion.Kind, resultType);
 
             bool tryBindAsType(
@@ -3736,7 +3751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
-            bool hasErrors = ReportAsOperatorConversionDiagnostics(node, diagnostics, this.Compilation, operandType, targetType, conversion.Kind, operand.ConstantValue);
+            bool hasErrors = ReportAsOperatorConversionDiagnostics(node, diagnostics, this.Compilation, operandType, targetType, conversion.Kind, operand.ConstantValueOpt);
 
             if (conversion.Exists)
             {
@@ -4313,19 +4328,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static ConstantValue FoldConditionalOperator(BoundExpression condition, BoundExpression trueExpr, BoundExpression falseExpr)
         {
-            ConstantValue trueValue = trueExpr.ConstantValue;
+            ConstantValue trueValue = trueExpr.ConstantValueOpt;
             if (trueValue == null || trueValue.IsBad)
             {
                 return trueValue;
             }
 
-            ConstantValue falseValue = falseExpr.ConstantValue;
+            ConstantValue falseValue = falseExpr.ConstantValueOpt;
             if (falseValue == null || falseValue.IsBad)
             {
                 return falseValue;
             }
 
-            ConstantValue conditionValue = condition.ConstantValue;
+            ConstantValue conditionValue = condition.ConstantValueOpt;
             if (conditionValue == null || conditionValue.IsBad)
             {
                 return conditionValue;

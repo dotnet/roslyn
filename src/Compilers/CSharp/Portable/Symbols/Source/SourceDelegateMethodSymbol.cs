@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, _returnType.IsVoidType(), isExtensionMethod: false, isNullableAnalysisEnabled: false);
         }
 
+        internal sealed override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
+
         protected void InitializeParameters(ImmutableArray<ParameterSymbol> parameters)
         {
             Debug.Assert(_parameters.IsDefault);

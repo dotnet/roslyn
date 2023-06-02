@@ -550,7 +550,8 @@ End Class
                     Assert.Equal(ParameterAttributes.None, theParameter.ParamFlags)
 
                     ' let's find the attribute in the PE metadata
-                    Dim attributeInfo = CodeAnalysis.PEModule.FindTargetAttribute(peModuleSymbol.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute)
+                    Dim foundAttributeType = False
+                    Dim attributeInfo = CodeAnalysis.PEModule.FindTargetAttribute(peModuleSymbol.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute, foundAttributeType)
                     Assert.True(attributeInfo.HasValue)
 
                     Dim attributeValue As Long

@@ -51,5 +51,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken);
         ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken);
+
+        ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken);
     }
 }

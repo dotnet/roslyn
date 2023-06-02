@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<SyntaxReference> ComputeDeclaringReferencesCore()
         {
             // SyntaxReference in the namespace declaration points to the name node of the namespace decl node not
-            // namespace decl node we want to return. here we will wrap the original syntax reference in 
+            // namespace decl node we want to return. here we will wrap the original syntax reference in
             // the translation syntax reference so that we can lazily manipulate a node return to the caller
             return _mergedDeclaration.Declarations.SelectAsArray(s_declaringSyntaxReferencesSelector);
         }
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_nameToTypeMembersMap == null)
             {
-                // NOTE: This method depends on MakeNameToMembersMap() on creating a proper 
+                // NOTE: This method depends on MakeNameToMembersMap() on creating a proper
                 // NOTE: type of the array, see comments in MakeNameToMembersMap() for details
                 Interlocked.CompareExchange(ref _nameToTypeMembersMap, GetTypesFromMemberMap(GetNameToMembersMap()), null);
             }
@@ -300,13 +301,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(BindingDiagnosticBag diagnostics)
         {
-            // NOTE: Even though the resulting map stores ImmutableArray<NamespaceOrTypeSymbol> as 
-            // NOTE: values if the name is mapped into an array of named types, which is frequently 
-            // NOTE: the case, we actually create an array of NamedTypeSymbol[] and wrap it in 
+            // NOTE: Even though the resulting map stores ImmutableArray<NamespaceOrTypeSymbol> as
+            // NOTE: values if the name is mapped into an array of named types, which is frequently
+            // NOTE: the case, we actually create an array of NamedTypeSymbol[] and wrap it in
             // NOTE: ImmutableArray<NamespaceOrTypeSymbol>
-            // NOTE: 
+            // NOTE:
             // NOTE: This way we can save time and memory in GetNameToTypeMembersMap() -- when we see that
-            // NOTE: a name maps into values collection containing types only instead of allocating another 
+            // NOTE: a name maps into values collection containing types only instead of allocating another
             // NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray<NamedTypeSymbol>
 
             var builder = new NameToSymbolMapBuilder(_mergedDeclaration.Children.Length);
@@ -354,8 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)constituent != (object)@namespace)
                             {
                                 // For whatever reason native compiler only detects conflicts against types.
-                                // It doesn't complain when source declares a type with the same name as 
-                                // a namespace in added module, but complains when source declares a namespace 
+                                // It doesn't complain when source declares a type with the same name as
+                                // a namespace in added module, but complains when source declares a namespace
                                 // with the same name as a type in added module.
                                 var types = constituent.GetTypeMembers(symbol.Name, arity);
 

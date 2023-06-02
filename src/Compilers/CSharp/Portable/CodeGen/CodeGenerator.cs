@@ -227,14 +227,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             hasStackAlloc = _sawStackalloc;
             Debug.Assert(_asyncCatchHandlerOffset >= 0);
 
-            asyncCatchHandlerOffset = _builder.GetILOffsetFromMarker(_asyncCatchHandlerOffset);
+            asyncCatchHandlerOffset = _diagnostics.HasAnyErrors() ? -1 : _builder.GetILOffsetFromMarker(_asyncCatchHandlerOffset);
 
             ArrayBuilder<int> yieldPoints = _asyncYieldPoints;
             ArrayBuilder<int> resumePoints = _asyncResumePoints;
 
             Debug.Assert((yieldPoints == null) == (resumePoints == null));
 
-            if (yieldPoints == null)
+            if (yieldPoints == null || _diagnostics.HasAnyErrors())
             {
                 asyncYieldPoints = ImmutableArray<int>.Empty;
                 asyncResumePoints = ImmutableArray<int>.Empty;
@@ -352,12 +352,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSymbolToken(MethodSymbol method, SyntaxNode syntaxNode, BoundArgListOperator optArgList, bool encodeAsRawDefinitionToken = false, bool needDeclaration = false)
         {
-            _builder.EmitToken(_module.Translate(method, syntaxNode, _diagnostics.DiagnosticBag, optArgList, needDeclaration: needDeclaration || encodeAsRawDefinitionToken), syntaxNode, _diagnostics.DiagnosticBag, encodeAsRawDefinitionToken);
+            var methodRef = _module.Translate(method, syntaxNode, _diagnostics.DiagnosticBag, optArgList, needDeclaration: needDeclaration || encodeAsRawDefinitionToken);
+            _builder.EmitToken(methodRef, syntaxNode, _diagnostics.DiagnosticBag, encodeAsRawDefinitionToken ? Cci.MetadataWriter.RawTokenEncoding.RowId : 0);
         }
 
         private void EmitSymbolToken(FieldSymbol symbol, SyntaxNode syntaxNode, bool needDeclaration = false)
         {
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics.DiagnosticBag, needDeclaration), syntaxNode, _diagnostics.DiagnosticBag);
+            var fieldRef = _module.Translate(symbol, syntaxNode, _diagnostics.DiagnosticBag, needDeclaration);
+            _builder.EmitToken(fieldRef, syntaxNode, _diagnostics.DiagnosticBag);
         }
         // </Metalama>
 

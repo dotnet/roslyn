@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -34,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
     {
         private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider;
+        private readonly IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> _buildOnlyDiagnostics;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
@@ -43,10 +46,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
             ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
-            ExportProvider exportProvider)
+            ExportProvider exportProvider,
+            [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics)
             : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
         {
             _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
+            _buildOnlyDiagnostics = buildOnlyDiagnostics;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
@@ -54,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             // If the LSP editor feature flag is enabled advertise support for LSP features here so they are available locally and remote.
-            var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
+            var isLspEditorEnabled = GlobalOptions.GetOption(LspOptionsStorage.LspEditorFeatureFlag);
 
             var serverCapabilities = isLspEditorEnabled
                 ? (VSInternalServerCapabilities)_experimentalCapabilitiesProvider.GetCapabilities(clientCapabilities)
@@ -95,6 +100,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                     new(PullDiagnosticCategories.DocumentAnalyzerSyntax),
                     new(PullDiagnosticCategories.DocumentAnalyzerSemantic),
                 };
+                serverCapabilities.DiagnosticProvider.BuildOnlyDiagnosticIds = _buildOnlyDiagnostics
+                    .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
+                    .Distinct()
+                    .ToArray();
             }
 
             // This capability is always enabled as we provide cntrl+Q VS search only via LSP in ever scenario.
@@ -105,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             // However, when the experimental LSP editor is enabled we want LSP to power NavigateTo, so we set DisableGoToWorkspaceSymbols=false.
             serverCapabilities.DisableGoToWorkspaceSymbols = !isLspEditorEnabled;
 
-            var isLspSemanticTokensEnabled = GlobalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
+            var isLspSemanticTokensEnabled = GlobalOptions.GetOption(LspOptionsStorage.LspSemanticTokensFeatureFlag);
             if (isLspSemanticTokensEnabled)
             {
                 // Using only range handling has shown to be more performant than using a combination of full/edits/range handling,

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 string formattedDate;
                 try
                 {
-                    formattedDate = s_exampleDateTime.ToString(formatString);
+                    formattedDate = s_exampleDateTime.ToString(formatString, culture);
                 }
                 catch (FormatException)
                 {

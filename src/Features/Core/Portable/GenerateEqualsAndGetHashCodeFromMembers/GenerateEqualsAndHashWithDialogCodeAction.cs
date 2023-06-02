@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
@@ -64,9 +65,9 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             {
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled)
-                {
                     return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
-                }
+
+                var solution = _document.Project.Solution;
 
                 // If we presented the user any options, then persist whatever values
                 // the user chose to the global options.  That way we'll keep that as the default for the
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var generateOperatorsOption = result.Options.FirstOrDefault(o => o.Id == GenerateOperatorsId);
                 if (generateOperatorsOption != null || implementIEqutableOption != null)
                 {
-                    var globalOptions = _document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+                    var globalOptions = solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
 
                     if (generateOperatorsOption != null)
                     {
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var action = new GenerateEqualsAndGetHashCodeAction(
                     _document, _typeDeclaration, _containingType, result.Members, _fallbackOptions,
                     _generateEquals, _generateGetHashCode, implementIEquatable, generatorOperators);
-                return await action.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+                return await action.GetOperationsAsync(solution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
             }
 
             public override string Title

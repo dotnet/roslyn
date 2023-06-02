@@ -57,9 +57,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var options = _globalOptions.GetCodeActionOptionsProvider();
 
-            var codeActionsCache = context.GetRequiredLspService<CodeActionsCache>();
             var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
-                request, codeActionsCache, document, options, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
+                request, document, options, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
 
             return codeActions;
         }

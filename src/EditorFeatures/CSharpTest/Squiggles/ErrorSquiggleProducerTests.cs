@@ -81,8 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 </Workspace>";
 
             using var workspace = TestWorkspace.Create(workspaceXml);
-            workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             var spans = (await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
@@ -118,11 +117,10 @@ class Program
             using var workspace = TestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
             var language = workspace.Projects.Single().Language;
 
-            workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language),
+                CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language,
                 new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Error));
 
             var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>
@@ -158,6 +156,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpAnalyzersResources.Using_directive_is_unnecessary)));
 
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType);
+            AssertEx.NotNull(first.Tag.ToolTipContent);
             ToolTipAssert.EqualContent(expectedToolTip, first.Tag.ToolTipContent);
             Assert.Equal(40, first.Span.Start);
             Assert.Equal(25, first.Span.Length);
@@ -171,6 +170,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpAnalyzersResources.Using_directive_is_unnecessary)));
 
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, second.Tag.ErrorType);
+            AssertEx.NotNull(second.Tag.ToolTipContent);
             ToolTipAssert.EqualContent(expectedToolTip, second.Tag.ToolTipContent);
             Assert.Equal(82, second.Span.Start);
             Assert.Equal(60, second.Span.Length);
@@ -184,6 +184,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.Text, "messageFormat")));
 
             Assert.Equal(PredefinedErrorTypeNames.Warning, third.Tag.ErrorType);
+            AssertEx.NotNull(third.Tag.ToolTipContent);
             ToolTipAssert.EqualContent(expectedToolTip, third.Tag.ToolTipContent);
             Assert.Equal(152, third.Span.Start);
             Assert.Equal(7, third.Span.Length);
@@ -197,6 +198,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.Text, AnalyzersResources.Name_can_be_simplified)));
 
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, fourth.Tag.ErrorType);
+            AssertEx.NotNull(fourth.Tag.ToolTipContent);
             ToolTipAssert.EqualContent(expectedToolTip, fourth.Tag.ToolTipContent);
             Assert.Equal(196, fourth.Span.Start);
             Assert.Equal(5, fourth.Span.Length);
@@ -214,8 +216,7 @@ class Program
         {
             using var workspace = TestWorkspace.CreateCSharp("class C : Bar { }", composition: SquiggleUtilities.CompositionWithSolutionCrawler);
 
-            workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace);
 
@@ -233,6 +234,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                     new ClassifiedTextRun(ClassificationTypeNames.Text, firstDiagnostic.Message)));
 
+            AssertEx.NotNull(firstSpan.Tag.ToolTipContent);
             ToolTipAssert.EqualContent(expectedToolTip, firstSpan.Tag.ToolTipContent);
         }
 
@@ -240,8 +242,7 @@ class Program
         public async Task TestNoErrorsAfterDocumentRemoved(bool pull)
         {
             using var workspace = TestWorkspace.CreateCSharp("class");
-            workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
@@ -271,8 +272,7 @@ class Program
         public async Task TestNoErrorsAfterProjectRemoved(bool pull)
         {
             using var workspace = TestWorkspace.CreateCSharp("class");
-            workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
@@ -318,8 +318,7 @@ class Program
 </Workspace>";
 
             using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
-            workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             var document = workspace.Documents.First();
 
@@ -363,8 +362,7 @@ class Program
 </Workspace>";
 
             using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
-            workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             var document = workspace.Documents.First();
 
@@ -408,8 +406,7 @@ class Program
 
         private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(TestWorkspace workspace, bool pull)
         {
-            workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(DiagnosticTaggingOptions.PullDiagnosticTagging), pull);
+            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             return (await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
         }

@@ -100,11 +100,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
         }
 
-        protected abstract bool IsRecordDeclaration(SyntaxNode node);
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
         protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
         protected abstract bool IsIfConditionalDirective(SyntaxNode node);
+        protected abstract bool ReturnsThrow(SyntaxNode node);
         protected abstract CodeStyleOption2<UnusedValuePreference> GetUnusedValueExpressionStatementOption(AnalyzerOptionsProvider provider);
         protected abstract CodeStyleOption2<UnusedValuePreference> GetUnusedValueAssignmentOption(AnalyzerOptionsProvider provider);
 

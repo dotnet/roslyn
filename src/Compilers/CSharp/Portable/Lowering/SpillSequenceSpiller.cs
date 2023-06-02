@@ -356,15 +356,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 IsComplexConditionalInitializationOfReceiverRef(
                                     assignment,
                                     out LocalSymbol receiverRefLocal,
-                                    out BoundBinaryOperator isValueTypeCheck,
-                                    out BoundAssignmentOperator referenceTypeReceiverCloning,
+                                    out BoundComplexConditionalReceiver complexReceiver,
                                     out BoundLocal valueTypeReceiver,
                                     out BoundLocal referenceTypeReceiver))
                             {
                                 Debug.Assert(receiverRefLocal.IsKnownToReferToTempIfReferenceType);
-                                builder.AddStatement(_F.If(_F.Not(isValueTypeCheck), _F.ExpressionStatement(referenceTypeReceiverCloning)));
+                                builder.AddStatement(_F.ExpressionStatement(complexReceiver));
 
-                                _receiverSubstitution.Add(receiverRefLocal, _F.ComplexConditionalReceiver(valueTypeReceiver, referenceTypeReceiver));
+                                _receiverSubstitution.Add(receiverRefLocal, complexReceiver.Update(valueTypeReceiver, referenceTypeReceiver, complexReceiver.Type));
                                 return null;
                             }
                             else
@@ -458,8 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsComplexConditionalInitializationOfReceiverRef(
             BoundAssignmentOperator assignment,
             out LocalSymbol outReceiverRefLocal,
-            out BoundBinaryOperator outIsValueTypeCheck,
-            out BoundAssignmentOperator outReferenceTypeReceiverCloning,
+            out BoundComplexConditionalReceiver outComplexReceiver,
             out BoundLocal outValueTypeReceiver,
             out BoundLocal outReferenceTypeReceiver)
         {
@@ -467,24 +465,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     IsRef: true,
                     Left: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.Ref } receiverRefLocal },
-                    Right: BoundConditionalOperator
+                    Right: BoundComplexConditionalReceiver
                     {
-                        IsRef: true,
-                        Condition: BoundBinaryOperator
-                        {
-                            OperatorKind: BinaryOperatorKind.ObjectNotEqual,
-                            Left: BoundConversion
-                            {
-                                Conversion: { IsUserDefined: false },
-                                Operand: BoundDefaultExpression { Type: var typeOfDefault },
-                                Type.SpecialType: SpecialType.System_Object
-                            },
-                            Right: BoundLiteral { ConstantValue.IsNull: true, Type.SpecialType: SpecialType.System_Object }
-                        } isValueTypeCheck,
-
-                        Consequence: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.Ref } } valueTypeReceiver,
-
-                        Alternative: BoundSequence
+                        ValueTypeReceiver: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.Ref } } valueTypeReceiver,
+                        ReferenceTypeReceiver: BoundSequence
                         {
                             Locals.IsEmpty: true,
                             SideEffects:
@@ -494,11 +478,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 IsRef: false,
                                 Left: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.None } referenceTypeClone },
                                 Right: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.Ref } originalReceiverReference }
-                            } referenceTypeReceiverCloning
+                            }
                             ],
                             Value: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.None } } referenceTypeReceiver
                         }
-                    }
+                    } complexReceiver,
                 }
                 && (object)referenceTypeClone == referenceTypeReceiver.LocalSymbol
                 && (object)originalReceiverReference == valueTypeReceiver.LocalSymbol
@@ -507,22 +491,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && receiverRefLocal.Type.IsTypeParameter()
                 && !receiverRefLocal.Type.IsReferenceType
                 && !receiverRefLocal.Type.IsValueType
-                && typeOfDefault.Equals(receiverRefLocal.Type, TypeCompareKind.AllIgnoreOptions)
                 && valueTypeReceiver.Type.Equals(receiverRefLocal.Type, TypeCompareKind.AllIgnoreOptions)
                 && referenceTypeReceiver.Type.Equals(receiverRefLocal.Type, TypeCompareKind.AllIgnoreOptions)
             )
             {
                 outReceiverRefLocal = receiverRefLocal;
-                outIsValueTypeCheck = isValueTypeCheck;
-                outReferenceTypeReceiverCloning = referenceTypeReceiverCloning;
+                outComplexReceiver = complexReceiver;
                 outValueTypeReceiver = valueTypeReceiver;
                 outReferenceTypeReceiver = referenceTypeReceiver;
                 return true;
             }
 
             outReceiverRefLocal = null;
-            outIsValueTypeCheck = null;
-            outReferenceTypeReceiverCloning = null;
+            outComplexReceiver = null;
             outValueTypeReceiver = null;
             outReferenceTypeReceiver = null;
             return false;
@@ -612,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var expression = VisitExpression(ref builder, node.Expression);
-            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel));
+            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel, node.LengthBasedStringSwitchDataOpt));
         }
 
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
@@ -958,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValue, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type));
+            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValueOpt, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type));
         }
 
         public override BoundNode VisitCall(BoundCall node)
@@ -998,17 +979,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // reference to the stack. So, for a class we need to emit a reference to a temporary
                     // location, rather than to the original location
 
-                    // If condition `(object)default(T) != null` is true at execution time,
-                    // the T is a value type. And it is a reference type otherwise.
-                    var isValueTypeCheck = _F.ObjectNotEqual(
-                                                _F.Convert(_F.SpecialType(SpecialType.System_Object), _F.Default(receiverType)),
-                                                _F.Null(_F.SpecialType(SpecialType.System_Object)));
+                    var save_Syntax = _F.Syntax;
+                    _F.Syntax = node.Syntax;
 
                     var cache = _F.Local(_F.SynthesizedLocal(receiverType));
                     receiverBuilder.AddLocal(cache.LocalSymbol);
-                    receiverBuilder.AddStatement(_F.If(_F.Not(isValueTypeCheck), _F.Assignment(cache, receiver)));
+                    receiverBuilder.AddStatement(_F.ExpressionStatement(new BoundComplexConditionalReceiver(node.Syntax, cache, _F.Sequence(new[] { _F.AssignmentExpression(cache, receiver) }, cache), receiverType) { WasCompilerGenerated = true }));
 
                     receiver = _F.ComplexConditionalReceiver(receiver, cache);
+                    _F.Syntax = save_Syntax;
                 }
 
                 receiverBuilder.Include(builder);
@@ -1198,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (whenNotNullBuilder == null && whenNullBuilder == null)
             {
-                return UpdateExpression(receiverBuilder, node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, node.Type));
+                return UpdateExpression(receiverBuilder, node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, node.ForceCopyOfNullableValueType, node.Type));
             }
 
             if (receiverBuilder == null) receiverBuilder = new BoundSpillSequenceBuilder((whenNotNullBuilder ?? whenNullBuilder).Syntax);

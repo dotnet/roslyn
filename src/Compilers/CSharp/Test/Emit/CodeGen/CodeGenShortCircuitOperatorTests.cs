@@ -3184,15 +3184,26 @@ static class Ext
             var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
             comp.VerifyIL("Test.Test0<T>(T)", @"
 {
-  // Code size       21 (0x15)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  box        ""T""
-  IL_0006:  brfalse.s  IL_0014
-  IL_0008:  ldarga.s   V_0
-  IL_000a:  ldobj      ""T""
-  IL_000f:  call       ""void Ext.CheckT<T>(T)""
-  IL_0014:  ret
+  // Code size       47 (0x2f)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.0
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_0024
+  IL_0012:  ldobj      ""T""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  ldloc.0
+  IL_001b:  box        ""T""
+  IL_0020:  brtrue.s   IL_0024
+  IL_0022:  pop
+  IL_0023:  ret
+  IL_0024:  ldobj      ""T""
+  IL_0029:  call       ""void Ext.CheckT<T>(T)""
+  IL_002e:  ret
 }
 ");
         }
@@ -7000,27 +7011,27 @@ class Program
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
-  // Code size       45 (0x2d)
+  // Code size       43 (0x2b)
   .maxstack  2
   .locals init (T V_0,
                 string V_1)
   IL_0000:  nop
   IL_0001:  ldloca.s   V_0
-  IL_0003:  initobj    ""T""
-  IL_0009:  ldloc.0
-  IL_000a:  box        ""T""
-  IL_000f:  brtrue.s   IL_0014
-  IL_0011:  ldnull
-  IL_0012:  br.s       IL_0028
-  IL_0014:  ldloca.s   V_0
-  IL_0016:  dup
-  IL_0017:  initobj    ""T""
-  IL_001d:  constrained. ""T""
-  IL_0023:  callvirt   ""string object.ToString()""
-  IL_0028:  stloc.1
-  IL_0029:  br.s       IL_002b
-  IL_002b:  ldloc.1
-  IL_002c:  ret
+  IL_0003:  dup
+  IL_0004:  initobj    ""T""
+  IL_000a:  dup
+  IL_000b:  ldobj      ""T""
+  IL_0010:  box        ""T""
+  IL_0015:  brtrue.s   IL_001b
+  IL_0017:  pop
+  IL_0018:  ldnull
+  IL_0019:  br.s       IL_0026
+  IL_001b:  constrained. ""T""
+  IL_0021:  callvirt   ""string object.ToString()""
+  IL_0026:  stloc.1
+  IL_0027:  br.s       IL_0029
+  IL_0029:  ldloc.1
+  IL_002a:  ret
 }");
         }
 
@@ -7060,25 +7071,35 @@ class Program
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
-  // Code size       38 (0x26)
-  .maxstack  1
+  // Code size       63 (0x3f)
+  .maxstack  2
   .locals init (T V_0, //v
-                string V_1)
+                T V_1,
+                string V_2)
   IL_0000:  nop
   IL_0001:  ldloca.s   V_0
   IL_0003:  initobj    ""T""
-  IL_0009:  ldloc.0
-  IL_000a:  box        ""T""
-  IL_000f:  brtrue.s   IL_0014
-  IL_0011:  ldnull
-  IL_0012:  br.s       IL_0021
-  IL_0014:  ldloca.s   V_0
-  IL_0016:  constrained. ""T""
-  IL_001c:  callvirt   ""string object.ToString()""
-  IL_0021:  stloc.1
-  IL_0022:  br.s       IL_0024
-  IL_0024:  ldloc.1
-  IL_0025:  ret
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""T""
+  IL_0013:  ldloc.1
+  IL_0014:  box        ""T""
+  IL_0019:  brtrue.s   IL_002f
+  IL_001b:  ldobj      ""T""
+  IL_0020:  stloc.1
+  IL_0021:  ldloca.s   V_1
+  IL_0023:  ldloc.1
+  IL_0024:  box        ""T""
+  IL_0029:  brtrue.s   IL_002f
+  IL_002b:  pop
+  IL_002c:  ldnull
+  IL_002d:  br.s       IL_003a
+  IL_002f:  constrained. ""T""
+  IL_0035:  callvirt   ""string object.ToString()""
+  IL_003a:  stloc.2
+  IL_003b:  br.s       IL_003d
+  IL_003d:  ldloc.2
+  IL_003e:  ret
 }");
         }
 

@@ -64,8 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if (testData != null)
             {
-                moduleBeingBuilt.SetMethodTestData(testData.Methods);
-                testData.Module = moduleBeingBuilt;
+                moduleBeingBuilt.SetTestData(testData);
             }
 
             var definitionMap = moduleBeingBuilt.PreviousDefinitions;

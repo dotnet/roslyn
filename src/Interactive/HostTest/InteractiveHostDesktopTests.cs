@@ -925,7 +925,7 @@ new object[] { new Class1(), new Class2(), new Class3() }
             Assert.Equal("object[3] { Class1 { }, Class2 { }, Class3 { } }\r\n", output);
         }
 
-        [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6457")]
         public async Task MissingReferencesReuse()
         {
             var source = @"
@@ -953,7 +953,7 @@ new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             AssertEx.AssertEqualToleratingWhitespaceDifferences("C { P=null }", output);
         }
 
-        [Fact, WorkItem(7280, "https://github.com/dotnet/roslyn/issues/7280")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7280")]
         public async Task AsyncContinueOnDifferentThread()
         {
             await Execute(@"
@@ -981,7 +981,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             Assert.True(error.StartsWith($"{new Exception().GetType()}: {new Exception().Message}"));
         }
 
-        [Fact, WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException()
         {
             await Execute(@"int i = 100;");
@@ -1051,7 +1051,7 @@ goo()
         }
 
         // TODO (https://github.com/dotnet/roslyn/issues/7976): delete this
-        [Fact, WorkItem(7976, "https://github.com/dotnet/roslyn/issues/7976")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7976")]
         public void Workaround7976()
         {
             Thread.Sleep(TimeSpan.FromSeconds(10));

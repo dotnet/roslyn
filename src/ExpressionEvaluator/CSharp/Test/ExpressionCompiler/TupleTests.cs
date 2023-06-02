@@ -288,7 +288,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(13803, "https://github.com/dotnet/roslyn/issues/13803")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13803")]
         public void LongTupleLocalElement_NoNames()
         {
             var source =
@@ -423,7 +423,7 @@ class C
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(13589, "https://github.com/dotnet/roslyn/issues/13589")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13589")]
         public void AliasElement()
         {
             var source =
@@ -488,7 +488,7 @@ class C
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(13803, "https://github.com/dotnet/roslyn/issues/13803")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13803")]
         public void AliasElement_NoNames()
         {
             var source =

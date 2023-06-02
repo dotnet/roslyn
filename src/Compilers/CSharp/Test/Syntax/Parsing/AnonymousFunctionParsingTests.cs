@@ -1476,13 +1476,12 @@ public class C
             var test = @"_ = new Action[] { static }";
 
             UsingStatement(test, options: useCsharp9 ? TestOptions.Regular9 : TestOptions.Regular8,
-                // (1,20): error CS1003: Syntax error, ',' expected
+                // (1,20): error CS1041: Identifier expected; 'static' is a keyword
                 // _ = new Action[] { static }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "static").WithArguments("", "static").WithLocation(1, 20),
                 // (1,28): error CS1002: ; expected
                 // _ = new Action[] { static }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 28)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 28));
 
             N(SyntaxKind.ExpressionStatement);
             {
@@ -1531,13 +1530,12 @@ public class C
             var test = @"_ = new Action[] { static x }";
 
             UsingStatement(test, options: useCsharp9 ? TestOptions.Regular9 : TestOptions.Regular8,
-                // (1,20): error CS1003: Syntax error, ',' expected
+                // (1,20): error CS1041: Identifier expected; 'static' is a keyword
                 // _ = new Action[] { static x }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "static").WithArguments("", "static").WithLocation(1, 20),
                 // (1,30): error CS1002: ; expected
                 // _ = new Action[] { static x }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 30)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 30));
 
             N(SyntaxKind.ExpressionStatement);
             {

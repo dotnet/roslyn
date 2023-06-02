@@ -25,6 +25,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class EditAndContinueLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
+        private sealed class NoSessionException : InvalidOperationException
+        {
+            public NoSessionException()
+                : base("Internal error: no session.")
+            {
+                // unique enough HResult to distinguish from other exceptions
+                HResult = unchecked((int)0x801315087);
+            }
+        }
+
         private readonly PdbMatchingSourceTextProvider _sourceTextProvider;
         private readonly Lazy<IManagedHotReloadService> _debuggerService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
@@ -62,6 +72,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _sourceTextProvider = sourceTextProvider;
         }
 
+        public void SetFileLoggingDirectory(string? logDirectory)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var proxy = new RemoteEditAndContinueServiceProxy(WorkspaceProvider.Value.Workspace);
+                    await proxy.SetFileLoggingDirectoryAsync(logDirectory, CancellationToken.None).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // ignore
+                }
+            });
+        }
+
         private Solution GetCurrentCompileTimeSolution(Solution? currentDesignTimeSolution = null)
         {
             var workspace = WorkspaceProvider.Value.Workspace;
@@ -69,11 +95,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private RemoteDebuggingSessionProxy GetDebuggingSession()
-        {
-            var debuggingSession = _debuggingSession;
-            Contract.ThrowIfNull(debuggingSession);
-            return debuggingSession;
-        }
+            => _debuggingSession ?? throw new NoSessionException();
 
         private IActiveStatementTrackingService GetActiveStatementTrackingService()
             => WorkspaceProvider.Value.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>();

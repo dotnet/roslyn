@@ -3366,7 +3366,7 @@ End Module</file>
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       "Function (a As Boolean, b As System.Guid)?.GetValueOrDefault() As (a As Boolean, b As System.Guid)"
+  IL_0002:  call       "Function System.ValueTuple(Of Boolean, System.Guid)?.GetValueOrDefault() As System.ValueTuple(Of Boolean, System.Guid)"
   IL_0007:  ret
 }]]>).
             VerifyIL("Program.CoalesceUserStruct",
@@ -3416,7 +3416,7 @@ End Module</file>
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       "Function (a As Boolean, b As System.Guid, c As String)?.GetValueOrDefault() As (a As Boolean, b As System.Guid, c As String)"
+  IL_0002:  call       "Function System.ValueTuple(Of Boolean, System.Guid, String)?.GetValueOrDefault() As System.ValueTuple(Of Boolean, System.Guid, String)"
   IL_0007:  ret
 }
 ]]>)
@@ -13995,25 +13995,25 @@ End Module
             c.VerifyIL("Module1.Test",
             <![CDATA[
 {
-  // Code size       48 (0x30)
-  .maxstack  1
+  // Code size       46 (0x2e)
+  .maxstack  2
   .locals init (T V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "T"
   IL_0008:  ldloc.0
-  IL_0009:  box        "T"
-  IL_000e:  brtrue.s   IL_0013
-  IL_0010:  ldnull
-  IL_0011:  br.s       IL_002a
-  IL_0013:  ldloca.s   V_0
-  IL_0015:  initobj    "T"
-  IL_001b:  ldloc.0
-  IL_001c:  stloc.0
-  IL_001d:  ldloca.s   V_0
-  IL_001f:  constrained. "T"
-  IL_0025:  callvirt   "Function Object.ToString() As String"
-  IL_002a:  call       "Sub System.Console.WriteLine(String)"
-  IL_002f:  ret
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  dup
+  IL_000d:  ldobj      "T"
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_001d
+  IL_0019:  pop
+  IL_001a:  ldnull
+  IL_001b:  br.s       IL_0028
+  IL_001d:  constrained. "T"
+  IL_0023:  callvirt   "Function Object.ToString() As String"
+  IL_0028:  call       "Sub System.Console.WriteLine(String)"
+  IL_002d:  ret
 }
 ]]>)
         End Sub
