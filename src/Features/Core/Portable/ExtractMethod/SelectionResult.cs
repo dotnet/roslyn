@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             var firstToken = GetFirstTokenInSelection();
             var lastToken = GetLastTokenInSelection();
+            var syntaxFacts = SemanticDocument.Project.Services.GetService<ISyntaxFactsService>();
 
             for (var currentToken = firstToken;
                 currentToken.Span.End < lastToken.SpanStart;
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 //
                 // for the case above, even if the selection contains "await", it doesn't belong to the enclosing block
                 // which extract method is applied to
-                if (SemanticDocument.Project.Services.GetService<ISyntaxFactsService>().IsAwaitKeyword(currentToken)
+                if (syntaxFacts.IsAwaitKeyword(currentToken)
                     && !UnderAnonymousOrLocalMethod(currentToken, firstToken, lastToken))
                 {
                     return true;
