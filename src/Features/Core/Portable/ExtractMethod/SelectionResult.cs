@@ -142,6 +142,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         public bool ShouldCallConfigureAwaitFalse()
         {
+            var syntaxFacts = SemanticDocument.Project.Services.GetService<ISyntaxFactsService>();
+
             var firstToken = GetFirstTokenInSelection();
             var lastToken = GetLastTokenInSelection();
 
@@ -150,49 +152,35 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             foreach (var node in SemanticDocument.Root.DescendantNodesAndSelf())
             {
                 if (!node.Span.OverlapsWith(span))
-                {
                     continue;
-                }
 
                 if (IsConfigureAwaitFalse(node) && !UnderAnonymousOrLocalMethod(node.GetFirstToken(), firstToken, lastToken))
-                {
                     return true;
-                }
             }
 
             return false;
-        }
 
-        private bool IsConfigureAwaitFalse(SyntaxNode node)
-        {
-            var syntaxFacts = SemanticDocument.Project.Services.GetService<ISyntaxFactsService>();
-            if (!syntaxFacts.IsInvocationExpression(node))
+            bool IsConfigureAwaitFalse(SyntaxNode node)
             {
-                return false;
-            }
+                if (!syntaxFacts.IsInvocationExpression(node))
+                    return false;
 
-            var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(node);
-            if (!syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
-            {
-                return false;
-            }
+                var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(node);
+                if (!syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
+                    return false;
 
-            var name = syntaxFacts.GetNameOfMemberAccessExpression(invokedExpression);
-            var identifier = syntaxFacts.GetIdentifierOfSimpleName(name);
-            if (!syntaxFacts.StringComparer.Equals(identifier.ValueText, nameof(Task.ConfigureAwait)))
-            {
-                return false;
-            }
+                var name = syntaxFacts.GetNameOfMemberAccessExpression(invokedExpression);
+                var identifier = syntaxFacts.GetIdentifierOfSimpleName(name);
+                if (!syntaxFacts.StringComparer.Equals(identifier.ValueText, nameof(Task.ConfigureAwait)))
+                    return false;
 
-            var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(node);
-            if (arguments.Count != 1)
-            {
-                return false;
-            }
+                var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(node);
+                if (arguments.Count != 1)
+                    return false;
 
-            var argument = arguments[0];
-            var expression = syntaxFacts.GetExpressionOfArgument(argument);
-            return syntaxFacts.IsFalseLiteralExpression(expression);
+                var expression = syntaxFacts.GetExpressionOfArgument(arguments[0]);
+                return syntaxFacts.IsFalseLiteralExpression(expression);
+            }
         }
     }
 }
