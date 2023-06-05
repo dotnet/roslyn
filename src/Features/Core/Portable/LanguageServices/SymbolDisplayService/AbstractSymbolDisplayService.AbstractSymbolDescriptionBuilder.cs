@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 var compilation = _semanticModel.Compilation;
 
                 // Grab the doc comment once as computing it for each portion we're concatenating can be expensive for
-                // lsif (which does this for every symbol in an entire solution).
+                // LSIF (which does this for every symbol in an entire solution).
                 var documentationComment = original is IMethodSymbol method
                     ? ISymbolExtensions2.GetMethodDocumentation(method, compilation, CancellationToken)
                     : original.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: CancellationToken);
