@@ -1311,7 +1311,7 @@ class C { }
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-    step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
+            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
             s => Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason),
