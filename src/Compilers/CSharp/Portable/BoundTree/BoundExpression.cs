@@ -244,6 +244,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                Debug.Assert(this.Syntax is InvocationExpressionSyntax, $"Syntax.Kind is {this.Syntax.Kind()}");
+
                 if (this.WasCompilerGenerated || this.Syntax is not InvocationExpressionSyntax syntax)
                 {
                     return null;
