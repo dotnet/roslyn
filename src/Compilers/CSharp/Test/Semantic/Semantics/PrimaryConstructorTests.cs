@@ -3499,6 +3499,50 @@ partial " + declaration + @" C1;
             Assert.True(c1.AnyMemberHasAttributes);
         }
 
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68349")]
+        public void AttributesOnPrimaryConstructor_14([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+_ = new C();
+
+[System.Obsolete(""Obsolete!!!"", error: true)]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,9): error CS0619: 'C' is obsolete: 'Obsolete!!!'
+                // _ = new C();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "Obsolete!!!").WithLocation(2, 9)
+                );
+
+            var c = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.False(c.AnyMemberHasAttributes);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68349")]
+        public void AttributesOnPrimaryConstructor_15([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+_ = new C();
+
+[type: System.Obsolete(""Obsolete!!!"", error: true)]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,9): error CS0619: 'C' is obsolete: 'Obsolete!!!'
+                // _ = new C();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "Obsolete!!!").WithLocation(2, 9)
+                );
+
+            var c = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.False(c.AnyMemberHasAttributes);
+        }
+
         [Fact]
         public void AnalyzerActions_01_Class()
         {
