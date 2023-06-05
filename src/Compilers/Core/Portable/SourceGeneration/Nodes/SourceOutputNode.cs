@@ -72,7 +72,11 @@ namespace Microsoft.CodeAnalysis
                         var stopwatch = SharedStopwatch.StartNew();
                         _action(context, entry.Item, cancellationToken);
                         var sourcesAndDiagnostics = (sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly());
-                        nodeTable.AddEntry(sourcesAndDiagnostics, EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
+
+                        if (entry.State != EntryState.Modified || !nodeTable.TryModifyEntry(sourcesAndDiagnostics, EqualityComparer<TOutput>.Default, stopwatch.Elapsed, inputs, entry.State))
+                        {
+                            nodeTable.AddEntry(sourcesAndDiagnostics, EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
+                        }
                     }
                     finally
                     {
