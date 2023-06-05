@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -80,25 +78,22 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
             private readonly SemanticModel _semanticModel;
             private readonly int _position;
-            private readonly IStructuralTypeDisplayService _structuralTypeDisplayService;
             private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap = new();
             private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = new();
-            private readonly Func<ISymbol, string> _getNavigationHint;
+            private readonly Func<ISymbol, string?> _getNavigationHint;
 
-            protected readonly SolutionServices Services;
+            protected readonly LanguageServices LanguageServices;
             protected readonly SymbolDescriptionOptions Options;
             protected readonly CancellationToken CancellationToken;
 
             protected AbstractSymbolDescriptionBuilder(
                 SemanticModel semanticModel,
                 int position,
-                SolutionServices services,
-                IStructuralTypeDisplayService structuralTypeDisplayService,
+                LanguageServices languageServices,
                 SymbolDescriptionOptions options,
                 CancellationToken cancellationToken)
             {
-                _structuralTypeDisplayService = structuralTypeDisplayService;
-                Services = services;
+                LanguageServices = languageServices;
                 Options = options;
                 CancellationToken = cancellationToken;
                 _semanticModel = semanticModel;
@@ -113,7 +108,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
             protected abstract void AddEnumUnderlyingTypeSeparator();
             protected abstract Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ISymbol symbol);
             protected abstract ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format);
-            protected abstract string GetNavigationHint(ISymbol symbol);
+            protected abstract string? GetNavigationHint(ISymbol symbol);
 
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
@@ -166,7 +161,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
             private void AddDocumentationContent(ISymbol symbol)
             {
-                var formatter = Services.GetRequiredLanguageService<IDocumentationCommentFormattingService>(_semanticModel.Language);
+                var formatter = LanguageServices.GetRequiredService<IDocumentationCommentFormattingService>();
 
                 if (symbol is IParameterSymbol or ITypeParameterSymbol)
                 {
@@ -506,7 +501,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                     AddTypeParameterMapPart(allTypeParameters, allTypeArguments);
                 }
 
-                if (symbol.IsEnumType() && symbol.EnumUnderlyingType.SpecialType != SpecialType.System_Int32)
+                if (symbol.IsEnumType() && symbol.EnumUnderlyingType!.SpecialType != SpecialType.System_Int32)
                 {
                     AddEnumUnderlyingTypeSeparator();
                     var underlyingTypeDisplayParts = symbol.EnumUnderlyingType.ToDisplayParts(s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes));
@@ -834,13 +829,13 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 yield return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, new string(' ', count));
             }
 
-            protected ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
+            protected ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SymbolDisplayFormat? format = null)
             {
                 format ??= MinimallyQualifiedFormat;
                 return ToMinimalDisplayParts(symbol, _semanticModel, _position, format);
             }
 
-            private static IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
+            private static IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, ISymbol? symbol, string text)
             {
                 yield return new SymbolDisplayPart(kind, symbol, text);
             }
