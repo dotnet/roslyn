@@ -1666,7 +1666,7 @@ namespace Microsoft.CodeAnalysis
                                 if (!Directory.Exists(directory))
                                 {
                                     logger.Trace?.Log($"Creating directory '{directory}'");
-                                    Directory.CreateDirectory(directory);
+                                    Directory.CreateDirectory(directory!);
                                 }
 
                                 newTree = newTree.WithFilePath(fullPath);
@@ -2123,7 +2123,7 @@ namespace Microsoft.CodeAnalysis
 
             // Find the node in the tree where the diagnostic was reported.
             var reportedSyntaxNode =
-                 reportedSyntaxTree.GetRoot().FindNode(diagnostic.Location.SourceSpan);
+                 reportedSyntaxTree.GetRoot().FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
 
             // Find the start and end token where the diagnostic was reported.
             var reportedSyntaxStartToken = reportedSyntaxNode.FindToken(diagnostic.Location.SourceSpan.Start);
@@ -2198,9 +2198,7 @@ namespace Microsoft.CodeAnalysis
                 return (diagnostic, false, false);
             }
 
-
             RoslynDebug.Assert(compilation.ContainsSyntaxTree(finalTree));
-
 
             // Find the node in the final tree corresponding to the node in the original tree.
             if (!TryFindSourceNodeInFinalSyntaxTree(sourceSyntaxNode, finalTree, out var finalNode))

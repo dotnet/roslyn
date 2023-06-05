@@ -3076,7 +3076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // <Metalama>
-            DiagnosticBag mappedToFinal = DiagnosticBag.GetInstance();
+            DiagnosticBag? mappedToFinal = DiagnosticBag.GetInstance();
 
             CommonCompiler.MapDiagnosticsToFinalCompilation(builder, mappedToFinal, this, logger: null);
             builder.Free();
