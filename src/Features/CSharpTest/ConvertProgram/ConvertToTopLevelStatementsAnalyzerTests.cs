@@ -1379,7 +1379,8 @@ namespace X.Y
     class Other
     {
     }
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -1461,7 +1462,8 @@ namespace X.Y
     class Other
     {
     }
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },

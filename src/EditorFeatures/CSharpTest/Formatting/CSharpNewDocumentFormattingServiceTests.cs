@@ -104,7 +104,8 @@ namespace Goo
     internal class C
     {
     }
-}",
+}
+",
             options: new OptionsCollection(LanguageNames.CSharp)
             {
                 { CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Error) }

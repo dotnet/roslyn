@@ -608,7 +608,8 @@ public class C
                 FixedCode = @"
 namespace $$N
 {
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp9,
                 Options =
                 {
@@ -646,7 +647,8 @@ namespace $$N;
                 FixedCode = @"
 namespace $$N
 {
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -666,7 +668,8 @@ $$namespace N;
                 FixedCode = @"
 namespace N
 {
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -749,7 +752,8 @@ namespace $$N
     namespace N2
     {
     }
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -822,7 +826,8 @@ namespace $${|CS8956:N|};
 
 namespace $$N
 {
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -845,7 +850,8 @@ int {|CS0116:i|} = 0;
 namespace $$N
 {
     int {|CS0116:i|} = 0;
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -869,7 +875,8 @@ using System;
 
 namespace $$N
 {
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -892,7 +899,8 @@ using System;
 namespace $$N
 {
     using System;
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -919,7 +927,8 @@ namespace $$N
     class C
     {
     }
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -948,7 +957,8 @@ namespace $$N
     class C
     {
     }
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -973,7 +983,8 @@ namespace N
 {
     /// <summary/>
     class C
-    {}{|CS1513:|}",
+    {
+}{|CS1513:|}",
                 LanguageVersion = LanguageVersion.CSharp10,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 Options =
@@ -1001,7 +1012,8 @@ namespace $$N
     class C
     {
     }
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -1030,7 +1042,8 @@ namespace $$N
     class C
     {
     }
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
