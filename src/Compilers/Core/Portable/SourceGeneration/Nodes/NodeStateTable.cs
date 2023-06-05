@@ -198,15 +198,15 @@ namespace Microsoft.CodeAnalysis
 
             public bool TryRemoveEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs)
             {
-                if (!CanUsePreviousEntries())
+                if (!TryGetPreviousEntry(out var previousEntry))
                 {
-                    // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to remove.
+                    // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to try to modify.
                     return false;
                 }
 
                 // Mark the corresponding entries to this node execution in the previous table as removed.
                 // Since they are removed due to their input having been removed, we won't have to keep placeholders for them.
-                var previousEntries = GetPreviousEntry().AsRemovedDueToInputRemoval();
+                var previousEntries = previousEntry.AsRemovedDueToInputRemoval();
                 _states.Add(previousEntries);
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Removed);
                 return true;
@@ -226,13 +226,12 @@ namespace Microsoft.CodeAnalysis
 
             public bool TryUseCachedEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs)
             {
-                if (!CanUsePreviousEntries())
+                if (!TryGetPreviousEntry(out var previousEntries))
                 {
-                    // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to copy as cached.
+                    // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to try to modify.
                     return false;
                 }
 
-                var previousEntries = GetPreviousEntry();
                 Debug.Assert(previousEntries.IsCached);
 
                 _states.Add(previousEntries);
@@ -254,13 +253,12 @@ namespace Microsoft.CodeAnalysis
 
             public bool TryModifyEntry(T value, IEqualityComparer<T> comparer, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                if (!CanUsePreviousEntries())
+                if (!TryGetPreviousEntry(out var previousEntry))
                 {
                     // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to try to modify.
                     return false;
                 }
 
-                var previousEntry = GetPreviousEntry();
                 Debug.Assert(previousEntry.Count == 1);
                 var (chosen, state, _) = GetModifiedItemAndState(previousEntry.GetItem(0), value, comparer);
                 _states.Add(new TableEntry(OneOrMany.Create(chosen), state));
@@ -268,13 +266,8 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public bool TryModifyEntries(ImmutableArray<T> outputs, IEqualityComparer<T> comparer, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState) 
+            public bool TryModifyEntries(ImmutableArray<T> outputs, IEqualityComparer<T> comparer, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                if (!CanUsePreviousEntries())
-                {
-                    return false;
-                }
-
                 // Semantics:
                 // For each item in the row, we compare with the new matching new value.
                 // - Cached when the same
@@ -282,7 +275,10 @@ namespace Microsoft.CodeAnalysis
                 // - Removed when old item position > outputs.length
                 // - Added when new item position < previousTable.length
 
-                var previousEntry = GetPreviousEntry();
+                if (!TryGetPreviousEntry(out var previousEntry))
+                {
+                    return false;
+                }
 
                 // when both entries have no items, we can short circuit
                 if (previousEntry.Count == 0 && outputs.Length == 0)
@@ -390,15 +386,11 @@ namespace Microsoft.CodeAnalysis
                 return tableEntry;
             }
 
-            private bool CanUsePreviousEntries()
+            private bool TryGetPreviousEntry(out TableEntry previousEntry)
             {
-                return _previous._states.Length > (_states.Count - _insertedCount);
-            }
-
-            private TableEntry GetPreviousEntry()
-            {
-                Debug.Assert(CanUsePreviousEntries());
-                return _previous._states[_states.Count - _insertedCount];
+                var canUsePrevious = _previous._states.Length > (_states.Count - _insertedCount);
+                previousEntry = canUsePrevious ? _previous._states[_states.Count - _insertedCount] : default;
+                return canUsePrevious;
             }
 
             private void RecordStepInfoForLastEntry(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
