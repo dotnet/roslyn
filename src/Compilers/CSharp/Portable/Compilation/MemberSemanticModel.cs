@@ -2215,6 +2215,11 @@ done:
                         }
                         break;
 
+                    case SyntaxKind.ComplexElementInitializerExpression:
+                    case SyntaxKind.CollectionInitializerExpression:
+                    case SyntaxKind.ObjectInitializerExpression:
+                        return GetBindableSyntaxNode(parent);
+
                     default:
                         if (node is QueryExpressionSyntax && parent is QueryContinuationSyntax ||
                             !(node is ExpressionSyntax) &&
