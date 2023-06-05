@@ -58,11 +58,6 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (entry.State != EntryState.Cached || !nodeTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
                 {
-                    // we don't currently handle modified any differently than added at the output
-                    // we just run the action and mark the new source as added. In theory we could compare
-                    // the diagnostics and sources produced and compare them, to see if they are any different 
-                    // than before.
-
                     var sourcesBuilder = new AdditionalSourcesCollection(_sourceExtension);
                     var diagnostics = DiagnosticBag.GetInstance();
 
