@@ -13722,4 +13722,38 @@ class C<T>
         var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "T.Type");
         Assert.Null(model.GetSymbolInfo(type).Symbol);
     }
+
+    [Fact]
+    public void ExtensionMemberLookup_DuplicateFieldNamesInUnderlyingType()
+    {
+        var ilSource = """
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .field public int32 'member'
+    .field public string 'member'
+}
+""";
+
+        var src = """
+class D
+{
+    void M(C c)
+    {
+        _ = c.member;
+    }
+}
+
+implicit extension E for C
+{
+    public string member => throw null;
+}
+""";
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (5,15): error CS0229: Ambiguity between 'C.member' and 'C.member'
+            //         _ = c.member;
+            Diagnostic(ErrorCode.ERR_AmbigMember, "member").WithArguments("C.member", "C.member").WithLocation(5, 15)
+            );
+    }
 }
