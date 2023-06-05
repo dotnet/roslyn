@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis
                 // <Metalama>
                 var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
                 var syntaxTree = compilation.SyntaxTrees.SingleOrDefault(tree => DocumentState.GetDocumentIdForTree(tree) == this.Id) ??
-                    compilation.SyntaxTrees.SingleOrDefault(tree => tree.FilePath == this.FilePath);
+                    compilation.SyntaxTrees.Single(tree => tree.FilePath == this.FilePath);
                 // </Metalama>
 
                 var result = compilation.GetSemanticModel(syntaxTree);

@@ -234,5 +234,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return await GetService().GetCurrentActiveStatementPositionAsync(sessionId, solution, CreateActiveStatementSpanProvider(callbackId), instructionId, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
+
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(cancellationToken =>
+            {
+                GetService().SetFileLoggingDirectory(logDirectory);
+                return default;
+            }, cancellationToken);
+        }
     }
 }

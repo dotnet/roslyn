@@ -12,10 +12,9 @@
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
-
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <!-- <Metalama> -->
     <NuspecPackageId>Metalama.Compiler.Arm64</NuspecPackageId>
- 
     <PackageDescription>
       THIS IS NOT THE PACKAGE YOU ARE LOOKING FOR. If you want to add Metalama to your project, add a reference to the package named `Metalama.Framework`.
       

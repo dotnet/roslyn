@@ -52,16 +52,16 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// <summary>
         /// Creates a ProjectInfo to represent the fake project created for metadata as source documents.
         /// </summary>
-        /// <param name="workspace">The containing workspace.</param>
+        /// <param name="services">Solution services.</param>
         /// <param name="loadFileFromDisk">Whether the source file already exists on disk and should be included. If
         /// this is a false, a document is still created, but it's not backed by the file system and thus we won't
         /// try to load it.</param>
-        public Tuple<ProjectInfo, DocumentId> GetProjectInfoAndDocumentId(Workspace workspace, bool loadFileFromDisk)
+        public (ProjectInfo, DocumentId) GetProjectInfoAndDocumentId(SolutionServices services, bool loadFileFromDisk)
         {
             var projectId = ProjectId.CreateNewId();
 
             // Just say it's always a DLL since we probably won't have a Main method
-            var compilationOptions = workspace.Services.GetLanguageServices(LanguageName).CompilationFactory!.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
+            var compilationOptions = services.GetRequiredLanguageService<ICompilationFactoryService>(LanguageName).GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
 
             var extension = LanguageName == LanguageNames.CSharp ? ".cs" : ".vb";
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var generatedDocument = DocumentInfo.Create(
                 generatedDocumentId,
                 Path.GetFileName(TemporaryFilePath),
-                loader: loadFileFromDisk ? new WorkspaceFileTextLoader(workspace.Services.SolutionServices, TemporaryFilePath, Encoding) : null,
+                loader: loadFileFromDisk ? new WorkspaceFileTextLoader(services, TemporaryFilePath, Encoding) : null,
                 filePath: TemporaryFilePath,
                 isGenerated: true)
                 .WithDesignTimeOnly(true);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 documents: new[] { assemblyInfoDocument, generatedDocument },
                 metadataReferences: References);
 
-            return Tuple.Create(projectInfo, generatedDocumentId);
+            return (projectInfo, generatedDocumentId);
         }
     }
 }

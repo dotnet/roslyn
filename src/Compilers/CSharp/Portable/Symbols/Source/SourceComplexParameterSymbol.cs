@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
-            DeclarationScope scope)
+            ScopedKind scope)
             : base(owner, parameterType, ordinal, refKind, scope, name, locations)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
@@ -198,15 +198,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
-        internal sealed override DeclarationScope EffectiveScope
+        internal sealed override ScopedKind EffectiveScope
         {
             get
             {
                 var scope = CalculateEffectiveScopeIgnoringAttributes();
-                if (scope != DeclarationScope.Unscoped &&
+                if (scope != ScopedKind.None &&
                     HasUnscopedRefAttribute)
                 {
-                    return DeclarationScope.Unscoped;
+                    return ScopedKind.None;
                 }
                 return scope;
             }
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If we have something like M(double? x = 1) then the expression we'll get is (double?)1, which
             // does not have a constant value. The constant value we want is (double)1.
             // The default literal conversion is an exception: (double)default would give the wrong value for M(double? x = default).
-            if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion &&
+            if (convertedExpression.ConstantValueOpt == null && convertedExpression.Kind == BoundKind.Conversion &&
                 ((BoundConversion)convertedExpression).ConversionKind != ConversionKind.DefaultLiteral)
             {
                 if (parameterType.Type.IsNullableType())
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // represent default(struct) by a Null constant:
-            var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
+            var value = convertedExpression.ConstantValueOpt ?? ConstantValue.Null;
             return value;
         }
 
@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
                 }
-                else if (DeclaredScope != DeclarationScope.Unscoped)
+                else if (DeclaredScope != ScopedKind.None)
                 {
                     diagnostics.Add(ErrorCode.ERR_UnscopedScoped, arguments.AttributeSyntaxOpt.Location);
                 }
@@ -1514,7 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
-            DeclarationScope scope)
+            ScopedKind scope)
             : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
         }
@@ -1537,7 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
-            DeclarationScope scope)
+            ScopedKind scope)
             : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
             Debug.Assert(!refCustomModifiers.IsEmpty);

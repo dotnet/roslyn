@@ -59,6 +59,11 @@
     <!-- </Metalama> -->
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="build\**\*.*" PackagePath="build\" />
+    <Content Include="buildMultiTargeting\**\*.*" PackagePath="buildMultiTargeting\" />
+  </ItemGroup>
+
   <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
     <ItemGroup>
       <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>

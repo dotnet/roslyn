@@ -4091,6 +4091,71 @@ public struct S
 ");
         }
 
+        [Fact, WorkItem(66046, "https://github.com/dotnet/roslyn/issues/66046")]
+        public void ImplicitlyInitializedField_ConstructorInitializer_01()
+        {
+            var source = """
+public struct S1
+{
+    public int F;
+
+    S1(int x) {}
+
+    public S1() : this(F) {}
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,24): error CS0120: An object reference is required for the non-static field, method, or property 'S1.F'
+                //     public S1() : this(F) {}
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S1.F").WithLocation(7, 24));
+        }
+
+        [Fact, WorkItem(66046, "https://github.com/dotnet/roslyn/issues/66046")]
+        public void ImplicitlyInitializedField_ConstructorInitializer_02()
+        {
+            var source = """
+public struct S1
+{
+    public int F;
+
+    S1(int x) {}
+
+    public static int M(int y) => y;
+
+    public S1() : this(M(F)) {}
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,26): error CS0120: An object reference is required for the non-static field, method, or property 'S1.F'
+                //     public S1() : this(M(F)) {}
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S1.F").WithLocation(9, 26));
+        }
+
+        [Fact, WorkItem(66046, "https://github.com/dotnet/roslyn/issues/66046")]
+        public void ImplicitlyInitializedField_ConstructorInitializer_03()
+        {
+            var source = """
+public struct S1
+{
+    public int F;
+
+    S1(int x) {}
+
+    public S1() : base(F) {}
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS0522: 'S1': structs cannot call base class constructors
+                //     public S1() : base(F) {}
+                Diagnostic(ErrorCode.ERR_StructWithBaseConstructorCall, "S1").WithArguments("S1").WithLocation(7, 12),
+                // (7,24): error CS0120: An object reference is required for the non-static field, method, or property 'S1.F'
+                //     public S1() : base(F) {}
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S1.F").WithLocation(7, 24));
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]

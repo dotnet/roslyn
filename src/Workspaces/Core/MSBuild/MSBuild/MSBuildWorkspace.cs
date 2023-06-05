@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             : base(hostServices, WorkspaceKind.MSBuild)
         {
             _reporter = new DiagnosticReporter(this);
-            _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(Services, _reporter);
-            _loader = new MSBuildProjectLoader(Services, _reporter, _projectFileLoaderRegistry, properties);
+            _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(Services.SolutionServices, _reporter);
+            _loader = new MSBuildProjectLoader(Services.SolutionServices, _reporter, _projectFileLoaderRegistry, properties);
         }
 
         /// <summary>
@@ -473,6 +473,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             try
             {
                 var dir = Path.GetDirectoryName(fullPath);
+                Contract.ThrowIfNull(dir);
+
                 if (!Directory.Exists(dir))
                 {
                     Directory.CreateDirectory(dir);

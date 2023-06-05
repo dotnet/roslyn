@@ -55,7 +55,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52243")>
         Public Async Function TestMissingOnRegularStringWithBracesAssignedToConst() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -66,7 +66,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52243")>
         Public Async Function TestMissingOnAttributeStringParameterWithBraces() As Task
             Await TestMissingInRegularAndScriptAsync(
 "

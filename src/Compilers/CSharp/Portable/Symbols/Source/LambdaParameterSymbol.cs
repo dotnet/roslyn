@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
            TypeWithAnnotations parameterType,
            int ordinal,
            RefKind refKind,
-           DeclarationScope scope,
+           ScopedKind scope,
            string name,
            bool isDiscard,
            bool isParams,

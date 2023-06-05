@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
             }.RunAsync();
         }
 
-        [Fact, WorkItem(25456, "https://github.com/dotnet/roslyn/issues/25456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25456")]
         public async Task TestNotInSwitchCase()
         {
             var code = """

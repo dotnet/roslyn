@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // Either it was already marked as modified, or the text of the tree changed.
                                 bool isModified = (oldTreeToNewTrees.TryGetValue(oldTree, out var tuple) && tuple.IsModified)
-                                    || !oldTree.GetText(cancellationToken).ContentEquals(newTree.GetText(cancellationToken));
+                                    || !oldTree.GetText(cancellationToken).ContentEquals(newTree!.GetText(cancellationToken));
 
                                 // Update the index mapping old trees to new trees.
                                 oldTreeToNewTrees[oldTree] = (newTree!, isModified);
@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Report a diagnostic.
                     var diagnostic = Diagnostic.Create(new DiagnosticInfo(
-                        MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_TransformerFailed, transformer.GetType().Name, ex.Message, crashReportPath));
+                        MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_TransformerFailed, transformer.GetType().Name, ex.Message, crashReportPath ?? "<crash reporter failed>"));
 
                     diagnostics.Add(diagnostic);
                 }

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public readonly RefKind RefKind;
 
-        public readonly DeclarationScope Scope;
+        public readonly ScopedKind Scope;
 
         public readonly ConstantValue? DefaultValue;
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             TypeWithAnnotations typeWithAnnotations,
             RefKind refKind,
-            DeclarationScope scope,
+            ScopedKind scope,
             ConstantValue? defaultValue = null,
             bool isParams = false,
             bool hasUnscopedRefAttribute = false)

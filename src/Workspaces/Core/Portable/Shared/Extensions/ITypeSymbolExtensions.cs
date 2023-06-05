@@ -211,22 +211,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new UnnamedErrorTypeRemover(compilation));
         }
 
-        public static IList<ITypeParameterSymbol> GetReferencedMethodTypeParameters(
-            this ITypeSymbol? type, IList<ITypeParameterSymbol>? result = null)
-        {
-            result ??= new List<ITypeParameterSymbol>();
-            type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: true));
-            return result;
-        }
-
-        public static IList<ITypeParameterSymbol> GetReferencedTypeParameters(
-            this ITypeSymbol? type, IList<ITypeParameterSymbol>? result = null)
-        {
-            result ??= new List<ITypeParameterSymbol>();
-            type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: false));
-            return result;
-        }
-
         [return: NotNullIfNotNull(parameterName: nameof(type))]
         public static ITypeSymbol? SubstituteTypes<TType1, TType2>(
             this ITypeSymbol? type,

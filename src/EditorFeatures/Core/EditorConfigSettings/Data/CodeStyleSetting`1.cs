@@ -23,7 +23,6 @@ internal sealed class CodeStyleSetting<T> : CodeStyleSetting
     private CodeStyleOption2<T> _value;
 
     public CodeStyleSetting(
-        IOptionWithGroup option,
         OptionKey2 optionKey,
         string description,
         OptionUpdater updater,
@@ -31,7 +30,7 @@ internal sealed class CodeStyleSetting<T> : CodeStyleSetting
         CodeStyleOption2<T> initialValue,
         T[] possibleValues,
         string[] valueDescriptions)
-        : base(option, optionKey, description, updater, location)
+        : base(optionKey, description, updater, location)
     {
         Contract.ThrowIfFalse(possibleValues.Length == valueDescriptions.Length);
 

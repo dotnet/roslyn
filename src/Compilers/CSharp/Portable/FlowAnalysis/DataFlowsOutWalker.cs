@@ -229,7 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool FlowsOut(ParameterSymbol param)
         {
-            return (object)param != null && param.RefKind != RefKind.None && !param.IsImplicitlyDeclared && !RegionContains(param.Locations[0].SourceSpan);
+            return (object)param != null &&
+                   ((param.RefKind != RefKind.None && !param.IsImplicitlyDeclared && !RegionContains(param.Locations[0].SourceSpan)) ||
+                    param.ContainingSymbol is SynthesizedPrimaryConstructor); // Primary constructor parameter can be used in other initializers and methods 
         }
 
         private ParameterSymbol Param(BoundNode node)

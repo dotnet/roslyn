@@ -43,18 +43,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         where TDiagnosticsParams : IPartialResultParams<TReport>
     {
         /// <summary>
-        /// Diagnostic mode setting for Razor.  This should always be <see cref="DiagnosticMode.LspPull"/> as there is no push support in Razor.
-        /// This option is only for passing to the diagnostics service and can be removed when we switch all of Roslyn to LSP pull.
-        /// </summary>
-        private static readonly Option2<DiagnosticMode> s_razorDiagnosticMode = new(nameof(InternalDiagnosticsOptions), "RazorDiagnosticMode", defaultValue: DiagnosticMode.LspPull);
-
-        /// <summary>
-        /// Diagnostic mode setting for Live Share.  This should always be <see cref="DiagnosticMode.LspPull"/> as there is no push support in Live Share.
-        /// This option is only for passing to the diagnostics service and can be removed when we switch all of Roslyn to LSP pull.
-        /// </summary>
-        private static readonly Option2<DiagnosticMode> s_liveShareDiagnosticMode = new(nameof(InternalDiagnosticsOptions), "LiveShareDiagnosticMode", defaultValue: DiagnosticMode.LspPull);
-
-        /// <summary>
         /// Special value we use to designate workspace diagnostics vs document diagnostics.  Document diagnostics
         /// should always <see cref="VSInternalDiagnosticReport.Supersedes"/> a workspace diagnostic as the former are 'live'
         /// while the latter are cached and may be stale.
@@ -125,6 +113,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         protected abstract string? GetDiagnosticCategory(TDiagnosticsParams diagnosticsParams);
 
+        /// <summary>
+        /// Used by public workspace pull diagnostics to allow it to keep the connection open until
+        /// changes occur to avoid the client spamming the server with requests.
+        /// </summary>
+        protected virtual Task WaitForChangesAsync(RequestContext context, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
         public async Task<TReturn?> HandleRequestAsync(
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
@@ -161,6 +158,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // last time we notified the client.  Report back either to the client so they can update accordingly.
             var orderedSources = await GetOrderedDiagnosticSourcesAsync(
                 diagnosticsParams, context, cancellationToken).ConfigureAwait(false);
+
             context.TraceInformation($"Processing {orderedSources.Length} documents");
 
             foreach (var diagnosticSource in orderedSources)
@@ -192,6 +190,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     progress.Report(CreateUnchangedReport(previousParams.TextDocument, previousParams.PreviousResultId));
                 }
             }
+
+            // Some implementations of the spec will re-open requests as soon as we close them, spamming the server.
+            // In those cases, we wait for the implementation to indicate that changes have occurred, then we close the connection
+            // so that the client asks us again.
+            await WaitForChangesAsync(context, cancellationToken).ConfigureAwait(false);
 
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.
@@ -255,9 +258,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             var diagnosticModeOption = context.ServerKind switch
             {
-                WellKnownLspServerKinds.LiveShareLspServer => s_liveShareDiagnosticMode,
-                WellKnownLspServerKinds.RazorLspServer => s_razorDiagnosticMode,
-                _ => InternalDiagnosticsOptions.NormalDiagnosticMode,
+                WellKnownLspServerKinds.LiveShareLspServer => InternalDiagnosticsOptionsStorage.LiveShareDiagnosticMode,
+                WellKnownLspServerKinds.RazorLspServer => InternalDiagnosticsOptionsStorage.RazorDiagnosticMode,
+                _ => InternalDiagnosticsOptionsStorage.NormalDiagnosticMode,
             };
 
             var diagnosticMode = GlobalOptions.GetDiagnosticMode(diagnosticModeOption);
@@ -375,6 +378,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     Message = diagnosticData.Message,
                     Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
                     Tags = ConvertTags(diagnosticData),
+                    DiagnosticRank = ConvertRank(diagnosticData),
                 };
 
                 diagnostic.Range = GetRange(diagnosticData.DataLocation);
@@ -427,6 +431,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     }
                 };
             }
+        }
+
+        private static VSDiagnosticRank? ConvertRank(DiagnosticData diagnosticData)
+        {
+            if (diagnosticData.Properties.TryGetValue(PullDiagnosticConstants.Priority, out var priority))
+            {
+                return priority switch
+                {
+                    PullDiagnosticConstants.Low => VSDiagnosticRank.Low,
+                    PullDiagnosticConstants.Medium => VSDiagnosticRank.Default,
+                    PullDiagnosticConstants.High => VSDiagnosticRank.High,
+                    _ => null,
+                };
+            }
+
+            return null;
         }
 
         private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity)

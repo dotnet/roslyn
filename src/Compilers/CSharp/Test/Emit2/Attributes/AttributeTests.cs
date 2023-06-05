@@ -39,9 +39,9 @@ class Program
 }";
             var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithDeterministic(true));
             comp.VerifyDiagnostics(
-                // (2,55): error CS7034: The specified version string does not conform to the required format - major[.minor[.build[.revision]]]
+                // (2,55): error CS7034: The specified version string '<null>' does not conform to the required format - major[.minor[.build[.revision]]]
                 // [assembly: System.Reflection.AssemblyVersionAttribute(null)]
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithLocation(2, 55)
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithArguments("<null>").WithLocation(2, 55)
                 );
         }
 
@@ -10518,7 +10518,7 @@ class C { }
         }
 
         [Fact]
-        public void GenericAttributeRestrictedTypeArgument()
+        public void GenericAttributeRestrictedTypeArgument_NoUnsafeContext()
         {
             var source = @"
 using System;
@@ -10535,15 +10535,111 @@ class C3 { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7),
                 // (5,7): error CS0306: The type 'int*' may not be used as a type argument
                 // [Attr<int*>] // 1
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(5, 7),
+                // (8,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<delegate*<int, void>>] // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(8, 7),
                 // (8,7): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
                 // [Attr<delegate*<int, void>>] // 2
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(8, 7),
                 // (11,7): error CS0306: The type 'TypedReference' may not be used as a type argument
                 // [Attr<TypedReference>] // 3
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(11, 7));
+        }
+
+        [Fact]
+        public void GenericAttributeRestrictedTypeArgument_UnsafeContext()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+unsafe class Outer
+{
+    [Attr<int*>] // 1
+    class C1 { }
+
+    [Attr<delegate*<int, void>>] // 2
+    class C2 { }
+
+    [Attr<TypedReference>] // 3
+    class C3 { }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0306: The type 'int*' may not be used as a type argument
+                //     [Attr<int*>] // 1
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 11),
+                // (10,11): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
+                //     [Attr<delegate*<int, void>>] // 2
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(10, 11),
+                // (13,11): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //     [Attr<TypedReference>] // 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(13, 11));
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+[Attr<int*[]>] // 1
+class C1 { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
+
+            // Legal in C#11.  Allowed for back compat
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray_OnUnsafeType()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+[Attr<int*[]>] // 1
+unsafe class C1 { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray_InUnsafeType()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+unsafe class C
+{
+    [Attr<int*[]>] // 1
+    class C1 { }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

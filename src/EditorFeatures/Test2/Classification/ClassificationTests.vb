@@ -22,9 +22,59 @@ Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
-    <[UseExportProvider]>
+    <UseExportProvider>
     Public Class ClassificationTests
-        <Fact, WorkItem(65926, "https://github.com/dotnet/roslyn/issues/65926")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/pull/66245")>
+        Public Async Function TestClassificationAndHighlight1() As Task
+            Using workspace = TestWorkspace.Create(
+                <Workspace>
+                    <Project Language="C#" AssemblyName="TestAssembly" CommonReferences="true">
+                        <Document>
+                        using System.Text.RegularExpressions;
+
+                        class C
+                        {
+                           [| Regex |]re = new Regex("()");
+                        }
+                        </Document>
+                    </Project>
+                </Workspace>)
+
+                Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
+                Dim text = Await document.GetTextAsync()
+                Dim referenceSpan = workspace.Documents.Single().SelectedSpans.Single()
+
+                Dim spansAndHighlightSpan = Await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                    New DocumentSpan(document, referenceSpan),
+                    ClassificationOptions.Default, CancellationToken.None)
+
+                ' This is the classification of the line, starting at the beginning of the highlight, and going to the end of that line.
+                Assert.Equal(
+"(text, '<spaces>', [154..155))
+(class name, 'Regex', [155..160))
+(text, '<spaces>', [160..161))
+(field name, 're', [161..163))
+(text, '<spaces>', [163..164))
+(operator, '=', [164..165))
+(text, '<spaces>', [165..166))
+(keyword, 'new', [166..169))
+(text, '<spaces>', [169..170))
+(class name, 'Regex', [170..175))
+(punctuation, '(', [175..176))
+(string, '""', [176..177))
+(regex - grouping, '(', [177..178))
+(regex - grouping, ')', [178..179))
+(string, '""', [179..180))
+(punctuation, ')', [180..181))
+(punctuation, ';', [181..182))", String.Join(vbCrLf, spansAndHighlightSpan.ClassifiedSpans.Select(Function(s) ToTestString(text, s))))
+
+                ' The portion of the classified spans to highlight goes from the start of the classified spans to the
+                ' length of the original reference span.
+                Assert.Equal(New TextSpan(0, referenceSpan.Length), spansAndHighlightSpan.HighlightSpan)
+            End Using
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65926")>
         Public Async Function TestEmbeddedClassifications1() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -86,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Using
         End Function
 
-        <Fact, WorkItem(63702, "https://github.com/dotnet/roslyn/issues/63702")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63702")>
         Public Async Function TestEmbeddedClassifications2() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -152,13 +202,46 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Using
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66507")>
+        Public Async Function TestUtf8StringSuffix() As Task
+            Using workspace = TestWorkspace.Create(
+                <Workspace>
+                    <Project Language="C#" AssemblyName="TestAssembly" CommonReferences="true">
+                        <Document>
+                        [|var v = "goo"u8;|]
+                        </Document>
+                    </Project>
+                </Workspace>)
+
+                Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
+                Dim text = Await document.GetTextAsync()
+                Dim referenceSpan = workspace.Documents.Single().SelectedSpans.Single()
+
+                Dim spansAndHighlightSpan = Await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                    New DocumentSpan(document, referenceSpan),
+                    ClassificationOptions.Default, CancellationToken.None)
+
+                ' string classification should not overlap u8 classification.
+                AssertEx.Equal(
+"(keyword, 'var', [26..29))
+(text, '<spaces>', [29..30))
+(local name, 'v', [30..31))
+(text, '<spaces>', [31..32))
+(operator, '=', [32..33))
+(text, '<spaces>', [33..34))
+(string, '""goo""', [34..39))
+(keyword, 'u8', [39..41))
+(punctuation, ';', [41..42))", String.Join(vbCrLf, spansAndHighlightSpan.ClassifiedSpans.Select(Function(s) ToTestString(text, s))))
+            End Using
+        End Function
+
         Private Shared Function ToTestString(text As SourceText, span As ClassifiedSpan) As String
             Dim subText = text.ToString(span.TextSpan)
             Return $"({span.ClassificationType}, '{If(subText.Trim() = "", "<spaces>",
                 subText)}', {span.TextSpan})"
         End Function
 
-        <WpfFact, WorkItem(13753, "https://github.com/dotnet/roslyn/issues/13753")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/13753")>
         Public Async Function TestSemanticClassificationWithoutSyntaxTree() As Task
             Dim workspaceDefinition =
             <Workspace>
@@ -219,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Assert.NotNull(run)
         End Sub
 
-        <WpfFact, WorkItem(13753, "https://github.com/dotnet/roslyn/issues/13753")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/13753")>
         Public Async Function TestWrongDocument() As Task
             Dim workspaceDefinition =
             <Workspace>

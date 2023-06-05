@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             TypedReference result = new TypedReference ();
             unsafe
             {
-                FCallGetNextArg (&result);
+                FCallGetNextArg (&result); // 1
             }
             return result;
         }
@@ -152,7 +152,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 }";
             var c = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll);
 
-            c.VerifyDiagnostics();
+            c.VerifyDiagnostics(
+                // (100,34): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
+                //                 FCallGetNextArg (&result); // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&result").WithArguments("System.TypedReference").WithLocation(100, 34)
+                );
         }
 
         [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]

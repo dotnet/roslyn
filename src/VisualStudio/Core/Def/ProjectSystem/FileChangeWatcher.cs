@@ -419,12 +419,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // If we already have this file under our path, we may not have to do additional watching
                 foreach (var watchedDirectory in _watchedDirectories)
                 {
-                    if (watchedDirectory != null && filePath.StartsWith(watchedDirectory.Path))
+                    if (filePath.StartsWith(watchedDirectory.Path, StringComparison.OrdinalIgnoreCase))
                     {
                         // If ExtensionFilter is null, then we're watching for all files in the directory so the prior check
                         // of the directory containment was sufficient. If it isn't null, then we have to check the extension
                         // matches.
-                        if (watchedDirectory.ExtensionFilter == null || filePath.EndsWith(watchedDirectory.ExtensionFilter))
+                        if (watchedDirectory.ExtensionFilter == null || filePath.EndsWith(watchedDirectory.ExtensionFilter, StringComparison.OrdinalIgnoreCase))
                         {
                             return NoOpWatchedFile.Instance;
                         }

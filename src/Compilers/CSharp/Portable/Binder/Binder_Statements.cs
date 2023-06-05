@@ -1097,12 +1097,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declTypeOpt.Type, localDiagnostics, typeSyntax))
-            {
-                hasErrors = true;
-            }
+            CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declTypeOpt.Type, localDiagnostics, typeSyntax);
 
-            if (localSymbol.Scope == DeclarationScope.ValueScoped && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
+            if (localSymbol.Scope == ScopedKind.ScopedValue && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
             {
                 localDiagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
             }
@@ -1565,8 +1562,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var errorCode = (rightEscape, _inUnsafeRegion) switch
                         {
-                            (Binder.ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
-                            (Binder.ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
+                            (ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
+                            (ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
                             (_, false) => ErrorCode.ERR_RefAssignNarrower,
                             (_, true) => ErrorCode.WRN_RefAssignNarrower
                         };
@@ -1892,6 +1889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locals,
                 GetDeclaredLocalFunctionsForScope(node),
                 hasUnsafeModifier: node.Parent?.Kind() == SyntaxKind.UnsafeStatement,
+                instrumentation: null,
                 boundStatements);
         }
 
@@ -2395,7 +2393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceType = operand.Type;
             if ((object)sourceType != null)
             {
-                GenerateImplicitConversionError(diagnostics, this.Compilation, syntax, conversion, sourceType, targetType, operand.ConstantValue);
+                GenerateImplicitConversionError(diagnostics, this.Compilation, syntax, conversion, sourceType, targetType, operand.ConstantValueOpt);
                 return;
             }
 
@@ -2584,7 +2582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (expr.Kind == BoundKind.AssignmentOperator)
                     {
                         var assignment = (BoundAssignmentOperator)expr;
-                        if (assignment.Right.Kind == BoundKind.Literal && assignment.Right.ConstantValue.Discriminator == ConstantValueTypeDiscriminator.Boolean)
+                        if (assignment.Right.Kind == BoundKind.Literal && assignment.Right.ConstantValueOpt.Discriminator == ConstantValueTypeDiscriminator.Boolean)
                         {
                             Error(diagnostics, ErrorCode.WRN_IncorrectBooleanAssg, assignment.Syntax);
                         }
@@ -3252,11 +3250,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MessageID.IDS_FeatureExceptionFilter.CheckFeatureAvailability(diagnostics, filter, filter.WhenKeyword.GetLocation());
 
             BoundExpression boundFilter = this.BindBooleanExpression(filter.FilterExpression, diagnostics);
-            if (boundFilter.ConstantValue != ConstantValue.NotAvailable)
+            if (boundFilter.ConstantValueOpt != ConstantValue.NotAvailable)
             {
                 // Depending on whether the filter constant is true or false, and whether there are other catch clauses,
                 // we suggest different actions
-                var errorCode = boundFilter.ConstantValue.BooleanValue
+                var errorCode = boundFilter.ConstantValueOpt.BooleanValue
                     ? ErrorCode.WRN_FilterIsConstantTrue
                     : (filter.Parent.Parent is TryStatementSyntax s && s.Catches.Count == 1 && s.Finally == null)
                         ? ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch
@@ -3521,8 +3519,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (syntax)
             {
-                case RecordDeclarationSyntax recordDecl:
-                    return BindRecordConstructorBody(recordDecl, diagnostics);
+                case TypeDeclarationSyntax typeDecl:
+                    return BindPrimaryConstructorBody(typeDecl, diagnostics);
 
                 case BaseMethodDeclarationSyntax method:
                     if (method.Kind() == SyntaxKind.ConstructorDeclaration)
@@ -3575,14 +3573,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                      expressionBody: null);
         }
 
-        private BoundNode BindRecordConstructorBody(RecordDeclarationSyntax recordDecl, BindingDiagnosticBag diagnostics)
+        private BoundNode BindPrimaryConstructorBody(TypeDeclarationSyntax typeDecl, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(recordDecl.ParameterList is object);
-            Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
+            Debug.Assert(typeDecl.ParameterList is object);
+            Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration);
 
             BoundExpressionStatement initializer;
             ImmutableArray<LocalSymbol> constructorLocals;
-            if (recordDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
+            if (typeDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
                 Binder initializerBinder = GetBinder(baseWithArguments);
                 Debug.Assert(initializerBinder != null);
@@ -3591,14 +3589,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                initializer = BindImplicitConstructorInitializer(recordDecl, diagnostics);
+                initializer = BindImplicitConstructorInitializer(typeDecl, diagnostics);
                 constructorLocals = ImmutableArray<LocalSymbol>.Empty;
             }
 
-            return new BoundConstructorMethodBody(recordDecl,
+            return new BoundConstructorMethodBody(typeDecl,
                                                   constructorLocals,
                                                   initializer,
-                                                  blockBody: new BoundBlock(recordDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
+                                                  blockBody: new BoundBlock(typeDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
                                                   expressionBody: null);
         }
 
@@ -3623,7 +3621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool thisInitializer = initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) == true;
             if (!thisInitializer &&
-                hasRecordPrimaryConstructor())
+                hasPrimaryConstructor())
             {
                 if (isInstanceConstructor(out MethodSymbol constructorSymbol) &&
                     !SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
@@ -3638,7 +3636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isDefaultValueTypeInitializer &&
                 isInstanceConstructor(out _) &&
-                hasRecordPrimaryConstructor())
+                hasPrimaryConstructor())
             {
                 Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
             }
@@ -3653,8 +3651,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
                                                                                            constructor.Body == null ? diagnostics : BindingDiagnosticBag.Discarded));
 
-            bool hasRecordPrimaryConstructor() =>
-                ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any();
+            bool hasPrimaryConstructor() =>
+                ContainingType is SourceMemberContainerTypeSymbol { PrimaryConstructor: not null };
 
             bool isInstanceConstructor(out MethodSymbol constructorSymbol)
             {
@@ -3715,7 +3713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
 
             SourceMemberMethodSymbol? sourceConstructor = constructor as SourceMemberMethodSymbol;
-            Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax
+            Debug.Assert(sourceConstructor?.SyntaxNode is TypeDeclarationSyntax
                 || ((ConstructorDeclarationSyntax?)sourceConstructor?.SyntaxNode)?.Initializer == null);
 
             // The common case is that the type inherits directly from object.
@@ -3770,9 +3768,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
                 BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
 
-                if (containerNode is RecordDeclarationSyntax recordDecl)
+                if (containerNode is TypeDeclarationSyntax typeDecl)
                 {
-                    outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                    outerBinder = binderFactory.GetInTypeBodyBinder(typeDecl);
                 }
                 else
                 {
@@ -3794,8 +3792,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         outerBinder = binderFactory.GetBinder(ctorDecl.ParameterList);
                         break;
 
-                    case RecordDeclarationSyntax recordDecl:
-                        outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                    case TypeDeclarationSyntax typeDecl:
+                        outerBinder = binderFactory.GetInTypeBodyBinder(typeDecl);
                         break;
 
                     default:

@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             return workspace;
         }
 
+        private static IGlobalOptionService GetGlobalOptions(Workspace workspace)
+            => workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOptionService>();
+
         private static AnalyzerConfigDocument CreateAnalyzerConfigDocument(Workspace workspace, string contents)
         {
             var solution = workspace.CurrentSolution;
@@ -87,19 +90,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         [Fact]
         public async Task TestAddNewBoolCodeStyleOptionWithSeverityAsync()
         {
-            ICodeStyleOption option = CSharpCodeStyleOptions.PreferThrowExpression.DefaultValue;
-            option = option.WithValue(true).WithNotification(NotificationOption2.Suggestion);
             await TestAsync(
                 string.Empty,
                 "[*.cs]\r\ncsharp_style_throw_expression = true:suggestion",
-                (CSharpCodeStyleOptions.PreferThrowExpression, option));
+                (CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.TrueWithSuggestionEnforcement));
         }
 
         [Fact]
         public async Task TestAddNewEnumCodeStyleOptionWithSeverityAsync()
         {
-            ICodeStyleOption option = CSharpCodeStyleOptions.PreferredUsingDirectivePlacement.DefaultValue;
-            option = option.WithValue(AddImportPlacement.InsideNamespace).WithNotification(NotificationOption2.Warning);
+            var option = new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Warning);
             await TestAsync(
                 string.Empty,
                 "[*.cs]\r\ncsharp_using_directive_placement = inside_namespace:warning",
@@ -341,14 +341,15 @@ csharp_new_line_before_else = true";
         public async Task TestCodeStyleSettingUpdaterService()
         {
             var workspace = CreateWorkspaceWithProjectAndDocuments();
+            var globalOptions = GetGlobalOptions(workspace);
+
             var updater = new OptionUpdater(workspace, EditorconfigPath);
-            var solution = workspace.CurrentSolution;
 
             var value = "false:silent";
 
             var options = new TieredAnalyzerConfigOptions(
                 new TestAnalyzerConfigOptions(key => value),
-                solution.Options.AsAnalyzerConfigOptions(solution.Services.GetRequiredService<IEditorConfigOptionMappingService>(), LanguageNames.CSharp),
+                globalOptions,
                 LanguageNames.CSharp,
                 EditorconfigPath);
 
@@ -358,6 +359,8 @@ csharp_new_line_before_else = true";
             var update = Assert.Single(updates);
             Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false:error", update.NewText);
             value = "false:error";
+
+            var solution = workspace.CurrentSolution;
             var editorconfig = solution.Projects.SelectMany(p => p.AnalyzerConfigDocuments.Where(a => a.FilePath == EditorconfigPath)).Single();
             var text = await editorconfig.GetTextAsync();
 
@@ -374,12 +377,12 @@ csharp_new_line_before_else = true";
         public async Task TestWhitespaceSettingUpdaterService()
         {
             var workspace = CreateWorkspaceWithProjectAndDocuments();
+            var globalOptions = GetGlobalOptions(workspace);
             var updater = new OptionUpdater(workspace, EditorconfigPath);
 
-            var solution = workspace.CurrentSolution;
             var options = new TieredAnalyzerConfigOptions(
                 TestAnalyzerConfigOptions.Instance,
-                solution.Options.AsAnalyzerConfigOptions(solution.Services.GetRequiredService<IEditorConfigOptionMappingService>(), LanguageNames.CSharp),
+                globalOptions,
                 LanguageNames.CSharp,
                 EditorconfigPath);
 

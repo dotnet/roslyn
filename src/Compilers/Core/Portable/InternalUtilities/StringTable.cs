@@ -698,6 +698,16 @@ foundIdx:
                 return false;
             }
 
+#if NETCOREAPP3_1_OR_GREATER
+            int chunkOffset = 0;
+            foreach (var chunk in text.GetChunks())
+            {
+                if (!chunk.Span.Equals(array.AsSpan().Slice(chunkOffset, chunk.Length), StringComparison.Ordinal))
+                    return false;
+
+                chunkOffset += chunk.Length;
+            }
+#else
             // interestingly, stringbuilder holds the list of chunks by the tail
             // so accessing positions at the beginning may cost more than those at the end.
             for (var i = array.Length - 1; i >= 0; i--)
@@ -707,6 +717,7 @@ foundIdx:
                     return false;
                 }
             }
+#endif
 
             return true;
         }
