@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Structure
             var blockStructure = await _service.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
             if (blockStructure != null)
             {
-                return new BlockStructure(blockStructure.Spans.SelectAsArray(x => new BlockSpan(x.Type, x.IsCollapsible, x.TextSpan, x.HintSpan, x.BannerText, x.AutoCollapse, x.IsDefaultCollapsed)));
+                return new BlockStructure(blockStructure.Spans.SelectAsArray(
+                    x => new BlockSpan(x.Type, x.IsCollapsible, x.TextSpan, x.HintSpan, primarySpans: null, x.BannerText, x.AutoCollapse, x.IsDefaultCollapsed)));
             }
             else
             {
