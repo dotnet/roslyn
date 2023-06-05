@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     /// persist them to the SUO file to persist this data across sessions.
     /// </summary>
     internal abstract partial class AbstractStructureTaggerProvider :
-        AsynchronousTaggerProvider<IStructureTag>
+        AsynchronousTaggerProvider<IStructureTag2>
     {
         private const string RegionDirective = "#region";
         private const string UsingDirective = "using";
