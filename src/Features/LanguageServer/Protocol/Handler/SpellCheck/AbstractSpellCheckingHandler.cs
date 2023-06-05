@@ -171,6 +171,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             // break things up into batches of 1000 items.  That way we can send smaller messages to the client instead
             // of one enormous one.
             const int chunkSize = 1000;
+            var lastSpanEnd = 0;
             for (var batchStart = 0; batchStart < spans.Length; batchStart += chunkSize)
             {
                 var batchEnd = Math.Min(batchStart + chunkSize, spans.Length);
@@ -181,7 +182,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                 // last span for all others.
                 var triples = new int[batchSize * 3];
                 var triplesIndex = 0;
-                var lastSpanEnd = 0;
                 for (var i = batchStart; i < batchEnd; i++)
                 {
                     var span = spans[i];

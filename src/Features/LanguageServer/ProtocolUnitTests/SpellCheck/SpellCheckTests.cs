@@ -95,12 +95,13 @@ class {|Identifier:A{{v}}|}
             var sourceText = await document.GetTextAsync();
             Assert.True(results.Length == 6);
 
+            var allRanges = GetRanges(testDocument.AnnotatedSpans);
             for (var i = 0; i < results.Length; i++)
             {
                 AssertJsonEquals(results[i], new VSInternalSpellCheckableRangeReport
                 {
                     ResultId = "DocumentSpellCheckHandler:0",
-                    Ranges = GetRanges(testDocument.AnnotatedSpans, 1000 * i, 1000),
+                    Ranges = allRanges.Skip(3 * i * 1000).Take(3 * 1000).ToArray(),
                 });
             }
         }
@@ -561,23 +562,19 @@ class {|Identifier:A|}
 
         #endregion
 
-        private static int[] GetRanges(IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans, int start = 0, int length = 1000)
+        private static int[] GetRanges(IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans)
         {
             var allSpans = annotatedSpans
                 .SelectMany(kvp => kvp.Value.Select(textSpan => (kind: kvp.Key, textSpan))
                 .OrderBy(t => t.textSpan.Start))
                 .ToImmutableArray();
 
-            var end = Math.Min(start + length, allSpans.Length);
-            length = end - start;
-            var ranges = new int[length * 3];
+            var ranges = new int[allSpans.Length * 3];
             var index = 0;
             var lastSpanEnd = 0;
 
-            for (var i = start; i < end; i++)
+            foreach (var (kind, span) in allSpans)
             {
-                var (kind, span) = allSpans[i];
-
                 ranges[index++] = (int)Convert(kind);
                 ranges[index++] = span.Start - lastSpanEnd;
                 ranges[index++] = span.Length;
