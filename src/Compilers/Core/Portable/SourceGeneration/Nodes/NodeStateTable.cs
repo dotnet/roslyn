@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!TryGetPreviousEntry(out var previousEntry))
                 {
-                    // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to try to modify.
+                    // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to remove.
                     return false;
                 }
 
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!TryGetPreviousEntry(out var previousEntries))
                 {
-                    // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to try to modify.
+                    // The previous table had less node executions than this one, so we don't have any entries from a previous corresponding node execution to copy as cached.
                     return false;
                 }
 
