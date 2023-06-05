@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
 {
-    internal class BlockSyntaxStructureProvider : AbstractSyntaxNodeStructureProvider<BlockSyntax>
+    internal sealed class BlockSyntaxStructureProvider : AbstractSyntaxNodeStructureProvider<BlockSyntax>
     {
         protected override void CollectBlockSpans(
             SyntaxToken previousToken,
