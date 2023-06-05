@@ -324,38 +324,19 @@ $@"        if (F({i}))
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1819416")]
-        public async Task LongInitializerList()
+        public void LongInitializerList()
         {
-            CancellationTokenSource cts = new CancellationTokenSource();
-            var timeout = Task.Run(async () =>
+            CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            try
             {
-                try
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(30), cts.Token);
-                }
-                catch (TaskCanceledException)
-                {
-                    return;
-                }
-
-                if (cts.IsCancellationRequested)
-                {
-                    return;
-                }
-
+                initializerTest(cts.Token);
+            }
+            catch (TaskCanceledException)
+            {
                 Assert.True(false, "Test timed out while getting all semantic info for long initializer list");
-            });
+            }
 
-            await Task.WhenAny(Task.Run(() =>
-            {
-                initializerTest();
-                cts.Cancel();
-            }), timeout);
-
-            // Ensure the test fails if the timeout ended first
-            await timeout;
-
-            static void initializerTest()
+            static void initializerTest(CancellationToken ct)
             {
                 var sb = new StringBuilder();
                 sb.AppendLine("""
@@ -380,6 +361,7 @@ $@"        if (F({i}))
                 // was being rebound on every call to GetTypeInfo.
                 foreach (var literal in tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>())
                 {
+                    ct.ThrowIfCancellationRequested();
                     var type = model.GetTypeInfo(literal).Type;
                     Assert.Equal(SpecialType.System_String, type.SpecialType);
                 }
