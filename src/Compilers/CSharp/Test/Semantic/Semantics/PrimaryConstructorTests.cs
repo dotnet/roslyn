@@ -700,6 +700,27 @@ static " + keyword + @" C(int x, string y);
 
         [Theory]
         [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68345")]
+        public void ConstructorOverloading_03([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            var comp = CreateCompilation(@"
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
+" + keyword + @" C(int x, string y)
+{
+    internal C(C other) // overload
+    {
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (5,14): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
+                //     internal C(C other) // overload
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 14)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void Members_01([CombinatorialValues("class", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
