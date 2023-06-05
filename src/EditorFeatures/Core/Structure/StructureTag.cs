@@ -13,7 +13,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 {
+#pragma warning disable CS0618 // Type or member is obsolete
     internal sealed class StructureTag : IStructureTag2, IEquatable<StructureTag>
+#pragma warning restore CS0618 // Type or member is obsolete
     {
         private readonly AbstractStructureTaggerProvider _tagProvider;
 
@@ -32,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             CollapsedText = blockSpan.BannerText;
             CollapsedHintFormSpan = blockSpan.HintSpan.ToSpan();
             _tagProvider = tagProvider;
+
+            if (blockSpan.)
         }
 
         /// <summary>
@@ -45,6 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         public Span? OutliningSpan { get; }
         public Span? HeaderSpan { get; }
         public Span? GuideLineSpan => null;
+        public Span? PrimaryHeaderSpan { get; }
+
         public int? GuideLineHorizontalAnchorPoint => null;
         public string Type { get; }
         public bool IsCollapsible { get; }

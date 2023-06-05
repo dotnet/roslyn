@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Structure
                 while (start < span.End && char.IsWhiteSpace(text[start]))
                     start++;
 
-                return TextSpan.FromBounds(start, span.End));
+                return TextSpan.FromBounds(start, span.End);
             }
         }
     }
