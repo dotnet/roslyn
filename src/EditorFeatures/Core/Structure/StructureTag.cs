@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Structure;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -12,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 {
-    internal sealed class StructureTag : IStructureTag, IEquatable<StructureTag>
+    internal sealed class StructureTag : IStructureTag2, IEquatable<StructureTag>
     {
         private readonly AbstractStructureTaggerProvider _tagProvider;
 
@@ -24,21 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             IsCollapsible = blockSpan.IsCollapsible;
             IsDefaultCollapsed = blockSpan.IsDefaultCollapsed;
             IsImplementation = blockSpan.AutoCollapse;
-
-            if (blockSpan.HintSpan.Start < blockSpan.TextSpan.Start)
-            {
-                // The HeaderSpan is what is used for drawing the guidelines and also what is shown if
-                // you mouse over a guideline. We will use the text from the hint start to the collapsing
-                // start; in the case this spans mutiple lines the editor will clip it for us and suffix an
-                // ellipsis at the end.
-                HeaderSpan = Span.FromBounds(blockSpan.HintSpan.Start, blockSpan.TextSpan.Start);
-            }
-            else
-            {
-                var hintLine = snapshot.GetLineFromPosition(blockSpan.HintSpan.Start);
-                HeaderSpan = AbstractStructureTaggerProvider.TrimLeadingWhitespace(hintLine.Extent);
-            }
-
+            HeaderSpan = StructureUtilities.DetermineHeaderSpan(
+                blockSpan.TextSpan,
+                blockSpan.HintSpan,
+                snapshot.AsText()).ToSnapshotSpan(snapshot);
             CollapsedText = blockSpan.BannerText;
             CollapsedHintFormSpan = blockSpan.HintSpan.ToSpan();
             _tagProvider = tagProvider;
