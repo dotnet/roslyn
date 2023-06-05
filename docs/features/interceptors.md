@@ -160,7 +160,7 @@ Interceptors are treated like a post-compilation step in this design. Diagnostic
 
 ### User opt-in
 
-Interceptors will require a feature flag during the experimental phase. The flag can be enabled with `/features=interceptors` on the command line or `<Features>interceptors</Features>` in msbuild.
+Interceptors will require a feature flag during the experimental phase. The flag can be enabled with `/features=InterceptorsPreview` on the command line or `<Features>InterceptorsPreview</Features>` in msbuild.
 
 ### Implementation strategy
 

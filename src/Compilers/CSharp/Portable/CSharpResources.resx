@@ -7506,7 +7506,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A switch expression arm does not begin with a 'case' keyword.</value>
   </data>
   <data name="ERR_InterceptorsFeatureNotEnabled" xml:space="preserve">
-    <value>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;interceptors&lt;/Features&gt;' to your project.</value>
+    <value>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</value>
   </data>
   <data name="ERR_InterceptorCannotBeGeneric" xml:space="preserve">
     <value>Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</value>
