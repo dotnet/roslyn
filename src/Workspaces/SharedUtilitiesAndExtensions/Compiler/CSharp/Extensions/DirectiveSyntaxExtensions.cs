@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class DirectiveSyntaxExtensions
     {
-        private static readonly ConditionalWeakTable<SyntaxNode, DirectiveInfo> s_rootToDirectiveInfo = new();
-        private static readonly ObjectPool<Stack<DirectiveTriviaSyntax>> s_stackPool = new(() => new());
+        private static readonly ConditionalWeakTable<SyntaxNode, DirectiveInfo<DirectiveTriviaSyntax>> s_rootToDirectiveInfo = new();
 
         private static SyntaxNode GetAbsoluteRoot(this SyntaxNode node)
         {
@@ -30,107 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return node;
         }
 
-        private static DirectiveInfo GetDirectiveInfo(SyntaxNode node, CancellationToken cancellationToken)
+        private static DirectiveInfo<DirectiveTriviaSyntax> GetDirectiveInfo(SyntaxNode node, CancellationToken cancellationToken)
             => s_rootToDirectiveInfo.GetValue(
                 node.GetAbsoluteRoot(),
                 root => GetDirectiveInfoForRoot(root, cancellationToken));
 
-        private static DirectiveInfo GetDirectiveInfoForRoot(SyntaxNode root, CancellationToken cancellationToken)
-        {
-            var directiveMap = new Dictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax?>(
-                DirectiveSyntaxEqualityComparer.Instance);
-            var conditionalMap = new Dictionary<DirectiveTriviaSyntax, ImmutableArray<DirectiveTriviaSyntax>>(
-                DirectiveSyntaxEqualityComparer.Instance);
-
-            using var pooledRegionStack = s_stackPool.GetPooledObject();
-            using var pooledIfStack = s_stackPool.GetPooledObject();
-
-            var regionStack = pooledRegionStack.Object;
-            var ifStack = pooledIfStack.Object;
-
-            foreach (var token in root.DescendantTokens(descendIntoChildren: static node => node.ContainsDirectives))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (!token.ContainsDirectives)
-                    continue;
-
-                foreach (var trivia in token.LeadingTrivia)
-                {
-                    switch (trivia.Kind())
-                    {
-                        case SyntaxKind.RegionDirectiveTrivia:
-                            regionStack.Push((DirectiveTriviaSyntax)trivia.GetStructure()!);
-                            break;
-                        case SyntaxKind.IfDirectiveTrivia:
-                            ifStack.Push((DirectiveTriviaSyntax)trivia.GetStructure()!);
-                            break;
-                        case SyntaxKind.EndRegionDirectiveTrivia:
-                            if (regionStack.Count > 0)
-                            {
-                                var directive = (DirectiveTriviaSyntax)trivia.GetStructure()!;
-                                var previousDirective = regionStack.Pop();
-
-                                directiveMap.Add(directive, previousDirective);
-                                directiveMap.Add(previousDirective, directive);
-                            }
-                            break;
-                        case SyntaxKind.EndIfDirectiveTrivia:
-                            if (ifStack.Count > 0)
-                                FinishIf((DirectiveTriviaSyntax)trivia.GetStructure()!);
-                            break;
-                        case SyntaxKind.ElifDirectiveTrivia:
-                            ifStack.Push((DirectiveTriviaSyntax)trivia.GetStructure()!);
-                            break;
-                        case SyntaxKind.ElseDirectiveTrivia:
-                            ifStack.Push((DirectiveTriviaSyntax)trivia.GetStructure()!);
-                            break;
-                    }
-                }
-            }
-
-            while (regionStack.Count > 0)
-                directiveMap.Add(regionStack.Pop(), null);
-
-            while (ifStack.Count > 0)
-                FinishIf(directive: null);
-
-            return new DirectiveInfo(directiveMap, conditionalMap, inactiveRegionLines: null);
-
-            void FinishIf(DirectiveTriviaSyntax? directive)
-            {
-                using var _ = ArrayBuilder<DirectiveTriviaSyntax>.GetInstance(out var condDirectivesBuilder);
-                if (directive != null)
-                    condDirectivesBuilder.Add(directive);
-
-                while (ifStack.Count > 0)
-                {
-                    var poppedDirective = ifStack.Pop();
-                    condDirectivesBuilder.Add(poppedDirective);
-                    if (poppedDirective.Kind() == SyntaxKind.IfDirectiveTrivia)
-                        break;
-                }
-
-                condDirectivesBuilder.Sort(static (n1, n2) => n1.SpanStart.CompareTo(n2.SpanStart));
-                var condDirectives = condDirectivesBuilder.ToImmutableAndClear();
-
-                foreach (var cond in condDirectives)
-                    conditionalMap.Add(cond, condDirectives);
-
-                // #If should be the first one in sorted order
-                var ifDirective = condDirectives.First();
-                Debug.Assert(
-                    ifDirective.Kind() is SyntaxKind.IfDirectiveTrivia or
-                    SyntaxKind.ElifDirectiveTrivia or
-                    SyntaxKind.ElseDirectiveTrivia);
-
-                if (directive != null)
-                {
-                    directiveMap.Add(directive, ifDirective);
-                    directiveMap.Add(ifDirective, directive);
-                }
-            }
-        }
+        private static DirectiveInfo<DirectiveTriviaSyntax> GetDirectiveInfoForRoot(SyntaxNode root, CancellationToken cancellationToken)
+            => CodeAnalysis.Shared.Extensions.SyntaxNodeExtensions.GetDirectiveInfoForRoot<DirectiveTriviaSyntax>(
+                root, CSharpSyntaxKinds.Instance, cancellationToken);
 
         internal static DirectiveTriviaSyntax? GetMatchingDirective(this DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
         {
