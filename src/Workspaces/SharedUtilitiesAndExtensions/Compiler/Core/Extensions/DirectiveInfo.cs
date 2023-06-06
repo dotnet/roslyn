@@ -6,23 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal sealed class DirectiveInfo<TDirectiveTriviaSyntax>(
+    IDictionary<TDirectiveTriviaSyntax, TDirectiveTriviaSyntax?> directiveMap,
+    IDictionary<TDirectiveTriviaSyntax, ImmutableArray<TDirectiveTriviaSyntax>> conditionalMap)
+    where TDirectiveTriviaSyntax : SyntaxNode
 {
-    internal sealed class DirectiveInfo<TDirectiveTriviaSyntax>
-        where TDirectiveTriviaSyntax : SyntaxNode
-    {
-        // Maps a directive to its pair
-        public IDictionary<TDirectiveTriviaSyntax, TDirectiveTriviaSyntax?> DirectiveMap { get; }
+    // Maps a directive to its pair
+    public IDictionary<TDirectiveTriviaSyntax, TDirectiveTriviaSyntax?> DirectiveMap { get; } = directiveMap;
 
-        // Maps a #If/#elif/#else/#endIf directive to its list of matching #If/#elif/#else/#endIf directives
-        public IDictionary<TDirectiveTriviaSyntax, ImmutableArray<TDirectiveTriviaSyntax>> ConditionalMap { get; }
-
-        public DirectiveInfo(
-            IDictionary<TDirectiveTriviaSyntax, TDirectiveTriviaSyntax?> directiveMap,
-            IDictionary<TDirectiveTriviaSyntax, ImmutableArray<TDirectiveTriviaSyntax>> conditionalMap)
-        {
-            this.DirectiveMap = directiveMap;
-            this.ConditionalMap = conditionalMap;
-        }
-    }
+    // Maps a #If/#elif/#else/#endIf directive to its list of matching #If/#elif/#else/#endIf directives
+    public IDictionary<TDirectiveTriviaSyntax, ImmutableArray<TDirectiveTriviaSyntax>> ConditionalMap { get; } = conditionalMap;
 }
