@@ -2217,6 +2217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInReturnTypeOnInterceptor = 27021,
         WRN_NullabilityMismatchInParameterTypeOnInterceptor = 27022,
         ERR_InterceptorCannotInterceptNameof = 27023,
+        ERR_InterceptorCannotUseUnmanagedCallersOnly = 27024,
 
         #endregion
 

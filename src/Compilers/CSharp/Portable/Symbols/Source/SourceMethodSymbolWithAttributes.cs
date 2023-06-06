@@ -986,6 +986,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            Debug.Assert(_lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed);
+            var unmanagedCallersOnly = this.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
+            if (unmanagedCallersOnly != null)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly, attributeLocation);
+                return;
+            }
+
             var syntaxTrees = DeclaringCompilation.SyntaxTrees;
             SyntaxTree? matchingTree = null;
             // PROTOTYPE(ic): we need to resolve the paths before comparing (i.e. respect /pathmap).
@@ -1217,6 +1225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ErrorCode.WRN_ExternMethodNoImplementation;
                     diagnostics.Add(errorCode, this.GetFirstLocation(), this);
                 }
+
             }
 
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);

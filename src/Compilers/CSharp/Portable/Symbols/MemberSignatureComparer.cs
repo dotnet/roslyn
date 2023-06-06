@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false,
             considerRefKindDifferences: true,
             considerArity: false,
-            typeComparison: TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames);
+            typeComparison: TypeCompareKind.AllNullableIgnoreOptions);
 
         /// <summary>
         /// This instance is used to check whether one member overrides another, according to the C# definition.

@@ -246,7 +246,7 @@ public class InterceptorsTests : CSharpTestBase
                 [InterceptsLocation("Program.cs", 5, 3)]
                 public virtual void Interceptor() => throw null!;
             }
-            
+
             namespace System.Runtime.CompilerServices
             {
                 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
@@ -925,6 +925,9 @@ public class InterceptorsTests : CSharpTestBase
 
         var comp1 = CompileAndVerify(new[] { (source1, "Program.cs") }, new[] { comp0.ToMetadataReference() }, parseOptions: RegularWithInterceptors, expectedOutput: "interceptable 1");
         comp1.VerifyDiagnostics();
+
+        comp1 = CompileAndVerify(new[] { (source1, "Program.cs") }, new[] { comp0.EmitToImageReference() }, parseOptions: RegularWithInterceptors, expectedOutput: "interceptable 1");
+        comp1.VerifyDiagnostics();
     }
 
     [Fact]
@@ -1232,7 +1235,7 @@ public class InterceptorsTests : CSharpTestBase
                     C.InterceptableMethod("call site");
                 }
             }
-            
+
             class C
             {
 
@@ -2554,8 +2557,85 @@ public class InterceptorsTests : CSharpTestBase
 
             class C
             {
+                public void Method1((string a, string b) param1) => throw null!;
+                public void Method2((string x, string y) param1) => throw null!;
+                public void Method3((string, string) param1) => throw null!;
+            }
 
-                public void Method1((string x, string y) param1) => throw null!;
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+
+                    c.Method1(default!);
+                    c.Method2(default!);
+                    c.Method3(default!);
+
+                    c.Method1(default!);
+                    c.Method2(default!);
+                    c.Method3(default!);
+
+                    c.Method1(default!);
+                    c.Method2(default!);
+                    c.Method3(default!);
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 17, 11)]
+                [InterceptsLocation("Program.cs", 18, 11)] // 1
+                [InterceptsLocation("Program.cs", 19, 11)] // 2
+                public static void Interceptor1(this C s, (string a, string b) param2) => Console.Write(1);
+
+                [InterceptsLocation("Program.cs", 21, 11)] // 3
+                [InterceptsLocation("Program.cs", 22, 11)]
+                [InterceptsLocation("Program.cs", 23, 11)] // 4
+                public static void Interceptor2(this C s, (string x, string y) param2) => Console.Write(2);
+
+                [InterceptsLocation("Program.cs", 25, 11)] // 5
+                [InterceptsLocation("Program.cs", 26, 11)] // 6
+                [InterceptsLocation("Program.cs", 27, 11)]
+                public static void Interceptor3(this C s, (string, string) param2) => Console.Write(3);
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "111222333");
+        verifier.VerifyDiagnostics(
+            // Program.cs(34,6): warning CS27017: Intercepting a call to 'C.Method2((string x, string y))' with interceptor 'D.Interceptor1(C, (string a, string b))', but the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 18, 11)] // 1
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 18, 11)").WithArguments("C.Method2((string x, string y))", "D.Interceptor1(C, (string a, string b))").WithLocation(34, 6),
+            // Program.cs(35,6): warning CS27017: Intercepting a call to 'C.Method3((string, string))' with interceptor 'D.Interceptor1(C, (string a, string b))', but the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 19, 11)] // 2
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 19, 11)").WithArguments("C.Method3((string, string))", "D.Interceptor1(C, (string a, string b))").WithLocation(35, 6),
+            // Program.cs(38,6): warning CS27017: Intercepting a call to 'C.Method1((string a, string b))' with interceptor 'D.Interceptor2(C, (string x, string y))', but the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 21, 11)] // 3
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 21, 11)").WithArguments("C.Method1((string a, string b))", "D.Interceptor2(C, (string x, string y))").WithLocation(38, 6),
+            // Program.cs(40,6): warning CS27017: Intercepting a call to 'C.Method3((string, string))' with interceptor 'D.Interceptor2(C, (string x, string y))', but the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 23, 11)] // 4
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 23, 11)").WithArguments("C.Method3((string, string))", "D.Interceptor2(C, (string x, string y))").WithLocation(40, 6),
+            // Program.cs(43,6): warning CS27017: Intercepting a call to 'C.Method1((string a, string b))' with interceptor 'D.Interceptor3(C, (string, string))', but the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 25, 11)] // 5
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 25, 11)").WithArguments("C.Method1((string a, string b))", "D.Interceptor3(C, (string, string))").WithLocation(43, 6),
+            // Program.cs(44,6): warning CS27017: Intercepting a call to 'C.Method2((string x, string y))' with interceptor 'D.Interceptor3(C, (string, string))', but the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 26, 11)] // 6
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 26, 11)").WithArguments("C.Method2((string x, string y))", "D.Interceptor3(C, (string, string))").WithLocation(44, 6)
+            );
+    }
+
+    [Fact]
+    public void SignatureMismatch_08()
+    {
+        // nint/IntPtr difference
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+
+                public void Method1(nint param1) => throw null!;
+                public void Method2(IntPtr param1) => throw null!;
             }
 
             static class Program
@@ -2564,17 +2644,32 @@ public class InterceptorsTests : CSharpTestBase
                 {
                     var c = new C();
                     c.Method1(default!);
+                    c.Method2(default!);
+
+                    c.Method2(default!);
+                    c.Method1(default!);
                 }
             }
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 15, 11)]
-                public static void Interceptor1(this C s, (string a, string b) param2) => Console.Write(1);
+                [InterceptsLocation("Program.cs", 16, 11)] // 1
+                [InterceptsLocation("Program.cs", 17, 11)]
+                public static void Interceptor1(this C s, IntPtr param2) => Console.Write(1);
+
+                [InterceptsLocation("Program.cs", 19, 11)] // 2
+                [InterceptsLocation("Program.cs", 20, 11)]
+                public static void Interceptor2(this C s, nint param2) => Console.Write(2);
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
-        verifier.VerifyDiagnostics();
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1122");
+        verifier.VerifyDiagnostics(
+            // Program.cs(26,6): warning CS27017: Intercepting a call to 'C.Method1(nint)' with interceptor 'D.Interceptor1(C, IntPtr)', but the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 16, 11)] // 1
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 16, 11)").WithArguments("C.Method1(nint)", "D.Interceptor1(C, System.IntPtr)").WithLocation(26, 6),
+            // Program.cs(30,6): warning CS27017: Intercepting a call to 'C.Method2(IntPtr)' with interceptor 'D.Interceptor2(C, nint)', but the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 19, 11)] // 2
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 19, 11)").WithArguments("C.Method2(System.IntPtr)", "D.Interceptor2(C, nint)").WithLocation(30, 6));
     }
 
     [Fact]
@@ -2770,7 +2865,7 @@ public class InterceptorsTests : CSharpTestBase
                     [InterceptsLocation("Program.cs", 22, 13)]
                     public static bool NotReferenceEquals(object? obj1, object? obj2) => throw null!;
                 }
-            
+
                 public class Void { }
                 public struct Boolean { }
                 public class String { }
@@ -2863,7 +2958,7 @@ public class InterceptorsTests : CSharpTestBase
 
                     public static bool ReferenceEquals(object? obj1, object? obj2) => throw null!;
                 }
-            
+
                 public class Void { }
                 public struct Boolean { }
                 public class String { }
@@ -3329,6 +3424,63 @@ partial struct CustomHandler
     }
 
     [Fact]
+    public void DefaultArguments_01()
+    {
+        // Default parameter values on the interceptor doesn't affect the default arguments passed to an intercepted call.
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+
+                public static void M(int lineNumber = 1) => throw null!;
+            }
+
+            class D
+            {
+                [InterceptsLocation("Program.cs", 4, 3)]
+                public static void M1(int lineNumber = 0) => Console.Write(lineNumber);
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void DefaultArguments_02()
+    {
+        // Interceptor cannot add a default argument when original method lacks it.
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M(); // 1
+
+            class C
+            {
+
+                public static void M(int lineNumber) => throw null!;
+            }
+
+            class D
+            {
+                [InterceptsLocation("Program.cs", 4, 3)]
+                public static void M1(int lineNumber = 0) => Console.Write(lineNumber);
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(4,3): error CS7036: There is no argument given that corresponds to the required parameter 'lineNumber' of 'C.M(int)'
+            // C.M(); // 1
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("lineNumber", "C.M(int)").WithLocation(4, 3));
+    }
+
+    [Fact]
     public void InterceptorExtern()
     {
         var source = """
@@ -3419,5 +3571,35 @@ partial struct CustomHandler
 
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptorUnmanagedCallersOnly()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System.Runtime.InteropServices;
+            using System;
+
+            C.Interceptable();
+
+            class C
+            {
+                public static void Interceptable() { }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 5, 3)]
+                [UnmanagedCallersOnly]
+                public static void Interceptor() { }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource, (UnmanagedCallersOnlyAttributeDefinition, "UnmanagedCallersOnlyAttribute.cs") }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+                // Program.cs(14,6): error CS27024: An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.
+                //     [InterceptsLocation("Program.cs", 5, 3)]
+                Diagnostic(ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly, @"InterceptsLocation(""Program.cs"", 5, 3)").WithLocation(14, 6));
     }
 }
