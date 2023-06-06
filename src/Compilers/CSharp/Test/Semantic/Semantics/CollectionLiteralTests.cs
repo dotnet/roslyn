@@ -2473,11 +2473,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         C c;
                         object o;
                         c = [];
-                        o = (C)[];
+                        o = (C)([]);
                         c.Report();
                         o.Report();
                         c = [1, 2];
-                        o = (C)[3, 4];
+                        o = (C)([3, 4]);
                         c.Report();
                         o.Report();
                     }
@@ -2507,11 +2507,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         C c;
                         object o;
                         c = [];
-                        o = (C)[];
+                        o = (C)([]);
                         c.Report();
                         o.Report();
                         c = [1, 2];
-                        o = (C)[3, 4];
+                        o = (C)([3, 4]);
                         c.Report();
                         o.Report();
                     }
@@ -3162,7 +3162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         S s = [];
-                        object o = (S)[1, 2];
+                        object o = (S)([1, 2]);
                     }
                 }
                 """;
@@ -3173,8 +3173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //         S s = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(8, 15),
                 // (9,20): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
-                //         object o = (S)[1, 2];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S)[1, 2]").WithArguments("S").WithLocation(9, 20));
+                //         object o = (S)([1, 2]);
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S)([1, 2])").WithArguments("S").WithLocation(9, 20));
         }
 
         [Fact]
@@ -4375,7 +4375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         S s = [];
                         s = [1, 2];
-                        s = (S)[3, 4];
+                        s = (S)([3, 4]);
                     }
                 }
                 """;
@@ -4388,8 +4388,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //         s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
                 // (11,13): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
-                //         s = (S)[3, 4];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S)[3, 4]").WithArguments("S").WithLocation(11, 13));
+                //         s = (S)([3, 4]);
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S)([3, 4])").WithArguments("S").WithLocation(11, 13));
         }
 
         [Fact]
@@ -4406,7 +4406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         S s = [];
                         s = [1, 2];
-                        s = (S)[3, 4];
+                        s = (S)([3, 4]);
                     }
                 }
                 """;
@@ -4419,8 +4419,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //         s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
                 // (11,13): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
-                //         s = (S)[3, 4];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S)[3, 4]").WithArguments("S").WithLocation(11, 13));
+                //         s = (S)([3, 4]);
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S)([3, 4])").WithArguments("S").WithLocation(11, 13));
         }
 
         [Fact]
@@ -4612,8 +4612,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         var v8 = (List<object>)[];
                         var v9 = (Span<int>)[];
                         var v10 = (ReadOnlySpan<object>)[];
-                        var v11 = (S1)[];
-                        var v12 = (S2)[];
+                        var v11 = (S1)([]);
+                        var v12 = (S2)([]);
                     }
                 }
                 """;
@@ -4623,8 +4623,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //         S2 v6 = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S2").WithLocation(20, 17),
                 // (26,19): error CS9500: Cannot initialize type 'S2' with a collection literal because the type is not constructible.
-                //         var v12 = (S2)[];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S2)[]").WithArguments("S2").WithLocation(26, 19));
+                //         var v12 = (S2)([]);
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S2)([])").WithArguments("S2").WithLocation(26, 19));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
