@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const int lineNumberParameterIndex = 1;
             const int characterNumberParameterIndex = 2;
 
-            if (!attributeSyntax.SyntaxTree.Options.Features.ContainsKey("interceptors"))
+            if (!attributeSyntax.SyntaxTree.Options.Features.ContainsKey("InterceptorsPreview"))
             {
                 diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax);
                 return;
