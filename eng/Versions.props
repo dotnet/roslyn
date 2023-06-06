@@ -146,7 +146,7 @@
     <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>17.5.1120201-preview</MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
     <MicrosoftVisualStudioDesignerInterfacesVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioDesignerInterfacesVersion>
     <MicrosoftVisualStudioDiagnosticsMeasurementVersion>17.0.0-preview-1-30928-1112</MicrosoftVisualStudioDiagnosticsMeasurementVersion>
-    <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>17.7.35002-preview.1</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
+    <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.36</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
     <MicrosoftVisualStudioEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioExtensibilityTestingSourceGeneratorVersion>$(MicrosoftVisualStudioExtensibilityTestingVersion)</MicrosoftVisualStudioExtensibilityTestingSourceGeneratorVersion>
@@ -157,7 +157,7 @@
     <MicrosoftVisualStudioGraphModelVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioGraphModelVersion>
     <MicrosoftVisualStudioImageCatalogVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImageCatalogVersion>
     <MicrosoftVisualStudioImagingVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImagingVersion>
-    <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>17.7.35002-preview.1</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
+    <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
     <MicrosoftVisualStudioInteropVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioInteropVersion>
     <MicrosoftVisualStudioLanguageVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageVersion>
     <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.8.27812-alpha</MicrosoftVisualStudioLanguageCallHierarchyVersion>
