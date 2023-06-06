@@ -340,7 +340,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // To decide whether type declarations are duplicates, we need to access members only available on the source original definition symbols.
                         Debug.Assert((object)nts.OriginalDefinition == nts && (object)other.OriginalDefinition == other);
-                        Debug.Assert(other is not TypeSymbol || other is SourceMemberContainerTypeSymbol);
 
                         switch (nts, other)
                         {
