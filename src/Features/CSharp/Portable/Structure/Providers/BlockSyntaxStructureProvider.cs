@@ -39,15 +39,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 var type = GetType(parent);
                 if (type != null)
                 {
-                    (TextSpan textSpan, TextSpan hintSpan)? primarySpans = null;
-                    if (parent is ElseClauseSyntax { Parent: IfStatementSyntax { Statement: BlockSyntax trueBlock } })
-                        primarySpans = (GetTextSpan(trueBlock), GetHintSpan(trueBlock));
-
                     spans.Add(new BlockSpan(
                         isCollapsible: true,
                         textSpan: GetTextSpan(node),
                         hintSpan: GetHintSpan(node),
-                        primarySpans: primarySpans,
+                        // For an 'else' block, add information about the corresponding if-block so it shows up properly
+                        // in 'sticky scroll'.
+                        primarySpans: parent is ElseClauseSyntax { Parent: IfStatementSyntax { Statement: BlockSyntax trueBlock } }
+                            ? (GetTextSpan(trueBlock), GetHintSpan(trueBlock))
+                            : null,
                         type: type,
                         autoCollapse: parentKind == SyntaxKind.LocalFunctionStatement && parent.IsParentKind(SyntaxKind.GlobalStatement)));
                 }
