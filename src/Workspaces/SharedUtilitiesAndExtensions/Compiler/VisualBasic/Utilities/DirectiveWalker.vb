@@ -2,7 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -10,14 +12,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Inherits VisualBasicSyntaxWalker
 
         Private ReadOnly _startEndMap As Dictionary(Of DirectiveTriviaSyntax, DirectiveTriviaSyntax)
-        Private ReadOnly _conditionalMap As Dictionary(Of DirectiveTriviaSyntax, IReadOnlyList(Of DirectiveTriviaSyntax))
+        Private ReadOnly _conditionalMap As Dictionary(Of DirectiveTriviaSyntax, ImmutableArray(Of DirectiveTriviaSyntax))
         Private ReadOnly _cancellationToken As CancellationToken
 
         Private ReadOnly _regionStack As New Stack(Of DirectiveTriviaSyntax)()
         Private ReadOnly _ifStack As New Stack(Of DirectiveTriviaSyntax)()
 
         Public Sub New(startEndMap As Dictionary(Of DirectiveTriviaSyntax, DirectiveTriviaSyntax),
-                       conditionalMap As Dictionary(Of DirectiveTriviaSyntax, IReadOnlyList(Of DirectiveTriviaSyntax)),
+                       conditionalMap As Dictionary(Of DirectiveTriviaSyntax, ImmutableArray(Of DirectiveTriviaSyntax)),
                        cancellationToken As CancellationToken)
             MyBase.New(SyntaxWalkerDepth.StructuredTrivia)
 
@@ -70,20 +72,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Return
             End If
 
-            Dim condDirectives As New List(Of DirectiveTriviaSyntax)
+            Dim condDirectivesBuilder = ArrayBuilder(Of DirectiveTriviaSyntax).GetInstance()
             If directiveOpt IsNot Nothing Then
-                condDirectives.Add(directiveOpt)
+                condDirectivesBuilder.Add(directiveOpt)
             End If
 
             Do
                 Dim poppedDirective = _ifStack.Pop()
-                condDirectives.Add(poppedDirective)
+                condDirectivesBuilder.Add(poppedDirective)
                 If poppedDirective.Kind = SyntaxKind.IfDirectiveTrivia Then
                     Exit Do
                 End If
             Loop Until _ifStack.IsEmpty()
 
-            condDirectives.Sort(Function(n1, n2) n1.SpanStart.CompareTo(n2.SpanStart))
+            condDirectivesBuilder.Sort(Function(n1, n2) n1.SpanStart.CompareTo(n2.SpanStart))
+            Dim condDirectives = condDirectivesBuilder.ToImmutableAndFree()
 
             For Each cond In condDirectives
                 _conditionalMap.Add(cond, condDirectives)

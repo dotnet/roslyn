@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -23,14 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             while (node.Parent != null || node is StructuredTriviaSyntax)
             {
-                if (node.Parent != null)
-                {
-                    node = node.GetRequiredParent();
-                }
-                else
-                {
-                    node = node.ParentTrivia.Token.GetRequiredParent();
-                }
+                node = node.Parent ?? node.ParentTrivia.Token.GetRequiredParent();
             }
 
             return node;
@@ -45,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var directiveMap = new Dictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax?>(
                 DirectiveSyntaxEqualityComparer.Instance);
-            var conditionalMap = new Dictionary<DirectiveTriviaSyntax, IReadOnlyList<DirectiveTriviaSyntax>>(
+            var conditionalMap = new Dictionary<DirectiveTriviaSyntax, ImmutableArray<DirectiveTriviaSyntax>>(
                 DirectiveSyntaxEqualityComparer.Instance);
 
             using var pooledRegionStack = s_stackPool.GetPooledObject();
@@ -117,19 +111,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             void FinishIf(DirectiveTriviaSyntax? directive)
             {
-                var condDirectives = new List<DirectiveTriviaSyntax>();
+                using var _ = ArrayBuilder<DirectiveTriviaSyntax>.GetInstance(out var condDirectivesBuilder);
                 if (directive != null)
-                    condDirectives.Add(directive);
+                    condDirectivesBuilder.Add(directive);
 
                 while (ifStack.Count > 0)
                 {
                     var poppedDirective = ifStack.Pop();
-                    condDirectives.Add(poppedDirective);
+                    condDirectivesBuilder.Add(poppedDirective);
                     if (poppedDirective.Kind() == SyntaxKind.IfDirectiveTrivia)
                         break;
                 }
 
-                condDirectives.Sort(static (n1, n2) => n1.SpanStart.CompareTo(n2.SpanStart));
+                condDirectivesBuilder.Sort(static (n1, n2) => n1.SpanStart.CompareTo(n2.SpanStart));
+                var condDirectives = condDirectivesBuilder.ToImmutableAndClear();
 
                 foreach (var cond in condDirectives)
                     conditionalMap.Add(cond, condDirectives);
@@ -160,30 +155,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        internal static DirectiveTriviaSyntax GetMatchingDirective(this DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
+        internal static DirectiveTriviaSyntax? GetMatchingDirective(this DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
         {
             if (directive == null)
-            {
                 throw new ArgumentNullException(nameof(directive));
-            }
 
             var directiveSyntaxMap = GetDirectiveInfo(directive, cancellationToken).DirectiveMap;
-            directiveSyntaxMap.TryGetValue(directive, out var result);
-
-            return result;
+            return directiveSyntaxMap.TryGetValue(directive, out var result)
+                ? result
+                : null;
         }
 
-        internal static IReadOnlyList<DirectiveTriviaSyntax> GetMatchingConditionalDirectives(this DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
+        public static ImmutableArray<DirectiveTriviaSyntax> GetMatchingConditionalDirectives(this DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
         {
             if (directive == null)
-            {
                 throw new ArgumentNullException(nameof(directive));
-            }
 
             var directiveConditionalMap = GetDirectiveInfo(directive, cancellationToken).ConditionalMap;
-            directiveConditionalMap.TryGetValue(directive, out var result);
-
-            return result;
+            return directiveConditionalMap.TryGetValue(directive, out var result)
+                ? result
+                : ImmutableArray<DirectiveTriviaSyntax>.Empty;
         }
     }
 }

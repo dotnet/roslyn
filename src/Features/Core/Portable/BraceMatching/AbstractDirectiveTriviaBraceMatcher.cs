@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
             where TRegionDirectiveTriviaSyntax : TDirectiveTriviaSyntax
             where TEndRegionDirectiveTriviaSyntax : TDirectiveTriviaSyntax
     {
-        internal abstract List<TDirectiveTriviaSyntax> GetMatchingConditionalDirectives(TDirectiveTriviaSyntax directive, CancellationToken cancellationToken);
+        protected abstract ImmutableArray<TDirectiveTriviaSyntax> GetMatchingConditionalDirectives(TDirectiveTriviaSyntax directive, CancellationToken cancellationToken);
         internal abstract TDirectiveTriviaSyntax GetMatchingDirective(TDirectiveTriviaSyntax directive, CancellationToken cancellationToken);
         internal abstract TextSpan GetSpanForTagging(TDirectiveTriviaSyntax directive);
 
@@ -42,10 +43,8 @@ namespace Microsoft.CodeAnalysis.BraceMatching
             {
                 // #if/#elif/#else/#endif directive cases.
                 var matchingDirectives = GetMatchingConditionalDirectives(directive, cancellationToken);
-                if (matchingDirectives?.Count > 0)
-                {
-                    matchingDirective = matchingDirectives[(matchingDirectives.IndexOf(directive) + 1) % matchingDirectives.Count];
-                }
+                if (matchingDirectives.Length > 0)
+                    matchingDirective = matchingDirectives[(matchingDirectives.IndexOf(directive) + 1) % matchingDirectives.Length];
             }
             else
             {
