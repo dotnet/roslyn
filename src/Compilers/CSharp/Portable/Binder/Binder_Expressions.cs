@@ -6653,10 +6653,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
             try
             {
-                LookupOptions options = LookupOptions.AllMethodsOnArityZero | LookupOptions.SearchInExtensionTypes;
+                LookupOptions options = LookupOptions.AllMethodsOnArityZero;
                 if (invoked)
                 {
                     options |= LookupOptions.MustBeInvocableIfMember;
+                }
+                else
+                {
+                    options |= LookupOptions.SearchInExtensionTypes;
                 }
 
                 var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName ? ((GenericNameSyntax)right).TypeArgumentList.Arguments : default(SeparatedSyntaxList<TypeSyntax>);
@@ -7002,10 +7006,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void LookupInstanceMember(LookupResult lookupResult, TypeSymbol leftType, bool leftIsBaseReference, string rightName, int rightArity, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            LookupOptions options = LookupOptions.AllMethodsOnArityZero | LookupOptions.SearchInExtensionTypes;
+            LookupOptions options = LookupOptions.AllMethodsOnArityZero;
             if (invoked)
             {
                 options |= LookupOptions.MustBeInvocableIfMember;
+            }
+            else
+            {
+                options |= LookupOptions.SearchInExtensionTypes;
             }
 
             if (leftIsBaseReference)
@@ -8321,7 +8329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupResult lookupResult = LookupResult.GetInstance();
             LookupOptions lookupOptions = expr.Kind == BoundKind.BaseReference ? LookupOptions.UseBaseReferenceAccessibility : LookupOptions.Default;
-            lookupOptions |= LookupOptions.SearchInExtensionTypes;
+            // PROTOTYPE handle indexer access scenarios
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
@@ -8738,7 +8746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownMemberNames.Indexer,
                         arity: 0,
                         basesBeingResolved: null,
-                        LookupOptions.SearchInExtensionTypes,
+                        LookupOptions.Default, // PROTOTYPE revisit
                         originalBinder: this,
                         diagnose: false,
                         ref useSiteInfo);
@@ -8793,7 +8801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownMemberNames.SliceMethodName,
                         arity: 0,
                         basesBeingResolved: null,
-                        LookupOptions.SearchInExtensionTypes,
+                        LookupOptions.Default, // PROTOTYPE revisit
                         originalBinder: this,
                         diagnose: false,
                         ref useSiteInfo);
@@ -8899,7 +8907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     propertyName,
                     arity: 0,
                     basesBeingResolved: null,
-                    LookupOptions.SearchInExtensionTypes,
+                    LookupOptions.Default, // PROTOTYPE revisit
                     originalBinder: this,
                     diagnose: false,
                     useSiteInfo: ref useSiteInfo);

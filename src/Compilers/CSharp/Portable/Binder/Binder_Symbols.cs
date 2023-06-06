@@ -1085,7 +1085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Extension member lookup comes into play for member access (ie. with a qualifier),
                 // but not for simple names (ie. without a qualifier).
-                result |= LookupOptions.SearchInExtensionTypes;
+                result |= LookupOptions.SearchInExtensionTypes; // TODO2
             }
 
             return result;

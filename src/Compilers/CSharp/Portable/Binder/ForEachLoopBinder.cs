@@ -1157,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodName,
                 arity: 0,
                 basesBeingResolved: null,
-                options: LookupOptions.SearchInExtensionTypes,
+                options: LookupOptions.Default, // TODO2
                 originalBinder: this,
                 diagnose: false,
                 useSiteInfo: ref useSiteInfo);
@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CurrentPropertyName,
                     arity: 0,
                     basesBeingResolved: null,
-                    options: LookupOptions.SearchInExtensionTypes, // properties are not invokable - their accessors are
+                    options: LookupOptions.Default, // properties are not invokable - their accessors are // PROTOTYPE revisit
                     originalBinder: this,
                     diagnose: false,
                     useSiteInfo: ref useSiteInfo);
