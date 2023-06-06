@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -444,9 +445,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return _lexedTokens[_tokenOffset + n];
             }
         }
-
-        //this method is called very frequently
-        //we should keep it simple so that it can be inlined.
+        
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)] 
         protected SyntaxToken EatToken()
         {
             var ct = this.CurrentToken;
