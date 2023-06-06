@@ -47,6 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Class
 
         Private ReadOnly s_rootToDirectiveInfo As New ConditionalWeakTable(Of SyntaxNode, DirectiveInfo)()
+        Private ReadOnly s_stackPool As New ObjectPool(Of Stack(Of DirectiveTriviaSyntax))(Function() New Stack(Of DirectiveTriviaSyntax))
 
         Private Function GetDirectiveInfo(node As SyntaxNode, cancellationToken As CancellationToken) As DirectiveInfo
             Return s_rootToDirectiveInfo.GetValue(node.GetAbsoluteRoot(), Function(r) GetDirectiveInfoForRoot(r, cancellationToken))
@@ -56,47 +57,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim startEndMap = New Dictionary(Of DirectiveTriviaSyntax, DirectiveTriviaSyntax)(DirectiveSyntaxEqualityComparer.Instance)
             Dim conditionalMap = New Dictionary(Of DirectiveTriviaSyntax, ImmutableArray(Of DirectiveTriviaSyntax))(DirectiveSyntaxEqualityComparer.Instance)
 
-            Dim regionStack As New Stack(Of DirectiveTriviaSyntax)()
-            Dim ifStack As New Stack(Of DirectiveTriviaSyntax)()
+            Dim pooledRegionStack = PooledObject(Of Stack(Of DirectiveTriviaSyntax)).Create(s_stackPool)
+            Dim pooledIfStack = PooledObject(Of Stack(Of DirectiveTriviaSyntax)).Create(s_stackPool)
+            Using pooledRegionStack
+                Using pooledIfStack
+                    Dim regionStack = pooledRegionStack.Object
+                    Dim ifStack = pooledIfStack.Object
 
-            For Each token In root.DescendantTokens(Function(n) n.ContainsDirectives)
-                cancellationToken.ThrowIfCancellationRequested()
+                    For Each token In root.DescendantTokens(Function(n) n.ContainsDirectives)
+                        cancellationToken.ThrowIfCancellationRequested()
 
-                If Not token.ContainsDirectives Then
-                    Continue For
-                End If
-
-                For Each trivia In token.LeadingTrivia
-                    Dim directive = TryCast(trivia.GetStructure(), DirectiveTriviaSyntax)
-
-                    If TypeOf directive Is IfDirectiveTriviaSyntax Then
-                        ifStack.Push(directive)
-                    ElseIf TypeOf directive Is ElseDirectiveTriviaSyntax Then
-                        ifStack.Push(directive)
-                    ElseIf TypeOf directive Is RegionDirectiveTriviaSyntax Then
-                        regionStack.Push(directive)
-                    ElseIf TypeOf directive Is EndIfDirectiveTriviaSyntax Then
-                        FinishIf(startEndMap, conditionalMap, ifStack, directive)
-                    ElseIf TypeOf directive Is EndRegionDirectiveTriviaSyntax Then
-                        If Not regionStack.IsEmpty() Then
-                            Dim previousDirective = regionStack.Pop()
-
-                            startEndMap.Add(directive, previousDirective)
-                            startEndMap.Add(previousDirective, directive)
+                        If Not token.ContainsDirectives Then
+                            Continue For
                         End If
-                    End If
-                Next
-            Next
 
-            While regionStack.Count > 0
-                startEndMap.Add(regionStack.Pop(), Nothing)
-            End While
+                        For Each trivia In token.LeadingTrivia
+                            Dim directive = TryCast(trivia.GetStructure(), DirectiveTriviaSyntax)
 
-            While ifStack.Count > 0
-                FinishIf(startEndMap, conditionalMap, ifStack, directiveOpt:=Nothing)
-            End While
+                            If TypeOf directive Is IfDirectiveTriviaSyntax Then
+                                ifStack.Push(directive)
+                            ElseIf TypeOf directive Is ElseDirectiveTriviaSyntax Then
+                                ifStack.Push(directive)
+                            ElseIf TypeOf directive Is RegionDirectiveTriviaSyntax Then
+                                regionStack.Push(directive)
+                            ElseIf TypeOf directive Is EndIfDirectiveTriviaSyntax Then
+                                FinishIf(startEndMap, conditionalMap, ifStack, directive)
+                            ElseIf TypeOf directive Is EndRegionDirectiveTriviaSyntax Then
+                                If Not regionStack.IsEmpty() Then
+                                    Dim previousDirective = regionStack.Pop()
 
-            Return New DirectiveInfo(startEndMap, conditionalMap, inactiveRegionLines:=Nothing)
+                                    startEndMap.Add(directive, previousDirective)
+                                    startEndMap.Add(previousDirective, directive)
+                                End If
+                            End If
+                        Next
+                    Next
+
+                    While regionStack.Count > 0
+                        startEndMap.Add(regionStack.Pop(), Nothing)
+                    End While
+
+                    While ifStack.Count > 0
+                        FinishIf(startEndMap, conditionalMap, ifStack, directiveOpt:=Nothing)
+                    End While
+
+                    Return New DirectiveInfo(startEndMap, conditionalMap, inactiveRegionLines:=Nothing)
+                End Using
+            End Using
         End Function
 
         Private Sub FinishIf(
