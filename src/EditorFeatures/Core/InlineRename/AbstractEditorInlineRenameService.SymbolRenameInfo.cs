@@ -139,9 +139,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var solution = this.Document.Project.Solution;
                 var locations = await Renamer.FindRenameLocationsAsync(
-                    solution, this.RenameSymbol, options, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    solution, this.RenameSymbol, options, cancellationToken).ConfigureAwait(false);
 
-                return new InlineRenameLocationSet(this, locations);
+                return new InlineRenameLocationSet(this, locations, _fallbackOptions);
             }
 
             public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
