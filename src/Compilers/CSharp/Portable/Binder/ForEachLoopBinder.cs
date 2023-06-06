@@ -1157,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodName,
                 arity: 0,
                 basesBeingResolved: null,
-                options: LookupOptions.Default, // TODO2
+                options: LookupOptions.Default, // PROTOTYPE revisit
                 originalBinder: this,
                 diagnose: false,
                 useSiteInfo: ref useSiteInfo);
