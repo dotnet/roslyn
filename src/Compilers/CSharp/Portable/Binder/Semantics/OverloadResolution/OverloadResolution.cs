@@ -176,7 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var results = result.ResultsBuilder;
 
-            // No need to check for overridden or hidden methods if the members are extension methods.
+            // No need to check for overridden or hidden methods
+            // if the members were resolved as extension methods.
             bool checkOverriddenOrHidden = !isExtensionMethodResolution;
 
             // First, attempt overload resolution not getting complete results.
