@@ -4030,6 +4030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //       us to skip some work during the lookup.
 
                 var analyzedArguments = AnalyzedArguments.GetInstance();
+                // PROTOTYPE we'll likely want extension types to contribute
                 var patternMethodCall = BindMethodGroupInvocation(
                     syntaxNode,
                     syntaxNode,

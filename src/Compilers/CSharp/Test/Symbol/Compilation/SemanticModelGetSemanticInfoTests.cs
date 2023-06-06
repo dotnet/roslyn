@@ -258,7 +258,6 @@ class Program
     {
         K./*<bind>*/f/*</bind>*/();
     }
-
 }
 
 class K
@@ -268,21 +267,48 @@ class K
 ";
             var semanticInfo = GetSemanticInfoForTest(sourceCode);
 
-            Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.Int32", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Null(semanticInfo.Type);
+            Assert.Null(semanticInfo.ConvertedType);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.NotInvocable, semanticInfo.CandidateReason);
-            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("System.Int32 K.f", sortedCandidates[0].ToTestDisplayString());
-            Assert.Equal(SymbolKind.Field, sortedCandidates[0].Kind);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Empty(semanticInfo.CandidateSymbols);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
 
+        [Fact]
+        public void NotInvocable_InstanceReceiver()
+        {
+            string sourceCode = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        new K()./*<bind>*/f/*</bind>*/();
+    }
+}
+
+class K
+{
+    public int f;
+}
+";
+            var semanticInfo = GetSemanticInfoForTest(sourceCode);
+
+            Assert.Null(semanticInfo.Type);
+            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Empty(semanticInfo.CandidateSymbols);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 

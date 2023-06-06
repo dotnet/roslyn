@@ -43,14 +43,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<Symbol> members,
             ImmutableArray<TypeWithAnnotations> typeArguments,
             LookupResultKind resultKind = LookupResultKind.Viable,
-            DiagnosticInfo error = null)
+            DiagnosticInfo error = null,
+            bool isExtensionMethodGroup = true)
         {
             this.PopulateHelper(receiverOpt, resultKind, error);
-            this.IsExtensionMethodGroup = true;
+            this.IsExtensionMethodGroup = isExtensionMethodGroup;
+
             foreach (var member in members)
             {
                 this.Methods.Add((MethodSymbol)member);
+                Debug.Assert(((MethodSymbol)member).IsExtensionMethod == isExtensionMethodGroup);
             }
+
             if (!typeArguments.IsDefault)
             {
                 this.TypeArguments.AddRange(typeArguments);

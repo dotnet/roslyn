@@ -179,11 +179,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         protected void LookupImplicitExtensionMembersInSingleBinder(LookupResult result, Binder binder, TypeSymbol type,
-            string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options,
+            string name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options,
             Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            Debug.Assert(!type.IsTypeParameter());
-
             var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             getCompatibleExtensions(binder, type, compatibleExtensions);
             // PROTOTYPE test use-site diagnostics
