@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal partial class DirectiveSyntaxExtensions
     {
-        private class DirectiveSyntaxEqualityComparer : IEqualityComparer<DirectiveTriviaSyntax>
+        private sealed class DirectiveSyntaxEqualityComparer : IEqualityComparer<DirectiveTriviaSyntax>
         {
             public static readonly DirectiveSyntaxEqualityComparer Instance = new();
 
