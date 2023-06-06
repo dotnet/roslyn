@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
@@ -48,18 +49,96 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Private ReadOnly s_rootToDirectiveInfo As New ConditionalWeakTable(Of SyntaxNode, DirectiveInfo)()
 
         Private Function GetDirectiveInfo(node As SyntaxNode, cancellationToken As CancellationToken) As DirectiveInfo
-            Dim root = node.GetAbsoluteRoot()
-            Dim info = s_rootToDirectiveInfo.GetValue(root,
-                Function(r)
-                    Dim startEndMap = New Dictionary(Of DirectiveTriviaSyntax, DirectiveTriviaSyntax)(DirectiveSyntaxEqualityComparer.Instance)
-                    Dim conditionalMap = New Dictionary(Of DirectiveTriviaSyntax, ImmutableArray(Of DirectiveTriviaSyntax))(DirectiveSyntaxEqualityComparer.Instance)
-                    Dim walker = New DirectiveWalker(startEndMap, conditionalMap, cancellationToken)
-                    walker.Visit(r)
-                    walker.Finish()
-                    Return New DirectiveInfo(startEndMap, conditionalMap, inactiveRegionLines:=Nothing)
-                End Function)
-            Return info
+            Return s_rootToDirectiveInfo.GetValue(node.GetAbsoluteRoot(), Function(r) GetDirectiveInfoForRoot(r, cancellationToken))
         End Function
+
+        Private Function GetDirectiveInfoForRoot(root As SyntaxNode, cancellationToken As CancellationToken) As DirectiveInfo
+            Dim startEndMap = New Dictionary(Of DirectiveTriviaSyntax, DirectiveTriviaSyntax)(DirectiveSyntaxEqualityComparer.Instance)
+            Dim conditionalMap = New Dictionary(Of DirectiveTriviaSyntax, ImmutableArray(Of DirectiveTriviaSyntax))(DirectiveSyntaxEqualityComparer.Instance)
+
+            Dim regionStack As New Stack(Of DirectiveTriviaSyntax)()
+            Dim ifStack As New Stack(Of DirectiveTriviaSyntax)()
+
+            For Each token In root.DescendantTokens(Function(n) n.ContainsDirectives)
+                cancellationToken.ThrowIfCancellationRequested()
+
+                If Not token.ContainsDirectives Then
+                    Continue For
+                End If
+
+                For Each trivia In token.LeadingTrivia
+                    Dim directive = TryCast(trivia.GetStructure(), DirectiveTriviaSyntax)
+
+                    If TypeOf directive Is IfDirectiveTriviaSyntax Then
+                        ifStack.Push(directive)
+                    ElseIf TypeOf directive Is ElseDirectiveTriviaSyntax Then
+                        ifStack.Push(directive)
+                    ElseIf TypeOf directive Is RegionDirectiveTriviaSyntax Then
+                        regionStack.Push(directive)
+                    ElseIf TypeOf directive Is EndIfDirectiveTriviaSyntax Then
+                        FinishIf(startEndMap, conditionalMap, ifStack, directive)
+                    ElseIf TypeOf directive Is EndRegionDirectiveTriviaSyntax Then
+                        If Not regionStack.IsEmpty() Then
+                            Dim previousDirective = regionStack.Pop()
+
+                            startEndMap.Add(directive, previousDirective)
+                            startEndMap.Add(previousDirective, directive)
+                        End If
+                    End If
+                Next
+            Next
+
+            While regionStack.Count > 0
+                startEndMap.Add(regionStack.Pop(), Nothing)
+            End While
+
+            While ifStack.Count > 0
+                FinishIf(startEndMap, conditionalMap, ifStack, directiveOpt:=Nothing)
+            End While
+
+            Return New DirectiveInfo(startEndMap, conditionalMap, inactiveRegionLines:=Nothing)
+        End Function
+
+        Private Sub FinishIf(
+                startEndMap As Dictionary(Of DirectiveTriviaSyntax, DirectiveTriviaSyntax),
+                conditionalMap As Dictionary(Of DirectiveTriviaSyntax, ImmutableArray(Of DirectiveTriviaSyntax)),
+                ifStack As Stack(Of DirectiveTriviaSyntax),
+                directiveOpt As DirectiveTriviaSyntax)
+            If ifStack.IsEmpty() Then
+                Return
+            End If
+
+            Dim condDirectivesBuilder = ArrayBuilder(Of DirectiveTriviaSyntax).GetInstance()
+            If directiveOpt IsNot Nothing Then
+                condDirectivesBuilder.Add(directiveOpt)
+            End If
+
+            Do
+                Dim poppedDirective = ifStack.Pop()
+                condDirectivesBuilder.Add(poppedDirective)
+                If poppedDirective.Kind = SyntaxKind.IfDirectiveTrivia Then
+                    Exit Do
+                End If
+            Loop Until ifStack.IsEmpty()
+
+            condDirectivesBuilder.Sort(Function(n1, n2) n1.SpanStart.CompareTo(n2.SpanStart))
+            Dim condDirectives = condDirectivesBuilder.ToImmutableAndFree()
+
+            For Each cond In condDirectives
+                conditionalMap.Add(cond, condDirectives)
+            Next
+
+            ' #If should be the first one in sorted order
+            Dim ifDirective = condDirectives.First()
+            Debug.Assert(ifDirective.Kind = SyntaxKind.IfDirectiveTrivia OrElse
+                         ifDirective.Kind = SyntaxKind.ElseIfDirectiveTrivia OrElse
+                         ifDirective.Kind = SyntaxKind.ElseDirectiveTrivia)
+
+            If directiveOpt IsNot Nothing Then
+                startEndMap.Add(directiveOpt, ifDirective)
+                startEndMap.Add(ifDirective, directiveOpt)
+            End If
+        End Sub
 
         <Extension()>
         Private Function GetAbsoluteRoot(node As SyntaxNode) As SyntaxNode
