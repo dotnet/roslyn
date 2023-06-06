@@ -55,27 +55,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 if (!token.ContainsDirectives)
                     continue;
 
-                foreach (var directive in token.LeadingTrivia)
+                foreach (var trivia in token.LeadingTrivia)
                 {
-                    switch (directive.Kind())
+                    switch (trivia.Kind())
                     {
                         case SyntaxKind.RegionDirectiveTrivia:
-                            HandleRegionDirective((DirectiveTriviaSyntax)directive.GetStructure()!);
+                            regionStack.Push((DirectiveTriviaSyntax)trivia.GetStructure()!);
                             break;
                         case SyntaxKind.IfDirectiveTrivia:
-                            HandleIfDirective((DirectiveTriviaSyntax)directive.GetStructure()!);
+                            ifStack.Push((DirectiveTriviaSyntax)trivia.GetStructure()!);
                             break;
                         case SyntaxKind.EndRegionDirectiveTrivia:
-                            HandleEndRegionDirective((DirectiveTriviaSyntax)directive.GetStructure()!);
+                            if (regionStack.Count > 0)
+                            {
+                                var directive = (DirectiveTriviaSyntax)trivia.GetStructure()!;
+                                var previousDirective = regionStack.Pop();
+
+                                directiveMap.Add(directive, previousDirective);
+                                directiveMap.Add(previousDirective, directive);
+                            }
                             break;
                         case SyntaxKind.EndIfDirectiveTrivia:
-                            HandleEndIfDirective((DirectiveTriviaSyntax)directive.GetStructure()!);
+                            if (ifStack.Count > 0)
+                                FinishIf((DirectiveTriviaSyntax)trivia.GetStructure()!);
                             break;
                         case SyntaxKind.ElifDirectiveTrivia:
-                            HandleElifDirective((DirectiveTriviaSyntax)directive.GetStructure()!);
+                            ifStack.Push((DirectiveTriviaSyntax)trivia.GetStructure()!);
                             break;
                         case SyntaxKind.ElseDirectiveTrivia:
-                            HandleElseDirective((DirectiveTriviaSyntax)directive.GetStructure()!);
+                            ifStack.Push((DirectiveTriviaSyntax)trivia.GetStructure()!);
                             break;
                     }
                 }
@@ -88,26 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 FinishIf(directive: null);
 
             return new DirectiveInfo(directiveMap, conditionalMap, inactiveRegionLines: null);
-
-            void HandleIfDirective(DirectiveTriviaSyntax directive)
-                => ifStack.Push(directive);
-
-            void HandleRegionDirective(DirectiveTriviaSyntax directive)
-                => regionStack.Push(directive);
-
-            void HandleElifDirective(DirectiveTriviaSyntax directive)
-                => ifStack.Push(directive);
-
-            void HandleElseDirective(DirectiveTriviaSyntax directive)
-                => ifStack.Push(directive);
-
-            void HandleEndIfDirective(DirectiveTriviaSyntax directive)
-            {
-                if (ifStack.Count == 0)
-                    return;
-
-                FinishIf(directive);
-            }
 
             void FinishIf(DirectiveTriviaSyntax? directive)
             {
@@ -141,17 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     directiveMap.Add(directive, ifDirective);
                     directiveMap.Add(ifDirective, directive);
                 }
-            }
-
-            void HandleEndRegionDirective(DirectiveTriviaSyntax directive)
-            {
-                if (regionStack.Count == 0)
-                    return;
-
-                var previousDirective = regionStack.Pop();
-
-                directiveMap.Add(directive, previousDirective);
-                directiveMap.Add(previousDirective, directive);
             }
         }
 
