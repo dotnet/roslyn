@@ -919,7 +919,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 while (ifStack.Count > 0)
                     FinishIf(directive: null);
 
-                return new DirectiveInfo<TDirectiveTriviaSyntax>(directiveMap, conditionalMap, inactiveRegionLines: null);
+                return new DirectiveInfo<TDirectiveTriviaSyntax>(directiveMap, conditionalMap);
 
                 void FinishIf(TDirectiveTriviaSyntax? directive)
                 {
