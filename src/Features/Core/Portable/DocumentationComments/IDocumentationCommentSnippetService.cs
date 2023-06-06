@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             SourceText text,
             int position,
             in DocumentationCommentOptions options,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken,
+            bool addIndentation = true);
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(
             SyntaxTree syntaxTree,

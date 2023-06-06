@@ -77,16 +77,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // For now we do our best to handle as many cases as we can.
             // Tracking issue - https://github.com/dotnet/roslyn/issues/68083
 
-            var documentIds = solution.GetDocumentIdsWithFilePath(documentUri.AbsolutePath);
-            if (documentIds.Any())
-                return documentIds;
+            // If the uri is a file then use the simplified absolute or local path.
+            // In other cases (e.g. git files) use the full uri string. This ensures documents
+            // with the same local path (e.g. git://someFilePath and file://someFilePath) are differentiated.
+            if (documentUri.IsFile)
+            {
+                var fileDocumentIds = solution.GetDocumentIdsWithFilePath(documentUri.AbsolutePath);
+                if (fileDocumentIds.Any())
+                    return fileDocumentIds;
 
-            documentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
-            if (documentIds.Any())
+                fileDocumentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
+                return fileDocumentIds;
+            }
+            else
+            {
+                var documentIds = solution.GetDocumentIdsWithFilePath(documentUri.OriginalString);
                 return documentIds;
-
-            documentIds = solution.GetDocumentIdsWithFilePath(documentUri.OriginalString);
-            return documentIds;
+            }
         }
 
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
