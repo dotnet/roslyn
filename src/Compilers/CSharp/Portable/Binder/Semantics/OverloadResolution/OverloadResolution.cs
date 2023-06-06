@@ -296,7 +296,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             RemoveInaccessibleTypeArguments(results, ref useSiteInfo);
 
             // SPEC: The set of candidate methods is reduced to contain only methods from the most derived types.
-            RemoveLessDerivedMembers(results, ref useSiteInfo);
+            if (checkOverriddenOrHidden)
+            {
+                RemoveLessDerivedMembers(results, ref useSiteInfo);
+            }
 
             if (Compilation.LanguageVersion.AllowImprovedOverloadCandidates())
             {
@@ -1656,7 +1659,7 @@ outerDefault:
         /// <summary>
         /// Returns the parameter type (considering params).
         /// </summary>
-        private TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result)
+        private static TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result)
         {
             var type = parameter.Type;
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
