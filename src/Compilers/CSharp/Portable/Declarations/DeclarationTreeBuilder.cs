@@ -699,6 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (attributeListSyntax.Target?.Identifier.ToAttributeLocation() == AttributeLocation.Method)
                     {
                         declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes;
+                        break;
                     }
                 }
             }
