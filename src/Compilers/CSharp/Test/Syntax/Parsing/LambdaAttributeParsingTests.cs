@@ -1259,20 +1259,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (F) [A] () => { }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "(F) [A] ()").WithArguments("=>").WithLocation(1, 1));
 
-            N(SyntaxKind.CastExpression);
+            N(SyntaxKind.InvocationExpression);
             {
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.ElementAccessExpression);
                 {
-                    N(SyntaxKind.IdentifierToken, "F");
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.InvocationExpression);
-                {
-                    N(SyntaxKind.CollectionCreationExpression);
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "F");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.BracketedArgumentList);
                     {
                         N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.ExpressionElement);
+                        N(SyntaxKind.Argument);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
@@ -1281,11 +1284,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         }
                         N(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.ArgumentList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
+                }
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
             }
             EOF();
