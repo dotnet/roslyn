@@ -257,6 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamespaceOrTypeSymbol scope = this;
             Debug.Assert(scope is not MergedNamespaceSymbol);
+            Debug.Assert(scope is NamespaceSymbol or NamedTypeSymbol);
 
             if (scope.Kind == SymbolKind.ErrorType)
             {
@@ -265,7 +266,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol? namedType = null;
 
-            Debug.Assert(scope is NamespaceSymbol or NamedTypeSymbol);
             bool isTopLevel = scope.IsNamespace;
 
             ImmutableArray<NamedTypeSymbol> namespaceOrTypeMembers;
