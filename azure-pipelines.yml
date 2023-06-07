@@ -302,15 +302,16 @@ stages:
         poolName: $(PoolName)
         queueName: $(UbuntuQueueName)
 
-  - template: eng/pipelines/test-unix-job.yml
-    parameters:
-      testRunName: 'Test macOS Debug'
-      jobName: Test_macOS_Debug
-      testArtifactName: Transport_Artifacts_Unix_Debug
-      configuration: Debug
-      testArguments: --testCoreClr 
-      helixQueueName: $(HelixMacOsQueueName)
-      helixApiAccessToken: $(HelixApiAccessToken)
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - template: eng/pipelines/test-unix-job.yml
+      parameters:
+        testRunName: 'Test macOS Debug'
+        jobName: Test_macOS_Debug
+        testArtifactName: Transport_Artifacts_Unix_Debug
+        configuration: Debug
+        testArguments: --testCoreClr 
+        helixQueueName: $(HelixMacOsQueueName)
+        helixApiAccessToken: $(HelixApiAccessToken)
 
 - stage: Correctness
   dependsOn: []
