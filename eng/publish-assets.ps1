@@ -161,7 +161,9 @@ function Publish-Entry($publishData, [switch]$isBranch) {
   }
 
   # Publish any NPM packages to the specified feed
-  Publish-NPM (Join-Path $PackagesDir "NPM")
+  if (-not $prValidation) {
+    Publish-NPM (Join-Path $PackagesDir "NPM")
+  }
 
   exit 0
 }
