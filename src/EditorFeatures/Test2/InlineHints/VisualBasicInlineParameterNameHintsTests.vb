@@ -466,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
 		                    End Sub
 
 		                    Public Sub Main()
-			                    UseParams(args:=1, 2, 3, 4, 5)
+			                    UseParams(1, 2, 3, 4, 5)
 		                    End Sub
 	                    End Class
                     </Document>
