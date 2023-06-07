@@ -3777,6 +3777,154 @@ class C
     }
 
     [Fact]
+    public void CastVersusIndexAmbiguity23()
+    {
+        UsingExpression("(A[])[0]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.ArrayType);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.ArrayRankSpecifier);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.OmittedArraySizeExpression);
+                    {
+                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "0");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity24()
+    {
+        UsingExpression("(A)[]",
+            // (1,5): error CS0443: Syntax error; value expected
+            // (A)[]
+            Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 5));
+
+        N(SyntaxKind.ElementAccessExpression);
+        {
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.BracketedArgumentList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                M(SyntaxKind.Argument);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity25()
+    {
+        UsingExpression("(A[])[]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.ArrayType);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.ArrayRankSpecifier);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.OmittedArraySizeExpression);
+                    {
+                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity26()
+    {
+        UsingExpression("((int, int))[]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.TupleType);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.TupleElement);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.TupleElement);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
     public void SpreadOfQuery()
     {
         UsingExpression("[.. from x in y select x]");
