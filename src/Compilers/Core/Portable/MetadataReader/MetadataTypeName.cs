@@ -340,22 +340,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// Individual parts of qualified namespace name.
-        /// </summary>
-        public ImmutableArray<string> NamespaceSegments
-        {
-            get
-            {
-                if (_namespaceSegments.IsDefault)
-                {
-                    _namespaceSegments = MetadataHelpers.SplitQualifiedName(NamespaceName);
-                }
-
-                return _namespaceSegments;
-            }
-        }
-
+        /// <inheritdoc cref="NamespaceSegments"/>
         public ImmutableArray<ReadOnlyMemory<char>> NamespaceSegmentsMemory
         {
             get
@@ -366,6 +351,22 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return _namespaceSegmentsMemory;
+            }
+        }
+
+        /// <summary>
+        /// Individual parts of qualified namespace name.
+        /// </summary>
+        public ImmutableArray<string> NamespaceSegments
+        {
+            get
+            {
+                if (_namespaceSegments.IsDefault)
+                {
+                    _namespaceSegments = NamespaceSegmentsMemory.SelectAsArray(static s => s.ToString());
+                }
+
+                return _namespaceSegments;
             }
         }
 
