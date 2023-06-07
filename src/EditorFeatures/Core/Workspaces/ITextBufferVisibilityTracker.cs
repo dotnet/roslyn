@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
                 }
                 else if (task.IsFaulted)
                 {
-                    completionSource.TrySetException(task.Exception);
+                    completionSource.TrySetException(task.Exception!);
                 }
                 else
                 {

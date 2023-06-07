@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -107,6 +108,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
             if (nodeToRemove is not VariableDeclaratorSyntax and not PropertyDeclarationSyntax)
                 return false;
 
+            // If it's a property, then it has to be an auto property in order for us to be able to initialize is
+            // directly outside of a constructor.
+            if (nodeToRemove is PropertyDeclarationSyntax property)
+            {
+                if (property.AccessorList is null ||
+                    property.AccessorList.Accessors.Any(static a => a.ExpressionBody != null || a.Body != null))
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -152,7 +164,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     // Pass along a mapping of field/property name to the constructor parameter name that will replace it.
                     var properties = _candidateMembersToRemove
                         .Where(kvp => !_membersThatCannotBeRemoved.Contains(kvp.Key))
-                        .ToImmutableDictionary(static kvp => kvp.Key.Name, static kvp => (string?)kvp.Value.Name);
+                        .ToImmutableDictionary(
+                            static kvp => kvp.Key.Name,
+                            static kvp => (string?)kvp.Value.Name);
 
                     // To provide better user-facing-strings, keep track of whether or not all the members we'd be
                     // removing are all fields or all properties.
@@ -227,6 +241,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 if (primaryConstructorDeclaration.Parent is not TypeDeclarationSyntax)
                     return;
 
+                if (primaryConstructor.Parameters.Any(static p => p.RefKind is RefKind.Ref or RefKind.Out))
+                    return;
+
                 // Now ensure the constructor body is something that could be converted to a primary constructor (i.e.
                 // only assignments to instance fields/props on this).
                 var semanticModel = compilation.GetSemanticModel(primaryConstructorDeclaration.SyntaxTree);
@@ -238,14 +255,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                 }
 
                 var analyzer = new Analyzer(diagnosticAnalyzer, styleOption, primaryConstructor, primaryConstructorDeclaration, candidateMembersToRemove);
-                context.RegisterSymbolEndAction(analyzer.OnSymbolEnd);
 
                 // Look to see if we have trivial `_x = x` or `this.x = x` assignments.  If so, then the field/prop
                 // could be a candidate for removal (as long as we determine that all use sites of the field/prop would
-                // be able to use the captured primary constructor parameter.
+                // be able to use the captured primary constructor parameter).
 
                 if (candidateMembersToRemove.Count > 0)
                     context.RegisterOperationAction(analyzer.AnalyzeFieldOrPropertyReference, OperationKind.FieldReference, OperationKind.PropertyReference);
+
+                context.RegisterSymbolEndAction(analyzer.OnSymbolEnd);
 
                 return;
 
@@ -369,7 +387,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     // If we have an assignment of the form `private_member = param`, then that member can be a candidate for removal.
                     if (member.DeclaredAccessibility == Accessibility.Private &&
                         !member.GetAttributes().Any() &&
-                        semanticModel.GetSymbolInfo(assignmentExpression.Right, cancellationToken).GetAnySymbol() is IParameterSymbol parameter)
+                        semanticModel.GetSymbolInfo(assignmentExpression.Right, cancellationToken).GetAnySymbol() is IParameterSymbol parameter &&
+                        parameter.Type.Equals(member.GetMemberType()))
                     {
                         candidateMembersToRemove[member] = parameter;
                     }

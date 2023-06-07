@@ -155,7 +155,7 @@
       ],
       "vsBranch": "rel/d17.7",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.7P1]"
+      "insertionTitlePrefix": "[d17.7P2]"
     },
     "main": {
       "nugetKind": [
@@ -164,8 +164,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.7P2]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.7P3]"
     },
     "dev/jorobich/fix-pr-val": {
       "nugetKind": [

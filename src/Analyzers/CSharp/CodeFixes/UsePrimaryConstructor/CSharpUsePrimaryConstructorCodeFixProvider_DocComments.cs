@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -80,7 +81,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
             foreach (var node in content)
             {
                 yield return IsXmlElement(node, s_summaryTagName, out var xmlElement)
-                    ? ConvertXmlElementName(xmlElement, s_paramTagName).AddStartTagAttributes(XmlNameAttribute(parameterName))
+                    ? ConvertXmlElementName(xmlElement, s_paramTagName).AddStartTagAttributes(XmlNameAttribute(CSharpSyntaxFacts.Instance.EscapeIdentifier(parameterName)))
                     : node;
             }
         }

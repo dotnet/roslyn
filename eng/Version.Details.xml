@@ -44,5 +44,19 @@
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
       <Sha>31e5d2773251838851d273edba1babcf60321f24</Sha>
     </Dependency>
+    <!-- Entries below are necessary for source-build. This allows the packages to be retrieved from previously-source-built
+         artifacts and flow in as dependencies of the packages produced by roslyn. -->
+    <Dependency Name="System.Composition" Version="7.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>d099f075e45d2aa6007a22b71b45a08758559f80</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
+      <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
+      <Sha>22ea6422f85b05ca0793cc3b76375487be407f5d</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.3.0">
+      <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
+      <Sha>596f8f422003d89b65e2bd50dc5a1aea7ce4ce91</Sha>
+    </Dependency>
   </ToolsetDependencies>
 </Dependencies>

@@ -686,6 +686,35 @@ public partial class UsePrimaryConstructorTests
     }
 
     [Fact]
+    public async Task TestRemoveMembersOnlyWithMatchingType()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int I { get; }
+                    private long J { get; }
+
+                    public [|C|](int i, int j)
+                    {
+                        this.I = i;
+                        this.J = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                    private long J { get; } = j;
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestDoNotRemovePublicMembers1()
     {
         await new VerifyCS.Test
@@ -700,6 +729,61 @@ public partial class UsePrimaryConstructorTests
                     {
                         this.i = i;
                         this.j = j;
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact(Skip = "Currently broken due to nested type IOp callbacks not running")]
+    public async Task TestDoNotRemoveMembersUsedInNestedTypes()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    private int _i;
+                    private int _j;
+
+                    public [|C|](int i, int j)
+                    {
+                        _i = i;
+                        _j = j;
+                    }
+
+                    public struct Enumerator
+                    {
+                        private int _i;
+
+                        public Enumerator(C c)
+                        {
+                            _i = c._i;
+                            Console.WriteLine(c);
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C(int i, int j)
+                {
+                    private int I { get; } = i;
+
+                    public struct Enumerator
+                    {
+                        private int _i;
+                
+                        public Enumerator(C c)
+                        {
+                            _i = c.I;
+                            Console.WriteLine(c);
+                        }
                     }
                 }
                 """,
@@ -739,6 +823,45 @@ public partial class UsePrimaryConstructorTests
                     void M()
                     {
                         Console.WriteLine(i + j);
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembersUpdateReferences2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                class C
+                {
+                    private int i;
+                    private int j;
+
+                    public [|C|](int @this, int @delegate)
+                    {
+                        this.i = @this;
+                        this.j = @delegate;
+                    }
+
+                    void M()
+                    {
+                        Console.WriteLine(this.i + this.j);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                class C(int @this, int @delegate)
+                {
+                    void M()
+                    {
+                        Console.WriteLine(@this + @delegate);
                     }
                 }
                 """,
@@ -2283,6 +2406,203 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReferenceToNestedType1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public class D
+                    {
+                    }
+
+                    public [|C|](D d)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(C.D d)
+                {
+                    public class D
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReferenceToNestedType2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C<T>
+                {
+                    public class D
+                    {
+                    }
+
+                    public [|C|](List<D> d)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C<T>(List<C<T>.D> d)
+                {
+                    public class D
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReferenceToNestedType3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public class D
+                    {
+                    }
+
+                    public [|C|](C.D d)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(C.D d)
+                {
+                    public class D
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReferenceToNestedType4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C<T>
+                {
+                    public class D
+                    {
+                    }
+
+                    public [|C|](List<C<T>.D> d)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C<T>(List<C<T>.D> d)
+                {
+                    public class D
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithNonAutoProperty()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // Can't assign a primary constructor parameter to a non-auto property.
+                    private int I { get { return 0; } set { } }
+
+                    public C(int i)
+                    {
+                        this.I = i;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInParameter1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int i;
+
+                    public [|C|](in int i)
+                    {
+                        this.i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(in int i)
+                {
+                    private int i = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInParameter2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private int i;
+
+                    public [|C|](in int i)
+                    {
+                        this.i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i)
+                {
+                }
+                """,
+            CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
