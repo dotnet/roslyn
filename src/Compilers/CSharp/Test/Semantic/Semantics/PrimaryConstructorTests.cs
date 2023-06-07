@@ -15526,6 +15526,73 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68384")]
+        public void ParameterCapturing_152_NullableAnalysis()
+        {
+            var source = @"
+#nullable enable
+
+class B(string s)
+{
+    public string S { get; } = s;
+}
+
+class C(B b)
+    : B(b.S)
+{
+    string T() => b.S;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68384")]
+        public void ParameterCapturing_153_NullableAnalysis()
+        {
+            var source = @"
+#nullable enable
+
+class B(System.Func<string> s)
+{
+    public string S { get; } = s();
+}
+
+class C(B b)
+    : B(() => b.S)
+{
+    string T() => b.S;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68384")]
+        public void ParameterCapturing_154_NullableAnalysis()
+        {
+            var source = @"
+#nullable enable
+
+class B(System.Func<string> s)
+{
+    public string S { get; } = s();
+}
+
+class C(B b)
+    : B(() =>
+        {
+            string local() => b.S;
+            return local();
+        })
+{
+    string T() => b.S;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void CycleDueToIndexerNameAttribute_01()
         {
             var source = @"
