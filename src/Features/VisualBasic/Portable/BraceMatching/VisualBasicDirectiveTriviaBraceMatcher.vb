@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.BraceMatching
             Return directive.GetMatchingConditionalDirectives(cancellationToken)
         End Function
 
-        Friend Overrides Function GetMatchingDirective(directive As DirectiveTriviaSyntax, cancellationToken As CancellationToken) As DirectiveTriviaSyntax
+        Protected Overrides Function GetMatchingDirective(directive As DirectiveTriviaSyntax, cancellationToken As CancellationToken) As DirectiveTriviaSyntax
             Return directive.GetMatchingStartOrEndDirective(cancellationToken)
         End Function
 
@@ -41,7 +41,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.BraceMatching
 
             Return TextSpan.FromBounds(directive.HashToken.SpanStart, keywordToken.Span.End)
         End Function
-
     End Class
-
 End Namespace

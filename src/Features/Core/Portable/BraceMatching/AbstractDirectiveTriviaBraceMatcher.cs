@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.BraceMatching
@@ -25,12 +23,12 @@ namespace Microsoft.CodeAnalysis.BraceMatching
             where TEndRegionDirectiveTriviaSyntax : TDirectiveTriviaSyntax
     {
         protected abstract ImmutableArray<TDirectiveTriviaSyntax> GetMatchingConditionalDirectives(TDirectiveTriviaSyntax directive, CancellationToken cancellationToken);
-        internal abstract TDirectiveTriviaSyntax GetMatchingDirective(TDirectiveTriviaSyntax directive, CancellationToken cancellationToken);
+        protected abstract TDirectiveTriviaSyntax? GetMatchingDirective(TDirectiveTriviaSyntax directive, CancellationToken cancellationToken);
         internal abstract TextSpan GetSpanForTagging(TDirectiveTriviaSyntax directive);
 
         public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position, findInsideTrivia: true);
 
             if (token.Parent is not TDirectiveTriviaSyntax directive)
@@ -38,7 +36,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
                 return null;
             }
 
-            TDirectiveTriviaSyntax matchingDirective = null;
+            TDirectiveTriviaSyntax? matchingDirective = null;
             if (IsConditionalDirective(directive))
             {
                 // #if/#elif/#else/#endif directive cases.
@@ -64,11 +62,9 @@ namespace Microsoft.CodeAnalysis.BraceMatching
         }
 
         private static bool IsConditionalDirective(TDirectiveTriviaSyntax directive)
-        {
-            return directive is TIfDirectiveTriviaSyntax or
+            => directive is TIfDirectiveTriviaSyntax or
                    TElseIfDirectiveTriviaSyntax or
                    TElseDirectiveTriviaSyntax or
                    TEndIfDirectiveTriviaSyntax;
-        }
     }
 }

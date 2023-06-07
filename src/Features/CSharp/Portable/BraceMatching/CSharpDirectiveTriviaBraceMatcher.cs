@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceMatching
         protected override ImmutableArray<DirectiveTriviaSyntax> GetMatchingConditionalDirectives(DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
             => directive.GetMatchingConditionalDirectives(cancellationToken);
 
-        internal override DirectiveTriviaSyntax GetMatchingDirective(DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
+        protected override DirectiveTriviaSyntax? GetMatchingDirective(DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
             => directive.GetMatchingDirective(cancellationToken);
 
         internal override TextSpan GetSpanForTagging(DirectiveTriviaSyntax directive)
