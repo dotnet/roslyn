@@ -349,7 +349,7 @@ Done:
             if (isTopLevel
                 && (emittedTypeName.ForcedArity == -1 || emittedTypeName.ForcedArity == emittedTypeName.InferredArity)
                 // Quick check so we don't have to realize the expensive `UnmangledTypeName` in the common case.
-                && emittedTypeName.TypeNameMemory.Span is ['<', ..]
+                && emittedTypeName.TypeNameMemory.Span is [GeneratedNameParser.FileTypeNameStartChar, ..]
                 && GeneratedNameParser.TryParseFileTypeName(
                     emittedTypeName.UnmangledTypeName,
                     out string? displayFileName,
