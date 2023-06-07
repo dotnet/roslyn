@@ -4909,7 +4909,7 @@ record C(int X)
         #region Nested Types
 
         [Fact]
-        public void NestedType_Replace_WithUpdateInNestedType_Partial_DiffertDocument()
+        public void NestedType_Replace_WithUpdateInNestedType_Partial_DifferentDocument()
         {
             var srcA1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { int N() => 1; }";
             var srcB1 = "partial class C { class D { int M() => 1; } }";
