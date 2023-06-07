@@ -267,7 +267,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol? namedType = null;
 
             ImmutableArray<NamedTypeSymbol> namespaceOrTypeMembers;
-
             bool isTopLevel = scope.IsNamespace;
 
             Debug.Assert(!isTopLevel || scope.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat) == emittedTypeName.NamespaceName);
