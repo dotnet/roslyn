@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class ReadOnlyMemoryOfCharComparer : IEqualityComparer<ReadOnlyMemory<char>>
     {
-        public static ReadOnlyMemoryOfCharComparer Instance { get; } = new();
+        public static ReadOnlyMemoryOfCharComparer Instance { get; } = new ReadOnlyMemoryOfCharComparer();
 
         private ReadOnlyMemoryOfCharComparer()
         {
