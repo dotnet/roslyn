@@ -592,7 +592,7 @@ ExitDecodeTypeName:
         internal static ImmutableArray<T> SplitQualifiedNameWorker<T>(
             ReadOnlyMemory<char> nameMemory, ImmutableArray<T> splitSystemString, Func<ReadOnlyMemory<char>, T> convert)
         {
-            Debug.Assert(!nameMemory.Equals(default));
+            Debug.Assert(!nameMemory.Equals(default(ReadOnlyMemory<char>));
 
             if (nameMemory.Length == 0)
             {

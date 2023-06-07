@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_namespaceNameMemory.Equals(default))
+                if (_namespaceNameMemory.Equals(default(ReadOnlyMemory<char>)))
                 {
                     Debug.Assert(_fullName != null);
                     _typeNameMemory = MetadataHelpers.SplitQualifiedName(_fullName, out _namespaceNameMemory);
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_typeNameMemory.Equals(default))
+                if (_typeNameMemory.Equals(default(ReadOnlyMemory<char>)))
                 {
                     Debug.Assert(_fullName != null);
                     _typeNameMemory = MetadataHelpers.SplitQualifiedName(_fullName, out _namespaceNameMemory);
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_unmangledTypeNameMemory.Equals(default))
+                if (_unmangledTypeNameMemory.Equals(default(ReadOnlyMemory<char>)))
                 {
                     Debug.Assert(_inferredArity == -1);
                     _unmangledTypeNameMemory = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(TypeNameMemory, out _inferredArity);
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_inferredArity == -1)
                 {
-                    Debug.Assert(_unmangledTypeNameMemory.Equals(default));
+                    Debug.Assert(_unmangledTypeNameMemory.Equals(default(ReadOnlyMemory<char>)));
                     _unmangledTypeNameMemory = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(TypeNameMemory, out _inferredArity);
                 }
 
