@@ -517,8 +517,8 @@ ExitDecodeTypeName:
 
             static bool tryScanArity(ReadOnlySpan<char> aritySpan, out short arity)
             {
-                // Common case: aritySpan is 1 digit between 0-9.  No need for any complex parsing logic in that case.
-                if (aritySpan is [var firstChar and >= '0' and <= '9'])
+                // Common case: aritySpan is 1 digit between 1-9.  No need for any complex parsing logic in that case.
+                if (aritySpan is [var firstChar and >= '1' and <= '9'])
                 {
                     arity = (short)(firstChar - '0');
                     return true;
