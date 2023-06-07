@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis
             name._typeName = typeName;
             name._typeNameMemory = typeName.AsMemory();
             name._unmangledTypeName = null;
-            name._unmangledTypeNameMemory = null;
+            name._unmangledTypeNameMemory = default;
             name._inferredArity = -1;
             name._useCLSCompliantNameArityEncoding = useCLSCompliantNameArityEncoding;
             name._forcedArity = (short)forcedArity;
