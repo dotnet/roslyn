@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!named.MangleName &&
                     (forcedArity == -1 || forcedArity == named.Arity) &&
-                    named.MetadataName.AsSpan().SequenceEqual(emittedTypeName.TypeNameMemory.Span))
+                    ReadOnlyMemoryOfCharComparer.Equals(named.MetadataName.AsSpan(), emittedTypeName.TypeNameMemory))
                 {
                     if (namedType is not null)
                     {
