@@ -10837,6 +10837,12 @@ class Program
         Buffer2<int> f;
         f._element0 = 1;
         _ = f;
+
+        Buffer2<int> f2;
+        f2._element0 = 1;
+        f2[0] = 1;
+        f2[1] = 2;
+        _ = f2;
     }
 }
 
@@ -10851,7 +10857,10 @@ public struct Buffer2<T>
             comp.VerifyDiagnostics(
                 // (8,13): error CS0165: Use of unassigned local variable 'f'
                 //         _ = f;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "f").WithArguments("f").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "f").WithArguments("f").WithLocation(8, 13),
+                // (14,13): error CS0165: Use of unassigned local variable 'f2'
+                //         _ = f2;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "f2").WithArguments("f2").WithLocation(14, 13)
                 );
         }
 
