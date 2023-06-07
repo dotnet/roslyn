@@ -12,7 +12,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-
     /// <summary>
     /// Helper structure to encapsulate/cache various information about metadata name of a type and 
     /// name resolution options.
