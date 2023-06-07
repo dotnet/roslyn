@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_unmangledTypeNameMemory.Equals(default(ReadOnlyMemory<char>)))
                 {
-                    // Can't assert anything about arity.  It may have been computed in UnmangledTypeName
+                    Debug.Assert(_inferredArity == -1);
                     _unmangledTypeNameMemory = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(TypeNameMemory, out _inferredArity);
                 }
 
