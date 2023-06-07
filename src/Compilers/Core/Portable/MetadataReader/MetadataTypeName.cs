@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                _namespaceName ??= _namespaceNameMemory.ToString();
+                _namespaceName ??= NamespaceNameMemory.ToString();
                 return _namespaceName;
             }
         }
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                _typeName ??= _typeNameMemory.ToString();
+                _typeName ??= TypeNameMemory.ToString();
                 return _typeName;
             }
         }
