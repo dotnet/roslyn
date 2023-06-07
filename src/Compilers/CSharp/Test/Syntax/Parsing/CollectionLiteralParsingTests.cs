@@ -3925,6 +3925,71 @@ class C
     }
 
     [Fact]
+    public void CastVersusIndexAmbiguity27()
+    {
+        UsingExpression("(a < b > . c)[1, 2, 3]");
+
+        N(SyntaxKind.ElementAccessExpression);
+        {
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.SimpleMemberAccessExpression);
+                {
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.BracketedArgumentList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
     public void SpreadOfQuery()
     {
         UsingExpression("[.. from x in y select x]");
