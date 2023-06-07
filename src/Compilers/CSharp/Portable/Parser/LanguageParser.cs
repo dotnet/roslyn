@@ -11674,8 +11674,7 @@ done:;
                 case ScanTypeFlags.GenericTypeOrMethod:
                 case ScanTypeFlags.TupleType:
                     // If we have `(X<Y>)[...` then we know this must be a cast of a collection literal, not an index
-                    // into some expr. As most collections are generic this means a good experience most of the time in
-                    // this ambiguous scenario.
+                    // into some expr. As most collections are generic, the common case is not ambiguous.
                     //
                     // Things are still ambiguous if you have `(X)[...` and for back compat we still parse that as
                     // indexing into an expression.  The user can still write `(X)([...` in this case though to get cast
