@@ -45,10 +45,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public bool Equals(ReadOnlyMemory<char> a, ReadOnlyMemory<char> b)
-        {
-            Debug.Assert(false, "Are we using empty comparer with nonempty dictionary?");
-            return false;
-        }
+            => throw ExceptionUtilities.Unreachable();
 
         public int GetHashCode(ReadOnlyMemory<char> s)
         {
