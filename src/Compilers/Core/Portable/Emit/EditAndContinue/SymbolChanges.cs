@@ -499,6 +499,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 // for it, flagging that it contains changes. If so we "upgrade" the change to the real one.
                 if (changesBuilder.TryGetValue(member, out var existingChange) && existingChange == SymbolChange.ContainsChanges)
                 {
+                    Debug.Assert(member is INamedTypeSymbol);
                     changesBuilder[member] = change;
                 }
                 else
