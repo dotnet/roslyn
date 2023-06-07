@@ -435,7 +435,7 @@ namespace X
 </symbols>");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68312")]
         public void TestTypeAliases3()
         {
             var text = @"
