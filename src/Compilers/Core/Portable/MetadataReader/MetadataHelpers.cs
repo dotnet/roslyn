@@ -544,8 +544,12 @@ ExitDecodeTypeName:
 
         internal static string InferTypeArityAndUnmangleMetadataName(string emittedTypeName, out short arity)
         {
-            var resultMemory = InferTypeArityAndUnmangleMetadataName(emittedTypeName.AsMemory(), out arity);
-            return resultMemory.ToString();
+            var emittedTypeNameMemory = emittedTypeName.AsMemory();
+            var resultMemory = InferTypeArityAndUnmangleMetadataName(emittedTypeNameMemory, out arity);
+            var resultString = resultMemory.ToString();
+
+            Debug.Assert(!resultMemory.Equals(emittedTypeNameMemory) || ReferenceEquals(resultString, emittedTypeName), "If the name was not mangled, we should get the original string instance back.");
+            return resultString;
         }
 
         internal static ReadOnlyMemory<char> InferTypeArityAndUnmangleMetadataName(ReadOnlyMemory<char> emittedTypeName, out short arity)
