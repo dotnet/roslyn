@@ -543,6 +543,512 @@ namespace X
         }
 
         [Fact]
+        public void TestTypeAliases3_A()
+        {
+            var text = """
+                using P = (int a, string b);
+
+                class A { void M() { } }
+
+                namespace X
+                {
+                    class B { void M() { } }
+
+                    namespace Y
+                    {
+                        class C { void M() { } }
+
+                        namespace X
+                        {
+                            class D { void M() { } }
+                        }
+                    }
+                }
+                """;
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetFramework).VerifyPdb(
+                format: DebugInformationFormat.Pdb,
+                expectedPdb: @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""A"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""3"" startColumn=""20"" endLine=""3"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x1"" startLine=""3"" startColumn=""22"" endLine=""3"" endColumn=""23"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""P"" target=""System.ValueTuple`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.B"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""24"" endLine=""7"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""26"" endLine=""7"" endColumn=""27"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""P"" target=""System.ValueTuple`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.Y.C"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""11"" startColumn=""28"" endLine=""11"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""30"" endLine=""11"" endColumn=""31"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""P"" target=""System.ValueTuple`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.Y.X.D"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""34"" endLine=""15"" endColumn=""35"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""P"" target=""System.ValueTuple`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetFramework).VerifyPdb(
+                format: DebugInformationFormat.PortablePdb,
+                expectedPdb: @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""A"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""3"" startColumn=""20"" endLine=""3"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x1"" startLine=""3"" startColumn=""22"" endLine=""3"" endColumn=""23"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.B"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""24"" endLine=""7"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""26"" endLine=""7"" endColumn=""27"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.Y.C"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""11"" startColumn=""28"" endLine=""11"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""30"" endLine=""11"" endColumn=""31"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.Y.X.D"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""34"" endLine=""15"" endColumn=""35"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void TestTypeAliases3_B()
+        {
+            var text = """
+                class A { void M() { } }
+
+                namespace X
+                {
+                    using Q = int[];
+
+                    class B { void M() { } }
+
+                    namespace Y
+                    {
+                        class C { void M() { } }
+
+                        namespace X
+                        {
+                            class D { void M() { } }
+                        }
+                    }
+                }
+                """;
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetFramework).VerifyPdb(
+                format: DebugInformationFormat.Pdb,
+                expectedPdb: @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""A"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""20"" endLine=""1"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""22"" endLine=""1"" endColumn=""23"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.B"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""24"" endLine=""7"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""26"" endLine=""7"" endColumn=""27"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""Q"" target=""System.Int32[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.Y.C"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""11"" startColumn=""28"" endLine=""11"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""30"" endLine=""11"" endColumn=""31"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""Q"" target=""System.Int32[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.Y.X.D"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""34"" endLine=""15"" endColumn=""35"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""Q"" target=""System.Int32[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetFramework).VerifyPdb(
+                format: DebugInformationFormat.PortablePdb,
+                expectedPdb: @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""A"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""20"" endLine=""1"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""22"" endLine=""1"" endColumn=""23"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.B"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""24"" endLine=""7"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""26"" endLine=""7"" endColumn=""27"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.Y.C"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""11"" startColumn=""28"" endLine=""11"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""30"" endLine=""11"" endColumn=""31"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.Y.X.D"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""34"" endLine=""15"" endColumn=""35"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void TestTypeAliases3_C()
+        {
+            var text = """
+                class A { void M() { } }
+
+                namespace X
+                {
+                    class B { void M() { } }
+
+                    namespace Y
+                    {
+                        using R = dynamic;
+
+                        class C { void M() { } }
+
+                        namespace X
+                        {
+                            class D { void M() { } }
+                        }
+                    }
+                }
+                """;
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetFramework).VerifyPdb(
+                format: DebugInformationFormat.Pdb,
+                expectedPdb: @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""A"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""20"" endLine=""1"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""22"" endLine=""1"" endColumn=""23"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.B"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""24"" endLine=""5"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""26"" endLine=""5"" endColumn=""27"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.Y.C"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""11"" startColumn=""28"" endLine=""11"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""30"" endLine=""11"" endColumn=""31"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""R"" target=""System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.Y.X.D"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""34"" endLine=""15"" endColumn=""35"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""R"" target=""System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetFramework).VerifyPdb(
+                format: DebugInformationFormat.PortablePdb,
+                expectedPdb: @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""A"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""20"" endLine=""1"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""22"" endLine=""1"" endColumn=""23"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.B"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""24"" endLine=""5"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""26"" endLine=""5"" endColumn=""27"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.Y.C"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""11"" startColumn=""28"" endLine=""11"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""30"" endLine=""11"" endColumn=""31"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.Y.X.D"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""34"" endLine=""15"" endColumn=""35"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void TestTypeAliases3_D()
+        {
+            var text = """
+                class A { void M() { } }
+
+                namespace X
+                {
+                    class B { void M() { } }
+
+                    namespace Y
+                    {
+                        class C { void M() { } }
+
+                        namespace X
+                        {
+                            using unsafe S = int*;
+
+                            class D { void M() { } }
+                        }
+                    }
+                }
+                """;
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetFramework).VerifyPdb(
+                format: DebugInformationFormat.Pdb,
+                expectedPdb: @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""A"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""20"" endLine=""1"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""22"" endLine=""1"" endColumn=""23"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.B"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""24"" endLine=""5"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""26"" endLine=""5"" endColumn=""27"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.Y.C"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""28"" endLine=""9"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""30"" endLine=""9"" endColumn=""31"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.Y.X.D"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""34"" endLine=""15"" endColumn=""35"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""S"" target=""System.Int32*, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetFramework).VerifyPdb(
+                format: DebugInformationFormat.PortablePdb,
+                expectedPdb: @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""A"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""20"" endLine=""1"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""22"" endLine=""1"" endColumn=""23"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.B"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""24"" endLine=""5"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""26"" endLine=""5"" endColumn=""27"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.Y.C"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""28"" endLine=""9"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""30"" endLine=""9"" endColumn=""31"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""X.Y.X.D"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""34"" endLine=""15"" endColumn=""35"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
         public void TestExternAliases1()
         {
             CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
