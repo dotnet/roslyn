@@ -1267,35 +1267,38 @@ outerDefault:
             // algorithms without allocating hardly any additional memory, which pushes us towards
             // walking data structures multiple times rather than caching information about them.)
 
-            for (int f = 0; f < results.Count; ++f)
+            if (results.Count(r => r.Result.IsValid) > 1)
             {
-                var result = results[f];
-
-                // As in dev12, we want to drop use site errors from less-derived types.
-                // NOTE: Because of use site warnings, a result with a diagnostic to report
-                // might not have kind UseSiteError.  This could result in a kind being
-                // switched to LessDerived (i.e. loss of information), but it is the most
-                // straightforward way to suppress use site diagnostics from less-derived
-                // members.
-                if (!(result.Result.IsValid || result.HasUseSiteDiagnosticToReport))
+                for (int f = 0; f < results.Count; ++f)
                 {
-                    continue;
-                }
+                    var result = results[f];
 
-                // Note that we are doing something which appears a bit dodgy here: we're modifying
-                // the validity of elements of the set while inside an outer loop which is filtering
-                // the set based on validity. This means that we could remove an item from the set
-                // that we ought to be processing later. However, because the "is a base type of"
-                // relationship is transitive, that's OK. For example, suppose we have members
-                // Cat.M, Mammal.M and Animal.M in the set. The first time through the outer loop we
-                // eliminate Mammal.M and Animal.M, and therefore we never process Mammal.M the
-                // second time through the outer loop. That's OK, because we have already done the
-                // work necessary to eliminate methods on base types of Mammal when we eliminated
-                // methods on base types of Cat.
+                    // As in dev12, we want to drop use site errors from less-derived types.
+                    // NOTE: Because of use site warnings, a result with a diagnostic to report
+                    // might not have kind UseSiteError.  This could result in a kind being
+                    // switched to LessDerived (i.e. loss of information), but it is the most
+                    // straightforward way to suppress use site diagnostics from less-derived
+                    // members.
+                    if (!(result.Result.IsValid || result.HasUseSiteDiagnosticToReport))
+                    {
+                        continue;
+                    }
 
-                if (IsLessDerivedThanAny(result.LeastOverriddenMember.ContainingType, results, ref useSiteInfo))
-                {
-                    results[f] = result.WithResult(MemberAnalysisResult.LessDerived());
+                    // Note that we are doing something which appears a bit dodgy here: we're modifying
+                    // the validity of elements of the set while inside an outer loop which is filtering
+                    // the set based on validity. This means that we could remove an item from the set
+                    // that we ought to be processing later. However, because the "is a base type of"
+                    // relationship is transitive, that's OK. For example, suppose we have members
+                    // Cat.M, Mammal.M and Animal.M in the set. The first time through the outer loop we
+                    // eliminate Mammal.M and Animal.M, and therefore we never process Mammal.M the
+                    // second time through the outer loop. That's OK, because we have already done the
+                    // work necessary to eliminate methods on base types of Mammal when we eliminated
+                    // methods on base types of Cat.
+
+                    if (IsLessDerivedThanAny(result.LeastOverriddenMember.ContainingType, results, ref useSiteInfo))
+                    {
+                        results[f] = result.WithResult(MemberAnalysisResult.LessDerived());
+                    }
                 }
             }
         }
