@@ -5270,6 +5270,51 @@ class Program
         }
 
         [Fact]
+        public void Slice_Variable_19()
+        {
+            var src = @"
+class C
+{
+    void M(Buffer10<char> a1, System.Range i1, System.Span<char> result1)
+    {
+        result1 = a1[i1];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            // PROTOTYPE(InlineArrays): Ref safety error is unexpected. Likely an artifact of https://github.com/dotnet/roslyn/issues/68372
+            comp.VerifyDiagnostics(
+                // (6,19): error CS8166: Cannot return a parameter by reference 'a1' because it is not a ref parameter
+                //         result1 = a1[i1];
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a1[i1]").WithArguments("a1").WithLocation(6, 19)
+                );
+        }
+
+        [Fact]
+        public void Slice_Variable_20()
+        {
+            var src = @"
+class C
+{
+    void M(Buffer10<char> a1, System.Range i1)
+    {
+        System.Span<char> result1;
+        result1 = a1[i1];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            // PROTOTYPE(InlineArrays): Ref safety error is unexpected. Likely an artifact of https://github.com/dotnet/roslyn/issues/68372
+            comp.VerifyDiagnostics(
+                // (7,19): error CS8166: Cannot return a parameter by reference 'a1' because it is not a ref parameter
+                //         result1 = a1[i1];
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a1[i1]").WithArguments("a1").WithLocation(7, 19)
+                );
+        }
+
+        [Fact]
         public void Slice_Variable_IsRValue()
         {
             var src = @"
