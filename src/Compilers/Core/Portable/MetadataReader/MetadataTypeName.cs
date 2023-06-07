@@ -212,14 +212,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Namespace name for top level types, empty string for nested types.
         /// </summary>
-        public string NamespaceName
-        {
-            get
-            {
-                _namespaceName ??= NamespaceNameMemory.ToString();
-                return _namespaceName;
-            }
-        }
+        public string NamespaceName => _namespaceName ??= NamespaceNameMemory.ToString();
 
         /// <inheritdoc cref="TypeName"/>
         public ReadOnlyMemory<char> TypeNameMemory
@@ -239,14 +232,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Name of the type without namespace prefix, but possibly with generic arity mangling present.
         /// </summary>
-        public string TypeName
-        {
-            get
-            {
-                _typeName ??= TypeNameMemory.ToString();
-                return _typeName;
-            }
-        }
+        public string TypeName => _typeName ??= TypeNameMemory.ToString();
 
         /// <inheritdoc cref="UnmangledTypeName"/>
         public ReadOnlyMemory<char> UnmangledTypeNameMemory
@@ -270,14 +256,11 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_unmangledTypeName == null)
-                {
-                    // Common case optimization.  If the type name is not generic, then point directly at TypeName
-                    // instead of allocating a new string.
-                    _unmangledTypeName = UnmangledTypeNameMemory.Equals(TypeNameMemory)
-                        ? TypeName
-                        : UnmangledTypeNameMemory.ToString();
-                }
+                // Common case optimization.  If the type name is not generic, then point directly at TypeName
+                // instead of allocating a new string.
+                _unmangledTypeName ??= UnmangledTypeNameMemory.Equals(TypeNameMemory)
+                    ? TypeName
+                    : UnmangledTypeNameMemory.ToString();
 
                 return _unmangledTypeName;
             }
