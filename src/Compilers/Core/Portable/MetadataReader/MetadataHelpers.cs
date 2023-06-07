@@ -525,9 +525,9 @@ ExitDecodeTypeName:
                 }
 
 #if NET
-                bool nonNumericCharFound = !int.TryParse(aritySpan, NumberStyles.None, CultureInfo.InvariantCulture, out var intArity);
+                bool nonNumericCharFound = !int.TryParse(aritySpan, NumberStyles.None, CultureInfo.InvariantCulture, out int intArity);
 #else
-                bool nonNumericCharFound = !int.TryParse(aritySpan.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out var intArity);
+                bool nonNumericCharFound = !int.TryParse(aritySpan.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out int intArity);
 #endif
 
                 if (nonNumericCharFound || intArity < 0 || intArity > short.MaxValue ||
