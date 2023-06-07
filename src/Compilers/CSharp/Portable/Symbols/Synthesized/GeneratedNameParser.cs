@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         static GeneratedNameParser()
         {
-            Debug.Assert(s_regexPatternString.StartsWith(FileTypeNameStartChar));
+            Debug.Assert(s_regexPatternString[0] == FileTypeNameStartChar);
         }
 
         // A full metadata name for a generic file-local type looks like:
