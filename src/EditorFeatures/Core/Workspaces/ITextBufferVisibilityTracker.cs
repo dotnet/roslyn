@@ -57,15 +57,15 @@ namespace Microsoft.CodeAnalysis.Workspaces
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    completionSource.SetCanceled(cancellationToken);
+                    completionSource.TrySetCanceled(cancellationToken);
                 }
                 else if (task.IsFaulted)
                 {
-                    completionSource.SetException(task.Exception!);
+                    completionSource.TrySetException(task.Exception!);
                 }
                 else
                 {
-                    completionSource.SetResult(true);
+                    completionSource.TrySetResult(true);
                 }
             }, cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 
