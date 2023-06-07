@@ -176,9 +176,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var results = result.ResultsBuilder;
 
-            // No need to check for overridden or hidden methods
-            // if the members were resolved as extension methods.
-            bool checkOverriddenOrHidden = !isExtensionMethodResolution;
+            // No need to check for overridden or hidden methods if the members were
+            // resolved as extension methods and the extension methods are defined in
+            // types derived from System.Object.
+            bool checkOverriddenOrHidden = !(isExtensionMethodResolution &&
+                members.All(static m => m.ContainingSymbol is NamedTypeSymbol { BaseTypeNoUseSiteDiagnostics.SpecialType: SpecialType.System_Object }));
 
             // First, attempt overload resolution not getting complete results.
             PerformMemberOverloadResolution(
