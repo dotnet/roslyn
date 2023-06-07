@@ -194,40 +194,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// Namespace name for top level types, empty string for nested types.
-        /// </summary>
-        public string NamespaceName
-        {
-            get
-            {
-                if (_namespaceName == null)
-                {
-                    Debug.Assert(_fullName != null);
-                    _typeName = MetadataHelpers.SplitQualifiedName(_fullName, out _namespaceName);
-                }
-
-                return _namespaceName;
-            }
-        }
-
-        /// <summary>
-        /// Name of the type without namespace prefix, but possibly with generic arity mangling present.
-        /// </summary>
-        public string TypeName
-        {
-            get
-            {
-                if (_typeName == null)
-                {
-                    Debug.Assert(_fullName != null);
-                    _typeName = MetadataHelpers.SplitQualifiedName(_fullName, out _namespaceName);
-                }
-
-                return _typeName;
-            }
-        }
-
+        /// <inheritdoc cref="NamespaceName"/>
         public ReadOnlyMemory<char> NamespaceNameMemory
         {
             get
@@ -242,6 +209,19 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Namespace name for top level types, empty string for nested types.
+        /// </summary>
+        public string NamespaceName
+        {
+            get
+            {
+                _namespaceName ??= _namespaceNameMemory.ToString();
+                return _namespaceName;
+            }
+        }
+
+        /// <inheritdoc cref="TypeName"/>
         public ReadOnlyMemory<char> TypeNameMemory
         {
             get
@@ -257,22 +237,18 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Name of the type without namespace prefix and without generic arity mangling.
+        /// Name of the type without namespace prefix, but possibly with generic arity mangling present.
         /// </summary>
-        public string UnmangledTypeName
+        public string TypeName
         {
             get
             {
-                if (_unmangledTypeName == null)
-                {
-                    // Can't assert anything about arity.  It may have been computed in UnmangledTypeNameMemory
-                    _unmangledTypeName = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(TypeName, out _inferredArity);
-                }
-
-                return _unmangledTypeName;
+                _typeName ??= _typeNameMemory.ToString();
+                return _typeName;
             }
         }
 
+        /// <inheritdoc cref="UnmangledTypeName"/>
         public ReadOnlyMemory<char> UnmangledTypeNameMemory
         {
             get
@@ -284,6 +260,26 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return _unmangledTypeNameMemory;
+            }
+        }
+
+        /// <summary>
+        /// Name of the type without namespace prefix and without generic arity mangling.
+        /// </summary>
+        public string UnmangledTypeName
+        {
+            get
+            {
+                if (_unmangledTypeName == null)
+                {
+                    // Common case optimization.  If the type name is not generic, then point directly at TypeName
+                    // instead of allocating a new string.
+                    _unmangledTypeName = UnmangledTypeNameMemory.Equals(TypeNameMemory)
+                        ? TypeName
+                        : UnmangledTypeNameMemory.ToString();
+                }
+
+                return _unmangledTypeName;
             }
         }
 
