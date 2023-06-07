@@ -48,20 +48,24 @@ namespace Microsoft.CodeAnalysis.Workspaces
             TimeSpan timeSpan,
             CancellationToken cancellationToken)
         {
+            // Because cancellation is both expensive, and a super common thing to occur while we're delaying the caller
+            // until visbility, we special case the implementation here and transition a TaskCompletionSource to the
+            // canceled state explicitly, rather than throwing a cancellation exception.
+
             var completionSource = new TaskCompletionSource<bool>();
             DelayWhileNonVisibleWorkerAsync().ContinueWith(task =>
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    completionSource.TrySetCanceled(cancellationToken);
+                    completionSource.SetCanceled(cancellationToken);
                 }
                 else if (task.IsFaulted)
                 {
-                    completionSource.TrySetException(task.Exception!);
+                    completionSource.SetException(task.Exception!);
                 }
                 else
                 {
-                    completionSource.TrySetResult(true);
+                    completionSource.SetResult(true);
                 }
             }, cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 
