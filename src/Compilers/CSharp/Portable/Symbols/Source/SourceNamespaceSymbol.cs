@@ -342,13 +342,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // no error
                                 break;
                             case (SourceNamedTypeSymbol { IsFileLocal: true }, _) or (_, SourceNamedTypeSymbol { IsFileLocal: true }):
-                                diagnostics.Add(ErrorCode.ERR_FileLocalDuplicateNameInNS, symbol.GetFirstLocationOrNone(), name.ToString(), @namespace);
+                                diagnostics.Add(ErrorCode.ERR_FileLocalDuplicateNameInNS, symbol.GetFirstLocationOrNone(), symbol.Name, @namespace);
                                 break;
                             case (SourceNamedTypeSymbol { IsPartial: true }, SourceNamedTypeSymbol { IsPartial: true }):
                                 diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.GetFirstLocationOrNone(), symbol);
                                 break;
                             default:
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.GetFirstLocationOrNone(), name.ToString(), @namespace);
+                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.GetFirstLocationOrNone(), symbol.Name, @namespace);
                                 break;
                         }
                     }
