@@ -506,7 +506,7 @@ ExitDecodeTypeName:
             }
 
             // Given a name corresponding to <unmangledName>`<arity>, extract the arity.
-            if (!tryScanArity(emittedTypeName[indexOfManglingChar..], out var arity))
+            if (!tryScanArity(emittedTypeName[indexOfManglingChar..], out short arity))
             {
                 suffixStartsAt = -1;
                 return 0;
