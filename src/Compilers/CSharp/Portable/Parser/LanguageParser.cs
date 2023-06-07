@@ -11664,8 +11664,7 @@ done:;
                         SyntaxKind.MinusToken or
                         SyntaxKind.AmpersandToken or
                         SyntaxKind.AsteriskToken or
-                        SyntaxKind.DotDotToken or
-                        SyntaxKind.OpenBracketToken // for `(int[])[1, 2, 3]` or `(List<int>?)[1, 2, 3]`
+                        SyntaxKind.DotDotToken
                             => true,
 
                         var tk
