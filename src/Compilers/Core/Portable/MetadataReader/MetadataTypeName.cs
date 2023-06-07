@@ -294,6 +294,7 @@ namespace Microsoft.CodeAnalysis
                 if (_inferredArity == -1)
                 {
                     Debug.Assert(_unmangledTypeNameMemory.Equals(default(ReadOnlyMemory<char>)));
+                    Debug.Assert(_unmangledTypeName == null);
                     _unmangledTypeNameMemory = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(TypeNameMemory, out _inferredArity);
                 }
 
