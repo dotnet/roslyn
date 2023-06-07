@@ -501,10 +501,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundAssignmentOperator BindNamedAttributeArgument(AttributeArgumentSyntax namedArgument, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(namedArgument.NameEquals is not null);
+            IdentifierNameSyntax nameSyntax = namedArgument.NameEquals.Name;
+
+            if (attributeType.IsErrorType())
+            {
+                var badLHS = BadExpression(nameSyntax, lookupResultKind: LookupResultKind.Empty);
+                var rhs = BindRValueWithoutTargetType(namedArgument.Expression, diagnostics);
+                return new BoundAssignmentOperator(namedArgument, badLHS, rhs, CreateErrorType());
+            }
+
             bool wasError;
             LookupResultKind resultKind;
             Symbol namedArgumentNameSymbol = BindNamedAttributeArgumentName(namedArgument, attributeType, diagnostics, out wasError, out resultKind);
-
             ReportDiagnosticsIfObsolete(diagnostics, namedArgumentNameSymbol, namedArgument, hasBaseReceiver: false);
 
             if (namedArgumentNameSymbol.Kind == SymbolKind.Property)
@@ -542,8 +551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // TODO: should we create an entry even if there are binding errors?
             var fieldSymbol = namedArgumentNameSymbol as FieldSymbol;
-            RoslynDebug.Assert(namedArgument.NameEquals is object);
-            IdentifierNameSyntax nameSyntax = namedArgument.NameEquals.Name;
             BoundExpression lvalue;
             if (fieldSymbol is object)
             {
