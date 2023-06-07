@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        public static bool Equals(ReadOnlySpan<char> x, ReadOnlyMemory<char> y)
+            => x.SequenceEqual(y.Span);
+
         public bool Equals(ReadOnlyMemory<char> x, ReadOnlyMemory<char> y)
             => x.Span.SequenceEqual(y.Span);
 

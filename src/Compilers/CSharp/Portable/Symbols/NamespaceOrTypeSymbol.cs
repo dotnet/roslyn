@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (emittedTypeName.InferredArity == named.Arity &&
                             named.MangleName &&
-                            named.MetadataName.AsSpan().SequenceEqual(emittedTypeName.TypeNameMemory.Span))
+                            ReadOnlyMemoryOfCharComparer.Equals(named.MetadataName.AsSpan(), emittedTypeName.TypeNameMemory))
                         {
                             if (namedType is not null)
                             {
