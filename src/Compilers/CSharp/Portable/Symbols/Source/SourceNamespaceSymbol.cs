@@ -338,8 +338,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)other != null)
                     {
-                        // To decide whether type declarations are duplicates, we need to access members only available on the source original definition symbols.
-                        Debug.Assert((object)nts.OriginalDefinition == nts && (object)other.OriginalDefinition == other);
+                        // To decide whether type declarations are duplicates, we need to access members which are only meaningful on source original definition symbols.
+                        Debug.Assert((object)nts?.OriginalDefinition == nts && (object)other.OriginalDefinition == other);
 
                         switch (nts, other)
                         {
