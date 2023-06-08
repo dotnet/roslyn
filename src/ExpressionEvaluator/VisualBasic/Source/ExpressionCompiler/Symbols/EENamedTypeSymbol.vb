@@ -348,6 +348,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
             Throw ExceptionUtilities.Unreachable
         End Sub

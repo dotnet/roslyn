@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 Logger.Log(FunctionId.Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange, KeyValueLogMessage.Create(m =>
                 {
-                    m["Kind"] = Enum.GetName(typeof(WorkspaceChangeEventArgs), args.Kind);
+                    m["Kind"] = Enum.GetName(typeof(WorkspaceChangeKind), args.Kind);
                 }));
 
                 Cancel();

@@ -162,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UsePatternMatchingAsAndNullCheck = nameof(UsePatternMatchingAsAndNullCheck);
         public const string UsePatternMatchingIsAndCastCheck = nameof(UsePatternMatchingIsAndCastCheck);
         public const string UsePatternMatchingIsAndCastCheckWithoutName = nameof(UsePatternMatchingIsAndCastCheckWithoutName);
+        public const string UsePrimaryConstructor = nameof(UsePrimaryConstructor);
         public const string UseRangeOperator = nameof(UseRangeOperator);
         public const string UseSimpleUsingStatement = nameof(UseSimpleUsingStatement);
         public const string UseSystemHashCode = nameof(UseSystemHashCode);

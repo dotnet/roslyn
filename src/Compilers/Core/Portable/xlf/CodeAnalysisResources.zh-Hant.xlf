@@ -129,6 +129,11 @@
         <target state="translated">參數 '{0}' 必須是此編譯或某些參考組件中的符號。</target>
         <note />
       </trans-unit>
+      <trans-unit id="LineCannotBeGreaterThanEnd">
+        <source>The requested line number {0} must be less than the number of lines {1}.</source>
+        <target state="new">The requested line number {0} must be less than the number of lines {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
         <target state="translated">預期的方法符號</target>

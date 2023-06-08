@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             bool snippetsSupported,
             CancellationToken cancellationToken)
         {
-            var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var completionChange = await completionService.GetChangeAsync(
                 document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);

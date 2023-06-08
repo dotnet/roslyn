@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             // VS-LSP support nested code action, but standard LSP doesn't.
             if (hasVsLspCapability)
             {
-                var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // Each suggested action set should have a unique set number, which is used for grouping code actions together.
                 var currentHighestSetNumber = 0;
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             LSP.Range selection,
             CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
 
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(

@@ -4,7 +4,7 @@
 
 namespace Roslyn.Utilities
 {
-    internal partial class BKTree
+    internal readonly partial struct BKTree
     {
         private readonly struct Edge
         {

@@ -1830,9 +1830,16 @@ namespace Microsoft.CodeAnalysis
         internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, [DisallowNull] ref DiagnosticBag? incoming, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(incoming is object);
-            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null, cancellationToken);
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming, cancellationToken);
             incoming.Free();
             incoming = null;
+            return result;
+        }
+
+        internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, DiagnosticBag incoming, CancellationToken cancellationToken)
+        {
+            RoslynDebug.Assert(incoming is object);
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null, cancellationToken);
             return result;
         }
 

@@ -145,13 +145,21 @@
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.CompareVersions" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.SingleError" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
 
-  <Target Name="_CheckRequiredMSBuildVersion" BeforeTargets="BeforeBuild">
+  <Target Name="_CheckRequiredMSBuildVersion" BeforeTargets="BeforeBuild" Condition="'$(DotNetBuildFromSource)' != 'true'">
     <CompareVersions Left="$(MSBuildVersion)" Right="$(MinimumMSBuildVersion)">
       <Output TaskParameter="Result" PropertyName="_VersionComparisonResult"/>
     </CompareVersions>
   
     <SingleError Text="The msbuild version $(MSBuildVersion) is below the minimum required version $(MinimumMSBuildVersion)"
                  Condition="$(_VersionComparisonResult) &lt; 0"/>
+  </Target> 
+
+  <Target Name="_CheckLongPathSupport" BeforeTargets="BeforeBuild" Condition="'$(MSBuildRuntimeType)' == 'Full'">
+    <PropertyGroup>
+      <_RoslynLongPathsEnabled>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\FileSystem', 'LongPathsEnabled', null, RegistryView.Registry64, RegistryView.Registry32))</_RoslynLongPathsEnabled>
+    </PropertyGroup>
+    
+    <Warning Condition="'$(_RoslynLongPathsEnabled)' != '1'" Text="Long paths are required for this project. Please run eng\enable-long-paths.reg" />
   </Target> 
 
   <!-- 

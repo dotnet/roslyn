@@ -5398,6 +5398,93 @@ System.Console.WriteLine(true)";
             EOF();
         }
 
+        [Fact]
+        public void ParseSwitchStatementWithUnclosedPatternAndArrow()
+        {
+            // No good error recovery strategy yet
+            UsingStatement("""
+                switch (obj)
+                {
+                    case { =>
+                        break;
+                    case { =>
+                        break;
+                }
+                """,
+                // (3,12): error CS1001: Identifier expected
+                //     case { =>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(3, 12),
+                // (4,14): error CS1513: } expected
+                //         break;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(4, 14),
+                // (4,14): error CS1003: Syntax error, ':' expected
+                //         break;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(4, 14),
+                // (5,12): error CS1001: Identifier expected
+                //     case { =>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(5, 12),
+                // (6,14): error CS1513: } expected
+                //         break;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(6, 14),
+                // (6,14): error CS1003: Syntax error, ':' expected
+                //         break;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(6, 14));
+
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "obj");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.PropertyPatternClause);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        M(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.PropertyPatternClause);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        M(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
         private sealed class TokenAndTriviaWalker : CSharpSyntaxWalker
         {
             public int Tokens;
