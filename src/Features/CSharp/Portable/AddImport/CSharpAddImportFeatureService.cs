@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private NameSyntax CreateNameSyntax(IReadOnlyList<string> namespaceParts, int index)
+        private static NameSyntax CreateNameSyntax(IReadOnlyList<string> namespaceParts, int index)
         {
             var part = namespaceParts[index];
             if (SyntaxFacts.GetKeywordKind(part) != SyntaxKind.None)
