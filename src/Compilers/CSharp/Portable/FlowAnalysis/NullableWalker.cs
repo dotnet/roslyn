@@ -10237,7 +10237,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Reinfer the return type of the node.Expression.GetEnumerator().Current property, so that if
                 // the collection changed nested generic types we pick up those changes.
-                reinferredGetEnumeratorMethod ??= (MethodSymbol)AsMemberOfType(convertedResult.Type, node.EnumeratorInfoOpt.GetEnumeratorInfo.Method);
+                if (reinferredGetEnumeratorMethod is null)
+                {
+                    TypeSymbol? getEnumeratorType;
+
+                    if (node.EnumeratorInfoOpt is { InlineArraySpanType: not WellKnownType.Unknown and var wellKnownSpan })
+                    {
+                        Debug.Assert(wellKnownSpan is WellKnownType.System_Span_T or WellKnownType.System_ReadOnlySpan_T);
+                        NamedTypeSymbol spanType = compilation.GetWellKnownType(wellKnownSpan);
+                        getEnumeratorType = spanType.Construct(ImmutableArray.Create(convertedResult.Type!.TryGetInlineArrayElementField()!.TypeWithAnnotations));
+                    }
+                    else
+                    {
+                        getEnumeratorType = convertedResult.Type;
+                    }
+
+                    reinferredGetEnumeratorMethod = (MethodSymbol)AsMemberOfType(getEnumeratorType, node.EnumeratorInfoOpt.GetEnumeratorInfo.Method);
+                }
+
                 var enumeratorReturnType = GetReturnTypeWithState(reinferredGetEnumeratorMethod);
 
                 if (enumeratorReturnType.State != NullableFlowState.NotNull)

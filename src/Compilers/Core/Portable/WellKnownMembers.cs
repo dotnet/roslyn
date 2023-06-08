@@ -1074,6 +1074,15 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
+                // System_Runtime_CompilerServices_Unsafe__Add_T
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_Unsafe - WellKnownType.ExtSentinel), // DeclaringTypeId
+                1,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, 0,                 // Return type
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, 0,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
                 // System_Runtime_CompilerServices_Unsafe__As_T
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_Unsafe - WellKnownType.ExtSentinel), // DeclaringTypeId
@@ -4178,6 +4187,7 @@ namespace Microsoft.CodeAnalysis
                 "get_OffsetToStringData",                   // System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData
                 "GetSubArray",                              // System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T
                 "EnsureSufficientExecutionStack",           // System_Runtime_CompilerServices_RuntimeHelpers__EnsureSufficientExecutionStack
+                "Add",                                      // System_Runtime_CompilerServices_Unsafe__Add_T
                 "As",                                       // System_Runtime_CompilerServices_Unsafe__As_T,
                 "AsRef",                                    // System_Runtime_CompilerServices_Unsafe__AsRef_T,
                 "Capture",                                  // System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture

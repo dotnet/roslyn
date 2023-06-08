@@ -211,7 +211,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // createSpan(ref receiver, length)[index]
 
                 result = _factory.Call(_factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true), getItemOrSliceHelper, VisitExpression(node.Argument));
-                // PROTOTYPE(InlineArrays): Use specialized helper to get to the first item without creating a span.
+
+                // PROTOTYPE(InlineArrays): If we know at compile time that the index is within bounds of the array,
+                //                          we can use InlineArrayElementRef/InlineArrayElementRefReadOnly helpers and
+                //                          avoid span creation.
+                //                          Also, if the index is 0, we can optimize the code even more by using a helper
+                //                          that doesn't take an offset.
             }
             else
             {
@@ -224,6 +229,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Argument, out PatternIndexOffsetLoweringStrategy strategy);
                     BoundExpression integerArgument = makePatternIndexOffsetExpression(makeOffsetInput, length, strategy);
                     result = _factory.Call(_factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true), getItemOrSliceHelper, integerArgument);
+
+                    // PROTOTYPE(InlineArrays): If we know at compile time that the index is within bounds of the array,
+                    //                          we can use InlineArrayElementRef/InlineArrayElementRefReadOnly helpers and
+                    //                          avoid span creation.
+                    //                          Also, if the index is 0, we can optimize the code even more by using a helper
+                    //                          that doesn't take an offset.
                 }
                 else
                 {

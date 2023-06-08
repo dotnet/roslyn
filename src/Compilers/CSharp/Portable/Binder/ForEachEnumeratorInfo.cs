@@ -15,6 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // Types identified by the algorithm in the spec (8.8.4).
         public readonly TypeSymbol CollectionType;
+
+        public readonly WellKnownType InlineArraySpanType;
+        public readonly bool InlineArrayUsedAsValue;
+
         // public readonly TypeSymbol EnumeratorType; // redundant - return type of GetEnumeratorMethod
         public readonly TypeWithAnnotations ElementTypeWithAnnotations;
         public TypeSymbol ElementType => ElementTypeWithAnnotations.Type;
@@ -45,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ForEachEnumeratorInfo(
             TypeSymbol collectionType,
+            WellKnownType inlineArraySpanType,
+            bool inlineArrayUsedAsValue,
             TypeWithAnnotations elementType,
             MethodArgumentInfo getEnumeratorInfo,
             MethodSymbol currentPropertyGetter,
@@ -63,8 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)currentPropertyGetter != null, $"Field '{nameof(currentPropertyGetter)}' cannot be null");
             Debug.Assert((object)moveNextInfo != null, $"Field '{nameof(moveNextInfo)}' cannot be null");
             Debug.Assert(patternDisposeInfo == null || needsDisposal);
+            Debug.Assert(inlineArraySpanType is WellKnownType.Unknown or WellKnownType.System_Span_T or WellKnownType.System_ReadOnlySpan_T);
+            Debug.Assert(inlineArraySpanType == WellKnownType.Unknown ||
+                         (collectionType.HasInlineArrayAttribute(out _) && collectionType.TryGetInlineArrayElementField() is FieldSymbol elementField && elementType.Equals(elementField.TypeWithAnnotations, TypeCompareKind.ConsiderEverything)));
+            Debug.Assert(!inlineArrayUsedAsValue || inlineArraySpanType != WellKnownType.Unknown);
 
             this.CollectionType = collectionType;
+            this.InlineArraySpanType = inlineArraySpanType;
+            this.InlineArrayUsedAsValue = inlineArrayUsedAsValue;
             this.ElementTypeWithAnnotations = elementType;
             this.GetEnumeratorInfo = getEnumeratorInfo;
             this.CurrentPropertyGetter = currentPropertyGetter;
@@ -82,6 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct Builder
         {
             public TypeSymbol CollectionType;
+            public bool ViaExtensionMethod;
+            public WellKnownType InlineArraySpanType;
+            public bool InlineArrayUsedAsValue;
             public TypeWithAnnotations ElementTypeWithAnnotations;
             public TypeSymbol ElementType => ElementTypeWithAnnotations.Type;
 
@@ -108,6 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new ForEachEnumeratorInfo(
                     CollectionType,
+                    InlineArraySpanType,
+                    InlineArrayUsedAsValue,
                     ElementTypeWithAnnotations,
                     GetEnumeratorInfo,
                     CurrentPropertyGetter,

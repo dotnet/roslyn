@@ -158,6 +158,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
         System_Runtime_CompilerServices_RuntimeHelpers__EnsureSufficientExecutionStack,
 
+        System_Runtime_CompilerServices_Unsafe__Add_T,
         System_Runtime_CompilerServices_Unsafe__As_T,
         System_Runtime_CompilerServices_Unsafe__AsRef_T,
 

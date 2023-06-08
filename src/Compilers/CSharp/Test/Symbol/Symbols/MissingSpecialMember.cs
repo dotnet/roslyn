@@ -1010,6 +1010,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle:
                     case WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan:
                     case WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan:
+                    case WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T:
                     case WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T:
                     case WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T:
                         // Not yet in the platform.
