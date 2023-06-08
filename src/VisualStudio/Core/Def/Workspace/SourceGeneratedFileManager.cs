@@ -118,6 +118,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 File.WriteAllText(temporaryFilePath, "");
             }
 
+            // Normalize file path (hint name can contain mix of slashes).
+            temporaryFilePath = Path.GetFullPath(temporaryFilePath);
+
             return async cancellationToken =>
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -149,13 +152,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             identity = default;
 
+            // Find GUID in "temporary directory/GUID/path/to/file.cs".
             if (!filePath.StartsWith(_temporaryDirectory))
             {
                 return false;
             }
 
-            var fileInfo = new FileInfo(filePath);
-            return Guid.TryParse(fileInfo.Directory.Name, out var guid) &&
+            var slice = filePath.AsSpan()[_temporaryDirectory.Length..];
+            if (slice.IsEmpty || !PathUtilities.IsDirectorySeparator(slice[0]))
+            {
+                return false;
+            }
+            slice = slice[1..];
+
+            var separatorIndex = slice.IndexOfAny(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            if (separatorIndex < 0)
+            {
+                return false;
+            }
+
+            var guidDirName = slice[..separatorIndex];
+            return Guid.TryParse(guidDirName.ToString(), out var guid) &&
                 _directoryInfoOnDiskByContainingDirectoryId.TryGetValue(guid, out identity);
         }
 
