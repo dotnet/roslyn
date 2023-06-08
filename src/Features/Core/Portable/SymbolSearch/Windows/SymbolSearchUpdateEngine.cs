@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 select symbol);
         }
 
-        private PackageWithTypeResult CreateResult(AddReferenceDatabase database, Symbol type)
+        private static PackageWithTypeResult CreateResult(AddReferenceDatabase database, Symbol type)
         {
             var nameParts = ArrayBuilder<string>.GetInstance();
             GetFullName(nameParts, type.FullName.Parent);
