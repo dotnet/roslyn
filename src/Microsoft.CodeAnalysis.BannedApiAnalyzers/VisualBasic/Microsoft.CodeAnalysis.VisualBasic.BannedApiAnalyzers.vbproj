@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <MicrosoftCodeAnalysisVersion>2.9.0</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForBannedApiAnalyzers)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="$(MicrosoftCodeAnalysisVersion)" />

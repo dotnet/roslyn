@@ -7,7 +7,7 @@
       Restore would conclude that there is a cyclic dependency between us and the Microsoft.CodeAnalysis.BannedApiAnalyzer package.
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
-    <MicrosoftCodeAnalysisVersion>2.9.0</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForBannedApiAnalyzers)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\Roslyn.Diagnostics.Analyzers\Core\RoslynDiagnosticIds.cs" Link="RoslynDiagnosticIds.cs" />

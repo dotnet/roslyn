@@ -8,6 +8,7 @@
       Restore would conclude that there is a cyclic dependency between Microsoft.CodeAnalysis and Microsoft.CodeAnalysis.Analyzers.
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
+    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\Microsoft.CodeAnalysis.BannedApiAnalyzers\Core\DocumentationCommentIdParser.cs" Link="DocumentationCommentIdParser.cs" />

@@ -2,8 +2,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <MicrosoftCodeAnalysisVersion>2.9.0</MicrosoftCodeAnalysisVersion>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
+    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests" />

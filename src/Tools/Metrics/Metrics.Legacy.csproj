@@ -6,6 +6,8 @@
     <DefineConstants>$(DefineConstants),LEGACY_CODE_METRICS_MODE</DefineConstants>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <!-- Excluded from source build. Otherwise this should be conditionalized to only be set when DotNetBuildFromSource != true -->
+    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForToolsAndUtilities)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
   <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
