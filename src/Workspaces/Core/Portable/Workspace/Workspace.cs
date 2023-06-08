@@ -2118,11 +2118,6 @@ namespace Microsoft.CodeAnalysis
             this.OnAnalyzerConfigDocumentTextLoaderChanged(id, TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())));
         }
 
-        private void A()
-        {
-            Console.WriteLine();
-        }
-
         #endregion
 
         #region Checks and Asserts

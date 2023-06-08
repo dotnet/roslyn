@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private readonly void AddBaseTypeNameParts(
+            private static void AddBaseTypeNameParts(
                 MetadataReader metadataReader,
                 EntityHandle baseTypeOrInterfaceHandle,
                 List<string> simpleNames)
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private readonly void AddTypeDefinitionNameParts(
+            private static void AddTypeDefinitionNameParts(
                 MetadataReader metadataReader,
                 TypeDefinitionHandle handle,
                 List<string> simpleNames)
@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private readonly void AddNamespaceParts(
+            private static void AddNamespaceParts(
                 MetadataReader metadataReader,
                 NamespaceDefinitionHandle namespaceHandle,
                 List<string> simpleNames)
