@@ -544,9 +544,9 @@ class C
                 // (6,19): error CS0027: Keyword 'this' is not available in the current context
                 //         delegate*<this string, void> p2,
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 19),
-                // (7,19): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
+                // (7,19): error CS9501: 'readonly' modifier must be specified after 'ref'.
                 //         delegate*<readonly ref string, void> p3,
-                Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(7, 19),
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(7, 19),
                 // (8,22): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
                 //         delegate*<in out string, void> p4,
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "in").WithLocation(8, 22),
@@ -1913,9 +1913,9 @@ unsafe class C
                 // (8,19): error CS8808: 'in' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                 //         delegate*<in int> ptr2;
                 Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "in").WithArguments("in").WithLocation(8, 19),
-                // (9,23): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
+                // (9,23): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         delegate*<ref readonly int, void> ptr3;
-                Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(9, 23),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(9, 23),
                 // (10,19): error CS1536: Invalid parameter type 'void'
                 //         delegate*<void, void> ptr4;
                 Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(10, 19),

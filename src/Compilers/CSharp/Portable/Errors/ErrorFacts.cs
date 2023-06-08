@@ -2256,7 +2256,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_UnscopedScoped:
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
                 case ErrorCode.ERR_FilePathCannotBeConvertedToUtf8:
-                case ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn:
                 case ErrorCode.ERR_FileLocalDuplicateNameInNS:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
@@ -2311,6 +2310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadCaseInSwitchArm:
                 case ErrorCode.ERR_ConstantValueOfTypeExpected:
                 case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny:
+                case ErrorCode.ERR_RefReadOnlyWrongOrdering:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

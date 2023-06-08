@@ -797,17 +797,7 @@ ref @scoped F4() { }";
         public void Method_12(LanguageVersion langVersion)
         {
             string source = "void F(scoped ref readonly int a) { }";
-            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,19): error CS1031: Type expected
-                // void F(scoped ref readonly int a) { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(1, 19),
-                // (1,19): error CS1001: Identifier expected
-                // void F(scoped ref readonly int a) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(1, 19),
-                // (1,19): error CS1003: Syntax error, ',' expected
-                // void F(scoped ref readonly int a) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(1, 19)
-                );
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -823,15 +813,6 @@ ref @scoped F4() { }";
                     {
                         N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
                         N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
