@@ -77,45 +77,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext, INamedTypeSymbol? expressionType)
         {
             var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferLocalOverAnonymousFunction;
+            // Bail immediately if the user has disabled this feature.
             if (!styleOption.Value)
-            {
-                // Bail immediately if the user has disabled this feature.
                 return;
-            }
 
             var severity = styleOption.Notification.Severity;
             var anonymousFunction = (AnonymousFunctionExpressionSyntax)syntaxContext.Node;
 
             var semanticModel = syntaxContext.SemanticModel;
             if (!CheckForPattern(anonymousFunction, out var localDeclaration))
-            {
                 return;
-            }
 
             if (localDeclaration.Declaration.Variables.Count != 1)
-            {
                 return;
-            }
 
             if (localDeclaration.Parent is not BlockSyntax block)
-            {
                 return;
-            }
 
             // If there are compiler error on the declaration we can't reliably
             // tell that the refactoring will be accurate, so don't provide any
             // code diagnostics
             if (localDeclaration.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
-            {
                 return;
-            }
 
             var cancellationToken = syntaxContext.CancellationToken;
             var local = semanticModel.GetDeclaredSymbol(localDeclaration.Declaration.Variables[0], cancellationToken);
             if (local == null)
-            {
                 return;
-            }
 
             var delegateType = semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType as INamedTypeSymbol;
             if (!delegateType.IsDelegateType() ||
@@ -127,6 +115,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionType, local, block, anonymousFunction, out var referenceLocations, cancellationToken))
                 return;
+
+            if (localDeclaration.Declaration.Type.IsVar)
+            {
+                var options = semanticModel.SyntaxTree.Options;
+                if (options.LanguageVersion() < LanguageVersion.CSharp10)
+                    return;
+            }
 
             // Looks good!
             var additionalLocations = ImmutableArray.Create(
@@ -190,15 +185,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             [NotNullWhen(true)] out LocalDeclarationStatementSyntax? localDeclaration)
         {
             // Type t = <anonymous function>
-            if (anonymousFunction.IsParentKind(SyntaxKind.EqualsValueClause) &&
-                anonymousFunction.Parent.IsParentKind(SyntaxKind.VariableDeclarator) &&
-                anonymousFunction.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                anonymousFunction.Parent.Parent.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, out localDeclaration))
-            {
-                if (!localDeclaration.Declaration.Type.IsVar)
+            if (anonymousFunction is
                 {
-                    return true;
-                }
+                    Parent: EqualsValueClauseSyntax
+                    {
+                        Parent: VariableDeclaratorSyntax
+                        {
+                            Parent: VariableDeclarationSyntax
+                            {
+                                Parent: LocalDeclarationStatementSyntax declaration,
+                            }
+                        }
+                    }
+                })
+            {
+                localDeclaration = declaration;
+                return true;
             }
 
             localDeclaration = null;
@@ -211,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         {
             // Check all the references to the anonymous function and disallow the conversion if
             // they're used in certain ways.
-            var references = ArrayBuilder<Location>.GetInstance();
+            using var _ = ArrayBuilder<Location>.GetInstance(out var references);
             referenceLocations = ImmutableArray<Location>.Empty;
             var anonymousFunctionStart = anonymousFunction.SpanStart;
             foreach (var descendentNode in block.DescendantNodes())
@@ -285,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 }
             }
 
-            referenceLocations = references.ToImmutableAndFree();
+            referenceLocations = references.ToImmutableAndClear();
             return true;
         }
 

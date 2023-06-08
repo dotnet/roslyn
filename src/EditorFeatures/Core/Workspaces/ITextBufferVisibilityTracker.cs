@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             CancellationToken cancellationToken)
         {
             // Because cancellation is both expensive, and a super common thing to occur while we're delaying the caller
-            // until visbility, we special case the implementation here and transition a TaskCompletionSource to the
+            // until visibility, we special case the implementation here and transition a TaskCompletionSource to the
             // canceled state explicitly, rather than throwing a cancellation exception.
 
             var completionSource = new TaskCompletionSource<bool>();
@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.Workspaces
                 {
                     completionSource.TrySetResult(true);
                 }
-            }, cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            }, cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
 
             return completionSource.Task;
 
-            // Normal delay logic, except that this does not throw in the event of cancellation, but instead returns 
+            // Normal delay logic, except that this does not throw in the event of cancellation, but instead returns
             // gracefully.  The above task continuation logic then ensures we return a canceled task without needing
             // exceptions.
             async Task DelayWhileNonVisibleWorkerAsync()
