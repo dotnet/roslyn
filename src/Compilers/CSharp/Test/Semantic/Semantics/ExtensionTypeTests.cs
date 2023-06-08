@@ -11417,6 +11417,23 @@ implicit extension E for object
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_Nameof_Overloads()
+    {
+        var src = """
+System.Console.Write($"{nameof(object.M)} ");
+
+implicit extension E for object
+{
+    public static void M() { }
+    public static void M(int i) { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "M");
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_Nameof_SimpleName()
     {
         var src = """
@@ -14315,5 +14332,52 @@ implicit extension E for C
             //         _ = c.member;
             Diagnostic(ErrorCode.ERR_AmbigMember, "member").WithArguments("C.member", "C.member").WithLocation(5, 15)
             );
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ParameterCapturing_054_ColorColor_QualifiedName_Type_WithExtension()
+    {
+        var source = @"
+class Color
+{
+    public class C1(Color Color)
+    {
+        public object M1(object input)
+        {
+            if (input is Color.Red)
+            {
+                return ""Red"";
+            }
+
+            return ""Blue"";
+        }
+    }
+}
+
+implicit extension E for Color
+{
+    public class Red;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(default);
+        object val = c1.M1(new Color.Red());
+        System.Console.Write(val);
+    }
+}
+";
+        var comp = CreateCompilation(new[] { source, CompilerFeatureRequiredAttribute },
+            options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: @"Red", verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // 0.cs(4,27): warning CS9113: Parameter 'Color' is unread.
+            //     public class C1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(4, 27)
+            );
+
+        Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
     }
 }
