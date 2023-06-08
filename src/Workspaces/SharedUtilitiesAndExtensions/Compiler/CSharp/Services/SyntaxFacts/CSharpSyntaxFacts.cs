@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             return constructors;
         }
 
-        private void AppendConstructors(SyntaxList<MemberDeclarationSyntax> members, List<SyntaxNode> constructors, CancellationToken cancellationToken)
+        private static void AppendConstructors(SyntaxList<MemberDeclarationSyntax> members, List<SyntaxNode> constructors, CancellationToken cancellationToken)
         {
             foreach (var member in members)
             {

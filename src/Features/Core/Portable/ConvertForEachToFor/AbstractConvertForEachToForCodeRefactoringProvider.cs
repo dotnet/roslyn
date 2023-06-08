@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             }
         }
 
-        private IOperation RemoveImplicitConversion(IOperation collection)
+        private static IOperation RemoveImplicitConversion(IOperation collection)
         {
             return (collection is IConversionOperation conversion && conversion.IsImplicit)
                 ? RemoveImplicitConversion(conversion.Operand) : collection;
