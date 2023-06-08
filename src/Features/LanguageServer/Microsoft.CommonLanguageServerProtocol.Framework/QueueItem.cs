@@ -147,10 +147,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
             }
             else
             {
-                throw new NotImplementedException(
-                    $"Unrecognized {nameof(IMethodHandler)} implementation {_handler.GetType()}. " +
-                    $"TRequest is {typeof(TRequest)}. " +
-                    $"TResponse is {typeof(TResponse)}.");
+                throw new NotImplementedException($"Unrecognized {nameof(IMethodHandler)} implementation {_handler.GetType()}. ");
             }
         }
         catch (OperationCanceledException ex)

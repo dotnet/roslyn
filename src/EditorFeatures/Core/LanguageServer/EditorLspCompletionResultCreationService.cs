@@ -20,7 +20,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     [ExportWorkspaceService(typeof(ILspCompletionResultCreationService), ServiceLayer.Editor), Shared]
-    internal sealed class EditorLspCompletionResultCreationService : ILspCompletionResultCreationService
+    internal sealed class EditorLspCompletionResultCreationService : AbstractLspCompletionResultCreationService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,17 +28,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
         }
 
-        public async Task<LSP.CompletionItem> CreateAsync(
+        protected override async Task<LSP.CompletionItem> CreateItemAndPopulateTextEditAsync(
             Document document,
             SourceText documentText,
             bool snippetsSupported,
             bool itemDefaultsSupported,
             TextSpan defaultSpan,
+            string typedText,
             CompletionItem item,
+            CompletionService completionService,
             CancellationToken cancellationToken)
         {
             var lspItem = new LSP.VSInternalCompletionItem
             {
+                Label = item.GetEntireDisplayText(),
                 Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId())
             };
 
@@ -55,37 +58,43 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             else
             {
-                await DefaultLspCompletionResultCreationService.PopulateTextEditAsync(
-                    document, documentText, itemDefaultsSupported, defaultSpan, item, lspItem, cancellationToken).ConfigureAwait(false);
+                await GetChangeAndPopulateSimpleTextEditAsync(
+                    document,
+                    documentText,
+                    itemDefaultsSupported,
+                    defaultSpan,
+                    item,
+                    lspItem,
+                    completionService,
+                    cancellationToken).ConfigureAwait(false);
             }
 
             return lspItem;
         }
 
-        public async Task<LSP.CompletionItem> ResolveAsync(
-            LSP.CompletionItem completionItem,
-            CompletionItem selectedItem,
+        public override async Task<LSP.CompletionItem> ResolveAsync(
+            LSP.CompletionItem lspItem,
+            CompletionItem roslynItem,
+            LSP.TextDocumentIdentifier textDocumentIdentifier,
             Document document,
-            LSP.ClientCapabilities clientCapabilities,
+            CompletionCapabilityHelper capabilityHelper,
             CompletionService completionService,
             CompletionOptions completionOptions,
             SymbolDescriptionOptions symbolDescriptionOptions,
             CancellationToken cancellationToken)
         {
-            var description = await completionService.GetDescriptionAsync(document, selectedItem, completionOptions, symbolDescriptionOptions, cancellationToken).ConfigureAwait(false)!;
+            var description = await completionService.GetDescriptionAsync(document, roslynItem, completionOptions, symbolDescriptionOptions, cancellationToken).ConfigureAwait(false)!;
             if (description != null)
             {
-                var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
-                if (supportsVSExtensions)
+                if (capabilityHelper.SupportVSInternalClientCapabilities)
                 {
-                    var vsCompletionItem = (LSP.VSInternalCompletionItem)completionItem;
+                    var vsCompletionItem = (LSP.VSInternalCompletionItem)lspItem;
                     vsCompletionItem.Description = new ClassifiedTextElement(description.TaggedParts
                         .Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
                 }
                 else
                 {
-                    var clientSupportsMarkdown = clientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat?.Contains(LSP.MarkupKind.Markdown) == true;
-                    completionItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, clientSupportsMarkdown);
+                    lspItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, capabilityHelper.SupportsMarkdownDocumentation);
                 }
             }
 
@@ -94,64 +103,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // the LSP spec, but is currently supported by the VS client anyway. Once the VS client
             // adheres to the spec, this logic will need to change and VS will need to provide
             // official support for TextEdit resolution in some form.
-            if (selectedItem.IsComplexTextEdit)
+            if (roslynItem.IsComplexTextEdit)
             {
-                Contract.ThrowIfTrue(completionItem.InsertText != null);
-                Contract.ThrowIfTrue(completionItem.TextEdit != null);
+                Contract.ThrowIfTrue(lspItem.InsertText != null);
+                Contract.ThrowIfTrue(lspItem.TextEdit != null);
 
-                var snippetsSupported = clientCapabilities?.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var (edit, _, _) = await GenerateComplexTextEditAsync(
+                    document, completionService, roslynItem, capabilityHelper.SupportSnippets, insertNewPositionPlaceholder: true, cancellationToken).ConfigureAwait(false);
 
-                completionItem.TextEdit = await GenerateTextEditAsync(
-                    document, completionService, selectedItem, snippetsSupported, cancellationToken).ConfigureAwait(false);
+                lspItem.TextEdit = edit;
             }
 
-            return completionItem;
-        }
-
-        // Internal for testing
-        internal static async Task<LSP.TextEdit> GenerateTextEditAsync(
-            Document document,
-            CompletionService completionService,
-            CompletionItem selectedItem,
-            bool snippetsSupported,
-            CancellationToken cancellationToken)
-        {
-            var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-
-            var completionChange = await completionService.GetChangeAsync(
-                document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var completionChangeSpan = completionChange.TextChange.Span;
-            var newText = completionChange.TextChange.NewText;
-            Contract.ThrowIfNull(newText);
-
-            // If snippets are supported, that means we can move the caret (represented by $0) to
-            // a new location.
-            if (snippetsSupported)
-            {
-                var caretPosition = completionChange.NewPosition;
-                if (caretPosition.HasValue)
-                {
-                    // caretPosition is the absolute position of the caret in the document.
-                    // We want the position relative to the start of the snippet.
-                    var relativeCaretPosition = caretPosition.Value - completionChangeSpan.Start;
-
-                    // The caret could technically be placed outside the bounds of the text
-                    // being inserted. This situation is currently unsupported in LSP, so in
-                    // these cases we won't move the caret.
-                    if (relativeCaretPosition >= 0 && relativeCaretPosition <= newText.Length)
-                    {
-                        newText = newText.Insert(relativeCaretPosition, "$0");
-                    }
-                }
-            }
-
-            var textEdit = new LSP.TextEdit()
-            {
-                NewText = newText,
-                Range = ProtocolConversions.TextSpanToRange(completionChangeSpan, documentText),
-            };
-
-            return textEdit;
+            return lspItem;
         }
     }
 }
