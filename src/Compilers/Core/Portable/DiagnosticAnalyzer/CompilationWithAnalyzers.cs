@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Compilation _compilation;
         private readonly AnalysisScope _compilationAnalysisScope;
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
+        private readonly ImmutableArray<DiagnosticSuppressor> _suppressors;
         private readonly CompilationWithAnalyzersOptions _analysisOptions;
         private readonly CancellationToken _cancellationToken;
 
@@ -95,6 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 .WithEventQueue(new AsyncQueue<CompilationEvent>());
             _compilation = compilation;
             _analyzers = analyzers;
+            _suppressors = analyzers.OfType<DiagnosticSuppressor>().ToImmutableArrayOrEmpty();
             _analysisOptions = analysisOptions;
             _cancellationToken = cancellationToken;
 
@@ -296,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Create and attach the driver to compilation.
                 var analysisScope = AnalysisScope.Create(compilation, analyzers, this);
-                using var driver = await CreateAndInitializeDriverAsync(compilation, _analysisOptions, analysisScope, categorizeDiagnostics: false, cancellationToken).ConfigureAwait(false);
+                using var driver = await CreateAndInitializeDriverAsync(compilation, _analysisOptions, analysisScope, _suppressors, categorizeDiagnostics: false, cancellationToken).ConfigureAwait(false);
                 driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, usingPrePopulatedEventQueue: false, cancellationToken);
 
                 // Force compilation diagnostics and wait for analyzer execution to complete.
@@ -354,10 +356,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Compilation compilation,
             CompilationWithAnalyzersOptions analysisOptions,
             AnalysisScope analysisScope,
+            ImmutableArray<DiagnosticSuppressor> suppressors,
             bool categorizeDiagnostics,
             CancellationToken cancellationToken)
         {
-            var driver = compilation.CreateAnalyzerDriver(analysisScope.Analyzers, new AnalyzerManager(analysisScope.Analyzers), severityFilter: SeverityFilter.None);
+            var analyzers = analysisScope.Analyzers;
+            if (!suppressors.IsEmpty)
+            {
+                // Always provide all the diagnostic suppressors to the driver.
+                // We also need to ensure we are not passing any duplicate suppressor instances.
+                var suppressorsInAnalysisScope = analysisScope.Analyzers.OfType<DiagnosticSuppressor>().ToImmutableHashSet();
+                analyzers = analyzers.AddRange(suppressors.Where(suppressor => !suppressorsInAnalysisScope.Contains(suppressor)));
+            }
+
+            var driver = compilation.CreateAnalyzerDriver(analyzers, new AnalyzerManager(analyzers), severityFilter: SeverityFilter.None);
             driver.Initialize(compilation, analysisOptions, new CompilationData(compilation), analysisScope, categorizeDiagnostics, trackSuppressedDiagnosticIds: false, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             await driver.WhenInitializedTask.ConfigureAwait(false);
@@ -672,7 +684,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     : _compilation.WithSemanticModelProvider(new CachingSemanticModelProvider()).WithEventQueue(new AsyncQueue<CompilationEvent>());
 
                 // Get the analyzer driver to execute analysis.
-                using var driver = await CreateAndInitializeDriverAsync(compilation, _analysisOptions, analysisScope, categorizeDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                using var driver = await CreateAndInitializeDriverAsync(compilation, _analysisOptions, analysisScope, _suppressors, categorizeDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
                 // Driver must have been initialized.
                 Debug.Assert(driver.IsInitialized);
@@ -1215,7 +1227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private async Task<AnalyzerActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
             var analysisScope = _compilationAnalysisScope.WithAnalyzers(ImmutableArray.Create(analyzer), this);
-            using var driver = await CreateAndInitializeDriverAsync(_compilation, _analysisOptions, analysisScope, categorizeDiagnostics: true, cancellationToken).ConfigureAwait(false);
+            using var driver = await CreateAndInitializeDriverAsync(_compilation, _analysisOptions, analysisScope, _suppressors, categorizeDiagnostics: true, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             return await driver.GetAnalyzerActionCountsAsync(analyzer, _compilation.Options, analysisScope, cancellationToken).ConfigureAwait(false);
         }

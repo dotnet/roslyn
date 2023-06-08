@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
         public readonly LoadTextOptions LoadTextOptions;
 
         // Checksums for this solution state
-        private readonly ValueSource<DocumentStateChecksums> _lazyChecksums;
+        private readonly AsyncLazy<DocumentStateChecksums> _lazyChecksums;
 
         public DocumentInfo.DocumentAttributes Attributes { get; }
 

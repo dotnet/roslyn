@@ -78,6 +78,16 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<T> InterlockedInitialize<T, TArg>(ref ImmutableArray<T> target, Func<TArg, ImmutableArray<T>> createArray, TArg arg)
         {
+            if (!target.IsDefault)
+            {
+                return target;
+            }
+
+            return InterlockedInitialize_Slow(ref target, createArray, arg);
+        }
+
+        private static ImmutableArray<T> InterlockedInitialize_Slow<T, TArg>(ref ImmutableArray<T> target, Func<TArg, ImmutableArray<T>> createArray, TArg arg)
+        {
             ImmutableInterlocked.Update(
                 ref target,
                 static (current, tuple) =>
