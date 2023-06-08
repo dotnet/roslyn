@@ -5,7 +5,9 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
@@ -26,6 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             CompletionOptionsStorage.ShowNameSuggestions,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             CompletionOptionsStorage.ProvideRegexCompletions,
+            CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
             // Go to definition
             MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
@@ -44,6 +47,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             InlineHintsOptionsStorage.EnabledForTypes,
             InlineHintsOptionsStorage.ForImplicitVariableTypes,
             InlineHintsOptionsStorage.ForLambdaParameterTypes,
-            InlineHintsOptionsStorage.ForImplicitObjectCreation);
+            InlineHintsOptionsStorage.ForImplicitObjectCreation,
+            // EditorConfig
+            FormattingOptions2.TabSize,
+            FormattingOptions2.IndentationSize,
+            FormattingOptions2.UseTabs,
+            FormattingOptions2.NewLine,
+            FormattingOptions2.InsertFinalNewLine);
     }
 }
