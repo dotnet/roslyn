@@ -310,17 +310,6 @@ stages:
         ArtifactName: 'PackageArtifacts'
       condition: succeeded()
 
-    # Publish our language server executables as an artifact.
-    - task: NuGetCommand@2
-      displayName: Publish Language Server Executables
-      inputs:
-        command: push
-        packagesToPush: '$(Build.SourcesDirectory)\artifacts\LanguageServer\*.nupkg'
-        allowPackageConflicts: false
-        nuGetFeedType: external
-        publishFeedCredentials: 'DevDiv - VS package feed'
-      condition: succeeded()
-
     # Publish language server package
     - powershell: Write-Host "##vso[task.setvariable variable=NPMFileName]$((ls -file $(Build.SourcesDirectory)\artifacts\packages\Release\NPM\ | select -First 1).FullName)"
       displayName: Setting NPM Package Variable
