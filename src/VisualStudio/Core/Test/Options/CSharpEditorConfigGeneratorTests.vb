@@ -132,6 +132,7 @@ csharp_prefer_braces = true
 csharp_prefer_simple_using_statement = true
 csharp_style_namespace_declarations = block_scoped
 csharp_style_prefer_method_group_conversion = true
+csharp_style_prefer_primary_constructors = true
 csharp_style_prefer_top_level_statements = true
 
 # Expression-level preferences
@@ -375,6 +376,7 @@ csharp_prefer_braces = true
 csharp_prefer_simple_using_statement = true
 csharp_style_namespace_declarations = block_scoped
 csharp_style_prefer_method_group_conversion = true
+csharp_style_prefer_primary_constructors = true
 csharp_style_prefer_top_level_statements = true
 
 # Expression-level preferences

@@ -387,6 +387,11 @@
         <target state="translated">使用模式比對 (可能會變更程式碼的含義)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_primary_constructor">
+        <source>Use primary constructor</source>
+        <target state="new">Use primary constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="translated">使用範圍運算子</target>

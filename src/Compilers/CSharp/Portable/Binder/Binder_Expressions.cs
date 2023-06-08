@@ -5267,7 +5267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private static void CheckRequiredMembersInObjectInitializer(
+        internal static void CheckRequiredMembersInObjectInitializer(
             MethodSymbol constructor,
             ImmutableArray<BoundExpression> initializers,
             SyntaxNode creationSyntax,

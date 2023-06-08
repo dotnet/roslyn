@@ -107,6 +107,11 @@
         <target state="translated">"{0}" erfordert die Compilerfunktion "{1}", die von dieser Version des Visual Basic Compilers nicht unterstützt wird.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="new">A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
         <source>caller argument expression</source>
         <target state="translated">Aufruferargumentausdruck</target>

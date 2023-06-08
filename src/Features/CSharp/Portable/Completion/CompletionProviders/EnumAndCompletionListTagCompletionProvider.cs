@@ -216,6 +216,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // Build a list of the members with the same type as the target
                 foreach (var member in type.GetMembers())
                 {
+                    if (!member.CanBeReferencedByName)
+                        continue;
+
                     ISymbol staticSymbol;
                     ITypeSymbol symbolType;
                     if (member is IFieldSymbol { IsStatic: true } field)
