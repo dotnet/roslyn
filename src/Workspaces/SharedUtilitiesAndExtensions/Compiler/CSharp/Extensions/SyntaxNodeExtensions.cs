@@ -649,10 +649,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 else if (trivia.GetStructure() is (kind: SyntaxKind.ElseDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia))
                 {
                     var directives = ((DirectiveTriviaSyntax)structure).GetMatchingConditionalDirectives(cancellationToken);
-                    if (directives != null && directives.Count > 0)
+                    if (directives.Length > 0)
                     {
                         if (!textSpan.Contains(directives[0].SpanStart) ||
-                            !textSpan.Contains(directives[directives.Count - 1].SpanStart))
+                            !textSpan.Contains(directives.Last().SpanStart))
                         {
                             // This else/elif belongs to a pp span that isn't 
                             // entirely within this node.

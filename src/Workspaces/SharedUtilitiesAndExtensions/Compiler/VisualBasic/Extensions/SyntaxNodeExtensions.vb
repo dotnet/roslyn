@@ -420,9 +420,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 ElseIf directiveSyntax.IsKind(SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia) Then
                     Dim directives = directiveSyntax.GetMatchingConditionalDirectives(cancellationToken)
-                    If directives IsNot Nothing AndAlso directives.Count > 0 Then
+                    If directives.Any() Then
                         If Not textSpan.Contains(directives(0).SpanStart) OrElse
-                           Not textSpan.Contains(directives(directives.Count - 1).SpanStart) Then
+                           Not textSpan.Contains(directives.Last().SpanStart) Then
                             ' This else/elif belongs to a pp span that isn't 
                             ' entirely within this node.
                             Return True
