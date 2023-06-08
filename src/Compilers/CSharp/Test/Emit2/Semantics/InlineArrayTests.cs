@@ -14892,6 +14892,123 @@ class Program
         }
 
         [Fact]
+        public void AwaitForeach_02()
+        {
+            var src = @"
+class Program
+{
+    public static async void M(Buffer4<int> x)
+    {
+        await foreach(var s in x)
+        {
+        }
+    }
+}
+
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+        public Enumerator GetEnumerator() => default;
+
+        public ref struct Enumerator
+        {
+            public ref T Current => throw null;
+
+            public bool MoveNext() => false;
+        }
+
+        public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default)
+        {
+            throw null;
+        }
+
+        public sealed class AsyncEnumerator
+        {
+            public async System.Threading.Tasks.Task<bool> MoveNextAsync(int ok = 1)
+            {
+                await System.Threading.Tasks.Task.Yield();
+                return false;
+            }
+            public T Current
+            {
+                get => throw null;
+            }
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,32): error CS8415: Asynchronous foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+                //         await foreach(var s in x)
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync, "x").WithArguments("Buffer4<int>", "GetAsyncEnumerator").WithLocation(6, 32)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void AwaitForeach_03()
+        {
+            var src = @"
+struct C
+{
+    public Buffer4<int> F;
+}
+
+class Program
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        var x = new C();
+        x.F[0] = 111;
+        x.F[1] = 112;
+        x.F[2] = 113;
+        x.F[3] = 114;
+
+        await foreach (var y in x.F)
+        {
+            System.Console.Write(' ');
+            System.Console.Write(y);
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+public struct Buffer4<T>
+{
+    private T _element0;
+
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default)
+    {
+        return new AsyncEnumerator(new[] { this[0], this[1], this[2], this[3] });
+    }
+
+    public sealed class AsyncEnumerator
+    {
+        private readonly System.Collections.IEnumerator _underlying;
+
+        public AsyncEnumerator(T[] buffer)
+        {
+            _underlying = buffer.GetEnumerator();
+        }
+        
+        public async System.Threading.Tasks.Task<bool> MoveNextAsync(int ok = 1)
+        {
+            await System.Threading.Tasks.Task.Yield();
+            return _underlying.MoveNext();
+        }
+        public T Current
+        {
+            get => (T)_underlying.Current;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: " 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Foreach_Extension_01()
         {
             var src = @"
