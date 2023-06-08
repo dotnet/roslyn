@@ -381,11 +381,19 @@ namespace Microsoft.CodeAnalysis
             ArrayBuilder<Diagnostic> filteredDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
             foreach (var diag in generatorDiagnostics)
             {
-                if (compilation.Options.FilterDiagnostic(diag, cancellationToken) is { } filtered &&
-                    suppressMessageState.ApplySourceSuppressions(filtered) is { } effective)
+                if (compilation.Options.FilterDiagnostic(diag, cancellationToken) is { } filtered)
                 {
-                    filteredDiagnostics.Add(effective);
-                    driverDiagnostics?.Add(effective);
+                    // Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836.
+                    if (filtered.Location.SourceTree is { } syntaxTree &&
+                        !compilation.ContainsSyntaxTree(syntaxTree))
+                    {
+                        Debug.Assert(false, $"Diagnostic is not from compilation: '{filtered}'");
+                    }
+                    else if (suppressMessageState.ApplySourceSuppressions(filtered) is { } effective)
+                    {
+                        filteredDiagnostics.Add(effective);
+                        driverDiagnostics?.Add(effective);
+                    }
                 }
             }
             return filteredDiagnostics.ToImmutableAndFree();
