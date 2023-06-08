@@ -13,7 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Differencing;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     oldTree = await oldDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     oldRoot = await oldTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                    oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(oldTree == null || oldTree.Options.Equals(newTree.Options));
 
                 var newRoot = await newTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 hasChanges = !oldText.ContentEquals(newText);
 
                 _testFaultInjector?.Invoke(newRoot);
@@ -2833,7 +2833,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                                 // The old symbol's declaration syntax may be located in a different document than the old version of the current document.
                                                 var oldSyntaxDocument = oldProject.Solution.GetRequiredDocument(oldDeclaration.SyntaxTree);
                                                 var oldSyntaxModel = await oldSyntaxDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                                                var oldSyntaxText = await oldSyntaxDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                                                var oldSyntaxText = await oldSyntaxDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                                                 var newBody = TryGetDeclarationBody(newDeclaration);
 
                                                 // Skip analysis of active statements. We already report rude edit for removal of code containing

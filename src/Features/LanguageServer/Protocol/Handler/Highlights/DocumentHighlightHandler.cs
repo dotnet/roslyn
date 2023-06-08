@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (document == null)
                 return null;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             // First check if this is a keyword that needs highlighting.

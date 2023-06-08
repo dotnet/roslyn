@@ -8545,8 +8545,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
-        <source>Iterators cannot have unsafe parameters or yield types</source>
-        <target state="translated">迭代器不能有不安全的参数或 yield 类型</target>
+        <source>Iterators cannot have pointer type parameters</source>
+        <target state="needs-review-translation">迭代器不能有不安全的参数或 yield 类型</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9888,8 +9888,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
-        <source>Async methods cannot have unsafe parameters or return types</source>
-        <target state="translated">异步方法不能具有不安全的参数或返回类型</target>
+        <source>Async methods cannot have pointer type parameters</source>
+        <target state="needs-review-translation">异步方法不能具有不安全的参数或返回类型</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">

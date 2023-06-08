@@ -331,5 +331,26 @@ End Class
                     </Project>
                 </Workspace>, testHost)
         End Function
+
+        <WpfTheory, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1820930")>
+        <CombinatorialData>
+        Public Async Function TestIncompleteProperty1(testHost As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class C
+    $$Public ReadOnly Property As String
+        Get
+            Return ""
+        End Get
+    End Property
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
     End Class
 End Namespace

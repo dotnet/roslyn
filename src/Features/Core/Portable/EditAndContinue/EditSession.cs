@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
-                var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var newTree = await newDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 // document location:
@@ -322,8 +322,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // (there had to be one as the content doesn't match). When we are about to apply changes it is ok to ignore this
             // document because the user does not see the change yet in the buffer (if the doc is open) and won't be confused
             // if it is not applied yet. The change will be applied later after it's observed by the workspace.
-            var oldSource = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newSource = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var oldSource = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var newSource = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return oldSource.ContentEquals(newSource);
         }
 

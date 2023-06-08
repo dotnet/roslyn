@@ -117,6 +117,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
                     document,
                     requestedSpan.Span.ToTextSpan(),
                     diagnosticKind: _diagnosticKind,
+                    includeSuppressedDiagnostics: true,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 foreach (var diagnosticData in diagnostics)

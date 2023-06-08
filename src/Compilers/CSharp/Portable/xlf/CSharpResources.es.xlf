@@ -8540,8 +8540,8 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
-        <source>Iterators cannot have unsafe parameters or yield types</source>
-        <target state="translated">Los iteradores no pueden tener parámetros no seguros o tipos yield</target>
+        <source>Iterators cannot have pointer type parameters</source>
+        <target state="needs-review-translation">Los iteradores no pueden tener parámetros no seguros o tipos yield</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9883,8 +9883,8 @@ Indique al compilador alguna forma de diferenciar los métodos. Por ejemplo, pue
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
-        <source>Async methods cannot have unsafe parameters or return types</source>
-        <target state="translated">Los métodos asincrónicos no pueden tener parámetros no seguros o tipos de valor devuelto</target>
+        <source>Async methods cannot have pointer type parameters</source>
+        <target state="needs-review-translation">Los métodos asincrónicos no pueden tener parámetros no seguros o tipos de valor devuelto</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">

@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var (dotLikeToken, expressionStart) = GetDotAndExpressionStart(root, position, cancellationToken);
 
                 // Place the new operator before the expression, and delete the dot.
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var replacement = item.DisplayText + text.ToString(TextSpan.FromBounds(expressionStart, dotLikeToken.SpanStart));
                 var fullTextChange = new TextChange(
                     TextSpan.FromBounds(

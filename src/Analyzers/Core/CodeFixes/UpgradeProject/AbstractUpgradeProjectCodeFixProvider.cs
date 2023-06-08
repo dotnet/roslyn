@@ -122,6 +122,8 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
 
     internal class ProjectOptionsChangeAction : SolutionChangeAction
     {
+        public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
+
         private ProjectOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
             : base(title, createChangedSolution, equivalenceKey: null, priority: CodeActionPriority.Default, createdFromFactoryMethod: true)
         {

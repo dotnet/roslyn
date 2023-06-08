@@ -23,6 +23,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         }
 
         public bool IsServiceHubProcessCoreClr
-            => _globalOptions.GetOption(RemoteHostOptionsStorage.OOPCoreClrFeatureFlag);
+            => _globalOptions.GetOption(RemoteHostOptionsStorage.OOPCoreClr);
     }
 }

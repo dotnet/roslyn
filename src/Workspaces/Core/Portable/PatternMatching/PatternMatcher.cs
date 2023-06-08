@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -138,7 +139,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             in TextChunk patternChunk,
             bool punctuationStripped)
         {
-            if (patternChunk.SimilarityChecker.AreSimilar(candidate))
+            Contract.ThrowIfNull(patternChunk.SimilarityChecker);
+            if (patternChunk.SimilarityChecker.Value.AreSimilar(candidate))
             {
                 return new PatternMatch(
                     PatternMatchKind.Fuzzy, punctuationStripped, isCaseSensitive: false, matchedSpan: null);

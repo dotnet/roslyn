@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool TryGetStateChecksums(ProjectId projectId, [NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
         {
-            ValueSource<SolutionStateChecksums>? checksums;
+            AsyncLazy<SolutionStateChecksums>? checksums;
             lock (_lazyProjectChecksums)
             {
                 if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums) ||
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
         {
             Contract.ThrowIfNull(projectId);
 
-            ValueSource<SolutionStateChecksums>? checksums;
+            AsyncLazy<SolutionStateChecksums>? checksums;
             lock (_lazyProjectChecksums)
             {
                 if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
             return collection;
 
             // Extracted as a local function to prevent delegate allocations when not needed.
-            ValueSource<SolutionStateChecksums> Compute(ProjectId projectId)
+            AsyncLazy<SolutionStateChecksums> Compute(ProjectId projectId)
             {
                 var projectsToInclude = new HashSet<ProjectId>();
                 AddReferencedProjects(projectsToInclude, projectId);

@@ -8540,8 +8540,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
-        <source>Iterators cannot have unsafe parameters or yield types</source>
-        <target state="translated">U iterátorů nejde používat nezabezpečené parametry nebo typy yield.</target>
+        <source>Iterators cannot have pointer type parameters</source>
+        <target state="needs-review-translation">U iterátorů nejde používat nezabezpečené parametry nebo typy yield.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9883,8 +9883,8 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
-        <source>Async methods cannot have unsafe parameters or return types</source>
-        <target state="translated">Asynchronní metody nemůžou mít návratové typy nebo parametry, které nejsou bezpečné.</target>
+        <source>Async methods cannot have pointer type parameters</source>
+        <target state="needs-review-translation">Asynchronní metody nemůžou mít návratové typy nebo parametry, které nejsou bezpečné.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">

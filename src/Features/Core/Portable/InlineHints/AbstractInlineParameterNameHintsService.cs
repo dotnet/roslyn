@@ -102,10 +102,17 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     {
                         var inlineHintText = GetReplacementText(parameter.Name);
                         var textSpan = new TextSpan(position, 0);
+
+                        TextChange? replacementTextChange = null;
+                        if (!parameter.IsParams)
+                        {
+                            replacementTextChange = new TextChange(textSpan, inlineHintText);
+                        }
+
                         result.Add(new InlineHint(
                             textSpan,
                             ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
-                            new TextChange(textSpan, inlineHintText),
+                            replacementTextChange,
                             ranking: InlineHintsConstants.ParameterRanking,
                             InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
                     }

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
         private static async Task<Document> UpdateDocumentAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             using var _ = PooledDictionary<SyntaxToken, SyntaxToken>.GetInstance(out var replacementMap);
 

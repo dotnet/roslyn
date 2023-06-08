@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     textDocumentEdits.Add(new CreateFile { Uri = uri });
 
                     // And then give it content
-                    var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = await newTextDoc.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                     var emptyDocumentRange = new LSP.Range { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = 0, Character = 0 } };
                     var edit = new TextEdit { Range = emptyDocumentRange, NewText = newText.ToString() };
                     var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = uri };
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // For linked documents, only generated the document edit once.
                     if (modifiedDocumentIds.Add(docId))
                     {
-                        var oldText = await oldTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var oldText = await oldTextDoc.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                         IEnumerable<TextChange> textChanges;
 
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         }
                         else
                         {
-                            var newText = await newTextDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            var newText = await newTextDoc.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                             textChanges = newText.GetTextChanges(oldText);
                         }
 
