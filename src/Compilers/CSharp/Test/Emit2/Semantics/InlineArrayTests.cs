@@ -9775,20 +9775,20 @@ class Program
             var src = @"
 class C
 {
-    public Buffer10<int> F;
+    public Buffer10<int> F1;
+    public int F2;
 }
 
 class Program
 {
     static void M(C c)
     {
-        ref readonly int x = ref c.F[0];
+        ref readonly int x = ref c.F1[0];
+        ref readonly int y = ref c.F2;
     }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-
-            // PROTOTYPE(InlineArrays): Report ErrorCode.WRN_UnassignedInternalField
             comp.VerifyDiagnostics();
         }
 
@@ -9798,20 +9798,20 @@ class Program
             var src = @"
 class C
 {
-    public readonly Buffer10<int> F;
+    public readonly Buffer10<int> F1;
+    public readonly int F2;
 }
 
 class Program
 {
     static void M(C c)
     {
-        ref readonly int x = ref c.F[0];
+        ref readonly int x = ref c.F1[0];
+        ref readonly int y = ref c.F2;
     }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-
-            // PROTOTYPE(InlineArrays): Report ErrorCode.WRN_UnassignedInternalField
             comp.VerifyDiagnostics();
         }
 
@@ -9821,20 +9821,20 @@ class Program
             var src = @"
 struct C
 {
-    public Buffer10<int> F;
+    public Buffer10<int> F1;
+    public int F2;
 }
 
 class Program
 {
     static void M(in C c)
     {
-        ref readonly int x = ref c.F[0];
+        ref readonly int x = ref c.F1[0];
+        ref readonly int y = ref c.F2;
     }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-
-            // PROTOTYPE(InlineArrays): Report ErrorCode.WRN_UnassignedInternalField
             comp.VerifyDiagnostics();
         }
 
@@ -9877,8 +9877,6 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-
-            // PROTOTYPE(InlineArrays): Report ErrorCode.WRN_UnassignedInternalField?
             comp.VerifyDiagnostics();
         }
 
@@ -10029,13 +10027,13 @@ class Program
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (12,9): error CS0170: Use of possibly unassigned field 'F'
-                //         c.F[0] = 1;
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(12, 9)
+                // (13,13): error CS0170: Use of possibly unassigned field 'F'
+                //         _ = c.F;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(13, 13)
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void DefiniteAssignment_03()
         {
             var src = @"
@@ -10048,9 +10046,27 @@ struct C
         F[0] = 1;
     }
 }
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(c.F[0]);
+        System.Console.Write(' ');
+        System.Console.Write(c.F[9]);
+
+        System.Console.Write(' ');
+        c.F[9] = 2; 
+        c = new C();
+        System.Console.Write(c.F[0]);
+        System.Console.Write(' ');
+        System.Console.Write(c.F[9]);
+    }
+}
+
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 1 0", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C..ctor",
 @"
@@ -10072,6 +10088,1910 @@ struct C
   IL_0022:  ldc.i4.1
   IL_0023:  stind.i4
   IL_0024:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DefiniteAssignment_04()
+        {
+            var src = @"
+struct C
+{
+    public Buffer2<int> F;
+}
+
+class Program
+{
+    static void M()
+    {
+        C c;
+        c.F._element0 = 1;
+        _ = c.F;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2<T>
+{
+    public T _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (13,13): error CS0170: Use of possibly unassigned field 'F'
+                //         _ = c.F;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_05()
+        {
+            var src = @"
+struct C
+{
+    public Buffer1<int> F;
+}
+
+class Program
+{
+    static void M()
+    {
+        C c;
+        c.F._element0 = 1;
+        _ = c.F;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public struct Buffer1<T>
+{
+    public T _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DefiniteAssignment_06()
+        {
+            var src = @"
+struct C
+{
+    public Buffer2<int> F;
+}
+
+class Program
+{
+    static void M()
+    {
+        C c;
+        c.F = default;
+        _ = c.F;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2<T>
+{
+    public T _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DefiniteAssignment_07()
+        {
+            var src = @"
+public struct C
+{
+    public Buffer2<int> F;
+}
+
+class Program
+{
+    static void M()
+    {
+        C c;
+        c = default;
+        _ = c.F;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2<T>
+{
+    public T _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DefiniteAssignment_08()
+        {
+            var src = @"
+struct C
+{
+    public Buffer2<int> F;
+
+    public C()
+    {
+        F._element0 = 0;
+        F[0] = 1;
+        F[1] = 2;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2<T>
+{
+    public T _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor",
+@"
+{
+  // Code size       71 (0x47)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer2<int> C.F""
+  IL_0006:  initobj    ""Buffer2<int>""
+  IL_000c:  ldarg.0
+  IL_000d:  ldflda     ""Buffer2<int> C.F""
+  IL_0012:  ldc.i4.0
+  IL_0013:  stfld      ""int Buffer2<int>._element0""
+  IL_0018:  ldarg.0
+  IL_0019:  ldflda     ""Buffer2<int> C.F""
+  IL_001e:  ldc.i4.2
+  IL_001f:  call       ""InlineArrayAsSpan<Buffer2<int>, int>(ref Buffer2<int>, int)""
+  IL_0024:  stloc.0
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  ldc.i4.0
+  IL_0028:  call       ""ref int System.Span<int>.this[int].get""
+  IL_002d:  ldc.i4.1
+  IL_002e:  stind.i4
+  IL_002f:  ldarg.0
+  IL_0030:  ldflda     ""Buffer2<int> C.F""
+  IL_0035:  ldc.i4.2
+  IL_0036:  call       ""InlineArrayAsSpan<Buffer2<int>, int>(ref Buffer2<int>, int)""
+  IL_003b:  stloc.0
+  IL_003c:  ldloca.s   V_0
+  IL_003e:  ldc.i4.1
+  IL_003f:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0044:  ldc.i4.2
+  IL_0045:  stind.i4
+  IL_0046:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_09()
+        {
+            var src = @"
+struct C
+{
+    public Buffer2<int> F;
+
+    public C()
+    {
+        F._element0 = 1;
+        F[1] = 2;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(c.F[0]);
+        System.Console.Write(' ');
+        System.Console.Write(c.F[1]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2<T>
+{
+    public T _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 2", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer2<int> C.F""
+  IL_0006:  initobj    ""Buffer2<int>""
+  IL_000c:  ldarg.0
+  IL_000d:  ldflda     ""Buffer2<int> C.F""
+  IL_0012:  ldc.i4.1
+  IL_0013:  stfld      ""int Buffer2<int>._element0""
+  IL_0018:  ldarg.0
+  IL_0019:  ldflda     ""Buffer2<int> C.F""
+  IL_001e:  ldc.i4.2
+  IL_001f:  call       ""InlineArrayAsSpan<Buffer2<int>, int>(ref Buffer2<int>, int)""
+  IL_0024:  stloc.0
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  ldc.i4.1
+  IL_0028:  call       ""ref int System.Span<int>.this[int].get""
+  IL_002d:  ldc.i4.2
+  IL_002e:  stind.i4
+  IL_002f:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_10()
+        {
+            var src = @"
+struct C
+{
+    public Buffer2<int> F;
+
+    public C()
+    {
+        F._element0 = 1;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(c.F[0]);
+        System.Console.Write(' ');
+        System.Console.Write(c.F[1]);
+        c.F[1] = 2;
+
+        System.Console.Write(' ');
+        System.Console.Write(c.F[1]);
+        System.Console.Write(' ');
+
+        c = new C();
+        System.Console.Write(c.F[0]);
+        System.Console.Write(' ');
+        System.Console.Write(c.F[1]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2<T>
+{
+    public T _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 2 1 0", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer2<int> C.F""
+  IL_0006:  initobj    ""Buffer2<int>""
+  IL_000c:  ldarg.0
+  IL_000d:  ldflda     ""Buffer2<int> C.F""
+  IL_0012:  ldc.i4.1
+  IL_0013:  stfld      ""int Buffer2<int>._element0""
+  IL_0018:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_11()
+        {
+            var src = @"
+struct C
+{
+    public Buffer1<int> F;
+
+    public C()
+    {
+        F._element0 = 1;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(c.F[0]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public struct Buffer1<T>
+{
+    public T _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor",
+@"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer1<int> C.F""
+  IL_0006:  ldc.i4.1
+  IL_0007:  stfld      ""int Buffer1<int>._element0""
+  IL_000c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DefiniteAssignment_12()
+        {
+            var src = @"
+public struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void M()
+    {
+        C c;
+        _ = c.F[2..5];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (12,13): error CS0170: Use of possibly unassigned field 'F'
+                //         _ = c.F[2..5];
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_13()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void M()
+    {
+        C c;
+        c.F[2..5][0] = 1;
+        _ = c.F;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (12,9): error CS0170: Use of possibly unassigned field 'F'
+                //         c.F[2..5][0] = 1;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_14()
+        {
+            var src = @"
+struct C
+{
+    public Buffer1 F;
+}
+
+class Program
+{
+    static void M()
+    {
+        C c;
+        c.F[0] = 1;
+        _ = c.F;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public struct Buffer1
+{
+    int _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DefiniteAssignment_15()
+        {
+            var src = @"
+public struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void M()
+    {
+        C c;
+        ref int x = ref c.F[0];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (12,25): error CS0170: Use of possibly unassigned field 'F'
+                //         ref int x = ref c.F[0];
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(12, 25)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_16()
+        {
+            var src = @"
+public struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void M()
+    {
+        C c;
+        ref readonly int x = ref c.F[0];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (12,34): error CS0170: Use of possibly unassigned field 'F'
+                //         ref readonly int x = ref c.F[0];
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(12, 34)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_17()
+        {
+            var src = @"
+public struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void M()
+    {
+        C c;
+        c.F[0] = 1;
+        _ = c.F[0];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (13,13): error CS0170: Use of possibly unassigned field 'F'
+                //         _ = c.F[0];
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_18()
+        {
+            var src = @"
+public struct C
+{
+    public Buffer1 F;
+}
+
+class Program
+{
+    static void M()
+    {
+        C c;
+        c.F[0] = 1;
+        _ = c.F[0];
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public struct Buffer1
+{
+    int _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DefiniteAssignment_19()
+        {
+            var src = @"
+public struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void M()
+    {
+        C c;
+        _ = (System.Span<int>)c.F;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (12,31): error CS0170: Use of possibly unassigned field 'F'
+                //         _ = (System.Span<int>)c.F;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(12, 31)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_20()
+        {
+            var src = @"
+public struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void M()
+    {
+        C c;
+        _ = (System.ReadOnlySpan<int>)c.F;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (12,39): error CS0170: Use of possibly unassigned field 'F'
+                //         _ = (System.ReadOnlySpan<int>)c.F;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(12, 39)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_21()
+        {
+            var src = @"
+public struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void M()
+    {
+        C c;
+        c.F[0] += 1;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (12,9): error CS0170: Use of possibly unassigned field 'F'
+                //         c.F[0] += 1;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_22()
+        {
+            var src = @"
+public struct C
+{
+    public Buffer10<S> FF;
+}
+
+public struct S
+{
+    public int F;
+}
+
+class Program
+{
+    static void M1()
+    {
+        C c;
+        c.FF[0].F += 1;
+    }
+
+    static void M2()
+    {
+        C c;
+        _ = c.FF[0].F;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (17,9): error CS0170: Use of possibly unassigned field 'F'
+                //         c.FF[0].F += 1;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.FF[0].F").WithArguments("F").WithLocation(17, 9),
+                // (23,13): error CS0170: Use of possibly unassigned field 'F'
+                //         _ = c.FF[0].F;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.FF[0].F").WithArguments("F").WithLocation(23, 13)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_31()
+        {
+            var src = @"
+class Program
+{
+    static void M()
+    {
+        Buffer10<int> f;
+        _ = f[0];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0165: Use of unassigned local variable 'f'
+                //         _ = f[0];
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "f").WithArguments("f").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_32()
+        {
+            var src = @"
+class Program
+{
+    static void M()
+    {
+        Buffer10<int> f;
+        f[0] = 1;
+        _ = f;
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0165: Use of unassigned local variable 'f'
+                //         _ = f;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "f").WithArguments("f").WithLocation(8, 13)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_33()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var f = new Buffer10();
+        System.Console.Write(f[0]);
+        System.Console.Write(' ');
+        System.Console.Write(f[9]);
+
+        System.Console.Write(' ');
+        f[9] = 2; 
+        f = new Buffer10();
+        System.Console.Write(f[0]);
+        System.Console.Write(' ');
+        System.Console.Write(f[9]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+public struct Buffer10
+{
+    private int _element0;
+
+    public Buffer10()
+    {
+        this[0] = 1;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 1 0", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer10..ctor",
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer10""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   10
+  IL_000a:  call       ""InlineArrayAsSpan<Buffer10, int>(ref Buffer10, int)""
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  ldc.i4.0
+  IL_0013:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0018:  ldc.i4.1
+  IL_0019:  stind.i4
+  IL_001a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DefiniteAssignment_34()
+        {
+            var src = @"
+class Program
+{
+    static void M()
+    {
+        Buffer2<int> f;
+        f._element0 = 1;
+        _ = f;
+
+        Buffer2<int> f2;
+        f2._element0 = 1;
+        f2[0] = 1;
+        f2[1] = 2;
+        _ = f2;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2<T>
+{
+    public T _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0165: Use of unassigned local variable 'f'
+                //         _ = f;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "f").WithArguments("f").WithLocation(8, 13),
+                // (14,13): error CS0165: Use of unassigned local variable 'f2'
+                //         _ = f2;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "f2").WithArguments("f2").WithLocation(14, 13)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_35()
+        {
+            var src = @"
+class Program
+{
+    static void M()
+    {
+        Buffer1<int> f;
+        f._element0 = 1;
+        _ = f;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public struct Buffer1<T>
+{
+    public T _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DefiniteAssignment_36()
+        {
+            var src = @"
+class Program
+{
+    static void M()
+    {
+        Buffer2<int> f;
+        f = default;
+        _ = f;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2<T>
+{
+    public T _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DefiniteAssignment_38()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2
+{
+    public int _element0;
+
+    public Buffer2()
+    {
+        _element0 = 0;
+        this[0] = 1;
+        this[1] = 2;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer2..ctor",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer2""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  stfld      ""int Buffer2._element0""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.2
+  IL_0010:  call       ""InlineArrayAsSpan<Buffer2, int>(ref Buffer2, int)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  ldc.i4.0
+  IL_0019:  call       ""ref int System.Span<int>.this[int].get""
+  IL_001e:  ldc.i4.1
+  IL_001f:  stind.i4
+  IL_0020:  ldarg.0
+  IL_0021:  ldc.i4.2
+  IL_0022:  call       ""InlineArrayAsSpan<Buffer2, int>(ref Buffer2, int)""
+  IL_0027:  stloc.0
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  ldc.i4.1
+  IL_002b:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0030:  ldc.i4.2
+  IL_0031:  stind.i4
+  IL_0032:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_39()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var f = new Buffer2();
+        System.Console.Write(f[0]);
+        System.Console.Write(' ');
+        System.Console.Write(f[1]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2
+{
+    public int _element0;
+
+    public Buffer2()
+    {
+        _element0 = 1;
+        this[1] = 2;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 2", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer2..ctor",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer2""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int Buffer2._element0""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.2
+  IL_0010:  call       ""InlineArrayAsSpan<Buffer2, int>(ref Buffer2, int)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  ldc.i4.1
+  IL_0019:  call       ""ref int System.Span<int>.this[int].get""
+  IL_001e:  ldc.i4.2
+  IL_001f:  stind.i4
+  IL_0020:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_40()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var f = new Buffer2();
+        System.Console.Write(f[0]);
+        System.Console.Write(' ');
+        System.Console.Write(f[1]);
+        f[1] = 2;
+
+        System.Console.Write(' ');
+        System.Console.Write(f[1]);
+        System.Console.Write(' ');
+
+        f = new Buffer2();
+        System.Console.Write(f[0]);
+        System.Console.Write(' ');
+        System.Console.Write(f[1]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2
+{
+    public int _element0;
+
+    public Buffer2()
+    {
+        _element0 = 1;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 2 1 0", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer2..ctor",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer2""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int Buffer2._element0""
+  IL_000e:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_41()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var f = new Buffer1();
+        System.Console.Write(f[0]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public struct Buffer1
+{
+    public int _element0;
+
+    public Buffer1()
+    {
+        _element0 = 1;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer1..ctor",
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int Buffer1._element0""
+  IL_0007:  ret
+}
+");
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write(f[0]);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(7, 30)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_42()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var f = new Buffer1();
+        System.Console.Write(f[0]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public struct Buffer1
+{
+    int _element0 = 1;
+
+    public Buffer1()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer1..ctor",
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int Buffer1._element0""
+  IL_0007:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_43()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var f = new Buffer1();
+        System.Console.Write(f[0]);
+        System.Console.Write(' ');
+        f[0] = 1;
+        System.Console.Write(f[0]);
+        System.Console.Write(' ');
+
+        f = new Buffer1();
+        System.Console.Write(f[0]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public struct Buffer1
+{
+    public int _element0;
+
+    public Buffer1()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 0", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer1..ctor",
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int Buffer1._element0""
+  IL_0007:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DefiniteAssignment_44()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2
+{
+    public int _element0;
+
+    public Buffer2()
+    {
+        _element0 = 1;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer2..ctor",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer2""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int Buffer2._element0""
+  IL_000e:  ret
+}
+");
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS0177: The out parameter 'this' must be assigned to before control leaves the current method
+                //     public Buffer2()
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "Buffer2").WithArguments("this").WithLocation(7, 12)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_45()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2
+{
+    int _element0 = 1;
+
+    public Buffer2()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer2..ctor",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer2""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int Buffer2._element0""
+  IL_000e:  ret
+}
+");
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS0177: The out parameter 'this' must be assigned to before control leaves the current method
+                //     public Buffer2()
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "Buffer2").WithArguments("this").WithLocation(7, 12)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_46()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2
+{
+    public int _element0;
+
+    public Buffer2()
+    {
+        this = default;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer2..ctor",
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer2""
+  IL_0007:  ret
+}
+");
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_47()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2
+{
+    public int _element0;
+
+    public Buffer2()
+    {
+        _element0 = 1;
+        _ = this[0];
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer2..ctor",
+@"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer2""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int Buffer2._element0""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.2
+  IL_0010:  call       ""InlineArrayAsSpan<Buffer2, int>(ref Buffer2, int)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  ldc.i4.0
+  IL_0019:  call       ""ref int System.Span<int>.this[int].get""
+  IL_001e:  pop
+  IL_001f:  ret
+}
+");
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS0177: The out parameter 'this' must be assigned to before control leaves the current method
+                //     public Buffer2()
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "Buffer2").WithArguments("this").WithLocation(7, 12),
+                // (10,13): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = this[0];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this[0]").WithArguments("inline arrays").WithLocation(10, 13),
+                // (10,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
+                //         _ = this[0];
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(10, 13)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_48()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var f = new Buffer1();
+        System.Console.Write(f[0]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public struct Buffer1
+{
+    public int _element0;
+
+    public Buffer1()
+    {
+        _element0 = 1;
+        _ = this[0];
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer1..ctor",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int Buffer1._element0""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  call       ""InlineArrayAsSpan<Buffer1, int>(ref Buffer1, int)""
+  IL_000e:  stloc.0
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  ldc.i4.0
+  IL_0012:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0017:  pop
+  IL_0018:  ret
+}
+");
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write(f[0]);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(7, 30),
+                // (19,13): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = this[0];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this[0]").WithArguments("inline arrays").WithLocation(19, 13)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_49()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var f = new Buffer1();
+        System.Console.Write(f[0]);
+
+        f[0] = 1; 
+        System.Console.Write(' ');
+        System.Console.Write(f[0]);
+        System.Console.Write(' ');
+
+        f = new Buffer1();
+        System.Console.Write(f[0]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public struct Buffer1
+{
+    public int _element0;
+
+    public Buffer1()
+    {
+        _ = this[0];
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 0", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer1..ctor",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int Buffer1._element0""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  call       ""InlineArrayAsSpan<Buffer1, int>(ref Buffer1, int)""
+  IL_000e:  stloc.0
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  ldc.i4.0
+  IL_0012:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0017:  pop
+  IL_0018:  ret
+}
+");
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write(f[0]);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(7, 30),
+                // (9,9): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         f[0] = 1; 
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(9, 9),
+                // (11,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write(f[0]);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(11, 30),
+                // (15,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write(f[0]);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(15, 30),
+                // (24,12): error CS0171: Field 'Buffer1._element0' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
+                //     public Buffer1()
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "Buffer1").WithArguments("Buffer1._element0", "11.0").WithLocation(24, 12),
+                // (26,13): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = this[0];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this[0]").WithArguments("inline arrays").WithLocation(26, 13),
+                // (26,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
+                //         _ = this[0];
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(26, 13)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_50()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var f = new Buffer1();
+        System.Console.Write(f[0]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public struct Buffer1
+{
+    public int _element0;
+
+    public Buffer1()
+    {
+        this[0] = 1;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer1..ctor",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""InlineArrayAsSpan<Buffer1, int>(ref Buffer1, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.0
+  IL_000b:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0010:  ldc.i4.1
+  IL_0011:  stind.i4
+  IL_0012:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_51()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var f = new Buffer1();
+        System.Console.Write(f[0]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public struct Buffer1
+{
+    public int _element0;
+
+    public Buffer1()
+    {
+        this[^1] = 1;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer1..ctor",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""InlineArrayAsSpan<Buffer1, int>(ref Buffer1, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.0
+  IL_000b:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0010:  ldc.i4.1
+  IL_0011:  stind.i4
+  IL_0012:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_52()
+        {
+            var src = @"
+struct C
+{
+    public Buffer2<int> F;
+
+    public C()
+    {
+        _ = F[..];
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(c.F[1]);
+        c.F[1] = 2;
+
+        System.Console.Write(' ');
+        System.Console.Write(c.F[1]);
+        System.Console.Write(' ');
+
+        c = new C();
+        System.Console.Write(c.F[1]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2<T>
+{
+    private T _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 2 0", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor",
+@"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer2<int> C.F""
+  IL_0006:  initobj    ""Buffer2<int>""
+  IL_000c:  ldarg.0
+  IL_000d:  ldflda     ""Buffer2<int> C.F""
+  IL_0012:  ldc.i4.2
+  IL_0013:  call       ""InlineArrayAsSpan<Buffer2<int>, int>(ref Buffer2<int>, int)""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  ldc.i4.0
+  IL_001c:  ldc.i4.2
+  IL_001d:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
+  IL_0022:  pop
+  IL_0023:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_53()
+        {
+            var src = @"
+struct C
+{
+    public Buffer2<int> F;
+
+    public C()
+    {
+        _ = (System.Span<int>)F;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(c.F[1]);
+        c.F[1] = 2;
+
+        System.Console.Write(' ');
+        System.Console.Write(c.F[1]);
+        System.Console.Write(' ');
+
+        c = new C();
+        System.Console.Write(c.F[1]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2<T>
+{
+    private T _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 2 0", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer2<int> C.F""
+  IL_0006:  initobj    ""Buffer2<int>""
+  IL_000c:  ldarg.0
+  IL_000d:  ldflda     ""Buffer2<int> C.F""
+  IL_0012:  ldc.i4.2
+  IL_0013:  call       ""InlineArrayAsSpan<Buffer2<int>, int>(ref Buffer2<int>, int)""
+  IL_0018:  pop
+  IL_0019:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_54()
+        {
+            var src = @"
+struct C
+{
+    public Buffer2<int> F;
+
+    public C()
+    {
+        _ = (System.ReadOnlySpan<int>)F;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(c.F[1]);
+        c.F[1] = 2;
+
+        System.Console.Write(' ');
+        System.Console.Write(c.F[1]);
+        System.Console.Write(' ');
+
+        c = new C();
+        System.Console.Write(c.F[1]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2<T>
+{
+    private T _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 2 0", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer2<int> C.F""
+  IL_0006:  initobj    ""Buffer2<int>""
+  IL_000c:  ldarg.0
+  IL_000d:  ldflda     ""Buffer2<int> C.F""
+  IL_0012:  ldc.i4.2
+  IL_0013:  call       ""InlineArrayAsReadOnlySpan<Buffer2<int>, int>(in Buffer2<int>, int)""
+  IL_0018:  pop
+  IL_0019:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_55()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var f = new Buffer2();
+        System.Console.Write(f[1]);
+        f[1] = 2;
+
+        System.Console.Write(' ');
+        System.Console.Write(f[1]);
+        System.Console.Write(' ');
+
+        f = new Buffer2();
+        System.Console.Write(f[1]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2
+{
+    public int _element0;
+
+    public Buffer2()
+    {
+        _ = this[..];
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 2 0", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer2..ctor",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  3
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer2""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.2
+  IL_0009:  call       ""InlineArrayAsSpan<Buffer2, int>(ref Buffer2, int)""
+  IL_000e:  stloc.0
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldc.i4.2
+  IL_0013:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
+  IL_0018:  pop
+  IL_0019:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_56()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var f = new Buffer2();
+        System.Console.Write(f[1]);
+        f[1] = 2;
+
+        System.Console.Write(' ');
+        System.Console.Write(f[1]);
+        System.Console.Write(' ');
+
+        f = new Buffer2();
+        System.Console.Write(f[1]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2
+{
+    public int _element0;
+
+    public Buffer2()
+    {
+        _ = (System.Span<int>)this;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 2 0", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer2..ctor",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer2""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.2
+  IL_0009:  call       ""InlineArrayAsSpan<Buffer2, int>(ref Buffer2, int)""
+  IL_000e:  pop
+  IL_000f:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefiniteAssignment_57()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var f = new Buffer2();
+        System.Console.Write(f[1]);
+        f[1] = 2;
+
+        System.Console.Write(' ');
+        System.Console.Write(f[1]);
+        System.Console.Write(' ');
+
+        f = new Buffer2();
+        System.Console.Write(f[1]);
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2
+{
+    public int _element0;
+
+    public Buffer2()
+    {
+        _ = (System.ReadOnlySpan<int>)this;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 2 0", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Buffer2..ctor",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer2""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.2
+  IL_0009:  call       ""InlineArrayAsReadOnlySpan<Buffer2, int>(in Buffer2, int)""
+  IL_000e:  pop
+  IL_000f:  ret
 }
 ");
         }
@@ -12843,17 +14763,15 @@ class Program
 {
     static void Main()
     {
-        Buffer10<int> b = default;
-        b[0] = 111;
         System.Console.Write(((C)new Buffer10<int>()).F);
     }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (15,34): error CS9502: Cannot convert expression to 'ReadOnlySpan<int>' because it may not be passed or returned by reference
+                // (13,34): error CS9502: Cannot convert expression to 'ReadOnlySpan<int>' because it may not be passed or returned by reference
                 //         System.Console.Write(((C)new Buffer10<int>()).F);
-                Diagnostic(ErrorCode.ERR_InlineArrayConversionToReadOnlySpanNotSupported, "new Buffer10<int>()").WithArguments("System.ReadOnlySpan<int>").WithLocation(15, 34)
+                Diagnostic(ErrorCode.ERR_InlineArrayConversionToReadOnlySpanNotSupported, "new Buffer10<int>()").WithArguments("System.ReadOnlySpan<int>").WithLocation(13, 34)
                 );
         }
 
@@ -12872,17 +14790,15 @@ class Program
 {
     static void Main()
     {
-        Buffer10<int> b = default;
-        b[0] = 111;
         System.Console.Write(((C)new Buffer10<int>()).F);
     }
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (15,34): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                // (13,34): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
                 //         System.Console.Write(((C)new Buffer10<int>()).F);
-                Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "new Buffer10<int>()").WithArguments("System.Span<int>").WithLocation(15, 34)
+                Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "new Buffer10<int>()").WithArguments("System.Span<int>").WithLocation(13, 34)
                 );
         }
 

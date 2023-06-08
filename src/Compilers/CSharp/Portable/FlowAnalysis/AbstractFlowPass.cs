@@ -567,15 +567,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.PropertyAccess:
-                    var access = (BoundPropertyAccess)node;
-
-                    if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol))
                     {
-                        var backingField = (access.PropertySymbol as SourcePropertySymbolBase)?.BackingField;
-                        if (backingField != null)
+                        var access = (BoundPropertyAccess)node;
+
+                        if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol))
                         {
-                            VisitFieldAccessInternal(access.ReceiverOpt, backingField);
-                            break;
+                            var backingField = (access.PropertySymbol as SourcePropertySymbolBase)?.BackingField;
+                            if (backingField != null)
+                            {
+                                VisitFieldAccessInternal(access.ReceiverOpt, backingField);
+                                break;
+                            }
                         }
                     }
 
@@ -600,6 +602,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ((BoundTupleExpression)node).VisitAllElements((x, self) => self.VisitLvalue(x), this);
                     break;
 
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var access = (BoundInlineArrayAccess)node;
+                        VisitLvalue(access);
+                        break;
+                    }
                 default:
                     VisitRvalue(node);
                     break;
@@ -1679,18 +1687,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Visit(node.Operand);
-
-                if (node.Conversion.IsInlineArray &&
-                    node.Type.OriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions))
-                {
-                    // exposing ref is a potential write
-                    // PROTOTYPE(InlineArrays): Revisit. This is likely to mark the entire buffer assigned, which we don't really want.
-                    //                          What we really want is to suppress "never written to" warning.
-                    WriteArgument(node.Operand, RefKind.Ref, method: null);
-                }
             }
 
+            AfterVisitConversion(node);
+
             return null;
+        }
+
+        protected virtual void AfterVisitConversion(BoundConversion node)
+        {
         }
 
         public override BoundNode VisitIfStatement(BoundIfStatement node)
@@ -2234,15 +2239,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.Expression);
             VisitRvalue(node.Argument);
 
-            if (node.GetItemOrSliceHelper == WellKnownMember.System_Span_T__Slice_Int_Int)
-            {
-                // exposing ref is a potential write
-                // PROTOTYPE(InlineArrays): Revisit. This is likely to mark the entire buffer assigned, which we don't really want.
-                //                          What we really want is to suppress "never written to" warning.
-                WriteArgument(node.Expression, RefKind.Ref, method: null);
-            }
-
+            AfterVisitInlineArrayAccess(node);
             return null;
+        }
+
+        protected virtual void AfterVisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+        }
+
+        protected virtual void VisitLvalue(BoundInlineArrayAccess access)
+        {
+            VisitLvalue(access.Expression);
+            VisitRvalue(access.Argument);
         }
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)

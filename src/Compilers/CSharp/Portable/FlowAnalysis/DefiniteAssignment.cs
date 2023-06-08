@@ -472,7 +472,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(thisSlot > 0);
                     if (!this.State.IsAssigned(thisSlot))
                     {
-                        foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(parameter.Type))
+                        TypeSymbol parameterType = parameter.Type;
+
+                        foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(parameterType))
                         {
                             if (_emptyStructTypeCache.IsEmptyStructType(field.Type)) continue;
 
@@ -500,9 +502,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
 
                                 this.AddImplicitlyInitializedField(field);
+                                reported = true;
                             }
                         }
-                        reported = true;
+
+                        if (!reported)
+                        {
+                            if (parameterType.HasInlineArrayAttribute(out int length) && length > 1 && parameterType.TryGetInlineArrayElementField() is FieldSymbol elementField)
+                            {
+                                if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
+                                {
+                                    Diagnostics.Add(ErrorCode.ERR_ParamUnassigned, location, parameter.Name);
+                                }
+
+                                // Add the element field to the set of fields requiring initialization to indicate that the whole instance needs initialization.
+                                // This is done explicitly only for unreported cases, because, if something was reported, then we already have added the
+                                // element field in the set. It is the only instance field in the type.
+                                // One-length inline arrays do not need special handling because we can completely rely on the tracking around the underlying
+                                // field itself.
+                                this.AddImplicitlyInitializedField(elementField);
+                            }
+
+                            reported = true;
+                        }
                     }
                 }
 
@@ -812,6 +834,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NoteRead(((BoundParameter)n).ParameterSymbol);
                         return;
 
+                    case BoundKind.InlineArrayAccess:
+                        {
+                            var elementAccess = (BoundInlineArrayAccess)n;
+                            n = elementAccess.Expression;
+                            continue;
+                        }
+
                     default:
                         return;
                 }
@@ -987,6 +1016,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.RangeVariable:
                         NoteWrite(((BoundRangeVariable)n).Value, value, read);
                         return;
+
+                    case BoundKind.InlineArrayAccess:
+                        {
+                            var elementAccess = (BoundInlineArrayAccess)n;
+                            n = elementAccess.Expression;
+                            value = null;
+                            continue;
+                        }
 
                     default:
                         return;
@@ -1214,10 +1251,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(CurrentSymbol is MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct });
                 if (TrackImplicitlyInitializedFields)
                 {
-#if DEBUG
                     bool foundUnassignedField = false;
-#endif
-                    foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(thisParameter.ContainingType))
+                    NamedTypeSymbol containingType = thisParameter.ContainingType;
+                    foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(containingType))
                     {
                         if (_emptyStructTypeCache.IsEmptyStructType(field.Type))
                             continue;
@@ -1229,15 +1265,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (slot == -1 || !State.IsAssigned(slot))
                         {
                             AddImplicitlyInitializedField(field);
-#if DEBUG
                             foundUnassignedField = true;
-#endif
                         }
                     }
 
-#if DEBUG
+                    if (!foundUnassignedField && containingType.HasInlineArrayAttribute(out int length) && length > 1 && containingType.TryGetInlineArrayElementField() is FieldSymbol elementField)
+                    {
+                        // Add the element field to the set of fields requiring initialization to indicate that the whole instance needs initialization.
+                        // This is done explicitly only for unreported cases, because, if something was reported, then we already have added the
+                        // element field in the set. It is the only instance field in the type.
+                        // One-length inline arrays do not need special handling because we can completely rely on the tracking around the underlying
+                        // field itself.
+                        this.AddImplicitlyInitializedField(elementField);
+                        foundUnassignedField = true;
+                    }
+
                     Debug.Assert(foundUnassignedField);
-#endif
                 }
 
                 if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
@@ -1361,6 +1404,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         unassignedSlot = GetOrCreateSlot(eventAccess.EventSymbol.AssociatedField, unassignedSlot);
                         break;
+                    }
+
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)node;
+                        return IsAssigned(elementAccess.Expression, out unassignedSlot);
                     }
 
                 case BoundKind.PropertyAccess:
@@ -1515,53 +1564,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.InlineArrayAccess:
                     {
                         var elementAccess = (BoundInlineArrayAccess)node;
-
-                        // PROTOTYPE(InlineArrays): Ensure adequate test coverage
-
-                        switch (elementAccess.Expression.Kind)
+                        if (written)
                         {
-                            case BoundKind.Local:
-                                {
-                                    var local = (BoundLocal)elementAccess.Expression;
-                                    if (local.LocalSymbol.RefKind != RefKind.None && !isRef)
-                                    {
-                                        // Writing through the (reference) value of a reference local
-                                        // requires us to read the reference itself.
-                                        if (written) VisitRvalue(local, isKnownToBeAnLvalue: true);
-                                    }
-                                    else
-                                    {
-                                        if (written) NoteWrite(local, null, read);
-                                    }
-                                    break;
-                                }
+                            NoteWrite(elementAccess.Expression, value: null, read);
+                        }
 
-                            case BoundKind.InlineArrayAccess:
-                                AssignImpl(elementAccess.Expression, null, isRef, written, read);
+                        if (elementAccess.Expression.Type.HasInlineArrayAttribute(out int length) &&
+                            (elementAccess.Argument.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: 0 } ||
+                             Binder.InferConstantIndexFromSystemIndex(compilation, elementAccess.Argument, length, out _) is 0))
+                        {
+                            int slot = MakeMemberSlot(elementAccess.Expression, elementAccess.Expression.Type.TryGetInlineArrayElementField());
+                            if (slot > 0)
+                            {
+                                SetSlotState(slot, written);
                                 break;
+                            }
+                        }
 
-                            case BoundKind.Parameter:
-                                {
-                                    var paramExpr = (BoundParameter)elementAccess.Expression;
-                                    var param = paramExpr.ParameterSymbol;
-                                    // If we're ref-reassigning an out parameter we're effectively
-                                    // leaving the original
-                                    if (isRef && param.RefKind == RefKind.Out)
-                                    {
-                                        LeaveParameter(param, elementAccess.Expression.Syntax, paramExpr.Syntax.Location);
-                                    }
-
-                                    if (written) NoteWrite(paramExpr, null, read);
-                                    break;
-                                }
-
-                            case BoundKind.ThisReference:
-                            case BoundKind.FieldAccess:
-                                {
-                                    var expression = (BoundExpression)elementAccess.Expression;
-                                    if (written) NoteWrite(expression, null, read);
-                                    break;
-                                }
+                        if (!written)
+                        {
+                            AssignImpl(elementAccess.Expression, value: null, isRef, written, read);
+                            int slot = MakeSlot(elementAccess.Expression);
+                            SetSlotState(slot, written);
                         }
 
                         break;
@@ -1632,6 +1656,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!state.IsAssigned(containingSlot));
             VariableIdentifier variable = variableBySlot[containingSlot];
             TypeSymbol structType = variable.Symbol.GetTypeOrReturnType().Type;
+
+            if (structType.HasInlineArrayAttribute(out int length) && length > 1 && structType.TryGetInlineArrayElementField() is object)
+            {
+                // An inline array of length > 1 cannot be considered fully initialized judging only based on fields.
+                return false;
+            }
+
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(structType))
             {
                 if (_emptyStructTypeCache.IsEmptyStructType(field.Type)) continue;
@@ -2510,6 +2541,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.BaseReference:
                     CheckAssigned(MethodThisParameter, node);
                     break;
+
+                case BoundKind.InlineArrayAccess:
+                    CheckAssigned(((BoundInlineArrayAccess)expr).Expression, node);
+                    break;
             }
         }
 
@@ -2690,6 +2725,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             // in the left-side state. If LeftOperand was not definitely assigned before this call, we will have already
             // reported an error for use before assignment.
             Assign(node.LeftOperand, node.LeftOperand);
+        }
+
+        protected override void AfterVisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+            if (node.GetItemOrSliceHelper == WellKnownMember.System_Span_T__Slice_Int_Int)
+            {
+                // exposing ref is a potential write
+                NoteWrite(node.Expression, value: null, read: false);
+            }
+        }
+
+        protected override void AfterVisitConversion(BoundConversion node)
+        {
+            if (node.Conversion.IsInlineArray &&
+                node.Type.OriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions))
+            {
+                // exposing ref is a potential write
+                NoteWrite(node.Operand, value: null, read: false);
+            }
         }
 
         #endregion Visitors

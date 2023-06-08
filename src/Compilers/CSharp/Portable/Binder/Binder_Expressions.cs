@@ -8149,31 +8149,47 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void checkInlineArrayBoundsForSystemIndex(BoundExpression convertedIndex, int length, bool excludeEnd, BindingDiagnosticBag diagnostics)
             {
-                if (!TypeSymbol.Equals(convertedIndex.Type, Compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.AllIgnoreOptions))
-                {
-                    return;
-                }
+                SyntaxNode location;
+                int? constIndex = InferConstantIndexFromSystemIndex(Compilation, convertedIndex, length, out location);
 
+                if (constIndex.HasValue)
+                {
+                    checkInlineArrayBounds(location, constIndex.GetValueOrDefault(), length, excludeEnd, diagnostics);
+                }
+            }
+        }
+
+        internal static int? InferConstantIndexFromSystemIndex(CSharpCompilation compilation, BoundExpression convertedIndex, int length, out SyntaxNode location)
+        {
+            int? constIndexOpt = null;
+            location = null;
+            if (TypeSymbol.Equals(convertedIndex.Type, compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.AllIgnoreOptions))
+            {
                 if (convertedIndex is BoundFromEndIndexExpression hatExpression)
                 {
                     // `^index`
                     if (hatExpression.Operand.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: int constIndex })
                     {
-                        checkInlineArrayBounds(hatExpression.Syntax, length - constIndex, length, excludeEnd, diagnostics);
+                        location = hatExpression.Syntax;
+                        constIndexOpt = length - constIndex;
                     }
                 }
                 else if (convertedIndex is BoundConversion { Operand: { ConstantValueOpt: { SpecialType: SpecialType.System_Int32, Int32Value: int constIndex } } operand })
                 {
-                    checkInlineArrayBounds(operand.Syntax, constIndex, length, excludeEnd, diagnostics);
+                    location = operand.Syntax;
+                    constIndexOpt = constIndex;
                 }
                 else if (convertedIndex is BoundObjectCreationExpression { Constructor: MethodSymbol constructor, Arguments: { Length: 2 } arguments, ArgsToParamsOpt: { IsDefaultOrEmpty: true }, InitializerExpressionOpt: null } &&
-                         (object)constructor == Compilation.GetWellKnownTypeMember(WellKnownMember.System_Index__ctor) &&
+                         (object)constructor == compilation.GetWellKnownTypeMember(WellKnownMember.System_Index__ctor) &&
                          arguments[0] is { ConstantValueOpt: { SpecialType: SpecialType.System_Int32, Int32Value: int constIndex1 } } index &&
                          arguments[1] is { ConstantValueOpt: { SpecialType: SpecialType.System_Boolean, BooleanValue: bool isFromEnd } })
                 {
-                    checkInlineArrayBounds(index.Syntax, isFromEnd ? length - constIndex1 : constIndex1, length, excludeEnd, diagnostics);
+                    location = index.Syntax;
+                    constIndexOpt = isFromEnd ? length - constIndex1 : constIndex1;
                 }
             }
+
+            return constIndexOpt;
         }
 
         private BoundExpression BadIndexerExpression(SyntaxNode node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticInfo errorOpt, BindingDiagnosticBag diagnostics)
