@@ -197,6 +197,21 @@
         <target state="translated">使用插入的逐字字串</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_fields">
+        <source>Use primary constructor (and remove fields)</source>
+        <target state="new">Use primary constructor (and remove fields)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_members">
+        <source>Use primary constructor (and remove members)</source>
+        <target state="new">Use primary constructor (and remove members)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_properties">
+        <source>Use primary constructor (and remove properties)</source>
+        <target state="new">Use primary constructor (and remove properties)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
         <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
         <target state="translated">警告: 新增參數到區域函式宣告可能會產生無效的程式碼。</target>

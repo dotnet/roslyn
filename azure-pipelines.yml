@@ -206,13 +206,14 @@ stages:
         testArguments: --testCoreClr
         queueName: Build.Ubuntu.1804.Amd64.Open
 
-  - template: eng/pipelines/test-unix-job.yml
-    parameters:
-      testRunName: 'Test macOS Debug'
-      jobName: Test_macOS_Debug
-      testArtifactName: Transport_Artifacts_Unix_Debug
-      configuration: Debug
-      testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - template: eng/pipelines/test-unix-job.yml
+      parameters:
+        testRunName: 'Test macOS Debug'
+        jobName: Test_macOS_Debug
+        testArtifactName: Transport_Artifacts_Unix_Debug
+        configuration: Debug
+        testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
 
 - stage: Correctness
   dependsOn: []

@@ -84,11 +84,11 @@ stages:
     demands: ImageOverride -equals windows.vs2022.amd64
 
   jobs:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.6-vs-deps') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.7') }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
-        MirrorBranch: release/dev17.6-vs-deps
+        MirrorBranch: release/dev17.7
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 

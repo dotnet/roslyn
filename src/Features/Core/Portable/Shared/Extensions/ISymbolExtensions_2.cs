@@ -178,22 +178,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
-            => formatter.Format(GetDocumentation(symbol.OriginalDefinition, semanticModel.Compilation, cancellationToken),
+            => formatter.Format(GetAppropriateDocumentationComment(symbol, semanticModel.Compilation, cancellationToken).SummaryText,
                 symbol, semanticModel, position, CrefFormat, cancellationToken);
 
-        private static string? GetDocumentation(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
+        /// <summary>
+        /// Returns the <see cref="DocumentationComment"/> for a symbol, even if it involves going to other symbols to find it.
+        /// </summary>
+        public static DocumentationComment GetAppropriateDocumentationComment(this ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
         {
+            symbol = symbol.OriginalDefinition;
+
             return symbol switch
             {
-                IParameterSymbol parameter => GetParameterDocumentation(parameter, compilation, cancellationToken)?.GetParameterText(parameter.Name),
-                ITypeParameterSymbol typeParam => typeParam.ContainingSymbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken)?.GetTypeParameterText(typeParam.Name),
-                IMethodSymbol method => GetMethodDocumentation(method, compilation, cancellationToken).SummaryText,
-                IAliasSymbol alias => alias.Target.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText,
-                _ => symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText,
+                IParameterSymbol parameter => GetParameterDocumentation(parameter, compilation, cancellationToken) ?? DocumentationComment.Empty,
+                ITypeParameterSymbol typeParam => typeParam.ContainingSymbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken)?.GetTypeParameter(typeParam.Name) ?? DocumentationComment.Empty,
+                IMethodSymbol method => GetMethodDocumentation(method, compilation, cancellationToken),
+                IAliasSymbol alias => alias.Target.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken),
+                _ => symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken),
             };
         }
 
-        public static DocumentationComment? GetParameterDocumentation(IParameterSymbol parameter, Compilation compilation, CancellationToken cancellationToken)
+        private static DocumentationComment? GetParameterDocumentation(IParameterSymbol parameter, Compilation compilation, CancellationToken cancellationToken)
         {
             var containingSymbol = parameter.ContainingSymbol;
             if (containingSymbol.ContainingSymbol.IsDelegateType() && containingSymbol is IMethodSymbol methodSymbol)
@@ -218,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             // Get the comments from the original definition of the containing symbol.
-            return containingSymbol.OriginalDefinition.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken);
+            return containingSymbol.OriginalDefinition.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken)?.GetParameter(parameter.Name);
         }
 
         public static Func<CancellationToken, IEnumerable<TaggedText>> GetDocumentationPartsFactory(
@@ -238,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        public static DocumentationComment GetMethodDocumentation(IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken)
+        private static DocumentationComment GetMethodDocumentation(this IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken)
         {
             switch (method.MethodKind)
             {

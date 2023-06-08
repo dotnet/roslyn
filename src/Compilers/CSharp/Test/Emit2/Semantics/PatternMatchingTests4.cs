@@ -124,8 +124,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18));
         }
 
-        [Fact]
-        [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
+        [Fact, WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
         public void PatternMatchGenericParameterToNonConstantExprs()
         {
             var comp = CreateCompilation(@"

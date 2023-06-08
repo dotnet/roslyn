@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -27,13 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceMatching
         {
         }
 
-        internal override List<DirectiveTriviaSyntax>? GetMatchingConditionalDirectives(DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
-                => directive.GetMatchingConditionalDirectives(cancellationToken)?.ToList();
+        protected override ImmutableArray<DirectiveTriviaSyntax> GetMatchingConditionalDirectives(DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
+            => directive.GetMatchingConditionalDirectives(cancellationToken);
 
-        internal override DirectiveTriviaSyntax GetMatchingDirective(DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
-                => directive.GetMatchingDirective(cancellationToken);
+        protected override DirectiveTriviaSyntax? GetMatchingDirective(DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
+            => directive.GetMatchingDirective(cancellationToken);
 
         internal override TextSpan GetSpanForTagging(DirectiveTriviaSyntax directive)
-                => TextSpan.FromBounds(directive.HashToken.SpanStart, directive.DirectiveNameToken.Span.End);
+            => TextSpan.FromBounds(directive.HashToken.SpanStart, directive.DirectiveNameToken.Span.End);
     }
 }

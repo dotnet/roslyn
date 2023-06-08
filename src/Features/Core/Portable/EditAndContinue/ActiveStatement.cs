@@ -4,7 +4,7 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {

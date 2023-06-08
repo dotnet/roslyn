@@ -2467,7 +2467,7 @@ Returned From Function 2");
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/68208")]
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void Typeof()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -2480,7 +2480,7 @@ class C
         Console.WriteLine(t.ToString());
     }
 }
-", expectedOutput: "System.IntPtr");
+", expectedOutput: ExecutionConditionUtil.IsCoreClr ? "System.Void()" : "System.IntPtr");
 
             verifier.VerifyIL("C.Main()", expectedIL: @"
 {
