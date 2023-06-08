@@ -2561,7 +2561,7 @@ public partial class UsePrimaryConstructorTests
         await new VerifyCS.Test
         {
             TestCode = """
-                class Cne
+                class C
                 {
                     private int i;
 
