@@ -39,32 +39,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private struct PackedFlags
         {
             // Layout:
-            // |.|u|ss|fffffffff|n|rr|cccccccc|vvvvvvvv|
+            // |u|ss|fffffffff|n|rrr|cccccccc|vvvvvvvv|
             // 
             // v = decoded well known attribute values. 8 bits.
             // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 8 bits.
-            // r = RefKind. 2 bits.
+            // r = RefKind. 3 bits.
             // n = hasNameInMetadata. 1 bit.
             // f = FlowAnalysisAnnotations. 9 bits (8 value bits + 1 completion bit).
             // s = Scope. 2 bits.
             // u = HasUnscopedRefAttribute. 1 bit.
-            // Current total = 30 bits.
+            // Current total = 32 bits.
 
             private const int WellKnownAttributeDataOffset = 0;
             private const int WellKnownAttributeCompletionFlagOffset = 8;
             private const int RefKindOffset = 16;
-            private const int FlowAnalysisAnnotationsOffset = 20;
-            private const int ScopeOffset = 28;
+            private const int FlowAnalysisAnnotationsOffset = 21;
+            private const int ScopeOffset = 29;
 
-            private const int RefKindMask = 0x3;
+            private const int RefKindMask = 0x7;
             private const int WellKnownAttributeDataMask = 0xFF;
             private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
             private const int FlowAnalysisAnnotationsMask = 0xFF;
             private const int ScopeMask = 0x3;
 
-            private const int HasNameInMetadataBit = 0x1 << 18;
-            private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 19;
-            private const int HasUnscopedRefAttributeBit = 0x1 << 30;
+            private const int HasNameInMetadataBit = 0x1 << 19;
+            private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 20;
+            private const int HasUnscopedRefAttributeBit = 0x1 << 31;
 
             private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
 
@@ -284,6 +284,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         refKind = RefKind.In;
                     }
+                    else if (moduleSymbol.Module.HasRequiresLocationAttribute(handle))
+                    {
+                        refKind = RefKind.RefReadOnlyParameter;
+                    }
                     else
                     {
                         refKind = RefKind.Ref;
@@ -380,6 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             bool hasInAttributeModifier = parameter.RefCustomModifiers.HasInAttributeModifier();
 
+            // PROTOTYPE: Check also RefReadOnlyParameters.
             if (isReturn)
             {
                 // A RefReadOnly return parameter should always have this modreq, and vice versa.

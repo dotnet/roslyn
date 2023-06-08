@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |              |a|b|e|n|vvv|yy|s|r|q|z|kk|wwwww|
+            // |              |a|b|e|n|vvv|yy|s|r|q|z|kkk|wwwww|
             // 
             // w = method kind.  5 bits.
-            // k = ref kind.  2 bits.
+            // k = ref kind.  3 bits.
             // z = isExtensionMethod. 1 bit.
             // q = isMetadataVirtualIgnoringInterfaceChanges. 1 bit.
             // r = isMetadataVirtual. 1 bit. (At least as true as isMetadataVirtualIgnoringInterfaceChanges.)
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int MethodKindMask = (1 << MethodKindSize) - 1;
 
             private const int RefKindOffset = MethodKindOffset + MethodKindSize;
-            private const int RefKindSize = 2;
+            private const int RefKindSize = 3;
             private const int RefKindMask = (1 << RefKindSize) - 1;
 
             private const int IsExtensionMethodOffset = RefKindOffset + RefKindSize;

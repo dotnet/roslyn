@@ -557,6 +557,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.ScopedRefAttribute, diagnostics, location, modifyCompilation);
         }
 
+        internal void EnsureRequiresLocationAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute, diagnostics, location, modifyCompilation);
+        }
+
         internal bool CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes attribute, BindingDiagnosticBag? diagnosticsOpt, Location locationOpt)
         {
             switch (attribute)
@@ -628,6 +633,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locationOpt,
                         WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor);
+
+                case EmbeddableAttributes.RequiresLocationAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);

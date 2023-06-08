@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(addRefReadOnlyModifier, "If addReadonlyRef isn't true, we must have found a different location to encode the readonlyness of a function pointer");
                     ImmutableArray<CustomModifier> customModifiers = refKind switch
                     {
-                        RefKind.In => CreateInModifiers(binder, diagnostics, syntax),
+                        RefKind.In or RefKind.RefReadOnlyParameter => CreateInModifiers(binder, diagnostics, syntax),
                         RefKind.Out => CreateOutModifiers(binder, diagnostics, syntax),
                         _ => ImmutableArray<CustomModifier>.Empty
                     };
@@ -349,6 +349,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else
                     {
                         compilation.EnsureScopedRefAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
+                    }
+                }
+            }
+        }
+
+        internal static void EnsureRequiresLocationAttributeExists(CSharpCompilation? compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag? diagnostics, bool modifyCompilation, PEModuleBuilder? moduleBuilder)
+        {
+            Debug.Assert(compilation is not null || moduleBuilder is not null);
+
+            foreach (var parameter in parameters)
+            {
+                if (parameter.RefKind == RefKind.RefReadOnlyParameter)
+                {
+                    if (moduleBuilder is { })
+                    {
+                        moduleBuilder.EnsureRequiresLocationAttributeExists();
+                    }
+                    else
+                    {
+                        compilation!.EnsureRequiresLocationAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
                     }
                 }
             }
@@ -945,6 +965,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(refKind == RefKind.None);
                         isScoped = true;
                         break;
+                    case SyntaxKind.ReadOnlyKeyword:
+                        if (refKind == RefKind.Ref)
+                        {
+                            refKind = RefKind.RefReadOnlyParameter;
+                        }
+                        break;
                 }
             }
 
@@ -962,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static ImmutableArray<CustomModifier> ConditionallyCreateInModifiers(RefKind refKind, bool addRefReadOnlyModifier, Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
-            if (addRefReadOnlyModifier && refKind == RefKind.In)
+            if (addRefReadOnlyModifier && refKind is RefKind.In or RefKind.RefReadOnlyParameter)
             {
                 return CreateInModifiers(binder, diagnostics, syntax);
             }

@@ -802,6 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, lambdaParameters, diagnostics, modifyCompilation: false);
             ParameterHelpers.EnsureScopedRefAttributeExists(compilation, lambdaParameters, diagnostics, modifyCompilation: false);
             ParameterHelpers.EnsureNullableAttributeExists(compilation, lambdaSymbol, lambdaParameters, diagnostics, modifyCompilation: false);
+            ParameterHelpers.EnsureRequiresLocationAttributeExists(compilation, lambdaParameters, diagnostics, modifyCompilation: false, moduleBuilder: null);
             // Note: we don't need to warn on annotations used in #nullable disable context for lambdas, as this is handled in binding already
 
             ValidateUnsafeParameters(diagnostics, cacheKey.ParameterTypes);

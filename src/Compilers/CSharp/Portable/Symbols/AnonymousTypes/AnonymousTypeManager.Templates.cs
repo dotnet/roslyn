@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool isValidTypeArgument(bool useUpdatedEscapeRules, AnonymousTypeField field, ref bool needsIndexedName)
             {
-                needsIndexedName = needsIndexedName || field.IsParams || field.DefaultValue is not null;
+                needsIndexedName = needsIndexedName || field.IsParams || field.DefaultValue is not null || field.RefKind == RefKind.RefReadOnlyParameter;
                 return hasDefaultScope(useUpdatedEscapeRules, field) &&
                     field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&

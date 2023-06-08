@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
             ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureRequiresLocationAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true, moduleBuilder: null);
 
             foreach (var parameter in this.Parameters)
             {

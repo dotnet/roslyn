@@ -633,6 +633,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute:
                     case WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -1002,6 +1003,7 @@ namespace System
                     case WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle:
+                    case WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

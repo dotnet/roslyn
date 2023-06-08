@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedNativeIntegerAttributeSymbol _lazyNativeIntegerAttribute;
         private SynthesizedEmbeddedScopedRefAttributeSymbol _lazyScopedRefAttribute;
         private SynthesizedEmbeddedRefSafetyRulesAttributeSymbol _lazyRefSafetyRulesAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyRequiresLocationAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -102,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             builder.AddIfNotNull(_lazyNativeIntegerAttribute);
             builder.AddIfNotNull(_lazyScopedRefAttribute);
             builder.AddIfNotNull(_lazyRefSafetyRulesAttribute);
+            builder.AddIfNotNull(_lazyRequiresLocationAttribute);
 
             return builder.ToImmutableAndFree();
         }
@@ -266,6 +268,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeScopedRefAttribute(member);
         }
 
+        protected override SynthesizedAttributeData SynthesizeRequiresLocationAttribute()
+        {
+            if ((object)_lazyRequiresLocationAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyRequiresLocationAttribute.Constructors[0],
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeRequiresLocationAttribute();
+        }
+
         internal override SynthesizedAttributeData SynthesizeRefSafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)
         {
             if ((object)_lazyRefSafetyRulesAttribute != null)
@@ -427,6 +442,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     diagnostics,
                     AttributeDescription.RefSafetyRulesAttribute,
                     CreateRefSafetyRulesAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.RequiresLocationAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyRequiresLocationAttribute,
+                    diagnostics,
+                    AttributeDescription.RequiresLocationAttribute,
+                    createParameterlessEmbeddedAttributeSymbol);
             }
         }
 
