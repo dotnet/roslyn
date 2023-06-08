@@ -737,7 +737,7 @@ public partial class UsePrimaryConstructorTests
         }.RunAsync();
     }
 
-    [Fact(Skip = "Currently broken due to nested type IOp callbacks not running")]
+    [Fact]
     public async Task TestDoNotRemoveMembersUsedInNestedTypes()
     {
         await new VerifyCS.Test
@@ -773,7 +773,7 @@ public partial class UsePrimaryConstructorTests
 
                 class C(int i, int j)
                 {
-                    private int I { get; } = i;
+                    private int _i = i;
 
                     public struct Enumerator
                     {
@@ -781,7 +781,7 @@ public partial class UsePrimaryConstructorTests
                 
                         public Enumerator(C c)
                         {
-                            _i = c.I;
+                            _i = c._i;
                             Console.WriteLine(c);
                         }
                     }
