@@ -517,21 +517,31 @@ ExitDecodeTypeName:
 
             static bool tryScanArity(ReadOnlySpan<char> aritySpan, out short arity)
             {
-                // Common case: aritySpan is 1 digit between 1-9.  No need for any complex parsing logic in that case.
-                if (aritySpan is [var firstChar and >= '1' and <= '9'])
+                // Arity must have at least one character and must not have leading zeroes.
+                // Also, in order to fit into short.MaxValue (32767), it must be at most 5 characters long. 
+                if (aritySpan is { Length: < 1 or > 5 } or ['0', ..])
                 {
-                    arity = (short)(firstChar - '0');
-                    return true;
+                    arity = -1;
+                    return false;
                 }
 
-#if NET
-                bool nonNumericCharFound = !int.TryParse(aritySpan, NumberStyles.None, CultureInfo.InvariantCulture, out int intArity);
-#else
-                bool nonNumericCharFound = !int.TryParse(aritySpan.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out int intArity);
-#endif
+                int intArity = 0;
 
-                if (nonNumericCharFound || intArity < 0 || intArity > short.MaxValue ||
-                    !aritySpan.SequenceEqual(intArity.ToString().AsSpan()))
+                foreach (char digit in aritySpan)
+                {
+                    if (digit is < '0' or > '9')
+                    {
+                        // Accepting integral decimal digits only
+                        arity = -1;
+                        return false;
+                    }
+
+                    intArity = intArity * 10 + (digit - '0');
+                }
+
+                Debug.Assert(intArity > 0);
+
+                if (intArity > short.MaxValue)
                 {
                     arity = -1;
                     return false;
