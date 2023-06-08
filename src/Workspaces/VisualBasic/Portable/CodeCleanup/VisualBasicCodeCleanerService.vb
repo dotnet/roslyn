@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                 End Function)
         End Function
 
-        Private Function GetMultiLineContainer(node As SyntaxNode) As SyntaxNode
+        Private Shared Function GetMultiLineContainer(node As SyntaxNode) As SyntaxNode
             If node Is Nothing Then
                 Return Nothing
             End If
