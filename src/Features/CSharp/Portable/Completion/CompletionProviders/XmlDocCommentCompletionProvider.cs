@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return elementName != null;
         }
 
-        private (string? name, SyntaxList<XmlAttributeSyntax> attributes) GetElementNameAndAttributes(SyntaxNode node)
+        private static (string? name, SyntaxList<XmlAttributeSyntax> attributes) GetElementNameAndAttributes(SyntaxNode node)
         {
             XmlNameSyntax? nameSyntax;
             SyntaxList<XmlAttributeSyntax> attributes;

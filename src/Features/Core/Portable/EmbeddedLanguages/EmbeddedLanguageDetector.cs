@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             return true;
         }
 
-        private string? GetNameOfType(SyntaxNode? typeNode, ISyntaxFacts syntaxFacts)
+        private static string? GetNameOfType(SyntaxNode? typeNode, ISyntaxFacts syntaxFacts)
         {
             if (syntaxFacts.IsQualifiedName(typeNode))
             {
