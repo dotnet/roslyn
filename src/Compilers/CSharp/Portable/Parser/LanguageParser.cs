@@ -86,9 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             IsEndOfFunctionPointerCallingConvention = 1 << 25,
             IsEndOfRecordOrClassOrStructOrInterfaceSignature = 1 << 26,
             IsExpressionOrPatternInCaseLabelOfSwitchStatement = 1 << 27,
+            IsPatternInSwitchExpressionArm = 1 << 28,
         }
 
-        private const int LastTerminatorState = (int)TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement;
+        private const int LastTerminatorState = (int)TerminatorState.IsPatternInSwitchExpressionArm;
 
         private bool IsTerminator()
         {

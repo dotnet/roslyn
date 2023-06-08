@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var declaredParameters = declarationSymbol.GetParameters();
             if (declarationSymbol is INamedTypeSymbol namedTypeSymbol &&
-                namedTypeSymbol.TryGetRecordPrimaryConstructor(out var primaryConstructor))
+                namedTypeSymbol.TryGetPrimaryConstructor(out var primaryConstructor))
             {
                 declaredParameters = primaryConstructor.Parameters;
             }

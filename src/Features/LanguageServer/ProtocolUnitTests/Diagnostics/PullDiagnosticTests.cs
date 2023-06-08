@@ -788,6 +788,47 @@ class A
             Assert.Equal(closeLocation, results.Single().Diagnostics![2].Range);
         }
 
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1806590")]
+        public async Task TestDocumentDiagnosticsForUnnecessarySuppressions(bool useVSDiagnostics, bool mutatingLspWorkspace)
+        {
+            var markup = "#pragma warning disable IDE0000";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics);
+
+            Assert.Equal(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId, results.Single().Diagnostics.Single().Code);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1824321")]
+        public async Task TestDocumentDiagnosticsForSourceSuppressions(bool useVSDiagnostics, bool mutatingLspWorkspace)
+        {
+            var markup = @"
+class C
+{ 
+    void M()
+    {
+#pragma warning disable CS0168 // Variable is declared but never used
+        int x;
+#pragma warning restore CS0168 // Variable is declared but never used
+    }
+}";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics);
+
+            Assert.Empty(results.Single().Diagnostics);
+        }
+
         #endregion
 
         #region Workspace Diagnostics

@@ -5685,4 +5685,7 @@
   <data name="ERR_DoNotUseRequiredMember" xml:space="preserve">
     <value>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</value>
   </data>
+  <data name="ERR_UnsupportedRefReturningCallInWithStatement" xml:space="preserve">
+    <value>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</value>
+  </data>
 </root>
