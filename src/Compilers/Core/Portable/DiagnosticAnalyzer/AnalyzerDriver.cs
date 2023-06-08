@@ -1620,7 +1620,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 await processContainerOnMemberCompletedAsync(symbol.ContainingNamespace, symbol, analyzer).ConfigureAwait(false);
-                await processContainerOnMemberCompletedAsync(symbol.ContainingType, symbol, analyzer).ConfigureAwait(false);
+
+                var containingType = symbol.ContainingType;
+                while (containingType != null)
+                {
+                    await processContainerOnMemberCompletedAsync(containingType, symbol, analyzer).ConfigureAwait(false);
+                    containingType = containingType.ContainingType;
+                }
             }
 
             async Task processContainerOnMemberCompletedAsync(INamespaceOrTypeSymbol containerSymbol, ISymbol processedMemberSymbol, DiagnosticAnalyzer analyzer)
