@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
                 {
                     completionSource.TrySetResult(true);
                 }
-            }, cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
+            }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 
             return completionSource.Task;
 

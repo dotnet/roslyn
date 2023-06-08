@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // The cachedLookup caches results of lookups on the constituent namespaces so that
         // subsequent lookups for the same name are much faster than having to ask each of the
         // constituent namespaces.
-        private readonly CachingDictionary<string, Symbol> _cachedLookup;
+        private readonly CachingDictionary<ReadOnlyMemory<char>, Symbol> _cachedLookup;
 
         // GetMembers() is repeatedly called on merged namespaces in some IDE scenarios.
         // This caches the result that is built by asking the 'cachedLookup' for a concatenated
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _extent = extent;
             _namespacesToMerge = namespacesToMerge;
             _containingNamespace = containingNamespace;
-            _cachedLookup = new CachingDictionary<string, Symbol>(SlowGetChildrenOfName, SlowGetChildNames, EqualityComparer<string>.Default);
+            _cachedLookup = new CachingDictionary<ReadOnlyMemory<char>, Symbol>(SlowGetChildrenOfName, SlowGetChildNames, ReadOnlyMemoryOfCharComparer.Instance);
             _nameOpt = nameOpt;
 
 #if DEBUG
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Method that is called from the CachingLookup to lookup the children of a given name.
         /// Looks in all the constituent namespaces.
         /// </summary>
-        private ImmutableArray<Symbol> SlowGetChildrenOfName(string name)
+        private ImmutableArray<Symbol> SlowGetChildrenOfName(ReadOnlyMemory<char> name)
         {
             ArrayBuilder<NamespaceSymbol> namespaceSymbols = null;
             var otherSymbols = ArrayBuilder<Symbol>.GetInstance();
@@ -166,15 +166,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Method that is called from the CachingLookup to get all child names. Looks in all
         /// constituent namespaces.
         /// </summary>
-        private HashSet<string> SlowGetChildNames(IEqualityComparer<string> comparer)
+        private HashSet<ReadOnlyMemory<char>> SlowGetChildNames(IEqualityComparer<ReadOnlyMemory<char>> comparer)
         {
-            var childNames = new HashSet<string>(comparer);
+            var childNames = new HashSet<ReadOnlyMemory<char>>(comparer);
 
             foreach (var ns in _namespacesToMerge)
             {
                 foreach (var child in ns.GetMembersUnordered())
                 {
-                    childNames.Add(child.Name);
+                    childNames.Add(child.Name.AsMemory());
                 }
             }
 
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _allMembers;
         }
 
-        public override ImmutableArray<Symbol> GetMembers(string name)
+        public override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
         {
             return _cachedLookup[name];
         }
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray.CreateRange<NamedTypeSymbol>(GetMembers().OfType<NamedTypeSymbol>());
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             // TODO - This is really inefficient. Creating a new array on each lookup needs to fixed!
             return ImmutableArray.CreateRange<NamedTypeSymbol>(_cachedLookup[name].OfType<NamedTypeSymbol>());

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -45,9 +46,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             var supportsVsExtensions = clientCapabilities.HasVisualStudioLspCapability();
-            var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new ServerCapabilities();
+            var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new VSInternalServerCapabilities();
 
-            var commitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
+            var commitCharacters = AbstractLspCompletionResultCreationService.DefaultCommitCharactersArray;
             var triggerCharacters = _completionProviders.SelectMany(
                 lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
 
@@ -112,6 +113,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 WorkDoneProgress = false,
             };
 
+            // Using VS server capabilities because we have our own custom client.
+            capabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "'", "/", "\n" } };
+
             if (!supportsVsExtensions)
             {
                 capabilities.DiagnosticOptions = new DiagnosticOptions
@@ -125,10 +129,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return capabilities;
         }
 
-        private static VSServerCapabilities GetVSServerCapabilities()
-            => new VSInternalServerCapabilities
+        private static VSInternalServerCapabilities GetVSServerCapabilities()
+            => new()
             {
-                OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "'", "/", "\n" } },
                 DocumentHighlightProvider = true,
                 ProjectContextProvider = true,
                 BreakableRangeProvider = true,
