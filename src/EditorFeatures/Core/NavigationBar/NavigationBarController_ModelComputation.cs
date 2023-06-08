@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 // Use NoThrow as this is a high source of cancellation exceptions.  This avoids the exception and instead
                 // bails gracefully by checking below.
                 await _visibilityTracker.DelayWhileNonVisibleAsync(
-                    _threadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(false);
+                    _threadingContext, _asyncListener, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(false);
 
                 if (cancellationToken.IsCancellationRequested)
                     return null;

@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
@@ -44,10 +45,15 @@ namespace Microsoft.CodeAnalysis.Workspaces
         public static Task DelayWhileNonVisibleAsync(
             this ITextBufferVisibilityTracker? service,
             IThreadingContext threadingContext,
+            IAsynchronousOperationListener listener,
             ITextBuffer subjectBuffer,
             TimeSpan timeSpan,
             CancellationToken cancellationToken)
         {
+            // Only add a delay if we have access to a service that will tell us when the buffer become visible or not.
+            if (service is null)
+                return Task.CompletedTask;
+
             // Because cancellation is both expensive, and a super common thing to occur while we're delaying the caller
             // until visibility, we special case the implementation here and transition to the canceled state
             // explicitly, rather than throwing a cancellation exception.
@@ -62,10 +68,6 @@ namespace Microsoft.CodeAnalysis.Workspaces
             // exceptions.
             async Task DelayWhileNonVisibleWorkerAsync()
             {
-                // Only add a delay if we have access to a service that will tell us when the buffer become visible or not.
-                if (service is null)
-                    return;
-
                 if (cancellationToken.IsCancellationRequested)
                     return;
 
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
                 try
                 {
                     // Listen to when the active document changed so that we startup work on a document once it becomes visible.
-                    var delayTask = Task.Delay(timeSpan, cancellationToken);
+                    var delayTask = listener.Delay(timeSpan, cancellationToken);
                     await Task.WhenAny(delayTask, visibilityChangedTaskSource.Task).NoThrowAwaitable(captureContext: true);
                 }
                 finally
