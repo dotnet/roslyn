@@ -107,6 +107,11 @@
         <target state="translated">'{0}'에는 이 버전의 Visual Basic 컴파일러에서 지원하지 않는 컴파일러 기능 '{1}'이(가) 필요합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="new">A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
         <source>caller argument expression</source>
         <target state="translated">호출자 인수 표현식</target>

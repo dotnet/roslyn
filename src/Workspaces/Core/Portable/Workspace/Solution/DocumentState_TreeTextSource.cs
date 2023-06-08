@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private sealed class TreeTextSource : ITextAndVersionSource
         {
-            private readonly ValueSource<SourceText> _textSource;
+            private readonly AsyncLazy<SourceText> _textSource;
             private readonly VersionStamp _version;
 
             public bool CanReloadText
                 => false;
 
-            public TreeTextSource(ValueSource<SourceText> textSource, VersionStamp version)
+            public TreeTextSource(AsyncLazy<SourceText> textSource, VersionStamp version)
             {
                 _textSource = textSource;
                 _version = version;

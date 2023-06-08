@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
     [Name(Id)]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    [LocalizedName(typeof(FeaturesResources), "CSharp_VisualBasic_References")]
+    [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.CSharp_VisualBasic_References))]
     [Priority(200)]
     [OptionUserModifiable(userModifiable: false)]
     [DetailsTemplateName("references")]

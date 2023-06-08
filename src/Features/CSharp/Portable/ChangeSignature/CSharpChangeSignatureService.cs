@@ -910,13 +910,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             => Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace);
 
         protected override bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
-            => typeSymbol.TryGetRecordPrimaryConstructor(out primaryConstructor);
+            => typeSymbol.TryGetPrimaryConstructor(out primaryConstructor);
 
         protected override ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol)
         {
             var declaredParameters = declarationSymbol.GetParameters();
             if (declarationSymbol is INamedTypeSymbol namedTypeSymbol &&
-                namedTypeSymbol.TryGetRecordPrimaryConstructor(out var primaryConstructor))
+                namedTypeSymbol.TryGetPrimaryConstructor(out var primaryConstructor))
             {
                 declaredParameters = primaryConstructor.Parameters;
             }

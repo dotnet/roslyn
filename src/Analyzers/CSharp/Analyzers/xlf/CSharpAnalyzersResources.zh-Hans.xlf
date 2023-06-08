@@ -387,6 +387,11 @@
         <target state="translated">使用模式匹配(可能会更改代码含义)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_primary_constructor">
+        <source>Use primary constructor</source>
+        <target state="new">Use primary constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="translated">使用范围运算符</target>

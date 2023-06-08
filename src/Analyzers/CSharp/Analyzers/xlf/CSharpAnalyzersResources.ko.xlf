@@ -387,6 +387,11 @@
         <target state="translated">패턴 일치 사용(코드 의미를 변경할 수 있음)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_primary_constructor">
+        <source>Use primary constructor</source>
+        <target state="new">Use primary constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="translated">범위 연산자 사용</target>

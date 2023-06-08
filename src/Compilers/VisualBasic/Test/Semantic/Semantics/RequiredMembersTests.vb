@@ -87,7 +87,7 @@ BC37324: 'VbDerivedDerived' cannot satisfy the 'New' constraint on parameter 'T'
             ' {
             '     public required int P { get; set; }
             ' }
-            ' public class Derived
+            ' public class Derived : Base
             ' {
             '     public new required int P { get; set; }
             '     public Derived() {}
