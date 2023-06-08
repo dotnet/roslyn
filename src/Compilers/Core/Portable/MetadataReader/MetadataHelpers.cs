@@ -506,7 +506,7 @@ ExitDecodeTypeName:
             }
 
             // Given a name corresponding to <unmangledName>`<arity>, extract the arity.
-            if (!tryScanArity(emittedTypeName[indexOfManglingChar..], out short arity))
+            if (tryScanArity(emittedTypeName[indexOfManglingChar..]) is not short arity)
             {
                 suffixStartsAt = -1;
                 return 0;
@@ -515,40 +515,29 @@ ExitDecodeTypeName:
             suffixStartsAt = indexOfManglingChar - 1;
             return arity;
 
-            static bool tryScanArity(ReadOnlySpan<char> aritySpan, out short arity)
+            static short? tryScanArity(ReadOnlySpan<char> aritySpan)
             {
                 // Arity must have at least one character and must not have leading zeroes.
                 // Also, in order to fit into short.MaxValue (32767), it must be at most 5 characters long. 
-                if (aritySpan is { Length: < 1 or > 5 } or ['0', ..])
+                if (aritySpan is { Length: >= 1 and <= 5 } and not ['0', ..])
                 {
-                    arity = -1;
-                    return false;
-                }
-
-                int intArity = 0;
-
-                foreach (char digit in aritySpan)
-                {
-                    if (digit is < '0' or > '9')
+                    int intArity = 0;
+                    foreach (char digit in aritySpan)
                     {
                         // Accepting integral decimal digits only
-                        arity = -1;
-                        return false;
+                        if (digit is < '0' or > '9')
+                            return null;
+
+                        intArity = intArity * 10 + (digit - '0');
                     }
 
-                    intArity = intArity * 10 + (digit - '0');
+                    Debug.Assert(intArity > 0);
+
+                    if (intArity <= short.MaxValue)
+                        return (short)intArity;
                 }
 
-                Debug.Assert(intArity > 0);
-
-                if (intArity > short.MaxValue)
-                {
-                    arity = -1;
-                    return false;
-                }
-
-                arity = (short)intArity;
-                return true;
+                return null;
             }
         }
 
