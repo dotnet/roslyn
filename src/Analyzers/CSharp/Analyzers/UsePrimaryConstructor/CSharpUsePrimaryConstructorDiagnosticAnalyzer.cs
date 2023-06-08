@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
 
                 // Mapping from a named type to a particular analyzer we have created for it. Needed because nested
                 // types need to update the information for their containing types while they themselves are being
-                // analyzed.  Specifically, we need to look for 
+                // analyzed.
                 var namedTypeToAnalyzer = new ConcurrentDictionary<INamedTypeSymbol, Analyzer>();
                 context.RegisterSymbolStartAction(context => Analyzer.AnalyzeNamedTypeStart(this, context, namedTypeToAnalyzer), SymbolKind.NamedType);
             });
