@@ -848,52 +848,6 @@ namespace Microsoft.CodeAnalysis
             return sum;
         }
 
-        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector)
-            where K : notnull
-            where T : notnull
-        {
-            if (items.Length == 1)
-            {
-                T value = items[0];
-                return new Dictionary<K, ImmutableArray<T>>(1)
-                {
-                    {  keySelector(value), ImmutableArray.Create(value) },
-                };
-            }
-
-            if (items.Length == 0)
-            {
-                return new Dictionary<K, ImmutableArray<T>>();
-            }
-
-            // bucketize
-            // prevent reallocation. it may not have 'count' entries, but it won't have more. 
-            //
-            // We store a mapping from keys to either a single item (very common in practice as this is used from
-            // callers that maps names to symbols with that name, and most names are unique), or an array builder of items.
-
-            var accumulator = PooledDictionary<K, object>.GetInstance();
-            foreach (var item in items)
-            {
-                var key = keySelector(item);
-                AddToMultiValueDictionaryBuilder(accumulator, key, item);
-            }
-
-            var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count);
-
-            // freeze
-            foreach (var pair in accumulator)
-            {
-                dictionary.Add(pair.Key, pair.Value is ArrayBuilder<T> arrayBuilder
-                    ? arrayBuilder.ToImmutableAndFree()
-                    : ImmutableArray.Create((T)pair.Value));
-            }
-
-            accumulator.Free();
-
-            return dictionary;
-        }
-
         internal static void AddToMultiValueDictionaryBuilder<K, T>(Dictionary<K, object> accumulator, K key, T item)
             where K : notnull
             where T : notnull
@@ -921,9 +875,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static void CreateNameToMembersMap
-            <TNamespaceOrTypeSymbol, TNamedTypeSymbol, TNamespaceSymbol>
-            (Dictionary<string, object> dictionary, Dictionary<string, ImmutableArray<TNamespaceOrTypeSymbol>> result)
+        internal static void CreateNameToMembersMap<TKey, TNamespaceOrTypeSymbol, TNamedTypeSymbol, TNamespaceSymbol>
+            (Dictionary<TKey, object> dictionary, Dictionary<TKey, ImmutableArray<TNamespaceOrTypeSymbol>> result)
+            where TKey : notnull
             where TNamespaceOrTypeSymbol : class
             where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
             where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
@@ -956,12 +910,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static Dictionary<string, ImmutableArray<TNamedTypeSymbol>> GetTypesFromMemberMap<TNamespaceOrTypeSymbol, TNamedTypeSymbol>
-            (Dictionary<string, ImmutableArray<TNamespaceOrTypeSymbol>> map, IEqualityComparer<string> comparer)
+        internal static Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>> GetTypesFromMemberMap<TKey, TNamespaceOrTypeSymbol, TNamedTypeSymbol>
+            (Dictionary<TKey, ImmutableArray<TNamespaceOrTypeSymbol>> map, IEqualityComparer<TKey> comparer)
+            where TKey : notnull
             where TNamespaceOrTypeSymbol : class
             where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
         {
-            var dictionary = new Dictionary<string, ImmutableArray<TNamedTypeSymbol>>(comparer);
+            var dictionary = new Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>>(comparer);
 
             foreach (var (name, members) in map)
             {
