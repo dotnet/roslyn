@@ -320,7 +320,7 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/6752")>
         Public Async Function TestWithVirtualMethodImplementationWithInterfaceOnBaseClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -337,7 +337,7 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/6752")>
         Public Async Function TestWithVirtualMethodImplementationWithInterfaceOnDerivedClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -354,7 +354,7 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/6752")>
         Public Async Function TestWithVirtualMethodImplementationAndInterfaceImplementedOnDerivedType(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -371,7 +371,7 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/6752")>
         Public Async Function TestWithAbstractMethodImplementation(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -474,7 +474,7 @@ class D : C
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(19700, "https://github.com/dotnet/roslyn/issues/19700")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/19700")>
         Public Async Function TestWithIntermediateAbstractOverrides(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -500,7 +500,7 @@ class D : C
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(43093, "https://github.com/dotnet/roslyn/issues/43093")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/43093")>
         Public Async Function TestMultiTargetting1(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -532,7 +532,7 @@ public class [|Impl|] : IInterface
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/46818")>
         Public Async Function TestCrossTargetting1(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -579,7 +579,7 @@ public class StringCreator : IStringCreator
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/46818")>
         Public Async Function TestCrossTargetting2(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -626,7 +626,7 @@ public class StringCreator : IStringCreator
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/46818")>
         Public Async Function TestCrossTargetting3(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -673,7 +673,7 @@ public class StringCreator : IStringCreator
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(26167, "https://github.com/dotnet/roslyn/issues/26167")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/26167")>
         Public Async Function SkipIntermediaryAbstractMethodIfOverridden(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -690,7 +690,7 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(26167, "https://github.com/dotnet/roslyn/issues/26167")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/26167")>
         Public Async Function IncludeAbstractMethodIfNotOverridden(host As TestHost) As Task
             Dim workspace =
 <Workspace>

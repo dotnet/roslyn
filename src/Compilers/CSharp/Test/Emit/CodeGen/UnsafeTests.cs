@@ -10328,10 +10328,13 @@ public class Test
     }
 }
 ";
-            // PEVerify:
-            // [ : ChannelServices::.cctor][mdToken=0x6000005][offset 0x0000000C][found unmanaged pointer][expected unmanaged pointer] Unexpected type on the stack.
-            // [ : ChannelServices::GetPrivateContextsPerfCounters][mdToken= 0x6000002][offset 0x00000002][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.FailsPEVerify with
+            {
+                PEVerifyMessage = """
+                    [ : ChannelServices::.cctor][offset 0x0000000C][found unmanaged pointer][expected unmanaged pointer] Unexpected type on the stack.
+                    [ : ChannelServices::GetPrivateContextsPerfCounters][offset 0x00000002][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
+                    """,
+            }).VerifyDiagnostics();
         }
 
         [WorkItem(545026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
@@ -10345,9 +10348,12 @@ class C
     unsafe int* p = (int*)2;
 }
 ";
-            // PEVerify:
-            // [ : C::.ctor][mdToken=0x6000001][offset 0x0000000A][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            var c = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify with
+            {
+                PEVerifyMessage = "[ : C::.ctor][offset 0x0000000A][found Native Int][expected unmanaged pointer] Unexpected type on the stack."
+            });
+
+            c.VerifyDiagnostics(
                 // (4,9): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     int x = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
@@ -10364,9 +10370,12 @@ class C
     int x = 1;
 }
 ";
-            // PEVerify:
-            // [ : C::.ctor][mdToken=0x6000001][offset 0x00000003][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            var c = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify with
+            {
+                PEVerifyMessage = "[ : C::.ctor][offset 0x00000003][found Native Int][expected unmanaged pointer] Unexpected type on the stack."
+            });
+
+            c.VerifyDiagnostics(
                 // (5,9): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     int x = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));

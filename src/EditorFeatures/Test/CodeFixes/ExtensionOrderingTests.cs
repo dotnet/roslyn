@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.True(actualOrder.Length > 0);
         }
 
-        [Theory, WorkItem(1599579, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1599579")]
+        [Theory, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1599579")]
         [InlineData(LanguageNames.CSharp)]
         [InlineData(LanguageNames.VisualBasic)]
         public void TestCodeFixServiceOrderIsCorrect(string language)

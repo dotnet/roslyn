@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
@@ -68,9 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var options = _globalOptions.GetCodeActionOptionsProvider();
 
-            var codeActionsCache = context.GetRequiredLspService<CodeActionsCache>();
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
-                codeActionsCache,
                 document,
                 data.Range,
                 options,
@@ -81,7 +80,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.UniqueIdentifier, codeActions);
             Contract.ThrowIfNull(codeActionToResolve);
 
-            var operations = await codeActionToResolve.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+            var operations = await codeActionToResolve.GetOperationsAsync(
+                solution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
 
             // TO-DO: We currently must execute code actions which add new documents on the server as commands,
             // since there is no LSP support for adding documents yet. In the future, we should move these actions

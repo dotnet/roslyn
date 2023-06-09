@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using SAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+namespace Microsoft.VisualStudio.LanguageServices.Options
 {
     [Export(typeof(IOptionPersisterProvider))]
     internal sealed class PackageSettingsPersisterProvider : IOptionPersisterProvider

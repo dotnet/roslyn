@@ -24,8 +24,7 @@ See Modifications.md for details.
 
 ## 5. Make sure all test are green
 
-TODO: Update for the new PostSharp Engineering.
-To run Roslyn tests, execute `eng\Build.ps1 -test`.
+To run Roslyn tests, execute `b test`.
 To run Metalama.Compiler tests, execute `dotnet test src\Metalama\Metalama.Compiler.UnitTests\Metalama.Compiler.UnitTests.csproj`.
 
 ## 6. Update Metalama Framework

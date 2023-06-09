@@ -22,9 +22,24 @@
         <target state="translated">'GetType'을 'NameOf'로 변환</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_0_an_Async_Function">
+        <source>Make {0} an Async Function.</source>
+        <target state="translated">{0}을(를) 비동기 함수로 설정합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
         <target state="translated">'{0}'을(를) 상속 가능으로 지정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_Async_Function">
+        <source>Make Async Function</source>
+        <target state="translated">비동기 함수로 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_Async_Sub">
+        <source>Make Async Sub</source>
+        <target state="translated">비동기 Sub로 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">

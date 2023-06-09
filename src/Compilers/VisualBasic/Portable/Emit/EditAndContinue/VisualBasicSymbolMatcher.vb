@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
     Friend NotInheritable Class VisualBasicSymbolMatcher
@@ -340,9 +341,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Return assembly
                 End If
 
-                ' When we map synthesized symbols from previous generations to the latest compilation 
-                ' we might encounter a symbol that is defined in arbitrary preceding generation, 
-                ' not just the immediately preceding generation. If the source assembly uses time-based 
+                ' When we map synthesized symbols from previous generations to the latest compilation
+                ' we might encounter a symbol that is defined in arbitrary preceding generation,
+                ' not just the immediately preceding generation. If the source assembly uses time-based
                 ' versioning assemblies of preceding generations might differ in their version number.
                 If IdentityEqualIgnoringVersionWildcard(assembly, _sourceAssembly) Then
                     Return _otherAssembly

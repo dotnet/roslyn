@@ -182,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             base.OnLoad();
 
-            var preferences = OptionStore.GetOption(NamingStyleOptions.NamingPreferences, _languageName);
+            var preferences = OptionStore.GetOption<NamingStylePreferences>(NamingStyleOptions.NamingPreferences, _languageName);
             if (preferences == null)
             {
                 return;

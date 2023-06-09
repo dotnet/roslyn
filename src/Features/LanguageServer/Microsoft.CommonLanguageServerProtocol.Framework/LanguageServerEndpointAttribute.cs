@@ -9,7 +9,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// <summary>
 /// An attribute which identifies the method which an <see cref="IMethodHandler"/> implements.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Method, AllowMultiple = false)]
 public class LanguageServerEndpointAttribute : Attribute
 {
     /// <summary>

@@ -16,10 +16,11 @@ The minimal required version of .NET Framework is 4.7.2.
 ## Developing with Visual Studio 2022
 
 1. Use latest [Visual Studio 2022 Preview](https://visualstudio.microsoft.com/vs/preview/vs2022/)
-    - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
+    - Ensure Visual Studio extension development is included in the selected workloads
+    - Ensure C# and Visual Basic, MSBuild, and .NET Core are included in the selected individual components
     - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
     - Restart Visual Studio
-1. Install the latest [.NET 7.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
+1. Install the latest [.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
@@ -220,12 +221,12 @@ Before pushing a relevant fix to CI, you can validate locally using the `-testUs
 
 1. Install `dotnet-format` as a global tool. It does ship as part of the SDK, but a separate version can be installed as a global tool and invoked with `dotnet-format {options}`.
 `C:\Source\roslyn> dotnet tool install -g dotnet-format --version "6.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json`
-2. Restore and build `Compilers.sln`. This is necessary to ensure the source generator project is built and we can load the generator assembly when running `dotnet-format`.
+2. Restore and build `Compilers.slnf`. This is necessary to ensure the source generator project is built and we can load the generator assembly when running `dotnet-format`.
 `C:\Source\roslyn> .\restore.cmd`
 `C:\Source\roslyn> .\build.cmd`
 3. Invoke the `dotnet-format` global tool. Running only the analyzers subcommand and fixing only the "missing Public API signature" diagnostic. We must also pass the `--include-generated` flag to include source generated documents in the analysis.
 `C:\Source\roslyn> cd ..`
-`C:\Source> dotnet-format analyzers .\roslyn\Compilers.sln --diagnostics=RS0016 --no-restore --include-generated -v diag`
+`C:\Source> dotnet-format analyzers .\roslyn\Compilers.slnf --diagnostics=RS0016 --no-restore --include-generated -v diag`
 
 
 ## Contributing

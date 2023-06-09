@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal readonly struct ParameterDescription
         {
-            internal ParameterDescription(TypeWithAnnotations type, RefKind refKind, DeclarationScope scope, ConstantValue? defaultValue, bool isParams, bool hasUnscopedRefAttribute)
+            internal ParameterDescription(TypeWithAnnotations type, RefKind refKind, ScopedKind scope, ConstantValue? defaultValue, bool isParams, bool hasUnscopedRefAttribute)
             {
                 Type = type;
                 RefKind = refKind;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal readonly TypeWithAnnotations Type;
             internal readonly RefKind RefKind;
-            internal readonly DeclarationScope Scope;
+            internal readonly ScopedKind Scope;
             internal readonly ConstantValue? DefaultValue;
             internal readonly bool IsParams;
             internal readonly bool HasUnscopedRefAttribute;

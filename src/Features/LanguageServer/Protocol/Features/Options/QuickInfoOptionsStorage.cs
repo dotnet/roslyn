@@ -8,21 +8,19 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal static class QuickInfoOptionsStorage
     {
-        public static QuickInfoOptions GetQuickInfoOptions(this IGlobalOptionService globalOptions, string? language)
+        public static QuickInfoOptions GetQuickInfoOptions(this IGlobalOptionService globalOptions, string language)
           => new()
           {
               ShowRemarksInQuickInfo = globalOptions.GetOption(ShowRemarksInQuickInfo, language),
               IncludeNavigationHintsInQuickInfo = globalOptions.GetOption(IncludeNavigationHintsInQuickInfo),
           };
 
-        private const string FeatureName = "QuickInfoOptions";
+        private static readonly OptionGroup s_quickInfoGroup = new(name: "quick_info", description: "");
 
         public static readonly PerLanguageOption2<bool> ShowRemarksInQuickInfo = new(
-            FeatureName, "ShowRemarksInQuickInfo", QuickInfoOptions.Default.ShowRemarksInQuickInfo,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowRemarks"));
+            "dotnet_show_remarks_in_quick_info", QuickInfoOptions.Default.ShowRemarksInQuickInfo, group: s_quickInfoGroup);
 
         public static readonly Option2<bool> IncludeNavigationHintsInQuickInfo = new(
-            FeatureName, "IncludeNavigationHintsInQuickInfo", QuickInfoOptions.Default.IncludeNavigationHintsInQuickInfo,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.Specific.IncludeNavigationHintsInQuickInfo"));
+            "dotnet_show_navigation_hints_in_quick_info", QuickInfoOptions.Default.IncludeNavigationHintsInQuickInfo, group: s_quickInfoGroup);
     }
 }

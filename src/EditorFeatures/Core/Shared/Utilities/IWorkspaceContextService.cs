@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             _globalOptionsService = globalOptionsService;
         }
 
-        public bool IsInLspEditorContext() => _globalOptionsService.GetOption(LspOptions.LspEditorFeatureFlag);
+        public bool IsInLspEditorContext() => _globalOptionsService.GetOption(LspOptionsStorage.LspEditorFeatureFlag);
 
         public bool IsCloudEnvironmentClient() => false;
     }

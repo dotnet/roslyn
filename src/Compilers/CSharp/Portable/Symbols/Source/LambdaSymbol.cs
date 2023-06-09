@@ -134,11 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
-        {
-            get { return default(System.Reflection.MethodImplAttributes); }
-        }
-
         public override bool ReturnsVoid
         {
             get { return this.ReturnTypeWithAnnotations.HasType && this.ReturnType.IsVoidType(); }
@@ -336,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 TypeWithAnnotations type;
                 RefKind refKind;
-                DeclarationScope scope;
+                ScopedKind scope;
                 ParameterSyntax? paramSyntax = null;
                 if (hasExplicitlyTypedParameterList)
                 {
@@ -349,13 +344,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     type = parameterTypes[p];
                     refKind = RefKind.None;
-                    scope = DeclarationScope.Unscoped;
+                    scope = ScopedKind.None;
                 }
                 else
                 {
                     type = TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
                     refKind = RefKind.None;
-                    scope = DeclarationScope.Unscoped;
+                    scope = ScopedKind.None;
                 }
 
                 var attributeLists = unboundLambda.ParameterAttributes(p);

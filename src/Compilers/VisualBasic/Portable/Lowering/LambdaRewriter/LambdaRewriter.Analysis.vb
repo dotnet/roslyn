@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -33,10 +34,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend seenLambda As Boolean = False
 
             ' seenBackBranches is used to decide whether closures should attempt copy-constructing.
-            ' We do not want a very complicated analysis here as redundant attempt to copy-construct 
+            ' We do not want a very complicated analysis here as redundant attempt to copy-construct
             ' should not cause a lot of overhead (passing extra argument + null check).
             '
-            ' However we want to check for methods without back branches as those are common and 
+            ' However we want to check for methods without back branches as those are common and
             ' easy to detect cases that do not need copyconstructing.
 
             ''' <summary>
@@ -68,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend gotoBlock As Dictionary(Of BoundGotoStatement, BoundNode) = New Dictionary(Of BoundGotoStatement, BoundNode)()
 
             ''' <summary>
-            ''' Blocks that contain (recursively) a lambda that is lifting. 
+            ''' Blocks that contain (recursively) a lambda that is lifting.
             ''' Such blocks are considered as potentially needing closure initialization when doing jump verification.
             ''' </summary>
             Friend containsLiftingLambda As HashSet(Of BoundNode) = New HashSet(Of BoundNode)()
@@ -78,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' and a block that contains the lambda that lifts said variables.
             ''' If such block itself requires a closure, then it must lift parent frame pointer into the closure
             ''' in addition to whatever else needs to be lifted.
-            ''' 
+            '''
             ''' NOTE: This information is computed in addition to the regular analysis of the tree and only needed for rewriting.
             ''' If someone only needs diagnostics or information about captures, this information is not necessary.
             ''' ComputeLambdaScopesAndFrameCaptures needs to be called to compute this.
@@ -86,12 +87,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend needsParentFrame As HashSet(Of BoundNode)
 
             ''' <summary>
-            ''' Optimized locations of lambdas. 
-            ''' 
+            ''' Optimized locations of lambdas.
+            '''
             ''' Lambda does not need to be placed in a frame that corresponds to its lexical scope if lambda does not reference any local state in that scope.
             ''' It is advantageous to place lambdas higher in the scope tree, ideally in the innermost scope of all scopes that contain variables captured by a given lambda.
             ''' Doing so reduces indirections needed when captured local are accessed. For example locals from the innermost scope can be accessed with no indirection at all.
-            ''' 
+            '''
             ''' NOTE: This information is computed in addition to the regular analysis of the tree and only needed for rewriting.
             ''' If someone only needs diagnostics or information about captures, this information is not necessary.
             ''' ComputeLambdaScopesAndFrameCaptures needs to be called to compute this.
@@ -203,9 +204,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' 1) if there is innermost scope, lambda goes there as we cannot go any higher.
                     ' 2) scopes in [innermostScope, outermostScope) chain need to have access to the parent scope.
                     '
-                    ' Example: 
-                    '   if a lambda captures a method's parameter and Me, 
-                    '   its innermost scope depth is 0 (method locals and parameters) 
+                    ' Example:
+                    '   if a lambda captures a method's parameter and Me,
+                    '   its innermost scope depth is 0 (method locals and parameters)
                     '   and outermost scope is -1
                     '   Such lambda will be placed in a closure frame that corresponds to the method's outer block
                     '   and this frame will also lift original Me as a field when created by its parent.
@@ -372,7 +373,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' We mark all scopes from the current up to the one that declares lifted symbol as
             ''' containing a lifting lambda.
             ''' This is needed so that we could reject jumps that might jump over frame allocations.
-            ''' 
+            '''
             ''' NOTE: because of optimizations lambda _might_ be placed in a frame higher
             '''       than its lexical scope and thus make a jump technically legal.
             '''       However, we explicitly do not consider frame optimizations in this analysis.
@@ -429,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         capturedVariablesByLambda.Add(lambda, variableOrParameter)
                         parent = lambdaParent(lambda)
                     Loop While parent.MethodKind = MethodKind.LambdaMethod AndAlso parent IsNot container
-                    '  the loop exits when the sequence of nested lambdas ends or one of 
+                    '  the loop exits when the sequence of nested lambdas ends or one of
                     '   the lambdas is the variable or parameter's container
                 End If
 
@@ -516,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Validate synthetic branches in debug too.
                 Return True
 #Else
-                'TODO:  synthetic gotos should be marked as compiler generated. 
+                'TODO:  synthetic gotos should be marked as compiler generated.
                 '       There are lots of them and they are not supposed to be ever illegal.
                 Return Not node.WasCompilerGenerated
 #End If

@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
 {
     internal sealed class CommonCodeStyleSettingsProvider : SettingsProviderBase<CodeStyleSetting, OptionUpdater, IOption2, object>
     {
-        public CommonCodeStyleSettingsProvider(string filePath, OptionUpdater settingsUpdater, Workspace workspace)
-            : base(filePath, settingsUpdater, workspace)
+        public CommonCodeStyleSettingsProvider(string filePath, OptionUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
+            : base(filePath, settingsUpdater, workspace, globalOptions)
         {
             Update();
         }

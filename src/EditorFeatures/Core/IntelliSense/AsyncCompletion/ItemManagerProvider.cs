@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ItemManagerProvider(RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions)
-            => _instance = new ItemManager(recentItemsManager, globalOptions);
+        public ItemManagerProvider(RecentItemsManager recentItemsManager, EditorOptionsService editorOptionsService)
+            => _instance = new ItemManager(recentItemsManager, editorOptionsService);
 
         public IAsyncCompletionItemManager? GetOrCreate(ITextView textView)
         {

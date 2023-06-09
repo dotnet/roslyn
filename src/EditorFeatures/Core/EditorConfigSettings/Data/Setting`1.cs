@@ -16,13 +16,12 @@ internal sealed class Setting<TOptionValue> : Setting
     private TOptionValue _value;
 
     public Setting(
-        IOptionWithGroup option,
         OptionKey2 optionKey,
         string description,
         OptionUpdater updater,
         SettingLocation location,
         TOptionValue initialValue)
-        : base(option, optionKey, description, updater, location)
+        : base(optionKey, description, updater, location)
     {
         _value = initialValue;
     }

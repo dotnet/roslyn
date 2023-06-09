@@ -172,6 +172,8 @@ namespace Metalama.Compiler
 
         public override int WRN_AnalyzerReferencesFramework => throw new NotImplementedException();
 
+        public override int ERR_FunctionPointerTypesInAttributeNotSupported => throw new NotImplementedException();
+
         #endregion
 
         public override Diagnostic CreateDiagnostic(DiagnosticInfo info) => Diagnostic.Create(info);

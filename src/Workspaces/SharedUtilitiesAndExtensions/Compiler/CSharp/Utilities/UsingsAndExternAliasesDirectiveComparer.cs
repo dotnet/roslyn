@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 case UsingKind.Alias:
                     var aliasComparisonResult = _tokenComparer.Compare(using1!.Alias!.Name.Identifier, using2!.Alias!.Name.Identifier);
 
-                    if (aliasComparisonResult == 0)
+                    if (aliasComparisonResult == 0 && using1.Name != null && using2.Name != null)
                     {
                         // They both use the same alias, so compare the names.
                         return _nameComparer.Compare(using1.Name, using2.Name);
@@ -125,6 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     return aliasComparisonResult;
 
                 default:
+                    Contract.ThrowIfNull(using1!.Name);
+                    Contract.ThrowIfNull(using2!.Name);
                     return _nameComparer.Compare(using1!.Name, using2!.Name);
             }
         }

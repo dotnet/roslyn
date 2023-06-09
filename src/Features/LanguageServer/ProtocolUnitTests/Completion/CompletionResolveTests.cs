@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         {
         }
 
-        [Fact]
-        public async Task TestResolveCompletionItemFromListAsync()
+        [Theory, CombinatorialData]
+        public async Task TestResolveCompletionItemFromListAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
                     }
                 }
             };
-            await using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
 
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(
                 testLspServer,
@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             AssertJsonEquals(expected, results);
         }
 
-        [Fact]
-        public async Task TestResolveCompletionItemAsync()
+        [Theory, CombinatorialData]
+        public async Task TestResolveCompletionItemAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         {|caret:|}
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(testLspServer, label: "A").ConfigureAwait(false);
 
             var description = new ClassifiedTextElement(CreateClassifiedTextRunForClass("A"));
@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             AssertJsonEquals(expected, results);
         }
 
-        [Fact, WorkItem(51125, "https://github.com/dotnet/roslyn/issues/51125")]
-        public async Task TestResolveOverridesCompletionItemAsync()
+        [Theory, CombinatorialData]
+        public async Task TestResolveOverridesCompletionItemAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"abstract class A
@@ -106,7 +106,7 @@ class B : A
 {
     override {|caret:|}
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(testLspServer, label: "M()").ConfigureAwait(false);
             var results = (LSP.VSInternalCompletionItem)await RunResolveCompletionItemAsync(
                 testLspServer, clientCompletionItem).ConfigureAwait(false);
@@ -119,8 +119,8 @@ class B : A
     }", results.TextEdit.NewText);
         }
 
-        [Fact, WorkItem(51125, "https://github.com/dotnet/roslyn/issues/51125")]
-        public async Task TestResolveOverridesCompletionItem_SnippetsEnabledAsync()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/51125")]
+        public async Task TestResolveOverridesCompletionItem_SnippetsEnabledAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"abstract class A
@@ -148,7 +148,7 @@ class B : A
                     }
                 }
             };
-            await using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(
                 testLspServer,
                 label: "M()").ConfigureAwait(false);
@@ -164,8 +164,8 @@ class B : A
     }", results.TextEdit.NewText);
         }
 
-        [Fact, WorkItem(51125, "https://github.com/dotnet/roslyn/issues/51125")]
-        public async Task TestResolveOverridesCompletionItem_SnippetsEnabled_CaretOutOfSnippetScopeAsync()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/51125")]
+        public async Task TestResolveOverridesCompletionItem_SnippetsEnabled_CaretOutOfSnippetScopeAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"abstract class A
@@ -177,7 +177,7 @@ class B : A
 {
     override {|caret:|}
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
@@ -191,8 +191,8 @@ class B : A
     }", textEdit.NewText);
         }
 
-        [Fact]
-        public async Task TestResolveCompletionItemWithMarkupContentAsync()
+        [Theory, CombinatorialData]
+        public async Task TestResolveCompletionItemWithMarkupContentAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"
@@ -240,7 +240,7 @@ class A
                     }
                 }
             };
-            await using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.CompletionItem>(
                 testLspServer,
                 label: "AMethod").ConfigureAwait(false);
@@ -266,8 +266,8 @@ _italic&nbsp;text_
             Assert.Equal(expected, results.Documentation.Value.Second.Value);
         }
 
-        [Fact]
-        public async Task TestResolveCompletionItemWithPlainTextAsync()
+        [Theory, CombinatorialData]
+        public async Task TestResolveCompletionItemWithPlainTextAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"
@@ -302,7 +302,7 @@ class A
         AMet{|caret:|}
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.CompletionItem>(
                 testLspServer,
                 label: "AMethod").ConfigureAwait(false);
@@ -325,8 +325,8 @@ link text";
             Assert.Equal(expected, results.Documentation.Value.Second.Value);
         }
 
-        [Fact]
-        public async Task TestResolveCompletionItemWithPrefixSuffixAsync()
+        [Theory, CombinatorialData]
+        public async Task TestResolveCompletionItemWithPrefixSuffixAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -337,7 +337,7 @@ link text";
         a.{|caret:|}
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(testLspServer, label: "(byte)").ConfigureAwait(false);
 
             var results = (LSP.VSInternalCompletionItem)await RunResolveCompletionItemAsync(

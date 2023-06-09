@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _constructedSuccessfully;
         private readonly int _methodOrdinal;
 
-        private FieldSymbol _builderField;
+        private FieldSymbol? _builderField;
 
         private AsyncRewriter(
             BoundStatement body,
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int methodOrdinal,
             AsyncStateMachine stateMachineType,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
-            VariableSlotAllocator slotAllocatorOpt,
+            VariableSlotAllocator? slotAllocatorOpt,
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics)
             : base(body, method, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
@@ -43,11 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             int methodOrdinal,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
-            VariableSlotAllocator slotAllocatorOpt,
+            VariableSlotAllocator? slotAllocatorOpt,
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics,
-            out AsyncStateMachine stateMachineType)
+            out AsyncStateMachine? stateMachineType)
         {
+            Debug.Assert(compilationState.ModuleBuilderOpt != null);
+
             if (!method.IsAsync)
             {
                 stateMachineType = null;
@@ -94,6 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable disable
+
         /// <returns>
         /// Returns true if all types and members we need are present and good
         /// </returns>
@@ -134,9 +138,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void GenerateControlFields()
         {
             // the fields are initialized from async method, so they need to be public:
-
-            this.stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateFieldName(), isPublic: true);
+            stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateFieldName(), isPublic: true);
             _builderField = F.StateMachineField(_asyncMethodBuilderMemberCollection.BuilderType, GeneratedNames.AsyncBuilderFieldName(), isPublic: true);
+
+            var instrumentations = F.ModuleBuilderOpt.GetMethodBodyInstrumentations(method);
+            if (instrumentations.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing))
+            {
+                instanceIdField = F.StateMachineField(F.SpecialType(SpecialType.System_UInt64), GeneratedNames.MakeStateMachineStateIdFieldName(), isPublic: true);
+            }
         }
 
         protected override void GenerateMethodImplementations()
@@ -232,6 +241,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.Field(F.Local(stateMachineVariable), stateField.AsMember(frameType)),
                     F.Literal(StateMachineState.NotStartedOrRunningState)));
 
+            // local.$instanceIdField = LocalStoreTracker.GetNewStateMachineInstanceId()
+            if (instanceIdField is not null &&
+                F.WellKnownMethod(WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__GetNewStateMachineInstanceId) is { } getId)
+            {
+                bodyBuilder.Add(
+                    F.Assignment(
+                        F.Field(F.Local(stateMachineVariable), instanceIdField.AsMember(frameType)),
+                        F.Call(receiver: null, getId)));
+            }
+
             // local.$builder.Start(ref local) -- binding to the method AsyncTaskMethodBuilder<typeArgs>.Start()
             var startMethod = methodScopeAsyncMethodBuilderMemberCollection.Start.Construct(frameType);
             if (methodScopeAsyncMethodBuilderMemberCollection.CheckGenericMethodConstraints)
@@ -264,6 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F: F,
                 state: stateField,
                 builder: _builderField,
+                instanceIdField: instanceIdField,
                 hoistedVariables: hoistedVariables,
                 nonReusableLocalProxies: nonReusableLocalProxies,
                 synthesizedLocalOrdinals: synthesizedLocalOrdinals,

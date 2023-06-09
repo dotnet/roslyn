@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -76,15 +75,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // could generate a lot of noise if we warned on it. Finally, we only want
             // to warn on method calls, not other kinds of expressions.
 
-            if (expression.Kind != BoundKind.Call)
+            if (expression.Kind != BoundKind.Call ||
+                expression.HasAnyErrors)
             {
                 return false;
             }
 
             var type = expression.Type;
-            if ((type is null) ||
+            if (type is null ||
                 type.IsDynamic() ||
-                (type.IsVoidType()))
+                type.IsVoidType())
             {
                 return false;
             }
@@ -105,7 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Finally, if we're in an async method, and the expression could be awaited, report that it is instead discarded.
             var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
-            if (containingMethod is null || !containingMethod.IsAsync)
+            if (containingMethod is null
+                || !(containingMethod.IsAsync || containingMethod is SynthesizedSimpleProgramEntryPointSymbol))
             {
                 return false;
             }
@@ -115,8 +116,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var boundAwait = BindAwait(expression, expression.Syntax, BindingDiagnosticBag.Discarded);
-            return !boundAwait.HasAnyErrors;
+            // Could we bind await on this expression (ignoring whether we are in async context)?
+            var syntax = expression.Syntax;
+            if (ReportBadAwaitContext(syntax, syntax.Location, BindingDiagnosticBag.Discarded))
+            {
+                return false;
+            }
+
+            return GetAwaitableExpressionInfo(expression, getAwaiterGetResultCall: out _,
+                node: syntax, diagnostics: BindingDiagnosticBag.Discarded);
         }
 
         /// <summary>
