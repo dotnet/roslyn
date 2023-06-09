@@ -58,8 +58,17 @@ namespace Microsoft.CodeAnalysis.Workspaces
             // until visibility, we special case the implementation here and transition to the canceled state
             // explicitly, rather than throwing a cancellation exception.
 
-            var taskOfTask = DelayWhileNonVisibleWorkerAsync().ContinueWith(
-                task => cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : task,
+            var delayTask = DelayWhileNonVisibleWorkerAsync();
+
+            // it's very reasonable for the delay-task to complete synchronously (we've already been canceled, or the
+            // buffer is already visible.  So fast path that out.
+            if (delayTask.IsCompleted)
+                return delayTask;
+
+            var taskOfTask = delayTask.ContinueWith(
+                // Convert a successfully completed task when we were canceled to a canceled task.  Otherwise, return
+                // the faulted or non-canceled task as is.
+                task => !task.IsFaulted && cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : task,
                 CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             return taskOfTask.Unwrap();
 
