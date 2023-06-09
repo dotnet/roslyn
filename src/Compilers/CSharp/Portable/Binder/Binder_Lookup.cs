@@ -213,6 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE deal with generic extensions
                     if (isCompatible(extension, type))
                     {
+                        // PROTOTYPE should we deal with duplicate or near-duplicate extensions here instead of in merging/hiding logic?
                         compatibleExtensions.Add(extension);
                     }
                 }
@@ -1493,7 +1494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // SPEC: interface type, the base types of T are the base interfaces
                             // SPEC: of T and the class type object. 
 
-                            // PROTOTYPE revisit what kind of type comparison we want when we get to the generic case of extension member lookup
+                            // PROTOTYPE revisit how we want to deal with duplicates and what type comparison we want when we get to the generic case of extension member lookup
                             if (hidingContainer.IsExtension && TypeSymbol.Equals(hiddenContainer, hidingContainer, TypeCompareKind.ConsiderEverything2))
                             {
                                 goto symIsHidden; // members from a base extension can be brought in multiple ways (by scope and by inheritance)
