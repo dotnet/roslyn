@@ -151,6 +151,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
+        // If we have a file:///xyz URI, we'll store the actual file path string in the document file path.
+        // Otherwise we have a URI that doesn't point to an actual file. In such a scenario, we'll store the full URI string (including schema).
+        // This will allow correct round-tripping of the URI for features that need it until we support URI as a first class document concept.
+        // Tracking issue - https://github.com/dotnet/roslyn/issues/68083
+        public static string GetDocumentFilePathFromUri(Uri uri) => uri.IsFile ? uri.LocalPath : uri.OriginalString;
+
         public static Uri GetUriFromFilePath(string filePath)
         {
             if (filePath is null)
@@ -193,7 +199,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static LinePosition PositionToLinePosition(LSP.Position position)
             => new LinePosition(position.Line, position.Character);
-
         public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
             => new(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
 

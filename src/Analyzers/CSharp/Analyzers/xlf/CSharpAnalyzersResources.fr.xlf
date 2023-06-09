@@ -387,6 +387,11 @@
         <target state="translated">Utiliser la correspondance de modèle (peut modifier la signification du code)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_primary_constructor">
+        <source>Use primary constructor</source>
+        <target state="new">Use primary constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="translated">Utiliser l'opérateur de plage</target>

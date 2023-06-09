@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis
         private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentTopLevelChangeVersion;
 
         // Checksums for this solution state
-        private readonly ValueSource<ProjectStateChecksums> _lazyChecksums;
+        private readonly AsyncLazy<ProjectStateChecksums> _lazyChecksums;
 
         /// <summary>
         /// Analyzer config options to be used for specific trees.
         /// </summary>
-        private readonly ValueSource<AnalyzerConfigOptionsCache> _lazyAnalyzerConfigOptions;
+        private readonly AsyncLazy<AnalyzerConfigOptionsCache> _lazyAnalyzerConfigOptions;
 
         private AnalyzerOptions? _lazyAnalyzerOptions;
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
             TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates,
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
             AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion,
-            ValueSource<AnalyzerConfigOptionsCache> lazyAnalyzerConfigSet)
+            AsyncLazy<AnalyzerConfigOptionsCache> lazyAnalyzerConfigSet)
         {
             LanguageServices = languageServices;
             DocumentStates = documentStates;
@@ -439,9 +439,9 @@ namespace Microsoft.CodeAnalysis
 
         private sealed class ProjectSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
         {
-            private readonly ValueSource<AnalyzerConfigOptionsCache> _lazyAnalyzerConfigSet;
+            private readonly AsyncLazy<AnalyzerConfigOptionsCache> _lazyAnalyzerConfigSet;
 
-            public ProjectSyntaxTreeOptionsProvider(ValueSource<AnalyzerConfigOptionsCache> lazyAnalyzerConfigSet)
+            public ProjectSyntaxTreeOptionsProvider(AsyncLazy<AnalyzerConfigOptionsCache> lazyAnalyzerConfigSet)
                 => _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
 
             public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis
             public override int GetHashCode() => _lazyAnalyzerConfigSet.GetHashCode();
         }
 
-        private static ValueSource<AnalyzerConfigOptionsCache> ComputeAnalyzerConfigOptionsValueSource(TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates)
+        private static AsyncLazy<AnalyzerConfigOptionsCache> ComputeAnalyzerConfigOptionsValueSource(TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates)
         {
             return new AsyncLazy<AnalyzerConfigOptionsCache>(
                 asynchronousComputeFunction: async cancellationToken =>
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis
             TextDocumentStates<AnalyzerConfigDocumentState>? analyzerConfigDocumentStates = null,
             AsyncLazy<VersionStamp>? latestDocumentVersion = null,
             AsyncLazy<VersionStamp>? latestDocumentTopLevelChangeVersion = null,
-            ValueSource<AnalyzerConfigOptionsCache>? analyzerConfigSet = null)
+            AsyncLazy<AnalyzerConfigOptionsCache>? analyzerConfigSet = null)
         {
             return new ProjectState(
                 projectInfo ?? _projectInfo,
