@@ -398,7 +398,7 @@ Done:
             return symbols;
         }
 
-        internal void GetImplicitExtensionTypes(ArrayBuilder<TypeSymbol> extensions)
+        internal void GetImplicitExtensionTypes(ArrayBuilder<NamedTypeSymbol> extensions)
         {
             // PROTOTYPE needs optimizing
             foreach (var type in this.GetTypeMembersUnordered())

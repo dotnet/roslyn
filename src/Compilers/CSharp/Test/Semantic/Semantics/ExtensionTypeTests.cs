@@ -9508,7 +9508,7 @@ System.Console.Write($"Field({object.Field}) ");
 object.Type.M();
 object.StaticType.M();
 
-implicit extension Derived for object { }
+implicit extension Derived for object : Base { }
 
 implicit extension Base for object
 {
@@ -9562,12 +9562,142 @@ implicit extension Base for object
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_Simple_Static_FromBaseExtension_OnlyDerivedInScope()
+    {
+        var src = """
+_ = object.Property;
+System.Console.Write($"Field({object.Field}) ");
+object.Type.M();
+object.StaticType.M();
+
+implicit extension Derived for object : N.Base { }
+
+namespace N
+{
+    implicit extension Base for object
+    {
+        public static int Property
+        {
+            get
+            {
+                System.Console.Write("Property ");
+                return 0;
+            }
+        }
+
+        public static int Field = 42;
+
+        public class Type
+        {
+            public static void M()
+            {
+                System.Console.Write("Type ");
+            }
+        }
+
+        public class StaticType
+        {
+            public static void M()
+            {
+                System.Console.Write("StaticType ");
+            }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType");
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
+        Assert.Equal("System.Int32 N.Base.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+
+        var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
+        Assert.Equal("System.Int32 N.Base.Field", model.GetSymbolInfo(field).Symbol.ToTestDisplayString());
+
+        var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Type");
+        Assert.Equal("N.Base.Type", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+
+        var staticType = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.StaticType");
+        Assert.Equal("N.Base.StaticType", model.GetSymbolInfo(staticType).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_Simple_Static_FromBaseExtension_OnlyDerivedInScope_Inaccessible()
+    {
+        var src = """
+_ = object.Property;
+System.Console.Write($"Field({object.Field}) ");
+object.Type.M();
+
+implicit extension Derived for object : N.Base { }
+
+namespace N
+{
+    implicit extension Base for object
+    {
+        private static int Property
+        {
+            get
+            {
+                System.Console.Write("Property ");
+                return 0;
+            }
+        }
+
+        private static int Field = 42;
+
+        private class Type
+        {
+            public static void M()
+            {
+                System.Console.Write("Type ");
+            }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,12): error CS0117: 'object' does not contain a definition for 'Property'
+            // _ = object.Property;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("object", "Property").WithLocation(1, 12),
+            // (2,38): error CS0117: 'object' does not contain a definition for 'Field'
+            // System.Console.Write($"Field({object.Field}) ");
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Field").WithArguments("object", "Field").WithLocation(2, 38),
+            // (3,8): error CS0117: 'object' does not contain a definition for 'Type'
+            // object.Type.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Type").WithArguments("object", "Type").WithLocation(3, 8),
+            // (20,28): warning CS0414: The field 'Base.Field' is assigned but its value is never used
+            //         private static int Field = 42;
+            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "Field").WithArguments("N.Base.Field").WithLocation(20, 28)
+            );
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
+        Assert.Null(model.GetSymbolInfo(property).Symbol);
+
+        var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
+        Assert.Null(model.GetSymbolInfo(field).Symbol);
+
+        var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Type");
+        Assert.Null(model.GetSymbolInfo(type).Symbol);
+    }
+
+
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_Simple_Static_FromBaseExtension_Method()
     {
         var src = """
 object.Method();
 
-implicit extension Derived for object { }
+implicit extension Derived for object : Base { }
 
 implicit extension Base for object
 {
@@ -9591,6 +9721,97 @@ implicit extension Base for object
         var model = comp.GetSemanticModel(tree);
         var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Method");
         Assert.Null(model.GetSymbolInfo(method).Symbol);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_Simple_Static_FromBaseExtension_Method_OnlyDerivedInScope()
+    {
+        var src = """
+object.Method();
+
+implicit extension Derived for object : N.Base { }
+
+namespace N
+{
+    implicit extension Base for object
+    {
+        public static void Method()
+        {
+            System.Console.Write("Method ");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE revisit as part of "extension invocation" section
+        comp.VerifyDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'Method'
+            // object.Method();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(1, 8)
+            );
+
+        //CompileAndVerify(comp, expectedOutput: "Method");
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Method");
+        Assert.Null(model.GetSymbolInfo(method).Symbol);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_Simple_Static_Protected()
+    {
+        var src = """
+_ = object.Property;
+System.Console.Write($"Field({object.Field}) ");
+object.Type.M();
+
+implicit extension E for object
+{
+    protected static int Property
+    {
+        get
+        {
+            System.Console.Write("Property ");
+            return 0;
+        }
+    }
+
+    protected static int Field = 42;
+
+    protected class Type
+    {
+        public static void M()
+        {
+            System.Console.Write("Type ");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,12): error CS0117: 'object' does not contain a definition for 'Property'
+            // _ = object.Property;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("object", "Property").WithLocation(1, 12),
+            // (2,38): error CS0117: 'object' does not contain a definition for 'Field'
+            // System.Console.Write($"Field({object.Field}) ");
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Field").WithArguments("object", "Field").WithLocation(2, 38),
+            // (3,8): error CS0117: 'object' does not contain a definition for 'Type'
+            // object.Type.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Type").WithArguments("object", "Type").WithLocation(3, 8)
+            );
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
+        Assert.Null(model.GetSymbolInfo(property).Symbol);
+
+        var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
+        Assert.Null(model.GetSymbolInfo(field).Symbol);
+
+        var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Type");
+        Assert.Null(model.GetSymbolInfo(type).Symbol);
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -10484,53 +10705,6 @@ namespace N2
             //         object.Method("hello"); // 2
             Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(8, 16)
             );
-    }
-
-    [ConditionalFact(typeof(CoreClrOnly))]
-    public void ExtensionMemberLookup_NamespaceVsUsing_FromUsing_Property()
-    {
-        var src = """
-using N2;
-
-_ = object.Property;
-object.Property = 1;
-
-implicit extension E1 for object
-{
-    public static int Property
-    {
-        get
-        {
-            System.Console.Write("get ");
-            return 0;
-        }
-        set
-        {
-            System.Console.Write("set ");
-        }
-    }
-}
-
-namespace N2
-{
-    implicit extension E2 for object
-    {
-        public static int Property
-        {
-            get { throw null; }
-            set { throw null; }
-        }
-    }
-}
-""";
-
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using N2;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(1, 1)
-            );
-        CompileAndVerify(comp, expectedOutput: "get set");
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]

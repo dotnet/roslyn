@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void GetImplicitExtensionTypes(ArrayBuilder<TypeSymbol> extensions, Binder originalBinder)
+        internal override void GetImplicitExtensionTypes(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
         {
             switch (_container)
             {

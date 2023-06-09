@@ -184,16 +184,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!type.IsTypeParameter());
 
-            var compatibleExtensions = ArrayBuilder<TypeSymbol>.GetInstance();
+            var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             getCompatibleExtensions(binder, type, compatibleExtensions);
             // PROTOTYPE test use-site diagnostics
             var tempResult = LookupResult.GetInstance();
-            foreach (TypeSymbol extension in compatibleExtensions)
+            foreach (NamedTypeSymbol extension in compatibleExtensions)
             {
                 // No need for "diagnose" since we discard the lookup results (and associated diagnostic info)
                 // unless the results are good.
-                LookupMembersWithoutInheritance(tempResult, extension, name, arity, options, originalBinder,
-                    accessThroughType: type, diagnose: false, ref useSiteInfo, basesBeingResolved);
+                LookupMembersInExtension(tempResult, extension, name, arity, basesBeingResolved,
+                    options, originalBinder, diagnose: false, ref useSiteInfo);
 
                 MergeHidingLookupResults(result, tempResult, basesBeingResolved, ref useSiteInfo);
                 tempResult.Clear();
@@ -203,9 +203,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             compatibleExtensions.Free();
             return;
 
-            void getCompatibleExtensions(Binder binder, TypeSymbol type, ArrayBuilder<TypeSymbol> compatibleExtensions)
+            void getCompatibleExtensions(Binder binder, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions)
             {
-                var extensions = ArrayBuilder<TypeSymbol>.GetInstance();
+                var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
                 binder.GetImplicitExtensionTypes(extensions, originalBinder: this);
 
                 foreach (var extension in extensions)
@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
         /// to search the available members list in binding types that represent types, namespaces, and usings.
         /// </summary>
-        internal virtual void GetImplicitExtensionTypes(ArrayBuilder<TypeSymbol> extensions, Binder originalBinder)
+        internal virtual void GetImplicitExtensionTypes(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
         {
         }
 #nullable disable
@@ -1492,6 +1492,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // SPEC: For the purposes of member lookup [...] if T is an
                             // SPEC: interface type, the base types of T are the base interfaces
                             // SPEC: of T and the class type object. 
+
+                            // PROTOTYPE revisit what kind of type comparison we want when we get to the generic case of extension member lookup
+                            if (hidingContainer.IsExtension && TypeSymbol.Equals(hiddenContainer, hidingContainer, TypeCompareKind.ConsiderEverything2))
+                            {
+                                goto symIsHidden; // members from a base extension can be brought in multiple ways (by scope and by inheritance)
+                            }
 
                             if (!IsDerivedType(baseType: hiddenContainer, derivedType: hidingContainer, basesBeingResolved, this.Compilation, useSiteInfo: ref useSiteInfo) &&
                                 hiddenContainer.SpecialType != SpecialType.System_Object)
