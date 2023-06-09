@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _threadingContext = threadingContext;
             _foregroundThreadAffinitizedObject = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
             _textDocumentFactoryService = textDocumentFactoryService;
-            _temporaryDirectory = Path.Combine(Path.GetTempPath(), "VSGeneratedDocuments");
+            _temporaryDirectory = PathUtilities.EnsureTrailingSeparator(Path.Combine(Path.GetTempPath(), "VSGeneratedDocuments"));
             _visualStudioWorkspace = visualStudioWorkspace;
             _visualStudioDocumentNavigationService = visualStudioDocumentNavigationService;
 
@@ -156,14 +156,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
+            // Remove temporary directory prefix (note that it always has trailing separator).
             var slice = filePath.AsSpan()[_temporaryDirectory.Length..];
-            if (slice.IsEmpty || !PathUtilities.IsDirectorySeparator(slice[0]))
+            if (slice.IsEmpty)
             {
                 return false;
             }
-            slice = slice[1..];
 
-            var separatorIndex = slice.IndexOfAny(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var separatorIndex = slice.IndexOf(Path.DirectorySeparatorChar);
             if (separatorIndex < 0)
             {
                 return false;
