@@ -892,6 +892,17 @@ class C
 
             string source = builder.ToString();
             var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,25): error CS1501: No overload for method 'F' takes 0 arguments
+                //         o.F(c, c => { o.F( });
+                Diagnostic(ErrorCode.ERR_BadArgCount, "F").WithArguments("F", "0").WithLocation(7, 25),
+                // (7,28): error CS1026: ) expected
+                //         o.F(c, c => { o.F( });
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(7, 28),
+                // (7,28): error CS1002: ; expected
+                //         o.F(c, c => { o.F( });
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(7, 28));
+
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<Syntax.InvocationExpressionSyntax>().Last();
