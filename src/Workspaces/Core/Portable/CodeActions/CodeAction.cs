@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
                 string? equivalenceKey,
-                CodeActionPriorityInternal priority = CodeActionPriorityInternal.Default)
+                CodeActionPriorityInternal priority)
                 => new(title, createChangedDocument, equivalenceKey, priority, createdFromFactoryMethod: true);
 
             protected sealed override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
