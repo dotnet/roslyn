@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
     {
         /// <summary>
         /// Returns true if the given <paramref name="analyzer"/> can report diagnostics that can have fixes from a code
-        /// fix provider with <see cref="CodeFixProvider.RequestPriority"/> matching <see
+        /// fix provider with <see cref="CodeFixProvider.RequestPriorityInternal"/> matching <see
         /// cref="ICodeActionRequestPriorityProvider.Priority"/>. This method is useful for performing a performance
         /// optimization for lightbulb diagnostic computation, wherein we can reduce the set of analyzers to be executed
         /// when computing fixes for a specific <see cref="ICodeActionRequestPriorityProvider.Priority"/>.
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 return true;
             }
 
-            return provider.Priority == codeFixProvider.RequestPriority;
+            return provider.Priority == codeFixProvider.RequestPriorityInternal;
         }
     }
 

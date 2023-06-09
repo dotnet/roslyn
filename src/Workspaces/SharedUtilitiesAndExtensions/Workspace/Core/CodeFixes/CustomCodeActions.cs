@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
             private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 
 #if CODE_STYLE
-            internal CodeActionPriorityInternal Priority { get; }
+            internal CodeActionPriorityInternal PriorityInternal { get; }
 #else
-            internal override CodeActionPriorityInternal Priority { get; }
+            internal override CodeActionPriorityInternal PriorityInternal { get; }
 #endif
 
             public DocumentChangeAction(
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 : base(title, equivalenceKey)
             {
                 _createChangedDocument = createChangedDocument;
-                Priority = priority;
+                PriorityInternal = priority;
             }
 
             protected sealed override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)

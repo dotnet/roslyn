@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// What priority this provider should run at.
         /// </summary>
-        internal CodeActionRequestPriorityInternal RequestPriority
+        internal CodeActionRequestPriorityInternal RequestPriorityInternal
         {
             get
             {

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             }
 
             public override string Title => _title;
-            internal override CodeActionPriorityInternal Priority => CodeActionPriorityInternal.High;
+            internal override CodeActionPriorityInternal PriorityInternal => CodeActionPriorityInternal.High;
 
             protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {

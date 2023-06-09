@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal virtual bool IsInlinable => false;
 
-        internal virtual CodeActionPriorityInternal Priority => CodeActionPriorityInternal.Default;
+        internal virtual CodeActionPriorityInternal PriorityInternal => CodeActionPriorityInternal.Default;
 
         /// <summary>
         /// Descriptive tags from <see cref="WellKnownTags"/>.
@@ -478,13 +478,13 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
                 Title = title;
                 EquivalenceKey = equivalenceKey;
-                Priority = priority;
+                PriorityInternal = priority;
                 CreatedFromFactoryMethod = createdFromFactoryMethod;
             }
 
             public sealed override string Title { get; }
             public sealed override string? EquivalenceKey { get; }
-            internal sealed override CodeActionPriorityInternal Priority { get; }
+            internal sealed override CodeActionPriorityInternal PriorityInternal { get; }
 
             /// <summary>
             /// Indicates if this CodeAction was created using one of the 'CodeAction.Create' factory methods.

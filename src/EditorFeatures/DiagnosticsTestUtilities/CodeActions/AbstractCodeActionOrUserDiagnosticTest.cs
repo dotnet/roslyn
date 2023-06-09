@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             if (parameters.priority != null)
             {
-                Assert.Equal(parameters.priority.Value, action.Priority);
+                Assert.Equal(parameters.priority.Value, action.PriorityInternal);
             }
 
             if (parameters.title != null)

@@ -160,16 +160,16 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                         categoryName: null,
                         actions: unifiedNestedActions.ToImmutableAndClear(),
                         title: null,
-                        priority: action.Priority,
+                        priority: action.PriorityInternal,
                         applicableToSpan: fix.PrimaryDiagnostic.Location.SourceSpan);
 
                     return new UnifiedSuggestedActionWithNestedActions(
-                        workspace, action, action.Priority, fixCollection.Provider, ImmutableArray.Create(set));
+                        workspace, action, action.PriorityInternal, fixCollection.Provider, ImmutableArray.Create(set));
                 }
                 else
                 {
                     return new UnifiedCodeFixSuggestedAction(
-                        workspace, action, action.Priority, fix, fixCollection.Provider,
+                        workspace, action, action.PriorityInternal, fix, fixCollection.Provider,
                         await getFixAllSuggestedActionSetAsync(action).ConfigureAwait(false));
                 }
             }
@@ -196,10 +196,10 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 if (fix.Action is AbstractConfigurationActionWithNestedActions configurationAction)
                 {
                     return new CodeFixGroupKey(
-                        diag, configurationAction.Priority, configurationAction.AdditionalPriority);
+                        diag, configurationAction.PriorityInternal, configurationAction.AdditionalPriority);
                 }
 
-                return new CodeFixGroupKey(diag, fix.Action.Priority, null);
+                return new CodeFixGroupKey(diag, fix.Action.PriorityInternal, null);
             }
         }
 
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
                 var fixAllStateForScope = fixAllState.With(scope: scope, codeActionEquivalenceKey: action.EquivalenceKey);
                 var fixAllSuggestedAction = new UnifiedFixAllCodeFixSuggestedAction(
-                    workspace, action, action.Priority, fixAllStateForScope, firstDiagnostic);
+                    workspace, action, action.PriorityInternal, fixAllStateForScope, firstDiagnostic);
 
                 fixAllSuggestedActions.Add(fixAllSuggestedAction);
             }
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 var suppressOrConfigureCodeAction = NoChangeAction.Create(CodeFixesResources.Suppress_or_configure_issues, nameof(CodeFixesResources.Suppress_or_configure_issues));
                 var wrappingSuggestedAction = new UnifiedSuggestedActionWithNestedActions(
                     workspace, codeAction: suppressOrConfigureCodeAction,
-                    codeActionPriority: suppressOrConfigureCodeAction.Priority, provider: null,
+                    codeActionPriority: suppressOrConfigureCodeAction.PriorityInternal, provider: null,
                     nestedActionSets: suppressionSets.ToImmutable());
 
                 // Combine the spans and the category of each of the nested suggested actions
@@ -557,11 +557,11 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                         categoryName: null,
                         actions: nestedActions.ToImmutableAndClear(),
                         title: null,
-                        priority: codeAction.Priority,
+                        priority: codeAction.PriorityInternal,
                         applicableToSpan: applicableToSpan);
 
                     return new UnifiedSuggestedActionWithNestedActions(
-                        workspace, codeAction, codeAction.Priority, refactoring.Provider, ImmutableArray.Create(set));
+                        workspace, codeAction, codeAction.PriorityInternal, refactoring.Provider, ImmutableArray.Create(set));
                 }
                 else
                 {
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                         workspace, cancellationToken).ConfigureAwait(false);
 
                     return new UnifiedCodeRefactoringSuggestedAction(
-                            workspace, codeAction, codeAction.Priority, refactoring.Provider, fixAllSuggestedActionSet);
+                            workspace, codeAction, codeAction.PriorityInternal, refactoring.Provider, fixAllSuggestedActionSet);
                 }
             }
         }
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 }
 
                 var fixAllSuggestedAction = new UnifiedFixAllCodeRefactoringSuggestedAction(
-                    workspace, action, action.Priority, fixAllState);
+                    workspace, action, action.PriorityInternal, fixAllState);
 
                 fixAllSuggestedActions.Add(fixAllSuggestedAction);
             }

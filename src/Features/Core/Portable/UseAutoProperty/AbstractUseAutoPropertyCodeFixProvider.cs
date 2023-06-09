@@ -353,12 +353,12 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 : base(title, createChangedSolution, title)
             {
 #if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-                Priority = priority;
+                PriorityInternal = priority;
 #endif
             }
 
 #if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-            internal override CodeActionPriorityInternal Priority { get; }
+            internal override CodeActionPriorityInternal PriorityInternal { get; }
 #endif
         }
     }
