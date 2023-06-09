@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal virtual bool IsInlinable => false;
 
-        internal virtual CodeActionPriority Priority => CodeActionPriority.Default;
+        internal virtual CodeActionPriorityInternal Priority => CodeActionPriorityInternal.Default;
 
         /// <summary>
         /// Descriptive tags from <see cref="WellKnownTags"/>.
@@ -437,9 +437,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="isInlinable"><see langword="true"/> to allow inlining the members of the group into the parent;
         /// otherwise, <see langword="false"/> to require that this group appear as a group with nested actions.</param>
         public static CodeAction Create(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
-            => Create(title, nestedActions, isInlinable, priority: CodeActionPriority.Default);
+            => Create(title, nestedActions, isInlinable, priority: CodeActionPriorityInternal.Default);
 
-        internal static CodeAction Create(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable, CodeActionPriority priority)
+        internal static CodeAction Create(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable, CodeActionPriorityInternal priority)
         {
             if (title is null)
                 throw new ArgumentNullException(nameof(title));
@@ -450,21 +450,21 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return CodeActionWithNestedActions.Create(title, nestedActions, isInlinable, priority);
         }
 
-        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+        internal static CodeAction CreateWithPriority(CodeActionPriorityInternal priority, string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
             => DocumentChangeAction.Create(
                 title ?? throw new ArgumentNullException(nameof(title)),
                 createChangedDocument ?? throw new ArgumentNullException(nameof(createChangedDocument)),
                 equivalenceKey ?? throw new ArgumentNullException(nameof(equivalenceKey)),
                 priority);
 
-        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
+        internal static CodeAction CreateWithPriority(CodeActionPriorityInternal priority, string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
             => SolutionChangeAction.Create(
                 title ?? throw new ArgumentNullException(nameof(title)),
                 createChangedSolution ?? throw new ArgumentNullException(nameof(createChangedSolution)),
                 equivalenceKey ?? throw new ArgumentNullException(nameof(equivalenceKey)),
                 priority);
 
-        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
+        internal static CodeAction CreateWithPriority(CodeActionPriorityInternal priority, string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
             => CodeActionWithNestedActions.Create(
                 title ?? throw new ArgumentNullException(nameof(title)), nestedActions, isInlinable, priority);
 
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             protected SimpleCodeAction(
                 string title,
                 string? equivalenceKey,
-                CodeActionPriority priority,
+                CodeActionPriorityInternal priority,
                 bool createdFromFactoryMethod)
             {
                 Title = title;
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             public sealed override string Title { get; }
             public sealed override string? EquivalenceKey { get; }
-            internal sealed override CodeActionPriority Priority { get; }
+            internal sealed override CodeActionPriorityInternal Priority { get; }
 
             /// <summary>
             /// Indicates if this CodeAction was created using one of the 'CodeAction.Create' factory methods.
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 string title,
                 ImmutableArray<CodeAction> nestedActions,
                 bool isInlinable,
-                CodeActionPriority priority,
+                CodeActionPriorityInternal priority,
                 bool createdFromFactoryMethod)
                 : base(title, ComputeEquivalenceKey(nestedActions), priority, createdFromFactoryMethod)
             {
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                string title,
                ImmutableArray<CodeAction> nestedActions,
                bool isInlinable,
-               CodeActionPriority priority = CodeActionPriority.Default)
+               CodeActionPriorityInternal priority = CodeActionPriorityInternal.Default)
                : this(title, nestedActions, isInlinable, priority, createdFromFactoryMethod: false)
             {
             }
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                string title,
                ImmutableArray<CodeAction> nestedActions,
                bool isInlinable,
-               CodeActionPriority priority = CodeActionPriority.Default)
+               CodeActionPriorityInternal priority = CodeActionPriorityInternal.Default)
                 => new(title, nestedActions, isInlinable, priority, createdFromFactoryMethod: true);
 
             internal sealed override bool IsInlinable { get; }
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
                 string? equivalenceKey,
-                CodeActionPriority priority,
+                CodeActionPriorityInternal priority,
                 bool createdFromFactoryMethod)
                 : base(title, equivalenceKey, priority, createdFromFactoryMethod)
             {
@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
                 string? equivalenceKey,
-                CodeActionPriority priority = CodeActionPriority.Default)
+                CodeActionPriorityInternal priority = CodeActionPriorityInternal.Default)
                 : this(title, createChangedDocument, equivalenceKey, priority, createdFromFactoryMethod: false)
             {
             }
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
                 string? equivalenceKey,
-                CodeActionPriority priority = CodeActionPriority.Default)
+                CodeActionPriorityInternal priority = CodeActionPriorityInternal.Default)
                 => new(title, createChangedDocument, equivalenceKey, priority, createdFromFactoryMethod: true);
 
             protected sealed override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolution,
                 string? equivalenceKey,
-                CodeActionPriority priority,
+                CodeActionPriorityInternal priority,
                 bool createdFromFactoryMethod)
                 : base(title, equivalenceKey, priority, createdFromFactoryMethod)
             {
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolution,
                 string? equivalenceKey,
-                CodeActionPriority priority = CodeActionPriority.Default)
+                CodeActionPriorityInternal priority = CodeActionPriorityInternal.Default)
                 : this(title, createChangedSolution, equivalenceKey, priority, createdFromFactoryMethod: false)
             {
             }
@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolution,
                 string? equivalenceKey,
-                CodeActionPriority priority = CodeActionPriority.Default)
+                CodeActionPriorityInternal priority = CodeActionPriorityInternal.Default)
                 => new(title, createChangedSolution, equivalenceKey, priority, createdFromFactoryMethod: true);
 
             protected sealed override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             private NoChangeAction(
                 string title,
                 string? equivalenceKey,
-                CodeActionPriority priority,
+                CodeActionPriorityInternal priority,
                 bool createdFromFactoryMethod)
                 : base(title, equivalenceKey, priority, createdFromFactoryMethod)
             {
@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             public static NoChangeAction Create(
                 string title,
                 string? equivalenceKey,
-                CodeActionPriority priority = CodeActionPriority.Default)
+                CodeActionPriorityInternal priority = CodeActionPriorityInternal.Default)
                 => new(title, equivalenceKey, priority, createdFromFactoryMethod: true);
 
             protected sealed override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)

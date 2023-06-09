@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         public UnifiedFixAllCodeRefactoringSuggestedAction(
             Workspace workspace,
             CodeAction codeAction,
-            CodeActionPriority codeActionPriority,
+            CodeActionPriorityInternal codeActionPriority,
             IFixAllState fixAllState)
             : base(workspace, codeAction, codeActionPriority)
         {

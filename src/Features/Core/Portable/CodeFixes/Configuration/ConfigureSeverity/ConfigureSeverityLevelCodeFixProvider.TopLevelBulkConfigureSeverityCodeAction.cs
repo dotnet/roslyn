@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
             {
                 // Ensure that 'Category' based bulk configuration actions are shown above
                 // the 'All analyzer diagnostics' bulk configuration actions.
-                AdditionalPriority = category != null ? CodeActionPriority.Low : CodeActionPriority.Lowest;
+                AdditionalPriority = category != null ? CodeActionPriorityInternal.Low : CodeActionPriorityInternal.Lowest;
             }
 
-            internal override CodeActionPriority AdditionalPriority { get; }
+            internal override CodeActionPriorityInternal AdditionalPriority { get; }
 
             internal override bool IsBulkConfigurationAction => true;
         }

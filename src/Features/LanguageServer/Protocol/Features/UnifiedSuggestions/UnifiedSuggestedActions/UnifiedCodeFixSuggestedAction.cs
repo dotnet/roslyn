@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         public UnifiedCodeFixSuggestedAction(
             Workspace workspace,
             CodeAction codeAction,
-            CodeActionPriority codeActionPriority,
+            CodeActionPriorityInternal codeActionPriority,
             CodeFix codeFix,
             object provider,
             UnifiedSuggestedActionSet? fixAllFlavors)

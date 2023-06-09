@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             var diagnostic = context.Diagnostics.First();
 
             var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
-                ? CodeActionPriority.Low
-                : CodeActionPriority.Medium;
+                ? CodeActionPriorityInternal.Low
+                : CodeActionPriorityInternal.Medium;
 
             var (title, key) = diagnostic.Properties.ContainsKey(AddAccessibilityModifiersConstants.ModifiersAdded)
                 ? (AnalyzersResources.Add_accessibility_modifiers, nameof(AnalyzersResources.Add_accessibility_modifiers))

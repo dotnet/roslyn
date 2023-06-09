@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             protected override bool ShouldAddWithExistingImport(Document document)
                 => document.Project.Id != _project.Id;
 
-            protected override CodeActionPriority GetPriority(Document document)
+            protected override CodeActionPriorityInternal GetPriority(Document document)
             {
                 // The only high priority fix we have is when we find a hit in our
                 // own project and we don't need to do a rename.  Anything else (i.e.
@@ -71,17 +71,17 @@ namespace Microsoft.CodeAnalysis.AddImport
                     {
                         // Set priority to high so Add Imports will appear above other suggested actions
                         // https://github.com/dotnet/roslyn/pull/33214
-                        return CodeActionPriority.High;
+                        return CodeActionPriorityInternal.High;
                     }
                 }
 
                 // This is a weaker match.  This should be lower than all other fixes.
-                return CodeActionPriority.Low;
+                return CodeActionPriorityInternal.Low;
             }
 
             protected override AddImportFixData GetFixData(
                 Document document, ImmutableArray<TextChange> textChanges, string description,
-                ImmutableArray<string> tags, CodeActionPriority priority)
+                ImmutableArray<string> tags, CodeActionPriorityInternal priority)
             {
                 return AddImportFixData.CreateForProjectSymbol(
                     textChanges, description, tags, priority, _project.Id);

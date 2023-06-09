@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                         // It should be offered after all other normal refactorings.
                         result.Add(CodeAction.Create(
                             wrappingActions[0].ParentTitle, sorted,
-                            group.IsInlinable, CodeActionPriority.Low));
+                            group.IsInlinable, CodeActionPriorityInternal.Low));
                     }
 
                     // Finally, sort the topmost list we're building and return that.  This ensures that

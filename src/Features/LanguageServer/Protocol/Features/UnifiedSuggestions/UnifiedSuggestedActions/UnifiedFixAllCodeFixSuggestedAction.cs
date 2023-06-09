@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         public UnifiedFixAllCodeFixSuggestedAction(
             Workspace workspace,
             CodeAction codeAction,
-            CodeActionPriority codeActionPriority,
+            CodeActionPriorityInternal codeActionPriority,
             IFixAllState fixAllState,
             Diagnostic diagnostic)
             : base(workspace, codeAction, codeActionPriority)

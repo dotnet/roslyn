@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
     // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
     // https://github.com/dotnet/roslyn/issues/42431 tracks adding a public API.
 #if CODE_STYLE
-    internal enum CodeActionPriority
+    internal enum CodeActionPriorityInternal
     {
         Lowest = 0,
         Low = 1,
@@ -43,16 +43,16 @@ namespace Microsoft.CodeAnalysis.CodeActions
             private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 
 #if CODE_STYLE
-            internal CodeActionPriority Priority { get; }
+            internal CodeActionPriorityInternal Priority { get; }
 #else
-            internal override CodeActionPriority Priority { get; }
+            internal override CodeActionPriorityInternal Priority { get; }
 #endif
 
             public DocumentChangeAction(
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
                 string? equivalenceKey,
-                CodeActionPriority priority)
+                CodeActionPriorityInternal priority)
                 : base(title, equivalenceKey)
             {
                 _createChangedDocument = createChangedDocument;

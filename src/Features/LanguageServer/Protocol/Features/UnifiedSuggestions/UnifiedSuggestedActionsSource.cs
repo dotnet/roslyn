@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
-using CodeFixGroupKey = System.Tuple<Microsoft.CodeAnalysis.Diagnostics.DiagnosticData, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority?>;
+using CodeFixGroupKey = System.Tuple<Microsoft.CodeAnalysis.Diagnostics.DiagnosticData, Microsoft.CodeAnalysis.CodeActions.CodeActionPriorityInternal, Microsoft.CodeAnalysis.CodeActions.CodeActionPriorityInternal?>;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 categoryName: null,
                 actions: fixAllSuggestedActions.ToImmutable(),
                 title: CodeFixesResources.Fix_all_occurrences_in,
-                priority: CodeActionPriority.Lowest,
+                priority: CodeActionPriorityInternal.Lowest,
                 applicableToSpan: null);
         }
 
@@ -271,9 +271,9 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// <remarks>
         /// Fix groups are returned in priority order determined based on <see cref="ExtensionOrderAttribute"/>.
         /// Priority for all <see cref="UnifiedSuggestedActionSet"/>s containing fixes is set to <see
-        /// cref="CodeActionPriority.Medium"/> by default. The only exception is the case where a <see
+        /// cref="CodeActionPriorityInternal.Medium"/> by default. The only exception is the case where a <see
         /// cref="UnifiedSuggestedActionSet"/> only contains suppression fixes - the priority of such <see
-        /// cref="UnifiedSuggestedActionSet"/>s is set to <see cref="CodeActionPriority.Lowest"/> so that suppression
+        /// cref="UnifiedSuggestedActionSet"/>s is set to <see cref="CodeActionPriorityInternal.Lowest"/> so that suppression
         /// fixes always show up last after all other fixes (and refactorings) for the selected line of code.
         /// </remarks>
         private static ImmutableArray<UnifiedSuggestedActionSet> PrioritizeFixGroups(
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     UnifiedPredefinedSuggestedActionCategoryNames.CodeFix,
                     bulkConfigurationActions.ToImmutable(),
                     title: null,
-                    priority: CodeActionPriority.Lowest,
+                    priority: CodeActionPriorityInternal.Lowest,
                     applicableToSpan: null);
                 suppressionSets.Add(bulkConfigurationSet);
             }
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     category,
                     actions: ImmutableArray.Create<IUnifiedSuggestedAction>(wrappingSuggestedAction),
                     title: CodeFixesResources.Suppress_or_configure_issues,
-                    priority: CodeActionPriority.Lowest,
+                    priority: CodeActionPriorityInternal.Lowest,
                     applicableToSpan: span);
                 sets = sets.Add(wrappingSet);
             }
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// <remarks>
         /// Refactorings are returned in priority order determined based on <see cref="ExtensionOrderAttribute"/>.
         /// Priority for all <see cref="UnifiedSuggestedActionSet"/>s containing refactorings is set to
-        /// <see cref="CodeActionPriority.Low"/> and should show up after fixes but before
+        /// <see cref="CodeActionPriorityInternal.Low"/> and should show up after fixes but before
         /// suppression fixes in the light bulb menu.
         /// </remarks>
         private static async Task<UnifiedSuggestedActionSet> OrganizeRefactoringsAsync(
@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 categoryName: null,
                 actions: fixAllSuggestedActions.ToImmutable(),
                 title: CodeFixesResources.Fix_all_occurrences_in,
-                priority: CodeActionPriority.Lowest,
+                priority: CodeActionPriorityInternal.Lowest,
                 applicableToSpan: null);
         }
 
@@ -695,13 +695,13 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 // are still very important and need to stay at the top (though still after high
                 // pri fixes).
                 var highPriRefactorings = refactorings.WhereAsArray(
-                    s => s.Priority == CodeActionPriority.High);
+                    s => s.Priority == CodeActionPriorityInternal.High);
                 var nonHighPriRefactorings = refactorings.WhereAsArray(
-                    s => s.Priority != CodeActionPriority.High)
-                        .SelectAsArray(s => WithPriority(s, CodeActionPriority.Low));
+                    s => s.Priority != CodeActionPriorityInternal.High)
+                        .SelectAsArray(s => WithPriority(s, CodeActionPriorityInternal.Low));
 
-                var highPriFixes = fixes.WhereAsArray(s => s.Priority == CodeActionPriority.High);
-                var nonHighPriFixes = fixes.WhereAsArray(s => s.Priority != CodeActionPriority.High);
+                var highPriFixes = fixes.WhereAsArray(s => s.Priority == CodeActionPriorityInternal.High);
+                var nonHighPriFixes = fixes.WhereAsArray(s => s.Priority != CodeActionPriorityInternal.High);
 
                 return highPriFixes.Concat(highPriRefactorings).Concat(nonHighPriFixes).Concat(nonHighPriRefactorings);
             }
@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         }
 
         private static UnifiedSuggestedActionSet WithPriority(
-            UnifiedSuggestedActionSet set, CodeActionPriority priority)
+            UnifiedSuggestedActionSet set, CodeActionPriorityInternal priority)
             => new(set.OriginalSolution, set.CategoryName, set.Actions, set.Title, priority, set.ApplicableToSpan);
 
         private static ImmutableArray<UnifiedSuggestedActionSet> InlineActionSetsIfDesirable(

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             public override string Title { get; }
             public sealed override ImmutableArray<string> Tags { get; }
-            internal sealed override CodeActionPriority Priority { get; }
+            internal sealed override CodeActionPriorityInternal Priority { get; }
 
             public sealed override string EquivalenceKey => Title;
 

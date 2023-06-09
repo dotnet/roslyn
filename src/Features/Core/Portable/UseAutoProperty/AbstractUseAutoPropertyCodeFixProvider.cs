@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             foreach (var diagnostic in context.Diagnostics)
             {
                 var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
-                    ? CodeActionPriority.Low
-                    : CodeActionPriority.Medium;
+                    ? CodeActionPriorityInternal.Low
+                    : CodeActionPriorityInternal.Medium;
 
                 context.RegisterCodeFix(
                     new UseAutoPropertyCodeAction(
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         {
             public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution
 #if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-                , CodeActionPriority priority
+                , CodeActionPriorityInternal priority
 #endif
                 )
                 : base(title, createChangedSolution, title)
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
 #if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-            internal override CodeActionPriority Priority { get; }
+            internal override CodeActionPriorityInternal Priority { get; }
 #endif
         }
     }

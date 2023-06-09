@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal readonly ParseOptions parseOptions;
             internal readonly CompilationOptions compilationOptions;
             internal readonly int index;
-            internal readonly CodeActionPriority? priority;
+            internal readonly CodeActionPriorityInternal? priority;
             internal readonly bool retainNonFixableDiagnostics;
             internal readonly bool includeDiagnosticsOutsideSelection;
             internal readonly bool includeNonLocalDocumentDiagnostics;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 OptionsCollection globalOptions = null,
                 object fixProviderData = null,
                 int index = 0,
-                CodeActionPriority? priority = null,
+                CodeActionPriorityInternal? priority = null,
                 bool retainNonFixableDiagnostics = false,
                 bool includeDiagnosticsOutsideSelection = false,
                 string title = null,
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
-            CodeActionPriority? priority = null,
+            CodeActionPriorityInternal? priority = null,
             CompilationOptions compilationOptions = null,
             OptionsCollection options = null,
             OptionsCollection globalOptions = null,
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             OptionsCollection options = null,
             OptionsCollection globalOptions = null,
             object fixProviderData = null,
-            CodeActionPriority? priority = null,
+            CodeActionPriorityInternal? priority = null,
             TestHost testHost = TestHost.InProcess)
         {
             return TestAsync(
