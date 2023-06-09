@@ -9,19 +9,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
-//    // Define dummy priority to avoid ifdefs.
-//    // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-//    // https://github.com/dotnet/roslyn/issues/42431 tracks adding a public API.
-//#if CODE_STYLE
-//    internal enum CodeActionPriorityInternal
-//    {
-//        Lowest = 0,
-//        Low = 1,
-//        Medium = 2,
-//        High = 3
-//    }
-//#endif
-
     internal static class CustomCodeActions
     {
         internal abstract class SimpleCodeAction : CodeAction
