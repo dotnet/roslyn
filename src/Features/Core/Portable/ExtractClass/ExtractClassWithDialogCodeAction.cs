@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             // If the user brought up the lightbulb on a class itself, it's more likely that they want to extract a base
             // class.  on a member however, we deprioritize this as there are likely more member-specific operations
             // they'd prefer to invoke instead.
-            Priority = selectedMembers.IsEmpty ? CodeActionPriority.Default : CodeActionPriority.Low;
+            Priority = selectedMembers.IsEmpty ? CodeActionPriority.Medium : CodeActionPriority.Low;
         }
 
         public override object? GetOptions(CancellationToken cancellationToken)

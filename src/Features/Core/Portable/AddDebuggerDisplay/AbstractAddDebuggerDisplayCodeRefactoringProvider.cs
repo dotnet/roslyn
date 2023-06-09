@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             if (typeDecl == null)
                 return null;
 
-            var priority = isDebuggerDisplayMethod ? CodeActionPriority.Default : CodeActionPriority.Low;
+            var priority = isDebuggerDisplayMethod ? CodeActionPriority.Medium : CodeActionPriority.Low;
             return (typeDecl, priority);
         }
 

@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         /// <summary>
         /// Priority class this refactoring provider should run at. Returns <see
-        /// cref="CodeActionRequestPriority.Default"/> if not overridden.  Slower, or less relevant, providers should
+        /// cref="CodeActionRequestPriority.Medium"/> if not overridden.  Slower, or less relevant, providers should
         /// override this and return a lower value to not interfere with computation of normal priority providers.
         /// </summary>
         public virtual CodeActionRequestPriority RequestPriority
-            => CodeActionRequestPriority.Default;
+            => CodeActionRequestPriority.Medium;
     }
 }

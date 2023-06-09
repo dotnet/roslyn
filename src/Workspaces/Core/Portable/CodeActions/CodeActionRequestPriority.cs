@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 public enum CodeActionRequestPriority
 {
     /// <summary>
-    /// Run the priority below <see cref="Default"/> priority.  The provider may run slow, or its results may be
+    /// Run the priority below <see cref="Medium"/> priority.  The provider may run slow, or its results may be
     /// commonly less relevant for the user.
     /// </summary>
     Low = 0,
@@ -33,7 +33,7 @@ public enum CodeActionRequestPriority
     /// Run this provider at default priority.   The provider will run in reasonable speeds and provide results that
     /// are commonly relevant to the user.
     /// </summary>
-    Default = 1,
+    Medium = 1,
 }
 
 internal static class CodeActionRequestPriorityExtensions
@@ -47,8 +47,8 @@ internal static class CodeActionRequestPriorityExtensions
         if (priority < CodeActionRequestPriority.Low)
             priority = CodeActionRequestPriority.Low;
 
-        if (priority > CodeActionRequestPriority.Default)
-            priority = CodeActionRequestPriority.Default;
+        if (priority > CodeActionRequestPriority.Medium)
+            priority = CodeActionRequestPriority.Medium;
 
         return priority;
     }
@@ -60,7 +60,7 @@ internal static class CodeActionRequestPriorityExtensions
         return priority switch
         {
             CodeActionRequestPriority.Low => CodeActionRequestPriorityInternal.Low,
-            CodeActionRequestPriority.Default => CodeActionRequestPriorityInternal.Normal,
+            CodeActionRequestPriority.Medium => CodeActionRequestPriorityInternal.Normal,
             _ => throw ExceptionUtilities.UnexpectedValue(priority),
         };
     }

@@ -23,14 +23,14 @@ public enum CodeActionPriority
     Lowest = 0,
 
     /// <summary>
-    /// Low priority code action.  Will show up after <see cref="Default"/> priority items.
+    /// Low priority code action.  Will show up after <see cref="Medium"/> priority items.
     /// </summary>
     Low = 1,
 
     /// <summary>
     /// Default priority code action.
     /// </summary>
-    Default = 2,
+    Medium = 2,
 }
 
 internal static class CodeActionPriorityExtensions
@@ -44,8 +44,8 @@ internal static class CodeActionPriorityExtensions
         if (priority < CodeActionPriority.Lowest)
             priority = CodeActionPriority.Lowest;
 
-        if (priority > CodeActionPriority.Default)
-            priority = CodeActionPriority.Default;
+        if (priority > CodeActionPriority.Medium)
+            priority = CodeActionPriority.Medium;
 
         return priority;
     }
@@ -58,7 +58,7 @@ internal static class CodeActionPriorityExtensions
         {
             CodeActionPriority.Lowest => CodeActionPriorityInternal.Lowest,
             CodeActionPriority.Low => CodeActionPriorityInternal.Low,
-            CodeActionPriority.Default => CodeActionPriorityInternal.Medium,
+            CodeActionPriority.Medium => CodeActionPriorityInternal.Medium,
             _ => throw ExceptionUtilities.UnexpectedValue(priority),
         };
     }

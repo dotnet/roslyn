@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             {
                 var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
                     ? CodeActionPriority.Low
-                    : CodeActionPriority.Default;
+                    : CodeActionPriority.Medium;
 
                 context.RegisterCodeFix(
                     new UseAutoPropertyCodeAction(
