@@ -4131,66 +4131,101 @@ class C
 
         [Theory, WorkItem(67257, "https://github.com/dotnet/roslyn/issues/67257")]
         [CombinatorialData]
-        public async Task TestFilterSpanOnContextAsync(bool testSyntaxTreeAction, bool testGetAnalysisResultApi, bool testAnalyzersBasedOverload)
+        public async Task TestFilterSpanOnContextAsync(FilterSpanTestAnalyzer.AnalysisKind analysisKind, bool testGetAnalysisResultApi, bool testAnalyzersBasedOverload)
         {
-            string source = @"
-class B
+            string source1 = @"
+partial class B
 {
     void M()
     {
         int x = 1;
     }
 }";
+            string source2 = @"
+partial class B
+{
+    void M2()
+    {
+        int x2 = 1;
+    }
+}";
+            string additionalText = @"This is an additional file!";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { source });
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2 });
             var tree = compilation.SyntaxTrees[0];
             var localDeclaration = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            var analyzer = new FilterSpanTestAnalyzer(testSyntaxTreeAction);
+            var analyzer = new FilterSpanTestAnalyzer(analysisKind);
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
-            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
+            var additionalTextFile = new TestAdditionalText(additionalText);
+            var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText>(additionalTextFile));
+            var options = new CompilationWithAnalyzersOptions(analyzerOptions, onAnalyzerException: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, options);
 
             // Invoke "GetAnalysisResultAsync" for a sub-span and then
-            // for the entire tree span and verify FilterSpan on the callback context.
+            // for the entire tree span and verify FilterSpan/FilterTree on the callback context.
             Assert.Null(analyzer.CallbackFilterSpan);
-            await verifyCallbackSpanAsync(filterSpan: localDeclaration.Span);
+            Assert.Null(analyzer.CallbackFilterTree);
+            var filterSpan = analysisKind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile
+                ? new TextSpan(0, 1)
+                : localDeclaration.Span;
+            await verifyCallbackSpanAsync(filterSpan);
             await verifyCallbackSpanAsync(filterSpan: null);
 
             async Task verifyCallbackSpanAsync(TextSpan? filterSpan)
             {
-                if (testSyntaxTreeAction)
+                switch (analysisKind)
                 {
-                    if (testGetAnalysisResultApi)
-                    {
+                    case FilterSpanTestAnalyzer.AnalysisKind.SyntaxTree:
+                        if (testGetAnalysisResultApi)
+                        {
+                            _ = testAnalyzersBasedOverload
+                                ? await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel.SyntaxTree, filterSpan, analyzers, CancellationToken.None)
+                                : await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel.SyntaxTree, filterSpan, CancellationToken.None);
+                        }
+                        else
+                        {
+                            _ = testAnalyzersBasedOverload
+                                ? await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, filterSpan, analyzers, CancellationToken.None)
+                                : await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, filterSpan, CancellationToken.None);
+                        }
+
+                        break;
+
+                    case FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile:
                         _ = testAnalyzersBasedOverload
-                            ? await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel.SyntaxTree, filterSpan, analyzers, CancellationToken.None)
-                            : await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel.SyntaxTree, filterSpan, CancellationToken.None);
-                    }
-                    else
-                    {
-                        _ = testAnalyzersBasedOverload
-                            ? await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, filterSpan, analyzers, CancellationToken.None)
-                            : await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, filterSpan, CancellationToken.None);
-                    }
-                }
-                else
-                {
-                    if (testGetAnalysisResultApi)
-                    {
-                        _ = testAnalyzersBasedOverload
-                            ? await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, filterSpan, analyzers, CancellationToken.None)
-                            : await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, filterSpan, CancellationToken.None);
-                    }
-                    else
-                    {
-                        _ = testAnalyzersBasedOverload
-                            ? await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan, analyzers, CancellationToken.None)
-                            : await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan, CancellationToken.None);
-                    }
+                            ? await compilationWithAnalyzers.GetAnalysisResultAsync(additionalTextFile, filterSpan, analyzers, CancellationToken.None)
+                            : await compilationWithAnalyzers.GetAnalysisResultAsync(additionalTextFile, filterSpan, CancellationToken.None);
+                        break;
+
+                    default:
+                        if (testGetAnalysisResultApi)
+                        {
+                            _ = testAnalyzersBasedOverload
+                                ? await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, filterSpan, analyzers, CancellationToken.None)
+                                : await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, filterSpan, CancellationToken.None);
+                        }
+                        else
+                        {
+                            _ = testAnalyzersBasedOverload
+                                ? await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan, analyzers, CancellationToken.None)
+                                : await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan, CancellationToken.None);
+                        }
+                        break;
                 }
 
                 Assert.Equal(filterSpan, analyzer.CallbackFilterSpan);
+                if (analysisKind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile)
+                {
+                    Assert.Equal(additionalTextFile, analyzer.CallbackFilterFile);
+                    Assert.Null(analyzer.CallbackFilterTree);
+                }
+                else
+                {
+                    Assert.Equal(tree, analyzer.CallbackFilterTree);
+                    Assert.Null(analyzer.CallbackFilterFile);
+                }
             }
         }
     }
