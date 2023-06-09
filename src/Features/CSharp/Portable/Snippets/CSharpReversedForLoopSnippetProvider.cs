@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
@@ -37,5 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected override ExpressionSyntax GenerateRightSideOfCondition(SyntaxGenerator generator, SyntaxNode? inlineExpression)
             => (ExpressionSyntax)generator.LiteralExpression(0);
+
+        protected override void AddSpecificPlaceholders(MultiDictionary<string, int> placeholderBuilder, ExpressionSyntax initializer, ExpressionSyntax rightOfCondition)
+        {
+            if (!ConstructedFromInlineExpression)
+            {
+                var binaryInitializer = (BinaryExpressionSyntax)initializer;
+                var left = binaryInitializer.Left;
+                placeholderBuilder.Add(left.ToString(), left.SpanStart);
+            }
+        }
     }
 }

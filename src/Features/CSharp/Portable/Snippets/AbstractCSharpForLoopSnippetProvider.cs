@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected abstract ExpressionSyntax GenerateRightSideOfCondition(SyntaxGenerator generator, SyntaxNode? inlineExpression);
 
+        protected abstract void AddSpecificPlaceholders(MultiDictionary<string, int> placeholderBuilder, ExpressionSyntax initializer, ExpressionSyntax rightOfCondition);
+
         protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, SyntaxNode? inlineExpression)
         {
             var semanticModel = syntaxContext.SemanticModel;
@@ -86,15 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var declaratorIdentifier = variableDeclarator.Identifier;
             placeholderBuilder.Add(declaratorIdentifier.ValueText, declaratorIdentifier.SpanStart);
 
-            var conditionExpression = (BinaryExpressionSyntax)condition!;
+            var conditionExpression = (BinaryExpressionSyntax)condition;
             var left = conditionExpression.Left;
             placeholderBuilder.Add(left.ToString(), left.SpanStart);
 
-            if (!ConstructedFromInlineExpression)
-            {
-                var right = conditionExpression.Right;
-                placeholderBuilder.Add(right.ToString(), right.SpanStart);
-            }
+            AddSpecificPlaceholders(placeholderBuilder, variableDeclarator.Initializer!.Value, conditionExpression.Right);
 
             var operand = ((PostfixUnaryExpressionSyntax)incrementor!).Operand;
             placeholderBuilder.Add(operand.ToString(), operand.SpanStart);
