@@ -32,7 +32,7 @@ namespace Roslyn.Utilities
     /// cached for future requests or not. Choosing to not cache means the computation functions are kept
     /// alive, whereas caching means the value (but not functions) are kept alive once complete.
     /// </summary>
-    internal sealed class AsyncLazy<T> : ValueSource<T>
+    internal sealed class AsyncLazy<T>
     {
         /// <summary>
         /// The underlying function that starts an asynchronous computation of the resulting value.
@@ -171,7 +171,7 @@ namespace Roslyn.Utilities
 
         #endregion
 
-        public override bool TryGetValue([MaybeNullWhen(false)] out T result)
+        public bool TryGetValue([MaybeNullWhen(false)] out T result)
         {
             // No need to lock here since this is only a fast check to 
             // see if the result is already computed.
@@ -185,7 +185,7 @@ namespace Roslyn.Utilities
             return false;
         }
 
-        public override T GetValue(CancellationToken cancellationToken)
+        public T GetValue(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -307,7 +307,7 @@ namespace Roslyn.Utilities
             return request;
         }
 
-        public override Task<T> GetValueAsync(CancellationToken cancellationToken)
+        public Task<T> GetValueAsync(CancellationToken cancellationToken)
         {
             // Optimization: if we're already cancelled, do not pass go
             if (cancellationToken.IsCancellationRequested)

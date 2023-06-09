@@ -15,7 +15,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -250,15 +249,19 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             foreach (var msbuildInvocation in msbuildInvocations)
             {
-                // Convert from the MSBuild "CompilerInvocation" type to our type that we use for our JSON-input mode already.
-                var invocationInfo = new CompilerInvocation.CompilerInvocationInfo
-                {
-                    Arguments = msbuildInvocation.CommandLineArguments,
-                    ProjectFilePath = msbuildInvocation.ProjectFilePath,
-                    Tool = msbuildInvocation.Language == Microsoft.Build.Logging.StructuredLogger.CompilerInvocation.CSharp ? "csc" : "vbc"
-                };
+                var workspace = new AdhocWorkspace(await Composition.CreateHostServicesAsync());
 
-                var project = await CompilerInvocation.CreateFromInvocationInfoAsync(invocationInfo);
+                var projectInfo = CommandLineProject.CreateProjectInfo(
+                    Path.GetFileNameWithoutExtension(msbuildInvocation.ProjectFilePath),
+                    msbuildInvocation.Language == Microsoft.Build.Logging.StructuredLogger.CompilerInvocation.CSharp ? LanguageNames.CSharp : LanguageNames.VisualBasic,
+                    msbuildInvocation.CommandLineArguments,
+                    msbuildInvocation.ProjectDirectory,
+                    workspace)
+                    .WithFilePath(msbuildInvocation.ProjectFilePath);
+
+                workspace.OnProjectAdded(projectInfo);
+
+                var project = workspace.CurrentSolution.Projects.Single();
 
                 var generationStopwatch = Stopwatch.StartNew();
                 await lsifGenerator.GenerateForProjectAsync(project, GeneratorOptions.Default, cancellationToken);

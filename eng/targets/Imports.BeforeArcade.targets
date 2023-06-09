@@ -17,11 +17,9 @@
   <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
     <KnownFrameworkReference Update="Microsoft.NETCore.App">
       <TargetingPackVersion Condition="'%(TargetFramework)' == 'net6.0'">6.0.0</TargetingPackVersion>
-      <TargetingPackVersion Condition="'%(TargetFramework)' == 'net8.0'">8.0.0-preview.3.23165.3</TargetingPackVersion>
     </KnownFrameworkReference>
     <KnownFrameworkReference Update="Microsoft.AspNetCore.App">
       <TargetingPackVersion Condition="'%(TargetFramework)' == 'net6.0'">6.0.0</TargetingPackVersion>
-      <TargetingPackVersion Condition="'%(TargetFramework)' == 'net8.0'">8.0.0-preview.3.23164.14</TargetingPackVersion>
     </KnownFrameworkReference>
   </ItemGroup>
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Structure
@@ -28,6 +26,25 @@ namespace Microsoft.CodeAnalysis.Structure
         public TextSpan HintSpan { get; }
 
         /// <summary>
+        /// Gets the optional span of the primary header of the code block represented by this tag. For example, in the
+        /// following snippet of code:
+        /// <code>
+        ///     if (condition1)
+        ///     {
+        ///         //something;
+        ///     }
+        ///     else
+        ///     {
+        ///         // something else;
+        ///     }
+        /// </code>
+        /// The primary span representing "else" statement block would be the same as the <see cref="TextSpan"/> of
+        /// block span for the  "if" block. This allows structure visualizing features to provide more useful context
+        /// when visualizing "else" structure blocks.
+        /// </summary>
+        public (TextSpan textSpan, TextSpan hintSpan)? PrimarySpans { get; }
+
+        /// <summary>
         /// The text to display inside the collapsed region.
         /// </summary>
         public string BannerText { get; }
@@ -49,16 +66,24 @@ namespace Microsoft.CodeAnalysis.Structure
 
         public BlockSpan(
             string type, bool isCollapsible, TextSpan textSpan, string bannerText = Ellipses, bool autoCollapse = false, bool isDefaultCollapsed = false)
-            : this(type, isCollapsible, textSpan, textSpan, bannerText, autoCollapse, isDefaultCollapsed)
+            : this(type, isCollapsible, textSpan, textSpan, primarySpans: null, bannerText, autoCollapse, isDefaultCollapsed)
         {
         }
 
         public BlockSpan(
-            string type, bool isCollapsible, TextSpan textSpan, TextSpan hintSpan, string bannerText = Ellipses, bool autoCollapse = false, bool isDefaultCollapsed = false)
+            string type,
+            bool isCollapsible,
+            TextSpan textSpan,
+            TextSpan hintSpan,
+            (TextSpan textSpan, TextSpan hintSpan)? primarySpans = null,
+            string bannerText = Ellipses,
+            bool autoCollapse = false,
+            bool isDefaultCollapsed = false)
         {
             TextSpan = textSpan;
-            BannerText = bannerText;
             HintSpan = hintSpan;
+            PrimarySpans = primarySpans;
+            BannerText = bannerText;
             AutoCollapse = autoCollapse;
             IsDefaultCollapsed = isDefaultCollapsed;
             IsCollapsible = isCollapsible;
@@ -82,6 +107,7 @@ namespace Microsoft.CodeAnalysis.Structure
             Optional<bool> isCollapsible = default,
             Optional<TextSpan> textSpan = default,
             Optional<TextSpan> hintSpan = default,
+            Optional<(TextSpan textSpan, TextSpan hintSpan)> primarySpans = default,
             Optional<string> type = default,
             Optional<string> bannerText = default,
             Optional<bool> autoCollapse = default,
@@ -90,13 +116,14 @@ namespace Microsoft.CodeAnalysis.Structure
             var newIsCollapsible = isCollapsible.HasValue ? isCollapsible.Value : IsCollapsible;
             var newTextSpan = textSpan.HasValue ? textSpan.Value : TextSpan;
             var newHintSpan = hintSpan.HasValue ? hintSpan.Value : HintSpan;
+            var newPrimarySpans = primarySpans.HasValue ? primarySpans.Value : PrimarySpans;
             var newType = type.HasValue ? type.Value : Type;
             var newBannerText = bannerText.HasValue ? bannerText.Value : BannerText;
             var newAutoCollapse = autoCollapse.HasValue ? autoCollapse.Value : AutoCollapse;
             var newIsDefaultCollapsed = isDefaultCollapsed.HasValue ? isDefaultCollapsed.Value : IsDefaultCollapsed;
 
             return new BlockSpan(
-                newType, newIsCollapsible, newTextSpan, newHintSpan, newBannerText, newAutoCollapse, newIsDefaultCollapsed);
+                newType, newIsCollapsible, newTextSpan, newHintSpan, newPrimarySpans, newBannerText, newAutoCollapse, newIsDefaultCollapsed);
         }
     }
 }

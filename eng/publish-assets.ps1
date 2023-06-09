@@ -92,6 +92,11 @@ function Publish-Nuget($publishData, [string]$packageDir) {
         continue
       }
 
+      if ($feedName.equals("npm")) {
+        Write-Host "Skipping publishing for $nupkg as it is published in a separate step as an NPM package"
+        continue
+      }
+
       # Use the feed name to get the source to upload the package to.
       if (-not (Get-Member -InputObject $feedData -Name $feedName)) {
         throw "$feedName has no configured source feed"
@@ -101,6 +106,7 @@ function Publish-Nuget($publishData, [string]$packageDir) {
       $apiKey = Get-PublishKey $uploadUrl
 
       if (-not $test) {
+        Write-Host "Publishing $nupkg"
         Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --api-key $apiKey"
       }
     }
