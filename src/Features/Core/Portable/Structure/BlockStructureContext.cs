@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
-    internal sealed class BlockStructureContext : IDisposable
+    internal readonly struct BlockStructureContext : IDisposable
     {
         public readonly ArrayBuilder<BlockSpan> Spans = ArrayBuilder<BlockSpan>.GetInstance();
 
@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.Structure
         }
 
         public void Dispose()
-        {
-            Spans.Free();
-        }
+            => Spans.Free();
     }
 }
