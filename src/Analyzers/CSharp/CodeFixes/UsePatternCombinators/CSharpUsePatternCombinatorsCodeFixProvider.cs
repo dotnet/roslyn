@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 context,
                 isSafe ? CSharpAnalyzersResources.Use_pattern_matching : CSharpAnalyzersResources.Use_pattern_matching_may_change_code_meaning,
                 isSafe ? SafeEquivalenceKey : UnsafeEquivalenceKey,
-                CodeActionPriorityInternal.Low);
+                CodeActionPriority.Low);
 
             return Task.CompletedTask;
         }
