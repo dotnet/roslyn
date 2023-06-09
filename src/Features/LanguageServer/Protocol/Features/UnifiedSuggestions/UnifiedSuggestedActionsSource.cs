@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 if (fix.Action is AbstractConfigurationActionWithNestedActions configurationAction)
                 {
                     return new CodeFixGroupKey(
-                        diag, configurationAction.PriorityInternal, configurationAction.AdditionalPriority);
+                        diag, configurationAction.PriorityInternal, configurationAction.AdditionalPriority.ConvertToInternalPriority());
                 }
 
                 return new CodeFixGroupKey(diag, fix.Action.PriorityInternal, null);
