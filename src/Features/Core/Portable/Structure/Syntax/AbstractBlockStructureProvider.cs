@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Structure
             _triviaProviderMap = defaultTriviaOutlinerMap;
         }
 
-        public override void ProvideBlockStructure(BlockStructureContext context)
+        public override void ProvideBlockStructure(in BlockStructureContext context)
         {
             try
             {

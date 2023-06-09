@@ -6,10 +6,12 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
-    internal readonly ref struct BlockStructureContext
+    [NonCopyable]
+    internal readonly struct BlockStructureContext : IDisposable
     {
         public readonly ArrayBuilder<BlockSpan> Spans = ArrayBuilder<BlockSpan>.GetInstance();
 

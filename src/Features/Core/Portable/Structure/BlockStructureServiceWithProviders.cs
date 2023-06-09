@@ -50,13 +50,8 @@ namespace Microsoft.CodeAnalysis.Structure
             CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return GetBlockStructureWorker();
-
-            BlockStructure GetBlockStructureWorker()
-            {
-                using var context = CreateContext(syntaxTree, options, cancellationToken);
-                return GetBlockStructure(context, _providers);
-            }
+            using var context = CreateContext(syntaxTree, options, cancellationToken);
+            return GetBlockStructure(context, _providers);
         }
 
         private static BlockStructureContext CreateContext(
@@ -68,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Structure
         }
 
         private static BlockStructure GetBlockStructure(
-            BlockStructureContext context,
+            in BlockStructureContext context,
             ImmutableArray<BlockStructureProvider> providers)
         {
             foreach (var provider in providers)
@@ -77,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Structure
             return CreateBlockStructure(context);
         }
 
-        private static BlockStructure CreateBlockStructure(BlockStructureContext context)
+        private static BlockStructure CreateBlockStructure(in BlockStructureContext context)
         {
             using var _ = ArrayBuilder<BlockSpan>.GetInstance(context.Spans.Count, out var updatedSpans);
             foreach (var span in context.Spans)
