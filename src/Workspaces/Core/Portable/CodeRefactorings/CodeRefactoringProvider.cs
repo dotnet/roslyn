@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             get
             {
-                var priority = ComputeRequestPriority();
+                var priority = ComputeRequestPriorityInternal();
                 // Note: CodeActionRequestPriority.Lowest is reserved for IConfigurationFixProvider.
                 Contract.ThrowIfFalse(priority is CodeActionRequestPriorityInternal.Low or CodeActionRequestPriorityInternal.Normal or CodeActionRequestPriorityInternal.High);
                 return priority;
             }
         }
 
-        private protected virtual CodeActionRequestPriorityInternal ComputeRequestPriority()
+        private protected virtual CodeActionRequestPriorityInternal ComputeRequestPriorityInternal()
             => CodeActionRequestPriorityInternal.Normal;
     }
 }

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// 'smart tag' feature in VS prior to us even having 'light bulbs'.  We want them to be computed
         /// first, ahead of everything else, and the main results should show up at the top of the list.
         /// </summary>
-        private protected override CodeActionRequestPriorityInternal ComputeRequestPriority()
+        private protected override CodeActionRequestPriorityInternal ComputeRequestPriorityInternal()
             => CodeActionRequestPriorityInternal.High;
 
         public sealed override FixAllProvider? GetFixAllProvider()
