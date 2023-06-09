@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             var taskOfTask = delayTask.ContinueWith(
                 // Convert a successfully completed task when we were canceled to a canceled task.  Otherwise, return
                 // the faulted or non-canceled task as is.
-                task => !task.IsFaulted && cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : task,
+                task => task.Status == TaskStatus.RanToCompletion && cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : task,
                 CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             return taskOfTask.Unwrap();
 
