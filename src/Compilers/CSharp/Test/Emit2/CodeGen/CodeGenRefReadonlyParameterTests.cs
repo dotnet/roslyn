@@ -13,6 +13,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
 public class CodeGenRefReadonlyParameterTests : CSharpTestBase
 {
     private const string RequiresLocationAttributeName = "RequiresLocationAttribute";
+    private const string RequiresLocationAttributeNamespace = "System.Runtime.CompilerServices";
+    private const string RequiresLocationAttributeQualifiedName = $"{RequiresLocationAttributeNamespace}.{RequiresLocationAttributeName}";
+
+    private static void VerifyRequiresLocationAttributeSynthesized(ModuleSymbol module)
+    {
+        var attributeType = module.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName);
+        if (module is SourceModuleSymbol)
+        {
+            Assert.Null(attributeType);
+        }
+        else
+        {
+            Assert.NotNull(attributeType);
+        }
+    }
 
     [Fact]
     public void Method()
@@ -47,6 +62,35 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
         {
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
             Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
+            VerifyRequiresLocationAttributeSynthesized(m);
+        }
+    }
+
+    [Fact]
+    public void ManuallyDefinedAttribute()
+    {
+        var source = $$"""
+            class C
+            {
+                public void M(ref readonly int p) { }
+            }
+
+            namespace {{RequiresLocationAttributeNamespace}}
+            {
+                class {{RequiresLocationAttributeName}}
+                {
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
+            sourceSymbolValidator: verify, symbolValidator: verify);
+        verifier.VerifyDiagnostics();
+
+        static void verify(ModuleSymbol m)
+        {
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+            Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
+            Assert.NotNull(m.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName));
         }
     }
 
@@ -83,6 +127,7 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
         {
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
             Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
+            VerifyRequiresLocationAttributeSynthesized(m);
         }
     }
 
@@ -121,6 +166,7 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
         {
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C..ctor").Parameters.Single();
             Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
+            VerifyRequiresLocationAttributeSynthesized(m);
         }
     }
 
@@ -185,6 +231,7 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
         {
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("D.Invoke").Parameters.Single();
             Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
+            VerifyRequiresLocationAttributeSynthesized(m);
         }
     }
 
@@ -196,6 +243,7 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             System.Console.WriteLine(lam.GetType());
             """;
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
+            sourceSymbolValidator: VerifyRequiresLocationAttributeSynthesized, symbolValidator: VerifyRequiresLocationAttributeSynthesized,
             expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]");
         verifier.VerifyDiagnostics();
         verifier.VerifyMethodIL("<>c", "<<Main>$>b__0_0", """
@@ -224,6 +272,7 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             System.Console.WriteLine(((object)local).GetType());
             """;
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
+            sourceSymbolValidator: VerifyRequiresLocationAttributeSynthesized, symbolValidator: VerifyRequiresLocationAttributeSynthesized,
             expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]");
         verifier.VerifyDiagnostics();
         verifier.VerifyMethodIL("Program", "<<Main>$>g__local|0_0", """
@@ -257,6 +306,7 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             System.Console.WriteLine(((object)x).GetType());
             """;
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
+            sourceSymbolValidator: VerifyRequiresLocationAttributeSynthesized, symbolValidator: VerifyRequiresLocationAttributeSynthesized,
             expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]");
         verifier.VerifyDiagnostics();
         verifier.VerifyMethodIL("<>f__AnonymousDelegate0`1", "Invoke", """
@@ -303,6 +353,7 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
             var ptr = (FunctionPointerTypeSymbol)p.Type;
             Assert.Equal(RefKind.RefReadOnlyParameter, ptr.Signature.Parameters.Single().RefKind);
+            VerifyRequiresLocationAttributeSynthesized(m);
         }
     }
 
