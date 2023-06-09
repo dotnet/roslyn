@@ -1242,7 +1242,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ErrorCode.WRN_ExternMethodNoImplementation;
                     diagnostics.Add(errorCode, this.GetFirstLocation(), this);
                 }
-
             }
 
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
