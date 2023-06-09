@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 
@@ -38,4 +39,34 @@ public enum CodeActionRequestPriority
     /// The default priority a provider should run at.  Currently <see cref="Normal"/>.
     /// </summary>
     Default = Normal,
+}
+
+internal static class CodeActionRequestPriorityExtensions
+{
+    /// <summary>
+    /// Clamps the value of <paramref name="priority"/> (which could be any integer) to the legal range of values
+    /// present in <see cref="CodeActionRequestPriority"/>.
+    /// </summary>
+    public static CodeActionRequestPriority Clamp(this CodeActionRequestPriority priority)
+    {
+        if (priority < CodeActionRequestPriority.Low)
+            priority = CodeActionRequestPriority.Low;
+
+        if (priority > CodeActionRequestPriority.Normal)
+            priority = CodeActionRequestPriority.Normal;
+
+        return priority;
+    }
+
+    public static CodeActionRequestPriorityInternal ConvertToInternalPriority(this CodeActionRequestPriority priority)
+    {
+        priority = priority.Clamp();
+
+        return priority switch
+        {
+            CodeActionRequestPriority.Low => CodeActionRequestPriorityInternal.Low,
+            CodeActionRequestPriority.Normal => CodeActionRequestPriorityInternal.Normal,
+            _ => throw ExceptionUtilities.UnexpectedValue(priority),
+        };
+    }
 }

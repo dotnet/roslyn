@@ -44,7 +44,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
+        /// <summary>
+        /// <see langword="virtual"/> so that our own internal providers get privileged access to the <see
+        /// cref="CodeActionRequestPriorityInternal.High"/> bucket.  We do not currently expose that publicly as caution
+        /// against poorly behaving external analyzers impacting experiences like 'add using'
+        /// </summary>
         private protected virtual CodeActionRequestPriorityInternal ComputeRequestPriorityInternal()
-            => CodeActionRequestPriorityInternal.Normal;
+            => this.RequestPriority.ConvertToInternalPriority();
+
+        /// <summary>
+        /// Priority class this refactoring provider should run at. Returns <see
+        /// cref="CodeActionRequestPriority.Default"/> if not overridden.  Slower, or less relevant, providers should
+        /// override this and return a lower value to not interfere with computation of normal priority providers.
+        /// </summary>
+        public virtual CodeActionRequestPriority RequestPriority
+            => CodeActionRequestPriority.Default;
     }
 }
