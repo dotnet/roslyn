@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -255,7 +256,8 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             record C(ref readonly int p);
             """;
         var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetStandard20,
-            sourceSymbolValidator: verify, symbolValidator: verify);
+            sourceSymbolValidator: verify, symbolValidator: verify,
+            verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
         verifier.VerifyMethodIL("C", ".ctor", """
             .method public hidebysig specialname rtspecialname 
@@ -297,7 +299,8 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             record struct C(ref readonly int p);
             """;
         var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetStandard20,
-            sourceSymbolValidator: verify, symbolValidator: verify);
+            sourceSymbolValidator: verify, symbolValidator: verify,
+            verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
         verifier.VerifyMethodIL("C", ".ctor", """
             .method public hidebysig specialname rtspecialname 
