@@ -7517,6 +7517,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterceptorPathNotInCompilationWithCandidate" xml:space="preserve">
     <value>Cannot intercept: compilation does not contain a file with path '{0}'. Did you mean to use path '{1}'?</value>
   </data>
+  <data name="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate" xml:space="preserve">
+    <value>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</value>
+  </data>
   <data name="ERR_InterceptorLineOutOfRange" xml:space="preserve">
     <value>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</value>
   </data>
@@ -7540,9 +7543,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_InterceptorSignatureMismatch_Title" xml:space="preserve">
     <value>Signatures of interceptable and interceptor methods do not match.</value>
-  </data>
-  <data name="ERR_InterceptableMethodMustBeOrdinary" xml:space="preserve">
-    <value>An interceptable method must be an ordinary member method.</value>
   </data>
   <data name="ERR_InterceptorMethodMustBeOrdinary" xml:space="preserve">
     <value>An interceptor method must be an ordinary member method.</value>

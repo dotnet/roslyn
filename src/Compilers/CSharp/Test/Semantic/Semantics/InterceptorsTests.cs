@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
@@ -3419,5 +3423,480 @@ partial struct CustomHandler
 
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptGetEnumerator()
+    {
+        var source = """
+            using System.Collections;
+            using System.Runtime.CompilerServices;
+
+            var myEnumerable = new MyEnumerable();
+            foreach (var item in myEnumerable)
+            {
+            }
+
+            class MyEnumerable : IEnumerable
+            {
+                public IEnumerator GetEnumerator() => throw null!;
+            }
+
+            static class MyEnumerableExt
+            {
+                [InterceptsLocation("Program.cs", 5, 22)] // 1
+                public static IEnumerator GetEnumerator1(this MyEnumerable en) => throw null!;
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(16,6): error CS27014: Possible method name 'myEnumerable' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 5, 22)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 5, 22)").WithArguments("myEnumerable").WithLocation(16, 6));
+    }
+
+    [Fact]
+    public void InterceptDispose()
+    {
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            var myDisposable = new MyDisposable();
+            using (myDisposable)
+            {
+            }
+
+            class MyDisposable : IDisposable
+            {
+                public void Dispose() => throw null!;
+            }
+
+            static class MyDisposeExt
+            {
+                [InterceptsLocation("Program.cs", 5, 8)] // 1
+                public static void Dispose1(this MyDisposable md) => throw null!;
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(16,6): error CS27014: Possible method name 'myDisposable' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 5, 8)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 5, 8)").WithArguments("myDisposable").WithLocation(16, 6)
+            );
+    }
+
+    [Fact]
+    public void InterceptDeconstruct()
+    {
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            var myDeconstructable = new MyDeconstructable();
+            var (x, y) = myDeconstructable;
+
+            class MyDeconstructable
+            {
+                public void Deconstruct(out int x, out int y) => throw null!;
+            }
+
+            static class MyDeconstructableExt
+            {
+                [InterceptsLocation("Program.cs", 5, 14)] // 1
+                public static void Deconstruct1(this MyDeconstructable md, out int x, out int y) => throw null!;
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(14,6): error CS27014: Possible method name 'myDeconstructable' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 5, 14)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 5, 14)").WithArguments("myDeconstructable").WithLocation(14, 6)
+            );
+    }
+
+    [Fact]
+    public void PathMapping_01()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C c = new C();
+            c.M();
+
+            class C
+            {
+                public void M() => throw null!;
+
+                [InterceptsLocation("/_/Program.cs", 5, 3)]
+                public void Interceptor() => Console.Write(1);
+            }
+            """;
+        var pathPrefix = PlatformInformation.IsWindows ? """C:\My\Machine\Specific\Path\""" : "/My/Machine/Specific/Path/";
+        var path = pathPrefix + "Program.cs";
+        var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>(pathPrefix, "/_/"));
+
+        var verifier = CompileAndVerify(
+            new[] { (source, path), s_attributesSource },
+            parseOptions: RegularWithInterceptors,
+            options: TestOptions.DebugExe.WithSourceReferenceResolver(
+                new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)),
+            expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PathMapping_02()
+    {
+        // Attribute uses a physical path, but we expected a mapped path.
+        // Diagnostic can suggest using the mapped path instead.
+        var pathPrefix = PlatformInformation.IsWindows ? @"C:\My\Machine\Specific\Path\" : "/My/Machine/Specific/Path/";
+        var path = pathPrefix + "Program.cs";
+        var source = $$"""
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C c = new C();
+            c.M();
+
+            class C
+            {
+                public void M() => throw null!;
+
+                [InterceptsLocation(@"{{path}}", 5, 3)]
+                public void Interceptor() => Console.Write(1);
+            }
+            """;
+        var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>(pathPrefix, "/_/"));
+
+        var comp = CreateCompilation(
+            new[] { (source, path), s_attributesSource },
+            parseOptions: RegularWithInterceptors,
+            options: TestOptions.DebugExe.WithSourceReferenceResolver(
+                new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)));
+        comp.VerifyEmitDiagnostics(
+                // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS27008: Cannot intercept: Path 'C:\My\Machine\Specific\Path\Program.cs' is unmapped. Expected mapped path '/_/Program.cs'.
+                //     [InterceptsLocation(@"C:\My\Machine\Specific\Path\Program.cs", 5, 3)]
+                Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate, $@"@""{path}""").WithArguments(path, "/_/Program.cs").WithLocation(11, 25)
+            );
+    }
+
+    [Fact]
+    public void PathMapping_03()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C c = new C();
+            c.M();
+
+            class C
+            {
+                public void M() => throw null!;
+
+                [InterceptsLocation(@"\_\Program.cs", 5, 3)]
+                public void Interceptor() => Console.Write(1);
+            }
+            """;
+        var pathPrefix = PlatformInformation.IsWindows ? """C:\My\Machine\Specific\Path\""" : "/My/Machine/Specific/Path/";
+        var path = pathPrefix + "Program.cs";
+        var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>(pathPrefix, "/_/"));
+
+        var comp = CreateCompilation(
+            new[] { (source, path), s_attributesSource },
+            parseOptions: RegularWithInterceptors,
+            options: TestOptions.DebugExe.WithSourceReferenceResolver(
+                new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)));
+        comp.VerifyEmitDiagnostics(
+            // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS27003: Cannot intercept: compilation does not contain a file with path '\_\Program.cs'. Did you mean to use path '/_/Program.cs'?
+            //     [InterceptsLocation(@"\_\Program.cs", 5, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"@""\_\Program.cs""").WithArguments(@"\_\Program.cs", "/_/Program.cs").WithLocation(11, 25));
+    }
+
+    [Fact]
+    public void PathMapping_04()
+    {
+        // Test when unmapped file paths are distinct, but mapped paths are equal.
+        var source1 = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            namespace NS1;
+
+            class C
+            {
+                public static void M0()
+                {
+                    C c = new C();
+                    c.M();
+                }
+
+                public void M() => throw null!;
+
+                [InterceptsLocation(@"/_/Program.cs", 11, 9)]
+                public void Interceptor() => Console.Write(1);
+            }
+            """;
+
+        var source2 = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            namespace NS2;
+
+            class C
+            {
+                public static void M0()
+                {
+                    C c = new C();
+                    c.M();
+                }
+
+                public void M() => throw null!;
+            }
+            """;
+
+        var pathPrefix1 = PlatformInformation.IsWindows ? """C:\My\Machine\Specific\Path1\""" : "/My/Machine/Specific/Path1/";
+        var pathPrefix2 = PlatformInformation.IsWindows ? """C:\My\Machine\Specific\Path2\""" : "/My/Machine/Specific/Path2/";
+        var path1 = pathPrefix1 + "Program.cs";
+        var path2 = pathPrefix2 + "Program.cs";
+        var pathMap = ImmutableArray.Create(
+            new KeyValuePair<string, string>(pathPrefix1, "/_/"),
+            new KeyValuePair<string, string>(pathPrefix2, "/_/")
+            );
+
+        var comp = CreateCompilation(
+            new[] { (source1, path1), (source2, path2), s_attributesSource },
+            parseOptions: RegularWithInterceptors,
+            options: TestOptions.DebugDll.WithSourceReferenceResolver(
+                new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)));
+        comp.VerifyEmitDiagnostics(
+            // C:\My\Machine\Specific\Path1\Program.cs(16,25): error CS27015: Cannot intercept a call in file with path '/_/Program.cs' because multiple files in the compilation have this path.
+            //     [InterceptsLocation(@"/_/Program.cs", 11, 9)]
+            Diagnostic(ErrorCode.ERR_InterceptorNonUniquePath, @"@""/_/Program.cs""").WithArguments("/_/Program.cs").WithLocation(16, 25));
+    }
+
+    [Fact]
+    public void PathMapping_05()
+    {
+        // Pathmap replacement contains backslashes, and attribute path contains backslashes.
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C c = new C();
+            c.M();
+
+            class C
+            {
+                public void M() => throw null!;
+
+                [InterceptsLocation(@"\_\Program.cs", 5, 3)]
+                public void Interceptor() => Console.Write(1);
+            }
+            """;
+        var pathPrefix = PlatformInformation.IsWindows ? """C:\My\Machine\Specific\Path\""" : "/My/Machine/Specific/Path/";
+        var path = pathPrefix + "Program.cs";
+        var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>(pathPrefix, @"\_\"));
+
+        var verifier = CompileAndVerify(
+            new[] { (source, path), s_attributesSource },
+            parseOptions: RegularWithInterceptors,
+            options: TestOptions.DebugExe.WithSourceReferenceResolver(
+                new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)),
+            expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PathMapping_06()
+    {
+        // Pathmap mixes slashes and backslashes, attribute path is normalized to slashes
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C c = new C();
+            c.M();
+
+            class C
+            {
+                public void M() => throw null!;
+
+                [InterceptsLocation(@"/_/Program.cs", 5, 3)]
+                public void Interceptor() => Console.Write(1);
+            }
+            """;
+        var pathPrefix = PlatformInformation.IsWindows ? """C:\My\Machine\Specific\Path\""" : "/My/Machine/Specific/Path/";
+        var path = pathPrefix + "Program.cs";
+        var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>(pathPrefix, @"\_/"));
+
+        var comp = CreateCompilation(
+            new[] { (source, path), s_attributesSource },
+            parseOptions: RegularWithInterceptors,
+            options: TestOptions.DebugExe.WithSourceReferenceResolver(
+                new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)));
+        comp.VerifyEmitDiagnostics(
+            // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS27003: Cannot intercept: compilation does not contain a file with path '/_/Program.cs'. Did you mean to use path '\_/Program.cs'?
+            //     [InterceptsLocation(@"/_/Program.cs", 5, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"@""/_/Program.cs""").WithArguments("/_/Program.cs", @"\_/Program.cs").WithLocation(11, 25));
+    }
+
+    [Fact]
+    public void PathMapping_07()
+    {
+        // Pathmap replacement mixes slashes and backslashes, attribute path matches it
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C c = new C();
+            c.M();
+
+            class C
+            {
+                public void M() => throw null!;
+
+                [InterceptsLocation(@"\_/Program.cs", 5, 3)]
+                public void Interceptor() => Console.Write(1);
+            }
+            """;
+        var pathPrefix = PlatformInformation.IsWindows ? """C:\My\Machine\Specific\Path\""" : "/My/Machine/Specific/Path/";
+        var path = pathPrefix + "Program.cs";
+        var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>(pathPrefix, @"\_/"));
+
+        var verifier = CompileAndVerify(
+            new[] { (source, path), s_attributesSource },
+            parseOptions: RegularWithInterceptors,
+            options: TestOptions.DebugExe.WithSourceReferenceResolver(
+                new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)),
+            expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PathNormalization_01()
+    {
+        // No pathmap is present and slashes in the attribute match the FilePath on the syntax tree.
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                public static void Main()
+                {
+                    C c = new C();
+                    c.M();
+                }
+
+                public void M() => throw null!;
+
+                [InterceptsLocation("src/Program.cs", 9, 11)]
+                public void Interceptor() => Console.Write(1);
+            }
+            """;
+
+        var verifier = CompileAndVerify(
+            new[] { (source, "src/Program.cs"), s_attributesSource },
+            parseOptions: RegularWithInterceptors,
+            expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PathNormalization_02()
+    {
+        // No pathmap is present and backslashes in the attribute match the FilePath on the syntax tree.
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                public static void Main()
+                {
+                    C c = new C();
+                    c.M();
+                }
+
+                public void M() => throw null!;
+
+                [InterceptsLocation(@"src\Program.cs", 9, 11)]
+                public void Interceptor() => Console.Write(1);
+            }
+            """;
+
+        var verifier = CompileAndVerify(
+            new[] { (source, @"src\Program.cs"), s_attributesSource },
+            parseOptions: RegularWithInterceptors,
+            expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PathNormalization_03()
+    {
+        // Relative paths do not have slashes normalized when pathmap is not present
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                public static void Main()
+                {
+                    C c = new C();
+                    c.M();
+                }
+
+                public void M() => throw null!;
+
+                [InterceptsLocation(@"src/Program.cs", 9, 11)]
+                public void Interceptor() => Console.Write(1);
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, @"src\Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // src\Program.cs(14,25): error CS27003: Cannot intercept: compilation does not contain a file with path 'src/Program.cs'. Did you mean to use path 'src\Program.cs'?
+            //     [InterceptsLocation(@"src/Program.cs", 9, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"@""src/Program.cs""").WithArguments("src/Program.cs", @"src\Program.cs").WithLocation(14, 25));
+    }
+
+    [Fact]
+    public void PathNormalization_04()
+    {
+        // Absolute paths do not have slashes normalized when no pathmap is present
+        // Note that any such normalization step would be specific to Windows
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                public static void Main()
+                {
+                    C c = new C();
+                    c.M();
+                }
+
+                public void M() => throw null!;
+
+                [InterceptsLocation("C:/src/Program.cs", 9, 11)] // 1
+                public void Interceptor() => Console.Write(1);
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, @"C:\src\Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // C:\src\Program.cs(14,25): error CS27003: Cannot intercept: compilation does not contain a file with path 'C:/src/Program.cs'. Did you mean to use path 'C:\src\Program.cs'?
+            //     [InterceptsLocation("C:/src/Program.cs", 9, 11)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"""C:/src/Program.cs""").WithArguments("C:/src/Program.cs", @"C:\src\Program.cs").WithLocation(14, 25));
     }
 }

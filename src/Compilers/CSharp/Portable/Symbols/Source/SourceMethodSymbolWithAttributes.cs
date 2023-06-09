@@ -967,8 +967,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var filePath = (string?)attributeArguments[0].Value;
-            if (filePath is null)
+            var attributeFilePath = (string?)attributeArguments[0].Value;
+            if (attributeFilePath is null)
             {
                 diagnostics.Add(ErrorCode.ERR_InterceptorFilePathCannotBeNull, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax));
                 return;
@@ -987,42 +987,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var syntaxTrees = DeclaringCompilation.SyntaxTrees;
-            SyntaxTree? matchingTree = null;
-            // PROTOTYPE(ic): we need to resolve the paths before comparing (i.e. respect /pathmap).
-            // At that time, we should look at caching the resolved paths for the trees in a set (or maybe a Map<string, OneOrMany<SyntaxTree>>).
-            // so we can reduce the cost of these checks.
-            foreach (var tree in syntaxTrees)
+            var matchingTrees = DeclaringCompilation.GetSyntaxTreesByMappedPath(attributeFilePath);
+            if (matchingTrees.Count == 0)
             {
-                if (tree.FilePath == filePath)
-                {
-                    if (matchingTree == null)
-                    {
-                        matchingTree = tree;
-                        // need to keep searching in case we find another tree with the same path
-                    }
-                    else
-                    {
-                        diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), filePath);
-                        return;
-                    }
-                }
-            }
+                var referenceResolver = DeclaringCompilation.Options.SourceReferenceResolver;
+                // if we expect '/_/Program.cs':
 
-            if (matchingTree == null)
-            {
-                var suffixMatch = syntaxTrees.FirstOrDefault(static (tree, filePath) => tree.FilePath.EndsWith(filePath), filePath);
+                // we might get: 'C:\Project\Program.cs' <-- path not mapped
+                var unmappedMatch = syntaxTrees.FirstOrDefault(static (tree, filePath) => tree.FilePath == filePath, attributeFilePath);
+                if (unmappedMatch != null)
+                {
+                    diagnostics.Add(
+                        ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate,
+                        attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax),
+                        attributeFilePath,
+                        mapPath(referenceResolver, unmappedMatch));
+                    return;
+                }
+
+                // we might get: '\_\Program.cs' <-- slashes not normalized
+                // we might get: '\_/Program.cs' <-- slashes don't match
+                // we might get: 'Program.cs' <-- suffix match
+                // Force normalization of all '\' to '/', but when we recommend a path in the diagnostic message, ensure it will match what we expect if the user decides to use it.
+                var suffixMatch = syntaxTrees.FirstOrDefault(static (tree, pair)
+                    => mapPath(pair.referenceResolver, tree)
+                        .Replace('\\', '/')
+                        .EndsWith(pair.attributeFilePath),
+                    (referenceResolver, attributeFilePath: attributeFilePath.Replace('\\', '/')));
                 if (suffixMatch != null)
                 {
-                    diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), filePath, suffixMatch.FilePath);
+                    diagnostics.Add(
+                        ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate,
+                        attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax),
+                        attributeFilePath,
+                        mapPath(referenceResolver, suffixMatch));
+                    return;
                 }
-                else
-                {
-                    diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilation, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), filePath);
-                }
+
+                diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilation, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), attributeFilePath);
 
                 return;
             }
+            else if (matchingTrees.Count > 1)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), attributeFilePath);
+                return;
+            }
 
+            SyntaxTree? matchingTree = matchingTrees[0];
             // Internally, line and character numbers are 0-indexed, but when they appear in code or diagnostic messages, they are 1-indexed.
             int lineNumberZeroBased = lineNumberOneBased - 1;
             int characterNumberZeroBased = characterNumberOneBased - 1;
@@ -1079,7 +1091,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            DeclaringCompilation.AddInterception(filePath, lineNumberZeroBased, characterNumberZeroBased, attributeLocation, this);
+            DeclaringCompilation.AddInterception(matchingTree.FilePath, lineNumberZeroBased, characterNumberZeroBased, attributeLocation, this);
+
+            static string mapPath(SourceReferenceResolver? referenceResolver, SyntaxTree tree)
+            {
+                return referenceResolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
+            }
         }
 
         private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)

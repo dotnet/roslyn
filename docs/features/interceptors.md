@@ -69,11 +69,20 @@ https://github.com/dotnet/roslyn/issues/67079 is a bug which causes file-local s
 
 #### File paths
 
-File paths used in `[InterceptsLocation]` must exactly match the paths on the syntax trees they refer to by ordinal comparison. `SyntaxTree.FilePath` has already applied `/pathmap` substitution, so the paths used in the attribute will be less environment-specific in many projects.
+File paths used in `[InterceptsLocation]` are expected to have `/pathmap` substitution already applied. Generators should accomplish this by locally recreating the file path transformation performed by the compiler:
+
+```cs
+using Microsoft.CodeAnalysis;
+
+string GetInterceptorFilePath(SyntaxTree tree, Compilation compilation)
+{
+    return compilation.Options.SourceReferenceResolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
+}
+```
+
+The file path given in the attribute must be equal by ordinal comparison to the value given by the above function.
 
 The compiler does not map `#line` directives when determining if an `[InterceptsLocation]` attribute intercepts a particular call in syntax.
-
-PROTOTYPE(ic): editorconfig support matches paths in cross-platform fashion (e.g. normalizing slashes). We should revisit how that works and consider if the same matching strategy should be used instead of ordinal comparison.
 
 #### Position
 
