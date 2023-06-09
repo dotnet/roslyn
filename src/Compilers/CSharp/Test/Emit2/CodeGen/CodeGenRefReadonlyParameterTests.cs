@@ -171,6 +171,166 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void PrimaryConstructor_Class()
+    {
+        var source = """
+            class C(ref readonly int p);
+            """;
+        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
+            sourceSymbolValidator: verify, symbolValidator: verify);
+        verifier.VerifyDiagnostics(
+            // (1,26): warning CS9113: Parameter 'p' is unread.
+            // class C(ref readonly int p);
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p").WithArguments("p").WithLocation(1, 26));
+        verifier.VerifyMethodIL("C", ".ctor", """
+            .method public hidebysig specialname rtspecialname 
+            	instance void .ctor (
+            		[in] int32& p
+            	) cil managed 
+            {
+            	.param [1]
+            		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+            			01 00 00 00
+            		)
+            	// Method begins at RVA 0x2067
+            	// Code size 7 (0x7)
+            	.maxstack 8
+            	IL_0000: ldarg.0
+            	IL_0001: call instance void [netstandard]System.Object::.ctor()
+            	IL_0006: ret
+            } // end of method C::.ctor
+            """);
+
+        static void verify(ModuleSymbol m)
+        {
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C..ctor").Parameters.Single();
+            Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
+            VerifyRequiresLocationAttributeSynthesized(m);
+        }
+    }
+
+    [Fact]
+    public void PrimaryConstructor_Struct()
+    {
+        var source = """
+            struct C(ref readonly int p);
+            """;
+        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
+            sourceSymbolValidator: verify, symbolValidator: verify);
+        verifier.VerifyDiagnostics(
+            // (1,27): warning CS9113: Parameter 'p' is unread.
+            // struct C(ref readonly int p);
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p").WithArguments("p").WithLocation(1, 27));
+        verifier.VerifyMethodIL("C", ".ctor", """
+            .method public hidebysig specialname rtspecialname 
+            	instance void .ctor (
+            		[in] int32& p
+            	) cil managed 
+            {
+            	.param [1]
+            		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+            			01 00 00 00
+            		)
+            	// Method begins at RVA 0x2067
+            	// Code size 1 (0x1)
+            	.maxstack 8
+            	IL_0000: ret
+            } // end of method C::.ctor
+            """);
+
+        static void verify(ModuleSymbol m)
+        {
+            var c = m.GlobalNamespace.GetTypeMember("C");
+            var ctor = c.InstanceConstructors.Single(s => s.Parameters is [{ Name: "p" }]);
+            var p = ctor.Parameters.Single();
+            Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
+            VerifyRequiresLocationAttributeSynthesized(m);
+        }
+    }
+
+    [Fact]
+    public void PrimaryConstructor_Record()
+    {
+        var source = """
+            record C(ref readonly int p);
+            """;
+        var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetStandard20,
+            sourceSymbolValidator: verify, symbolValidator: verify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyMethodIL("C", ".ctor", """
+            .method public hidebysig specialname rtspecialname 
+            	instance void .ctor (
+            		[in] int32& p
+            	) cil managed 
+            {
+            	.param [1]
+            		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+            			01 00 00 00
+            		)
+            	// Method begins at RVA 0x209d
+            	// Code size 15 (0xf)
+            	.maxstack 8
+            	IL_0000: ldarg.0
+            	IL_0001: ldarg.1
+            	IL_0002: ldind.i4
+            	IL_0003: stfld int32 C::'<p>k__BackingField'
+            	IL_0008: ldarg.0
+            	IL_0009: call instance void [netstandard]System.Object::.ctor()
+            	IL_000e: ret
+            } // end of method C::.ctor
+            """);
+
+        static void verify(ModuleSymbol m)
+        {
+            var c = m.GlobalNamespace.GetTypeMember("C");
+            var ctor = c.InstanceConstructors.Single(s => s.Parameters is [{ Name: "p" }]);
+            var p = ctor.Parameters.Single();
+            Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
+            VerifyRequiresLocationAttributeSynthesized(m);
+        }
+    }
+
+    [Fact]
+    public void PrimaryConstructor_RecordStruct()
+    {
+        var source = """
+            record struct C(ref readonly int p);
+            """;
+        var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetStandard20,
+            sourceSymbolValidator: verify, symbolValidator: verify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyMethodIL("C", ".ctor", """
+            .method public hidebysig specialname rtspecialname 
+            	instance void .ctor (
+            		[in] int32& p
+            	) cil managed 
+            {
+            	.param [1]
+            		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+            			01 00 00 00
+            		)
+            	// Method begins at RVA 0x2067
+            	// Code size 9 (0x9)
+            	.maxstack 8
+            	IL_0000: ldarg.0
+            	IL_0001: ldarg.1
+            	IL_0002: ldind.i4
+            	IL_0003: stfld int32 C::'<p>k__BackingField'
+            	IL_0008: ret
+            } // end of method C::.ctor
+            """);
+
+        static void verify(ModuleSymbol m)
+        {
+            var c = m.GlobalNamespace.GetTypeMember("C");
+            var ctor = c.InstanceConstructors.Single(s => s.Parameters is [{ Name: "p" }]);
+            var p = ctor.Parameters.Single();
+            Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
+            VerifyRequiresLocationAttributeSynthesized(m);
+        }
+    }
+
+    [Fact]
     public void Delegate()
     {
         var source = """
