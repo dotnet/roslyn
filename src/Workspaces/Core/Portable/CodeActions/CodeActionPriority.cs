@@ -28,9 +28,14 @@ public enum CodeActionPriority
     Low = 1,
 
     /// <summary>
-    /// Default priority code action.
+    /// Medium priority code action.
     /// </summary>
     Medium = 2,
+
+    /// <summary>
+    /// Default priority for code actions.  Equivalent to <see cref="Medium"/>.
+    /// </summary>
+    Default = Medium,
 }
 
 internal static class CodeActionPriorityExtensions
