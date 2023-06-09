@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
         // This value is only relevant if this code action is the only one in its group,
         // and it ends up getting inlined as a top-level-action that is offered.
         public WrapItemsAction(string title, string parentTitle, Func<CancellationToken, Task<Document>> createChangedDocument)
-            : base(title, createChangedDocument, title, CodeActionPriorityInternal.Low)
+            : base(title, createChangedDocument, title, CodeActionPriority.Low)
         {
             ParentTitle = parentTitle;
             SortTitle = parentTitle + "_" + title;

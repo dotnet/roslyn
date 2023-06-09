@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             {
                 // always offer to convert from verbatim string to normal string.
                 context.RegisterRefactoring(CodeAction.CreateWithPriority(
-                    CodeActionPriorityInternal.Low,
+                    CodeActionPriority.Low,
                     CSharpFeaturesResources.Convert_to_regular_string,
                     c => ConvertToRegularStringAsync(document, literalExpression, c),
                     nameof(CSharpFeaturesResources.Convert_to_regular_string)));
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
                 // Offer to convert to a verbatim string if the normal string contains simple
                 // escapes that can be directly embedded in the verbatim string.
                 context.RegisterRefactoring(CodeAction.CreateWithPriority(
-                    CodeActionPriorityInternal.Low,
+                    CodeActionPriority.Low,
                     CSharpFeaturesResources.Convert_to_verbatim_string,
                     c => ConvertToVerbatimStringAsync(document, literalExpression, c),
                     nameof(CSharpFeaturesResources.Convert_to_verbatim_string)));

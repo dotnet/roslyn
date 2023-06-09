@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 return;
 
             context.RegisterRefactoring(CodeAction.CreateWithPriority(
-                CodeActionPriorityInternal.Low,
+                CodeActionPriority.Low,
                 CSharpAnalyzersResources.Convert_to_Program_Main_style_program,
                 c => ConvertToProgramMainAsync(document, options.AccessibilityModifiersRequired.Value, c),
                 nameof(CSharpAnalyzersResources.Convert_to_Program_Main_style_program)));

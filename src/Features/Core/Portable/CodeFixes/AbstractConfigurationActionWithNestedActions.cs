@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         protected AbstractConfigurationActionWithNestedActions(ImmutableArray<CodeAction> nestedActions, string title)
             : base(title, nestedActions, isInlinable: false,
-                   priority: CodeActionPriorityInternal.Lowest) // Put configurations/suppressions at the end of everything.
+                   priority: CodeActionPriority.Lowest) // Put configurations/suppressions at the end of everything.
         {
         }
 

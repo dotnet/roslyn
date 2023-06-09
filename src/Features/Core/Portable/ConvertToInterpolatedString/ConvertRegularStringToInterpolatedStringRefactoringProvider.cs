@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             context.RegisterRefactoring(
                 CodeAction.CreateWithPriority(
-                    CodeActionPriorityInternal.Low,
+                    CodeActionPriority.Low,
                     FeaturesResources.Convert_to_interpolated_string,
                     _ => UpdateDocumentAsync(document, root, token),
                     nameof(FeaturesResources.Convert_to_interpolated_string)),

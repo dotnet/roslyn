@@ -63,16 +63,16 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 nameof(FeaturesResources.Add_DebuggerDisplay_attribute)));
         }
 
-        private static async Task<(TTypeDeclarationSyntax type, CodeActionPriorityInternal priority)?> GetRelevantTypeFromHeaderAsync(CodeRefactoringContext context)
+        private static async Task<(TTypeDeclarationSyntax type, CodeActionPriority priority)?> GetRelevantTypeFromHeaderAsync(CodeRefactoringContext context)
         {
             var type = await context.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>().ConfigureAwait(false);
             if (type is null)
                 return null;
 
-            return (type, CodeActionPriorityInternal.Low);
+            return (type, CodeActionPriority.Low);
         }
 
-        private static async Task<(TTypeDeclarationSyntax type, CodeActionPriorityInternal priority)?> GetRelevantTypeFromMethodAsync(CodeRefactoringContext context)
+        private static async Task<(TTypeDeclarationSyntax type, CodeActionPriority priority)?> GetRelevantTypeFromMethodAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
             var method = await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             if (typeDecl == null)
                 return null;
 
-            var priority = isDebuggerDisplayMethod ? CodeActionPriorityInternal.Medium : CodeActionPriorityInternal.Low;
+            var priority = isDebuggerDisplayMethod ? CodeActionPriority.Default : CodeActionPriority.Low;
             return (typeDecl, priority);
         }
 

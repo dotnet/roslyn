@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 // so as to not clutter the list.
                 context.RegisterCodeFix(
                     CodeAction.CreateWithPriority(
-                        CodeActionPriorityInternal.Low,
+                        CodeActionPriority.Low,
                         string.Format(FeaturesResources.Fix_typo_0, nameText),
                         codeActions,
                         isInlinable: true),
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         private CodeAction CreateCodeAction(SyntaxToken nameToken, string oldName, string newName, Document document)
         {
             return CodeAction.CreateWithPriority(
-                CodeActionPriorityInternal.Low,
+                CodeActionPriority.Low,
                 string.Format(FeaturesResources.Change_0_to_1, oldName, newName),
                 c => UpdateAsync(document, nameToken, newName, c),
                 equivalenceKey: newName);

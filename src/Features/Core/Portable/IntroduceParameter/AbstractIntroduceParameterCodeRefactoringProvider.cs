@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
                 context.RegisterRefactoring(
                     CodeAction.Create(
                         string.Format(FeaturesResources.Introduce_parameter_for_0, nodeString),
-                        actions.Value.actions, isInlinable: false, priority: CodeActionPriorityInternal.Low),
+                        actions.Value.actions, isInlinable: false, priority: CodeActionPriority.Low),
                     containingMethod.FullSpan);
             }
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
                 context.RegisterRefactoring(
                     CodeAction.Create(
                         string.Format(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, nodeString),
-                        actions.Value.actionsAllOccurrences, isInlinable: false, priority: CodeActionPriorityInternal.Low),
+                        actions.Value.actionsAllOccurrences, isInlinable: false, priority: CodeActionPriority.Low),
                     containingMethod.FullSpan);
             }
         }

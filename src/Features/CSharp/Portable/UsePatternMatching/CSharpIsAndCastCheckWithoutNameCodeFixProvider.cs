@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         {
             context.RegisterCodeFix(
                 CodeAction.CreateWithPriority(
-                    CodeActionPriorityInternal.Low,
+                    CodeActionPriority.Low,
                     CSharpAnalyzersResources.Use_pattern_matching,
                     GetDocumentUpdater(context),
                     nameof(CSharpAnalyzersResources.Use_pattern_matching)),
