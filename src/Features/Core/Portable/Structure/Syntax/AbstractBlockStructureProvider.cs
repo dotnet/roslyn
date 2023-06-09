@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -39,8 +37,9 @@ namespace Microsoft.CodeAnalysis.Structure
                 BlockSpanCollector.CollectBlockSpans(
                     syntaxRoot, context.Options, _nodeProviderMap, _triviaProviderMap, ref spans.AsRef(), context.CancellationToken);
 
+                context.Spans.EnsureCapacity(context.Spans.Count + spans.Count);
                 foreach (var span in spans)
-                    context.AddBlockSpan(span);
+                    context.Spans.Add(span);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
