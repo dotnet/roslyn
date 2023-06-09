@@ -2198,7 +2198,13 @@ namespace Microsoft.CodeAnalysis
                 return (diagnostic, false, false);
             }
 
-            RoslynDebug.Assert(compilation.ContainsSyntaxTree(finalTree));
+            if (!compilation.ContainsSyntaxTree(finalTree))
+            {
+                // Getting diagnostics for non-final compilations should only ever happen in unit tests, so do a rough check that we are in a unit test.
+                RoslynDebug.Assert(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName?.StartsWith("xunit") == true));
+
+                return (diagnostic, false, false);
+            }
 
             // Find the node in the final tree corresponding to the node in the original tree.
             if (!TryFindSourceNodeInFinalSyntaxTree(sourceSyntaxNode, finalTree, out var finalNode))
