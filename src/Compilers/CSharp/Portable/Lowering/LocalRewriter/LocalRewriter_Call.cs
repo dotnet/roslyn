@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Special case when intercepting an extension method call in reduced form with a non-extension.
                 this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, method.Parameters[0], method);
-                // PROTOYPE(ic): use a symbol display format which includes the 'this' modifier?
+                // PROTOTYPE(ic): use a symbol display format which includes the 'this' modifier?
                 //this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, new FormattedSymbol(method.Parameters[0], SymbolDisplayFormat.CSharpErrorMessageFormat), method);
                 return;
             }

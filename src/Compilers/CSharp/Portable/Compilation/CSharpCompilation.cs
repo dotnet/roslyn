@@ -154,6 +154,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly ConcurrentCache<TypeSymbol, NamedTypeSymbol> _typeToNullableVersion = new ConcurrentCache<TypeSymbol, NamedTypeSymbol>(size: 100);
 
+        /// <summary>Lazily caches SyntaxTrees by their mapped path. Used to look up the syntax tree referenced by an interceptor. <see cref="TryGetInterceptor"/></summary>
+        private ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> _mappedPathToSyntaxTree;
+
         public override string Language
         {
             get
@@ -1034,6 +1037,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Explicitly catching and re-throwing exception so we don't send the syntax
                 // tree (potentially containing private user information) to telemetry.
                 throw new KeyNotFoundException($"Syntax tree not found with file path: {tree.FilePath}");
+            }
+        }
+
+        internal OneOrMany<SyntaxTree> GetSyntaxTreesByMappedPath(string mappedPath)
+        {
+            // We could consider storing this on SyntaxAndDeclarationManager instead, and updating it incrementally.
+            // However, this would make it more difficult for it to be "pay-for-play",
+            // i.e. only created in compilations where interceptors are used.
+            var mappedPathToSyntaxTree = _mappedPathToSyntaxTree;
+            if (mappedPathToSyntaxTree.IsDefault)
+            {
+                RoslynImmutableInterlocked.InterlockedInitialize(ref _mappedPathToSyntaxTree, computeMappedPathToSyntaxTree());
+                mappedPathToSyntaxTree = _mappedPathToSyntaxTree;
+            }
+
+            return mappedPathToSyntaxTree.TryGetValue(mappedPath, out var value) ? value : OneOrMany<SyntaxTree>.Empty;
+
+            ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> computeMappedPathToSyntaxTree()
+            {
+                var builder = ImmutableSegmentedDictionary.CreateBuilder<string, OneOrMany<SyntaxTree>>();
+                var resolver = Options.SourceReferenceResolver;
+                foreach (var tree in SyntaxTrees)
+                {
+                    var path = resolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
+                    builder[path] = builder.ContainsKey(path) ? builder[path].Add(tree) : OneOrMany.Create(tree);
+                }
+                return builder.ToImmutable();
             }
         }
 

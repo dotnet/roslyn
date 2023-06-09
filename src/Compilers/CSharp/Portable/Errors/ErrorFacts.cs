@@ -2328,10 +2328,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorCannotBeGeneric:
                 case ErrorCode.ERR_InterceptorPathNotInCompilation:
                 case ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate:
+                case ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate:
                 case ErrorCode.ERR_InterceptorPositionBadToken:
                 case ErrorCode.ERR_InterceptorLineOutOfRange:
                 case ErrorCode.ERR_InterceptorCharacterOutOfRange:
-                case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
                 case ErrorCode.ERR_InterceptorMethodMustBeOrdinary:
                 case ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition:
                 case ErrorCode.ERR_InterceptorFilePathCannotBeNull:
