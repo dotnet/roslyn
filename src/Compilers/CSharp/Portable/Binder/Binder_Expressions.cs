@@ -1849,7 +1849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // bind to "this.x" in the "Print". (In C++ the local does not come
                             // into scope until its declaration.)
                             //
-                            FieldSymbol possibleField = null;
+                            FieldSymbol possibleField;
                             var lookupResult = LookupResult.GetInstance();
                             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                             this.LookupMembersInType(
@@ -6658,6 +6658,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     options |= LookupOptions.MustBeInvocableIfMember;
                 }
+                else
+                {
+                    options |= LookupOptions.SearchInExtensionTypes;
+                }
 
                 var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName ? ((GenericNameSyntax)right).TypeArgumentList.Arguments : default(SeparatedSyntaxList<TypeSyntax>);
                 var typeArguments = typeArgumentsSyntax.Count > 0 ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default(ImmutableArray<TypeWithAnnotations>);
@@ -7007,6 +7011,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 options |= LookupOptions.MustBeInvocableIfMember;
             }
+            else
+            {
+                options |= LookupOptions.SearchInExtensionTypes;
+            }
 
             if (leftIsBaseReference)
             {
@@ -7348,7 +7356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var firstResult = new MethodGroupResolution();
             AnalyzedArguments actualArguments = null;
 
-            foreach (var scope in new ExtensionMethodScopes(this))
+            foreach (var scope in new ExtensionScopes(this))
             {
                 var methodGroup = MethodGroup.GetInstance();
                 var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies);
@@ -7440,7 +7448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void PopulateExtensionMethodsFromSingleBinder(
-            ExtensionMethodScope scope,
+            ExtensionScope scope,
             MethodGroup methodGroup,
             SyntaxNode node,
             BoundExpression left,
@@ -7478,7 +7486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             lookupResult.Free();
         }
 
-        private void LookupExtensionMethods(LookupResult lookupResult, ExtensionMethodScope scope, string rightName, int arity, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void LookupExtensionMethods(LookupResult lookupResult, ExtensionScope scope, string rightName, int arity, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             LookupOptions options;
             if (arity == 0)
@@ -8321,8 +8329,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupResult lookupResult = LookupResult.GetInstance();
             LookupOptions lookupOptions = expr.Kind == BoundKind.BaseReference ? LookupOptions.UseBaseReferenceAccessibility : LookupOptions.Default;
+            // PROTOTYPE handle indexer access scenarios
+
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            this.LookupMembersWithFallback(lookupResult, expr.Type, WellKnownMemberNames.Indexer, arity: 0, useSiteInfo: ref useSiteInfo, options: lookupOptions);
+
+            this.LookupMembersWithFallback(lookupResult, expr.Type, WellKnownMemberNames.Indexer, arity: 0,
+                useSiteInfo: ref useSiteInfo, options: lookupOptions);
+
             diagnostics.Add(node, useSiteInfo);
 
             // Store, rather than return, so that we can release resources.
@@ -8733,7 +8746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownMemberNames.Indexer,
                         arity: 0,
                         basesBeingResolved: null,
-                        LookupOptions.Default,
+                        LookupOptions.Default, // PROTOTYPE revisit
                         originalBinder: this,
                         diagnose: false,
                         ref useSiteInfo);
@@ -8788,7 +8801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownMemberNames.SliceMethodName,
                         arity: 0,
                         basesBeingResolved: null,
-                        LookupOptions.Default,
+                        LookupOptions.Default, // PROTOTYPE revisit
                         originalBinder: this,
                         diagnose: false,
                         ref useSiteInfo);
@@ -8894,7 +8907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     propertyName,
                     arity: 0,
                     basesBeingResolved: null,
-                    LookupOptions.Default,
+                    LookupOptions.Default, // PROTOTYPE revisit
                     originalBinder: this,
                     diagnose: false,
                     useSiteInfo: ref useSiteInfo);
@@ -9183,6 +9196,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node)
         {
+            // PROTOTYPE How should extension types affect the natural type of method groups?
+            //           Spec says "A method group has a natural type if all candidate methods
+            //           in the method group have a common signature.
+            //           (If the method group may include extension methods, the candidates
+            //           include the containing type and all extension method scopes.)
             MethodSymbol? method = null;
             foreach (var m in node.Methods)
             {
@@ -9206,7 +9224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.SearchExtensionMethods)
             {
                 var receiver = node.ReceiverOpt!;
-                foreach (var scope in new ExtensionMethodScopes(this))
+                foreach (var scope in new ExtensionScopes(this))
                 {
                     var methodGroup = MethodGroup.GetInstance();
                     PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, BindingDiagnosticBag.Discarded);
@@ -9222,6 +9240,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodGroup.Free();
                 }
             }
+            // PROTOTYPE: We'll likely want to collect all methods from compatible extension types
+            //            (for member access only, not for simple name, like we do for extension methods).
+            //            Need to spec.
             if (method is null)
             {
                 return null;

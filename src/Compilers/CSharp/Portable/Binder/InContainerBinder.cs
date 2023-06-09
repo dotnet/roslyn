@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool SupportsExtensionMethods
+        internal override bool SupportsExtensions
         {
             get { return true; }
         }
@@ -82,6 +82,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_container.Kind == SymbolKind.Namespace)
             {
                 ((NamespaceSymbol)_container).GetExtensionMethods(methods, name, arity, options);
+            }
+        }
+
+        internal override void GetImplicitExtensionTypes(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        {
+            switch (_container)
+            {
+                case NamespaceSymbol ns:
+                    ns.GetImplicitExtensionTypes(extensions);
+                    break;
+                case NamedTypeSymbol type:
+                    type.GetImplicitExtensionTypes(extensions);
+                    break;
             }
         }
 

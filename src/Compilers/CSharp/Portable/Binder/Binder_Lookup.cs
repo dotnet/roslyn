@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void LookupExtensionMethods(LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            foreach (var scope in new ExtensionMethodScopes(this))
+            foreach (var scope in new ExtensionScopes(this))
             {
                 this.LookupExtensionMethodsInSingleBinder(scope, result, name, arity, options, ref useSiteInfo);
             }
@@ -145,7 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Look for symbols that are members of the specified namespace or type.
         /// </summary>
-        private void LookupMembersWithFallback(LookupResult result, NamespaceOrTypeSymbol nsOrType, string name, int arity, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved = null, LookupOptions options = LookupOptions.Default)
+        private void LookupMembersWithFallback(LookupResult result, NamespaceOrTypeSymbol nsOrType, string name, int arity,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved = null, LookupOptions options = LookupOptions.Default)
         {
             Debug.Assert(options.AreValid());
 
@@ -175,6 +176,87 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.LookupMembersInType(result, (TypeSymbol)nsOrType, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
             }
         }
+
+#nullable enable
+        protected void LookupImplicitExtensionMembersInSingleBinder(LookupResult result, Binder binder, TypeSymbol type,
+            string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options,
+            Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(!type.IsTypeParameter());
+
+            var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            getCompatibleExtensions(binder, type, compatibleExtensions);
+            // PROTOTYPE test use-site diagnostics
+            var tempResult = LookupResult.GetInstance();
+            foreach (NamedTypeSymbol extension in compatibleExtensions)
+            {
+                // No need for "diagnose" since we discard the lookup results (and associated diagnostic info)
+                // unless the results are good.
+                LookupMembersInExtension(tempResult, extension, name, arity, basesBeingResolved,
+                    options, originalBinder, diagnose: false, ref useSiteInfo);
+
+                MergeHidingLookupResults(result, tempResult, basesBeingResolved, ref useSiteInfo);
+                tempResult.Clear();
+            }
+
+            tempResult.Free();
+            compatibleExtensions.Free();
+            return;
+
+            void getCompatibleExtensions(Binder binder, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions)
+            {
+                var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                binder.GetImplicitExtensionTypes(extensions, originalBinder: this);
+
+                foreach (var extension in extensions)
+                {
+                    // PROTOTYPE deal with generic extensions
+                    if (isCompatible(extension, type))
+                    {
+                        // PROTOTYPE should we deal with duplicate or near-duplicate extensions here instead of in merging/hiding logic?
+                        compatibleExtensions.Add(extension);
+                    }
+                }
+
+                extensions.Free();
+            }
+
+            bool isCompatible(TypeSymbol extension, TypeSymbol type)
+            {
+                Debug.Assert(!type.IsExtension);
+                var extended = extension.ExtendedTypeNoUseSiteDiagnostics;
+                if (extended is null)
+                    return false;
+
+                var baseType = type;
+                do
+                {
+                    if (matches(extended, baseType))
+                    {
+                        return true;
+                    }
+
+                    baseType = baseType.BaseTypeNoUseSiteDiagnostics;
+                }
+                while (baseType is not null);
+
+                foreach (var implementedInterface in type.AllInterfacesNoUseSiteDiagnostics)
+                {
+                    if (matches(extended, implementedInterface))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            static bool matches(TypeSymbol extended, TypeSymbol baseType)
+            {
+                return extended.Equals(baseType, TypeCompareKind.CLRSignatureCompareOptions);
+            }
+        }
+#nullable disable
 
         // Looks up a member of given name and arity in a particular type.
         protected void LookupMembersInType(LookupResult result, TypeSymbol type, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -219,7 +301,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // TODO: Diagnose ambiguity problems here, and conflicts between non-method and method? Or is that
             // done in the caller?
+
+            if ((options & LookupOptions.SearchInExtensionTypes) != 0 && !result.IsMultiViable &&
+                !type.IsTypeParameter())
+            {
+                var extensionResult = LookupResult.GetInstance();
+                LookupMembersInExtensions(extensionResult, name, arity, basesBeingResolved, ref useSiteInfo, options, type);
+                if (extensionResult.IsMultiViable)
+                {
+                    result.SetFrom(extensionResult);
+                }
+                extensionResult.Free();
+            }
         }
+
+#nullable enable
+        private void LookupMembersInExtensions(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, LookupOptions options, TypeSymbol type)
+        {
+            Debug.Assert((options & LookupOptions.SearchInExtensionTypes) != 0);
+            Debug.Assert(!type.IsTypeParameter());
+
+            foreach (ExtensionScope scope in new ExtensionScopes(this))
+            {
+                if (!result.IsClear)
+                {
+                    result.Clear();
+                }
+
+                LookupImplicitExtensionMembersInSingleBinder(result, scope.Binder, type, name, arity,
+                    basesBeingResolved, options, originalBinder: this, ref useSiteInfo);
+
+                if (result.IsMultiViable)
+                {
+                    break;
+                }
+            }
+        }
+#nullable disable
 
         private void LookupMembersInErrorType(LookupResult result, ErrorTypeSymbol errorType, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -461,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// binder because extension method search stops at the first applicable
         /// method group from the nearest enclosing namespace.
         /// </summary>
-        private void LookupExtensionMethodsInSingleBinder(ExtensionMethodScope scope, LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void LookupExtensionMethodsInSingleBinder(ExtensionScope scope, LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var methods = ArrayBuilder<MethodSymbol>.GetInstance();
             var binder = scope.Binder;
@@ -742,7 +861,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        internal virtual bool SupportsExtensionMethods
+        /// <summary>
+        /// Indicates whether a scope should be inspected for candidate extension methods or types
+        /// when looking up the scope chain.
+        /// </summary>
+        internal virtual bool SupportsExtensions
         {
             get { return false; }
         }
@@ -762,6 +885,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder originalBinder)
         {
         }
+
+#nullable enable
+        /// <summary>
+        /// Return the extension types from this specific binding scope 
+        /// Since the lookup of extension members is iterative, proceeding one binding scope at a time,
+        /// GetImplicitExtensionTypes should not defer to the next binding scope. Instead, the caller is
+        /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
+        /// to search the available members list in binding types that represent types, namespaces, and usings.
+        /// </summary>
+        internal virtual void GetImplicitExtensionTypes(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        {
+        }
+#nullable disable
 
         // Does a member lookup in a single type, without considering inheritance.
         protected static void LookupMembersWithoutInheritance(LookupResult result, TypeSymbol type, string name, int arity,
@@ -1357,6 +1493,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // SPEC: For the purposes of member lookup [...] if T is an
                             // SPEC: interface type, the base types of T are the base interfaces
                             // SPEC: of T and the class type object. 
+
+                            // PROTOTYPE revisit how we want to deal with duplicates and what type comparison we want when we get to the generic case of extension member lookup
+                            if (hidingContainer.IsExtension && TypeSymbol.Equals(hiddenContainer, hidingContainer, TypeCompareKind.ConsiderEverything2))
+                            {
+                                goto symIsHidden; // members from a base extension can be brought in multiple ways (by scope and by inheritance)
+                            }
 
                             if (!IsDerivedType(baseType: hiddenContainer, derivedType: hidingContainer, basesBeingResolved, this.Compilation, useSiteInfo: ref useSiteInfo) &&
                                 hiddenContainer.SpecialType != SpecialType.System_Object)
@@ -2104,7 +2246,7 @@ symIsHidden:;
                 AddMemberLookupSymbolsInfoWithoutInheritance(result, type, options, originalBinder, accessThroughType);
 
                 // If the type is from a winmd and implements any of the special WinRT collection
-                // projections then we may need to add underlying interface members. 
+                // projections then we may need to add underlying interface members.
                 NamedTypeSymbol namedType = type as NamedTypeSymbol;
                 if ((object)namedType != null && namedType.ShouldAddWinRTMembers)
                 {

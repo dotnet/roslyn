@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -395,6 +396,18 @@ Done:
             }
 
             return symbols;
+        }
+
+        internal void GetImplicitExtensionTypes(ArrayBuilder<NamedTypeSymbol> extensions)
+        {
+            // PROTOTYPE needs optimizing
+            foreach (var type in this.GetTypeMembersUnordered())
+            {
+                if (type.IsExtension && !type.IsExplicitExtension)
+                {
+                    extensions.Add(type);
+                }
+            }
         }
     }
 }

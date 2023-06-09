@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.GetForwardedToAssemblyInUsingNamespaces(name, ref qualifierOpt, diagnostics, location);
         }
 
-        internal override bool SupportsExtensionMethods
+        internal override bool SupportsExtensions
         {
             get { return true; }
         }
@@ -124,6 +124,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (seenNamespaceWithExtensionMethods && seenStaticClassWithExtensionMethods)
             {
                 methods.RemoveDuplicates();
+            }
+        }
+
+        internal override void GetImplicitExtensionTypes(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        {
+            Debug.Assert(extensions.Count == 0);
+
+            // PROTOTYPE test this flag (see TestUnusedExtensionMarksImportsAsUsed)
+            bool callerIsSemanticModel = originalBinder.IsSemanticModelBinder;
+
+            foreach (var nsOrType in this.GetUsings(basesBeingResolved: null))
+            {
+                if (nsOrType.NamespaceOrType is NamespaceSymbol ns)
+                {
+                    var count = extensions.Count;
+                    ns.GetImplicitExtensionTypes(extensions);
+                    // If we found any extension types, then consider this using as used.
+                    // PROTOTYPE consider refining this logic
+                    if (extensions.Count != count)
+                    {
+                        MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
+                    }
+                }
+                // PROTOTYPE: clarify expected behavior for `using Extension;` or `using static Extension;`.
+                //            If/when we do such a scenario, we have to remove duplicates (see GetCandidateExtensionMethods).
             }
         }
 

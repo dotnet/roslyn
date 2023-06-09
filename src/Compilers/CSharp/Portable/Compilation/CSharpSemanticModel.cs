@@ -1416,6 +1416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name = null,
             bool includeReducedExtensionMethods = false)
         {
+            // PROTOTYPE test Lookup APIs and add support for extension types
             var options = includeReducedExtensionMethods ? LookupOptions.IncludeExtensionMethods : LookupOptions.Default;
             return LookupSymbolsInternal(position, container, name, options, useBaseReferenceAccessibility: false);
         }
@@ -1459,6 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             string name = null)
         {
+            // PROTOTYPE Test LookupBaseMembers API and add support for extension type members
             return LookupSymbolsInternal(position, container: null, name: name, options: LookupOptions.Default, useBaseReferenceAccessibility: true);
         }
 
@@ -1562,6 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupOptions options,
             bool useBaseReferenceAccessibility)
         {
+            // PROTOTYPE need to test Lookup APIs and adjust the lookup options here or in callers
             Debug.Assert((options & LookupOptions.UseBaseReferenceAccessibility) == 0, "Use the useBaseReferenceAccessibility parameter.");
             if (useBaseReferenceAccessibility)
             {
@@ -4605,7 +4608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 binder = binder.WithAdditionalFlags(BinderFlags.SemanticModel);
-                foreach (var scope in new ExtensionMethodScopes(binder))
+                foreach (var scope in new ExtensionScopes(binder))
                 {
                     var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
                     var otherBinder = scope.Binder;

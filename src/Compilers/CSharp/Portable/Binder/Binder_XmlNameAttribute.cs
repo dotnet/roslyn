@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var name = identifier.Identifier.ValueText;
 
             var lookupResult = LookupResult.GetInstance();
+            // PROTOTYPE confirm that default LookupOptions are fine
             this.LookupSymbolsWithFallback(lookupResult, name, arity: 0, useSiteInfo: ref useSiteInfo);
 
             if (lookupResult.Kind == LookupResultKind.Empty)
