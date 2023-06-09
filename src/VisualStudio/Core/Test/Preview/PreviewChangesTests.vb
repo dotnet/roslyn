@@ -311,7 +311,7 @@ End Class
             End Using
         End Sub
 
-        Private Sub AssertTreeStructure(expectedItems As List(Of Tuple(Of String, Integer)), topLevelList As ChangeList)
+        Private Shared Sub AssertTreeStructure(expectedItems As List(Of Tuple(Of String, Integer)), topLevelList As ChangeList)
             Dim flatteningResult = New List(Of Tuple(Of String, Integer))()
             FlattenTree(topLevelList, flatteningResult, 0)
 
@@ -322,7 +322,7 @@ End Class
             Next
         End Sub
 
-        Private Sub FlattenTree(list As ChangeList, result As List(Of Tuple(Of String, Integer)), depth As Integer)
+        Private Shared Sub FlattenTree(list As ChangeList, result As List(Of Tuple(Of String, Integer)), depth As Integer)
             For Each change In list.Changes
                 Dim text As String = Nothing
                 change.GetText(Nothing, text)
@@ -336,7 +336,7 @@ End Class
 
         ' Check each of the most-nested children whose names appear in checkItems.
         ' Uncheck the rest
-        Private Sub SetCheckedChildren(checkedItems As List(Of String), topLevelList As ChangeList)
+        Private Shared Sub SetCheckedChildren(checkedItems As List(Of String), topLevelList As ChangeList)
             For Each change In topLevelList.Changes
                 Dim text As String = Nothing
                 change.GetText(Nothing, text)

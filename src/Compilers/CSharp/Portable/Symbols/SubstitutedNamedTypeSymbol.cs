@@ -195,17 +195,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OriginalDefinition.GetTypeMembers().SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
-        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             return OriginalDefinition.GetTypeMembers(name).SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
-        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return OriginalDefinition.GetTypeMembers(name, arity).SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
-        internal sealed override bool HasDeclaredRequiredMembers => OriginalDefinition.HasDeclaredRequiredMembers;
+        internal sealed override bool HasDeclaredRequiredMembers => !_unbound && OriginalDefinition.HasDeclaredRequiredMembers;
 
         public sealed override ImmutableArray<Symbol> GetMembers()
         {

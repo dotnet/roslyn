@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -90,18 +91,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private async Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeAsync(
             ISymbol symbol,
             bool isGeneratedCodeSymbol,
+            SyntaxTree? filterTree,
+            TextSpan? filterSpan,
             DiagnosticAnalyzer analyzer,
             ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
             AnalyzerExecutor analyzerExecutor,
             CancellationToken cancellationToken)
         {
             var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
-            return await GetSymbolAnalysisScopeCoreAsync(symbol, isGeneratedCodeSymbol, symbolStartActions, analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
+            return await GetSymbolAnalysisScopeCoreAsync(symbol, isGeneratedCodeSymbol, filterTree, filterSpan, symbolStartActions, analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeCoreAsync(
             ISymbol symbol,
             bool isGeneratedCodeSymbol,
+            SyntaxTree? filterTree,
+            TextSpan? filterSpan,
             ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
             AnalyzerExecutor analyzerExecutor,
             AnalyzerExecutionContext analyzerExecutionContext,
@@ -109,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             try
             {
-                return await analyzerExecutionContext.GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, symbolStartActions, analyzerExecutor, cancellationToken).ConfigureAwait(false);
+                return await analyzerExecutionContext.GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, filterTree, filterSpan, symbolStartActions, analyzerExecutor, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -118,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzerExecutionContext.ClearSymbolScopeTask(symbol);
 
                 cancellationToken.ThrowIfCancellationRequested();
-                return await GetSymbolAnalysisScopeCoreAsync(symbol, isGeneratedCodeSymbol, symbolStartActions, analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
+                return await GetSymbolAnalysisScopeCoreAsync(symbol, isGeneratedCodeSymbol, filterTree, filterSpan, symbolStartActions, analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -180,6 +185,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async ValueTask<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(
             ISymbol symbol,
             bool isGeneratedCodeSymbol,
+            SyntaxTree? filterTree,
+            TextSpan? filterSpan,
             DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor,
             CancellationToken cancellationToken)
@@ -190,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var filteredSymbolStartActions = getFilteredActionsByKind(analyzerActions.SymbolStartActions);
                 if (filteredSymbolStartActions.Length > 0)
                 {
-                    var symbolScope = await GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, analyzer, filteredSymbolStartActions, analyzerExecutor, cancellationToken).ConfigureAwait(false);
+                    var symbolScope = await GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, filterTree, filterSpan, analyzer, filteredSymbolStartActions, analyzerExecutor, cancellationToken).ConfigureAwait(false);
                     return symbolScope.GetAnalyzerActions(analyzer);
                 }
             }
@@ -293,8 +300,51 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CompilationOptions options,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerExecutor analyzerExecutor,
-            AnalysisScope? analysisScope,
+            AnalysisScope analysisScope,
             SeverityFilter severityFilter,
+            CancellationToken cancellationToken)
+        {
+            Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnosticDescriptors =
+                analyzer => GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor, cancellationToken);
+            Func<DiagnosticSuppressor, ImmutableArray<SuppressionDescriptor>> getSupportedSuppressionDescriptors =
+                suppressor => GetSupportedSuppressionDescriptors(suppressor, analyzerExecutor, cancellationToken);
+
+            return IsDiagnosticAnalyzerSuppressed(analyzer, options, isCompilerAnalyzer, severityFilter,
+                isEnabledWithAnalyzerConfigOptions, getSupportedDiagnosticDescriptors, getSupportedSuppressionDescriptors, cancellationToken);
+
+            bool isEnabledWithAnalyzerConfigOptions(DiagnosticDescriptor descriptor)
+            {
+                if (analyzerExecutor.Compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
+                {
+                    foreach (var tree in analysisScope.SyntaxTrees)
+                    {
+                        // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
+                        if (treeOptions.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out var configuredValue) ||
+                            analyzerExecutor.AnalyzerOptions.TryGetSeverityFromBulkConfiguration(tree, analyzerExecutor.Compilation, descriptor, cancellationToken, out configuredValue))
+                        {
+                            if (configuredValue != ReportDiagnostic.Suppress && !severityFilter.Contains(configuredValue))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
+        /// </summary>
+        internal static bool IsDiagnosticAnalyzerSuppressed(
+            DiagnosticAnalyzer analyzer,
+            CompilationOptions options,
+            Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
+            SeverityFilter severityFilter,
+            Func<DiagnosticDescriptor, bool> isEnabledWithAnalyzerConfigOptions,
+            Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnosticDescriptors,
+            Func<DiagnosticSuppressor, ImmutableArray<SuppressionDescriptor>> getSupportedSuppressionDescriptors,
             CancellationToken cancellationToken)
         {
             if (isCompilerAnalyzer(analyzer))
@@ -303,9 +353,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor, cancellationToken);
+            var supportedDiagnostics = getSupportedDiagnosticDescriptors(analyzer);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
-            analyzerExecutor.TryGetCompilationAndAnalyzerOptions(out var compilation, out var analyzerOptions);
 
             foreach (var diag in supportedDiagnostics)
             {
@@ -349,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Editorconfig user settings override compilation wide settings.
                 if (isSuppressed &&
-                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, compilation, analyzerOptions, analysisScope, cancellationToken))
+                    isEnabledWithAnalyzerConfigOptions(diag))
                 {
                     isSuppressed = false;
                 }
@@ -362,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (analyzer is DiagnosticSuppressor suppressor)
             {
-                foreach (var suppressionDescriptor in GetSupportedSuppressionDescriptors(suppressor, analyzerExecutor, cancellationToken))
+                foreach (var suppressionDescriptor in getSupportedSuppressionDescriptors(suppressor))
                 {
                     if (!suppressionDescriptor.IsDisabled(options))
                     {
@@ -372,34 +421,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return true;
-
-            static bool isEnabledWithAnalyzerConfigOptions(
-                DiagnosticDescriptor descriptor,
-                SeverityFilter severityFilter,
-                Compilation? compilation,
-                AnalyzerOptions? analyzerOptions,
-                AnalysisScope? analysisScope,
-                CancellationToken cancellationToken)
-            {
-                if (compilation != null && compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
-                {
-                    var trees = analysisScope?.SyntaxTrees ?? compilation.SyntaxTrees;
-                    foreach (var tree in trees)
-                    {
-                        // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
-                        if (treeOptions.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out var configuredValue) ||
-                            analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, cancellationToken, out configuredValue))
-                        {
-                            if (configuredValue != ReportDiagnostic.Suppress && !severityFilter.Contains(configuredValue))
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                }
-
-                return false;
-            }
         }
 
         internal static bool HasCompilerOrNotConfigurableTag(ImmutableArray<string> customTags)

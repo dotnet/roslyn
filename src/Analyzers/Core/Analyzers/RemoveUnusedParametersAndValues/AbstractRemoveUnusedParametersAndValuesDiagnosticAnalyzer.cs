@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -99,6 +100,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
         }
 
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
         protected abstract bool MethodHasHandlesClause(IMethodSymbol method);

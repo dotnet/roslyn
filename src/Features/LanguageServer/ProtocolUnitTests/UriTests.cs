@@ -101,4 +101,35 @@ public class UriTests : AbstractLanguageServerProtocolTests
         Assert.Equal(expectedDocumentUri, document.GetURI());
         Assert.Equal(documentFilePath, document.FilePath);
     }
+
+    [Theory, CombinatorialData]
+    public async Task TestWorkspaceDocument_WithFileAndGitScheme(bool mutatingLspWorkspace)
+    {
+        // Start with an empty workspace.
+        await using var testLspServer = await CreateTestLspServerAsync(
+            "Initial Disk Contents", mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        var fileDocumentUri = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetURI();
+        var fileDocumentText = "FileText";
+        await testLspServer.OpenDocumentAsync(fileDocumentUri, fileDocumentText);
+
+        // Add a git version of this document. Instead of "file://FILEPATH" the uri is "git://FILEPATH"
+        var gitDocumentUri = new Uri(fileDocumentUri.ToString().Replace("file", "git"));
+        var gitDocumentText = "GitText";
+        await testLspServer.OpenDocumentAsync(gitDocumentUri, gitDocumentText);
+
+        // Verify file is added to the workspace and the text matches the file document
+        var (workspace, _, fileDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = fileDocumentUri }, CancellationToken.None);
+        AssertEx.NotNull(fileDocument);
+        var fileTextResult = await fileDocument.GetTextAsync();
+        Assert.Equal(fileDocumentUri, fileDocument.GetURI());
+        Assert.Equal(fileDocumentText, fileTextResult.ToString());
+
+        // Verify file is added to the workspace and the text matches the git document
+        var (gitWorkspace, _, gitDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = gitDocumentUri }, CancellationToken.None);
+        AssertEx.NotNull(gitDocument);
+        var gitText = await gitDocument.GetTextAsync();
+        Assert.Equal(gitDocumentUri, gitDocument.GetURI());
+        Assert.Equal(gitDocumentText, gitText.ToString());
+    }
 }

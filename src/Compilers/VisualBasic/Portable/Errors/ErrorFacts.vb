@@ -1362,6 +1362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_RequiredMembersInvalid,
                      ERRID.ERR_NewConstraintCannotHaveRequiredMembers,
                      ERRID.ERR_DoNotUseRequiredMember,
+                     ERRID.ERR_UnsupportedRefReturningCallInWithStatement,
                      ERRID.ERR_NextAvailable,
                      ERRID.WRN_UseOfObsoleteSymbol2,
                      ERRID.WRN_InvalidOverrideDueToTupleNames2,

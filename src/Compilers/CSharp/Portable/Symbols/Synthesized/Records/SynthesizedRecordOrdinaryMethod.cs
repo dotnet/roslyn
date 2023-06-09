@@ -21,15 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly int _memberOffset;
 
         protected SynthesizedRecordOrdinaryMethod(SourceMemberContainerTypeSymbol containingType, string name, bool isReadOnly, bool hasBody, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(containingType, name, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(), MethodKind.Ordinary,
-                   isIterator: false, isExtensionMethod: false, isReadOnly: isReadOnly, hasBody: hasBody, isNullableAnalysisEnabled: false, diagnostics)
+            : base(containingType, name, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(), MethodKind.Ordinary, RefKind.None,
+                   isIterator: false, isExtensionMethod: false, isReadOnly: isReadOnly, hasAnyBody: hasBody, isExpressionBodied: false, isNullableAnalysisEnabled: false, isVarArg: false, diagnostics)
         {
             _memberOffset = memberOffset;
         }
-
-        protected sealed override bool HasAnyBody => true;
-
-        internal sealed override bool IsExpressionBodied => false;
 
         public sealed override bool IsImplicitlyDeclared => true;
 
@@ -77,10 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations() => OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
 
         public sealed override string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default) => null;
-
-        public sealed override bool IsVararg => false;
-
-        public sealed override RefKind RefKind => RefKind.None;
 
         internal sealed override bool GenerateDebugInfo => false;
 

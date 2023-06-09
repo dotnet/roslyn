@@ -18,6 +18,7 @@ IDE0251 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-r
 IDE0260 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0260> | Use pattern matching |
 IDE0270 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0270> | Use coalesce expression |
 IDE0280 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0280> | Use 'nameof' |
+IDE0290 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0290> | Use primary constructor |
 IDE1007 |  |  |
 IDE2000 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2000> | Avoid multiple blank lines |
 IDE2001 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2001> | Embedded statements must be on their own line |

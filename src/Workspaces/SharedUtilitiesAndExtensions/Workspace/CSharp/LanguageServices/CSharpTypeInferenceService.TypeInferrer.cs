@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return InferTypeInInvocationExpression(invocation, index, argument);
                     }
 
-                    if (argument.Parent?.Parent is ObjectCreationExpressionSyntax creation)
+                    if (argument.Parent?.Parent is BaseObjectCreationExpressionSyntax creation)
                     {
                         // new Outer(Goo());
                         //
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (argument.Parent.IsParentKind(SyntaxKind.ImplicitElementAccess) &&
                     argument.Parent.Parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression) &&
                     argument.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression) &&
-                    argument.Parent.Parent.Parent.Parent?.Parent is ObjectCreationExpressionSyntax objectCreation)
+                    argument.Parent.Parent.Parent.Parent?.Parent is BaseObjectCreationExpressionSyntax objectCreation)
                 {
                     var types = GetTypes(objectCreation).Select(t => t.InferredType);
 
@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypeInArgument(index, methods.SelectAsArray(m => m.Parameters), argumentOpt);
             }
 
-            private IMethodSymbol Instantiate(IMethodSymbol method, IList<ITypeSymbol> invocationTypes)
+            private static IMethodSymbol Instantiate(IMethodSymbol method, IList<ITypeSymbol> invocationTypes)
             {
                 // No need to instantiate if this isn't a generic method.
                 if (method.TypeArguments.Length == 0)
@@ -655,14 +655,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return method.ConstructedFrom.Construct(typeArguments);
             }
 
-            private Dictionary<ITypeParameterSymbol, ITypeSymbol> DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType)
+            private static Dictionary<ITypeParameterSymbol, ITypeSymbol> DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType)
             {
                 var result = new Dictionary<ITypeParameterSymbol, ITypeSymbol>();
                 DetermineTypeParameterMapping(inferredType, returnType, result);
                 return result;
             }
 
-            private void DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType, Dictionary<ITypeParameterSymbol, ITypeSymbol> result)
+            private static void DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType, Dictionary<ITypeParameterSymbol, ITypeSymbol> result)
             {
                 if (inferredType == null || returnType == null)
                 {
