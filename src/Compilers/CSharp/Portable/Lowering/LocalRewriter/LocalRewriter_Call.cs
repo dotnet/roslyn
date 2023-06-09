@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case (not null, null):
                 case (not null, not null) when !methodThisParameter.Type.Equals(interceptorThisParameterForCompare.Type, TypeCompareKind.ObliviousNullableModifierMatchesAny)
-                        || methodThisParameter.RefKind != interceptorThisParameterForCompare.RefKind: // PROTOTYPE(ic): and ref custom modifiers are equal?
+                        || methodThisParameter.RefKind != interceptorThisParameterForCompare.RefKind:
                     this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, methodThisParameter, method);
                     return;
                 case (null, not null):
@@ -214,8 +214,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Special case when intercepting an extension method call in reduced form with a non-extension.
                 this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, method.Parameters[0], method);
-                // PROTOTYPE(ic): use a symbol display format which includes the 'this' modifier?
-                //this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, new FormattedSymbol(method.Parameters[0], SymbolDisplayFormat.CSharpErrorMessageFormat), method);
                 return;
             }
 

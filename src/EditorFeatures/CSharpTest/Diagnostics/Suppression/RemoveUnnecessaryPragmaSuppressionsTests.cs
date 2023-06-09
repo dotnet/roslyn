@@ -295,7 +295,7 @@ class Class
                 PragmasAndSuppressMessageAttributes
             }
 
-            [Theory(Skip = "PROTOTYPE(ic): should be able to re-enable after packing error codes"), CombinatorialData]
+            [Theory, CombinatorialData]
             [WorkItem("https://github.com/dotnet/roslyn/issues/46047")]
             public async Task TestDoNotRemoveUnsupportedDiagnosticSuppression(bool disable, TestKind testKind)
             {
