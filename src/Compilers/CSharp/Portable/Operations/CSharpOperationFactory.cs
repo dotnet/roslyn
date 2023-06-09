@@ -1810,6 +1810,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol).GetPublicSymbol(),
                                                     enumeratorInfoOpt.MoveNextInfo.Method.GetPublicSymbol(),
                                                     isAsynchronous: enumeratorInfoOpt.IsAsync,
+                                                    inlineArrayConversion: enumeratorInfoOpt.InlineArraySpanType is WellKnownType.Unknown ? null : Conversion.InlineArray,
+                                                    collectionIsInlineArrayValue: enumeratorInfoOpt.InlineArrayUsedAsValue,
                                                     needsDispose: enumeratorInfoOpt.NeedsDisposal,
                                                     knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal ?
                                                                                      compilation.Conversions.
@@ -1880,7 +1882,11 @@ namespace Microsoft.CodeAnalysis.Operations
         private IForEachLoopOperation CreateBoundForEachStatementOperation(BoundForEachStatement boundForEachStatement)
         {
             IOperation loopControlVariable = CreateBoundForEachStatementLoopControlVariable(boundForEachStatement);
-            IOperation collection = Create(boundForEachStatement.Expression);
+            // Strip identity conversion added by compiler on top of inline array. Conversion produces an rvalue, but we need the IOperation tree to preserve lvalue-ness of the original collection. 
+            IOperation collection = Create(boundForEachStatement.EnumeratorInfoOpt?.InlineArraySpanType is null or WellKnownType.Unknown ||
+                                           boundForEachStatement.Expression is not BoundConversion { Conversion.IsIdentity: true, ExplicitCastInCode: false, Operand: BoundExpression operand } ?
+                                               boundForEachStatement.Expression :
+                                               operand);
             var nextVariables = ImmutableArray<IOperation>.Empty;
             IOperation body = Create(boundForEachStatement.Body);
             ForEachLoopOperationInfo? info = GetForEachLoopOperatorInfo(boundForEachStatement);
