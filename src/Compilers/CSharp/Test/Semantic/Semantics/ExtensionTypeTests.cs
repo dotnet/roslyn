@@ -9690,7 +9690,6 @@ namespace N
         Assert.Null(model.GetSymbolInfo(type).Symbol);
     }
 
-
     [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_Simple_Static_FromBaseExtension_Method()
     {
@@ -9849,6 +9848,147 @@ implicit extension E for C
 
         var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(method).Symbol);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_Simple_Static_Shadowing()
+    {
+        var src = """
+_ = object.Property;
+System.Console.Write($"Field({object.Field}) ");
+object.Type.M();
+
+implicit extension Derived for object : Base
+{
+    public static int Property
+    {
+        get
+        {
+            System.Console.Write("Property ");
+            return 0;
+        }
+    }
+
+    public static int Field = 42;
+
+    public class Type
+    {
+        public static void M()
+        {
+            System.Console.Write("Type ");
+        }
+    }
+
+    public class StaticType
+    {
+        public static void M()
+        {
+            System.Console.Write("StaticType ");
+        }
+    }
+}
+
+implicit extension Base for object
+{
+    public static int Property
+    {
+        get => throw null;
+    }
+
+    public static int Field = 42;
+
+    public class Type { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics();
+
+        CompileAndVerify(comp, expectedOutput: "Property Field(42) Type");
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
+        Assert.Equal("System.Int32 Derived.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+
+        var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
+        Assert.Equal("System.Int32 Derived.Field", model.GetSymbolInfo(field).Symbol.ToTestDisplayString());
+
+        var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Type");
+        Assert.Equal("Derived.Type", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_Simple_Static_Shadowing_OnlyDerivedInScope()
+    {
+        var src = """
+_ = object.Property;
+System.Console.Write($"Field({object.Field}) ");
+object.Type.M();
+
+implicit extension Derived for object : N.Base
+{
+    public static int Property
+    {
+        get
+        {
+            System.Console.Write("Property ");
+            return 0;
+        }
+    }
+
+    public static int Field = 42;
+
+    public class Type
+    {
+        public static void M()
+        {
+            System.Console.Write("Type ");
+        }
+    }
+
+    public class StaticType
+    {
+        public static void M()
+        {
+            System.Console.Write("StaticType ");
+        }
+    }
+}
+
+namespace N
+{
+    implicit extension Base for object
+    {
+        public static int Property
+        {
+            get => throw null;
+        }
+
+        public static int Field = 42;
+
+        public class Type { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics();
+
+        CompileAndVerify(comp, expectedOutput: "Property Field(42) Type");
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
+        Assert.Equal("System.Int32 Derived.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+
+        var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
+        Assert.Equal("System.Int32 Derived.Field", model.GetSymbolInfo(field).Symbol.ToTestDisplayString());
+
+        var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Type");
+        Assert.Equal("Derived.Type", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -10181,7 +10321,7 @@ namespace N3
     }
 
     [Fact]
-    public void ExtensionMemberLookup_UnnecessaryUsingNamespace_Property()
+    public void ExtensionMemberLookup_UsingNamespaceNecessity_Property()
     {
         var src = """
 using N1;
@@ -10218,7 +10358,7 @@ namespace N2
     }
 
     [Fact]
-    public void ExtensionMemberLookup_UnnecessaryUsingNamespace_Method()
+    public void ExtensionMemberLookup_UsingNamespaceNecessity_Method()
     {
         var src = """
 using N1;
@@ -10264,7 +10404,7 @@ namespace N2
     }
 
     [Fact]
-    public void ExtensionMemberLookup_UnnecessaryUsingNamespace_UnusedImplicitExtension_Property()
+    public void ExtensionMemberLookup_UsingNamespaceNecessity_UnusedImplicitExtension_Property()
     {
         var src = """
 using N1;
@@ -10297,7 +10437,7 @@ namespace N2
     }
 
     [Fact]
-    public void ExtensionMemberLookup_UnnecessaryUsingNamespace_UnusedImplicitExtension_Field()
+    public void ExtensionMemberLookup_UsingNamespaceNecessity_UnusedImplicitExtension_Field()
     {
         var src = """
 using N1;
@@ -10330,7 +10470,7 @@ namespace N2
     }
 
     [Fact]
-    public void ExtensionMemberLookup_UnnecessaryUsingNamespace_UnusedExplicitExtension_Method()
+    public void ExtensionMemberLookup_UsingNamespaceNecessity_UnusedExplicitExtension_Method()
     {
         var src = """
 using N1;
@@ -13796,7 +13936,7 @@ Right:
             expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
     public void ExtensionMemberLookup_ObjectInitializer()
     {
         var src = """
@@ -13847,7 +13987,7 @@ Right:
             expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
     public void ExtensionMemberLookup_With()
     {
         var src = """
