@@ -3662,7 +3662,7 @@ partial struct CustomHandler
             """;
 
         var pathPrefix1 = PlatformInformation.IsWindows ? """C:\My\Machine\Specific\Path1\""" : "/My/Machine/Specific/Path1/";
-        var pathPrefix2 = PlatformInformation.IsWindows ? """C:\My\Machine\Specific\Path1\""" : "/My/Machine/Specific/Path2/";
+        var pathPrefix2 = PlatformInformation.IsWindows ? """C:\My\Machine\Specific\Path2\""" : "/My/Machine/Specific/Path2/";
         var path1 = pathPrefix1 + "Program.cs";
         var path2 = pathPrefix2 + "Program.cs";
         var pathMap = ImmutableArray.Create(

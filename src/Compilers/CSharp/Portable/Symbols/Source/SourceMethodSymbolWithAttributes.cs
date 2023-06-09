@@ -997,7 +997,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var unmappedMatch = syntaxTrees.FirstOrDefault(static (tree, filePath) => tree.FilePath == filePath, attributeFilePath);
                 if (unmappedMatch != null)
                 {
-                    diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), attributeFilePath, mapPath(referenceResolver, unmappedMatch));
+                    diagnostics.Add(
+                        ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate,
+                        attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax),
+                        attributeFilePath,
+                        mapPath(referenceResolver, unmappedMatch));
                     return;
                 }
 
@@ -1012,7 +1016,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (referenceResolver, attributeFilePath: attributeFilePath.Replace('\\', '/')));
                 if (suffixMatch != null)
                 {
-                    diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), attributeFilePath, mapPath(referenceResolver, suffixMatch));
+                    diagnostics.Add(
+                        ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate,
+                        attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax),
+                        attributeFilePath,
+                        mapPath(referenceResolver, suffixMatch));
                     return;
                 }
 
