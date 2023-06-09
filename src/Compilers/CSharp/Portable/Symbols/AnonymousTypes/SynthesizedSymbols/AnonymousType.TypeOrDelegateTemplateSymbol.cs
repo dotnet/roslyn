@@ -238,6 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return this.Arity > 0; }
             }
 
+            internal sealed override bool IsFileLocal => false;
             internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
 
             internal sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics

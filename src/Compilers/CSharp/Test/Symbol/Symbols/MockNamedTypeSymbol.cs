@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        internal override FileIdentifier? AssociatedFileIdentifier => null;
+        internal sealed override bool IsFileLocal => false;
+        internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
