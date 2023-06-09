@@ -18,13 +18,13 @@ internal sealed class SuggestedActionPriorityProvider : ICodeActionRequestPriori
     /// </summary>
     private readonly ConcurrentSet<DiagnosticAnalyzer> _lowPriorityAnalyzers;
 
-    public SuggestedActionPriorityProvider(CodeActionRequestPriority priority, ConcurrentSet<DiagnosticAnalyzer> lowPriorityAnalyzers)
+    public SuggestedActionPriorityProvider(CodeActionRequestPriorityInternal priority, ConcurrentSet<DiagnosticAnalyzer> lowPriorityAnalyzers)
     {
         Priority = priority;
         _lowPriorityAnalyzers = lowPriorityAnalyzers;
     }
 
-    public CodeActionRequestPriority Priority { get; }
+    public CodeActionRequestPriorityInternal Priority { get; }
 
     public void AddDeprioritizedAnalyzerWithLowPriority(DiagnosticAnalyzer analyzer)
         => _lowPriorityAnalyzers.Add(analyzer);

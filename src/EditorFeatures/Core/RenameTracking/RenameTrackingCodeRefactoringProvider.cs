@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         /// change the name of something and pop up the lightbulb without having to wait for the rest to
         /// compute.
         /// </summary>
-        private protected override CodeActionRequestPriority ComputeRequestPriority()
-            => CodeActionRequestPriority.High;
+        private protected override CodeActionRequestPriorityInternal ComputeRequestPriority()
+            => CodeActionRequestPriorityInternal.High;
     }
 }

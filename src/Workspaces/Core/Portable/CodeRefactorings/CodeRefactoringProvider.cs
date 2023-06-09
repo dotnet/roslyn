@@ -33,18 +33,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// What priority this provider should run at.
         /// </summary>
-        internal CodeActionRequestPriority RequestPriority
+        internal CodeActionRequestPriorityInternal RequestPriority
         {
             get
             {
                 var priority = ComputeRequestPriority();
                 // Note: CodeActionRequestPriority.Lowest is reserved for IConfigurationFixProvider.
-                Contract.ThrowIfFalse(priority is CodeActionRequestPriority.Low or CodeActionRequestPriority.Normal or CodeActionRequestPriority.High);
+                Contract.ThrowIfFalse(priority is CodeActionRequestPriorityInternal.Low or CodeActionRequestPriorityInternal.Normal or CodeActionRequestPriorityInternal.High);
                 return priority;
             }
         }
 
-        private protected virtual CodeActionRequestPriority ComputeRequestPriority()
-            => CodeActionRequestPriority.Normal;
+        private protected virtual CodeActionRequestPriorityInternal ComputeRequestPriority()
+            => CodeActionRequestPriorityInternal.Normal;
     }
 }
