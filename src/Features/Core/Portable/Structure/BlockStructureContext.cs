@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
-    internal readonly struct BlockStructureContext : IDisposable
+    internal readonly ref struct BlockStructureContext
     {
         public readonly ArrayBuilder<BlockSpan> Spans = ArrayBuilder<BlockSpan>.GetInstance();
 

@@ -50,8 +50,13 @@ namespace Microsoft.CodeAnalysis.Structure
             CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            using var context = CreateContext(syntaxTree, options, cancellationToken);
-            return GetBlockStructure(context, _providers);
+            return GetBlockStructureWorker();
+
+            BlockStructure GetBlockStructureWorker()
+            {
+                using var context = CreateContext(syntaxTree, options, cancellationToken);
+                return GetBlockStructure(context, _providers);
+            }
         }
 
         private static BlockStructureContext CreateContext(
