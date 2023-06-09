@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var declaratorIdentifier = variableDeclarator.Identifier;
             placeholderBuilder.Add(declaratorIdentifier.ValueText, declaratorIdentifier.SpanStart);
 
-            var conditionExpression = (BinaryExpressionSyntax)condition;
+            var conditionExpression = (BinaryExpressionSyntax)condition!;
             var left = conditionExpression.Left;
             placeholderBuilder.Add(left.ToString(), left.SpanStart);
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
         {
             GetPartsOfForStatement(caretTarget, out _, out _, out _, out var statement);
-            var blockStatement = (BlockSyntax)statement;
+            var blockStatement = (BlockSyntax)statement!;
 
             var triviaSpan = blockStatement.CloseBraceToken.LeadingTrivia.Span;
             var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
