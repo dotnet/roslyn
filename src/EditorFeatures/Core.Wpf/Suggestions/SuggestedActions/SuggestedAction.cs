@@ -64,8 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CodeAction = codeAction;
         }
 
-        internal virtual CodeActionPriorityInternal Priority => CodeAction.PriorityInternal;
-
         public virtual bool TryGetTelemetryId(out Guid telemetryId)
         {
             telemetryId = CodeAction.GetTelemetryId();
