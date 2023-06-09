@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
@@ -132,12 +133,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
-            public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+            public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
-            public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+            public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }

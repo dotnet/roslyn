@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Is that what we want?
 
             Dim result As New Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))(builder.Count, IdentifierComparison.Comparer)
-            ImmutableArrayExtensions.CreateNameToMembersMap(Of NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol)(builder, result)
+            ImmutableArrayExtensions.CreateNameToMembersMap(Of String, NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol)(builder, result)
             Return result
         End Function
 
@@ -188,7 +188,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' NOTE: type of the array, see comments in MakeNameToMembersMap() for details
                 Interlocked.CompareExchange(
                     _nameToTypeMembersMap,
-                    ImmutableArrayExtensions.GetTypesFromMemberMap(Of NamespaceOrTypeSymbol, NamedTypeSymbol)(Me.GetNameToMembersMap(), CaseInsensitiveComparison.Comparer),
+                    ImmutableArrayExtensions.GetTypesFromMemberMap(Of String, NamespaceOrTypeSymbol, NamedTypeSymbol)(
+                        Me.GetNameToMembersMap(), CaseInsensitiveComparison.Comparer),
                     comparand:=Nothing)
             End If
 

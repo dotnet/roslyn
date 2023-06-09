@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
             End If
         End Sub
 
-        Private Function HasUnmatchedIdenticalParentStart(element As XmlElementSyntax, expectedName As String) As Boolean
+        Private Shared Function HasUnmatchedIdenticalParentStart(element As XmlElementSyntax, expectedName As String) As Boolean
             If element Is Nothing Then
                 Return False
             End If

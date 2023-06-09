@@ -186,12 +186,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             throw ExceptionUtilities.Unreachable();
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             throw ExceptionUtilities.Unreachable();
         }

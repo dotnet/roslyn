@@ -12,11 +12,11 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 
 [ExportCSharpVisualBasicLspServiceFactory(typeof(PublicWorkspacePullDiagnosticsHandler)), Shared]
-internal class PublicWorkspacePullDiagnosticHandlerFactory : ILspServiceFactory
+internal sealed class PublicWorkspacePullDiagnosticHandlerFactory : ILspServiceFactory
 {
     private readonly LspWorkspaceRegistrationService _registrationService;
     private readonly IDiagnosticAnalyzerService _analyzerService;
-    private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
+    private readonly IDiagnosticsRefresher _diagnosticsRefresher;
     private readonly IGlobalOptionService _globalOptions;
 
     [ImportingConstructor]
@@ -24,18 +24,18 @@ internal class PublicWorkspacePullDiagnosticHandlerFactory : ILspServiceFactory
     public PublicWorkspacePullDiagnosticHandlerFactory(
         LspWorkspaceRegistrationService registrationService,
         IDiagnosticAnalyzerService analyzerService,
-        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+        IDiagnosticsRefresher diagnosticsRefresher,
         IGlobalOptionService globalOptions)
     {
         _registrationService = registrationService;
         _analyzerService = analyzerService;
-        _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
+        _diagnosticsRefresher = diagnosticsRefresher;
         _globalOptions = globalOptions;
     }
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var workspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-        return new PublicWorkspacePullDiagnosticsHandler(workspaceManager, _registrationService, _analyzerService, _editAndContinueDiagnosticUpdateSource, _globalOptions);
+        return new PublicWorkspacePullDiagnosticsHandler(workspaceManager, _registrationService, _analyzerService, _diagnosticsRefresher, _globalOptions);
     }
 }

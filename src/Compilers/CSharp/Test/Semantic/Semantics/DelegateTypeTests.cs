@@ -9082,6 +9082,7 @@ System.Action`1[System.Byte*[]]
 ");
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68208")]
         [Fact]
         public void SynthesizedDelegateTypes_16()
         {
@@ -9110,16 +9111,27 @@ unsafe class Program
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput:
-@"System.Func`1[(fnptr)[]]
-System.Action`1[(fnptr)[]]
-<>F{00000001}`2[System.Int32,(fnptr)[]]
-<>A{00000001}`1[(fnptr)[]]
-System.Func`1[(fnptr)[]]
-System.Action`1[(fnptr)[]]
-<>F{00000001}`2[System.Int32,(fnptr)[]]
-<>A{00000001}`1[(fnptr)[]]
-");
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr
+            ? """
+              System.Func`1[System.Int32&(System.Int32)[]]
+              System.Action`1[System.Void(System.Int32, System.Int32&)[]]
+              <>F{00000001}`2[System.Int32,System.Int32&(System.Int32)[]]
+              <>A{00000001}`1[System.Void(System.Int32, System.Int32&)[]]
+              System.Func`1[System.Int32&()[]]
+              System.Action`1[System.Void(System.Int32&)[]]
+              <>F{00000001}`2[System.Int32,System.Int32&()[]]
+              <>A{00000001}`1[System.Void(System.Int32&)[]]
+              """
+            : """
+              System.Func`1[(fnptr)[]]
+              System.Action`1[(fnptr)[]]
+              <>F{00000001}`2[System.Int32,(fnptr)[]]
+              <>A{00000001}`1[(fnptr)[]]
+              System.Func`1[(fnptr)[]]
+              System.Action`1[(fnptr)[]]
+              <>F{00000001}`2[System.Int32,(fnptr)[]]
+              <>A{00000001}`1[(fnptr)[]]
+              """);
         }
 
         [Fact]

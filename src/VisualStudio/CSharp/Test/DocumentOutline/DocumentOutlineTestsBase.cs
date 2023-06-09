@@ -107,7 +107,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             async Task<ManualInvocationResponse?> RequestAsync(ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string languageServerName, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken)
             {
                 var request = parameterFactory(textBuffer.CurrentSnapshot).ToObject<RoslynDocumentSymbolParams>();
-                var response = await testLspServer.ExecuteRequestAsync<RoslynDocumentSymbolParams, DocumentSymbol[]>(method, request!, cancellationToken);
+                var response = await testLspServer.ExecuteRequestAsync<RoslynDocumentSymbolParams, object[]>(method, request!, cancellationToken);
                 return new ManualInvocationResponse(string.Empty, JToken.FromObject(response!));
             }
         }

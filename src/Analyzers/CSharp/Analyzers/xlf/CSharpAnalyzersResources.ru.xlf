@@ -387,6 +387,11 @@
         <target state="translated">Использовать сопоставление шаблонов (может измениться значение кода)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_primary_constructor">
+        <source>Use primary constructor</source>
+        <target state="new">Use primary constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="translated">Использовать оператор диапазона</target>
