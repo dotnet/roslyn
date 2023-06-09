@@ -108,7 +108,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var temporaryFilePath = Path.Combine(
                 _temporaryDirectory,
                 document.Id.Id.ToString(),
-                document.HintName);
+                // Normalize hint name (it always contains forward slashes).
+                document.HintName.Replace('/', Path.DirectorySeparatorChar));
 
             Directory.CreateDirectory(Path.GetDirectoryName(temporaryFilePath));
 
@@ -117,9 +118,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 File.WriteAllText(temporaryFilePath, "");
             }
-
-            // Normalize file path (hint name can contain mix of slashes).
-            temporaryFilePath = Path.GetFullPath(temporaryFilePath);
 
             return async cancellationToken =>
             {
