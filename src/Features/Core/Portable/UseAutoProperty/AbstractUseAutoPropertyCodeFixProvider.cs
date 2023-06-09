@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     ? CodeActionPriority.Low
                     : CodeActionPriority.Medium;
 
-                context.RegisterCodeFix(
-                    new UseAutoPropertyCodeAction(
+                context.RegisterCodeFix(CodeAction.SolutionChangeAction.Create(
                         AnalyzersResources.Use_auto_property,
                         c => ProcessResultAsync(context, diagnostic, c),
+                        equivalenceKey: null,
                         priority),
                     diagnostic);
             }
@@ -341,20 +341,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // We do need a setter
             return true;
-        }
-
-        private class UseAutoPropertyCodeAction : CustomCodeActions.SolutionChangeAction
-        {
-            public UseAutoPropertyCodeAction(
-                string title,
-                Func<CancellationToken, Task<Solution>> createChangedSolution,
-                CodeActionPriority priority)
-                : base(title, createChangedSolution, title)
-            {
-                Priority = priority;
-            }
-
-            public override CodeActionPriority Priority { get; }
         }
     }
 }
