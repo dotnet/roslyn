@@ -80,7 +80,15 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// cref="CodeActionPriorityInternal.High"/> bucket.  We do not currently expose that publicly as caution
         /// against poorly behaving external analyzers impacting experiences like 'add using'
         /// </summary>
-        internal virtual CodeActionPriorityInternal PriorityInternal => CodeActionPriorityInternal.Default;
+        internal virtual CodeActionPriorityInternal PriorityInternal
+            => this.Priority.ConvertToInternalPriority();
+
+        /// <summary>
+        /// Priority of this particular action within a group of other actions.  Less relevant actions should override
+        /// this and specify a lower priority so that more important actions are easily accessible to the user.
+        /// </summary>
+        public virtual CodeActionPriority Priority
+            => CodeActionPriority.Default;
 
         /// <summary>
         /// Descriptive tags from <see cref="WellKnownTags"/>.

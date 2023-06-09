@@ -6,5 +6,6 @@ Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Default = 1 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Low = 0 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Normal = 1 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.Priority.get -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 virtual Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.RequestPriority.get -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 virtual Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.RequestPriority.get -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
