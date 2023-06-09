@@ -75,6 +75,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal virtual bool IsInlinable => false;
 
+        /// <summary>
+        /// <see langword="virtual"/> so that our own internal code actions get privileged access to the <see
+        /// cref="CodeActionPriorityInternal.High"/> bucket.  We do not currently expose that publicly as caution
+        /// against poorly behaving external analyzers impacting experiences like 'add using'
+        /// </summary>
         internal virtual CodeActionPriorityInternal PriorityInternal => CodeActionPriorityInternal.Default;
 
         /// <summary>

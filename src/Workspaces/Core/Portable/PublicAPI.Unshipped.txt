@@ -1,3 +1,7 @@
+Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default = 2 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Low = 1 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Lowest = 0 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Default = 1 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Low = 0 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority

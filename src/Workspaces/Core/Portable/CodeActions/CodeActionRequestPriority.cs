@@ -24,21 +24,16 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 public enum CodeActionRequestPriority
 {
     /// <summary>
-    /// Run the priority below <see cref="Normal"/> priority.  The provider may run slow, or its results may be
+    /// Run the priority below <see cref="Default"/> priority.  The provider may run slow, or its results may be
     /// commonly less relevant for the user.
     /// </summary>
     Low = 0,
 
     /// <summary>
-    /// Run this provider at normal priority.   The provider will run in reasonable speeds and provide results that
+    /// Run this provider at default priority.   The provider will run in reasonable speeds and provide results that
     /// are commonly relevant to the user.
     /// </summary>
-    Normal = 1,
-
-    /// <summary>
-    /// The default priority a provider should run at.  Currently <see cref="Normal"/>.
-    /// </summary>
-    Default = Normal,
+    Default = 1,
 }
 
 internal static class CodeActionRequestPriorityExtensions
@@ -47,13 +42,13 @@ internal static class CodeActionRequestPriorityExtensions
     /// Clamps the value of <paramref name="priority"/> (which could be any integer) to the legal range of values
     /// present in <see cref="CodeActionRequestPriority"/>.
     /// </summary>
-    public static CodeActionRequestPriority Clamp(this CodeActionRequestPriority priority)
+    private static CodeActionRequestPriority Clamp(this CodeActionRequestPriority priority)
     {
         if (priority < CodeActionRequestPriority.Low)
             priority = CodeActionRequestPriority.Low;
 
-        if (priority > CodeActionRequestPriority.Normal)
-            priority = CodeActionRequestPriority.Normal;
+        if (priority > CodeActionRequestPriority.Default)
+            priority = CodeActionRequestPriority.Default;
 
         return priority;
     }
@@ -65,7 +60,7 @@ internal static class CodeActionRequestPriorityExtensions
         return priority switch
         {
             CodeActionRequestPriority.Low => CodeActionRequestPriorityInternal.Low,
-            CodeActionRequestPriority.Normal => CodeActionRequestPriorityInternal.Normal,
+            CodeActionRequestPriority.Default => CodeActionRequestPriorityInternal.Normal,
             _ => throw ExceptionUtilities.UnexpectedValue(priority),
         };
     }
