@@ -420,7 +420,7 @@
       <trans-unit id="reversed_for_loop">
         <source>reversed for loop</source>
         <target state="new">reversed for loop</target>
-        <note>{Locked="for"} "for" is a C# keyword and should not be localized</note>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>
