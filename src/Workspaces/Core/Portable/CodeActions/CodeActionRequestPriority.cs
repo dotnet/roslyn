@@ -34,6 +34,11 @@ public enum CodeActionRequestPriority
     /// are commonly relevant to the user.
     /// </summary>
     Medium = 1,
+
+    /// <summary>
+    /// Default provider priority.  Equivalent to <see cref="Medium"/>.
+    /// </summary>
+    Default = Medium,
 }
 
 internal static class CodeActionRequestPriorityExtensions

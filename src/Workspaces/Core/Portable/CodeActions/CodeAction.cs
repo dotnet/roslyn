@@ -85,7 +85,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         /// <summary>
         /// Priority of this particular action within a group of other actions.  Less relevant actions should override
-        /// this and specify a lower priority so that more important actions are easily accessible to the user.
+        /// this and specify a lower priority so that more important actions are easily accessible to the user.  Returns
+        /// <see cref="CodeActionPriority.Default"/> if not overridden.
         /// </summary>
         public virtual CodeActionPriority Priority
             => CodeActionPriority.Default;
