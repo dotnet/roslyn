@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 context.RegisterCodeFix(CodeAction.SolutionChangeAction.Create(
                         AnalyzersResources.Use_auto_property,
                         c => ProcessResultAsync(context, diagnostic, c),
-                        equivalenceKey: null,
+                        equivalenceKey: nameof(AnalyzersResources.Use_auto_property),
                         priority),
                     diagnostic);
             }
