@@ -7397,7 +7397,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isMethodGroupConversion: isMethodGroupConversion,
                     allowRefOmittedArguments: allowRefOmittedArguments,
                     returnRefKind: returnRefKind,
-                    returnType: returnType);
+                    returnType: returnType,
+                    isExtensionMethodResolution: true);
                 diagnostics.Add(expression, useSiteInfo);
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
 
@@ -9151,6 +9152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnRefKind,
                     returnType,
                     isFunctionPointerResolution,
+                    isExtensionMethodResolution: false,
                     callingConvention);
 
                 // Note: the MethodGroupResolution instance is responsible for freeing its copy of analyzed arguments
