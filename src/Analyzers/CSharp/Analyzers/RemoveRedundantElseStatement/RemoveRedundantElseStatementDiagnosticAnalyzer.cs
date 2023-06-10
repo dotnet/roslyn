@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
                     Descriptor,
                     redundantElse.ElseKeyword.GetLocation(),
                     codeStyleOption.Notification.Severity,
-                    additionalLocations: ImmutableArray.Create(redundantElse.GetLocation()),
+                    additionalLocations: ImmutableArray.Create(ifStatement.GetLocation(), redundantElse.GetLocation()),
                     properties: null));
             }
         }

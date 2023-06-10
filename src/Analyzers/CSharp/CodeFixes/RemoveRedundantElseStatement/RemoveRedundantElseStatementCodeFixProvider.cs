@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
         {
             foreach (var diagnostic in diagnostics)
             {
-                var elseClause = (ElseClauseSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
-                var topMostIf = FindTopMostIf(elseClause);
+                var topMostIf = (IfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+                var elseClause = (ElseClauseSyntax)diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
                 var block = topMostIf.Parent as BlockSyntax;
 
                 var root = editor.OriginalRoot;
@@ -62,18 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             }
 
             return Task.CompletedTask;
-        }
-
-        private static IfStatementSyntax FindTopMostIf(ElseClauseSyntax elseClause)
-        {
-            SyntaxNode node = elseClause;
-
-            while (node.Parent is IfStatementSyntax or ElseClauseSyntax)
-            {
-                node = node.Parent;
-            }
-
-            return node as IfStatementSyntax;
         }
 
         private static BlockSyntax RewriteBlock(BlockSyntax block, IfStatementSyntax topMostIf, ElseClauseSyntax elseClause)
