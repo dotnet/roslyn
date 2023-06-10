@@ -143,6 +143,60 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
         }
 
         [Fact]
+        public async Task TestRedundantElseFix_MultipleIfElseWithThrow()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                using System;
+
+                class C
+                {
+                    int Fib(int n) 
+                    {
+                        if (n < 0)
+                        {
+                            throw new ArgumentException("n can't be negative");
+                        }
+                        else if (n == 1)
+                        {
+                            return 1;
+                        }
+                        else if (n == 2)
+                        {
+                            return 1;
+                        }
+                        [|else|]
+                        {
+                            return Fib(n - 1) + Fib(n - 2);
+                        }
+                    }
+                }
+                """, """
+                using System;
+                
+                class C
+                {
+                    int Fib(int n) 
+                    {
+                        if (n < 0)
+                        {
+                            throw new ArgumentException("n can't be negative");
+                        }
+                        else if (n == 1)
+                        {
+                            return 1;
+                        }
+                        else if (n == 2)
+                        {
+                            return 1;
+                        }
+
+                        return Fib(n - 1) + Fib(n - 2);
+                    }
+                }
+                """);
+        }
+
+        [Fact]
         public async Task TestRedundantElseFix_IfElseIfElseWithoutThrow()
         {
             await new VerifyCS.Test

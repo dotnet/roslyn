@@ -113,13 +113,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
                     return null;
                 }
 
-                if (elseClause.Statement is IfStatementSyntax elseIfStatement)
+                // reached else not followed by an if
+                if (elseClause.Statement is not IfStatementSyntax elseIfStatement)
                 {
-                    elseClause = elseIfStatement.Else;
+                    break;
                 }
 
-                // reached else not followed by an if
-                break;
+                elseClause = elseIfStatement.Else;
             }
 
             return elseClause;
