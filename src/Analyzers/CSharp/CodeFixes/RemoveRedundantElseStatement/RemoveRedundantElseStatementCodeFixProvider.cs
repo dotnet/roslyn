@@ -27,10 +27,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 {
-    using static System.Reflection.Metadata.BlobBuilder;
-    using static SyntaxFactory;
-
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseSimpleUsingStatement), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveRedundantElseStatement), Shared]
     internal class RemoveRedundantElseStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -40,11 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId);
+            ImmutableArray.Create(IDEDiagnosticIds.RemoveRedundantElseStatementDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            RegisterCodeFix(context, CSharpAnalyzersResources.Use_simple_using_statement, nameof(CSharpAnalyzersResources.Use_simple_using_statement));
+            RegisterCodeFix(context, CSharpAnalyzersResources.Remove_redundant_else_statement, nameof(CSharpAnalyzersResources.Remove_redundant_else_statement));
             return Task.CompletedTask;
         }
 
@@ -52,21 +49,25 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var elseClause = (ElseClauseSyntax) diagnostics.Single().AdditionalLocations[0].FindNode(cancellationToken);
-            var topmostIf = FindTopmostIfIterative(elseClause);
-            var block = topmostIf.Parent as BlockSyntax;
+            foreach (var diagnostic in diagnostics)
+            {
+                var elseClause = (ElseClauseSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+                var topMostIf = FindTopMostIf(elseClause);
+                var block = topMostIf.Parent as BlockSyntax;
 
-            var root = editor.OriginalRoot;
-            var updatedRoot = root.ReplaceNode(block, RewriteBlock(block, topmostIf, elseClause));
+                var root = editor.OriginalRoot;
+                var updatedRoot = root.ReplaceNode(block, RewriteBlock(block, topMostIf, elseClause));
 
-            editor.ReplaceNode(root, updatedRoot);
+                editor.ReplaceNode(root, updatedRoot);
+            }
 
             return Task.CompletedTask;
         }
 
-        private IfStatementSyntax FindTopmostIfIterative(ElseClauseSyntax elseClause)
+        private static IfStatementSyntax FindTopMostIf(ElseClauseSyntax elseClause)
         {
             SyntaxNode node = elseClause;
+
             while (node.Parent is IfStatementSyntax or ElseClauseSyntax)
             {
                 node = node.Parent;
@@ -75,19 +76,18 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             return node as IfStatementSyntax;
         }
 
-        private BlockSyntax RewriteBlock(BlockSyntax block, IfStatementSyntax topmostIf, ElseClauseSyntax elseClause)
+        private static BlockSyntax RewriteBlock(BlockSyntax block, IfStatementSyntax topMostIf, ElseClauseSyntax elseClause)
         {
-            var topmostIfIdx = block.Statements.IndexOf(topmostIf);
+            var topMostIfIdx = block.Statements.IndexOf(topMostIf);
 
-            var newTopMostIf = topmostIf.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
-            var newBlock = block.ReplaceNode(topmostIf, newTopMostIf);
+            var newTopMostIf = topMostIf.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
+            var newBlock = block.ReplaceNode(topMostIf, newTopMostIf);
+            var newStatements = newBlock.Statements.InsertRange(topMostIfIdx + 1, Expand(elseClause));
 
-            return newBlock.WithStatements(
-                newBlock.Statements.InsertRange(topmostIfIdx + 1, Expand(elseClause))
-            );
+            return newBlock.WithStatements(newStatements);
         }
 
-        private ImmutableArray<StatementSyntax> Expand(ElseClauseSyntax elseClause)
+        private static ImmutableArray<StatementSyntax> Expand(ElseClauseSyntax elseClause)
         {
             using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var result);
 
@@ -105,56 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             return result
                 .Select(statement => statement.WithAdditionalAnnotations(Formatter.Annotation))
                 .AsImmutable();
-        }
-
-        private static SyntaxTriviaList Expand(ArrayBuilder<StatementSyntax> result, ElseClauseSyntax usingStatement)
-        {
-            switch (usingStatement.Statement)
-            {
-                case BlockSyntax blockSyntax:
-                    var statements = blockSyntax.Statements;
-                    if (!statements.Any())
-                    {
-                        return blockSyntax.CloseBraceToken.LeadingTrivia;
-                    }
-
-                    var openBraceLeadingTrivia = blockSyntax.OpenBraceToken.LeadingTrivia;
-                    var openBraceTrailingTrivia = blockSyntax.OpenBraceToken.TrailingTrivia;
-
-                    if (openBraceTrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
-                    {
-                        var newFirstStatement = statements.First()
-                            .WithPrependedLeadingTrivia(openBraceTrailingTrivia);
-                        statements = statements.Replace(statements.First(), newFirstStatement);
-                    }
-
-                    if (openBraceLeadingTrivia.Any(t => t.IsSingleOrMultiLineComment() || t.IsDirective))
-                    {
-                        var newFirstStatement = statements.First()
-                            .WithPrependedLeadingTrivia(openBraceLeadingTrivia);
-                        statements = statements.Replace(statements.First(), newFirstStatement);
-                    }
-
-                    var closeBraceTrailingTrivia = blockSyntax.CloseBraceToken.TrailingTrivia;
-                    if (closeBraceTrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
-                    {
-                        var newLastStatement = statements.Last()
-                            .WithAppendedTrailingTrivia(closeBraceTrailingTrivia);
-                        statements = statements.Replace(statements.Last(), newLastStatement);
-                    }
-
-                    // if we hit a block, then inline all the statements in the block into
-                    // the final list of statements.
-                    result.AddRange(statements);
-                    return blockSyntax.CloseBraceToken.LeadingTrivia;
-                case StatementSyntax anythingElse:
-                    // Any other statement should be untouched and just be placed next in the
-                    // final list of statements.
-                    result.Add(anythingElse);
-                    return default;
-            }
-
-            return default;
         }
     }
 }

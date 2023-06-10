@@ -415,4 +415,7 @@
   <data name="Use_primary_constructor" xml:space="preserve">
     <value>Use primary constructor</value>
   </data>
+  <data name="Remove_redundant_else_statement" xml:space="preserve">
+    <value>Remove redundant 'else' statement</value>
+  </data>
 </root>

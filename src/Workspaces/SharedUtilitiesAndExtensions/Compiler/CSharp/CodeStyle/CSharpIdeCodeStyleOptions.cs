@@ -78,6 +78,7 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas { get; init; } = s_whenPossibleWithSilentEnforcement;
 
     [DataMember] public CodeStyleOption2<bool> PreferPrimaryConstructors { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferRemoveRedundantElseStatement { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
 
     public CSharpIdeCodeStyleOptions()
         : base()

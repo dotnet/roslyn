@@ -17,31 +17,32 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSimpleUsingStatement
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStatement
 {
     using VerifyCS = CSharpCodeFixVerifier<
         RemoveRedundantElseStatementDiagnosticAnalyzer,
         RemoveRedundantElseStatementCodeFixProvider>;
 
-    [Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveRedundantElseStatement)]
     public class RemoveRedundantElseStatementTests
     {
         [Fact]
-        public async Task TestRedundantElseFix_1()
+        public async Task TestRedundantElseFix_SimpleIfElse()
         {
             await VerifyCS.VerifyCodeFixAsync("""
                 using System;
 
                 class C
                 {
-                    int M(int value) {
-                        if (value == 0)
+                    int Fib(int n) 
+                    {
+                        if (n <= 2)
                         {
                             return 1;
                         }
                         [|else|]
                         {
-                            return 2;
+                            return Fib(n - 1) + Fib(n - 2);
                         }
                     }
                 }
@@ -50,38 +51,72 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSimpleUsingStatement
                 
                 class C
                 {
-                    int M(int value) {
-                        if (value == 0)
+                    int Fib(int n) 
+                    {
+                        if (n <= 2)
                         {
                             return 1;
                         }
 
-                        return 2;
+                        return Fib(n - 1) + Fib(n - 2);
                     }
                 }
                 """);
         }
 
         [Fact]
-        public async Task TestRedundantElseFix_2()
+        public async Task TestRedundantElseFix_SimpleIfElseWithSingleStatement()
         {
             await VerifyCS.VerifyCodeFixAsync("""
                 using System;
 
                 class C
                 {
-                    int M(int value) {
-                        if (value == 0)
+                    int Fib(int n) 
+                    {
+                        if (n <= 2)
+                            return 1;
+                        [|else|]
+                            return Fib(n - 1) + Fib(n - 2);
+                    }
+                }
+                """, """
+                using System;
+                
+                class C
+                {
+                    int Fib(int n) 
+                    {
+                        if (n <= 2)
+                            return 1;
+
+                        return Fib(n - 1) + Fib(n - 2);
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_IfElseIfElseWithThrow()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                using System;
+
+                class C
+                {
+                    int Fib(int n) 
+                    {
+                        if (n < 0)
+                        {
+                            throw new ArgumentException("n can't be negative");
+                        }
+                        else if (n <= 2)
                         {
                             return 1;
                         }
-                        else if (value == 1)
-                        {
-                            return 2;
-                        }
                         [|else|]
                         {
-                            return 3;
+                            return Fib(n - 1) + Fib(n - 2);
                         }
                     }
                 }
@@ -90,68 +125,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSimpleUsingStatement
                 
                 class C
                 {
-                    int M(int value) {
-                        if (value == 0)
+                    int Fib(int n) 
+                    {
+                        if (n < 0)
+                        {
+                            throw new ArgumentException("n can't be negative");
+                        }
+                        else if (n <= 2)
                         {
                             return 1;
                         }
-                        else if (value == 1)
-                        {
-                            return 2;
-                        }
 
-                        return 3;
+                        return Fib(n - 1) + Fib(n - 2);
                     }
                 }
                 """);
         }
 
         [Fact]
-        public async Task TestRedundantElseFix_3()
-        {
-            await VerifyCS.VerifyCodeFixAsync("""
-                using System;
-
-                class C
-                {
-                    int M(int value) {
-                        int x = 0;
-
-                        if (value == 0)
-                        {
-                            return 1;
-                        }
-                        [|else|]
-                        {
-                            x = 2;
-                        }
-
-                        return x;
-                    }
-                }
-                """, """
-                using System;
-                
-                class C
-                {
-                    int M(int value) {
-                        int x = 0;
-                
-                        if (value == 0)
-                        {
-                            return 1;
-                        }
-
-                        x = 2;
-
-                        return x;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestRedundantElse_1()
+        public async Task TestRedundantElseFix_IfElseIfElseWithoutThrow()
         {
             await new VerifyCS.Test
             {
@@ -160,14 +152,145 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSimpleUsingStatement
                     
                     class C
                     {
-                        int M(int value) {
-                            if (value == 0)
+                        int Fib(int n) 
+                        {
+                            if (n < 0)
+                            {
+                                Console.WriteLine("Error");
+                            }
+                            else if (n <= 2)
                             {
                                 return 1;
                             }
+                            
+                            return Fib(n - 1) + Fib(n - 2);
+                        }
+                    }
+                    """
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_IfElseWithBreak()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                using System;
+
+                class C
+                {
+                    int Count(int n) 
+                    {
+                        int i = 0;
+                        while (true)
+                        {
+                            if (i == n)
+                            {
+                                break;
+                            }
                             [|else|]
                             {
-                                return 2;
+                                i++;
+                            }
+                        }
+
+                        return i;
+                    }
+                }
+                """, """
+                using System;
+                
+                class C
+                {
+                    int Count(int n) 
+                    {
+                        int i = 0;
+                        while (true)
+                        {
+                            if (i == n)
+                            {
+                                break;
+                            }
+
+                            i++;
+                        }
+                
+                        return i;
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_IfElseWithContinue()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                using System;
+
+                class C
+                {
+                    int Count(int n) 
+                    {
+                        int i = 0;
+                        while (true)
+                        {
+                            if (i < n)
+                            {
+                                i+=1;
+                                continue;
+                            }
+                            [|else|]
+                            {
+                                return i;
+                            }
+                        }
+                    }
+                }
+                """, """
+                using System;
+                
+                class C
+                {
+                    int Count(int n) 
+                    {
+                        int i = 0;
+                        while (true)
+                        {
+                            if (i < n)
+                            {
+                                i+=1;
+                                continue;
+                            }
+
+                            return i;
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_IfElseWithoutContinue()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    
+                    class C
+                    {
+                        int Count(int n) 
+                        {
+                            int i = 0;
+                            while (true)
+                            {
+                                if (i < n)
+                                {
+                                    i+=1;
+                                }
+                                else
+                                {
+                                    return i;
+                                }
                             }
                         }
                     }

@@ -19,43 +19,39 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
     /// Looks for code like:
     ///
     ///     ```c#
-    ///     using (var a = b)
-    ///     using (var c = d)
-    ///     using (var e = f)
+    ///     if (a == b)
     ///     {
+    ///         return c;
+    ///     }
+    ///     else
+    ///     {
+    ///         return d;
     ///     }
     ///     ```
     /// 
     /// And offers to convert it to:
     ///
     ///     ```c#
-    ///     using var a = b;
-    ///     using var c = d;
-    ///     using var e = f;
+    ///     if (a == b)
+    ///     {
+    ///         return c;
+    ///     }
+    ///     
+    ///     return d;
     ///     ```
     ///
-    /// (this of course works in the case where there is only one using).
-    /// 
-    /// A few design decisions:
-    ///     
-    /// 1. We only offer this if the entire group of usings in a nested stack can be
-    ///    converted.  We don't want to take a nice uniform group and break it into
-    ///    a combination of using-statements and using-declarations.  That may feel 
-    ///    less pleasant to the user than just staying uniform.
-    /// 
-    /// 2. We're conservative about converting.  Because `using`s may be critical for
-    ///    program correctness, we only convert when we're absolutely *certain* that
-    ///    semantics will not change.
+    /// For this conversion to make sense statement(s) in each `if` and `else if`
+    /// must end with a jump (return, break, continue or throw) 
+    /// in order to preserve the program's correctness.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class RemoveRedundantElseStatementDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public RemoveRedundantElseStatementDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId,
-                   EnforceOnBuildValues.UseSimpleUsingStatement,
-                   CSharpCodeStyleOptions.PreferSimpleUsingStatement,
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_simple_using_statement), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.using_statement_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+            : base(IDEDiagnosticIds.RemoveRedundantElseStatementDiagnosticId,
+                   EnforceOnBuildValues.RemoveRedundantElseStatement,
+                   CSharpCodeStyleOptions.PreferRemoveRedundantElseStatement,
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_redundant_else_statement), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -72,58 +68,66 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var outerMostIf = (IfStatementSyntax)context.Node;
-            var parent = outerMostIf.Parent;
-
-            if (parent is not BlockSyntax block)
-            {
-                // Don't offer on if statement that is part of an else clause
-                return;
-            }
-
-            var option = context.GetCSharpAnalyzerOptions().PreferSimpleUsingStatement;
+            var option = context.GetCSharpAnalyzerOptions().PreferRemoveRedundantElseStatement;
             if (!option.Value)
                 return;
 
-            var @else = LastElseClause(outerMostIf);
-            if (@else != null)
+            var ifStatement = (IfStatementSyntax)context.Node;
+
+            if (ifStatement.Parent is ElseClauseSyntax)
+            {
+                // Only offer on top most if
+                return;
+            }
+
+            var redundantElse = FindRedundantElse(ifStatement);
+            if (redundantElse is not null)
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
-                    @else.ElseKeyword.GetLocation(),
+                    redundantElse.ElseKeyword.GetLocation(),
                     option.Notification.Severity,
-                    additionalLocations: ImmutableArray.Create(@else.GetLocation()),
+                    additionalLocations: ImmutableArray.Create(redundantElse.GetLocation()),
                     properties: null));
             }
         }
 
-        private ElseClauseSyntax? LastElseClause(IfStatementSyntax ifStatement)
+        private static ElseClauseSyntax? FindRedundantElse(IfStatementSyntax ifStatement)
         {
             var @else = ifStatement.Else;
 
-            var endsWithReturn = EndsWithReturn(ifStatement.Statement);
-
-            if (!endsWithReturn || @else is null)
+            while (@else is not null)
             {
-                return null;
-            }
+                var endsWithJump = ifStatement.Statement switch
+                {
+                    BlockSyntax block => IsJumpStatement(block.Statements.LastOrDefault()),
+                    _ => IsJumpStatement(ifStatement.Statement),
+                };
 
-            if (@else.Statement is IfStatementSyntax elseIfStatement)
-            {
-                return LastElseClause(elseIfStatement);
+                // doing this only makes sense when every if ends with a jump
+                if (!endsWithJump)
+                {
+                    return null;
+                }
+
+                if (@else.Statement is IfStatementSyntax elseIfStatement)
+                {
+                    @else = elseIfStatement.Else;
+                }
+
+                // reached else not followed by an if
+                break;
             }
 
             return @else;
         }
-        
-        private bool EndsWithReturn(StatementSyntax? statement)
+        private static bool IsJumpStatement(StatementSyntax? statement)
         {
-            return statement switch
-            {
-                BlockSyntax block => block.Statements.LastOrDefault() is ReturnStatementSyntax,
-                ReturnStatementSyntax => true,
-                _ => false,
-            };
+            return statement is
+                ReturnStatementSyntax or
+                BreakStatementSyntax or
+                ThrowStatementSyntax or
+                ContinueStatementSyntax;
         }
     }
 }
