@@ -301,7 +301,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Array.Clear(memberOfArity, 0, memberOfArity.Length);
                 foreach (var symbol in result[name])
                 {
-                    var nts = symbol as NamedTypeSymbol;
+                    var nts = symbol as SourceMemberContainerTypeSymbol;
+                    // It should be impossible to have a type member of a source namespace symbol which is not a SourceMemberContainerTypeSymbol
+                    Debug.Assert((object)nts != null || symbol is not TypeSymbol);
+
                     var arity = ((object)nts != null) ? nts.Arity : 0;
                     if (arity >= memberOfArity.Length)
                     {
@@ -336,15 +339,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)other != null)
                     {
+                        // To decide whether type declarations are duplicates, we need to access members which are only meaningful on source original definition symbols.
+                        Debug.Assert((object)nts?.OriginalDefinition == nts && (object)other.OriginalDefinition == other);
+
                         switch (nts, other)
                         {
-                            case (SourceNamedTypeSymbol left, SourceNamedTypeSymbol right) when isFileLocalTypeInSeparateFileFrom(left, right) || isFileLocalTypeInSeparateFileFrom(right, left):
+                            case ({ } left, SourceMemberContainerTypeSymbol right) when isFileLocalTypeInSeparateFileFrom(left, right) || isFileLocalTypeInSeparateFileFrom(right, left):
                                 // no error
                                 break;
-                            case (SourceNamedTypeSymbol { IsFileLocal: true }, _) or (_, SourceNamedTypeSymbol { IsFileLocal: true }):
+                            case ({ IsFileLocal: true }, _) or (_, SourceMemberContainerTypeSymbol { IsFileLocal: true }):
                                 diagnostics.Add(ErrorCode.ERR_FileLocalDuplicateNameInNS, symbol.GetFirstLocationOrNone(), symbol.Name, @namespace);
                                 break;
-                            case (SourceNamedTypeSymbol { IsPartial: true }, SourceNamedTypeSymbol { IsPartial: true }):
+                            case ({ IsPartial: true }, SourceMemberContainerTypeSymbol { IsPartial: true }):
                                 diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.GetFirstLocationOrNone(), symbol);
                                 break;
                             default:
@@ -367,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static bool isFileLocalTypeInSeparateFileFrom(SourceNamedTypeSymbol possibleFileLocalType, SourceNamedTypeSymbol otherSymbol)
+            static bool isFileLocalTypeInSeparateFileFrom(SourceMemberContainerTypeSymbol possibleFileLocalType, SourceMemberContainerTypeSymbol otherSymbol)
             {
                 if (!possibleFileLocalType.IsFileLocal)
                 {

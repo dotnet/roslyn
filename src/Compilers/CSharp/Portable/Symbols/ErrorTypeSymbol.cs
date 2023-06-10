@@ -579,7 +579,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.MangleName; }
         }
 
-        internal override FileIdentifier? AssociatedFileIdentifier => _originalDefinition.AssociatedFileIdentifier;
+        internal sealed override bool IsFileLocal => _originalDefinition.IsFileLocal;
+        internal sealed override FileIdentifier? AssociatedFileIdentifier => _originalDefinition.AssociatedFileIdentifier;
 
         internal override DiagnosticInfo? ErrorInfo
         {

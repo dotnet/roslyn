@@ -2,20 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
-    internal sealed class BlockStructureContext
+    [NonCopyable]
+    internal readonly struct BlockStructureContext : IDisposable
     {
-        private readonly ImmutableArray<BlockSpan>.Builder _spans = ImmutableArray.CreateBuilder<BlockSpan>();
+        public readonly ArrayBuilder<BlockSpan> Spans = ArrayBuilder<BlockSpan>.GetInstance();
 
-        public SyntaxTree SyntaxTree { get; }
-        public BlockStructureOptions Options { get; }
-        public CancellationToken CancellationToken { get; }
-
-        internal ImmutableArray<BlockSpan> Spans => _spans.ToImmutable();
+        public readonly SyntaxTree SyntaxTree;
+        public readonly BlockStructureOptions Options;
+        public readonly CancellationToken CancellationToken;
 
         public BlockStructureContext(SyntaxTree syntaxTree, BlockStructureOptions options, CancellationToken cancellationToken)
         {
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Structure
             CancellationToken = cancellationToken;
         }
 
-        public void AddBlockSpan(BlockSpan span)
-            => _spans.Add(span);
+        public void Dispose()
+            => Spans.Free();
     }
 }
