@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
     /// in order to preserve the program's correctness.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class RemoveRedundantElseStatementDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class RemoveRedundantElseStatementDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public RemoveRedundantElseStatementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveRedundantElseStatementDiagnosticId,
@@ -59,12 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.RegisterCompilationStartAction(context =>
-            {
-                context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.IfStatement);
-            });
-        }
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.IfStatement);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
@@ -77,22 +73,24 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 
             var ifStatement = (IfStatementSyntax)context.Node;
 
-            if (ifStatement.Parent is ElseClauseSyntax)
+            if (ifStatement.Parent is not BlockSyntax and not GlobalStatementSyntax and not SwitchSectionSyntax)
             {
-                // Only offer on top most if
                 return;
             }
 
             var redundantElse = FindRedundantElse(ifStatement);
-            if (redundantElse is not null)
+
+            if (redundantElse is null || WillCauseVariableCollision(context.SemanticModel, ifStatement, redundantElse, context.CancellationToken))
             {
-                context.ReportDiagnostic(DiagnosticHelper.Create(
-                    Descriptor,
-                    redundantElse.ElseKeyword.GetLocation(),
-                    codeStyleOption.Notification.Severity,
-                    additionalLocations: ImmutableArray.Create(ifStatement.GetLocation(), redundantElse.GetLocation()),
-                    properties: null));
+                return;
             }
+
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                redundantElse.ElseKeyword.GetLocation(),
+                codeStyleOption.Notification.Severity,
+                additionalLocations: ImmutableArray.Create(ifStatement.GetLocation(), redundantElse.GetLocation()),
+                properties: null));
         }
 
         private static ElseClauseSyntax? FindRedundantElse(IfStatementSyntax ifStatement)
@@ -124,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 
             return elseClause;
         }
+
         private static bool IsJumpStatement(StatementSyntax? statement)
         {
             return statement is
@@ -131,6 +130,31 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
                 BreakStatementSyntax or
                 ThrowStatementSyntax or
                 ContinueStatementSyntax;
+        }
+
+        private static bool WillCauseVariableCollision(SemanticModel semanticModel, IfStatementSyntax ifStatement, ElseClauseSyntax elseClause, CancellationToken cancellationToken)
+        {
+            if (elseClause.Statement is not BlockSyntax elseBlock)
+            {
+                return false;
+            }
+
+            var outerScope = ifStatement?.Parent switch
+            {
+                BlockSyntax block => block,
+                SwitchSectionSyntax switchSection => switchSection.Parent,
+                GlobalStatementSyntax global => global.Parent,
+                _ => throw new ArgumentException(nameof(ifStatement.Parent))
+            };
+
+            var existingSymbols = semanticModel
+                .GetExistingSymbols(outerScope, cancellationToken)
+                .ToLookup(s => s.Name);
+
+            var operation = semanticModel.GetRequiredOperation(elseClause.Statement, cancellationToken);
+
+            return operation is IBlockOperation blockOperation &&
+                blockOperation.Locals.Any(local => existingSymbols[local.Name].Any(other => local != other));
         }
     }
 }

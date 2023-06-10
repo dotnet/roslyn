@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -232,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
 
                 class C
                 {
-                    int Count(int n) 
+                    int M(int n) 
                     {
                         int i = 0;
                         while (true)
@@ -255,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                 
                 class C
                 {
-                    int Count(int n) 
+                    int M(int n) 
                     {
                         int i = 0;
                         while (true)
@@ -282,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
 
                 class C
                 {
-                    int Count(int n) 
+                    int M(int n) 
                     {
                         int i = 0;
                         while (true)
@@ -304,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                 
                 class C
                 {
-                    int Count(int n) 
+                    int M(int n) 
                     {
                         int i = 0;
                         while (true)
@@ -332,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                     
                     class C
                     {
-                        int Count(int n) 
+                        int M(int n) 
                         {
                             int i = 0;
                             while (true)
@@ -344,6 +345,349 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                                 else
                                 {
                                     return i;
+                                }
+                            }
+                        }
+                    }
+                    """
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_InSwitchCase()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                using System;
+
+                class C
+                {
+                    int M(int n) 
+                    {
+                        switch (n)
+                        {
+                            case 0:
+                                if (true)
+                                {
+                                    return 0;
+                                }
+                                [|else|]
+                                {
+                                    return 1;
+                                }
+
+                            default:
+                                return 2;
+                        }
+                    }
+                }
+                """, """
+                using System;
+                
+                class C
+                {
+                    int M(int n) 
+                    {
+                        switch (n)
+                        {
+                            case 0:
+                                if (true)
+                                {
+                                    return 0;
+                                }
+
+                                return 1;
+                
+                            default:
+                                return 2;
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_InSwitchDefaultCase()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                using System;
+
+                class C
+                {
+                    int M(int n) 
+                    {
+                        switch (n)
+                        {
+                            case 0:
+                                return 2;
+
+                            default:
+                                if (true)
+                                {
+                                    return 0;
+                                }
+                                [|else|]
+                                {
+                                    return 1;
+                                }
+                        }
+                    }
+                }
+                """, """
+                using System;
+                
+                class C
+                {
+                    int M(int n) 
+                    {
+                        switch (n)
+                        {
+                            case 0:
+                                return 2;
+                
+                            default:
+                                if (true)
+                                {
+                                    return 0;
+                                }
+
+                                return 1;
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_GlobalStatement()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                using System;
+
+                int i = 0;
+                while (true)
+                {
+                    if (i == 5)
+                    {
+                        break;
+                    }
+                    [|else|] 
+                    {
+                        i++;
+                    }
+                }
+                """, """
+                using System;
+                
+                int i = 0;
+                while (true)
+                {
+                    if (i == 5)
+                    {
+                        break;
+                    }
+
+                    i++;
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_VariableCollisionInIf()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    
+                    class C
+                    {
+                        int M(int n) 
+                        {
+                            int i = 0;
+                            while (true)
+                            {
+                                if (i == n)
+                                {
+                                    i+=1;
+                                    int j = 3;
+                                    return j;
+                                }
+                                else
+                                {
+                                    int j = 5;
+                                    return j;
+                                }
+                            }
+                        }
+                    }
+                    """
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_VariableCollisionInSeparateBlock()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    class C
+                    {
+                        int M(int n) 
+                        {
+                            int i = 0;
+                            while (true)
+                            {
+                                if (i < n)
+                                {
+                                    i+=1;
+                                    continue;
+                                }
+                                else
+                                {
+                                    int j = 3;
+                                }
+
+                    			{
+                    				int j = 5;
+                    			}
+                            }
+                        }
+                    }
+                    """
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_VariableCollisionInSwitch()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    class C
+                    {
+                        int M(int n) 
+                        {
+                            switch (n)
+                            {
+                                case 0:
+                                    if (false)
+                                    {
+                                        return 0;
+                                    }
+                                    else
+                                    {
+                    					int m = 0;
+                                        break;
+                                    }
+
+                                default:
+                                    {
+                                        int m = 0;
+                                    }
+                                    return 0;
+                            }
+
+                    		return 0;
+                        }
+                    }
+                    """
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_VariableCollisionGlobalStatement()
+        {
+            var test = new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    if (false) 
+                    {
+                        throw new Exception("");
+                    }
+                    else
+                    {
+                        int i = 0;
+                    }
+
+                    {
+                        int i = 1;
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            test.ExpectedDiagnostics.Add(
+                // /0/Test0.cs(3,1): error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805").WithSpan(3, 1, 10, 2)
+            );
+
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_VariableCollisionGlobalStatementSwitch()
+        {
+            var test = new VerifyCS.Test
+            {
+                TestCode = """
+                    int n = 0;
+                    switch (n)
+                    {
+                        case 0:
+                            if (false)
+                            {
+                                break;
+                            }
+                            else
+                            {
+                    			int m = 0;
+                                break;
+                            }
+                    
+                        default:
+                            {
+                                int m = 0;
+                            }
+                            break;
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            test.ExpectedDiagnostics.Add(
+                // /0/Test0.cs(1,1): error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805").WithSpan(1, 1, 1, 11)
+            );
+
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_NoVariableCollision()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    
+                    class C
+                    {
+                        int M(int n) 
+                        {
+                            int i = 0;
+                            while (true)
+                            {
+                                if (i < n)
+                                {
+                                    i+=1;
+                                    continue;
+                                }
+                                [|else|]
+                                {
+                                    int j = 0;
+                                    return j;
                                 }
                             }
                         }

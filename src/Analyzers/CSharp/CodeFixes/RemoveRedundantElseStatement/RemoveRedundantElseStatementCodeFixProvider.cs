@@ -1,10 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-#nullable disable
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -27,6 +21,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 {
+    using static SyntaxFactory;
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveRedundantElseStatement), Shared]
     internal class RemoveRedundantElseStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
@@ -51,12 +47,19 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
         {
             foreach (var diagnostic in diagnostics)
             {
+                var root = editor.OriginalRoot;
+
                 var topMostIf = (IfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
                 var elseClause = (ElseClauseSyntax)diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
-                var block = topMostIf.Parent as BlockSyntax;
+                var parent = topMostIf.Parent;
 
-                var root = editor.OriginalRoot;
-                var updatedRoot = root.ReplaceNode(block, RewriteBlock(block, topMostIf, elseClause));
+                var updatedRoot = parent switch
+                {
+                    BlockSyntax block => RewriteBlock(root, block, topMostIf, elseClause),
+                    SwitchSectionSyntax switchSection => RewriteSwitchSection(root, switchSection, topMostIf, elseClause),
+                    GlobalStatementSyntax global => RewriteGlobal(root, global, topMostIf, elseClause),
+                    _ => throw new ArgumentException(nameof(topMostIf))
+                };
 
                 editor.ReplaceNode(root, updatedRoot);
             }
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             return Task.CompletedTask;
         }
 
-        private static BlockSyntax RewriteBlock(BlockSyntax block, IfStatementSyntax topMostIf, ElseClauseSyntax elseClause)
+        private static SyntaxNode RewriteBlock(SyntaxNode root, BlockSyntax block, IfStatementSyntax topMostIf, ElseClauseSyntax elseClause)
         {
             var topMostIfIdx = block.Statements.IndexOf(topMostIf);
 
@@ -72,7 +75,47 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             var newBlock = block.ReplaceNode(topMostIf, newTopMostIf);
             var newStatements = newBlock.Statements.InsertRange(topMostIfIdx + 1, Expand(elseClause));
 
-            return newBlock.WithStatements(newStatements);
+            newBlock = newBlock.WithStatements(newStatements);
+
+            return root.ReplaceNode(block, newBlock);
+        }
+
+        private static SyntaxNode RewriteSwitchSection(SyntaxNode root, SwitchSectionSyntax switchSection, IfStatementSyntax topMostIf, ElseClauseSyntax elseClause)
+        {
+            var topMostIfIdx = switchSection.Statements.IndexOf(topMostIf);
+
+            var newTopMostIf = topMostIf.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
+            var newBlock = switchSection.ReplaceNode(topMostIf, newTopMostIf);
+            var newStatements = newBlock.Statements.InsertRange(topMostIfIdx + 1, Expand(elseClause));
+
+            newBlock = newBlock.WithStatements(newStatements);
+
+            return root.ReplaceNode(switchSection, newBlock);
+        }
+
+        private static SyntaxNode RewriteGlobal(SyntaxNode root, GlobalStatementSyntax globalStatement, IfStatementSyntax topMostIf, ElseClauseSyntax elseClause)
+        {
+            var newTopMostIf = topMostIf.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
+            globalStatement = globalStatement.ReplaceNode(topMostIf, newTopMostIf);
+
+            var compilationUnit = (CompilationUnitSyntax?)globalStatement.Parent;
+
+            if (compilationUnit is not null)
+            {
+                var memberToUpdateIndex = compilationUnit.Members.IndexOf(globalStatement);
+
+                var updatedStatements = Expand(elseClause)
+                    .Select(GlobalStatement);
+
+                var newMembers = compilationUnit.Members
+                    .RemoveAt(memberToUpdateIndex)
+                    .InsertRange(memberToUpdateIndex, updatedStatements);
+
+                var newCompilationUnit = compilationUnit.WithMembers(newMembers);
+                return root.ReplaceNode(compilationUnit, newCompilationUnit);
+            }
+
+            return root;
         }
 
         private static ImmutableArray<StatementSyntax> Expand(ElseClauseSyntax elseClause)
