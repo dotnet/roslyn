@@ -158,8 +158,4 @@
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)NewFolder1\" />
-    <Folder Include="$(MSBuildThisFileDirectory)NewFolder\" />
-  </ItemGroup>
 </Project>
