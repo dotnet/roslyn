@@ -68,8 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var option = context.GetCSharpAnalyzerOptions().PreferRemoveRedundantElseStatement;
-            if (!option.Value)
+            var codeStyleOption = context
+                .GetCSharpAnalyzerOptions()
+                .PreferRemoveRedundantElseStatement;
+
+            if (!codeStyleOption.Value)
                 return;
 
             var ifStatement = (IfStatementSyntax)context.Node;
@@ -86,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     redundantElse.ElseKeyword.GetLocation(),
-                    option.Notification.Severity,
+                    codeStyleOption.Notification.Severity,
                     additionalLocations: ImmutableArray.Create(redundantElse.GetLocation()),
                     properties: null));
             }
@@ -94,9 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 
         private static ElseClauseSyntax? FindRedundantElse(IfStatementSyntax ifStatement)
         {
-            var @else = ifStatement.Else;
+            var elseClause = ifStatement.Else;
 
-            while (@else is not null)
+            while (elseClause is not null)
             {
                 var endsWithJump = ifStatement.Statement switch
                 {
@@ -110,16 +113,16 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
                     return null;
                 }
 
-                if (@else.Statement is IfStatementSyntax elseIfStatement)
+                if (elseClause.Statement is IfStatementSyntax elseIfStatement)
                 {
-                    @else = elseIfStatement.Else;
+                    elseClause = elseIfStatement.Else;
                 }
 
                 // reached else not followed by an if
                 break;
             }
 
-            return @else;
+            return elseClause;
         }
         private static bool IsJumpStatement(StatementSyntax? statement)
         {
