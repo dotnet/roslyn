@@ -687,19 +687,13 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             }
             else
             {
-                // No selection.  Treat all medium and low pri refactorings as low priority, and
-                // place after fixes.  Even a low pri fixes will be above what was *originally*
-                // a medium pri refactoring.
-                //
-                // Note: we do not do this for *high* pri refactorings (like 'rename').  These
-                // are still very important and need to stay at the top (though still after high
-                // pri fixes).
-                var highPriRefactorings = refactorings.WhereAsArray(
-                    s => s.Priority == CodeActionPriority.High);
-                var nonHighPriRefactorings = refactorings.WhereAsArray(
-                    s => s.Priority != CodeActionPriority.High)
-                        .SelectAsArray(s => WithPriority(s, CodeActionPriority.Low));
-
+                // No selection.  Order the actions as per follows:
+                //   - HighPri fixes
+                //   - HighPri refactorings
+                //   - Rest of the fixes
+                //   - Rest of the refactorings
+                var highPriRefactorings = refactorings.WhereAsArray(s => s.Priority == CodeActionPriority.High);
+                var nonHighPriRefactorings = refactorings.WhereAsArray(s => s.Priority != CodeActionPriority.High);
                 var highPriFixes = fixes.WhereAsArray(s => s.Priority == CodeActionPriority.High);
                 var nonHighPriFixes = fixes.WhereAsArray(s => s.Priority != CodeActionPriority.High);
 
