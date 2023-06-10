@@ -8,7 +8,7 @@
 <!-- <Metalama> -->
 <PropertyGroup>
     <MetalamaBackstageVersion></MetalamaBackstageVersion>
-    <PostSharpEngineeringVersion>2023.2.3-preview</PostSharpEngineeringVersion>
+    <PostSharpEngineeringVersion>2023.2.6-preview</PostSharpEngineeringVersion>
 </PropertyGroup>
 
   <Import Project="..\eng-Metalama\MainVersion.props" />
