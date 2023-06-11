@@ -385,6 +385,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     OnSymbolUsage(memberReference.Member.OriginalDefinition, ValueUsageInfo.ReadWrite);
                     return;
                 }
+                else if (nameofArgument is IPropertyReferenceOperation propertyReference)
+                {
+                    OnSymbolUsage(propertyReference.Property.OriginalDefinition, ValueUsageInfo.ReadWrite);
+                    return;
+                }
 
                 // Workaround for https://github.com/dotnet/roslyn/issues/19965
                 // IOperation API does not expose potential references to methods/properties within
@@ -394,10 +399,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 {
                     switch (symbol.Kind)
                     {
-                        // Handle potential references to methods/properties from missing IOperation
-                        // for method group/property group.
-                        case SymbolKind.Method:
                         case SymbolKind.Property:
+                            Debug.Fail("Properties should have already been processed as IPropertyReferenceOperation above");
+                            break;
+                        // Handle potential references to methods from missing IOperation
+                        // for method group.
+                        case SymbolKind.Method:
                             OnSymbolUsage(symbol.OriginalDefinition, ValueUsageInfo.ReadWrite);
                             break;
                     }
