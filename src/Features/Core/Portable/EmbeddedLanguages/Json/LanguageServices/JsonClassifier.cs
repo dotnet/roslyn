@@ -197,7 +197,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
             public void Visit(JsonCommaValueNode node)
             {
-                // already handled when we recurse in AddTokenClassifications
+                // Already handled when we recurse in AddTokenClassifications.  Specifically, commas show up both as
+                // nodes (with tokens in them) in error recovery scenarios, and also just as tokens in a separated list.
+                // So, to handle both, we just handle the token case in AddTokenClassifications.
             }
         }
     }
