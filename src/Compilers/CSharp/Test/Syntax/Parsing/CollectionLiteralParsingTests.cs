@@ -2420,20 +2420,24 @@ class C
     [Fact]
     public void CastVersusIndexAmbiguity1()
     {
+        // As a non-generic expression, we assume that `(type)` is an expression, and we are indexing into it.
         UsingExpression("(type)[1, 2, 3]");
 
-        N(SyntaxKind.CastExpression);
+        N(SyntaxKind.ElementAccessExpression);
         {
-            N(SyntaxKind.OpenParenToken);
-            N(SyntaxKind.IdentifierName);
+            N(SyntaxKind.ParenthesizedExpression);
             {
-                N(SyntaxKind.IdentifierToken, "type");
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "type");
+                }
+                N(SyntaxKind.CloseParenToken);
             }
-            N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.BracketedArgumentList);
             {
                 N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.ExpressionElement);
+                N(SyntaxKind.Argument);
                 {
                     N(SyntaxKind.NumericLiteralExpression);
                     {
@@ -2441,7 +2445,7 @@ class C
                     }
                 }
                 N(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
+                N(SyntaxKind.Argument);
                 {
                     N(SyntaxKind.NumericLiteralExpression);
                     {
@@ -2449,7 +2453,7 @@ class C
                     }
                 }
                 N(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
+                N(SyntaxKind.Argument);
                 {
                     N(SyntaxKind.NumericLiteralExpression);
                     {
@@ -3067,6 +3071,889 @@ class C
                         N(SyntaxKind.IdentifierToken, "A");
                     }
                     N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.BracketedArgumentList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity12()
+    {
+        UsingExpression("(int[]?)[1, 2, 3]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.NullableType);
+            {
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.OmittedArraySizeExpression);
+                        {
+                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity13()
+    {
+        UsingExpression("(int?[])[1, 2, 3]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.ArrayType);
+            {
+                N(SyntaxKind.NullableType);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.QuestionToken);
+                }
+                N(SyntaxKind.ArrayRankSpecifier);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.OmittedArraySizeExpression);
+                    {
+                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity14()
+    {
+        // Parenthesizing RHS should make this a cast.
+        UsingExpression("(type)([1, 2, 3])");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "type");
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CollectionCreationExpression);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.ExpressionElement);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.ExpressionElement);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.ExpressionElement);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "3");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity15()
+    {
+        UsingExpression("(alias::type)[1, 2, 3]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.AliasQualifiedName);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "alias");
+                }
+                N(SyntaxKind.ColonColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "type");
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity16()
+    {
+        // something that starts looking like an array, but isn't.
+        UsingExpression("(a[b])[1, 2, 3]");
+
+        N(SyntaxKind.ElementAccessExpression);
+        {
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ElementAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.BracketedArgumentList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.BracketedArgumentList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity17()
+    {
+        // Something that starts looking nullable, but isn't.
+        UsingExpression("(a ? b : c)[1, 2, 3]");
+
+        N(SyntaxKind.ElementAccessExpression);
+        {
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ConditionalExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.BracketedArgumentList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity18()
+    {
+        // something that starts looking like a pointer, but isn't.
+        UsingExpression("(a * b)[1, 2, 3]");
+
+        N(SyntaxKind.ElementAccessExpression);
+        {
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.MultiplyExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.AsteriskToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.BracketedArgumentList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity19()
+    {
+        // something that starts looking generic, but isn't.
+        UsingExpression("(a < b > c)[1, 2, 3]");
+
+        N(SyntaxKind.ElementAccessExpression);
+        {
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.GreaterThanExpression);
+                {
+                    N(SyntaxKind.LessThanExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.BracketedArgumentList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity20()
+    {
+        UsingExpression("(alias::type.member)[1, 2, 3]");
+
+        N(SyntaxKind.ElementAccessExpression);
+        {
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.SimpleMemberAccessExpression);
+                {
+                    N(SyntaxKind.AliasQualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "alias");
+                        }
+                        N(SyntaxKind.ColonColonToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "type");
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "member");
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.BracketedArgumentList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity21()
+    {
+        UsingExpression("(alias::type<int>)[1, 2, 3]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.AliasQualifiedName);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "alias");
+                }
+                N(SyntaxKind.ColonColonToken);
+                N(SyntaxKind.GenericName);
+                {
+                    N(SyntaxKind.IdentifierToken, "type");
+                    N(SyntaxKind.TypeArgumentList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity22()
+    {
+        UsingExpression("(alias::type.type2<int>)[1, 2, 3]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.QualifiedName);
+            {
+                N(SyntaxKind.AliasQualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "alias");
+                    }
+                    N(SyntaxKind.ColonColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "type");
+                    }
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.GenericName);
+                {
+                    N(SyntaxKind.IdentifierToken, "type2");
+                    N(SyntaxKind.TypeArgumentList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity23()
+    {
+        UsingExpression("(A[])[0]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.ArrayType);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.ArrayRankSpecifier);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.OmittedArraySizeExpression);
+                    {
+                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "0");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity24()
+    {
+        UsingExpression("(A)[]",
+            // (1,5): error CS0443: Syntax error; value expected
+            // (A)[]
+            Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 5));
+
+        N(SyntaxKind.ElementAccessExpression);
+        {
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.BracketedArgumentList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                M(SyntaxKind.Argument);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity25()
+    {
+        UsingExpression("(A[])[]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.ArrayType);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.ArrayRankSpecifier);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.OmittedArraySizeExpression);
+                    {
+                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity26()
+    {
+        UsingExpression("((int, int))[]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.TupleType);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.TupleElement);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.TupleElement);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity27()
+    {
+        UsingExpression("(a < b > . c)[1, 2, 3]");
+
+        N(SyntaxKind.ElementAccessExpression);
+        {
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.SimpleMemberAccessExpression);
+                {
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
                 }
                 N(SyntaxKind.CloseParenToken);
             }

@@ -11665,14 +11665,26 @@ done:;
                         SyntaxKind.MinusToken or
                         SyntaxKind.AmpersandToken or
                         SyntaxKind.AsteriskToken or
-                        SyntaxKind.DotDotToken => true,
-                        var tk => CanFollowCast(tk)
+                        SyntaxKind.DotDotToken
+                            => true,
+
+                        var tk
+                            => CanFollowCast(tk)
                     };
 
                 case ScanTypeFlags.GenericTypeOrMethod:
+                case ScanTypeFlags.TupleType:
+                    // If we have `(X<Y>)[...` then we know this must be a cast of a collection literal, not an index
+                    // into some expr. As most collections are generic, the common case is not ambiguous.
+                    //
+                    // Things are still ambiguous if you have `(X)[...` and for back compat we still parse that as
+                    // indexing into an expression.  The user can still write `(X)([...` in this case though to get cast
+                    // parsing. As non-generic casts are the rare case for collection literals, this gives a good
+                    // balance of back compat and user ease for the normal case.
+                    return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken || CanFollowCast(this.CurrentToken.Kind);
+
                 case ScanTypeFlags.GenericTypeOrExpression:
                 case ScanTypeFlags.NonGenericTypeOrExpression:
-                case ScanTypeFlags.TupleType:
                     // check for ambiguous type or expression followed by disambiguating token.  i.e.
                     //
                     // "(A)b" is a cast.  But "(A)+b" is not a cast.  
@@ -11899,9 +11911,7 @@ done:;
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.PlusPlusToken:
                 case SyntaxKind.MinusMinusToken:
-                // PROTOTYPE: We allow `(X)[...]` as a cast of a collection expression.  This could break existing
-                // code like (A.B.C)[0].
-                // case SyntaxKind.OpenBracketToken:
+                case SyntaxKind.OpenBracketToken:
                 case SyntaxKind.DotToken:
                 case SyntaxKind.MinusGreaterThanToken:
                 case SyntaxKind.QuestionQuestionToken:
