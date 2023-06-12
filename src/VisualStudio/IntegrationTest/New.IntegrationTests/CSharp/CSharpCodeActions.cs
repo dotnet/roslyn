@@ -1458,5 +1458,61 @@ public class Program
 
             AssertEx.EqualOrDiff(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
         }
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        public async Task TestRefactoringsAreSortedByPriority()
+        {
+            await SetUpEditorAsync(@"
+#pragma warning disable IDE0060 // Remove unused parameter
+class C
+{ 
+    public C(int x1, int $$x2, int x3)
+    {
+    }
+}", HangMitigatingCancellationToken);
+
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+
+            var expectedItems = new[]
+            {
+                "Create and assign property 'X2'",
+                "Create and assign field 'x2'",
+                "Create and assign remaining as properties",
+                "Create and assign remaining as fields",
+                "Change signature...",
+                "Wrap every parameter",
+                "Align wrapped parameters",
+                "Indent all parameters",
+                "Indent wrapped parameters",
+                "Unwrap and indent all parameters",
+            };
+
+            await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
+
+            await SetUpEditorAsync(@"
+#pragma warning disable IDE0060 // Remove unused parameter
+class C
+{ 
+    public C(int x1, int x2, int $$x3)
+    {
+    }
+}", HangMitigatingCancellationToken);
+
+            expectedItems = new[]
+            {
+                "Create and assign property 'X3'",
+                "Create and assign field 'x3'",
+                "Create and assign remaining as properties",
+                "Create and assign remaining as fields",
+                "Change signature...",
+                "Wrap every parameter",
+                "Align wrapped parameters",
+                "Indent all parameters",
+                "Indent wrapped parameters",
+                "Unwrap and indent all parameters",
+            };
+
+            await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
+        }
     }
 }
