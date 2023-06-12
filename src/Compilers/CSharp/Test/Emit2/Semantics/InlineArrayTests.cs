@@ -6448,7 +6448,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0]").WithArguments("Buffer10<int>").WithLocation(14, 37)
                 );
 
-
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
