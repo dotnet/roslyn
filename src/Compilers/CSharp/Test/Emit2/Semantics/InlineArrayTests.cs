@@ -1861,6 +1861,111 @@ public struct Buffer
             CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
+        [Fact]
+        public void Access_ArgumentType_01()
+        {
+            var src = @"
+class C
+{
+    public static implicit operator int(C x) => 0;
+    public static implicit operator System.Index(C x) => 0;
+    public static implicit operator System.Range(C x) => 0..;
+}
+
+
+class Program
+{
+    static void Main(Buffer10<int> b, C c)
+    {
+        _ = b[c];
+    }
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var c = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(m => m.Identifier.ValueText == "c").Single();
+            Assert.Equal("b[c]", c.Parent.Parent.Parent.ToString());
+
+            var typeInfo = model.GetTypeInfo(c);
+
+            Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Access_ArgumentType_02()
+        {
+            var src = @"
+class C
+{
+    public static implicit operator System.Index(C x) => 0;
+    public static implicit operator System.Range(C x) => 0..;
+}
+
+
+class Program
+{
+    static void Main(Buffer10<int> b, C c)
+    {
+        _ = b[c];
+    }
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var c = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(m => m.Identifier.ValueText == "c").Single();
+            Assert.Equal("b[c]", c.Parent.Parent.Parent.ToString());
+
+            var typeInfo = model.GetTypeInfo(c);
+
+            Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Index", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Access_ArgumentType_03()
+        {
+            var src = @"
+class C
+{
+    public static implicit operator System.Range(C x) => 0..;
+}
+
+
+class Program
+{
+    static void Main(Buffer10<int> b, C c)
+    {
+        _ = b[c];
+    }
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var c = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(m => m.Identifier.ValueText == "c").Single();
+            Assert.Equal("b[c]", c.Parent.Parent.Parent.ToString());
+
+            var typeInfo = model.GetTypeInfo(c);
+
+            Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Range", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
         [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Variable_01()
         {
@@ -1941,22 +2046,31 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[0]").WithArguments("inline arrays").WithLocation(19, 28)
                 );
 
-#if false // PROTOTYPE(InlineArrays):
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
-            var m1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M1").Single();
-            var m1Operation = model.GetOperation(m1);
-            VerifyOperationTree(comp, m1Operation,
-@"
-");
+            var f = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(m => m.Identifier.ValueText == "F").First();
+            Assert.Equal("x.F[0]", f.Parent.Parent.ToString());
 
-            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            var m2Operation = model.GetOperation(m2);
-            VerifyOperationTree(comp, m2Operation,
-@"
-");
-#endif
+            var typeInfo = model.GetTypeInfo(f);
+
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var symbolInfo = model.GetSymbolInfo(f);
+
+            Assert.Equal("Buffer10<System.Int32> C.F", symbolInfo.Symbol.ToTestDisplayString());
+
+            var access = f.Parent.Parent;
+            typeInfo = model.GetTypeInfo(access);
+
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            symbolInfo = model.GetSymbolInfo(access);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -4592,6 +4706,21 @@ class Program
                 //     static void M2(C x) => x.F[^10] = 111;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[^10]").WithArguments("inline arrays").WithLocation(19, 28)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var f = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(m => m.Identifier.ValueText == "F").First();
+            Assert.Equal("x.F[^10]", f.Parent.Parent.ToString());
+
+            var typeInfo = model.GetTypeInfo(f);
+
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var symbolInfo = model.GetSymbolInfo(f);
+
+            Assert.Equal("Buffer10<System.Int32> C.F", symbolInfo.Symbol.ToTestDisplayString());
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -4718,16 +4847,31 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[..5]").WithArguments("inline arrays").WithLocation(19, 40)
                 );
 
-#if false // PROTOTYPE(InlineArrays):
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
-            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            var m2Operation = model.GetOperation(m2);
-            VerifyOperationTree(comp, m2Operation,
-@"
-");
-#endif
+            var f = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(m => m.Identifier.ValueText == "F").Last();
+            Assert.Equal("x.F[..5]", f.Parent.Parent.ToString());
+
+            var typeInfo = model.GetTypeInfo(f);
+
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var symbolInfo = model.GetSymbolInfo(f);
+
+            Assert.Equal("Buffer10<System.Int32> C.F", symbolInfo.Symbol.ToTestDisplayString());
+
+            var access = f.Parent.Parent;
+            typeInfo = model.GetTypeInfo(access);
+
+            Assert.Equal("System.Span<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            symbolInfo = model.GetSymbolInfo(access);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -6304,16 +6448,20 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0]").WithArguments("Buffer10<int>").WithLocation(14, 37)
                 );
 
-#if false // PROTOTYPE(InlineArrays):
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
-            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            var m2Operation = model.GetOperation(m2);
-            VerifyOperationTree(comp, m2Operation,
-@"
-");
-#endif
+            var f = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Last().Left;
+            Assert.Equal("[0]", f.ToString());
+
+            var typeInfo = model.GetTypeInfo(f);
+
+            Assert.True(typeInfo.Type.IsErrorType());
+
+            var symbolInfo = model.GetSymbolInfo(f);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -6365,17 +6513,6 @@ public struct Buffer10<T>
   IL_0013:  ret
 }
 ");
-
-#if false // PROTOTYPE(InlineArrays):
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-
-            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            var m2Operation = model.GetOperation(m2);
-            VerifyOperationTree(comp, m2Operation,
-@"
-");
-#endif
         }
 
         [Fact]
@@ -6406,17 +6543,6 @@ class Program
                 //     static C M2() => new C() { F = {[^10] = 111} };
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "[^10]").WithArguments("Buffer10<int>").WithLocation(14, 37)
                 );
-
-#if false // PROTOTYPE(InlineArrays):
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-
-            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            var m2Operation = model.GetOperation(m2);
-            VerifyOperationTree(comp, m2Operation,
-@"
-");
-#endif
         }
 
         [Fact]
@@ -6461,17 +6587,6 @@ public struct Buffer10<T>
                 //     static C M2() => new C() { F = {[^10] = 111} };
                 Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "[^10]").WithArguments("[^10]").WithLocation(14, 37)
                 );
-
-#if false // PROTOTYPE(InlineArrays):
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-
-            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            var m2Operation = model.GetOperation(m2);
-            VerifyOperationTree(comp, m2Operation,
-@"
-");
-#endif
         }
 
         [Fact]
@@ -6502,17 +6617,6 @@ class Program
                 //     static C M2() => new C() { F = {[0..1] = 111} };
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0..1]").WithArguments("Buffer10<int>").WithLocation(14, 37)
                 );
-
-#if false // PROTOTYPE(InlineArrays):
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-
-            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            var m2Operation = model.GetOperation(m2);
-            VerifyOperationTree(comp, m2Operation,
-@"
-");
-#endif
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -6579,17 +6683,6 @@ class Program
                 //     static int? M2(C c) => c?.F[0];
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, ".F[0]").WithArguments("inline arrays").WithLocation(16, 30)
                 );
-
-#if false // PROTOTYPE(InlineArrays):
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-
-            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            var m2Operation = model.GetOperation(m2);
-            VerifyOperationTree(comp, m2Operation,
-@"
-");
-#endif
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -6647,17 +6740,6 @@ class Program
   IL_0033:  ret
 }
 ");
-
-#if false // PROTOTYPE(InlineArrays):
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-
-            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            var m2Operation = model.GetOperation(m2);
-            VerifyOperationTree(comp, m2Operation,
-@"
-");
-#endif
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -6717,17 +6799,6 @@ class Program
   IL_0037:  ret
 }
 ");
-
-#if false // PROTOTYPE(InlineArrays):
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-
-            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            var m2Operation = model.GetOperation(m2);
-            VerifyOperationTree(comp, m2Operation,
-@"
-");
-#endif
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -6945,17 +7016,6 @@ class Program
                 //     static int? M2(C c) => c.F?[..5][0];
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "c.F?").WithLocation(17, 28)
                 );
-
-#if false // PROTOTYPE(InlineArrays):
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-
-            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            var m2Operation = model.GetOperation(m2);
-            VerifyOperationTree(comp, m2Operation,
-@"
-");
-#endif
         }
 
         [Fact]
@@ -7129,15 +7189,31 @@ class Program
 }
 ");
 
-            // PROTOTYPE(InlineArrays)
-            //var tree = comp.SyntaxTrees.First();
-            //var model = comp.GetSemanticModel(tree);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            //            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            //            var m2Operation = model.GetOperation(m2);
-            //            VerifyOperationTree(comp, m2Operation,
-            //@"
-            //");
+            var m3 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(m => m.Identifier.ValueText == "M3").Single().Parent;
+            Assert.Equal("M3()[0]", m3.Parent.ToString());
+
+            var typeInfo = model.GetTypeInfo(m3);
+
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var symbolInfo = model.GetSymbolInfo(m3);
+
+            Assert.Equal("Buffer10<System.Int32> Program.M3()", symbolInfo.Symbol.ToTestDisplayString());
+
+            var access = m3.Parent;
+            typeInfo = model.GetTypeInfo(access);
+
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            symbolInfo = model.GetSymbolInfo(access);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -7193,16 +7269,6 @@ class Program
   IL_0026:  ret
 }
 ");
-
-            // PROTOTYPE(InlineArrays)
-            //var tree = comp.SyntaxTrees.First();
-            //var model = comp.GetSemanticModel(tree);
-
-            //            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            //            var m2Operation = model.GetOperation(m2);
-            //            VerifyOperationTree(comp, m2Operation,
-            //@"
-            //");
         }
 
         [Fact]
@@ -7371,16 +7437,6 @@ class Program
   IL_0021:  ret
 }
 ");
-
-            // PROTOTYPE(InlineArrays)
-            //var tree = comp.SyntaxTrees.First();
-            //var model = comp.GetSemanticModel(tree);
-
-            //            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            //            var m2Operation = model.GetOperation(m2);
-            //            VerifyOperationTree(comp, m2Operation,
-            //@"
-            //");
         }
 
         [Fact]
@@ -7436,15 +7492,20 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "M3()").WithLocation(9, 27)
                 );
 
-            // PROTOTYPE(InlineArrays)
-            //var tree = comp.SyntaxTrees.First();
-            //var model = comp.GetSemanticModel(tree);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            //            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            //            var m2Operation = model.GetOperation(m2);
-            //            VerifyOperationTree(comp, m2Operation,
-            //@"
-            //");
+            var m3 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(m => m.Identifier.ValueText == "M3").Single();
+            Assert.Equal("M3()[..]", m3.Parent.Parent.ToString());
+
+            var typeInfo = model.GetTypeInfo(m3.Parent);
+
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var symbolInfo = model.GetSymbolInfo(m3.Parent);
+
+            Assert.Equal("Buffer10<System.Int32> Program.M3()", symbolInfo.Symbol.ToTestDisplayString());
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -7494,16 +7555,6 @@ class Program
   IL_0017:  ret
 }
 ");
-
-            // PROTOTYPE(InlineArrays)
-            //            var tree = comp.SyntaxTrees.First();
-            //            var model = comp.GetSemanticModel(tree);
-
-            //            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            //            var m2Operation = model.GetOperation(m2);
-            //            VerifyOperationTree(comp, m2Operation,
-            //@"
-            //");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -7557,16 +7608,6 @@ class Program
   IL_0017:  ret
 }
 ");
-
-            // PROTOTYPE(InlineArrays)
-            //            var tree = comp.SyntaxTrees.First();
-            //            var model = comp.GetSemanticModel(tree);
-
-            //            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            //            var m2Operation = model.GetOperation(m2);
-            //            VerifyOperationTree(comp, m2Operation,
-            //@"
-            //");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -7624,16 +7665,6 @@ class Program
   IL_001b:  ret
 }
 ");
-
-            // PROTOTYPE(InlineArrays)
-            //            var tree = comp.SyntaxTrees.First();
-            //            var model = comp.GetSemanticModel(tree);
-
-            //            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            //            var m2Operation = model.GetOperation(m2);
-            //            VerifyOperationTree(comp, m2Operation,
-            //@"
-            //");
         }
 
         [Fact]
@@ -8894,6 +8925,32 @@ class Program
   IL_0017:  ret
 }
 ");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var f = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(m => m.Identifier.ValueText == "F").Last();
+            Assert.Equal("c.F[0]", f.Parent.Parent.ToString());
+
+            var typeInfo = model.GetTypeInfo(f);
+
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var symbolInfo = model.GetSymbolInfo(f);
+
+            Assert.Equal("Buffer10<System.Int32> C.F", symbolInfo.Symbol.ToTestDisplayString());
+
+            var access = f.Parent.Parent;
+            typeInfo = model.GetTypeInfo(access);
+
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            symbolInfo = model.GetSymbolInfo(access);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -9499,6 +9556,32 @@ class Program
   IL_0017:  ret
 }
 ");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var f = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(m => m.Identifier.ValueText == "F").Last();
+            Assert.Equal("c.F[..5]", f.Parent.Parent.ToString());
+
+            var typeInfo = model.GetTypeInfo(f);
+
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var symbolInfo = model.GetSymbolInfo(f);
+
+            Assert.Equal("Buffer10<System.Int32> C.F", symbolInfo.Symbol.ToTestDisplayString());
+
+            var access = f.Parent.Parent;
+            typeInfo = model.GetTypeInfo(access);
+
+            Assert.Equal("System.ReadOnlySpan<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.ReadOnlySpan<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            symbolInfo = model.GetSymbolInfo(access);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -13148,16 +13231,24 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F").WithArguments("inline arrays").WithLocation(19, 40)
                 );
 
-#if false // PROTOTYPE(InlineArrays):
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
-            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            var m2Operation = model.GetOperation(m2);
-            VerifyOperationTree(comp, m2Operation,
-@"
-");
-#endif
+            var f = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(m => m.Identifier.ValueText == "F").ToArray();
+
+            Assert.Equal("=> x.F", f[^2].Parent.Parent.ToString());
+            var typeInfo = model.GetTypeInfo(f[^2]);
+
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.ReadOnlySpan<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.InlineArray, model.GetConversion(f[^2]).Kind);
+
+            Assert.Equal("=> x.F", f[^1].Parent.Parent.ToString());
+            typeInfo = model.GetTypeInfo(f[^1]);
+
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.InlineArray, model.GetConversion(f[^1]).Kind);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -14427,15 +14518,17 @@ class Program
                 Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "M3()").WithArguments("System.Span<int>").WithLocation(23, 27)
                 );
 
-            // PROTOTYPE(InlineArrays)
-            //var tree = comp.SyntaxTrees.First();
-            //var model = comp.GetSemanticModel(tree);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
 
-            //            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            //            var m2Operation = model.GetOperation(m2);
-            //            VerifyOperationTree(comp, m2Operation,
-            //@"
-            //");
+            var m3 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(m => m.Identifier.ValueText == "M3").First().Parent;
+
+            Assert.Equal("M3()", m3.ToString());
+            var typeInfo = model.GetTypeInfo(m3);
+
+            Assert.Equal("Buffer10<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.ReadOnlySpan<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.InlineArray, model.GetConversion(m3).Kind);
         }
 
         [Fact]
@@ -16201,22 +16294,30 @@ class Program
   IL_002d:  ret
 }
 ");
-#if false // PROTOTYPE(InlineArrays):
+
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
-            var m1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M1").Single();
-            var m1Operation = model.GetOperation(m1);
-            VerifyOperationTree(comp, m1Operation,
-@"
-");
+            var f = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single().Expression;
+            Assert.Equal("x.F", f.ToString());
 
-            var m2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "M2").Single();
-            var m2Operation = model.GetOperation(m2);
-            VerifyOperationTree(comp, m2Operation,
-@"
-");
-#endif
+            var typeInfo = model.GetTypeInfo(f);
+
+            Assert.Equal("Buffer4<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("Buffer4<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(f).IsIdentity);
+
+            var forEachInfo = model.GetForEachStatementInfo((ForEachStatementSyntax)f.Parent);
+
+            Assert.False(forEachInfo.IsAsynchronous);
+            Assert.Equal("System.Span<System.Int32>.Enumerator System.Span<System.Int32>.GetEnumerator()", forEachInfo.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal("System.Boolean System.Span<System.Int32>.Enumerator.MoveNext()", forEachInfo.MoveNextMethod.ToTestDisplayString());
+            Assert.Equal("ref System.Int32 System.Span<System.Int32>.Enumerator.Current { get; }", forEachInfo.CurrentProperty.ToTestDisplayString());
+            Assert.Null(forEachInfo.DisposeMethod);
+            Assert.Equal("System.Int32", forEachInfo.ElementType.ToTestDisplayString());
+            Assert.True(forEachInfo.ElementConversion.IsIdentity);
+            Assert.True(forEachInfo.CurrentConversion.IsIdentity);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -16509,6 +16610,30 @@ class Program
   IL_0032:  ret
 }
 ");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var f = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single().Expression;
+            Assert.Equal("x.F", f.ToString());
+
+            var typeInfo = model.GetTypeInfo(f);
+
+            Assert.Equal("Buffer4<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("Buffer4<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(f).IsIdentity);
+
+            var forEachInfo = model.GetForEachStatementInfo((ForEachStatementSyntax)f.Parent);
+
+            Assert.False(forEachInfo.IsAsynchronous);
+            Assert.Equal("System.ReadOnlySpan<System.Int32>.Enumerator System.ReadOnlySpan<System.Int32>.GetEnumerator()", forEachInfo.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal("System.Boolean System.ReadOnlySpan<System.Int32>.Enumerator.MoveNext()", forEachInfo.MoveNextMethod.ToTestDisplayString());
+            Assert.Equal("ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32 System.ReadOnlySpan<System.Int32>.Enumerator.Current { get; }", forEachInfo.CurrentProperty.ToTestDisplayString());
+            Assert.Null(forEachInfo.DisposeMethod);
+            Assert.Equal("System.Int32", forEachInfo.ElementType.ToTestDisplayString());
+            Assert.True(forEachInfo.ElementConversion.IsIdentity);
+            Assert.True(forEachInfo.CurrentConversion.IsIdentity);
         }
 
         [Fact]
@@ -16799,6 +16924,30 @@ class Program
   IL_003f:  ret
 }
 ");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var collection = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single().Expression;
+            Assert.Equal("GetBuffer(x)", collection.ToString());
+
+            var typeInfo = model.GetTypeInfo(collection);
+
+            Assert.Equal("Buffer4<System.Int32>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("Buffer4<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(collection).IsIdentity);
+
+            var forEachInfo = model.GetForEachStatementInfo((ForEachStatementSyntax)collection.Parent);
+
+            Assert.False(forEachInfo.IsAsynchronous);
+            Assert.Equal("System.ReadOnlySpan<System.Int32>.Enumerator System.ReadOnlySpan<System.Int32>.GetEnumerator()", forEachInfo.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal("System.Boolean System.ReadOnlySpan<System.Int32>.Enumerator.MoveNext()", forEachInfo.MoveNextMethod.ToTestDisplayString());
+            Assert.Equal("ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32 System.ReadOnlySpan<System.Int32>.Enumerator.Current { get; }", forEachInfo.CurrentProperty.ToTestDisplayString());
+            Assert.Null(forEachInfo.DisposeMethod);
+            Assert.Equal("System.Int32", forEachInfo.ElementType.ToTestDisplayString());
+            Assert.True(forEachInfo.ElementConversion.IsIdentity);
+            Assert.True(forEachInfo.CurrentConversion.IsIdentity);
         }
 
         [Fact]
