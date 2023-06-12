@@ -4504,9 +4504,25 @@ oneMoreTime:
 
                 if (info?.GetEnumeratorMethod != null)
                 {
+                    IOperation? collection = info.GetEnumeratorMethod.IsStatic ? null : Visit(operation.Collection);
+
+                    if (collection is not null && info.InlineArrayConversion is { } inlineArrayConversion)
+                    {
+                        if (info.CollectionIsInlineArrayValue)
+                        {
+                            // We cannot convert a value to a span, need to make a local copy and convert that.
+                            int localCopyCaptureId = GetNextCaptureId(enumeratorCaptureRegion);
+                            AddStatement(new FlowCaptureOperation(localCopyCaptureId, operation.Collection.Syntax, collection));
+
+                            collection = new FlowCaptureReferenceOperation(localCopyCaptureId, operation.Collection.Syntax, collection.Type, constantValue: null);
+                        }
+
+                        collection = applyConversion(inlineArrayConversion, collection, info.GetEnumeratorMethod.ContainingType);
+                    }
+
                     IOperation invocation = makeInvocation(operation.Collection.Syntax,
                                                            info.GetEnumeratorMethod,
-                                                           info.GetEnumeratorMethod.IsStatic ? null : Visit(operation.Collection),
+                                                           collection,
                                                            info.GetEnumeratorArguments);
 
                     int enumeratorCaptureId = GetNextCaptureId(enumeratorCaptureRegion);
