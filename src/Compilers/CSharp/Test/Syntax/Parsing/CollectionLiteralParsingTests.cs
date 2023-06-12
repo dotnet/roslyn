@@ -4169,6 +4169,61 @@ class C
     }
 
     [Fact]
+    public void CastVersusIndexAmbiguity30()
+    {
+        UsingExpression("(ImmutableArray<List<Int32>>)[[1]]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.GenericName);
+            {
+                N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                N(SyntaxKind.TypeArgumentList);
+                {
+                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "List");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Int32");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.CollectionCreationExpression);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.ExpressionElement);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
     public void SpreadOfQuery()
     {
         UsingExpression("[.. from x in y select x]");
