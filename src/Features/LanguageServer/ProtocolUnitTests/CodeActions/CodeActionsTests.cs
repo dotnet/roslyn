@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                     CSharpAnalyzersResources.Use_implicit_type,
                     caretLocation,
                     customTags: new[] { PredefinedCodeRefactoringProviderNames.UseImplicitType }),
-                priority: VSInternalPriorityLevel.Low,
+                priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn1",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null);
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                     FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     caretLocation),
                 priority: VSInternalPriorityLevel.Normal,
-                groupName: "Roslyn3",
+                groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 12 }, End = new Position { Line = 4, Character = 12 } },
                 diagnostics: null);
 
