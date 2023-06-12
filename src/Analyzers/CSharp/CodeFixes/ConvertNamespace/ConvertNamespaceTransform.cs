@@ -175,8 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 return null;
 
             // if this line is inside a string-literal or interpolated-text-content, then we definitely do not want to
-            // touch what is inside there.  Note: this will not apply to raw-string literals, which can potentially be
-            // dedented safely depending on the position of their close terminator.
+            // touch what is inside there.  Note: this will not apply to raw-string literals, which can be indented
+            // safely.
             if (tree.IsEntirelyWithinStringLiteral(textLine.Span.Start, cancellationToken))
                 return null;
 
@@ -339,18 +339,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         private static NamespaceDeclarationSyntax ConvertFileScopedNamespace(ParsedDocument document, FileScopedNamespaceDeclarationSyntax fileScopedNamespace, string lineEnding, NewLinePlacement newLinePlacement)
         {
-            var nameSyntax = fileScopedNamespace.Name.WithAppendedTrailingTrivia(fileScopedNamespace.SemicolonToken.LeadingTrivia);
-            SyntaxToken openBraceToken;
-            if (newLinePlacement.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes))
-            {
-                nameSyntax = nameSyntax.WithAppendedTrailingTrivia(SyntaxFactory.EndOfLine(lineEnding));
-                openBraceToken = SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithoutLeadingTrivia().WithTrailingTrivia(fileScopedNamespace.SemicolonToken.TrailingTrivia);
-            }
-            else
-            {
-                nameSyntax = nameSyntax.WithAppendedTrailingTrivia(SyntaxFactory.Space);
-                openBraceToken = SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithoutLeadingTrivia().WithTrailingTrivia(fileScopedNamespace.SemicolonToken.TrailingTrivia);
-            }
+            var nameSyntax = fileScopedNamespace.Name.WithAppendedTrailingTrivia(fileScopedNamespace.SemicolonToken.LeadingTrivia)
+                .WithAppendedTrailingTrivia(newLinePlacement.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes) ? SyntaxFactory.EndOfLine(lineEnding) : SyntaxFactory.Space);
+            var openBraceToken = SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithoutLeadingTrivia().WithTrailingTrivia(fileScopedNamespace.SemicolonToken.TrailingTrivia);
 
             if (openBraceToken.TrailingTrivia is not [.., { RawKind: (int)SyntaxKind.EndOfLineTrivia }])
             {
