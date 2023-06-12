@@ -1497,7 +1497,7 @@ class C
     {
     }
 }", HangMitigatingCancellationToken);
-            
+
             expectedItems = new[]
             {
                 "Create and assign property 'X3'",
