@@ -84,9 +84,9 @@ namespace BuildValidator
             rootCommand.SetAction(parseResult =>
             {
                 return HandleCommand(
-                    assembliesPath: parseResult.GetValue(assembliesPath),
+                    assembliesPath: parseResult.GetValue(assembliesPath)!,
                     exclude: parseResult.GetValue(exclude),
-                    sourcePath: parseResult.GetValue(source),
+                    sourcePath: parseResult.GetValue(source)!,
                     referencesPath: parseResult.GetValue(referencesPath),
                     verbose: parseResult.GetValue(verbose),
                     quiet: parseResult.GetValue(quiet),
