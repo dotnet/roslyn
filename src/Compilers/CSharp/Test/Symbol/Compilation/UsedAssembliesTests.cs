@@ -3732,7 +3732,6 @@ public class C2
 }
 ");
 
-            // Support for `using unsafe static` tracked by https://github.com/dotnet/roslyn/issues/67329
             verifyDiagnostics(comp0Ref, comp1Ref,
 @"
 using static C1<S<C0>*[]>;
@@ -3757,7 +3756,6 @@ public class C2
                 //         _ = E1.F1 + 1;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E1.F1 + 1").WithLocation(7, 13));
 
-            // Support for `using unsafe static` tracked by https://github.com/dotnet/roslyn/issues/67329
             verifyDiagnostics(comp0Ref, comp1Ref,
 @"
 using static C1<S<C0>*[]>.E1;
