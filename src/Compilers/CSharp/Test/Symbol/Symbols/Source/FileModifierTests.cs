@@ -4169,29 +4169,29 @@ public class FileModifierTests : CSharpTestBase
         var source1 = """
             using System.Collections.Generic;
 
-            file interface IFoo
+            file interface I
             {
-                IReadOnlyDictionary<int, string> Bar { get; }
+                IReadOnlyDictionary<int, string> P { get; }
             }
 
-            internal partial class Foo : IFoo
+            internal partial class C : I
             {
-                private readonly Dictionary<int, string> _bar = new() { { 1, "one" }, { 2, "two" } };
-                IReadOnlyDictionary<int, string> IFoo.Bar => _bar;
+                private readonly Dictionary<int, string> _p = new() { { 1, "one" }, { 2, "two" } };
+                IReadOnlyDictionary<int, string> I.P => _p;
             }
             """;
 
         var source2 = """
             using System.Collections.Generic;
 
-            file interface IFoo
+            file interface I
             {
-                IReadOnlyDictionary<int, string> Bar { get; }
+                IReadOnlyDictionary<int, string> P { get; }
             }
 
-            internal partial class Foo : IFoo
+            internal partial class C : I
             {
-                IReadOnlyDictionary<int, string> IFoo.Bar => _bar;
+                IReadOnlyDictionary<int, string> I.P => _p;
             }
             """;
 
