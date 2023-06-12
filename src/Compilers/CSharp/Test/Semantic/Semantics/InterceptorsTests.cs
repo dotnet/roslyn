@@ -3466,7 +3466,6 @@ partial struct CustomHandler
 
             class C
             {
-
                 public static void M(int lineNumber) => throw null!;
             }
 
