@@ -323,6 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This is case 1. Let the standard machinery handle it
                 return false;
             }
+
             var partsArrayBuilder = ArrayBuilder<ImmutableArray<BoundExpression>>.GetInstance();
 
             if (!binaryOperator.VisitBinaryOperatorInterpolatedString(
@@ -344,9 +345,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(partsArrayBuilder.Count >= 2);
 
-            if (partsArrayBuilder.Count <= 4 && partsArrayBuilder.All(static parts => AllInterpolatedStringPartsAreStrings(parts)))
+            int count = 0;
+            bool allPartsAreStrings = true;
+
+            foreach (var parts in partsArrayBuilder)
             {
-                // This is case 2. Let the standard machinery handle it
+                count += parts.Length;
+                allPartsAreStrings &= AllInterpolatedStringPartsAreStrings(parts);
+                if (count > 4 || !allPartsAreStrings)
+                {
+                    break;
+                }
+            }
+
+            if (count <= 4 && allPartsAreStrings)
+            {
+                // Case 2. Let the standard machinery handle it.
                 partsArrayBuilder.Free();
                 return false;
             }
