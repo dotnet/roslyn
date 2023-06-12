@@ -4203,40 +4203,40 @@ public class FileModifierTests : CSharpTestBase
     public void PartialExplicitImplementation_04()
     {
         var source1 = """
-            file interface IFoo
+            file interface I
             {
-                int Bar { get; }
+                int P { get; }
             }
 
-            internal partial class Foo : IFoo
+            internal partial class C : I
             {
             }
             """;
 
         var source2 = """
-            file interface IFoo
+            file interface I
             {
-                int Bar { get; }
+                int P { get; }
             }
 
-            internal partial class Foo : IFoo
+            internal partial class C : I
             {
-                int IFoo.Bar => 1;
-                int IFoo.Bar => 2;
+                int I.P => 1;
+                int I.P => 2;
             }
             """;
 
         var comp = CreateCompilation(new[] { (source1, "F1.cs"), (source2, "F2.cs") });
         comp.VerifyDiagnostics(
-            // F1.cs(6,24): error CS8646: 'IFoo.Bar' is explicitly implemented more than once.
-            // internal partial class Foo : IFoo
-            Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "Foo").WithArguments("IFoo.Bar").WithLocation(6, 24),
-            // F1.cs(6,30): error CS0535: 'Foo' does not implement interface member 'IFoo.Bar'
-            // internal partial class Foo : IFoo
-            Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo").WithArguments("Foo", "IFoo.Bar").WithLocation(6, 30),
-            // F2.cs(9,14): error CS0102: The type 'Foo' already contains a definition for '<F2>F141A34209AF0D3C8CA844A7D9A360C895EB14E557F17D27626C519D9BE96AF4A__IFoo.Bar'
-            //     int IFoo.Bar => 2;
-            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Bar").WithArguments("Foo", "<F2>F141A34209AF0D3C8CA844A7D9A360C895EB14E557F17D27626C519D9BE96AF4A__IFoo.Bar").WithLocation(9, 14));
+            // F1.cs(6,24): error CS8646: 'I.P' is explicitly implemented more than once.
+            // internal partial class C : I
+            Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C").WithArguments("I.P").WithLocation(6, 24),
+            // F1.cs(6,28): error CS0535: 'C' does not implement interface member 'I.P'
+            // internal partial class C : I
+            Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.P").WithLocation(6, 28),
+            // F2.cs(9,11): error CS0102: The type 'C' already contains a definition for '<F2>F141A34209AF0D3C8CA844A7D9A360C895EB14E557F17D27626C519D9BE96AF4A__I.P'
+            //     int I.P => 2;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "<F2>F141A34209AF0D3C8CA844A7D9A360C895EB14E557F17D27626C519D9BE96AF4A__I.P").WithLocation(9, 11));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68219")]
