@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.CommandLine;
-using System.CommandLine.Builder;
-using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -27,20 +25,41 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
     {
         public static Task Main(string[] args)
         {
-            var generateCommand = new RootCommand("generates an LSIF file")
+            var solution = new CliOption<FileInfo>("--solution") { Description = "input solution file" }.AcceptExistingOnly();
+            var project = new CliOption<FileInfo>("--project") { Description = "input project file" }.AcceptExistingOnly();
+            var compilerInvocation = new CliOption<FileInfo>("--compiler-invocation") { Description = "path to a .json file that contains the information for a csc/vbc invocation" }.AcceptExistingOnly();
+            var binLog = new CliOption<FileInfo>("--binlog") { Description = "path to a MSBuild binlog that csc/vbc invocations will be extracted from" }.AcceptExistingOnly();
+            var output = new CliOption<string?>("--output") { Description = "file to write the LSIF output to, instead of the console", DefaultValueFactory = _ => null };
+            output.AcceptLegalFilePathsOnly();
+            var outputFormat = new CliOption<LsifFormat>("--output-format") { Description = "format of LSIF output", DefaultValueFactory = _ => LsifFormat.Line };
+            var log = new CliOption<string?>("--log") { Description = "file to write a log to", DefaultValueFactory = _ => null };
+            log.AcceptLegalFilePathsOnly();
+
+            var generateCommand = new CliRootCommand("generates an LSIF file")
             {
-                new Option("--solution", "input solution file") { Argument = new Argument<FileInfo>().ExistingOnly() },
-                new Option("--project", "input project file") { Argument = new Argument<FileInfo>().ExistingOnly() },
-                new Option("--compiler-invocation", "path to a .json file that contains the information for a csc/vbc invocation") { Argument = new Argument<FileInfo>().ExistingOnly() },
-                new Option("--binlog", "path to a MSBuild binlog that csc/vbc invocations will be extracted from") { Argument = new Argument<FileInfo>().ExistingOnly() },
-                new Option("--output", "file to write the LSIF output to, instead of the console") { Argument = new Argument<string?>(defaultValue: () => null).LegalFilePathsOnly() },
-                new Option("--output-format", "format of LSIF output") { Argument = new Argument<LsifFormat>(defaultValue: () => LsifFormat.Line) },
-                new Option("--log", "file to write a log to") { Argument = new Argument<string?>(defaultValue: () => null).LegalFilePathsOnly() }
+                solution,
+                project,
+                compilerInvocation,
+                binLog,
+                output,
+                outputFormat,
+                log
             };
 
-            generateCommand.Handler = CommandHandler.Create((Func<FileInfo?, FileInfo?, FileInfo?, FileInfo?, string?, LsifFormat, string?, Task>)GenerateAsync);
+            generateCommand.SetAction((parseResult, cancellationToken) =>
+            {
+                return GenerateAsync(
+                    solution: parseResult.GetValue(solution),
+                    project: parseResult.GetValue(project),
+                    compilerInvocation: parseResult.GetValue(compilerInvocation),
+                    binLog: parseResult.GetValue(binLog),
+                    output: parseResult.GetValue(output),
+                    outputFormat: parseResult.GetValue(outputFormat),
+                    log: parseResult.GetValue(log),
+                    cancellationToken);
+            });
 
-            return generateCommand.InvokeAsync(args);
+            return generateCommand.Parse(args).InvokeAsync(CancellationToken.None);
         }
 
         private static async Task GenerateAsync(
@@ -50,7 +69,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             FileInfo? binLog,
             string? output,
             LsifFormat outputFormat,
-            string? log)
+            string? log,
+            CancellationToken cancellationToken)
         {
             // If we have an output file, we'll write to that, else we'll use Console.Out
             using var outputFile = output != null ? new StreamWriter(output, append: false, Encoding.UTF8) : null;
@@ -73,8 +93,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 LsifFormat.Line => new LineModeLsifJsonWriter(outputWriter),
                 _ => throw new NotImplementedException()
             };
-
-            var cancellationToken = CancellationToken.None;
 
             try
             {
@@ -115,10 +133,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             }
             catch (Exception e)
             {
-                // If it failed, write out to the logs and error, but propagate the error too
+                // If it failed, write out to the logs, but propagate the error too
                 var message = "Unhandled exception: " + e.ToString();
                 await logFile.WriteLineAsync(message);
-                Console.Error.WriteLine(message);
+                // System.CommandLine is going to catch the exception and log it in standard error
                 throw;
             }
 
