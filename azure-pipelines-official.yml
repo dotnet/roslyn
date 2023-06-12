@@ -317,8 +317,9 @@ stages:
         command: push
         packagesToPush: '$(Build.SourcesDirectory)\artifacts\LanguageServer\*.nupkg'
         allowPackageConflicts: false
+        feedsToUse: select
         nuGetFeedType: external
-        publishFeedCredentials: 'DevDiv - VS package feed'
+        publishFeedCredentials: 'azure-public/vs-impl'
       condition: succeeded()
 
     # Publish language server package
