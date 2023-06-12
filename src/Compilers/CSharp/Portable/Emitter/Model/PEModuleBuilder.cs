@@ -1742,6 +1742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
             {
                 // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                Debug.Assert(false); // PROTOTYPE: Test this code path.
                 return null;
             }
 

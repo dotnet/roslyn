@@ -41,7 +41,10 @@ namespace Microsoft.CodeAnalysis
         //       It is used internally during lowering. 
         //       Consider that when adding values or changing this enum in some other way.
 
-        RefReadOnlyParameter = 5,
+        /// <summary>
+        /// Indicates a "ref readonly" parameter.
+        /// </summary>
+        RefReadOnlyParameter = 5, // PROTOTYPE: Change to 4 to make public values sequential.
     }
 
     internal static class RefKindExtensions
