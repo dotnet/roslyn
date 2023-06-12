@@ -152,6 +152,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/vscode-csharp/issues/5740")]
+        public async Task TestGotoDefinitionPartialMethods(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                using System;
+
+                public partial class C
+                {
+                    partial void {|caret:|}P();
+                }
+
+                public partial class C
+                {
+                    partial void {|definition:P|}()
+                    {
+                        Console.WriteLine(");
+                    }
+                }
+                """;
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+        }
+
         private static async Task<LSP.Location[]> RunGotoDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName,
