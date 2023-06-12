@@ -842,6 +842,11 @@
         <target state="translated">Методы доступа "init" не могут быть помечены как доступные только для чтения. Вместо них пометьте "{0}" как доступные только для чтения.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayBadIndex">
+        <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
+        <target state="new">Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayConversionToReadOnlySpanNotSupported">
         <source>Cannot convert expression to '{0}' because it may not be passed or returned by reference</source>
         <target state="new">Cannot convert expression to '{0}' because it may not be passed or returned by reference</target>
@@ -1120,6 +1125,11 @@
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single partial type declaration may have a parameter list</source>
         <target state="translated">Только отдельное объявление разделяемого типа может содержать список параметров</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NamedArgumentForInlineArray">
+        <source>An inline array access may not have a named argument specifier</source>
+        <target state="new">An inline array access may not have a named argument specifier</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">

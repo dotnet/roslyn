@@ -7538,4 +7538,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RuntimeDoesNotSupportInlineArrayTypes" xml:space="preserve">
     <value>Target runtime doesn't support inline array types.</value>
   </data>
+  <data name="ERR_InlineArrayBadIndex" xml:space="preserve">
+    <value>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</value>
+  </data>
+  <data name="ERR_NamedArgumentForInlineArray" xml:space="preserve">
+    <value>An inline array access may not have a named argument specifier</value>
+  </data>
 </root>

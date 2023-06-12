@@ -9796,11 +9796,10 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(SafeFixedSizeBuffer): The wording is somewhat misleading. Adjust?
             comp.VerifyDiagnostics(
-                // (12,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10<int>'
+                // (12,13): error CS9509: Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.
                 //         _ = x.F[0, 1];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "x.F[0, 1]").WithArguments("Buffer10<int>").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_InlineArrayBadIndex, "x.F[0, 1]").WithLocation(12, 13)
                 );
         }
 
@@ -9824,11 +9823,10 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(SafeFixedSizeBuffer): The wording is somewhat misleading. Adjust?
             comp.VerifyDiagnostics(
-                // (12,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10<int>'
+                // (12,13): error CS9509: Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.
                 //         _ = x.F["a"];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, @"x.F[""a""]").WithArguments("Buffer10<int>").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_InlineArrayBadIndex, @"x.F[""a""]").WithLocation(12, 13)
                 );
         }
 
@@ -9851,11 +9849,10 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(InlineArrays): Adjust wording of the message?
             comp.VerifyDiagnostics(
-                // (11,13): error CS1742: An array access may not have a named argument specifier
+                // (11,13): error CS9510: An inline array access may not have a named argument specifier
                 //         _ = x.F[x: 1];
-                Diagnostic(ErrorCode.ERR_NamedArgumentForArray, "x.F[x: 1]").WithLocation(11, 13)
+                Diagnostic(ErrorCode.ERR_NamedArgumentForInlineArray, "x.F[x: 1]").WithLocation(11, 13)
                 );
         }
 

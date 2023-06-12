@@ -7983,15 +7983,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics = BindingDiagnosticBag.Discarded;
             }
 
+            bool tryInlineArrayAccess = false;
+
             if (allowInlineArrayElementAccess &&
                 !InAttributeArgument && !InParameterDefaultValue && // These checks prevent cycles caused by attribute binding when HasInlineArrayAttribute check triggers that.
-                expr.Type.HasInlineArrayAttribute(out int length) && analyzedArguments.Arguments.Count == 1 && expr.Type.TryGetInlineArrayElementField() is FieldSymbol elementField &&
-                tryImplicitConversionToInlineArrayIndex(node, analyzedArguments.Arguments[0], diagnostics, out WellKnownType indexOrRangeWellknownType) is { } convertedIndex)
+                expr.Type.HasInlineArrayAttribute(out int length) && expr.Type.TryGetInlineArrayElementField() is FieldSymbol elementField)
             {
-                return bindInlineArrayElementAccess(node, expr, length, analyzedArguments, convertedIndex, indexOrRangeWellknownType, elementField, diagnostics);
+                tryInlineArrayAccess = true;
+
+                if (analyzedArguments.Arguments.Count == 1 &&
+                    tryImplicitConversionToInlineArrayIndex(node, analyzedArguments.Arguments[0], diagnostics, out WellKnownType indexOrRangeWellknownType) is { } convertedIndex)
+                {
+                    return bindInlineArrayElementAccess(node, expr, length, analyzedArguments, convertedIndex, indexOrRangeWellknownType, elementField, diagnostics);
+                }
             }
 
-            return BindElementAccessCore(node, expr, analyzedArguments, diagnostics);
+            BindingDiagnosticBag diagnosticsForBindElementAccessCore = diagnostics;
+
+            if (tryInlineArrayAccess && diagnostics.AccumulatesDiagnostics)
+            {
+                diagnosticsForBindElementAccessCore = BindingDiagnosticBag.GetInstance(diagnostics);
+            }
+
+            BoundExpression result = BindElementAccessCore(node, expr, analyzedArguments, diagnosticsForBindElementAccessCore);
+
+            if (diagnosticsForBindElementAccessCore != diagnostics)
+            {
+                Debug.Assert(tryInlineArrayAccess);
+                Debug.Assert(diagnosticsForBindElementAccessCore.DiagnosticBag is { });
+
+                if (diagnosticsForBindElementAccessCore.DiagnosticBag.AsEnumerableWithoutResolution().AsSingleton() is
+                    { Code: (int)ErrorCode.ERR_BadIndexLHS, Arguments: [TypeSymbol type] } && type.Equals(expr.Type, TypeCompareKind.ConsiderEverything))
+                {
+                    diagnosticsForBindElementAccessCore.DiagnosticBag.Clear();
+                    Error(diagnosticsForBindElementAccessCore, ErrorCode.ERR_InlineArrayBadIndex, node.Location);
+                }
+
+                diagnostics.AddRangeAndFree(diagnosticsForBindElementAccessCore);
+            }
+
+            return result;
 
             BoundExpression tryImplicitConversionToInlineArrayIndex(ExpressionSyntax node, BoundExpression index, BindingDiagnosticBag diagnostics, out WellKnownType indexOrRangeWellknownType)
             {
@@ -8037,7 +8068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (analyzedArguments.Names.Count > 0)
                 {
-                    Error(diagnostics, ErrorCode.ERR_NamedArgumentForArray, node);
+                    Error(diagnostics, ErrorCode.ERR_NamedArgumentForInlineArray, node);
                 }
 
                 ReportRefOrOutArgument(analyzedArguments, diagnostics);
