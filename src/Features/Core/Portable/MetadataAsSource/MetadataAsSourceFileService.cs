@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// Set of providers that can be used to generate source for a symbol (for example, by decompiling, or by
         /// extracting it from a pdb).
         /// </summary>
-        private readonly ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> _providers;
+        private readonly Lazy<ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>>> _lazyProviders;
 
         /// <summary>
         /// Workspace created the first time we generate any metadata for any symbol.
@@ -53,7 +53,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> providers)
         {
-            _providers = ExtensionOrderer.Order(providers).ToImmutableArray();
+            // PERF: Avoid eagerly ordering the providers in the constructor.
+            _lazyProviders = new Lazy<ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>>>(
+                () => ExtensionOrderer.Order(providers).ToImmutableArray());
             _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
         }
 
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 // We don't want to track telemetry for signatures only requests, only where we try to show source
                 using var telemetryMessage = signaturesOnly ? null : new TelemetryMessage(cancellationToken);
 
-                foreach (var lazyProvider in _providers)
+                foreach (var lazyProvider in _lazyProviders.Value)
                 {
                     var provider = lazyProvider.Value;
                     var providerTempPath = Path.Combine(tempPath, provider.GetType().Name);
@@ -133,7 +135,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 AssertIsMainThread(workspace);
 
-                foreach (var provider in _providers)
+                foreach (var provider in _lazyProviders.Value)
                 {
                     if (!provider.IsValueCreated)
                         continue;
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 AssertIsMainThread(workspace);
 
-                foreach (var provider in _providers)
+                foreach (var provider in _lazyProviders.Value)
                 {
                     if (!provider.IsValueCreated)
                         continue;
@@ -192,7 +194,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             AssertIsMainThread(workspace);
 
-            foreach (var provider in _providers)
+            foreach (var provider in _lazyProviders.Value)
             {
                 if (!provider.IsValueCreated)
                     continue;
@@ -211,7 +213,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             Project? project = null;
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                foreach (var provider in _providers)
+                foreach (var provider in _lazyProviders.Value)
                 {
                     if (!provider.IsValueCreated)
                         continue;
@@ -252,7 +254,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 var workspace = _workspace;
                 if (workspace != null)
                 {
-                    foreach (var provider in _providers)
+                    foreach (var provider in _lazyProviders.Value)
                     {
                         if (!provider.IsValueCreated)
                             continue;
