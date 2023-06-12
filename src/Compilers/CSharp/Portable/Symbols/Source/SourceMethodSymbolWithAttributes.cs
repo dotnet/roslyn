@@ -986,6 +986,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            Debug.Assert(_lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed);
+            var unmanagedCallersOnly = this.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
+            if (unmanagedCallersOnly != null)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly, attributeLocation);
+                return;
+            }
+
             var syntaxTrees = DeclaringCompilation.SyntaxTrees;
             var matchingTrees = DeclaringCompilation.GetSyntaxTreesByMappedPath(attributeFilePath);
             if (matchingTrees.Count == 0)

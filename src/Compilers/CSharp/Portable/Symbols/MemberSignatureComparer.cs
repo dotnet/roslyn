@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false,
             considerRefKindDifferences: true,
             considerArity: false,
-            typeComparison: TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames);
+            typeComparison: TypeCompareKind.AllNullableIgnoreOptions);
 
         /// <summary>
         /// This instance is used to check whether one member overrides another, according to the C# definition.
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool considerTypeConstraints,
             bool considerCallingConvention,
             bool considerRefKindDifferences,
-            bool considerArity = true, // PROTOTYPE(ic): remove default value?
+            bool considerArity = true,
             TypeCompareKind typeComparison = TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreNativeIntegers)
         {
             Debug.Assert(!considerExplicitlyImplementedInterfaces || considerName, "Doesn't make sense to consider interfaces separately from name.");

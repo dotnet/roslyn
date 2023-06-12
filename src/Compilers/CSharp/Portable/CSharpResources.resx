@@ -7592,4 +7592,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterceptorCannotInterceptNameof" xml:space="preserve">
     <value>A nameof operator cannot be intercepted.</value>
   </data>
+  <data name="ERR_InterceptorCannotUseUnmanagedCallersOnly" xml:space="preserve">
+    <value>An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</value>
+  </data>
 </root>

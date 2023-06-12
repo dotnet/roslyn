@@ -44,16 +44,16 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer
         "CS8984", // ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
         "CS9026", // ErrorCode.ERR_CannotBeConvertedToUtf8:
         "CS9068", // ErrorCode.ERR_FileTypeNonUniquePath:
-        "CS27007", // ErrorCode.ERR_InterceptorSignatureMismatch
-        "CS27011", // ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter
-        "CS27012", // ErrorCode.ERR_InterceptorMustNotHaveThisParameter
-        "CS27016", // ErrorCode.ERR_DuplicateInterceptor
-        "CS27017", // ErrorCode.WRN_InterceptorSignatureMismatch,
-        "CS27018", // ErrorCode.ERR_InterceptorNotAccessible
-        "CS27019", // ErrorCode.ERR_InterceptorScopedMismatch
-        "CS27021", // ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor
-        "CS27022", // ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor
-        "CS27023" // ErrorCode.ERR_InterceptorCannotInterceptNameof
+        "CS9144", // ErrorCode.ERR_InterceptorSignatureMismatch
+        "CS9148", // ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter
+        "CS9149", // ErrorCode.ERR_InterceptorMustNotHaveThisParameter
+        "CS9153", // ErrorCode.ERR_DuplicateInterceptor
+        "CS9154", // ErrorCode.WRN_InterceptorSignatureMismatch,
+        "CS9155", // ErrorCode.ERR_InterceptorNotAccessible
+        "CS9156", // ErrorCode.ERR_InterceptorScopedMismatch
+        "CS9158", // ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor
+        "CS9159", // ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor
+        "CS9160" // ErrorCode.ERR_InterceptorCannotInterceptNameof
         )]
     internal sealed class CSharpLspBuildOnlyDiagnostics : ILspBuildOnlyDiagnostics
     {

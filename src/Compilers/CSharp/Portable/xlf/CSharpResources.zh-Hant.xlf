@@ -857,6 +857,11 @@
         <target state="new">A nameof operator cannot be intercepted.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotUseUnmanagedCallersOnly">
+        <source>An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</source>
+        <target state="new">An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorCharacterOutOfRange">
         <source>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</source>
         <target state="new">The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</target>
