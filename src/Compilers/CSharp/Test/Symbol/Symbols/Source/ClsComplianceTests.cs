@@ -3801,6 +3801,7 @@ class Test
         }
 
         [Fact]
+        [WorkItem(741718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/741718")]
         [WorkItem(68526, "https://github.com/dotnet/roslyn/issues/68526")]
         public void WRN_CLS_ArrayArgumentToAttribute_Inaccessible()
         {
