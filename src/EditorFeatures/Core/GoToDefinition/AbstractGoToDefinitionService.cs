@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var builder);
             foreach (var impl in interfaceImpls)
             {
-                builder.AddRange(await GoToDefinitionHelpers.GetDefinitionsAsync(
+                builder.AddRange(await GoToDefinitionFeatureHelpers.GetDefinitionsAsync(
                     impl, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(false));
             }
 
