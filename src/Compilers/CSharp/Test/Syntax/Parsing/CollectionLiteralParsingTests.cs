@@ -3818,12 +3818,34 @@ class C
     }
 
     [Fact]
-    public void CastVersusIndexAmbiguity24()
+    public void CastVersusIndexAmbiguity24_A()
     {
-        UsingExpression("(A)[]",
-            // (1,5): error CS0443: Syntax error; value expected
-            // (A)[]
-            Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 5));
+        UsingExpression("(A)[]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "A");
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity24_B()
+    {
+        // PROTOTYPE: No errors here syntactically.  But user will likely get one semantically.
+        //
+        // We may want a dedicated error to tell them to parenthesize the brackets if they're trying to cast this as a list.
+        UsingExpression("(A)[1]");
 
         N(SyntaxKind.ElementAccessExpression);
         {
@@ -3839,11 +3861,101 @@ class C
             N(SyntaxKind.BracketedArgumentList);
             {
                 N(SyntaxKind.OpenBracketToken);
-                M(SyntaxKind.Argument);
+                N(SyntaxKind.Argument);
                 {
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.NumericLiteralExpression);
                     {
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity24_C()
+    {
+        // PROTOTYPE: This is not a great diagnostic.  Users could easily run into this and be confused.  Can we do
+        // better.  For example:
+        //
+        // 1. tell them we think this is an indexer, and `1:2` isn't a valid argument.
+        // 2. tell them to parenthesize the brackets if they're trying to cast this as a list.
+        UsingExpression("(A)[1:2]",
+            // (1,6): error CS1003: Syntax error, ',' expected
+            // (A)[1:2]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 6),
+            // (1,7): error CS1003: Syntax error, ',' expected
+            // (A)[1:2]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",").WithLocation(1, 7));
+
+        N(SyntaxKind.ElementAccessExpression);
+        {
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.BracketedArgumentList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                M(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity24_D()
+    {
+        // PROTOTYPE: No errors here syntactically.  But user will likely get one semantically.
+        //
+        // We may want a dedicated error to tell them to parenthesize the brackets if they're trying to cast this as a list.
+        UsingExpression("(A)[..NotARange]");
+
+        N(SyntaxKind.ElementAccessExpression);
+        {
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.BracketedArgumentList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.RangeExpression);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "NotARange");
+                        }
                     }
                 }
                 N(SyntaxKind.CloseBracketToken);

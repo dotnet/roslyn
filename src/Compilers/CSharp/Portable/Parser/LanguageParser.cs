@@ -11685,6 +11685,14 @@ done:;
 
                 case ScanTypeFlags.GenericTypeOrExpression:
                 case ScanTypeFlags.NonGenericTypeOrExpression:
+                    // if we have `(A)[]` then treat that always as a cast of an empty collection literal.  `[]` is not
+                    // legal on the RHS in any other circumstances for a parenthesized expr.
+                    if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken &&
+                        this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken)
+                    {
+                        return true;
+                    }
+
                     // check for ambiguous type or expression followed by disambiguating token.  i.e.
                     //
                     // "(A)b" is a cast.  But "(A)+b" is not a cast.  
