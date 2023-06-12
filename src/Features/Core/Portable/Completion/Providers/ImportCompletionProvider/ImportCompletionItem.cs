@@ -15,7 +15,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal static class ImportCompletionItem
     {
-        private const string SortTextFormat = "{0} {1}";
+        // Note the additional space as prefix to the System namespace,
+        // to make sure items from System.* get sorted ahead.
+        private const string OtherNamespaceSortTextFormat = "{0} {1}";
+        private const string SystemNamespaceSortTextFormat = "{0}  {1}";
 
         private const string TypeAritySuffixName = nameof(TypeAritySuffixName);
         private const string AttributeFullName = nameof(AttributeFullName);
@@ -63,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // but from different namespace all show up in the list, it also makes sure item with shorter name shows first, 
             // e.g. 'SomeType` before 'SomeTypeWithLongerName'. 
             var sortTextBuilder = PooledStringBuilder.GetInstance();
-            sortTextBuilder.Builder.AppendFormat(SortTextFormat, name, containingNamespace);
+            sortTextBuilder.Builder.AppendFormat(GetSortTextFormatString(containingNamespace), name, containingNamespace);
 
             var item = CompletionItem.Create(
                  displayText: name,
@@ -93,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var newProperties = attributeItem.Properties.Add(AttributeFullName, attributeItem.DisplayText);
 
             var sortTextBuilder = PooledStringBuilder.GetInstance();
-            sortTextBuilder.Builder.AppendFormat(SortTextFormat, attributeNameWithoutSuffix, attributeItem.InlineDescription);
+            sortTextBuilder.Builder.AppendFormat(GetSortTextFormatString(attributeItem.InlineDescription), attributeNameWithoutSuffix, attributeItem.InlineDescription);
 
             var item = CompletionItem.Create(
                  displayText: attributeNameWithoutSuffix,
@@ -108,6 +111,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             item.Flags = flags;
             return item;
+        }
+
+        private static string GetSortTextFormatString(string containingNamespace)
+        {
+            if (containingNamespace == "System" || containingNamespace.StartsWith("System."))
+                return SystemNamespaceSortTextFormat;
+
+            return OtherNamespaceSortTextFormat;
         }
 
         public static CompletionItem CreateItemWithGenericDisplaySuffix(CompletionItem item, string genericTypeSuffix)

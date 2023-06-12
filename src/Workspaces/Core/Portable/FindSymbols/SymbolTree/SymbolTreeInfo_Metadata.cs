@@ -99,13 +99,36 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// cref="GetMetadataChecksum"/>).  Can be provided if already computed.  If not provided it will be computed
         /// and used for the <see cref="SymbolTreeInfo"/>.</param>
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-        public static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        public static ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             Checksum? checksum,
             CancellationToken cancellationToken)
         {
-            checksum ??= GetMetadataChecksum(solution.Services, reference, cancellationToken);
+            return GetInfoForMetadataReferenceAsync(
+                solution.Services,
+                SolutionKey.ToSolutionKey(solution),
+                reference,
+                checksum,
+                cancellationToken);
+        }
+
+        /// <summary>
+        /// Produces a <see cref="SymbolTreeInfo"/> for a given <see cref="PortableExecutableReference"/>.
+        /// Note:  will never return null;
+        /// </summary>
+        /// <param name="checksum">Optional checksum for the <paramref name="reference"/> (produced by <see
+        /// cref="GetMetadataChecksum"/>).  Can be provided if already computed.  If not provided it will be computed
+        /// and used for the <see cref="SymbolTreeInfo"/>.</param>
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
+        public static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+            SolutionServices solutionServices,
+            SolutionKey solutionKey,
+            PortableExecutableReference reference,
+            Checksum? checksum,
+            CancellationToken cancellationToken)
+        {
+            checksum ??= GetMetadataChecksum(solutionServices, reference, cancellationToken);
 
             if (s_peReferenceToInfo.TryGetValue(reference, out var infoTask))
             {
@@ -115,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return await GetInfoForMetadataReferenceSlowAsync(
-                solution.Services, SolutionKey.ToSolutionKey(solution), reference, checksum, cancellationToken).ConfigureAwait(false);
+                solutionServices, solutionKey, reference, checksum, cancellationToken).ConfigureAwait(false);
 
             static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceSlowAsync(
                 SolutionServices services,
@@ -330,7 +353,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     _checksum, unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
                 // Return all the metadata nodes back to the pool so that they can be
                 // used for the next PEReference we read.
@@ -483,7 +506,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private void LookupMetadataDefinitions(
+            private readonly void LookupMetadataDefinitions(
                 MetadataReader metadataReader,
                 NamespaceDefinition namespaceDefinition,
                 OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap)
@@ -548,7 +571,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private void PopulateInheritance(
+            private readonly void PopulateInheritance(
                 MetadataReader metadataReader,
                 string derivedTypeSimpleName,
                 EntityHandle baseTypeOrInterfaceHandle)
@@ -584,7 +607,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private void AddBaseTypeNameParts(
+            private readonly void AddBaseTypeNameParts(
                 MetadataReader metadataReader,
                 EntityHandle baseTypeOrInterfaceHandle,
                 List<string> simpleNames)
@@ -600,7 +623,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private void AddTypeDefinitionNameParts(
+            private readonly void AddTypeDefinitionNameParts(
                 MetadataReader metadataReader,
                 TypeDefinitionHandle handle,
                 List<string> simpleNames)
@@ -657,7 +680,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private void AddNamespaceParts(
+            private readonly void AddNamespaceParts(
                 MetadataReader metadataReader,
                 NamespaceDefinitionHandle namespaceHandle,
                 List<string> simpleNames)
@@ -699,7 +722,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private void EnsureParentsAndChildren(List<string> simpleNames)
+            private readonly void EnsureParentsAndChildren(List<string> simpleNames)
             {
                 var currentNode = _rootNode;
 
@@ -710,7 +733,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private MetadataNode GetOrCreateChildNode(
+            private readonly MetadataNode GetOrCreateChildNode(
                MetadataNode currentNode, string simpleName)
             {
                 if (_parentToChildren.TryGetValue(currentNode, static (childNode, simpleName) => childNode.Name == simpleName, simpleName, out var childNode))
@@ -727,7 +750,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return newChildNode;
             }
 
-            private ImmutableArray<BuilderNode> GenerateUnsortedNodes(MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap)
+            private readonly ImmutableArray<BuilderNode> GenerateUnsortedNodes(MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap)
             {
                 var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
                 unsortedNodes.Add(BuilderNode.RootNode);
@@ -736,7 +759,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return unsortedNodes.ToImmutableAndFree();
             }
 
-            private void AddUnsortedNodes(ArrayBuilder<BuilderNode> unsortedNodes,
+            private readonly void AddUnsortedNodes(ArrayBuilder<BuilderNode> unsortedNodes,
                 MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap,
                 MetadataNode parentNode,
                 int parentIndex,

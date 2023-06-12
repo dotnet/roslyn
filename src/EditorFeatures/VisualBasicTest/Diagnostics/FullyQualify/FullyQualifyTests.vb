@@ -288,7 +288,7 @@ Namespace [Namespace]
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestQualifierIsNOTEscapedWhenNamespaceMatchesKeywordButIsNested(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -311,7 +311,7 @@ Namespace Outer
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
         Public Async Function TestFullyQualifyInImportsStatement(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Imports [|InnerNamespace|]
@@ -356,7 +356,7 @@ Namespace SomeNamespace
 End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         Public Async Function TestCaseSensitivityForNestedNamespace(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -383,7 +383,7 @@ Namespace SomeNamespace
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
         Public Async Function TestCaseSensitivity1(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -528,7 +528,7 @@ Module Program
 End Module", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestEscaping1(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -551,7 +551,7 @@ Namespace Outer
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestEscaping2(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -574,7 +574,7 @@ Namespace [Namespace]
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestEscaping3(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -597,7 +597,7 @@ Namespace Outer
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
         Public Async Function TestInImport(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Imports [|InnerNamespace|]
@@ -616,7 +616,7 @@ Namespace SomeNamespace
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         Public Async Function TestCaseInsensitivity(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Class GOo
@@ -643,7 +643,7 @@ Namespace SomeNamespace
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540706")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540706")>
         Public Async Function TestStandaloneMethod(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "'Class [Class] 
@@ -658,7 +658,7 @@ End Sub
 End Class")
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         Public Async Function TestMissingOnBoundFieldType(testHost As TestHost) As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -670,7 +670,7 @@ Class A
 End Class", New TestParameters(testHost:=testHost))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         Public Async Function TestMissingOnBoundLocalType(testHost As TestHost) As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -682,7 +682,7 @@ Class A
 End Class", New TestParameters(testHost:=testHost))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(540745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
         Public Async Function TestCaseSensitivity2(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -709,7 +709,7 @@ Namespace OUTER
 End Namespace", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(821292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821292")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821292")>
         Public Async Function TestCaseSensitivity3(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -726,7 +726,7 @@ Module Program
 End Module", testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(545993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545993")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545993")>
         Public Async Function TestNotOnNamedArgument(testHost As TestHost) As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -736,7 +736,7 @@ End Module", testHost:=testHost)
 End Module", New TestParameters(testHost:=testHost))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(546107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546107")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546107")>
         Public Async Function TestDoNotQualifyNestedTypeOfGenericType(testHost As TestHost) As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -768,7 +768,7 @@ End Module</Text>.Value.Replace(vbLf, vbCrLf),
 End Module</Text>.Value.Replace(vbLf, vbCrLf), testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
         Public Async Function TestShouldTriggerOnBC32045(testHost As TestHost) As Task
             ' BC32045: 'A' has no type parameters and so cannot have type arguments.
             Await TestInRegularAndScriptAsync(
@@ -788,7 +788,7 @@ Module Program
 End Module</Text>.Value.Replace(vbLf, vbCrLf), testHost:=testHost)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")>
         Public Async Function TestAmbiguousTypeFix(testHost As TestHost) As Task
             Await TestInRegularAndScriptAsync(
 <Text>Imports N1
@@ -838,7 +838,7 @@ End Namespace</Text>.Value.Replace(vbLf, vbCrLf), testHost:=testHost)
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-            <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
+            <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
             Public Async Function TestUnknownIdentifierInAttributeSyntaxWithoutTarget() As Task
                 Await TestInRegularAndScriptAsync(
 "Module Program

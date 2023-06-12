@@ -380,5 +380,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Show_UI_as_dashboard_in_top_right As String =
             ServicesVSResources.Show_UI_as_dashboard_in_top_right
+
+        Public ReadOnly Property Document_Outline As String =
+            ServicesVSResources.Document_Outline
+
+        Public ReadOnly Property Option_Enable_document_outline_experimental_requires_restart As String =
+            ServicesVSResources.Enable_document_outline_experimental_requires_restart
     End Module
 End Namespace

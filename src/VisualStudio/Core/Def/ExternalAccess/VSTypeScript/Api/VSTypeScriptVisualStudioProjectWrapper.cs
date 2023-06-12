@@ -4,13 +4,14 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
 {
     internal sealed partial class VSTypeScriptVisualStudioProjectWrapper
     {
-        public VSTypeScriptVisualStudioProjectWrapper(VisualStudioProject underlyingObject)
+        public VSTypeScriptVisualStudioProjectWrapper(ProjectSystemProject underlyingObject)
             => Project = underlyingObject;
 
         public ProjectId Id => Project.Id;
@@ -39,6 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
         public void RemoveFromWorkspace()
             => Project.RemoveFromWorkspace();
 
-        internal VisualStudioProject Project { get; }
+        internal ProjectSystemProject Project { get; }
     }
 }

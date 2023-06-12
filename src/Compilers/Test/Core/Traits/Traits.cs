@@ -125,12 +125,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsMakeTypePartial = "CodeActions.MakeTypePartial";
             public const string CodeActionsMakeFieldReadonly = "CodeActions.MakeFieldReadonly";
             public const string CodeActionsMakeLocalFunctionStatic = "CodeActions.MakeLocalFunctionStatic";
+            public const string CodeActionsMakeMemberRequired = "CodeActions.MakeMemberRequired";
             public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";
             public const string CodeActionsMakeMethodSynchronous = "CodeActions.MakeMethodSynchronous";
             public const string CodeActionsMakeRefStruct = "CodeActions.MakeRefStruct";
             public const string CodeActionsMakeStatementAsynchronous = "CodeActions.MakeStatementAsynchronous";
             public const string CodeActionsMakeStructFieldsWritable = "CodeActions.MakeStructFieldsWritable";
             public const string CodeActionsMakeStructReadOnly = "CodeActions.MakeStructReadOnly";
+            public const string CodeActionsMakeStructMemberReadOnly = "CodeActions.MakeStructMemberReadOnly";
             public const string CodeActionsMakeTypeAbstract = "CodeActions.MakeTypeAbstract";
             public const string CodeActionsMergeConsecutiveIfStatements = "CodeActions.MergeConsecutiveIfStatements";
             public const string CodeActionsMergeNestedIfStatements = "CodeActions.MergeNestedIfStatements";

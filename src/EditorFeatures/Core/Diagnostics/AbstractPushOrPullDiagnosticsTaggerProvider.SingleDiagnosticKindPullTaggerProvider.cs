@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -41,7 +42,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
 
         private readonly AbstractPushOrPullDiagnosticsTaggerProvider<TTag> _callback;
 
-        protected override ImmutableArray<IOption> Options => _callback.Options;
+        protected override ImmutableArray<IOption2> Options => _callback.Options;
 
         public SingleDiagnosticKindPullTaggerProvider(
             AbstractPushOrPullDiagnosticsTaggerProvider<TTag> callback,
@@ -96,7 +97,8 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
 
             var snapshot = documentSpanToTag.SnapshotSpan.Snapshot;
 
-            var workspace = document.Project.Solution.Workspace;
+            var project = document.Project;
+            var workspace = project.Solution.Workspace;
 
             // See if we've marked any spans as those we want to suppress diagnostics for.
             // This can happen for buffers used in the preview workspace where some feature

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         protected abstract bool NodeRequiresNonSpeculativeSemanticModel(SyntaxNode node);
 
         public abstract SimplifierOptions DefaultOptions { get; }
-        public abstract SimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options, SimplifierOptions? fallbackOptions);
+        public abstract SimplifierOptions GetSimplifierOptions(IOptionsReader options, SimplifierOptions? fallbackOptions);
 
         protected virtual SyntaxNode TransformReducedNode(SyntaxNode reducedNode, SyntaxNode originalNode)
             => reducedNode;

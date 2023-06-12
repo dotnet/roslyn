@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundTestDecisionDagNode n:
                     return Hash.Combine(n.Test.GetHashCode(), Hash.Combine(RuntimeHelpers.GetHashCode(n.WhenFalse), RuntimeHelpers.GetHashCode(n.WhenTrue)));
                 case BoundWhenDecisionDagNode n:
-                    // See https://github.com/dotnet/runtime/pull/31819 for why ! is temporarily required below.
-                    return Hash.Combine(RuntimeHelpers.GetHashCode(n.WhenExpression!), Hash.Combine(RuntimeHelpers.GetHashCode(n.WhenFalse!), RuntimeHelpers.GetHashCode(n.WhenTrue)));
+                    return Hash.Combine(RuntimeHelpers.GetHashCode(n.WhenExpression), Hash.Combine(RuntimeHelpers.GetHashCode(n.WhenFalse), RuntimeHelpers.GetHashCode(n.WhenTrue)));
                 case BoundLeafDecisionDagNode n:
                     return RuntimeHelpers.GetHashCode(n.Label);
                 default:

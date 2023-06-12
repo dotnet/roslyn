@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (_initialSourceOrRecoverableText is ITextAndVersionSource source)
             {
-                // replace initial source with recovarable text if it hasn't been replaced already:
+                // replace initial source with recoverable text if it hasn't been replaced already:
                 Interlocked.CompareExchange(
                     ref _initialSourceOrRecoverableText,
                     value: new RecoverableText(source, source.GetValue(options, cancellationToken), options, _services),
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (_initialSourceOrRecoverableText is ITextAndVersionSource source)
             {
-                // replace initial source with recovarable text if it hasn't been replaced already:
+                // replace initial source with recoverable text if it hasn't been replaced already:
                 Interlocked.CompareExchange(
                     ref _initialSourceOrRecoverableText,
                     value: new RecoverableText(source, await source.GetValueAsync(options, cancellationToken).ConfigureAwait(false), options, _services),
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis
             public ITemporaryTextStorageInternal? _storage;
 
             public RecoverableText(ITextAndVersionSource source, TextAndVersion textAndVersion, LoadTextOptions options, SolutionServices services)
-                : base(ValueSource.Constant(textAndVersion.Text))
+                : base(textAndVersion.Text)
             {
                 _storageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
 

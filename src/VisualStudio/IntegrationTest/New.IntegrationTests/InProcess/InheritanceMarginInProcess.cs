@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin;
@@ -27,41 +28,41 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
         public async Task EnableOptionsAsync(string languageName, CancellationToken cancellationToken)
         {
             var optionService = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            var showInheritanceMargin = optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, languageName);
-            var combinedWithIndicatorMargin = optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
-            var showGlobalUsings = optionService.GetOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName);
+            var showInheritanceMargin = optionService.GetOption(InheritanceMarginOptionsStorage.ShowInheritanceMargin, languageName);
+            var combinedWithIndicatorMargin = optionService.GetOption(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin);
+            var showGlobalUsings = optionService.GetOption(InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, languageName);
 
             if (showInheritanceMargin != true)
             {
-                optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.ShowInheritanceMargin, languageName), true);
+                optionService.SetGlobalOption(InheritanceMarginOptionsStorage.ShowInheritanceMargin, languageName, true);
             }
 
             if (!showGlobalUsings)
             {
-                optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName), true);
+                optionService.SetGlobalOption(InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, languageName, true);
             }
 
             if (combinedWithIndicatorMargin)
             {
                 // Glyphs in Indicator margin are owned by editor, and we don't know when the glyphs would be added/removed.
-                optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin), false);
+                optionService.SetGlobalOption(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin, false);
             }
         }
 
         public async Task DisableOptionsAsync(string languageName, CancellationToken cancellationToken)
         {
             var optionService = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            var showInheritanceMargin = optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, languageName);
-            var showGlobalUsings = optionService.GetOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName);
+            var showInheritanceMargin = optionService.GetOption(InheritanceMarginOptionsStorage.ShowInheritanceMargin, languageName);
+            var showGlobalUsings = optionService.GetOption(InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, languageName);
 
             if (showInheritanceMargin != false)
             {
-                optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.ShowInheritanceMargin, languageName), false);
+                optionService.SetGlobalOption(InheritanceMarginOptionsStorage.ShowInheritanceMargin, languageName, false);
             }
 
             if (showGlobalUsings)
             {
-                optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName), false);
+                optionService.SetGlobalOption(InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, languageName, false);
             }
         }
 

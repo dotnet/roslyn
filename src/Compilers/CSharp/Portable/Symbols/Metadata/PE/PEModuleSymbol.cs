@@ -106,7 +106,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NullableMemberMetadata _lazyNullableMemberMetadata;
 
-        private ThreeState _lazyUseUpdatedEscapeRules;
+        internal enum RefSafetyRulesAttributeVersion
+        {
+            Uninitialized = 0,
+            NoAttribute,
+            Version11,
+            UnrecognizedAttribute,
+        }
+
+        private RefSafetyRulesAttributeVersion _lazyRefSafetyRulesAttributeVersion;
 
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
@@ -823,22 +831,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             => GetCompilerFeatureRequiredDiagnostic()?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature || base.HasUnsupportedMetadata;
 
         internal override bool UseUpdatedEscapeRules
+            => RefSafetyRulesVersion == RefSafetyRulesAttributeVersion.Version11;
+
+        internal RefSafetyRulesAttributeVersion RefSafetyRulesVersion
         {
             get
             {
-                if (_lazyUseUpdatedEscapeRules == ThreeState.Unknown)
+                if (_lazyRefSafetyRulesAttributeVersion == RefSafetyRulesAttributeVersion.Uninitialized)
                 {
-                    bool value = CalculateUseUpdatedRules();
-                    _lazyUseUpdatedEscapeRules = value.ToThreeState();
+                    _lazyRefSafetyRulesAttributeVersion = getAttributeVersion();
                 }
-                return _lazyUseUpdatedEscapeRules == ThreeState.True;
-            }
-        }
+                return _lazyRefSafetyRulesAttributeVersion;
 
-        private bool CalculateUseUpdatedRules()
-        {
-            // [RefSafetyRules(version)], regardless of version.
-            return _module.HasRefSafetyRulesAttribute(Token, out _);
+                RefSafetyRulesAttributeVersion getAttributeVersion()
+                {
+                    if (_module.HasRefSafetyRulesAttribute(Token, out int version, out bool foundAttributeType))
+                    {
+                        return version == 11
+                            ? RefSafetyRulesAttributeVersion.Version11
+                            : RefSafetyRulesAttributeVersion.UnrecognizedAttribute;
+                    }
+                    return foundAttributeType
+                        ? RefSafetyRulesAttributeVersion.UnrecognizedAttribute
+                        : RefSafetyRulesAttributeVersion.NoAttribute;
+                }
+            }
         }
     }
 }

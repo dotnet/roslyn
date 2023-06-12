@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WorkItem(546337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546337")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546337")]
         [WpfFact]
         public void OpenParenthesisWithExistingCloseParen()
         {

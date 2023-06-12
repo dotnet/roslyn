@@ -13,7 +13,7 @@
     mc:Ignorable="d" d:DesignHeight="279" d:DesignWidth="514">
 
     <options:AbstractOptionPageControl.Resources>
-        <DataTemplate DataType="{x:Type options:CheckBoxOptionViewModel}">
+        <DataTemplate DataType="{x:Type options:AbstractCheckBoxViewModel}">
             <StackPanel Orientation="Horizontal">
                 <CheckBox x:Uid="OptionCheckBox"
                                         AutomationProperties.LabeledBy="{Binding ElementName=OptionText}"

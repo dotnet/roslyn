@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             [CallerFilePath] string callerPath = null,
             [CallerLineNumber] int callerLine = 0,
             CSharpParseOptions parseOptions = null,
-            Verification verify = Verification.Passes)
+            Verification verify = default)
         {
             references = references ?? new[] { SystemCoreRef, CSharpRef };
 

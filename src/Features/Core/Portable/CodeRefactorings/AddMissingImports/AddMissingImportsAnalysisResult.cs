@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {

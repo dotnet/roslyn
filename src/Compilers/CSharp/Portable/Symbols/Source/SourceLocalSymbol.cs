@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSyntax _typeSyntax;
         private readonly RefKind _refKind;
         private readonly LocalDeclarationKind _declarationKind;
-        private readonly DeclarationScope _scope;
+        private readonly ScopedKind _scope;
 
         private TypeWithAnnotations.Boxed _type;
 
@@ -64,8 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeSyntax.SkipRefInLocalOrReturn(diagnostics: null, out _refKind);
 
             _scope = _refKind != RefKind.None
-                ? isScoped ? DeclarationScope.RefScoped : DeclarationScope.Unscoped
-                : isScoped ? DeclarationScope.ValueScoped : DeclarationScope.Unscoped;
+                ? isScoped ? ScopedKind.ScopedRef : ScopedKind.None
+                : isScoped ? ScopedKind.ScopedValue : ScopedKind.None;
 
             this._declarationKind = declarationKind;
 
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _scopeBinder.ScopeDesignator; }
         }
 
-        internal sealed override DeclarationScope Scope => _scope;
+        internal sealed override ScopedKind Scope => _scope;
 
         /// <summary>
         /// Binder that should be used to bind type syntax for the local.
@@ -229,7 +230,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return SynthesizedLocalKind.UserDefined; }
         }
 
-        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
+#endif
+            )
         {
             throw ExceptionUtilities.Unreachable();
         }

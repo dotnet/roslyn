@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {

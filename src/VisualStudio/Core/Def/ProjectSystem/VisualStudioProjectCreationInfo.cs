@@ -4,17 +4,13 @@
 
 using System;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal sealed class VisualStudioProjectCreationInfo
+    internal sealed class VisualStudioProjectCreationInfo : ProjectSystemProjectCreationInfo
     {
-        public string? AssemblyName { get; set; }
-        public CompilationOptions? CompilationOptions { get; set; }
-        public string? FilePath { get; set; }
-        public ParseOptions? ParseOptions { get; set; }
-
         public IVsHierarchy? Hierarchy { get; set; }
         public Guid ProjectGuid { get; set; }
     }

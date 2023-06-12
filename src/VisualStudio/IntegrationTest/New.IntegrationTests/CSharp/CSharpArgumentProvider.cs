@@ -29,8 +29,8 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await base.InitializeAsync().ConfigureAwait(true);
 
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(new OptionKey(CompletionViewOptions.EnableArgumentCompletionSnippets, LanguageNames.CSharp), true);
-            globalOptions.SetGlobalOption(new OptionKey(CompletionViewOptions.EnableArgumentCompletionSnippets, LanguageNames.VisualBasic), true);
+            globalOptions.SetGlobalOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.CSharp, true);
+            globalOptions.SetGlobalOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, true);
         }
 
         [IdeFact]
@@ -496,7 +496,7 @@ public class Test
         }
 
         [IdeFact]
-        [WorkItem(54038, "https://github.com/dotnet/roslyn/issues/54038")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54038")]
         public async Task InsertPreprocessorSnippet()
         {
             await SetUpEditorAsync(@"

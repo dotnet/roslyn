@@ -935,6 +935,11 @@ namespace Microsoft.CodeAnalysis
             {
                 AssemblyIdentity definition = definitions[i].Identity;
 
+                if (!AssemblyIdentityComparer.SimpleNameComparer.Equals(reference.Name, definition.Name))
+                {
+                    continue;
+                }
+
                 switch (assemblyIdentityComparer.Compare(reference, definition))
                 {
                     case AssemblyIdentityComparer.ComparisonResult.NotEquivalent:

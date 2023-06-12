@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = symbol.DeclaringCompilation;
             var binderFactory = compilation.GetBinderFactory((SyntaxTree)symbol.Locations[0].SourceTree);
             var binder = binderFactory.GetBinder(equalsValueNode);
+
+            binder = new WithPrimaryConstructorParametersBinder(symbol.ContainingType, binder);
+
             if (earlyDecodingWellKnownAttributes)
             {
                 binder = new EarlyWellKnownAttributeBinder(binder);
@@ -101,9 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // If we have already computed the unconverted constant value, then this call is cheap
                     // because BoundConversions store their constant values (i.e. not recomputing anything).
-                    var constantValue = boundValue.ConstantValue;
+                    var constantValue = boundValue.ConstantValueOpt;
 
-                    var unconvertedConstantValue = unconvertedBoundValue.ConstantValue;
+                    var unconvertedConstantValue = unconvertedBoundValue.ConstantValueOpt;
                     if (unconvertedConstantValue != null &&
                         !unconvertedConstantValue.IsNull &&
                         typeSymbol.IsReferenceType &&

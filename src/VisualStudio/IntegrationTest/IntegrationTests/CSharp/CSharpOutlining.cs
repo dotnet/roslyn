@@ -60,17 +60,21 @@ namespace ClassLibrary1[|
     public class Class1[|
     {
 #if DEBUG
-{|Release:        void Goo(){|Debug:
+{|Debug:{|Release:
+        void Goo(){|Debug:
         {
         }|}
         
         void Goo2(){|Debug:
         {
-        }|}|}
+        }|}
+|}|}
 #else
-{|Debug:        void Bar(){|Release:
+{|Release:{|Debug:
+        void Bar(){|Release:
         {
-        }|}|}
+        }|}
+|}|}
 #endif
     }|]
 }|]";

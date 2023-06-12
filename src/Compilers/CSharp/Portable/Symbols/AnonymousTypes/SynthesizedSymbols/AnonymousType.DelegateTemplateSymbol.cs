@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     for (int i = 0; i < parameterCount; i++)
                     {
                         parameters.Add(
-                            new SynthesizedDelegateInvokeMethod.ParameterDescription(TypeWithAnnotations.Create(typeParams[i]), refKinds.IsNull ? RefKind.None : refKinds[i], DeclarationScope.Unscoped, defaultValue: null, isParams: false, hasUnscopedRefAttribute: false));
+                            new SynthesizedDelegateInvokeMethod.ParameterDescription(TypeWithAnnotations.Create(typeParams[i]), refKinds.IsNull ? RefKind.None : refKinds[i], ScopedKind.None, defaultValue: null, isParams: false, hasUnscopedRefAttribute: false));
                     }
 
                     // if we are given Void type the method returns Void, otherwise its return type is the last type parameter of the delegate:

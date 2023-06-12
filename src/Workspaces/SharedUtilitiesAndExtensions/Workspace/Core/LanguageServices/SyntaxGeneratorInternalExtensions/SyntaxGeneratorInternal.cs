@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editing
 {

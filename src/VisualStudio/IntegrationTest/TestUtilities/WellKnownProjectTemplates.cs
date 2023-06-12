@@ -20,6 +20,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string VisualBasicNetStandardClassLibrary = "Microsoft.VisualBasic.NETStandard.ClassLibrary";
         public const string CSharpNetCoreUnitTest = "Microsoft.CSharp.NETCore.UnitTest";
         public const string CSharpNetCoreXUnitTest = "Microsoft.CSharp.NETCore.XUnitTest";
+        public const string Blazor = "Microsoft.WAP.CSharp.ASPNET.Blazor";
 
         /// <summary>
         /// The .cs file created by the <see cref="CSharpNetCoreClassLibrary"/> template.

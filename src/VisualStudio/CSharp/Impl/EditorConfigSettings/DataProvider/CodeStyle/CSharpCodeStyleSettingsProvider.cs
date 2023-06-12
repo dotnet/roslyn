@@ -18,8 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
 {
     internal class CSharpCodeStyleSettingsProvider : SettingsProviderBase<CodeStyleSetting, OptionUpdater, IOption2, object>
     {
-        public CSharpCodeStyleSettingsProvider(string fileName, OptionUpdater settingsUpdater, Workspace workspace)
-            : base(fileName, settingsUpdater, workspace)
+        public CSharpCodeStyleSettingsProvider(string fileName, OptionUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
+            : base(fileName, settingsUpdater, workspace, globalOptions)
         {
             Update();
         }
@@ -85,6 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
         {
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferStaticLocalFunction, ServicesVSResources.Prefer_static_local_functions, options, updater);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferReadOnlyStruct, ServicesVSResources.Prefer_read_only_struct, options, updater);
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferReadOnlyStructMember, ServicesVSResources.Prefer_read_only_struct_member, options, updater);
         }
 
         private static IEnumerable<CodeStyleSetting> GetCodeBlockCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
