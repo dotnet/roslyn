@@ -709,10 +709,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                              .ToImmutableArray();
         }
 
-        private static UnifiedSuggestedActionSet WithPriority(
-            UnifiedSuggestedActionSet set, CodeActionPriority priority)
-            => new(set.OriginalSolution, set.CategoryName, set.Actions, set.Title, priority, set.ApplicableToSpan);
-
         private static ImmutableArray<UnifiedSuggestedActionSet> InlineActionSetsIfDesirable(
             ImmutableArray<UnifiedSuggestedActionSet> actionSets,
             int currentActionCount)
