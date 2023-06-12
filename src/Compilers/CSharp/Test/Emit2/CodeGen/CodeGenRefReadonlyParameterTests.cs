@@ -78,7 +78,7 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
 
             namespace {{RequiresLocationAttributeNamespace}}
             {
-                class {{RequiresLocationAttributeName}}
+                class {{RequiresLocationAttributeName}} : System.Attribute
                 {
                 }
             }
