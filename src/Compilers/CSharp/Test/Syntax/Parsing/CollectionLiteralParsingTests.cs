@@ -4102,6 +4102,73 @@ class C
     }
 
     [Fact]
+    public void CastVersusIndexAmbiguity28()
+    {
+        UsingExpression("(A<>)[]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.GenericName);
+            {
+                N(SyntaxKind.IdentifierToken, "A");
+                N(SyntaxKind.TypeArgumentList);
+                {
+                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.OmittedTypeArgument);
+                    {
+                        N(SyntaxKind.OmittedTypeArgumentToken);
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastVersusIndexAmbiguity29()
+    {
+        UsingExpression("(A<,>)[]");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.GenericName);
+            {
+                N(SyntaxKind.IdentifierToken, "A");
+                N(SyntaxKind.TypeArgumentList);
+                {
+                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.OmittedTypeArgument);
+                    {
+                        N(SyntaxKind.OmittedTypeArgumentToken);
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.OmittedTypeArgument);
+                    {
+                        N(SyntaxKind.OmittedTypeArgumentToken);
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
     public void SpreadOfQuery()
     {
         UsingExpression("[.. from x in y select x]");
