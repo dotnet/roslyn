@@ -102,79 +102,96 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // items should be pushed higher up, and less important items shouldn't take up that much space.
                     var currentActionCount = 0;
 
-                    var pendingActionSets = new MultiDictionary<CodeActionRequestPriority, SuggestedActionSet>();
+                    using var _ = PooledDictionary<CodeActionRequestPriority, ArrayBuilder<SuggestedActionSet>>.GetInstance(out var pendingActionSets);
 
-                    // Keep track of the diagnostic analyzers that have been deprioritized across calls to the
-                    // diagnostic engine.  We'll run them once we get around to the low-priority bucket.  We want to
-                    // keep track of this *across* calls to each priority. So we create this set outside of the loop and
-                    // then pass it continuously from one priority group to the next.
-                    var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
-
-                    // Collectors are in priority order.  So just walk them from highest to lowest.
-                    foreach (var collector in collectors)
+                    try
                     {
-                        if (TryGetPriority(collector.Priority) is CodeActionRequestPriority priority)
+                        // Keep track of the diagnostic analyzers that have been deprioritized across calls to the
+                        // diagnostic engine.  We'll run them once we get around to the low-priority bucket.  We want to
+                        // keep track of this *across* calls to each priority. So we create this set outside of the loop and
+                        // then pass it continuously from one priority group to the next.
+                        var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
+
+                        // Collectors are in priority order.  So just walk them from highest to lowest.
+                        foreach (var collector in collectors)
                         {
-                            var allSets = GetCodeFixesAndRefactoringsAsync(
-                                state, requestedActionCategories, document,
-                                range, selection,
-                                addOperationScope: _ => null,
-                                new SuggestedActionPriorityProvider(priority, lowPriorityAnalyzers),
-                                currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
-
-                            await foreach (var set in allSets)
+                            if (TryGetPriority(collector.Priority) is CodeActionRequestPriority priority)
                             {
-                                // Determine the corresponding lightbulb priority class corresponding to the priority
-                                // group the set says it wants to be in.
-                                var actualSetPriority = set.Priority switch
-                                {
-                                    SuggestedActionSetPriority.None => CodeActionRequestPriority.Lowest,
-                                    SuggestedActionSetPriority.Low => CodeActionRequestPriority.Low,
-                                    SuggestedActionSetPriority.Medium => CodeActionRequestPriority.Normal,
-                                    SuggestedActionSetPriority.High => CodeActionRequestPriority.High,
-                                    _ => throw ExceptionUtilities.UnexpectedValue(set.Priority),
-                                };
+                                var allSets = GetCodeFixesAndRefactoringsAsync(
+                                    state, requestedActionCategories, document,
+                                    range, selection,
+                                    addOperationScope: _ => null,
+                                    new SuggestedActionPriorityProvider(priority, lowPriorityAnalyzers),
+                                    currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
-                                // if the actual priority class is lower than the one we're currently in, then hold onto
-                                // this set for later, and place it in that priority group once we get there.
-                                if (actualSetPriority < priority)
+                                await foreach (var set in allSets)
                                 {
-                                    pendingActionSets.Add(actualSetPriority, set);
+                                    // Determine the corresponding lightbulb priority class corresponding to the priority
+                                    // group the set says it wants to be in.
+                                    var actualSetPriority = set.Priority switch
+                                    {
+                                        SuggestedActionSetPriority.None => CodeActionRequestPriority.Lowest,
+                                        SuggestedActionSetPriority.Low => CodeActionRequestPriority.Low,
+                                        SuggestedActionSetPriority.Medium => CodeActionRequestPriority.Normal,
+                                        SuggestedActionSetPriority.High => CodeActionRequestPriority.High,
+                                        _ => throw ExceptionUtilities.UnexpectedValue(set.Priority),
+                                    };
+
+                                    // if the actual priority class is lower than the one we're currently in, then hold onto
+                                    // this set for later, and place it in that priority group once we get there.
+                                    if (actualSetPriority < priority)
+                                    {
+                                        if (!pendingActionSets.TryGetValue(actualSetPriority, out var builder))
+                                        {
+                                            builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
+                                            pendingActionSets.Add(actualSetPriority, builder);
+                                        }
+
+                                        builder.Add(set);
+                                    }
+                                    else
+                                    {
+                                        currentActionCount += set.Actions.Count();
+                                        collector.Add(set);
+                                    }
                                 }
-                                else
+
+                                // We're finishing up with a particular priority group, and we're about to go to a priority
+                                // group one lower than what we have (hence `priority - 1`).  Take any pending items in the
+                                // group we're *about* to go into and add them at the end of this group.
+                                //
+                                // For example, if we're in the high group, and we have an pending items in the normal
+                                // bucket, then add them at the end of the high group.  The reason for this is that we
+                                // already have computed the items and we don't want to force them to have to wait for all
+                                // the processing in their own group to show up.  i.e. imagine if we added at the start of
+                                // the next group.  They'd be in the same location in the lightbulb as when we add at the
+                                // end of the current group, but they'd show up only when that group totally finished,
+                                // instead of right now.
+                                //
+                                // This is critical given that the lower pri groups are often much lower (which is why they
+                                // they choose to be in that class).  We don't want a fast item computed by a higher pri
+                                // provider to still have to wait on those slow items.
+                                if (pendingActionSets.TryGetValue(priority - 1, out var setBuilder))
                                 {
-                                    currentActionCount += set.Actions.Count();
-                                    collector.Add(set);
+                                    foreach (var set in setBuilder)
+                                    {
+                                        currentActionCount += set.Actions.Count();
+                                        collector.Add(set);
+                                    }
                                 }
                             }
 
-                            // We're finishing up with a particular priority group, and we're about to go to a priority
-                            // group one lower than what we have (hence `priority - 1`).  Take any pending items in the
-                            // group we're *about* to go into and add them at the end of this group.
-                            //
-                            // For example, if we're in the high group, and we have an pending items in the normal
-                            // bucket, then add them at the end of the high group.  The reason for this is that we
-                            // already have computed the items and we don't want to force them to have to wait for all
-                            // the processing in their own group to show up.  i.e. imagine if we added at the start of
-                            // the next group.  They'd be in the same location in the lightbulb as when we add at the
-                            // end of the current group, but they'd show up only when that group totally finished,
-                            // instead of right now.
-                            //
-                            // This is critical given that the lower pri groups are often much lower (which is why they
-                            // they choose to be in that class).  We don't want a fast item computed by a higher pri
-                            // provider to still have to wait on those slow items.
-                            foreach (var set in pendingActionSets[priority - 1])
-                            {
-                                currentActionCount += set.Actions.Count();
-                                collector.Add(set);
-                            }
+                            // Ensure we always complete the collector even if we didn't add any items to it.
+                            // This ensures that we unblock the UI from displaying all the results for that
+                            // priority class.
+                            collector.Complete();
+                            completedCollectors.Add(collector);
                         }
-
-                        // Ensure we always complete the collector even if we didn't add any items to it.
-                        // This ensures that we unblock the UI from displaying all the results for that
-                        // priority class.
-                        collector.Complete();
-                        completedCollectors.Add(collector);
+                    }
+                    finally
+                    {
+                        foreach (var builder in pendingActionSets.Values)
+                            builder.Free();
                     }
                 }
             }

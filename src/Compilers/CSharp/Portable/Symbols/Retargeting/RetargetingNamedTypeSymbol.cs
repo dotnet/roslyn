@@ -389,6 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get { throw ExceptionUtilities.Unreachable(); }
         }
 
+        internal override bool IsFileLocal => _underlyingType.IsFileLocal;
         internal override FileIdentifier? AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
 
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();

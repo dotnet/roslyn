@@ -659,17 +659,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             bool previewChanges,
             Func<Task> finalCommitAction = null)
         {
+            // Note: this entire sequence of steps is not cancellable.  We must perform it all to get back to a correct
+            // state for all the editors the user is interacting with.
+            var cancellationToken = CancellationToken.None;
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             if (_dismissed)
             {
                 return;
             }
 
             _dismissed = true;
-
-            // Note: this entire sequence of steps is not cancellable.  We must perform it all to get back to a correct
-            // state for all the editors the user is interacting with.
-            var cancellationToken = CancellationToken.None;
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Remove all our adornments and restore all buffer texts to their initial state.
             DismissUIAndRollbackEdits();
@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var eventName = previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore;
             using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
             {
-                var info = await _conflictResolutionTask.JoinAsync(cancellationToken).ConfigureAwait(false);
+                var info = await _conflictResolutionTask.JoinAsync(cancellationToken).ConfigureAwait(true);
                 var newSolution = info.NewSolution;
 
                 if (previewChanges)

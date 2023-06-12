@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private async Task<CompilationUnitSyntax> AddImportWorkerAsync(
+        private static async Task<CompilationUnitSyntax> AddImportWorkerAsync(
             Document document, CompilationUnitSyntax root, SyntaxNode contextNode, INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             AddImportPlacementOptions options, CancellationToken cancellationToken)
         {
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private NameSyntax CreateNameSyntax(IReadOnlyList<string> namespaceParts, int index)
+        private static NameSyntax CreateNameSyntax(IReadOnlyList<string> namespaceParts, int index)
         {
             var part = namespaceParts[index];
             if (SyntaxFacts.GetKeywordKind(part) != SyntaxKind.None)
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     hasExistingExtern);
         }
 
-        private (UsingDirectiveSyntax, bool hasExistingImport) GetUsingDirective(
+        private static (UsingDirectiveSyntax, bool hasExistingImport) GetUsingDirective(
             Document document,
             AddImportPlacementOptions options,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return false;
         }
 
-        private NameSyntax AddOrReplaceAlias(
+        private static NameSyntax AddOrReplaceAlias(
             NameSyntax nameSyntax, IdentifierNameSyntax alias)
         {
             if (nameSyntax is SimpleNameSyntax simpleName)

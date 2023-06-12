@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsNew => HasFlag(DeclarationModifiers.New);
 
-        internal bool IsFileLocal => HasFlag(DeclarationModifiers.File);
+        internal sealed override bool IsFileLocal => HasFlag(DeclarationModifiers.File);
 
         internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
 

@@ -147,6 +147,9 @@ internal class WorkspaceProject : IWorkspaceProject
             }
         }
 
+        // Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830960
+        _project.CompilationOutputAssemblyFilePath = _project.OutputFilePath;
+
         string? GetFullyQualifiedPath(string? propertyValue)
         {
             Contract.ThrowIfNull(_project.FilePath, "We don't have a project path at this point.");
