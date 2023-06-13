@@ -2218,6 +2218,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorCannotInterceptNameof = 9160,
         ERR_InterceptorCannotUseUnmanagedCallersOnly = 9161,
 
+        ERR_BadUsingStaticType = 9162,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

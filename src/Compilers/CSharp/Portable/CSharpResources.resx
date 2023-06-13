@@ -318,6 +318,18 @@
   <data name="IDS_SK_TYVAR" xml:space="preserve">
     <value>type parameter</value>
   </data>
+  <data name="IDS_SK_ARRAY" xml:space="preserve">
+    <value>array</value>
+  </data>
+  <data name="IDS_SK_POINTER" xml:space="preserve">
+    <value>pointer</value>
+  </data>
+  <data name="IDS_SK_FUNCTION_POINTER" xml:space="preserve">
+    <value>function pointer</value>
+  </data>
+  <data name="IDS_SK_DYNAMIC" xml:space="preserve">
+    <value>dynamic</value>
+  </data>
   <data name="IDS_SK_ALIAS" xml:space="preserve">
     <value>using alias</value>
   </data>
@@ -7594,5 +7606,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InterceptorCannotUseUnmanagedCallersOnly" xml:space="preserve">
     <value>An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</value>
+  </data>
+  <data name="ERR_BadUsingStaticType" xml:space="preserve">
+    <value>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</value>
   </data>
 </root>

@@ -2341,6 +2341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ConstantValueOfTypeExpected:
                 case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny:
                 case ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly:
+                case ErrorCode.ERR_BadUsingStaticType:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

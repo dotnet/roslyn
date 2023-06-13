@@ -764,6 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             declarationBinder ??= compilation.GetBinderFactory(declarationSyntax.SyntaxTree).GetBinder(usingDirective.NamespaceOrType).WithAdditionalFlags(flags);
                             var imported = declarationBinder.BindNamespaceOrTypeSymbol(usingDirective.NamespaceOrType, directiveDiagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
+                            bool addDirectiveDiagnostics = true;
 
                             if (imported.Kind == SymbolKind.Namespace)
                             {
@@ -814,6 +815,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     }
                                 }
                             }
+                            else if (imported.Kind is SymbolKind.ArrayType or SymbolKind.PointerType or SymbolKind.FunctionPointerType or SymbolKind.DynamicType)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_BadUsingStaticType, usingDirective.NamespaceOrType.Location, imported.GetKindText());
+
+                                // Don't bother adding sub diagnostics (like that an unsafe type was referenced).  The
+                                // primary thing we want to report is simply that the using-static points to something
+                                // entirely invalid.
+                                addDirectiveDiagnostics = false;
+                            }
                             else if (imported.Kind != SymbolKind.ErrorType)
                             {
                                 // Do not report additional error if the symbol itself is erroneous.
@@ -825,7 +835,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     MessageID.IDS_SK_TYPE_OR_NAMESPACE.Localize());
                             }
 
-                            diagnostics.AddRange(directiveDiagnostics.DiagnosticBag);
+                            if (addDirectiveDiagnostics)
+                            {
+                                diagnostics.AddRange(directiveDiagnostics.DiagnosticBag);
+                            }
+
                             directiveDiagnostics.Free();
                         }
                     }

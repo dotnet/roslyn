@@ -287,6 +287,11 @@
         <target state="translated">Pouze „using static“ nebo „using alias“ může být „nebezpečný“.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadUsingStaticType">
+        <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
+        <target state="new">'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">Atribut AsyncMethodBuilder je u anonymních metod bez explicitního návratového typu zakázaný.</target>
@@ -2145,6 +2150,26 @@
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">přístup k elementu ukazatele</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_ARRAY">
+        <source>array</source>
+        <target state="new">array</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_DYNAMIC">
+        <source>dynamic</source>
+        <target state="new">dynamic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_FUNCTION_POINTER">
+        <source>function pointer</source>
+        <target state="new">function pointer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_POINTER">
+        <source>pointer</source>
+        <target state="new">pointer</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
