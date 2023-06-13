@@ -814,6 +814,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     }
                                 }
                             }
+                            else if (imported.Kind is SymbolKind.ArrayType or SymbolKind.PointerType or SymbolKind.FunctionPointerType or SymbolKind.DynamicType)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_BadUsingStaticType, usingDirective.NamespaceOrType.Location, imported.GetKindText());
+                            }
                             else if (imported.Kind != SymbolKind.ErrorType)
                             {
                                 // Do not report additional error if the symbol itself is erroneous.

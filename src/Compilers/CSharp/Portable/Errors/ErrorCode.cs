@@ -2192,6 +2192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConstantValueOfTypeExpected = 9135,
         ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
 
+        ERR_BadUsingStaticType = 9137,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:
