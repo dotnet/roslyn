@@ -1006,10 +1006,7 @@ class C
                     Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5),
                     // (5,18): error CS9137: 'pointer' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate or namespace can be used.
                     //     using static A;
-                    Diagnostic(ErrorCode.ERR_BadUsingStaticType, "A").WithArguments("pointer").WithLocation(5, 18),
-                    // (5,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                    //     using static A;
-                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "A").WithLocation(5, 18));
+                    Diagnostic(ErrorCode.ERR_BadUsingStaticType, "A").WithArguments("pointer").WithLocation(5, 18));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68546")]
@@ -1028,10 +1025,7 @@ class C
                     Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5),
                     // (5,18): error CS9137: 'function pointer' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate or namespace can be used.
                     //     using static A;
-                    Diagnostic(ErrorCode.ERR_BadUsingStaticType, "A").WithArguments("function pointer").WithLocation(5, 18),
-                    // (5,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                    //     using static A;
-                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "A").WithLocation(5, 18));
+                    Diagnostic(ErrorCode.ERR_BadUsingStaticType, "A").WithArguments("function pointer").WithLocation(5, 18));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68546")]
