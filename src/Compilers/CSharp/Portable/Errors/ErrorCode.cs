@@ -2200,6 +2200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidInlineArrayFields = 9506,
         ERR_ExpressionTreeContainsInlineArrayOperation = 9507,
         ERR_RuntimeDoesNotSupportInlineArrayTypes = 9508,
+        ERR_InlineArrayBadIndex = 9509,
+        ERR_NamedArgumentForInlineArray = 9510,
 
         #endregion
 

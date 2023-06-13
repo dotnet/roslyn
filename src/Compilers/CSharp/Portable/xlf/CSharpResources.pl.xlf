@@ -842,6 +842,11 @@
         <target state="translated">Metody dostępu „init” nie można oznaczyć jako „tylko do odczytu”. Zamiast tego oznacz jako tylko do odczytu element „{0}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayBadIndex">
+        <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
+        <target state="new">Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayConversionToReadOnlySpanNotSupported">
         <source>Cannot convert expression to '{0}' because it may not be passed or returned by reference</source>
         <target state="new">Cannot convert expression to '{0}' because it may not be passed or returned by reference</target>
@@ -1120,6 +1125,11 @@
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single partial type declaration may have a parameter list</source>
         <target state="translated">Tylko pojedyncza deklaracja typu częściowego może mieć listę parametrów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NamedArgumentForInlineArray">
+        <source>An inline array access may not have a named argument specifier</source>
+        <target state="new">An inline array access may not have a named argument specifier</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -11838,8 +11848,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
-        <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'Elementu „await” nie można użyć w wyrażeniu zawierającym wywołanie elementu „{0}”, ponieważ zwraca ono wartość przez referencję</target>
+        <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="needs-review-translation">'Elementu „await” nie można użyć w wyrażeniu zawierającym wywołanie elementu „{0}”, ponieważ zwraca ono wartość przez referencję</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">

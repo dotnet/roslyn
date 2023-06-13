@@ -4315,7 +4315,7 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (20,12): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.GetItem(ReadOnlySpan<Buffer10<int>>, int)' because it returns by reference
+                // (20,12): error CS8178: A reference returned by a call to 'Program.GetItem(ReadOnlySpan<Buffer10<int>>, int)' cannot be preserved across 'await' or 'yield' boundary.
                 //         => GetItem(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(ref Unsafe.AsRef(in GetC(x).F)),10), Get01())[await FromResult(Get02(x))];
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "GetItem(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(ref Unsafe.AsRef(in GetC(x).F)),10), Get01())").WithArguments("Program.GetItem(System.ReadOnlySpan<Buffer10<int>>, int)").WithLocation(20, 12)
                 );
@@ -9796,11 +9796,10 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(SafeFixedSizeBuffer): The wording is somewhat misleading. Adjust?
             comp.VerifyDiagnostics(
-                // (12,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10<int>'
+                // (12,13): error CS9509: Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.
                 //         _ = x.F[0, 1];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "x.F[0, 1]").WithArguments("Buffer10<int>").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_InlineArrayBadIndex, "x.F[0, 1]").WithLocation(12, 13)
                 );
         }
 
@@ -9824,11 +9823,10 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(SafeFixedSizeBuffer): The wording is somewhat misleading. Adjust?
             comp.VerifyDiagnostics(
-                // (12,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10<int>'
+                // (12,13): error CS9509: Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.
                 //         _ = x.F["a"];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, @"x.F[""a""]").WithArguments("Buffer10<int>").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_InlineArrayBadIndex, @"x.F[""a""]").WithLocation(12, 13)
                 );
         }
 
@@ -9851,11 +9849,10 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(InlineArrays): Adjust wording of the message?
             comp.VerifyDiagnostics(
-                // (11,13): error CS1742: An array access may not have a named argument specifier
+                // (11,13): error CS9510: An inline array access may not have a named argument specifier
                 //         _ = x.F[x: 1];
-                Diagnostic(ErrorCode.ERR_NamedArgumentForArray, "x.F[x: 1]").WithLocation(11, 13)
+                Diagnostic(ErrorCode.ERR_NamedArgumentForInlineArray, "x.F[x: 1]").WithLocation(11, 13)
                 );
         }
 
@@ -16807,14 +16804,25 @@ class Program
     }
 
     static Buffer4<int> GetBuffer(C x) => x.F;
+
+    void Test(System.Collections.Generic.IEnumerable<int> x)
+    {
+        foreach (ref readonly int y in x)
+        {}
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            // The error wording is somewhat confusing because 'ref readonly' doesn't actually require assignability.
+            // However, it looks like the issue isn't inline array specific (see the second error). In other words,
+            // this is a pre-existing condition.
             comp.VerifyDiagnostics(
-                // PROTOTYPE(InlineArrays): The error is somewhat confusing because 'ref readonly' doesn't require assignability, but requires a variable. 
                 // (11,40): error CS1510: A ref or out value must be an assignable variable
                 //         foreach (ref readonly int y in GetBuffer(x))
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetBuffer(x)").WithLocation(11, 40)
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetBuffer(x)").WithLocation(11, 40),
+                // (20,40): error CS1510: A ref or out value must be an assignable variable
+                //         foreach (ref readonly int y in x)
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x").WithLocation(20, 40)
                 );
         }
 
@@ -17979,9 +17987,8 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(InlineArrays): The wording should be adjusted to not talk only about expressions, and to cover iterators as well.
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.GetBuffer()' because it returns by reference
+                // (6,9): error CS8178: A reference returned by a call to 'Program.GetBuffer()' cannot be preserved across 'await' or 'yield' boundary.
                 //         foreach (int y in GetBuffer())
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait,
         @"foreach (int y in GetBuffer())
@@ -18424,9 +18431,8 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(InlineArrays): The wording should be adjusted to not talk only about expressions, and to cover iterators as well.
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.GetBuffer()' because it returns by reference
+                // (6,9): error CS8178: A reference returned by a call to 'Program.GetBuffer()' cannot be preserved across 'await' or 'yield' boundary.
                 //         foreach (int y in GetBuffer())
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait,
         @"foreach (int y in GetBuffer())
@@ -18864,9 +18870,8 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(InlineArrays): The wording should be adjusted to not talk only about expressions, and to cover iterators as well.
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.GetBuffer()' because it returns by reference
+                // (6,9): error CS8178: A reference returned by a call to 'Program.GetBuffer()' cannot be preserved across 'await' or 'yield' boundary.
                 //         foreach (int y in GetBuffer())
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait,
         @"foreach (int y in GetBuffer())
@@ -19161,9 +19166,8 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(InlineArrays): The wording should be adjusted to not talk only about expressions, and to cover iterators as well.
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.GetBuffer()' because it returns by reference
+                // (6,9): error CS8178: A reference returned by a call to 'Program.GetBuffer()' cannot be preserved across 'await' or 'yield' boundary.
                 //         foreach (int y in GetBuffer())
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait,
         @"foreach (int y in GetBuffer())

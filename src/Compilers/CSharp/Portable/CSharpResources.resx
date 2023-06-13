@@ -5246,7 +5246,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Async methods cannot have by-reference locals</value>
   </data>
   <data name="ERR_RefReturningCallAndAwait" xml:space="preserve">
-    <value>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</value>
+    <value>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</value>
   </data>
   <data name="ERR_RefConditionalAndAwait" xml:space="preserve">
     <value>'await' cannot be used in an expression containing a ref conditional operator</value>
@@ -7537,5 +7537,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RuntimeDoesNotSupportInlineArrayTypes" xml:space="preserve">
     <value>Target runtime doesn't support inline array types.</value>
+  </data>
+  <data name="ERR_InlineArrayBadIndex" xml:space="preserve">
+    <value>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</value>
+  </data>
+  <data name="ERR_NamedArgumentForInlineArray" xml:space="preserve">
+    <value>An inline array access may not have a named argument specifier</value>
   </data>
 </root>
