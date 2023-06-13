@@ -700,6 +700,27 @@ static " + keyword + @" C(int x, string y);
 
         [Theory]
         [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68345")]
+        public void ConstructorOverloading_03([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            var comp = CreateCompilation(@"
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
+" + keyword + @" C(int x, string y)
+{
+    internal C(C other) // overload
+    {
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (5,14): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
+                //     internal C(C other) // overload
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 14)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void Members_01([CombinatorialValues("class", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
@@ -3426,6 +3447,121 @@ class C(int someParam)
 
             var c = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C");
             Assert.Equal(@"A(""someParam"")", c.PrimaryConstructor.GetAttributes().Single().ToString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68349")]
+        public void AttributesOnPrimaryConstructor_11([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+_ = new C();
+
+[method: System.Obsolete(""Obsolete!!!"", error: true)]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,5): error CS0619: 'C.C()' is obsolete: 'Obsolete!!!'
+                // _ = new C();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.C()", "Obsolete!!!").WithLocation(2, 5)
+                );
+
+            var c = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.True(c.AnyMemberHasAttributes);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_12([CombinatorialValues("class", "struct", "record", "record class", "record struct")] string declaration)
+        {
+            string source = @"
+_ = new C1();
+
+partial " + declaration + @" C1();
+
+#line 100
+[method: System.Obsolete(""Obsolete!!!"", error: true)]
+partial " + declaration + @" C1
+#line 200
+    ;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (100,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: System.Obsolete("Obsolete!!!", error: true)]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(100, 2)
+                );
+
+            var c1 = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C1");
+            Assert.False(c1.AnyMemberHasAttributes);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_13([CombinatorialValues("class", "struct", "record", "record class", "record struct")] string declaration)
+        {
+            string source = @"
+_ = new C1();
+
+[method: System.Obsolete(""Obsolete!!!"", error: true)]
+partial " + declaration + @" C1();
+
+partial " + declaration + @" C1;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,5): error CS0619: 'C1.C1()' is obsolete: 'Obsolete!!!'
+                // _ = new C1();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C1()").WithArguments("C1.C1()", "Obsolete!!!").WithLocation(2, 5)
+                );
+
+            var c1 = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C1");
+            Assert.True(c1.AnyMemberHasAttributes);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68349")]
+        public void AttributesOnPrimaryConstructor_14([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+_ = new C();
+
+[System.Obsolete(""Obsolete!!!"", error: true)]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,9): error CS0619: 'C' is obsolete: 'Obsolete!!!'
+                // _ = new C();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "Obsolete!!!").WithLocation(2, 9)
+                );
+
+            var c = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.False(c.AnyMemberHasAttributes);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68349")]
+        public void AttributesOnPrimaryConstructor_15([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+_ = new C();
+
+[type: System.Obsolete(""Obsolete!!!"", error: true)]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,9): error CS0619: 'C' is obsolete: 'Obsolete!!!'
+                // _ = new C();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "Obsolete!!!").WithLocation(2, 9)
+                );
+
+            var c = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.False(c.AnyMemberHasAttributes);
         }
 
         [Fact]
@@ -15387,6 +15523,73 @@ class Program
 	}
 } // end of class C1
 ".Replace("[mscorlib]", ExecutionConditionUtil.IsDesktop ? "[mscorlib]" : "[netstandard]"));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68384")]
+        public void ParameterCapturing_152_NullableAnalysis()
+        {
+            var source = @"
+#nullable enable
+
+class B(string s)
+{
+    public string S { get; } = s;
+}
+
+class C(B b)
+    : B(b.S)
+{
+    string T() => b.S;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68384")]
+        public void ParameterCapturing_153_NullableAnalysis()
+        {
+            var source = @"
+#nullable enable
+
+class B(System.Func<string> s)
+{
+    public string S { get; } = s();
+}
+
+class C(B b)
+    : B(() => b.S)
+{
+    string T() => b.S;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68384")]
+        public void ParameterCapturing_154_NullableAnalysis()
+        {
+            var source = @"
+#nullable enable
+
+class B(System.Func<string> s)
+{
+    public string S { get; } = s();
+}
+
+class C(B b)
+    : B(() =>
+        {
+            string local() => b.S;
+            return local();
+        })
+{
+    string T() => b.S;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

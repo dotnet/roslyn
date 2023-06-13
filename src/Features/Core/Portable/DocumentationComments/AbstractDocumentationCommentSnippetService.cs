@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             SourceText text,
             int position,
             in DocumentationCommentOptions options,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            bool addIndentation = true)
         {
             if (!options.AutoXmlDocCommentGeneration)
             {
@@ -59,7 +60,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return null;
             }
 
-            var lines = GetDocumentationCommentLines(token, text, options, out _, out var caretOffset, out var spanToReplaceLength);
+            var lines = addIndentation
+                ? GetDocumentationCommentLines(token, text, options, out _, out var caretOffset, out var spanToReplaceLength)
+                : GetDocumentationCommentLinesNoIndentation(token, text, options, out caretOffset, out spanToReplaceLength);
+
             if (lines == null)
             {
                 return null;
@@ -80,12 +84,59 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         private List<string>? GetDocumentationCommentLines(SyntaxToken token, SourceText text, in DocumentationCommentOptions options, out string? indentText, out int caretOffset, out int spanToReplaceLength)
         {
             indentText = null;
+
+            var lines = GetDocumentationStubLines(token, text, options, out caretOffset, out spanToReplaceLength, out var existingCommentText);
+            if (lines is null)
+            {
+                return lines;
+            }
+
+            var documentationComment = token.GetAncestor<TDocumentationComment>();
+            var line = text.Lines.GetLineFromPosition(documentationComment!.FullSpan.Start);
+            if (line.IsEmptyOrWhitespace())
+            {
+                return null;
+            }
+
+            // Add indents
+            var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.TabSize);
+            indentText = lineOffset.CreateIndentationString(options.UseTabs, options.TabSize);
+
+            IndentLines(lines, indentText);
+
+            // We always want the caret text to be on the second line, with one space after the doc comment XML
+            // GetDocumentationCommentStubLines ensures that space is always there
+            caretOffset = lines[0].Length + indentText.Length + ExteriorTriviaText.Length + 1;
+            spanToReplaceLength = existingCommentText!.Length;
+
+            return lines;
+        }
+
+        private List<string>? GetDocumentationCommentLinesNoIndentation(SyntaxToken token, SourceText text, in DocumentationCommentOptions options, out int caretOffset, out int spanToReplaceLength)
+        {
+            var lines = GetDocumentationStubLines(token, text, options, out caretOffset, out spanToReplaceLength, out var existingCommentText);
+            if (lines is null)
+            {
+                return lines;
+            }
+
+            // We always want the caret text to be on the second line, with one space after the doc comment XML
+            // GetDocumentationCommentStubLines ensures that space is always there
+            caretOffset = lines[0].Length + ExteriorTriviaText.Length + 1;
+            spanToReplaceLength = existingCommentText!.Length;
+
+            return lines;
+        }
+
+        private List<string>? GetDocumentationStubLines(SyntaxToken token, SourceText text, in DocumentationCommentOptions options, out int caretOffset, out int spanToReplaceLength, out string? existingCommentText)
+        {
             caretOffset = 0;
             spanToReplaceLength = 0;
+            existingCommentText = null;
 
             var documentationComment = token.GetAncestor<TDocumentationComment>();
 
-            if (documentationComment == null || !IsSingleExteriorTrivia(documentationComment, out var existingCommentText))
+            if (documentationComment == null || !IsSingleExteriorTrivia(documentationComment, out existingCommentText))
             {
                 return null;
             }
@@ -111,17 +162,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             // Shave off initial three slashes
             lines[0] = lines[0][3..];
-
-            // Add indents
-            var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.TabSize);
-            indentText = lineOffset.CreateIndentationString(options.UseTabs, options.TabSize);
-
-            IndentLines(lines, indentText);
-
-            // We always want the caret text to be on the second line, with one space after the doc comment XML
-            // GetDocumentationCommentStubLines ensures that space is always there
-            caretOffset = lines[0].Length + indentText.Length + ExteriorTriviaText.Length + 1;
-            spanToReplaceLength = existingCommentText.Length;
 
             return lines;
         }

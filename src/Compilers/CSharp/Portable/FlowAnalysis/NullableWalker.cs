@@ -883,6 +883,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case PropertySymbol:
                                     // skip any manually implemented non-required properties.
                                     continue;
+                                case FieldSymbol { OriginalDefinition: SynthesizedPrimaryConstructorParameterBackingFieldSymbol }:
+                                    // Skip primary constructor capture fields, compiler initializes them with parameters' values
+                                    continue;
                                 case FieldSymbol { IsConst: true }:
                                     continue;
                                 case FieldSymbol { AssociatedSymbol: PropertySymbol prop }:
@@ -6566,8 +6569,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!parametersOpt.IsDefault)
             {
                 parameterAnnotationsOpt = arguments.SelectAsArray(
-                    (argument, i, arg) => GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, arg.expanded).Annotations,
-                    (parametersOpt, argsToParamsOpt, expanded));
+                    static (argument, i, arg) => arg.self.GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, arg.expanded).Annotations,
+                    (self: this, parametersOpt, argsToParamsOpt, expanded));
             }
 
             return parameterAnnotationsOpt;

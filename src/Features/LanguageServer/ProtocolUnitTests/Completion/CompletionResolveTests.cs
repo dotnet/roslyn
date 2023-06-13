@@ -116,7 +116,7 @@ class B : A
             Assert.Equal(@"public override void M()
     {
         throw new System.NotImplementedException();
-    }", results.TextEdit.NewText);
+    }", results.TextEdit.Value.First.NewText);
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/51125")]
@@ -161,7 +161,7 @@ class B : A
             Assert.Equal(@"public override void M()
     {
         throw new System.NotImplementedException();$0
-    }", results.TextEdit.NewText);
+    }", results.TextEdit.Value.First.NewText);
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/51125")]
@@ -182,8 +182,8 @@ class B : A
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var selectedItem = CodeAnalysis.Completion.CompletionItem.Create(displayText: "M", isComplexTextEdit: true);
-            var textEdit = await EditorLspCompletionResultCreationService.GenerateTextEditAsync(
-                document, new TestCaretOutOfScopeCompletionService(testLspServer.TestWorkspace.Services.SolutionServices), selectedItem, snippetsSupported: true, CancellationToken.None).ConfigureAwait(false);
+            var (textEdit, _, _) = await AbstractLspCompletionResultCreationService.GenerateComplexTextEditAsync(
+                document, new TestCaretOutOfScopeCompletionService(testLspServer.TestWorkspace.Services.SolutionServices), selectedItem, snippetsSupported: true, insertNewPositionPlaceholder: true, CancellationToken.None).ConfigureAwait(false);
 
             Assert.Equal(@"public override void M()
     {
@@ -357,6 +357,7 @@ link text";
             return new VSInternalCompletionItem()
             {
                 Label = completionItem.Label,
+                LabelDetails = completionItem.LabelDetails,
                 Kind = completionItem.Kind,
                 Detail = completionItem.Detail,
                 Documentation = completionItem.Documentation,
@@ -366,6 +367,7 @@ link text";
                 InsertText = completionItem.InsertText,
                 InsertTextFormat = completionItem.InsertTextFormat,
                 TextEdit = completionItem.TextEdit,
+                TextEditText = completionItem.TextEditText,
                 AdditionalTextEdits = completionItem.AdditionalTextEdits,
                 CommitCharacters = completionItem.CommitCharacters,
                 Command = completionItem.Command,
