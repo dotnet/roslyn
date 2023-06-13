@@ -7524,6 +7524,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot use primary constructor parameter of type '{0}' inside an instance member</value>
   </data>
   <data name="ERR_BadUsingStaticType" xml:space="preserve">
-    <value>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate or namespace can be used.</value>
+    <value>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</value>
   </data>
 </root>

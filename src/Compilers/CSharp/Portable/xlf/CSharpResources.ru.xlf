@@ -288,8 +288,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadUsingStaticType">
-        <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate or namespace can be used.</source>
-        <target state="new">'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate or namespace can be used.</target>
+        <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
+        <target state="new">'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
