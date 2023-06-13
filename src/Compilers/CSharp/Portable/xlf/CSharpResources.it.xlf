@@ -11848,8 +11848,8 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
-        <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'Non è possibile usare 'await' in un'espressione che contiene una chiamata a '{0}' perché viene restituito per riferimento</target>
+        <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="needs-review-translation">'Non è possibile usare 'await' in un'espressione che contiene una chiamata a '{0}' perché viene restituito per riferimento</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">

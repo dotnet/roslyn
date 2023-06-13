@@ -11848,8 +11848,8 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
-        <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'Impossible d'utiliser 'await' dans une expression contenant un appel à '{0}', car il effectue un retour par référence</target>
+        <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="needs-review-translation">'Impossible d'utiliser 'await' dans une expression contenant un appel à '{0}', car il effectue un retour par référence</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">

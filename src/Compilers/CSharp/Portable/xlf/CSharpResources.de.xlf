@@ -11848,8 +11848,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
-        <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'"await" kann nicht in einem Ausdruck verwendet werden, der einen Aufruf von "{0}" enthält, weil die Rückgabe als Verweis erfolgt.</target>
+        <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="needs-review-translation">'"await" kann nicht in einem Ausdruck verwendet werden, der einen Aufruf von "{0}" enthält, weil die Rückgabe als Verweis erfolgt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">

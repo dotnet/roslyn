@@ -11848,8 +11848,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
-        <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'Await' öğesi başvuru ile döndürüldüğünden, '{0}' öğesine yönelik bir çağrı içeren ifadede kullanılamaz</target>
+        <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="needs-review-translation">'Await' öğesi başvuru ile döndürüldüğünden, '{0}' öğesine yönelik bir çağrı içeren ifadede kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">
