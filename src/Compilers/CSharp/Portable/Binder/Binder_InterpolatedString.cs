@@ -354,30 +354,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 allPartsAreStrings &= AllInterpolatedStringPartsAreStrings(parts);
                 if (count > 4 || !allPartsAreStrings)
                 {
-                    break;
+                    // Case 3. Bind as handler.
+                    var (appendCalls, data) = BindUnconvertedInterpolatedPartsToHandlerType(
+                        binaryOperator.Syntax,
+                        partsArrayBuilder.ToImmutableAndFree(),
+                        interpolatedStringHandlerType,
+                        diagnostics,
+                        isHandlerConversion: false,
+                        additionalConstructorArguments: default,
+                        additionalConstructorRefKinds: default);
+
+                    // Now that the parts have been bound, reconstruct the binary operators.
+                    convertedBinaryOperator = UpdateBinaryOperatorWithInterpolatedContents(binaryOperator, appendCalls, data, binaryOperator.Syntax, diagnostics);
+                    return true;
                 }
             }
 
-            if (count <= 4 && allPartsAreStrings)
-            {
-                // Case 2. Let the standard machinery handle it.
-                partsArrayBuilder.Free();
-                return false;
-            }
-
-            // Case 3. Bind as handler.
-            var (appendCalls, data) = BindUnconvertedInterpolatedPartsToHandlerType(
-                binaryOperator.Syntax,
-                partsArrayBuilder.ToImmutableAndFree(),
-                interpolatedStringHandlerType,
-                diagnostics,
-                isHandlerConversion: false,
-                additionalConstructorArguments: default,
-                additionalConstructorRefKinds: default);
-
-            // Now that the parts have been bound, reconstruct the binary operators.
-            convertedBinaryOperator = UpdateBinaryOperatorWithInterpolatedContents(binaryOperator, appendCalls, data, binaryOperator.Syntax, diagnostics);
-            return true;
+            // Case 2. Let the standard machinery handle it.
+            Debug.Assert(count <= 4 && allPartsAreStrings);
+            partsArrayBuilder.Free();
+            return false;
         }
 
         private BoundBinaryOperator UpdateBinaryOperatorWithInterpolatedContents(BoundBinaryOperator originalOperator, ImmutableArray<ImmutableArray<BoundExpression>> appendCalls, InterpolatedStringHandlerData data, SyntaxNode rootSyntax, BindingDiagnosticBag diagnostics)
