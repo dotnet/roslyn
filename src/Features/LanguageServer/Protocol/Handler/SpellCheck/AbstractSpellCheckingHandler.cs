@@ -5,15 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SpellCheck;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         /// Creates the <see cref="VSInternalSpellCheckableRangeReport"/> instance we'll report back to clients to let them know our
         /// progress.  Subclasses can fill in data specific to their needs as appropriate.
         /// </summary>
-        protected abstract TReport CreateReport(TextDocumentIdentifier identifier, int[]? ranges, string? resultId);
+        protected abstract TReport CreateReport(TextDocumentIdentifier identifier, VSInternalSpellCheckableRange[]? ranges, string? resultId);
 
         public async Task<TReport[]?> HandleRequestAsync(
             TParams requestParams, RequestContext context, CancellationToken cancellationToken)
@@ -105,11 +107,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                 if (newResultId != null)
                 {
                     context.TraceInformation($"Spans were changed for document: {document.FilePath}");
-                    await foreach (var report in ComputeAndReportCurrentSpansAsync(
-                        document, languageService, newResultId, cancellationToken).ConfigureAwait(false))
-                    {
-                        progress.Report(report);
-                    }
+                    progress.Report(await ComputeAndReportCurrentSpansAsync(
+                        document, languageService, newResultId, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
@@ -148,62 +147,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             return result;
         }
 
-        private async IAsyncEnumerable<TReport> ComputeAndReportCurrentSpansAsync(
+        private async Task<TReport> ComputeAndReportCurrentSpansAsync(
             Document document,
             ISpellCheckSpanService service,
             string resultId,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
-            var textDocumentIdentifier = ProtocolConversions.DocumentToTextDocumentIdentifier(document);
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var spans = await service.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
 
-            // protocol requires the results be in sorted order
-            spans = spans.Sort(static (s1, s2) => s1.TextSpan.CompareTo(s1.TextSpan));
+            using var _ = ArrayBuilder<LSP.VSInternalSpellCheckableRange>.GetInstance(spans.Length, out var result);
 
-            if (spans.Length == 0)
-            {
-                yield return CreateReport(textDocumentIdentifier, Array.Empty<int>(), resultId);
-                yield break;
-            }
+            foreach (var span in spans.Sort((s1, s2) => s1.TextSpan.CompareTo(s1.TextSpan)))
+                result.Add(ConvertSpan(text, span));
 
-            // break things up into batches of 1000 items.  That way we can send smaller messages to the client instead
-            // of one enormous one.
-            const int chunkSize = 1000;
-            var lastSpanEnd = 0;
-            for (var batchStart = 0; batchStart < spans.Length; batchStart += chunkSize)
-            {
-                var batchEnd = Math.Min(batchStart + chunkSize, spans.Length);
-                var batchSize = batchEnd - batchStart;
-
-                // Each span is encoded as a triple of ints.  The 'kind', the 'relative start', and the 'length'.
-                // 'relative start' is the absolute-start for the first span, and then the offset from the end of the
-                // last span for all others.
-                var triples = new int[batchSize * 3];
-                var triplesIndex = 0;
-                for (var i = batchStart; i < batchEnd; i++)
-                {
-                    var span = spans[i];
-
-                    var kind = span.Kind switch
-                    {
-                        SpellCheckKind.Identifier => VSInternalSpellCheckableRangeKind.Identifier,
-                        SpellCheckKind.Comment => VSInternalSpellCheckableRangeKind.Comment,
-                        SpellCheckKind.String => VSInternalSpellCheckableRangeKind.String,
-                        _ => throw ExceptionUtilities.UnexpectedValue(span.Kind),
-                    };
-
-                    triples[triplesIndex++] = (int)kind;
-                    triples[triplesIndex++] = span.TextSpan.Start - lastSpanEnd;
-                    triples[triplesIndex++] = span.TextSpan.Length;
-
-                    lastSpanEnd = span.TextSpan.End;
-                }
-
-                Contract.ThrowIfTrue(triplesIndex != triples.Length);
-                yield return CreateReport(textDocumentIdentifier, triples, resultId);
-            }
+            return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToArray(), resultId);
         }
 
         private void HandleRemovedDocuments(
@@ -240,6 +199,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             var textChecksum = documentChecksumState.Text;
 
             return (parseOptionsChecksum, textChecksum);
+        }
+
+        private static LSP.VSInternalSpellCheckableRange ConvertSpan(SourceText text, SpellCheckSpan spellCheckSpan)
+        {
+            var range = ProtocolConversions.TextSpanToRange(spellCheckSpan.TextSpan, text);
+            return new VSInternalSpellCheckableRange
+            {
+                Start = range.Start,
+                End = range.End,
+                Kind = spellCheckSpan.Kind switch
+                {
+                    SpellCheckKind.Identifier => VSInternalSpellCheckableRangeKind.Identifier,
+                    SpellCheckKind.Comment => VSInternalSpellCheckableRangeKind.Comment,
+                    SpellCheckKind.String => VSInternalSpellCheckableRangeKind.String,
+                    _ => throw ExceptionUtilities.UnexpectedValue(spellCheckSpan.Kind),
+                },
+            };
         }
     }
 }
