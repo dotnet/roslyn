@@ -3758,6 +3758,18 @@ public class C2
 
             verifyDiagnostics(comp0Ref, comp1Ref,
 @"
+using static unsafe C1<S<C0>*[]>;
+public class C2
+{
+    public static unsafe void Main()
+    {
+        _ = E1.F1 + 1;
+    }
+}
+");
+
+            verifyDiagnostics(comp0Ref, comp1Ref,
+@"
 using static C1<S<C0>*[]>.E1;
 public class C2
 {
@@ -3779,6 +3791,18 @@ public class C2
                 // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         _ = F1 + 1;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F1 + 1").WithLocation(7, 13));
+
+            verifyDiagnostics(comp0Ref, comp1Ref,
+@"
+using static unsafe C1<S<C0>*[]>.E1;
+public class C2
+{
+    public static unsafe void Main()
+    {
+        _ = F1 + 1;
+    }
+}
+");
 
             verify(comp0Ref, comp1Ref,
 @"
