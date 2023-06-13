@@ -318,5 +318,73 @@ $@"        if (F({i}))
                 });
             }
         }
+
+        [Fact]
+        public void Interceptors()
+        {
+            const int numberOfInterceptors = 10000;
+
+            // write a program which has many intercepted calls.
+            // each interceptor is in a different file.
+            var files = ArrayBuilder<(string source, string path)>.GetInstance();
+
+            // Build a top-level-statements main like:
+            //    C.M();
+            //    C.M();
+            //    C.M();
+            //    ...
+            var builder = new StringBuilder();
+            for (int i = 0; i < numberOfInterceptors; i++)
+            {
+                builder.AppendLine("C.M();");
+            }
+
+            files.Add((builder.ToString(), "Program.cs"));
+
+            files.Add(("""
+                class C
+                {
+                    public static void M() => throw null!;
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public class InterceptsLocationAttribute : Attribute
+                    {
+                        public InterceptsLocationAttribute(string path, int line, int column) { }
+                    }
+                }
+                """, "C.cs"));
+
+            for (int i = 0; i < numberOfInterceptors; i++)
+            {
+                files.Add(($$"""
+                    using System;
+                    using System.Runtime.CompilerServices;
+
+                    class C{{i}}
+                    {
+                        [InterceptsLocation("Program.cs", {{i + 1}}, 3)]
+                        public static void M()
+                        {
+                            Console.WriteLine({{i}});
+                        }
+                    }
+                    """, $"C{i}.cs"));
+            }
+
+            var verifier = CompileAndVerify(files.ToArrayAndFree(), parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview"), expectedOutput: makeExpectedOutput());
+            verifier.VerifyDiagnostics();
+
+            string makeExpectedOutput()
+            {
+                builder.Clear();
+                for (int i = 0; i < numberOfInterceptors; i++)
+                {
+                    builder.AppendLine($"{i}");
+                }
+                return builder.ToString();
+            }
+        }
     }
 }

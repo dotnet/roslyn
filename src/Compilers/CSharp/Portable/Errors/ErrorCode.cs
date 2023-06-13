@@ -2192,6 +2192,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConstantValueOfTypeExpected = 9135,
         ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
 
+        ERR_InterceptorsFeatureNotEnabled = 9137,
+        ERR_InterceptorCannotBeGeneric = 9138,
+        ERR_InterceptorPathNotInCompilation = 9139,
+        ERR_InterceptorPathNotInCompilationWithCandidate = 9140,
+        ERR_InterceptorPositionBadToken = 9141,
+        ERR_InterceptorLineOutOfRange = 9142,
+        ERR_InterceptorCharacterOutOfRange = 9143,
+        ERR_InterceptorSignatureMismatch = 9144,
+        ERR_InterceptorPathNotInCompilationWithUnmappedCandidate = 9145,
+        ERR_InterceptorMethodMustBeOrdinary = 9146,
+        ERR_InterceptorMustReferToStartOfTokenPosition = 9147,
+        ERR_InterceptorMustHaveMatchingThisParameter = 9148,
+        ERR_InterceptorMustNotHaveThisParameter = 9149,
+        ERR_InterceptorFilePathCannotBeNull = 9150,
+        ERR_InterceptorNameNotInvoked = 9151,
+        ERR_InterceptorNonUniquePath = 9152,
+        ERR_DuplicateInterceptor = 9153,
+        WRN_InterceptorSignatureMismatch = 9154,
+        ERR_InterceptorNotAccessible = 9155,
+        ERR_InterceptorScopedMismatch = 9156,
+        ERR_InterceptorLineCharacterMustBePositive = 9157,
+        WRN_NullabilityMismatchInReturnTypeOnInterceptor = 9158,
+        WRN_NullabilityMismatchInParameterTypeOnInterceptor = 9159,
+        ERR_InterceptorCannotInterceptNameof = 9160,
+        ERR_InterceptorCannotUseUnmanagedCallersOnly = 9161,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:
