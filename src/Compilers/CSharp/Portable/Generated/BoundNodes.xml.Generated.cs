@@ -6311,11 +6311,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionLiteralExpression : BoundExpression
     {
-        public BoundCollectionLiteralExpression(SyntaxNode syntax, BoundObjectOrCollectionValuePlaceholder placeholder, BoundExpression? collectionCreation, ImmutableArray<BoundExpression> elements, TypeSymbol type, bool hasErrors = false)
+        public BoundCollectionLiteralExpression(SyntaxNode syntax, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, ImmutableArray<BoundExpression> elements, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.CollectionLiteralExpression, syntax, type, hasErrors || placeholder.HasErrors() || collectionCreation.HasErrors() || elements.HasErrors())
         {
 
-            RoslynDebug.Assert(placeholder is object, "Field 'placeholder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
@@ -6325,14 +6324,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public new TypeSymbol Type => base.Type!;
-        public BoundObjectOrCollectionValuePlaceholder Placeholder { get; }
+        public BoundObjectOrCollectionValuePlaceholder? Placeholder { get; }
         public BoundExpression? CollectionCreation { get; }
         public ImmutableArray<BoundExpression> Elements { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionLiteralExpression(this);
 
-        public BoundCollectionLiteralExpression Update(BoundObjectOrCollectionValuePlaceholder placeholder, BoundExpression? collectionCreation, ImmutableArray<BoundExpression> elements, TypeSymbol type)
+        public BoundCollectionLiteralExpression Update(BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, ImmutableArray<BoundExpression> elements, TypeSymbol type)
         {
             if (placeholder != this.Placeholder || collectionCreation != this.CollectionCreation || elements != this.Elements || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -11516,7 +11515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
-            BoundObjectOrCollectionValuePlaceholder placeholder = node.Placeholder;
+            BoundObjectOrCollectionValuePlaceholder? placeholder = node.Placeholder;
             BoundExpression? collectionCreation = node.CollectionCreation;
             ImmutableArray<BoundExpression> elements = this.VisitList(node.Elements);
             TypeSymbol? type = this.VisitType(node.Type);
@@ -13730,7 +13729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
-            BoundObjectOrCollectionValuePlaceholder placeholder = node.Placeholder;
+            BoundObjectOrCollectionValuePlaceholder? placeholder = node.Placeholder;
             BoundExpression? collectionCreation = node.CollectionCreation;
             ImmutableArray<BoundExpression> elements = this.VisitList(node.Elements);
             BoundCollectionLiteralExpression updatedNode;

@@ -165,9 +165,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic y = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("dynamic").WithLocation(6, 21),
-                // (7,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                // (7,17): error CS9503: There is no target type for the collection literal.
                 //         var z = [];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = []").WithArguments("collection literals").WithLocation(7, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(7, 17));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -200,9 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic y = [2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("dynamic").WithLocation(6, 21),
-                // (7,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                // (7,17): error CS9503: There is no target type for the collection literal.
                 //         var z = [3];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = [3]").WithArguments("collection literals").WithLocation(7, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[3]").WithLocation(7, 17));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -235,9 +235,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic y = [2, ""];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, @"[2, """"]").WithArguments("dynamic").WithLocation(6, 21),
-                // (7,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                // (7,17): error CS9503: There is no target type for the collection literal.
                 //         var z = [3, ""];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, @"z = [3, """"]").WithArguments("collection literals").WithLocation(7, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, @"[3, """"]").WithLocation(7, 17));
         }
 
         [Fact]
@@ -263,9 +263,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic y = [null];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[null]").WithArguments("dynamic").WithLocation(6, 21),
-                // (7,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                // (7,17): error CS9503: There is no target type for the collection literal.
                 //         var z = [null];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = [null]").WithArguments("collection literals").WithLocation(7, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[null]").WithLocation(7, 17));
         }
 
         [Fact]
@@ -285,9 +285,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                // (5,17): error CS9503: There is no target type for the collection literal.
                 //         var x = [1, 2, null];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = [1, 2, null]").WithArguments("collection literals").WithLocation(5, 13),
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[1, 2, null]").WithLocation(5, 17),
                 // (6,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object y = [1, 2, null];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2, null]").WithArguments("object").WithLocation(6, 20),
@@ -348,9 +348,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                // (5,17): error CS9503: There is no target type for the collection literal.
                 //         var z = [[3]];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = [[3]]").WithArguments("collection literals").WithLocation(5, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[[3]]").WithLocation(5, 17),
+                // (5,18): error CS9503: There is no target type for the collection literal.
+                //         var z = [[3]];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[3]").WithLocation(5, 18));
         }
 
         [Fact]
@@ -523,9 +526,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                // (5,17): error CS9503: There is no target type for the collection literal.
                 //         var x = [null, 1];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = [null, 1]").WithArguments("collection literals").WithLocation(5, 13),
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[null, 1]").WithLocation(5, 17),
                 // (6,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object y = [null, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[null, 2]").WithArguments("object").WithLocation(6, 20));
@@ -1007,9 +1010,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // PROTOTYPE: Should compile and run successfully: expectedOutput: "[1, 2, 3], "
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
             comp.VerifyEmitDiagnostics(
-                // 0.cs(9,27): error CS0117: 'collection literals' does not contain a definition for 'AsArray'
+                // 0.cs(9,17): error CS9503: There is no target type for the collection literal.
                 //         var a = [1, 2, 3].AsArray();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "AsArray").WithArguments("collection literals", "AsArray").WithLocation(9, 27));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[1, 2, 3]").WithLocation(9, 17));
         }
 
         [Fact]
@@ -1029,12 +1032,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source);
             // PROTOTYPE: Unexpected parse errors.
             comp.VerifyEmitDiagnostics(
-                // (5,12): error CS0117: 'collection literals' does not contain a definition for 'GetHashCode'
+                // (5,9): error CS9503: There is no target type for the collection literal.
                 //         [].GetHashCode();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection literals", "GetHashCode").WithLocation(5, 12),
-                // (6,11): error CS0023: Operator '?' cannot be applied to operand of type 'collection literals'
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(5, 9),
+                // (6,9): error CS9503: There is no target type for the collection literal.
                 //         []?.GetHashCode();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "collection literals").WithLocation(6, 11),
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(6, 9),
                 // (7,9): error CS7014: Attributes are not valid in this context.
                 //         [][0].GetHashCode();
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[]").WithLocation(7, 9),
@@ -1162,15 +1165,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,16): error CS0117: 'collection literals' does not contain a definition for 'GetHashCode'
+                // (5,13): error CS9503: There is no target type for the collection literal.
                 //         _ = [].GetHashCode();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection literals", "GetHashCode").WithLocation(5, 16),
-                // (6,15): error CS0023: Operator '?' cannot be applied to operand of type 'collection literals'
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(5, 13),
+                // (6,13): error CS9503: There is no target type for the collection literal.
                 //         _ = []?.GetHashCode();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "collection literals").WithLocation(6, 15),
-                // (7,13): error CS0021: Cannot apply indexing with [] to an expression of type 'collection literals'
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(6, 13),
+                // (7,13): error CS9503: There is no target type for the collection literal.
                 //         _ = [][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[][0]").WithArguments("collection literals").WithLocation(7, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(7, 13));
         }
 
         [Fact]
@@ -1189,15 +1192,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,17): error CS0117: 'collection literals' does not contain a definition for 'GetHashCode'
+                // (5,13): error CS9503: There is no target type for the collection literal.
                 //         _ = [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection literals", "GetHashCode").WithLocation(5, 17),
-                // (6,16): error CS0023: Operator '?' cannot be applied to operand of type 'collection literals'
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[1]").WithLocation(5, 13),
+                // (6,13): error CS9503: There is no target type for the collection literal.
                 //         _ = [2]?.GetHashCode();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "collection literals").WithLocation(6, 16),
-                // (7,13): error CS0021: Cannot apply indexing with [] to an expression of type 'collection literals'
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[2]").WithLocation(6, 13),
+                // (7,13): error CS9503: There is no target type for the collection literal.
                 //         _ = [3][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[3][0]").WithArguments("collection literals").WithLocation(7, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[3]").WithLocation(7, 13));
         }
 
         [Fact]
@@ -2183,12 +2186,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (7,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                // (7,17): error CS9503: There is no target type for the collection literal.
                 //         var x = [p];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = [p]").WithArguments("collection literals").WithLocation(7, 13),
-                // (8,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[p]").WithLocation(7, 17),
+                // (8,17): error CS9503: There is no target type for the collection literal.
                 //         var y = [d];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "y = [d]").WithArguments("collection literals").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[d]").WithLocation(8, 17));
         }
 
         [Fact]
@@ -3708,11 +3711,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: ERR_AnonMethGrpInForEach is misleading since there is no 'foreach' in source.
             comp.VerifyEmitDiagnostics(
-                // (5,26): error CS0446: Foreach cannot operate on a 'collection literals'. Did you intend to invoke the 'collection literals'?
+                // (5,26): error CS9503: There is no target type for the collection literal.
                 //         var a = [1, 2, ..[]];
-                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "[]").WithArguments("collection literals").WithLocation(5, 26));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(5, 26));
         }
 
         [Fact]
@@ -3732,12 +3734,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source);
             // PROTOTYPE: Should spread elements support target type? (Should we infer IEnumerable<int>?)
             comp.VerifyEmitDiagnostics(
-                // (6,21): error CS0446: Foreach cannot operate on a 'collection literals'. Did you intend to invoke the 'collection literals'?
+                // (6,21): error CS9503: There is no target type for the collection literal.
                 //         a = [..a, ..[]];
-                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "[]").WithArguments("collection literals").WithLocation(6, 21),
-                // (7,16): error CS0446: Foreach cannot operate on a 'collection literals'. Did you intend to invoke the 'collection literals'?
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(6, 21),
+                // (7,16): error CS9503: There is no target type for the collection literal.
                 //         a = [..[default]];
-                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "[default]").WithArguments("collection literals").WithLocation(7, 16));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[default]").WithLocation(7, 16),
+                // (7,17): error CS8716: There is no target type for the default literal.
+                //         a = [..[default]];
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 17));
         }
 
         [Fact]
@@ -4641,7 +4646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyTypes(model, collections[8], expectedType: null, expectedConvertedType: "System.Span<System.Int32>", ConversionKind.CollectionLiteral);
             VerifyTypes(model, collections[9], expectedType: null, expectedConvertedType: "System.ReadOnlySpan<System.Object>", ConversionKind.CollectionLiteral);
             VerifyTypes(model, collections[10], expectedType: null, expectedConvertedType: "S1", ConversionKind.CollectionLiteral);
-            VerifyTypes(model, collections[11], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
+            VerifyTypes(model, collections[11], expectedType: null, expectedConvertedType: "S2", ConversionKind.NoConversion);
         }
 
         private static void VerifyTypes(SemanticModel model, ExpressionSyntax expr, string expectedType, string expectedConvertedType, ConversionKind expectedConversionKind)
@@ -4700,17 +4705,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Should not report that 'i' is unused.
             comp.VerifyEmitDiagnostics(
-                // (9,13): warning CS0219: The variable 'i' is assigned but its value is never used
-                //         int i = 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(9, 13),
-                // (10,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                // (10,17): error CS9503: There is no target type for the collection literal.
                 //         var x = [default(R)];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = [default(R)]").WithArguments("collection literals").WithLocation(10, 13),
-                // (11,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[default(R)]").WithLocation(10, 17),
+                // (11,17): error CS9503: There is no target type for the collection literal.
                 //         var y = [new R(ref i)];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "y = [new R(ref i)]").WithArguments("collection literals").WithLocation(11, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[new R(ref i)]").WithLocation(11, 17));
         }
 
         [Fact]

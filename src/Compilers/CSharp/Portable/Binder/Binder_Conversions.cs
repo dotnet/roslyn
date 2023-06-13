@@ -231,8 +231,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, conversion, isCast, destination, conversionGroupOpt, wasCompilerGenerated, diagnostics);
                 }
 
-                if (conversion.IsCollectionLiteral)
+                if (source.Kind == BoundKind.UnconvertedCollectionLiteralExpression)
                 {
+                    Debug.Assert(conversion.IsCollectionLiteral || !conversion.Exists);
                     return ConvertCollectionLiteralExpression(
                         (BoundUnconvertedCollectionLiteralExpression)source,
                         conversion,
@@ -442,6 +443,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case CollectionLiteralTypeKind.ListInterface:
                     collectionLiteral = BindListInterfaceCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, elementType!, diagnostics);
                     break;
+                case CollectionLiteralTypeKind.None:
+                    collectionLiteral = BindCollectionLiteralForErrorRecovery(node, targetType, diagnostics);
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
             }
@@ -615,6 +619,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 wasCompilerGenerated: wasCompilerGenerated,
                 diagnostics);
             return result.Update(result.Placeholder, result.CollectionCreation, result.Elements, targetType);
+        }
+
+        private BoundCollectionLiteralExpression BindCollectionLiteralForErrorRecovery(
+            BoundUnconvertedCollectionLiteralExpression node,
+            TypeSymbol targetType,
+            BindingDiagnosticBag diagnostics)
+        {
+            var syntax = node.Syntax;
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(node.Elements.Length);
+            foreach (var element in node.Elements)
+            {
+                var result = BindToNaturalType(element, diagnostics);
+                result.WasCompilerGenerated = true;
+                builder.Add(result);
+            }
+            return new BoundCollectionLiteralExpression(
+                syntax,
+                placeholder: null,
+                collectionCreation: null,
+                elements: builder.ToImmutableAndFree(),
+                targetType,
+                hasErrors: true);
         }
 
         /// <summary>

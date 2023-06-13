@@ -1882,7 +1882,7 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <!-- An expression placeholder value representing the initialized collection. -->
-    <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder" Null="disallow" SkipInVisitor="true"/>
+    <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
     <!-- Constructor call to create the empty collection type. -->
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
     <!-- Collection literal elements. -->

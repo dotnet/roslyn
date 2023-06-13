@@ -1957,17 +1957,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
-            foreach (var element in node.Elements)
-            {
-                VisitRvalue(element);
-            }
+            VisitCollectionLiteralExpression(node.Elements);
             return null;
         }
 
         public override BoundNode VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
         {
-            // PROTOTYPE: How should unconverted collection literals be handled?
+            VisitCollectionLiteralExpression(node.Elements);
             return null;
+        }
+
+        private void VisitCollectionLiteralExpression(ImmutableArray<BoundExpression> elements)
+        {
+            foreach (var element in elements)
+            {
+                VisitRvalue(element);
+            }
         }
 
         public override BoundNode VisitCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement node)

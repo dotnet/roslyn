@@ -2186,7 +2186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (boundExpr is BoundCollectionLiteralExpression convertedCollection)
                 {
                     type = null;
-                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.CollectionLiteral, Conversion: var convertedCollectionConversion })
+                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.CollectionLiteral or ConversionKind.NoConversion, Conversion: var convertedCollectionConversion })
                     {
                         convertedType = convertedCollection.Type;
                         convertedNullability = convertedCollection.TopLevelNullability;
@@ -2194,7 +2194,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Debug.Assert(false); // Add test if this assert fails.
                         (convertedType, convertedNullability) = (type, nullability);
                         conversion = Conversion.Identity;
                     }

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -115,7 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
             sideEffects.Add(assignmentToTemp);
 
-            AddPlaceholderReplacement(node.Placeholder, temp);
+            var placeholder = node.Placeholder;
+            Debug.Assert(placeholder is { });
+
+            AddPlaceholderReplacement(placeholder, temp);
 
             foreach (var element in elements)
             {
@@ -132,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            RemovePlaceholderReplacement(node.Placeholder);
+            RemovePlaceholderReplacement(placeholder);
 
             return new BoundSequence(
                 node.Syntax,
