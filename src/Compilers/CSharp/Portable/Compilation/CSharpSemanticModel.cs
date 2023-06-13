@@ -2194,7 +2194,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        (convertedType, convertedNullability) = (type, nullability);
+                        // There was an explicit cast on top of this.
+                        (convertedType, convertedNullability) = (convertedCollection.Type, nullability);
                         conversion = Conversion.Identity;
                     }
                 }

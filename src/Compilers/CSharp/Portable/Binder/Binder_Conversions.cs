@@ -234,12 +234,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (source.Kind == BoundKind.UnconvertedCollectionLiteralExpression)
                 {
                     Debug.Assert(conversion.IsCollectionLiteral || !conversion.Exists);
-                    return ConvertCollectionLiteralExpression(
+                    source = ConvertCollectionLiteralExpression(
                         (BoundUnconvertedCollectionLiteralExpression)source,
-                        conversion,
-                        isCast,
                         destination,
-                        conversionGroupOpt,
                         wasCompilerGenerated,
                         diagnostics);
                 }
@@ -420,45 +417,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression ConvertCollectionLiteralExpression(
             BoundUnconvertedCollectionLiteralExpression node,
-            Conversion conversion,
-            bool isCast,
             TypeSymbol targetType,
-            ConversionGroup? conversionGroupOpt,
             bool wasCompilerGenerated,
             BindingDiagnosticBag diagnostics)
         {
             TypeSymbol? elementType;
-            BoundCollectionLiteralExpression collectionLiteral;
             var collectionTypeKind = ConversionsBase.GetCollectionLiteralTypeKind(Compilation, targetType, out elementType);
             switch (collectionTypeKind)
             {
                 case CollectionLiteralTypeKind.CollectionInitializer:
-                    collectionLiteral = BindCollectionInitializerCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, diagnostics);
-                    break;
+                    return BindCollectionInitializerCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, diagnostics);
                 case CollectionLiteralTypeKind.Array:
                 case CollectionLiteralTypeKind.Span:
                 case CollectionLiteralTypeKind.ReadOnlySpan:
-                    collectionLiteral = BindArrayOrSpanCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, collectionTypeKind, elementType!, diagnostics);
-                    break;
+                    return BindArrayOrSpanCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, collectionTypeKind, elementType!, diagnostics);
                 case CollectionLiteralTypeKind.ListInterface:
-                    collectionLiteral = BindListInterfaceCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, elementType!, diagnostics);
-                    break;
+                    return BindListInterfaceCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, elementType!, diagnostics);
                 case CollectionLiteralTypeKind.None:
-                    collectionLiteral = BindCollectionLiteralForErrorRecovery(node, targetType, diagnostics);
-                    break;
+                    return BindCollectionLiteralForErrorRecovery(node, targetType, diagnostics);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
             }
-
-            return new BoundConversion(
-                node.Syntax,
-                collectionLiteral,
-                conversion,
-                node.Binder.CheckOverflowAtRuntime,
-                explicitCastInCode: isCast && !wasCompilerGenerated,
-                conversionGroupOpt,
-                collectionLiteral.ConstantValueOpt,
-                targetType);
         }
 
         private BoundCollectionLiteralExpression BindArrayOrSpanCollectionLiteral(
