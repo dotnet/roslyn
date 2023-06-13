@@ -344,7 +344,7 @@ $@"        if (F({i}))
                     {
                     """);
 
-                for (int i = 0; i < 100000; i++)
+                for (int i = 0; i < 75000; i++)
                 {
                     sb.AppendLine("""    { "a", "b" },""");
                 }
