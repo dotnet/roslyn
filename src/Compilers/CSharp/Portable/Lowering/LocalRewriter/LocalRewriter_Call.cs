@@ -148,7 +148,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(interceptableLocation != null);
-            Debug.Assert(interceptor.Arity == 0);
+            Debug.Assert((object)interceptor.OriginalDefinition == interceptor);
+            Debug.Assert(!interceptor.ContainingType.IsGenericType);
+
+            if (interceptor.Arity != 0)
+            {
+                // Gather the type arguments of the original method and its containing types, from outermost to innermost.
+                var stack = ArrayBuilder<Symbol>.GetInstance();
+                stack.Push(method);
+                for (var type = method.ContainingType; type is not null; type = type.ContainingType)
+                {
+                    stack.Push(type);
+                }
+
+                var typeArgumentsBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
+                do
+                {
+                    // gather the type arguments starting from outermost containing type in to the method.
+                    typeArgumentsBuilder.AddRange(stack.Pop().GetMemberTypeArgumentsNoUseSiteDiagnostics());
+                }
+                while (stack.Count != 0);
+                stack.Free();
+
+                var netArity = typeArgumentsBuilder.Count;
+                if (netArity == 0)
+                {
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorCannotBeGeneric, attributeLocation, interceptor, method);
+                    return;
+                }
+                else if (interceptor.Arity != netArity)
+                {
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorArityNotCompatible, attributeLocation, interceptor, netArity, method);
+                    return;
+                }
+
+                interceptor = interceptor.Construct(typeArgumentsBuilder.ToImmutableAndFree());
+                if (!interceptor.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this._compilation, this._compilation.Conversions, includeNullability: false, attributeLocation, this._diagnostics)))
+                {
+                    return;
+                }
+            }
 
             var containingMethod = this._factory.CurrentFunction;
             Debug.Assert(containingMethod is not null);

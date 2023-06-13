@@ -2193,7 +2193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
 
         ERR_InterceptorsFeatureNotEnabled = 9137,
-        ERR_InterceptorCannotBeGeneric = 9138,
+        ERR_InterceptorContainingTypeCannotBeGeneric = 9138,
         ERR_InterceptorPathNotInCompilation = 9139,
         ERR_InterceptorPathNotInCompilationWithCandidate = 9140,
         ERR_InterceptorPositionBadToken = 9141,
@@ -2219,6 +2219,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorCannotUseUnmanagedCallersOnly = 9161,
 
         ERR_BadUsingStaticType = 9162,
+
+        ERR_InterceptorArityNotCompatible = 9163,
+        ERR_InterceptorCannotBeGeneric = 9164,
 
         #endregion
 
