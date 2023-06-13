@@ -81,6 +81,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
         }
 
+        public bool TryGetValue(string key, out object? value)
+        {
+            EnsureMap();
+            return _lazyMap.TryGetValue(key, out value);
+        }
+
         protected override string CreateMessage()
         {
             EnsureMap();
