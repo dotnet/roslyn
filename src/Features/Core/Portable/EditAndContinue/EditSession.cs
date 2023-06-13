@@ -990,6 +990,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // project must support compilations since it supports EnC
                     Contract.ThrowIfNull(newCompilation);
 
+                    // The compiler only uses this predicate to determine if CS7101: "Member 'X' added during the current debug session
+                    // can only be accessed from within its declaring assembly 'Lib'" should be reported. 
+                    // Prior to .NET 8 Preview 4 the runtime failed to apply such edits.
+                    // This was fixed in Preview 4 along with support for generics. If we see a generic capability we can disable reporting
+                    // this compiler error. Otherwise, we leave the check as is in order to detect at least some runtime failures on .NET Framework.
+                    // Note that the analysis in the compiler detecting the circumstances under which the runtime fails
+                    // to apply the change has both false positives (flagged generic updates that shouldn't be flagged) and negatives
+                    // (didn't flag cases like https://github.com/dotnet/roslyn/issues/68293).
+                    var capabilities = await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    var isAddedSymbolPredicate = capabilities.HasFlag(EditAndContinueCapabilities.GenericAddMethodToExistingType) ?
+                        static _ => false : (Func<ISymbol, bool>)projectChanges.AddedSymbols.Contains;
+
                     EmitDifferenceResult emitResult;
 
                     // The lock protects underlying baseline readers from being disposed while emitting delta.
@@ -1001,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         emitResult = newCompilation.EmitDifference(
                             projectBaseline.EmitBaseline,
                             projectChanges.SemanticEdits,
-                            projectChanges.AddedSymbols.Contains,
+                            isAddedSymbolPredicate,
                             metadataStream,
                             ilStream,
                             pdbStream,
