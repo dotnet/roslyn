@@ -1462,57 +1462,35 @@ public class Program
         [IdeFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task TestRefactoringsAreSortedByPriority()
         {
-            await SetUpEditorAsync(@"
+            var codeFormat = @"
 #pragma warning disable IDE0060 // Remove unused parameter
 class C
 { 
-    public C(int x1, int $$x2, int x3)
+    public C(int x1, int x2, int x3)
     {
     }
-}", HangMitigatingCancellationToken);
-
-            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-
-            var expectedItems = new[]
+};";
+            for (var i = 1; i <= 3; i++)
             {
-                "Create and assign property 'X2'",
-                "Create and assign field 'x2'",
-                "Create and assign remaining as properties",
-                "Create and assign remaining as fields",
-                "Change signature...",
-                "Wrap every parameter",
-                "Align wrapped parameters",
-                "Indent all parameters",
-                "Indent wrapped parameters",
-                "Unwrap and indent all parameters",
-            };
+                var code = codeFormat.Replace($"x{i}", $"$$x{i}");
+                await SetUpEditorAsync(code, HangMitigatingCancellationToken);
 
-            await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
+                var expectedItems = new[]
+                {
+                    $"Create and assign property 'X{i}'",
+                    $"Create and assign field 'x{i}'",
+                    "Create and assign remaining as properties",
+                    "Create and assign remaining as fields",
+                    "Change signature...",
+                    "Wrap every parameter",
+                    "Align wrapped parameters",
+                    "Indent all parameters",
+                    "Indent wrapped parameters",
+                    "Unwrap and indent all parameters",
+                };
 
-            await SetUpEditorAsync(@"
-#pragma warning disable IDE0060 // Remove unused parameter
-class C
-{ 
-    public C(int x1, int x2, int $$x3)
-    {
-    }
-}", HangMitigatingCancellationToken);
-
-            expectedItems = new[]
-            {
-                "Create and assign property 'X3'",
-                "Create and assign field 'x3'",
-                "Create and assign remaining as properties",
-                "Create and assign remaining as fields",
-                "Change signature...",
-                "Wrap every parameter",
-                "Align wrapped parameters",
-                "Indent all parameters",
-                "Indent wrapped parameters",
-                "Unwrap and indent all parameters",
-            };
-
-            await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
+                await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
+            }
         }
     }
 }

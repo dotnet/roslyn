@@ -146,12 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                     // this set for later, and place it in that priority group once we get there.
                                     if (actualSetPriority < priority)
                                     {
-                                        if (!pendingActionSets.TryGetValue(actualSetPriority, out var builder))
-                                        {
-                                            builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
-                                            pendingActionSets.Add(actualSetPriority, builder);
-                                        }
-
+                                        var builder = pendingActionSets.GetOrAdd(actualSetPriority, _ => ArrayBuilder<SuggestedActionSet>.GetInstance());
                                         builder.Add(set);
                                     }
                                     else
@@ -195,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
                     finally
                     {
-                        foreach (var builder in pendingActionSets.Values)
+                        foreach (var (_, builder) in pendingActionSets)
                             builder.Free();
                     }
                 }
