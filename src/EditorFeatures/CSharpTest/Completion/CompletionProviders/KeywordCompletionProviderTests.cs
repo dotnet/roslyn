@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -830,6 +831,52 @@ $@"class C
                 """;
 
             await VerifyItemExistsAsync(markup, "file");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
+        [MemberData(nameof(TypeDeclarationKeywords))]
+        public async Task TestTypeDeclarationKeywordsNotAfterUsingUnsafe(string keyword)
+        {
+            await VerifyItemIsAbsentAsync("using unsafe $$", keyword);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
+        [MemberData(nameof(TypeDeclarationKeywords))]
+        public async Task TestTypeDeclarationKeywordsNotAfterUsingStaticUnsafe(string keyword)
+        {
+            await VerifyItemIsAbsentAsync("using static unsafe $$", keyword);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
+        [MemberData(nameof(TypeDeclarationKeywords))]
+        public async Task TestTypeDeclarationKeywordsNotAfterGlobalUsingUnsafe(string keyword)
+        {
+            await VerifyItemIsAbsentAsync("global using unsafe $$", keyword);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
+        [MemberData(nameof(TypeDeclarationKeywords))]
+        public async Task TestTypeDeclarationKeywordsNotAfterGlobalUsingStaticUnsafe(string keyword)
+        {
+            await VerifyItemIsAbsentAsync("global using static unsafe $$", keyword);
+        }
+
+        public static IEnumerable<object[]> TypeDeclarationKeywords()
+        {
+            yield return new[] { "abstract" };
+            yield return new[] { "class" };
+            yield return new[] { "delegate" };
+            yield return new[] { "file" };
+            yield return new[] { "interface" };
+            yield return new[] { "internal" };
+            yield return new[] { "partial" };
+            yield return new[] { "public" };
+            yield return new[] { "readonly" };
+            yield return new[] { "record" };
+            yield return new[] { "ref" };
+            yield return new[] { "sealed" };
+            yield return new[] { "static" };
+            yield return new[] { "struct" };
         }
     }
 }

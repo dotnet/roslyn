@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             return false;
         }
 
-        private bool HasUnmatchedIdenticalParent(XmlElementStartTagSyntax parentStartTag)
+        private static bool HasUnmatchedIdenticalParent(XmlElementStartTagSyntax parentStartTag)
         {
             if (parentStartTag.Parent?.Parent is XmlElementSyntax grandParentElement)
             {

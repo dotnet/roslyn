@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsFileLocal => false;
         internal override FileIdentifier? AssociatedFileIdentifier => null;
 
         internal override DiagnosticInfo? ErrorInfo

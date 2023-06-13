@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private ExpressionSyntax Recurse(ExpressionSyntax old)
+        private static ExpressionSyntax Recurse(ExpressionSyntax old)
         {
             if (old is ParenthesizedExpressionSyntax parenthesizedExpression)
             {

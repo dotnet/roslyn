@@ -1458,5 +1458,39 @@ public class Program
 
             AssertEx.EqualOrDiff(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
         }
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        public async Task TestRefactoringsAreSortedByPriority()
+        {
+            var codeFormat = @"
+#pragma warning disable IDE0060 // Remove unused parameter
+class C
+{ 
+    public C(int x1, int x2, int x3)
+    {
+    }
+};";
+            for (var i = 1; i <= 3; i++)
+            {
+                var code = codeFormat.Replace($"x{i}", $"$$x{i}");
+                await SetUpEditorAsync(code, HangMitigatingCancellationToken);
+
+                var expectedItems = new[]
+                {
+                    $"Create and assign property 'X{i}'",
+                    $"Create and assign field 'x{i}'",
+                    "Create and assign remaining as properties",
+                    "Create and assign remaining as fields",
+                    "Change signature...",
+                    "Wrap every parameter",
+                    "Align wrapped parameters",
+                    "Indent all parameters",
+                    "Indent wrapped parameters",
+                    "Unwrap and indent all parameters",
+                };
+
+                await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
+            }
+        }
     }
 }

@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -65,29 +66,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 public static void Analyze(OperationBlockStartAnalysisContext context, SymbolStartAnalyzer symbolStartAnalyzer)
                 {
-                    if (HasSyntaxErrors() || context.OperationBlocks.IsEmpty)
-                        return;
-
-                    // Bail out in presence of conditional directives
-                    // This is a workaround for https://github.com/dotnet/roslyn/issues/31820
-                    // Issue https://github.com/dotnet/roslyn/issues/31821 tracks
-                    // reverting this workaround.
-                    if (HasConditionalDirectives())
-                        return;
-
-                    // All operation blocks for a symbol belong to the same tree.
-                    var firstBlock = context.OperationBlocks[0];
-                    if (!symbolStartAnalyzer._compilationAnalyzer.TryGetOptions(firstBlock.Syntax.SyntaxTree,
-                                                                                context.Options,
-                                                                                out var options))
-                    {
-                        return;
-                    }
-
-                    // Ignore methods that are just a single-throw method.  These are often
-                    // in-progress pieces of work and we don't want to force the user to fixup other
-                    // issues before they've even gotten around to writing their code.
-                    if (firstBlock.IsSingleThrowNotImplementedOperation())
+                    if (!ShouldAnalyze(context, symbolStartAnalyzer, out var options))
                         return;
 
                     var blockAnalyzer = new BlockAnalyzer(symbolStartAnalyzer, options);
@@ -96,10 +75,62 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeLocalOrParameterReference, OperationKind.LocalReference, OperationKind.ParameterReference);
                     context.RegisterOperationAction(_ => blockAnalyzer._hasInvalidOperation = true, OperationKind.Invalid);
                     context.RegisterOperationBlockEndAction(blockAnalyzer.AnalyzeOperationBlockEnd);
-
                     return;
 
                     // Local Functions.
+                    bool ShouldAnalyze(
+                        OperationBlockStartAnalysisContext context,
+                        SymbolStartAnalyzer symbolStartAnalyzer,
+                        [NotNullWhen(true)] out Options? options)
+                    {
+                        options = null;
+                        if (HasSyntaxErrors() || context.OperationBlocks.IsEmpty)
+                            return false;
+
+                        // Bail out in presence of conditional directives
+                        // This is a workaround for https://github.com/dotnet/roslyn/issues/31820
+                        // Issue https://github.com/dotnet/roslyn/issues/31821 tracks
+                        // reverting this workaround.
+                        if (HasConditionalDirectives())
+                            return false;
+
+                        // All operation blocks for a symbol belong to the same tree.
+                        var firstBlock = context.OperationBlocks[0];
+                        if (!symbolStartAnalyzer._compilationAnalyzer.TryGetOptions(firstBlock.Syntax.SyntaxTree,
+                                                                                    context.Options,
+                                                                                    out options))
+                        {
+                            return false;
+                        }
+
+                        // Ignore methods that are just a single-throw method.  These are often
+                        // in-progress pieces of work and we don't want to force the user to fixup other
+                        // issues before they've even gotten around to writing their code.
+                        if (firstBlock.IsSingleThrowNotImplementedOperation())
+                            return false;
+
+                        // If we are analyzing a specific filter tree, skip operation blocks in unrelated trees.
+                        if (symbolStartAnalyzer._symbolStartAnalysisContext.FilterTree is { } filterTree &&
+                            firstBlock.Syntax.SyntaxTree != filterTree)
+                        {
+                            return false;
+                        }
+
+                        // If we are analyzing a specific filter span, skip operation blocks outside the filter span.
+                        if (context.FilterSpan.HasValue)
+                        {
+                            Contract.ThrowIfFalse(context.FilterSpan != symbolStartAnalyzer._symbolStartAnalysisContext.FilterSpan);
+                            Contract.ThrowIfNull(symbolStartAnalyzer._symbolStartAnalysisContext.FilterTree);
+                            var root = firstBlock.Syntax.SyntaxTree.GetRoot(context.CancellationToken);
+                            var spanStart = firstBlock.Syntax.SpanStart;
+                            var memberDecl = symbolStartAnalyzer._compilationAnalyzer.SyntaxFacts.GetContainingMemberDeclaration(root, spanStart, useFullSpan: false);
+                            if (memberDecl != null && !context.ShouldAnalyzeSpan(memberDecl.Span))
+                                return false;
+                        }
+
+                        return true;
+                    }
+
                     bool HasSyntaxErrors()
                     {
                         foreach (var operationBlock in context.OperationBlocks)
