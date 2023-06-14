@@ -255,7 +255,7 @@ End Class
                                               Sub() AssertEx.Fail("Tab should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Assert.Equal(3, view.Caret.Position.BufferPosition.GetContainingLine().LineNumber)
+                Assert.Equal(3, view.Caret.Position.BufferPosition.GetContainingLineNumber())
 
                 session.Cancel()
             End Using
