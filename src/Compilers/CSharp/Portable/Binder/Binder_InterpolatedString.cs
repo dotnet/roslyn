@@ -346,13 +346,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(partsArrayBuilder.Count >= 2);
 
             int count = 0;
-            bool allPartsAreStrings = true;
 
             foreach (var parts in partsArrayBuilder)
             {
                 count += parts.Length;
-                allPartsAreStrings &= AllInterpolatedStringPartsAreStrings(parts);
-                if (count > 4 || !allPartsAreStrings)
+                if (count > 4 || !AllInterpolatedStringPartsAreStrings(parts))
                 {
                     // Case 3. Bind as handler.
                     var (appendCalls, data) = BindUnconvertedInterpolatedPartsToHandlerType(
@@ -371,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Case 2. Let the standard machinery handle it.
-            Debug.Assert(count <= 4 && allPartsAreStrings);
+            Debug.Assert(count <= 4);
             partsArrayBuilder.Free();
             return false;
         }
