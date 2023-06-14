@@ -68,21 +68,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 return new FixAllAdditionalDocumentChangeAction(fixAllContext.Scope, fixAllContext.Solution, diagnosticsToFix, fixAllContext.CodeActionEquivalenceKey);
             }
 
-            private sealed class FixAllAdditionalDocumentChangeAction : CodeAction
+            private sealed class FixAllAdditionalDocumentChangeAction(FixAllScope fixAllScope, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix, string equivalenceKey) : CodeAction
             {
-                private readonly List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> _diagnosticsToFix;
-                private readonly Solution _solution;
+                private readonly List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> _diagnosticsToFix = diagnosticsToFix;
+                private readonly Solution _solution = solution;
 
-                public FixAllAdditionalDocumentChangeAction(FixAllScope fixAllScope, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix, string equivalenceKey)
-                {
-                    this.Title = fixAllScope.ToString();
-                    _solution = solution;
-                    _diagnosticsToFix = diagnosticsToFix;
-                    this.EquivalenceKey = equivalenceKey;
-                }
-
-                public override string Title { get; }
-                public override string EquivalenceKey { get; }
+                public override string Title { get; } = fixAllScope.ToString();
+                public override string EquivalenceKey { get; } = equivalenceKey;
 
                 protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
                 {
@@ -154,16 +146,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 }
             }
 
-            private sealed class FixAllAddAdditionalDocumentsAction : CodeAction
+            private sealed class FixAllAddAdditionalDocumentsAction(ImmutableArray<ProjectId> projectIds, Solution solution) : CodeAction
             {
-                private readonly ImmutableArray<ProjectId> _projectIds;
-                private readonly Solution _solution;
-
-                public FixAllAddAdditionalDocumentsAction(ImmutableArray<ProjectId> projectIds, Solution solution)
-                {
-                    _projectIds = projectIds;
-                    _solution = solution;
-                }
+                private readonly ImmutableArray<ProjectId> _projectIds = projectIds;
+                private readonly Solution _solution = solution;
 
                 public override string Title => CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleTitle;
                 public override string EquivalenceKey => CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleTitle;

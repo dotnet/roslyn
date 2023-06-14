@@ -86,19 +86,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return newSourceText;
         }
 
-        private class FixAllAdditionalDocumentChangeAction : CodeAction
+        private class FixAllAdditionalDocumentChangeAction(string title, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix) : CodeAction
         {
-            private readonly List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> _diagnosticsToFix;
-            private readonly Solution _solution;
+            private readonly List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> _diagnosticsToFix = diagnosticsToFix;
+            private readonly Solution _solution = solution;
 
-            public FixAllAdditionalDocumentChangeAction(string title, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix)
-            {
-                this.Title = title;
-                _solution = solution;
-                _diagnosticsToFix = diagnosticsToFix;
-            }
-
-            public override string Title { get; }
+            public override string Title { get; } = title;
 
             protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {

@@ -37,12 +37,8 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
         protected override SyntaxKind InvocationExpressionSyntaxKind => SyntaxKind.InvocationExpression;
 
-        private sealed class CSharpCompilationAnalyzer : CompilationAnalyzer
+        private sealed class CSharpCompilationAnalyzer(INamedTypeSymbol symbolType, INamedTypeSymbol compilationType) : CompilationAnalyzer(symbolType, compilationType)
         {
-            public CSharpCompilationAnalyzer(INamedTypeSymbol symbolType, INamedTypeSymbol compilationType)
-                : base(symbolType, compilationType)
-            { }
-
             protected override ImmutableHashSet<string> SymbolTypesWithExpectedSymbolDeclaredEvent => s_symbolTypesWithExpectedSymbolDeclaredEvent;
 
             protected override SyntaxNode? GetFirstArgumentOfInvocation(SyntaxNode invocation)

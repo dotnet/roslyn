@@ -19,51 +19,35 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// 6. Operation call stack for the current interprocedural analysis.
     /// 7. Set of analysis contexts currently being analyzed.
     /// </summary>
-    public sealed class InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>
+    public sealed class InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>(
+        TAnalysisData? initialAnalysisData,
+        (AnalysisEntity?, PointsToAbstractValue)? invocationInstance,
+        (AnalysisEntity, PointsToAbstractValue)? thisOrMeInstanceForCaller,
+        ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> argumentValuesMap,
+        ImmutableDictionary<ISymbol, PointsToAbstractValue> capturedVariablesMap,
+        ImmutableDictionary<AnalysisEntity, CopyAbstractValue> addressSharedEntities,
+        ImmutableStack<IOperation> callStack,
+        ImmutableHashSet<TAnalysisContext> methodsBeingAnalyzed,
+        Func<IOperation, TAbstractAnalysisValue> getCachedAbstractValueFromCaller,
+        Func<IMethodSymbol, ControlFlowGraph?> getInterproceduralControlFlowGraph,
+        Func<IOperation, AnalysisEntity?> getAnalysisEntityForFlowCapture,
+        Func<ISymbol, ImmutableStack<IOperation>?> getInterproceduralCallStackForOwningSymbol)
         : CacheBasedEquatable<InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>>
         where TAnalysisContext : class, IDataFlowAnalysisContext
         where TAnalysisData : AbstractAnalysisData
     {
-        public InterproceduralAnalysisData(
-            TAnalysisData? initialAnalysisData,
-            (AnalysisEntity?, PointsToAbstractValue)? invocationInstance,
-            (AnalysisEntity, PointsToAbstractValue)? thisOrMeInstanceForCaller,
-            ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> argumentValuesMap,
-            ImmutableDictionary<ISymbol, PointsToAbstractValue> capturedVariablesMap,
-            ImmutableDictionary<AnalysisEntity, CopyAbstractValue> addressSharedEntities,
-            ImmutableStack<IOperation> callStack,
-            ImmutableHashSet<TAnalysisContext> methodsBeingAnalyzed,
-            Func<IOperation, TAbstractAnalysisValue> getCachedAbstractValueFromCaller,
-            Func<IMethodSymbol, ControlFlowGraph?> getInterproceduralControlFlowGraph,
-            Func<IOperation, AnalysisEntity?> getAnalysisEntityForFlowCapture,
-            Func<ISymbol, ImmutableStack<IOperation>?> getInterproceduralCallStackForOwningSymbol)
-        {
-            InitialAnalysisData = initialAnalysisData;
-            InvocationInstance = invocationInstance;
-            ThisOrMeInstanceForCaller = thisOrMeInstanceForCaller;
-            ArgumentValuesMap = argumentValuesMap;
-            CapturedVariablesMap = capturedVariablesMap;
-            AddressSharedEntities = addressSharedEntities;
-            CallStack = callStack;
-            MethodsBeingAnalyzed = methodsBeingAnalyzed;
-            GetCachedAbstractValueFromCaller = getCachedAbstractValueFromCaller;
-            GetInterproceduralControlFlowGraph = getInterproceduralControlFlowGraph;
-            GetAnalysisEntityForFlowCapture = getAnalysisEntityForFlowCapture;
-            GetInterproceduralCallStackForOwningSymbol = getInterproceduralCallStackForOwningSymbol;
-        }
-
-        public TAnalysisData? InitialAnalysisData { get; }
-        public (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? InvocationInstance { get; }
-        public (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? ThisOrMeInstanceForCaller { get; }
-        public ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> ArgumentValuesMap { get; }
-        public ImmutableDictionary<ISymbol, PointsToAbstractValue> CapturedVariablesMap { get; }
-        public ImmutableDictionary<AnalysisEntity, CopyAbstractValue> AddressSharedEntities { get; }
-        public ImmutableStack<IOperation> CallStack { get; }
-        public ImmutableHashSet<TAnalysisContext> MethodsBeingAnalyzed { get; }
-        public Func<IOperation, TAbstractAnalysisValue> GetCachedAbstractValueFromCaller { get; }
-        public Func<IMethodSymbol, ControlFlowGraph?> GetInterproceduralControlFlowGraph { get; }
-        public Func<IOperation, AnalysisEntity?> GetAnalysisEntityForFlowCapture { get; }
-        public Func<ISymbol, ImmutableStack<IOperation>?> GetInterproceduralCallStackForOwningSymbol { get; }
+        public TAnalysisData? InitialAnalysisData { get; } = initialAnalysisData;
+        public (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? InvocationInstance { get; } = invocationInstance;
+        public (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? ThisOrMeInstanceForCaller { get; } = thisOrMeInstanceForCaller;
+        public ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> ArgumentValuesMap { get; } = argumentValuesMap;
+        public ImmutableDictionary<ISymbol, PointsToAbstractValue> CapturedVariablesMap { get; } = capturedVariablesMap;
+        public ImmutableDictionary<AnalysisEntity, CopyAbstractValue> AddressSharedEntities { get; } = addressSharedEntities;
+        public ImmutableStack<IOperation> CallStack { get; } = callStack;
+        public ImmutableHashSet<TAnalysisContext> MethodsBeingAnalyzed { get; } = methodsBeingAnalyzed;
+        public Func<IOperation, TAbstractAnalysisValue> GetCachedAbstractValueFromCaller { get; } = getCachedAbstractValueFromCaller;
+        public Func<IMethodSymbol, ControlFlowGraph?> GetInterproceduralControlFlowGraph { get; } = getInterproceduralControlFlowGraph;
+        public Func<IOperation, AnalysisEntity?> GetAnalysisEntityForFlowCapture { get; } = getAnalysisEntityForFlowCapture;
+        public Func<ISymbol, ImmutableStack<IOperation>?> GetInterproceduralCallStackForOwningSymbol { get; } = getInterproceduralCallStackForOwningSymbol;
 
         protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {

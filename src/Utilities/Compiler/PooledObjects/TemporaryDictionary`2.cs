@@ -57,27 +57,17 @@ namespace Analyzer.Utilities.PooledObjects
             }
         }
 
-        public readonly struct Enumerable
+        public readonly struct Enumerable(Dictionary<TKey, TValue> dictionary)
         {
-            private readonly Dictionary<TKey, TValue> _dictionary;
-
-            public Enumerable(Dictionary<TKey, TValue> dictionary)
-            {
-                _dictionary = dictionary;
-            }
+            private readonly Dictionary<TKey, TValue> _dictionary = dictionary;
 
             public Enumerator GetEnumerator()
                 => new(_dictionary.GetEnumerator());
         }
 
-        public struct Enumerator
+        public struct Enumerator(Dictionary<TKey, TValue>.Enumerator enumerator)
         {
-            private Dictionary<TKey, TValue>.Enumerator _enumerator;
-
-            public Enumerator(Dictionary<TKey, TValue>.Enumerator enumerator)
-            {
-                _enumerator = enumerator;
-            }
+            private Dictionary<TKey, TValue>.Enumerator _enumerator = enumerator;
 
             public bool MoveNext()
                 => _enumerator.MoveNext();

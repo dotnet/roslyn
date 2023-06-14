@@ -8,25 +8,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// Contains information about an argument passed to interprocedural analysis.
     /// </summary>
-    public sealed class ArgumentInfo<TAbstractAnalysisValue> : CacheBasedEquatable<ArgumentInfo<TAbstractAnalysisValue>>
+    public sealed class ArgumentInfo<TAbstractAnalysisValue>(
+        IOperation operation,
+        AnalysisEntity? analysisEntity,
+        PointsToAbstractValue instanceLocation,
+        TAbstractAnalysisValue value) : CacheBasedEquatable<ArgumentInfo<TAbstractAnalysisValue>>
     {
-        public ArgumentInfo(
-            IOperation operation,
-            AnalysisEntity? analysisEntity,
-            PointsToAbstractValue instanceLocation,
-            TAbstractAnalysisValue value)
-        {
-            Operation = operation;
-            AnalysisEntity = analysisEntity;
-            InstanceLocation = instanceLocation;
-            Value = value;
-        }
-
-        public IOperation Operation { get; }
+        public IOperation Operation { get; } = operation;
         // Can be null for allocations.
-        public AnalysisEntity? AnalysisEntity { get; }
-        public PointsToAbstractValue InstanceLocation { get; }
-        public TAbstractAnalysisValue Value { get; }
+        public AnalysisEntity? AnalysisEntity { get; } = analysisEntity;
+        public PointsToAbstractValue InstanceLocation { get; } = instanceLocation;
+        public TAbstractAnalysisValue Value { get; } = value;
 
         protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {

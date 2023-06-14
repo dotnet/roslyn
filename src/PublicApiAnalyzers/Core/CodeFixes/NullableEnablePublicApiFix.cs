@@ -63,19 +63,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return newSourceText;
         }
 
-        private class FixAllAdditionalDocumentChangeAction : CodeAction
+        private class FixAllAdditionalDocumentChangeAction(string title, Solution solution, List<Project> projectsToFix) : CodeAction
         {
-            private readonly List<Project> _projectsToFix;
-            private readonly Solution _solution;
+            private readonly List<Project> _projectsToFix = projectsToFix;
+            private readonly Solution _solution = solution;
 
-            public FixAllAdditionalDocumentChangeAction(string title, Solution solution, List<Project> projectsToFix)
-            {
-                this.Title = title;
-                _solution = solution;
-                _projectsToFix = projectsToFix;
-            }
-
-            public override string Title { get; }
+            public override string Title { get; } = title;
 
             protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {

@@ -6,14 +6,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     public abstract partial class AbstractIndex
     {
-        private sealed class AnalysisEntityBasedIndex : AbstractIndex
+        private sealed class AnalysisEntityBasedIndex(AnalysisEntity analysisEntity) : AbstractIndex
         {
-            public AnalysisEntityBasedIndex(AnalysisEntity analysisEntity)
-            {
-                AnalysisEntity = analysisEntity;
-            }
-
-            public AnalysisEntity AnalysisEntity { get; }
+            public AnalysisEntity AnalysisEntity { get; } = analysisEntity;
 
             protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
             {

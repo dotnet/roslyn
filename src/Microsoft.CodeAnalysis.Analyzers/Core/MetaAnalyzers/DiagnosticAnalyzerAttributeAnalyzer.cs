@@ -55,18 +55,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             return new AttributeAnalyzer(diagnosticAnalyzer, diagnosticAnalyzerAttribute, attributeUsageAttribute);
         }
 
-        private sealed class AttributeAnalyzer : DiagnosticAnalyzerSymbolAnalyzer
+        private sealed class AttributeAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute, INamedTypeSymbol? attributeUsageAttribute) : DiagnosticAnalyzerSymbolAnalyzer(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
         {
             private const string CSharpCompilationFullName = @"Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
             private const string BasicCompilationFullName = @"Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
 
-            private readonly INamedTypeSymbol? _attributeUsageAttribute;
-
-            public AttributeAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute, INamedTypeSymbol? attributeUsageAttribute)
-                : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
-            {
-                _attributeUsageAttribute = attributeUsageAttribute;
-            }
+            private readonly INamedTypeSymbol? _attributeUsageAttribute = attributeUsageAttribute;
 
             protected override void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext)
             {

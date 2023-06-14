@@ -135,9 +135,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             IPropertySymbol EquivalenceKeyProperty,
             ImmutableHashSet<IMethodSymbol> CreateMethods);
 
-        private sealed class NamedTypeAnalyzer
+        private sealed class NamedTypeAnalyzer(AnalysisTypes analysisTypes)
         {
-            private readonly AnalysisTypes _analysisTypes;
+            private readonly AnalysisTypes _analysisTypes = analysisTypes;
 
             /// <summary>
             /// Map of invocations from code fix providers to invocations that create a code action using the static "Create" methods on <see cref="CodeAction"/>.
@@ -148,11 +148,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             /// Map of invocations from code fix providers to object creations that create a code action using sub-types of <see cref="CodeAction"/>.
             /// </summary>
             private readonly Dictionary<INamedTypeSymbol, HashSet<IObjectCreationOperation>> _codeActionObjectCreations = new();
-
-            public NamedTypeAnalyzer(AnalysisTypes analysisTypes)
-            {
-                _analysisTypes = analysisTypes;
-            }
 
             internal void OperationBlockStart(OperationBlockStartAnalysisContext context)
             {

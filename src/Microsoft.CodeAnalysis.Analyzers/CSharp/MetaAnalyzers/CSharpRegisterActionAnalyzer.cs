@@ -29,23 +29,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
                 codeBlockStartAnalysisContext, operationBlockStartAnalysisContext, symbolKind);
         }
 
-        private sealed class CSharpRegisterActionCodeBlockAnalyzer : RegisterActionCodeBlockAnalyzer
+        private sealed class CSharpRegisterActionCodeBlockAnalyzer(
+            INamedTypeSymbol? csharpSyntaxKind,
+            INamedTypeSymbol? basicSyntaxKind,
+            INamedTypeSymbol analysisContext,
+            INamedTypeSymbol compilationStartAnalysisContext,
+            INamedTypeSymbol codeBlockStartAnalysisContext,
+            INamedTypeSymbol operationBlockStartAnalysisContext,
+            INamedTypeSymbol symbolKind) : RegisterActionCodeBlockAnalyzer(analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, operationBlockStartAnalysisContext, symbolKind)
         {
-            private readonly ITypeSymbol? _csharpSyntaxKind, _basicSyntaxKind;
-
-            public CSharpRegisterActionCodeBlockAnalyzer(
-                INamedTypeSymbol? csharpSyntaxKind,
-                INamedTypeSymbol? basicSyntaxKind,
-                INamedTypeSymbol analysisContext,
-                INamedTypeSymbol compilationStartAnalysisContext,
-                INamedTypeSymbol codeBlockStartAnalysisContext,
-                INamedTypeSymbol operationBlockStartAnalysisContext,
-                INamedTypeSymbol symbolKind)
-                : base(analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, operationBlockStartAnalysisContext, symbolKind)
-            {
-                _csharpSyntaxKind = csharpSyntaxKind;
-                _basicSyntaxKind = basicSyntaxKind;
-            }
+            private readonly ITypeSymbol? _csharpSyntaxKind = csharpSyntaxKind, _basicSyntaxKind = basicSyntaxKind;
 
             protected override SyntaxKind InvocationExpressionKind => SyntaxKind.InvocationExpression;
             protected override SyntaxKind ArgumentSyntaxKind => SyntaxKind.Argument;

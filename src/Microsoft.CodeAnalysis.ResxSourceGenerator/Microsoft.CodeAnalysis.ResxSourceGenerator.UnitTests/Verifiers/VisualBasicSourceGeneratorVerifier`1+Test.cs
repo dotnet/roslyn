@@ -30,26 +30,15 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
     public static partial class VisualBasicSourceGeneratorVerifier<TSourceGenerator>
         where TSourceGenerator : IIncrementalGenerator, new()
     {
-        public class Test : VisualBasicSourceGeneratorTest<TSourceGenerator, XUnitVerifier>
+        public class Test(string identifier, [CallerFilePath] string? testFile = null, [CallerMemberName] string? testMethod = null) : VisualBasicSourceGeneratorTest<TSourceGenerator, XUnitVerifier>
         {
-            private readonly string _identifier;
-            private readonly string? _testFile;
-            private readonly string? _testMethod;
+            private readonly string _identifier = identifier;
+            private readonly string? _testFile = testFile;
+            private readonly string? _testMethod = testMethod;
 
             public Test([CallerFilePath] string? testFile = null, [CallerMemberName] string? testMethod = null)
                 : this(string.Empty, testFile, testMethod)
             {
-            }
-
-            public Test(string identifier, [CallerFilePath] string? testFile = null, [CallerMemberName] string? testMethod = null)
-            {
-                _identifier = identifier;
-                _testFile = testFile;
-                _testMethod = testMethod;
-
-#if WRITE_EXPECTED
-                TestBehaviors |= TestBehaviors.SkipGeneratedSourcesCheck;
-#endif
             }
 
             private string ResourceName

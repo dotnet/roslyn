@@ -25,25 +25,17 @@ using Xunit.Sdk;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
     [Trait(Traits.DataflowAnalysis, Traits.Dataflow.PropertySetAnalysis)]
-    public class PropertySetAnalysisTests
+    public class PropertySetAnalysisTests(ITestOutputHelper output)
     {
         /// <summary>
         /// Just a container for parameters necessary for PropertySetAnalysis for unit tests below.
         /// </summary>
-        private sealed class PropertySetAnalysisParameters
+        private sealed class PropertySetAnalysisParameters(string typeToTrack, ConstructorMapper constructorMapper, PropertyMapperCollection propertyMapperCollection, HazardousUsageEvaluatorCollection hazardousUsageEvaluatorCollection)
         {
-            public PropertySetAnalysisParameters(string typeToTrack, ConstructorMapper constructorMapper, PropertyMapperCollection propertyMapperCollection, HazardousUsageEvaluatorCollection hazardousUsageEvaluatorCollection)
-            {
-                TypesToTrack = new string[] { typeToTrack }.ToImmutableHashSet() ?? throw new ArgumentNullException(nameof(typeToTrack));
-                ConstructorMapper = constructorMapper ?? throw new ArgumentNullException(nameof(constructorMapper));
-                PropertyMapperCollection = propertyMapperCollection ?? throw new ArgumentNullException(nameof(propertyMapperCollection));
-                HazardousUsageEvaluatorCollection = hazardousUsageEvaluatorCollection ?? throw new ArgumentNullException(nameof(hazardousUsageEvaluatorCollection));
-            }
-
-            public ImmutableHashSet<string> TypesToTrack { get; }
-            public ConstructorMapper ConstructorMapper { get; }
-            public PropertyMapperCollection PropertyMapperCollection { get; }
-            public HazardousUsageEvaluatorCollection HazardousUsageEvaluatorCollection { get; }
+            public ImmutableHashSet<string> TypesToTrack { get; } = new string[] { typeToTrack }.ToImmutableHashSet() ?? throw new ArgumentNullException(nameof(typeToTrack));
+            public ConstructorMapper ConstructorMapper { get; } = constructorMapper ?? throw new ArgumentNullException(nameof(constructorMapper));
+            public PropertyMapperCollection PropertyMapperCollection { get; } = propertyMapperCollection ?? throw new ArgumentNullException(nameof(propertyMapperCollection));
+            public HazardousUsageEvaluatorCollection HazardousUsageEvaluatorCollection { get; } = hazardousUsageEvaluatorCollection ?? throw new ArgumentNullException(nameof(hazardousUsageEvaluatorCollection));
         }
 
         /// <summary>
@@ -1261,12 +1253,7 @@ class TestClass
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull);
         }
 
-        private ITestOutputHelper TestOutput { get; }
-
-        public PropertySetAnalysisTests(ITestOutputHelper output)
-        {
-            this.TestOutput = output;
-        }
+        private ITestOutputHelper TestOutput { get; } = output;
 
         protected static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 

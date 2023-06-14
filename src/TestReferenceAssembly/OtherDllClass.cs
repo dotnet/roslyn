@@ -18,15 +18,10 @@ namespace OtherDll
     /// is a way to test handling of non-interprocedural results in dataflow
     /// analysis implementations.
     /// </remarks>
-    public class OtherDllClass<T>
+    public class OtherDllClass<T>(T? constructedInput)
         where T : class
     {
-        public OtherDllClass(T? constructedInput)
-        {
-            this.ConstructedInput = constructedInput;
-        }
-
-        public T? ConstructedInput { get; set; }
+        public T? ConstructedInput { get; set; } = constructedInput;
 
         public T? Default
         {

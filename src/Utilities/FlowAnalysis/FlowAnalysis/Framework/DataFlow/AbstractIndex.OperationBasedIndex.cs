@@ -6,14 +6,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     public abstract partial class AbstractIndex
     {
-        private sealed class OperationBasedIndex : AbstractIndex
+        private sealed class OperationBasedIndex(IOperation operation) : AbstractIndex
         {
-            public OperationBasedIndex(IOperation operation)
-            {
-                Operation = operation;
-            }
-
-            public IOperation Operation { get; }
+            public IOperation Operation { get; } = operation;
 
             protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
             {

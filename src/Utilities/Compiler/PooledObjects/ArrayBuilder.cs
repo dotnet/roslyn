@@ -12,18 +12,13 @@ namespace Analyzer.Utilities.PooledObjects
 {
     [DebuggerDisplay("Count = {Count,nq}")]
     [DebuggerTypeProxy(typeof(ArrayBuilder<>.DebuggerProxy))]
-    internal sealed partial class ArrayBuilder<T> : IReadOnlyList<T>, IDisposable
+    internal sealed partial class ArrayBuilder<T>(int size) : IReadOnlyList<T>, IDisposable
     {
         #region DebuggerProxy
 #pragma warning disable CA1812 // ArrayBuilder<T>.DebuggerProxy is an internal class that is apparently never instantiated - used in DebuggerTypeProxy attribute above.
-        private sealed class DebuggerProxy
+        private sealed class DebuggerProxy(ArrayBuilder<T> builder)
         {
-            private readonly ArrayBuilder<T> _builder;
-
-            public DebuggerProxy(ArrayBuilder<T> builder)
-            {
-                _builder = builder;
-            }
+            private readonly ArrayBuilder<T> _builder = builder;
 
 #pragma warning disable CA1819 // Properties should not return arrays
             [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
@@ -45,14 +40,9 @@ namespace Analyzer.Utilities.PooledObjects
 #pragma warning restore CA1812
         #endregion
 
-        private readonly ImmutableArray<T>.Builder _builder;
+        private readonly ImmutableArray<T>.Builder _builder = ImmutableArray.CreateBuilder<T>(size);
 
         private readonly ObjectPool<ArrayBuilder<T>>? _pool;
-
-        public ArrayBuilder(int size)
-        {
-            _builder = ImmutableArray.CreateBuilder<T>(size);
-        }
 
         public ArrayBuilder()
             : this(8)

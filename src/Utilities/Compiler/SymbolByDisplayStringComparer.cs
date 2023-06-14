@@ -10,8 +10,12 @@ namespace Analyzer.Utilities
     /// <summary>
     /// <see cref="IComparer{T}"/> for <see cref="ITypeSymbol"/>s sorted by display strings.
     /// </summary>
+    /// <remarks>
+    /// Constructs.
+    /// </remarks>
+    /// <param name="symbolDisplayStringCache">The cache display strings to use.</param>
 #pragma warning disable CA1812 // Is too instantiated.
-    internal sealed class SymbolByDisplayStringComparer : IComparer<ITypeSymbol>
+    internal sealed class SymbolByDisplayStringComparer(SymbolDisplayStringCache symbolDisplayStringCache) : IComparer<ITypeSymbol>
 #pragma warning restore CA1812
     {
         /// <summary>
@@ -24,18 +28,9 @@ namespace Analyzer.Utilities
         }
 
         /// <summary>
-        /// Constructs.
-        /// </summary>
-        /// <param name="symbolDisplayStringCache">The cache display strings to use.</param>
-        public SymbolByDisplayStringComparer(SymbolDisplayStringCache symbolDisplayStringCache)
-        {
-            this.SymbolDisplayStringCache = symbolDisplayStringCache ?? throw new ArgumentNullException(nameof(symbolDisplayStringCache));
-        }
-
-        /// <summary>
         /// Cache of symbol display strings.
         /// </summary>
-        public SymbolDisplayStringCache SymbolDisplayStringCache { get; }
+        public SymbolDisplayStringCache SymbolDisplayStringCache { get; } = symbolDisplayStringCache ?? throw new ArgumentNullException(nameof(symbolDisplayStringCache));
 
         /// <summary>
         /// Compares two type symbols by their display strings.

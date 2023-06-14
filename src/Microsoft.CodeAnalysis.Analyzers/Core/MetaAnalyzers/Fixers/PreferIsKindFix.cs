@@ -48,14 +48,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
         protected abstract void FixDiagnostic(DocumentEditor editor, SyntaxNode nodeToFix);
 
-        private sealed class CustomFixAllProvider : DocumentBasedFixAllProvider
+        private sealed class CustomFixAllProvider(PreferIsKindFix fixer) : DocumentBasedFixAllProvider
         {
-            private readonly PreferIsKindFix _fixer;
-
-            public CustomFixAllProvider(PreferIsKindFix fixer)
-            {
-                _fixer = fixer;
-            }
+            private readonly PreferIsKindFix _fixer = fixer;
 
             protected override string CodeActionTitle => CodeAnalysisDiagnosticsResources.PreferIsKindFix;
 

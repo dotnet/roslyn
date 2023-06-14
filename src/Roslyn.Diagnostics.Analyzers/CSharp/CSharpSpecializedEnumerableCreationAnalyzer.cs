@@ -21,26 +21,16 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             context.RegisterCodeBlockStartAction<SyntaxKind>(new CodeBlockStartedAnalyzer(genericEnumerableSymbol, genericEmptyEnumerableSymbol).Initialize);
         }
 
-        private sealed class CodeBlockStartedAnalyzer : AbstractCodeBlockStartedAnalyzer<SyntaxKind>
+        private sealed class CodeBlockStartedAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol) : AbstractCodeBlockStartedAnalyzer<SyntaxKind>(genericEnumerableSymbol, genericEmptyEnumerableSymbol)
         {
-            public CodeBlockStartedAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
-                : base(genericEnumerableSymbol, genericEmptyEnumerableSymbol)
-            {
-            }
-
             protected override void GetSyntaxAnalyzer(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
             {
                 context.RegisterSyntaxNodeAction(new SyntaxAnalyzer(genericEnumerableSymbol, genericEmptyEnumerableSymbol).AnalyzeNode, SyntaxKind.ReturnStatement);
             }
         }
 
-        private sealed class SyntaxAnalyzer : AbstractSyntaxAnalyzer
+        private sealed class SyntaxAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol) : AbstractSyntaxAnalyzer(genericEnumerableSymbol, genericEmptyEnumerableSymbol)
         {
-            public SyntaxAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
-                : base(genericEnumerableSymbol, genericEmptyEnumerableSymbol)
-            {
-            }
-
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
                 System.Collections.Generic.IEnumerable<SyntaxNode> expressionsToAnalyze = context.Node.DescendantNodes().Where(n => ShouldAnalyzeExpression(n, context.SemanticModel, context.CancellationToken));

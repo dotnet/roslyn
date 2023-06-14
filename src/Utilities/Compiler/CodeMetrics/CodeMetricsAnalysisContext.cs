@@ -8,22 +8,14 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
-    public sealed class CodeMetricsAnalysisContext
+    public sealed class CodeMetricsAnalysisContext(Compilation compilation, CancellationToken cancellationToken,
+        Func<INamedTypeSymbol, bool>? isExcludedFromInheritanceCountFunc = null)
     {
-        private readonly ConcurrentDictionary<SyntaxTree, SemanticModel> _semanticModelMap;
+        private readonly ConcurrentDictionary<SyntaxTree, SemanticModel> _semanticModelMap = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
 
-        public CodeMetricsAnalysisContext(Compilation compilation, CancellationToken cancellationToken,
-            Func<INamedTypeSymbol, bool>? isExcludedFromInheritanceCountFunc = null)
-        {
-            Compilation = compilation;
-            CancellationToken = cancellationToken;
-            _semanticModelMap = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
-            IsExcludedFromInheritanceCountFunc = isExcludedFromInheritanceCountFunc ?? (x => false); // never excluded by default
-        }
-
-        public Compilation Compilation { get; }
-        public CancellationToken CancellationToken { get; }
-        public Func<INamedTypeSymbol, bool> IsExcludedFromInheritanceCountFunc { get; }
+        public Compilation Compilation { get; } = compilation;
+        public CancellationToken CancellationToken { get; } = cancellationToken;
+        public Func<INamedTypeSymbol, bool> IsExcludedFromInheritanceCountFunc { get; } = isExcludedFromInheritanceCountFunc ?? (x => false); // never excluded by default
 
         internal SemanticModel GetSemanticModel(SyntaxNode node)
             => _semanticModelMap.GetOrAdd(node.SyntaxTree, tree => Compilation.GetSemanticModel(node.SyntaxTree));

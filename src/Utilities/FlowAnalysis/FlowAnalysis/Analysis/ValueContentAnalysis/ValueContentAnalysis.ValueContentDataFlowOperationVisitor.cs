@@ -15,15 +15,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// <summary>
         /// Operation visitor to flow the data values across a given statement in a basic block.
         /// </summary>
-        private sealed class ValueContentDataFlowOperationVisitor : PredicateAnalysisEntityDataFlowOperationVisitor<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>
+        private sealed class ValueContentDataFlowOperationVisitor(ValueContentAnalysisDomain valueContentAnalysisDomain, ValueContentAnalysisContext analysisContext) : PredicateAnalysisEntityDataFlowOperationVisitor<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>(analysisContext)
         {
-            private readonly ValueContentAnalysisDomain _valueContentAnalysisDomain;
-
-            public ValueContentDataFlowOperationVisitor(ValueContentAnalysisDomain valueContentAnalysisDomain, ValueContentAnalysisContext analysisContext)
-                : base(analysisContext)
-            {
-                _valueContentAnalysisDomain = valueContentAnalysisDomain;
-            }
+            private readonly ValueContentAnalysisDomain _valueContentAnalysisDomain = valueContentAnalysisDomain;
 
             protected override void AddTrackedEntities(ValueContentAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
                 => analysisData.AddTrackedEntities(builder);

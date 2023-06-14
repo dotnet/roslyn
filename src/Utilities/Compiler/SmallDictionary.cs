@@ -31,21 +31,16 @@ namespace Analyzer.Utilities
     /// then regular Dictionary is a better choice.
     /// </summary>
 #pragma warning disable CA1051, CA1716 // Do not declare visible instance fields
-    internal sealed class SmallDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+    internal sealed class SmallDictionary<K, V>(IEqualityComparer<K> comparer) : IEnumerable<KeyValuePair<K, V>>
         where K : notnull
     {
         private AvlNode? _root;
-        public readonly IEqualityComparer<K> Comparer;
+        public readonly IEqualityComparer<K> Comparer = comparer;
 
         // https://github.com/dotnet/roslyn/issues/40344
         public static readonly SmallDictionary<K, V> Empty = new(null!);
 
         public SmallDictionary() : this(EqualityComparer<K>.Default) { }
-
-        public SmallDictionary(IEqualityComparer<K> comparer)
-        {
-            Comparer = comparer;
-        }
 
         public SmallDictionary(SmallDictionary<K, V> other, IEqualityComparer<K> comparer)
             : this(comparer)
@@ -236,28 +231,16 @@ namespace Analyzer.Utilities
             public virtual Node? Next => null;
         }
 
-        private sealed class NodeLinked : Node
+        private sealed class NodeLinked(K key, V value, Node next) : Node(key, value)
         {
-            public NodeLinked(K key, V value, Node next)
-                : base(key, value)
-            {
-                this.Next = next;
-            }
-
-            public override Node Next { get; }
+            public override Node Next { get; } = next;
         }
 
 #pragma warning disable CA1708 // Identifiers should differ by more than case
-        private sealed class AvlNodeHead : AvlNode
+        private sealed class AvlNodeHead(int hashCode, K key, V value, Node next) : AvlNode(hashCode, key, value)
 #pragma warning restore CA1708 // Identifiers should differ by more than case
         {
-            public Node next;
-
-            public AvlNodeHead(int hashCode, K key, V value, Node next)
-                : base(hashCode, key, value)
-            {
-                this.next = next;
-            }
+            public Node next = next;
 
             public override Node Next => next;
         }
@@ -277,14 +260,10 @@ namespace Analyzer.Utilities
             }
         }
 
-        private class AvlNode : HashedNode
+        private class AvlNode(int hashCode, K key, V value) : HashedNode(hashCode, key, value)
         {
             public AvlNode? Left;
             public AvlNode? Right;
-
-            public AvlNode(int hashCode, K key, V value)
-                : base(hashCode, key, value)
-            { }
 
 #if DEBUG
 #pragma warning disable CA1000 // Do not declare static members on generic types
@@ -613,14 +592,9 @@ namespace Analyzer.Utilities
         public KeyCollection Keys => new(this);
 
 #pragma warning disable CA1815 // Override equals and operator equals on value types
-        internal readonly struct KeyCollection : IEnumerable<K>
+        internal readonly struct KeyCollection(SmallDictionary<K, V> dict) : IEnumerable<K>
         {
-            private readonly SmallDictionary<K, V> _dict;
-
-            public KeyCollection(SmallDictionary<K, V> dict)
-            {
-                _dict = dict;
-            }
+            private readonly SmallDictionary<K, V> _dict = dict;
 
             public struct Enumerator
             {
@@ -688,14 +662,9 @@ namespace Analyzer.Utilities
             }
 
 #pragma warning disable CA1063, CA1816 // Implement IDisposable Correctly
-            public sealed class EnumerableCore : IEnumerator<K>
+            public sealed class EnumerableCore(Enumerator e) : IEnumerator<K>
             {
-                private Enumerator _e;
-
-                public EnumerableCore(Enumerator e)
-                {
-                    _e = e;
-                }
+                private Enumerator _e = e;
 
                 K IEnumerator<K>.Current => _e.Current;
 
@@ -729,14 +698,9 @@ namespace Analyzer.Utilities
 
         public ValueCollection Values => new(this);
 
-        internal readonly struct ValueCollection : IEnumerable<V>
+        internal readonly struct ValueCollection(SmallDictionary<K, V> dict) : IEnumerable<V>
         {
-            private readonly SmallDictionary<K, V> _dict;
-
-            public ValueCollection(SmallDictionary<K, V> dict)
-            {
-                _dict = dict;
-            }
+            private readonly SmallDictionary<K, V> _dict = dict;
 
             public struct Enumerator
             {
@@ -805,14 +769,9 @@ namespace Analyzer.Utilities
                 return new Enumerator(_dict);
             }
 
-            public sealed class EnumerableCore : IEnumerator<V>
+            public sealed class EnumerableCore(Enumerator e) : IEnumerator<V>
             {
-                private Enumerator _e;
-
-                public EnumerableCore(Enumerator e)
-                {
-                    _e = e;
-                }
+                private Enumerator _e = e;
 
                 V IEnumerator<V>.Current => _e.Current;
 
@@ -911,14 +870,9 @@ namespace Analyzer.Utilities
             return new Enumerator(this);
         }
 
-        public sealed class EnumerableCore : IEnumerator<KeyValuePair<K, V>>
+        public sealed class EnumerableCore(Enumerator e) : IEnumerator<KeyValuePair<K, V>>
         {
-            private Enumerator _e;
-
-            public EnumerableCore(Enumerator e)
-            {
-                _e = e;
-            }
+            private Enumerator _e = e;
 
             KeyValuePair<K, V> IEnumerator<KeyValuePair<K, V>>.Current => _e.Current;
 

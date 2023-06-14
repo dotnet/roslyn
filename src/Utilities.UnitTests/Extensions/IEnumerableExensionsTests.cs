@@ -83,10 +83,9 @@ namespace Analyzer.Utilities.Extensions
         }
 
 #pragma warning disable CA1010 // Collections should implement generic interface
-        private sealed class Collection : ICollection, IEnumerable<int>
+        private sealed class Collection(int count) : ICollection, IEnumerable<int>
         {
-            public Collection(int count) => this.Count = count > 0 ? count : 0;
-            public int Count { get; }
+            public int Count { get; } = count > 0 ? count : 0;
             public object SyncRoot => throw new NotImplementedException();
             public bool IsSynchronized => throw new NotImplementedException();
             public void CopyTo(Array array, int index) => throw new NotImplementedException();
@@ -125,10 +124,9 @@ namespace Analyzer.Utilities.Extensions
             Assert.Equal(result, IEnumerableExtensions.HasFewerThan(new IntCollection(count), 2));
         }
 
-        private sealed class IntCollection : ICollection<int>
+        private sealed class IntCollection(int count) : ICollection<int>
         {
-            public IntCollection(int count) => this.Count = count > 0 ? count : 0;
-            public int Count { get; }
+            public int Count { get; } = count > 0 ? count : 0;
             public bool IsReadOnly { get; }
             public void Add(int item) => throw new NotImplementedException();
             public void Clear() => throw new NotImplementedException();

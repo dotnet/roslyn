@@ -8,16 +8,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// <summary>
     /// Analysis result from execution of <see cref="TaintedDataAnalysis"/> on a control flow graph.
     /// </summary>
-    internal sealed class TaintedDataAnalysisResult : DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>
+    internal sealed class TaintedDataAnalysisResult(
+        DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> dataFlowAnalysisResult,
+        ImmutableArray<TaintedDataSourceSink> taintedDataSourceSinks) : DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>(dataFlowAnalysisResult)
     {
-        public TaintedDataAnalysisResult(
-            DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> dataFlowAnalysisResult,
-            ImmutableArray<TaintedDataSourceSink> taintedDataSourceSinks)
-            : base(dataFlowAnalysisResult)
-        {
-            this.TaintedDataSourceSinks = taintedDataSourceSinks;
-        }
-
-        public ImmutableArray<TaintedDataSourceSink> TaintedDataSourceSinks { get; }
+        public ImmutableArray<TaintedDataSourceSink> TaintedDataSourceSinks { get; } = taintedDataSourceSinks;
     }
 }
