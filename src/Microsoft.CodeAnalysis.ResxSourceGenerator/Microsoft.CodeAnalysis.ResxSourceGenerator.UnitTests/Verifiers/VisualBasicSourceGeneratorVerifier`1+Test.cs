@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
                 TestBehaviors |= TestBehaviors.SkipGeneratedSourcesCheck;
 #endif
             }
-            
+
             private string ResourceName
             {
                 get
