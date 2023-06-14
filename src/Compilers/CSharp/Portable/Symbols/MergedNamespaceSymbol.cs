@@ -168,17 +168,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private HashSet<ReadOnlyMemory<char>> SlowGetChildNames(IEqualityComparer<ReadOnlyMemory<char>> comparer)
         {
-            var childNames = new HashSet<ReadOnlyMemory<char>>(comparer);
+            // compute the final capacity of the set we'll return, to reduce heap churn
+            int childCount = 0;
+            List<ImmutableArray<Symbol>> namespacesMembers = new(capacity: _namespacesToMerge.Length);
 
             foreach (var ns in _namespacesToMerge)
             {
-                foreach (var child in ns.GetMembersUnordered())
+                var members = ns.GetMembersUnordered();
+                childCount += members.Length;
+
+                namespacesMembers.Add(members);
+            }
+
+#if NETSTANDARD2_0
+            // HashSet<T> in netstandard2.0 doesn't have a constructor that accepts a capacity
+            // parameter.  It does, however, optimally allocate for the appropriate capacity
+            // if it's created with an IEnumerable<T> that also implements ICollection<T>.  We'll
+            // reduce overall heap churn by first creating a list of elements to go into the
+            // HashSet and then initialzing the HashSet from the list.
+            List<ReadOnlyMemory<char>> childNames = new(childCount);
+#else
+            HashSet<ReadOnlyMemory<char>> childNames = new(childCount, comparer);
+#endif
+
+            foreach (var nsMembers in namespacesMembers)
+            {
+                foreach (var child in nsMembers)
                 {
                     childNames.Add(child.Name.AsMemory());
                 }
             }
 
+#if NETSTANDARD2_0
+            return new HashSet<ReadOnlyMemory<char>>(childNames, comparer);
+#else
             return childNames;
+#endif
         }
 
         public override string Name
