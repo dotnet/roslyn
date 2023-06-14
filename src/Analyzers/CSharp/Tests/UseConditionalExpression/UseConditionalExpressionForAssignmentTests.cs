@@ -2044,5 +2044,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68578")]
+        public async Task TestMissingWhenAssignmentReferencesPatternVariable()
+        {
+            await TestMissingAsync("""
+                using System;
+
+                public class Class1
+                {
+                    public int i;
+                }
+
+                public class Program
+                {
+                    public static void Test(object obj)
+                    {
+                        if (obj is Class1 c)
+                        {
+                            c.i = 1;
+                        }
+                        else
+                        {
+                            throw new Exception();
+                        }
+                    }
+                }
+                """);
+        }
     }
 }

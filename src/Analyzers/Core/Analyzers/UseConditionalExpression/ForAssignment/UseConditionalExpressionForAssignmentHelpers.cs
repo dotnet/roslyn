@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
@@ -68,6 +71,9 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
+            if (ReferencesPatternVariableInAssignment(ifOperation.Condition, trueAssignment?.Target, falseAssignment?.Target))
+                return false;
+
             isRef = trueAssignment?.IsRef == true;
             return UseConditionalExpressionHelpers.CanConvert(
                 syntaxFacts, ifOperation, trueStatement, falseStatement);
@@ -82,6 +88,41 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
                 return compilation.ClassifyCommonConversion(firstType, secondType).IsImplicit
                      ^ compilation.ClassifyCommonConversion(secondType, firstType).IsImplicit;
+            }
+
+            static bool ReferencesPatternVariableInAssignment(IOperation condition, IOperation? trueTarget, IOperation? falseTarget)
+            {
+                if (trueTarget is not null || falseTarget is not null)
+                {
+                    using var _1 = PooledHashSet<ISymbol>.GetInstance(out var declaredPatternSymbols);
+                    foreach (var operation in condition.DescendantsAndSelf())
+                    {
+                        if (operation is IDeclarationPatternOperation declarationPatternOperation)
+                            declaredPatternSymbols.AddIfNotNull(declarationPatternOperation.DeclaredSymbol);
+                    }
+
+                    return ContainsLocalReference(declaredPatternSymbols, trueTarget) ||
+                           ContainsLocalReference(declaredPatternSymbols, falseTarget);
+                }
+
+                return false;
+            }
+
+            static bool ContainsLocalReference(HashSet<ISymbol> declaredPatternSymbols, IOperation? target)
+            {
+                if (target is not null)
+                {
+                    foreach (var operation in target.DescendantsAndSelf())
+                    {
+                        if (operation is ILocalReferenceOperation localReferenceOperation &&
+                            declaredPatternSymbols.Contains(localReferenceOperation.Local))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
             }
         }
 
