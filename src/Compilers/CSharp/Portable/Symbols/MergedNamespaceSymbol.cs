@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private HashSet<ReadOnlyMemory<char>> SlowGetChildNames(IEqualityComparer<ReadOnlyMemory<char>> comparer)
         {
-            // compute the final capacity of the set we'll return, to reduce heap churn
+            // compute a reasonable estimate for the capacity of the set we'll return, to reduce heap churn
             int childCount = 0;
 
             foreach (var ns in _namespacesToMerge)
