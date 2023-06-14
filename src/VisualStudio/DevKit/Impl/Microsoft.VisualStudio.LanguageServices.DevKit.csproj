@@ -5,10 +5,6 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <IsPackable>true</IsPackable>
-    <PackageDescription>
-      .NET Compiler Platform ("Roslyn") Language Server Protocol internal.
-    </PackageDescription>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
@@ -36,29 +32,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.NpmPack" PrivateAssets="all" Version="$(MicrosoftVisualStudioInternalMicroBuildNpmPackVersion)" Condition="'$(IsNpmPackable)' == 'true'" />
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
-
-    <!-- 
-    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgMicrosoft_VisualStudio_Telemetry 
-    -->
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" GeneratePathProperty="True" />
-
-    <!--
-    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgMicrosoft_VisualStudio_RemoteControl
-    -->
-    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" GeneratePathProperty="True" />
-
-    <!--
-    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgMicrosoft_VisualStudio_Utilities_Internal
-    -->
-    <PackageReference Include="Microsoft.VisualStudio.Utilities.Internal" Version="$(MicrosoftVisualStudioUtilitiesInternalVersion)" GeneratePathProperty="True" />
-
-    <!--
-    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgSystem_Configuration_ConfigurationManager
-    -->
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" GeneratePathProperty="True" />
 
     <!--
     Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgSystem_Configuration_ConfigurationManager
@@ -73,33 +49,12 @@
   <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
 
-  <PropertyGroup>
-    <StageForNpmPackDependsOn>$(StageForNpmPackDependsOn);CollectNpmInputs</StageForNpmPackDependsOn>
-  </PropertyGroup>
-
-  <Target Name="GetBuildVersion">
-    <PropertyGroup>
-      <NpmPackageVersion>$(PackageVersion)</NpmPackageVersion>
-    </PropertyGroup>
-  </Target>
-
   <Target Name="CollectNpmInputs" DependsOnTargets="Build" Returns="@(NpmContent)">
-    <Message Text="Package version is $(PackageVersion)" />
-    <Message Text="Version is $(Version)" />
     <ItemGroup>
-      <NpmContent Include="$(PkgMicrosoft_VisualStudio_Telemetry)\lib\netstandard2.0\Microsoft.VisualStudio.Telemetry.dll" />
-      <NpmContent Include="$(PkgMicrosoft_VisualStudio_RemoteControl)\lib\netstandard2.0\Microsoft.VisualStudio.RemoteControl.dll" />
-      <NpmContent Include="$(PkgMicrosoft_VisualStudio_Utilities_Internal)\lib\netstandard2.0\Microsoft.VisualStudio.Utilities.Internal.dll" />
-      <NpmContent Include="$(PkgSystem_Configuration_ConfigurationManager)\lib\netstandard2.0\System.Configuration.ConfigurationManager.dll" />
       <NpmContent Include="$(PkgMicrosoft_VisualStudio_Debugger_Contracts)\lib\netstandard2.0\Microsoft.VisualStudio.Debugger.Contracts.dll" />
       <NpmContent Include="$(TargetPath)" />
-      <NpmContent Include="@(AppConfigWithTargetPath->'$(OutDir)%(TargetPath)')" />
-      <NpmContent Include="$(ProjectDepsFilePath)" />
       <NpmContent Include="@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" PackagePath="%(ReferenceCopyLocalPaths.DestinationSubDirectory)" Condition="'%(Extension)'!='.xml'" />
-      <NpmContent Include="@(None)" PackagePath="%(None.TargetPath)" Condition="'%(None.CopyToOutputDirectory)'=='PreserveNewest'" />
+      <NpmContent Include="@(IntermediateSatelliteAssembliesWithTargetPath)" PackagePath="%(IntermediateSatelliteAssembliesWithTargetPath.TargetPath)" />
     </ItemGroup>
   </Target>
-  <ItemGroup>
-    <Content Include="package.json" />
-  </ItemGroup>
 </Project>

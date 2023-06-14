@@ -547,6 +547,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Remo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.ServiceHub.Setup.arm64", "src\VisualStudio\Setup.ServiceHub\arm64\Roslyn.VisualStudio.ServiceHub.Setup.arm64.csproj", "{09E88382-0D7B-4A15-B1AF-0B89A5B67227}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.DevKit.Package", "src\VisualStudio\DevKit\Package\Microsoft.VisualStudio.LanguageServices.DevKit.Package.csproj", "{5916A0FD-153B-49DE-88AC-3E1CA8F2A976}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1345,6 +1347,10 @@ Global
 		{09E88382-0D7B-4A15-B1AF-0B89A5B67227}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09E88382-0D7B-4A15-B1AF-0B89A5B67227}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09E88382-0D7B-4A15-B1AF-0B89A5B67227}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5916A0FD-153B-49DE-88AC-3E1CA8F2A976}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5916A0FD-153B-49DE-88AC-3E1CA8F2A976}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5916A0FD-153B-49DE-88AC-3E1CA8F2A976}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5916A0FD-153B-49DE-88AC-3E1CA8F2A976}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1594,6 +1600,7 @@ Global
 		{3ABBDFF7-ED76-4EA3-840E-85E3274302B0} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{172F3A04-644B-492C-9632-B07B52A5C0C4} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{09E88382-0D7B-4A15-B1AF-0B89A5B67227} = {8DBA5174-B0AA-4561-82B1-A46607697753}
+		{5916A0FD-153B-49DE-88AC-3E1CA8F2A976} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

@@ -67,7 +67,7 @@
   <!-- 
     Do not copy dependencies to the output directory of a library project, unless it's a unit test project.
   -->
-  <ItemDefinitionGroup Condition="'$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(IsTestProject)' != 'true'">
+  <ItemDefinitionGroup Condition="'$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(IsTestProject)' != 'true' and '$(IsDevKitComponentPackage)' != 'true'">
     <Reference>
       <Private>False</Private>
     </Reference>
@@ -77,7 +77,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
 
-  <PropertyGroup Condition="'$(ProduceReferenceAssembly)' == '' and (('$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(IsTestProject)' != 'true') or '$(OutputType)' == 'Exe' or '$(OutputType)' == 'WinExe')">
+  <PropertyGroup Condition="'$(ProduceReferenceAssembly)' == '' and (('$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(IsDevKitComponentPackage)' != 'true' and '$(IsTestProject)' != 'true') or '$(OutputType)' == 'Exe' or '$(OutputType)' == 'WinExe')">
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
 

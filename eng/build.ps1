@@ -260,8 +260,7 @@ function BuildSolution() {
   # in our CI builds
   # https://github.com/NuGet/Home/issues/12373
   $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
-  
-  $isNpmAvailable = IsNpmAvailable
+
 
   try {
     MSBuild $toolsetBuildProj `
@@ -285,7 +284,6 @@ function BuildSolution() {
       /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
-      /p:IsNpmPackable=$isNpmAvailable `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
@@ -711,14 +709,6 @@ function List-Processes() {
   Get-Process -Name "vbcscompiler" -ErrorAction SilentlyContinue | Out-Host
   Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | where { $_.Modules | select { $_.ModuleName -eq "VBCSCompiler.dll" } } | Out-Host
   Get-Process -Name "devenv" -ErrorAction SilentlyContinue | Out-Host
-}
-
-function IsNpmAvailable() {
-  if (Get-Command "npm" -ErrorAction SilentlyContinue) {
-    return $true
-  }
-
-  return $false;
 }
 
 try {

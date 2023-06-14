@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.VisualStudio.Internal.MicroBuild.VSCodeCSharpProdImprovementsPack">
+  <Import Project="vs\Directory.Packages.props" />
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IsDevKitComponentPackage>true</IsDevKitComponentPackage>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+
+    <!--
+      By default all project references get included. However, Roslyn DevKit is a standalone Roslyn "plugin" that should not redist any Roslyn binaries,
+      so we manage the package content manually.
+    -->
+    <CollectDefaultNpmInputs>false</CollectDefaultNpmInputs>
+
+    <StageForNpmPackDependsOn>$(StageForNpmPackDependsOn);_PrepareNpmContent</StageForNpmPackDependsOn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Code.ShareDependencies" Version="$(MicrosoftVisualStudioCodeShareDependenciesVersion)" />
+
+    <!--
+      To validate that we are not transitively referencing any DevKit shared package with a higher version than DevKit ships with,
+      we add references to all public shared packages. NuGet reports "package downgrade" if this requirement is violated.
+    -->
+    <PackageReference Include="@(PackageVersion)" Exclude="@(PackageVersion->WithMetadataValue('IsInternal','true'))" IncludeAssets="none" />
+
+    <!-- Workaround - the following shouldn't be shared dependencies -->
+    <PackageReference Remove="System.CommandLine" />
+    <PackageReference Remove="Microsoft.CodeAnalysis.Analyzers" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="package.json" />
+  </ItemGroup>
+
+  <Target Name="_PrepareNpmContent">
+    <MSBuild Projects="..\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj" Targets="CollectNpmInputs" RemoveProperties="RuntimeIdentifier;RuntimeIdentifiers">
+      <Output TaskParameter="TargetOutputs" ItemName="NpmContent"/>
+    </MSBuild>
+  </Target>
+
+  <Target Name="GetBuildVersion">
+    <PropertyGroup>
+      <NpmPackageVersion>$(PackageVersion)</NpmPackageVersion>
+    </PropertyGroup>
+  </Target>
+</Project>
