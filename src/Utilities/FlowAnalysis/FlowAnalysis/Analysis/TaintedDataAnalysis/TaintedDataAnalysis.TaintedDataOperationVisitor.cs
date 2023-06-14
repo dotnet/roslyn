@@ -459,7 +459,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 // Note this method is only called when interprocedural DFA is *NOT* performed.
                 if (operation.Parent is IInvocationOperation invocationOperation)
                 {
-                    Debug.Assert(!this.TryGetInterproceduralAnalysisResult(invocationOperation, out TaintedDataAnalysisResult _));
+                    Debug.Assert(!this.TryGetInterproceduralAnalysisResult(invocationOperation, out var _));
 
                     // Treat ref or out arguments as the same as the invocation operation.
                     TaintedDataAbstractValue returnValueAbstractValue = this.GetCachedAbstractValue(invocationOperation);
