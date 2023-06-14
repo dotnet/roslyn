@@ -99,7 +99,7 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
         => Path.Combine(Path.Combine(_tempDir, $"EnC_{_vsProcessId}", ZipFileName));
 
     public IReadOnlyCollection<string> GetFiles()
-        => _vsFeedbackSemaphoreFullPath is null
+        => _vsFeedbackSemaphoreFileWatcher is null
            ? Array.Empty<string>()
            : (IReadOnlyCollection<string>)(new[] { GetZipFilePath() });
 
