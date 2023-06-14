@@ -196,7 +196,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
 #if NETSTANDARD2_0
-            return new HashSet<ReadOnlyMemory<char>>(childNames.ToArrayAndFree(), comparer);
+            var asHashSet = new HashSet<ReadOnlyMemory<char>>(childNames, comparer);
+            childNames.Free();
+
+            return asHashSet;
 #else
             return childNames;
 #endif

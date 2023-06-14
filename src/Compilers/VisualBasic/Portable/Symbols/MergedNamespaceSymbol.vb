@@ -261,7 +261,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
 #If NETSTANDARD2_0 Then
-            Dim asHashSet As New HashSet(Of String)(childNames.ToArrayAndFree(), comparer)
+            Dim asHashSet As New HashSet(Of String)(childNames, comparer)
+            childNames.Free()
+
             Return asHashSet
 #Else
             Return childNames
