@@ -238,34 +238,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function SlowGetChildNames(comparer As IEqualityComparer(Of String)) As HashSet(Of String)
             ' compute the final capacity of the set we'll return, to reduce heap churn
             Dim childCount As Integer = 0
-            Dim namespacesMembers As New List(Of ImmutableArray(Of Symbol))(_namespacesToMerge.Length)
 
             For Each nsSym As NamespaceSymbol In _namespacesToMerge
-                Dim members = nsSym.GetMembersUnordered()
-                childCount += members.Length
-
-                namespacesMembers.Add(members)
+                childCount += nsSym.GetMembersUnordered().Length
             Next
 
 #If NETSTANDARD2_0 Then
             ' HashSet<T> in netstandard2.0 doesn't have a constructor that accepts a capacity
             ' parameter.  It does, however, optimally allocate for the appropriate capacity
             ' if it's created with an IEnumerable<T> that also implements ICollection<T>.  We'll
-            ' reduce overall heap churn by first creating a list of elements to go into the
-            ' HashSet And then initialzing the HashSet from the list.
-            Dim childNames As New List(Of String)(childCount)
+            ' reduce overall heap churn by first creating an array of elements to go into the
+            ' HashSet And then initialzing the HashSet from the array.
+            Dim childNames As ArrayBuilder(Of String) = ArrayBuilder(Of String).GetInstance(childCount)
 #Else
             Dim childNames As New HashSet(Of String)(comparer)
 #End If
 
-            For Each nsSym As ImmutableArray(Of Symbol) In namespacesMembers
-                For Each childSym As NamespaceOrTypeSymbol In nsSym
+            For Each nsSym As NamespaceSymbol In _namespacesToMerge
+                For Each childSym As NamespaceOrTypeSymbol In nsSym.GetMembersUnordered()
                     childNames.Add(childSym.Name)
                 Next
             Next
 
 #If NETSTANDARD2_0 Then
-            Dim asHashSet As New HashSet(Of String)(childNames, comparer)
+            Dim asHashSet As New HashSet(Of String)(childNames.ToArrayAndFree(), comparer)
             Return asHashSet
 #Else
             Return childNames

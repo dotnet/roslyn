@@ -170,37 +170,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // compute the final capacity of the set we'll return, to reduce heap churn
             int childCount = 0;
-            List<ImmutableArray<Symbol>> namespacesMembers = new(capacity: _namespacesToMerge.Length);
 
             foreach (var ns in _namespacesToMerge)
             {
-                var members = ns.GetMembersUnordered();
-                childCount += members.Length;
-
-                namespacesMembers.Add(members);
+                childCount += ns.GetMembersUnordered().Length;
             }
 
 #if NETSTANDARD2_0
             // HashSet<T> in netstandard2.0 doesn't have a constructor that accepts a capacity
             // parameter.  It does, however, optimally allocate for the appropriate capacity
             // if it's created with an IEnumerable<T> that also implements ICollection<T>.  We'll
-            // reduce overall heap churn by first creating a list of elements to go into the
-            // HashSet and then initialzing the HashSet from the list.
-            List<ReadOnlyMemory<char>> childNames = new(childCount);
+            // reduce overall heap churn by first creating an array of elements to go into the
+            // HashSet and then initialzing the HashSet from the array.
+            var childNames = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance(childCount);
 #else
-            HashSet<ReadOnlyMemory<char>> childNames = new(childCount, comparer);
+            var childNames = new HashSet<ReadOnlyMemory<char>>(childCount, comparer);
 #endif
 
-            foreach (var nsMembers in namespacesMembers)
+            foreach (var ns in _namespacesToMerge)
             {
-                foreach (var child in nsMembers)
+                foreach (var child in ns.GetMembersUnordered())
                 {
                     childNames.Add(child.Name.AsMemory());
                 }
             }
 
 #if NETSTANDARD2_0
-            return new HashSet<ReadOnlyMemory<char>>(childNames, comparer);
+            return new HashSet<ReadOnlyMemory<char>>(childNames.ToArrayAndFree(), comparer);
 #else
             return childNames;
 #endif
