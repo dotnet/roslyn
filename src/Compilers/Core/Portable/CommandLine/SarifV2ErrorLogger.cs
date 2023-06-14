@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
@@ -264,7 +263,7 @@ namespace Microsoft.CodeAnalysis
                     //    SuppressMessageAttribute, DiagnosticSuppressor, etc.
                     var hasAnySourceSuppression = _diagnosticIdsWithAnySourceSuppressions.Contains(descriptor.Id);
                     var isEverSuppressed = descriptorInfo.HasAnyExternalSuppression || hasAnySourceSuppression;
-                    
+
                     var reportAnalyzerExecutionTime = !string.IsNullOrEmpty(_totalAnalyzerExecutionTime);
                     Debug.Assert(reportAnalyzerExecutionTime || descriptorInfo.ExecutionTime == 0);
                     Debug.Assert(reportAnalyzerExecutionTime || descriptorInfo.ExecutionPercentage == 0);
