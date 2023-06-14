@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
-    internal readonly struct StatisticResult
+    internal readonly struct StatisticResult(int max, int min, double mean, int range, int? mode, int count)
     {
         public static StatisticResult FromList(List<int> values)
         {
@@ -42,42 +42,32 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// <summary>
         /// maximum value
         /// </summary>
-        public readonly int Maximum;
+        public readonly int Maximum = max;
 
         /// <summary>
         /// minimum value
         /// </summary>
-        public readonly int Minimum;
+        public readonly int Minimum = min;
 
         /// <summary>
         /// average value of the total data set
         /// </summary>
-        public readonly double Mean;
+        public readonly double Mean = mean;
 
         /// <summary>
         /// most frequent value in the total data set
         /// </summary>
-        public readonly int? Mode;
+        public readonly int? Mode = mode;
 
         /// <summary>
         /// difference between max and min value
         /// </summary>
-        public readonly int Range;
+        public readonly int Range = range;
 
         /// <summary>
         /// number of data points in the total data set
         /// </summary>
-        public readonly int Count;
-
-        public StatisticResult(int max, int min, double mean, int range, int? mode, int count)
-        {
-            this.Maximum = max;
-            this.Minimum = min;
-            this.Mean = mean;
-            this.Range = range;
-            this.Mode = mode;
-            this.Count = count;
-        }
+        public readonly int Count = count;
 
         /// <summary>
         /// Writes out these statistics to a property bag for sending to telemetry.

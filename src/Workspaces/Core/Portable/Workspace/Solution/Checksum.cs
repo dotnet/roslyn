@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     /// without actually comparing data itself
     /// </summary>
     [DataContract]
-    internal sealed partial class Checksum : IObjectWritable, IEquatable<Checksum>
+    internal sealed partial class Checksum(Checksum.HashData hash) : IObjectWritable, IEquatable<Checksum>
     {
         /// <summary>
         /// The intended size of the <see cref="HashData"/> structure. 
@@ -31,10 +31,7 @@ namespace Microsoft.CodeAnalysis
         public static readonly Checksum Null = new(default);
 
         [DataMember(Order = 0)]
-        private readonly HashData _checksum;
-
-        public Checksum(HashData hash)
-            => _checksum = hash;
+        private readonly HashData _checksum = hash;
 
         /// <summary>
         /// Create Checksum from given byte array. if byte array is bigger than <see cref="HashSize"/>, it will be
@@ -137,23 +134,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         [DataContract]
         [StructLayout(LayoutKind.Explicit, Size = HashSize)]
-        public readonly struct HashData : IEquatable<HashData>
+        public readonly struct HashData(long data1, long data2, int data3) : IEquatable<HashData>
         {
             [FieldOffset(0), DataMember(Order = 0)]
-            private readonly long Data1;
+            private readonly long Data1 = data1;
 
             [FieldOffset(8), DataMember(Order = 1)]
-            private readonly long Data2;
+            private readonly long Data2 = data2;
 
             [FieldOffset(16), DataMember(Order = 2)]
-            private readonly int Data3;
-
-            public HashData(long data1, long data2, int data3)
-            {
-                Data1 = data1;
-                Data2 = data2;
-                Data3 = data3;
-            }
+            private readonly int Data3 = data3;
 
             public static bool operator ==(HashData x, HashData y)
                 => x.Equals(y);

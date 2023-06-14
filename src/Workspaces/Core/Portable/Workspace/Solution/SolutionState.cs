@@ -2059,18 +2059,11 @@ namespace Microsoft.CodeAnalysis
 
         internal TestAccessor GetTestAccessor() => new TestAccessor(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(SolutionState solutionState)
         {
-            private readonly SolutionState _solutionState;
-
-            public TestAccessor(SolutionState solutionState)
-            {
-                _solutionState = solutionState;
-            }
-
             public GeneratorDriver? GetGeneratorDriver(Project project)
             {
-                return project.SupportsCompilation ? _solutionState.GetCompilationTracker(project.Id).GeneratorDriver : null;
+                return project.SupportsCompilation ? solutionState.GetCompilationTracker(project.Id).GeneratorDriver : null;
             }
         }
     }

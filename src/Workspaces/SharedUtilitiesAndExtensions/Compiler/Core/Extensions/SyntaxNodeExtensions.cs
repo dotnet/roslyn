@@ -969,37 +969,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ValueAncestorsAndSelfEnumerable ValueAncestorsAndSelf(this SyntaxNode syntaxNode, bool ascendOutOfTrivia = true)
             => new(syntaxNode, ascendOutOfTrivia);
 
-        public readonly struct ValueAncestorsAndSelfEnumerable
+        public readonly struct ValueAncestorsAndSelfEnumerable(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
         {
-            private readonly SyntaxNode _syntaxNode;
-            private readonly bool _ascendOutOfTrivia;
-
-            public ValueAncestorsAndSelfEnumerable(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
-            {
-                _syntaxNode = syntaxNode;
-                _ascendOutOfTrivia = ascendOutOfTrivia;
-            }
-
             public Enumerator GetEnumerator()
-                => new(_syntaxNode, _ascendOutOfTrivia);
+                => new(syntaxNode, ascendOutOfTrivia);
 
-            public struct Enumerator
+            public struct Enumerator(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
             {
-                private readonly SyntaxNode _start;
-                private readonly bool _ascendOutOfTrivia;
-
-                public Enumerator(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
-                {
-                    _start = syntaxNode;
-                    _ascendOutOfTrivia = ascendOutOfTrivia;
-                    Current = null!;
-                }
-
-                public SyntaxNode Current { get; private set; }
+                public SyntaxNode Current { get; private set; } = null!;
 
                 public bool MoveNext()
                 {
-                    Current = Current == null ? _start : GetParent(Current, _ascendOutOfTrivia)!;
+                    Current = Current == null ? syntaxNode : GetParent(Current, ascendOutOfTrivia)!;
                     return Current != null;
                 }
             }

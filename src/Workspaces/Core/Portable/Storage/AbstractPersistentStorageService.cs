@@ -167,15 +167,10 @@ namespace Microsoft.CodeAnalysis.Storage
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(AbstractPersistentStorageService service)
         {
-            private readonly AbstractPersistentStorageService _service;
-
-            public TestAccessor(AbstractPersistentStorageService service)
-                => _service = service;
-
             public void Shutdown()
-                => _service.Shutdown();
+                => service.Shutdown();
         }
 
         /// <summary>

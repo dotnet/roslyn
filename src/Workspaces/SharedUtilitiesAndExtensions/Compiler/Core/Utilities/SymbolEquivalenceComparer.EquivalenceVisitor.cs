@@ -15,21 +15,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal partial class SymbolEquivalenceComparer
     {
-        private class EquivalenceVisitor
+        private class EquivalenceVisitor(
+            SymbolEquivalenceComparer symbolEquivalenceComparer,
+            bool compareMethodTypeParametersByIndex,
+            bool objectAndDynamicCompareEqually)
         {
-            private readonly bool _compareMethodTypeParametersByIndex;
-            private readonly bool _objectAndDynamicCompareEqually;
-            private readonly SymbolEquivalenceComparer _symbolEquivalenceComparer;
-
-            public EquivalenceVisitor(
-                SymbolEquivalenceComparer symbolEquivalenceComparer,
-                bool compareMethodTypeParametersByIndex,
-                bool objectAndDynamicCompareEqually)
-            {
-                _symbolEquivalenceComparer = symbolEquivalenceComparer;
-                _compareMethodTypeParametersByIndex = compareMethodTypeParametersByIndex;
-                _objectAndDynamicCompareEqually = objectAndDynamicCompareEqually;
-            }
 
 #if TRACKDEPTH
             private int depth = 0;
@@ -65,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     // Special case.  If we're comparing signatures then we want to compare 'object'
                     // and 'dynamic' as the same.  However, since they're different types, we don't
                     // want to bail out using the above check.
-                    if (_objectAndDynamicCompareEqually)
+                    if (objectAndDynamicCompareEqually)
                     {
                         return (xKind == SymbolKind.DynamicType && IsObjectType(y)) ||
                                (yKind == SymbolKind.DynamicType && IsObjectType(x));
@@ -108,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private bool NullableAnnotationsEquivalent(ITypeSymbol x, ITypeSymbol y)
-                => _symbolEquivalenceComparer._ignoreNullableAnnotations || x.NullableAnnotation == y.NullableAnnotation;
+                => symbolEquivalenceComparer._ignoreNullableAnnotations || x.NullableAnnotation == y.NullableAnnotation;
 
             private bool AreEquivalentWorker(ISymbol x, ISymbol y, SymbolKind k, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
@@ -148,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private bool AssembliesAreEquivalent(IAssemblySymbol x, IAssemblySymbol y)
-                => _symbolEquivalenceComparer._assemblyComparerOpt?.Equals(x, y) ?? true;
+                => symbolEquivalenceComparer._assemblyComparerOpt?.Equals(x, y) ?? true;
 
             private bool FieldsAreEquivalent(IFieldSymbol x, IFieldSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
@@ -413,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return false;
 
                 // Check names first if necessary.
-                if (_symbolEquivalenceComparer._tupleNamesMustMatch)
+                if (symbolEquivalenceComparer._tupleNamesMustMatch)
                 {
                     for (var i = 0; i < xElements.Length; i++)
                     {
@@ -461,7 +451,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 for (var i = 0; i < count; i++)
                 {
-                    if (!_symbolEquivalenceComparer.ParameterEquivalenceComparer.Equals(xParameters[i], yParameters[i], equivalentTypesWithDifferingAssemblies, compareParameterName, isParameterNameCaseSensitive))
+                    if (!symbolEquivalenceComparer.ParameterEquivalenceComparer.Equals(xParameters[i], yParameters[i], equivalentTypesWithDifferingAssemblies, compareParameterName, isParameterNameCaseSensitive))
                     {
                         return false;
                     }
@@ -472,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             internal bool ReturnTypesAreEquivalent(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies = null)
             {
-                return _symbolEquivalenceComparer.SignatureTypeEquivalenceComparer.Equals(x.ReturnType, y.ReturnType, equivalentTypesWithDifferingAssemblies) &&
+                return symbolEquivalenceComparer.SignatureTypeEquivalenceComparer.Equals(x.ReturnType, y.ReturnType, equivalentTypesWithDifferingAssemblies) &&
                        AreEquivalent(x.ReturnTypeCustomModifiers, y.ReturnTypeCustomModifiers, equivalentTypesWithDifferingAssemblies);
             }
 
@@ -539,7 +529,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return false;
                 }
 
-                if (x.IsGlobalNamespace && _symbolEquivalenceComparer._assemblyComparerOpt == null)
+                if (x.IsGlobalNamespace && symbolEquivalenceComparer._assemblyComparerOpt == null)
                 {
                     // No need to compare the containers of global namespace when assembly identities are ignored.
                     return true;
@@ -617,7 +607,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // If this is a method type parameter, and we are in 'non-recurse' mode (because
                 // we're comparing method parameters), then we're done at this point.  The types are
                 // equal.
-                if (x.TypeParameterKind == TypeParameterKind.Method && _compareMethodTypeParametersByIndex)
+                if (x.TypeParameterKind == TypeParameterKind.Method && compareMethodTypeParametersByIndex)
                 {
                     return true;
                 }

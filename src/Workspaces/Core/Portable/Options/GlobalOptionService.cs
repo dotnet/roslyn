@@ -17,33 +17,24 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Options
 {
     [Export(typeof(IGlobalOptionService)), Shared]
-    internal sealed class GlobalOptionService : IGlobalOptionService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class GlobalOptionService(
+        [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService,
+        [ImportMany] IEnumerable<Lazy<IOptionPersisterProvider>> optionPersisters) : IGlobalOptionService
     {
-        private readonly IWorkspaceThreadingService? _workspaceThreadingService;
-        private readonly ImmutableArray<Lazy<IOptionPersisterProvider>> _optionPersisterProviders;
+        private readonly ImmutableArray<Lazy<IOptionPersisterProvider>> _optionPersisterProviders = optionPersisters.ToImmutableArray();
 
         private readonly object _gate = new();
 
         #region Guarded by _gate
 
         private ImmutableArray<IOptionPersister> _lazyOptionPersisters;
-        private ImmutableDictionary<OptionKey2, object?> _currentValues;
+        private ImmutableDictionary<OptionKey2, object?> _currentValues = ImmutableDictionary.Create<OptionKey2, object?>();
 
         #endregion
 
         private readonly WeakEvent<OptionChangedEventArgs> _optionChanged = new();
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GlobalOptionService(
-            [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService,
-            [ImportMany] IEnumerable<Lazy<IOptionPersisterProvider>> optionPersisters)
-        {
-            _workspaceThreadingService = workspaceThreadingService;
-            _optionPersisterProviders = optionPersisters.ToImmutableArray();
-
-            _currentValues = ImmutableDictionary.Create<OptionKey2, object?>();
-        }
 
         private ImmutableArray<IOptionPersister> GetOptionPersisters()
         {
@@ -55,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 ImmutableInterlocked.InterlockedInitialize(
                     ref _lazyOptionPersisters,
-                    GetOptionPersistersSlow(_workspaceThreadingService, _optionPersisterProviders, CancellationToken.None));
+                    GetOptionPersistersSlow(workspaceThreadingService, _optionPersisterProviders, CancellationToken.None));
             }
 
             return _lazyOptionPersisters;

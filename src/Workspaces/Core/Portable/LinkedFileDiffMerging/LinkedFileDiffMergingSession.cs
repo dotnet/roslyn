@@ -17,34 +17,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class LinkedFileDiffMergingSession
+    internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solution newSolution, SolutionChanges solutionChanges)
     {
-        private readonly Solution _oldSolution;
-        private readonly Solution _newSolution;
-        private readonly SolutionChanges _solutionChanges;
-
-        public LinkedFileDiffMergingSession(Solution oldSolution, Solution newSolution, SolutionChanges solutionChanges)
-        {
-            _oldSolution = oldSolution;
-            _newSolution = newSolution;
-            _solutionChanges = solutionChanges;
-        }
-
         internal async Task<LinkedFileMergeSessionResult> MergeDiffsAsync(IMergeConflictHandler mergeConflictHandler, CancellationToken cancellationToken)
         {
             var sessionInfo = new LinkedFileDiffMergingSessionInfo();
 
-            var linkedDocumentGroupsWithChanges = _solutionChanges
+            var linkedDocumentGroupsWithChanges = solutionChanges
                 .GetProjectChanges()
                 .SelectMany(p => p.GetChangedDocuments())
-                .GroupBy(d => _oldSolution.GetDocument(d).FilePath, StringComparer.OrdinalIgnoreCase);
+                .GroupBy(d => oldSolution.GetDocument(d).FilePath, StringComparer.OrdinalIgnoreCase);
 
             var linkedFileMergeResults = new List<LinkedFileMergeResult>();
 
-            var updatedSolution = _newSolution;
+            var updatedSolution = newSolution;
             foreach (var linkedDocumentsWithChanges in linkedDocumentGroupsWithChanges)
             {
-                var documentInNewSolution = _newSolution.GetDocument(linkedDocumentsWithChanges.First());
+                var documentInNewSolution = newSolution.GetDocument(linkedDocumentsWithChanges.First());
 
                 // Ensure the first document in the group is the first in the list of 
                 var allLinkedDocuments = documentInNewSolution.GetLinkedDocumentIds().Add(documentInNewSolution.Id);
@@ -62,7 +51,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    mergedText = await _newSolution.GetDocument(linkedDocumentsWithChanges.Single()).GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                    mergedText = await newSolution.GetDocument(linkedDocumentsWithChanges.Single()).GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 foreach (var documentId in allLinkedDocuments)
@@ -85,15 +74,15 @@ namespace Microsoft.CodeAnalysis
 
             // Automatically merge non-conflicting diffs while collecting the conflicting diffs
 
-            var textDifferencingService = _oldSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
-            var appliedChanges = await textDifferencingService.GetTextChangesAsync(_oldSolution.GetDocument(linkedDocumentGroup.First()), _newSolution.GetDocument(linkedDocumentGroup.First()), cancellationToken).ConfigureAwait(false);
+            var textDifferencingService = oldSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            var appliedChanges = await textDifferencingService.GetTextChangesAsync(oldSolution.GetDocument(linkedDocumentGroup.First()), newSolution.GetDocument(linkedDocumentGroup.First()), cancellationToken).ConfigureAwait(false);
             var unmergedChanges = new List<UnmergedDocumentChanges>();
 
             foreach (var documentId in linkedDocumentGroup.Skip(1))
             {
                 appliedChanges = await AddDocumentMergeChangesAsync(
-                    _oldSolution.GetDocument(documentId),
-                    _newSolution.GetDocument(documentId),
+                    oldSolution.GetDocument(documentId),
+                    newSolution.GetDocument(documentId),
                     appliedChanges.ToList(),
                     unmergedChanges,
                     groupSessionInfo,
@@ -101,7 +90,7 @@ namespace Microsoft.CodeAnalysis
                     cancellationToken).ConfigureAwait(false);
             }
 
-            var originalDocument = _oldSolution.GetDocument(linkedDocumentGroup.First());
+            var originalDocument = oldSolution.GetDocument(linkedDocumentGroup.First());
             var originalSourceText = await originalDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Add comments in source explaining diffs that could not be merged
@@ -111,7 +100,7 @@ namespace Microsoft.CodeAnalysis
 
             if (unmergedChanges.Any())
             {
-                mergeConflictHandler ??= _oldSolution.GetDocument(linkedDocumentGroup.First()).GetLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
+                mergeConflictHandler ??= oldSolution.GetDocument(linkedDocumentGroup.First()).GetLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
                 var mergeConflictTextEdits = mergeConflictHandler.CreateEdits(originalSourceText, unmergedChanges);
 
                 allChanges = MergeChangesWithMergeFailComments(appliedChanges, mergeConflictTextEdits, mergeConflictResolutionSpan, groupSessionInfo);
@@ -121,7 +110,7 @@ namespace Microsoft.CodeAnalysis
                 allChanges = appliedChanges;
             }
 
-            groupSessionInfo.LinkedDocuments = _newSolution.GetDocumentIdsWithFilePath(originalDocument.FilePath).Length;
+            groupSessionInfo.LinkedDocuments = newSolution.GetDocumentIdsWithFilePath(originalDocument.FilePath).Length;
             groupSessionInfo.DocumentsWithChanges = linkedDocumentGroup.Count();
             sessionInfo.LogLinkedFileResult(groupSessionInfo);
 

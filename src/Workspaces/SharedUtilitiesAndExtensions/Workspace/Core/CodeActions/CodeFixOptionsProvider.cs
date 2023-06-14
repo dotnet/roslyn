@@ -20,66 +20,54 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 
-internal readonly struct CodeFixOptionsProvider
+/// <param name="options">
+/// Document editorconfig options.
+/// </param>
+/// <param name="fallbackOptions">
+/// Fallback options provider - default options provider in Code Style layer.
+/// </param>
+/// <param name="languageServices">
+/// C# language services.
+/// </param>
+internal readonly struct CodeFixOptionsProvider(IOptionsReader options, CodeActionOptionsProvider fallbackOptions, HostLanguageServices languageServices)
 {
-    /// <summary>
-    /// Document editorconfig options.
-    /// </summary>
-    private readonly IOptionsReader _options;
-
-    /// <summary>
-    /// C# language services.
-    /// </summary>
-    private readonly HostLanguageServices _languageServices;
-
-    /// <summary>
-    /// Fallback options provider - default options provider in Code Style layer.
-    /// </summary>
-    private readonly CodeActionOptionsProvider _fallbackOptions;
-
-    public CodeFixOptionsProvider(IOptionsReader options, CodeActionOptionsProvider fallbackOptions, HostLanguageServices languageServices)
-    {
-        _options = options;
-        _fallbackOptions = fallbackOptions;
-        _languageServices = languageServices;
-    }
 
     // LineFormattingOptions
 
     public string NewLine => GetOption(FormattingOptions2.NewLine, FallbackLineFormattingOptions.NewLine);
 
     public LineFormattingOptions GetLineFormattingOptions()
-        => _options.GetLineFormattingOptions(_languageServices.Language, FallbackLineFormattingOptions);
+        => options.GetLineFormattingOptions(languageServices.Language, FallbackLineFormattingOptions);
 
     // SyntaxFormattingOptions
 
     public SyntaxFormattingOptions GetFormattingOptions(ISyntaxFormatting formatting)
-        => formatting.GetFormattingOptions(_options, FallbackSyntaxFormattingOptions);
+        => formatting.GetFormattingOptions(options, FallbackSyntaxFormattingOptions);
 
-    public AccessibilityModifiersRequired AccessibilityModifiersRequired => _options.GetOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, _languageServices.Language, FallbackCommonSyntaxFormattingOptions.AccessibilityModifiersRequired);
+    public AccessibilityModifiersRequired AccessibilityModifiersRequired => options.GetOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, languageServices.Language, FallbackCommonSyntaxFormattingOptions.AccessibilityModifiersRequired);
 
     private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
-        => _options.GetOption(option, _languageServices.Language, defaultValue);
+        => options.GetOption(option, languageServices.Language, defaultValue);
 
     private LineFormattingOptions FallbackLineFormattingOptions
 #if CODE_STYLE
         => LineFormattingOptions.Default;
 #else
-        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions.LineFormatting;
+        => fallbackOptions.GetOptions(languageServices.LanguageServices).CleanupOptions.FormattingOptions.LineFormatting;
 #endif
 
     private SyntaxFormattingOptions? FallbackSyntaxFormattingOptions
 #if CODE_STYLE
         => null;
 #else
-        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions;
+        => fallbackOptions.GetOptions(languageServices.LanguageServices).CleanupOptions.FormattingOptions;
 #endif
 
     private SyntaxFormattingOptions FallbackCommonSyntaxFormattingOptions
 #if CODE_STYLE
         => SyntaxFormattingOptions.CommonDefaults;
 #else
-        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions;
+        => fallbackOptions.GetOptions(languageServices.LanguageServices).CleanupOptions.FormattingOptions;
 #endif
 }
 

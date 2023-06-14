@@ -20,45 +20,36 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Callback object we pass to the OOP server to hear about the result 
         /// of the FindReferencesEngine as it executes there.
         /// </summary>
-        internal sealed class FindReferencesServerCallback
+        internal sealed class FindReferencesServerCallback(
+            Solution solution,
+            IStreamingFindReferencesProgress progress)
         {
-            private readonly Solution _solution;
-            private readonly IStreamingFindReferencesProgress _progress;
-
             private readonly object _gate = new();
             private readonly Dictionary<SerializableSymbolGroup, SymbolGroup> _groupMap = new();
             private readonly Dictionary<SerializableSymbolAndProjectId, ISymbol> _definitionMap = new();
 
-            public FindReferencesServerCallback(
-                Solution solution,
-                IStreamingFindReferencesProgress progress)
-            {
-                _solution = solution;
-                _progress = progress;
-            }
-
             public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
-                => _progress.ProgressTracker.AddItemsAsync(count, cancellationToken);
+                => progress.ProgressTracker.AddItemsAsync(count, cancellationToken);
 
             public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
-                => _progress.ProgressTracker.ItemsCompletedAsync(count, cancellationToken);
+                => progress.ProgressTracker.ItemsCompletedAsync(count, cancellationToken);
 
             public ValueTask OnStartedAsync(CancellationToken cancellationToken)
-                => _progress.OnStartedAsync(cancellationToken);
+                => progress.OnStartedAsync(cancellationToken);
 
             public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
-                => _progress.OnCompletedAsync(cancellationToken);
+                => progress.OnCompletedAsync(cancellationToken);
 
             public async ValueTask OnFindInDocumentStartedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
-                var document = await _solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                await _progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
+                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                await progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
             }
 
             public async ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
-                var document = await _solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                await _progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
+                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                await progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
             }
 
             public async ValueTask OnDefinitionFoundAsync(SerializableSymbolGroup dehydrated, CancellationToken cancellationToken)
@@ -69,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var symbolAndProjectId in dehydrated.Symbols)
                 {
-                    var symbol = await symbolAndProjectId.TryRehydrateAsync(_solution, cancellationToken).ConfigureAwait(false);
+                    var symbol = await symbolAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
                     if (symbol == null)
                         return;
 
@@ -84,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         _definitionMap[pair.Key] = pair.Value;
                 }
 
-                await _progress.OnDefinitionFoundAsync(symbolGroup, cancellationToken).ConfigureAwait(false);
+                await progress.OnDefinitionFoundAsync(symbolGroup, cancellationToken).ConfigureAwait(false);
             }
 
             public async ValueTask OnReferenceFoundAsync(
@@ -112,9 +103,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 var referenceLocation = await reference.RehydrateAsync(
-                    _solution, cancellationToken).ConfigureAwait(false);
+                    solution, cancellationToken).ConfigureAwait(false);
 
-                await _progress.OnReferenceFoundAsync(symbolGroup, symbol, referenceLocation, cancellationToken).ConfigureAwait(false);
+                await progress.OnReferenceFoundAsync(symbolGroup, symbol, referenceLocation, cancellationToken).ConfigureAwait(false);
             }
         }
     }

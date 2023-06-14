@@ -17,30 +17,18 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
     /// We have this builder to avoid creating collections unnecessarily.
     /// Expectation is that, most of time, most of analyzers doesn't have any diagnostics. so no need to actually create any objects.
     /// </summary>
-    internal struct DiagnosticAnalysisResultBuilder
+    internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp version)
     {
-        public readonly Project Project;
-        public readonly VersionStamp Version;
+        public readonly Project Project = project;
+        public readonly VersionStamp Version = version;
 
-        private HashSet<DocumentId>? _lazyDocumentsWithDiagnostics;
+        private HashSet<DocumentId>? _lazyDocumentsWithDiagnostics = null;
 
-        private Dictionary<DocumentId, List<DiagnosticData>>? _lazySyntaxLocals;
-        private Dictionary<DocumentId, List<DiagnosticData>>? _lazySemanticLocals;
-        private Dictionary<DocumentId, List<DiagnosticData>>? _lazyNonLocals;
+        private Dictionary<DocumentId, List<DiagnosticData>>? _lazySyntaxLocals = null;
+        private Dictionary<DocumentId, List<DiagnosticData>>? _lazySemanticLocals = null;
+        private Dictionary<DocumentId, List<DiagnosticData>>? _lazyNonLocals = null;
 
-        private List<DiagnosticData>? _lazyOthers;
-
-        public DiagnosticAnalysisResultBuilder(Project project, VersionStamp version)
-        {
-            Project = project;
-            Version = version;
-
-            _lazyDocumentsWithDiagnostics = null;
-            _lazySyntaxLocals = null;
-            _lazySemanticLocals = null;
-            _lazyNonLocals = null;
-            _lazyOthers = null;
-        }
+        private List<DiagnosticData>? _lazyOthers = null;
 
         public readonly ImmutableHashSet<DocumentId> DocumentIds => _lazyDocumentsWithDiagnostics == null ? ImmutableHashSet<DocumentId>.Empty : _lazyDocumentsWithDiagnostics.ToImmutableHashSet();
         public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SyntaxLocals => Convert(_lazySyntaxLocals);

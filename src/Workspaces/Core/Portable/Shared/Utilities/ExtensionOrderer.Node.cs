@@ -11,13 +11,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal partial class ExtensionOrderer
     {
-        private class Node<TExtension, TMetadata>
+        private class Node<TExtension, TMetadata>(Lazy<TExtension, TMetadata> extension)
         {
-            public readonly Lazy<TExtension, TMetadata> Extension;
+            public readonly Lazy<TExtension, TMetadata> Extension = extension;
             public readonly HashSet<Node<TExtension, TMetadata>> ExtensionsBeforeMeSet = new();
-
-            public Node(Lazy<TExtension, TMetadata> extension)
-                => this.Extension = extension;
 
             public void CheckForCycles()
                 => this.CheckForCycles(new HashSet<Node<TExtension, TMetadata>>());

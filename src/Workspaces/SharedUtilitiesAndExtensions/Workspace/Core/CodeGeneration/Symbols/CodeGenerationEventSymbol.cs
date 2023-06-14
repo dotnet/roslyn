@@ -12,36 +12,26 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal class CodeGenerationEventSymbol : CodeGenerationSymbol, IEventSymbol
+    internal class CodeGenerationEventSymbol(
+        INamedTypeSymbol? containingType,
+        ImmutableArray<AttributeData> attributes,
+        Accessibility declaredAccessibility,
+        DeclarationModifiers modifiers,
+        ITypeSymbol type,
+        ImmutableArray<IEventSymbol> explicitInterfaceImplementations,
+        string name,
+        IMethodSymbol? addMethod,
+        IMethodSymbol? removeMethod,
+        IMethodSymbol? raiseMethod) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name), IEventSymbol
     {
-        public ITypeSymbol Type { get; }
+        public ITypeSymbol Type { get; } = type;
         public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
 
-        public ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations { get; }
+        public ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations { get; } = explicitInterfaceImplementations.NullToEmpty();
 
-        public IMethodSymbol? AddMethod { get; }
-        public IMethodSymbol? RemoveMethod { get; }
-        public IMethodSymbol? RaiseMethod { get; }
-
-        public CodeGenerationEventSymbol(
-            INamedTypeSymbol? containingType,
-            ImmutableArray<AttributeData> attributes,
-            Accessibility declaredAccessibility,
-            DeclarationModifiers modifiers,
-            ITypeSymbol type,
-            ImmutableArray<IEventSymbol> explicitInterfaceImplementations,
-            string name,
-            IMethodSymbol? addMethod,
-            IMethodSymbol? removeMethod,
-            IMethodSymbol? raiseMethod)
-            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
-        {
-            this.Type = type;
-            this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
-            this.AddMethod = addMethod;
-            this.RemoveMethod = removeMethod;
-            this.RaiseMethod = raiseMethod;
-        }
+        public IMethodSymbol? AddMethod { get; } = addMethod;
+        public IMethodSymbol? RemoveMethod { get; } = removeMethod;
+        public IMethodSymbol? RaiseMethod { get; } = raiseMethod;
 
         protected override CodeGenerationSymbol Clone()
         {
