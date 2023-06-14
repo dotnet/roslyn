@@ -21,30 +21,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
-    internal sealed class ImplementAbstractClassData
+    internal sealed class ImplementAbstractClassData(
+        Document document, ImplementTypeGenerationOptions options, SyntaxNode classNode, SyntaxToken classIdentifier,
+        INamedTypeSymbol classType, INamedTypeSymbol abstractClassType,
+        ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
     {
-        private readonly Document _document;
-        private readonly ImplementTypeGenerationOptions _options;
-        private readonly SyntaxNode _classNode;
-        private readonly SyntaxToken _classIdentifier;
-        private readonly ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> _unimplementedMembers;
-
-        public readonly INamedTypeSymbol ClassType;
-        public readonly INamedTypeSymbol AbstractClassType;
-
-        public ImplementAbstractClassData(
-            Document document, ImplementTypeGenerationOptions options, SyntaxNode classNode, SyntaxToken classIdentifier,
-            INamedTypeSymbol classType, INamedTypeSymbol abstractClassType,
-            ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
-        {
-            _document = document;
-            _options = options;
-            _classNode = classNode;
-            _classIdentifier = classIdentifier;
-            ClassType = classType;
-            AbstractClassType = abstractClassType;
-            _unimplementedMembers = unimplementedMembers;
-        }
+        public readonly INamedTypeSymbol ClassType = classType;
+        public readonly INamedTypeSymbol AbstractClassType = abstractClassType;
 
         public static async Task<ImplementAbstractClassData?> TryGetDataAsync(
             Document document, SyntaxNode classNode, SyntaxToken classIdentifier, ImplementTypeGenerationOptions options, CancellationToken cancellationToken)
@@ -89,19 +72,19 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         public async Task<Document> ImplementAbstractClassAsync(
             ISymbol? throughMember, bool? canDelegateAllMembers, CancellationToken cancellationToken)
         {
-            var compilation = await _document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var memberDefinitions = GenerateMembers(compilation, throughMember, _options.ImplementTypeOptions.PropertyGenerationBehavior, cancellationToken);
-            var groupMembers = _options.ImplementTypeOptions.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var memberDefinitions = GenerateMembers(compilation, throughMember, options.ImplementTypeOptions.PropertyGenerationBehavior, cancellationToken);
+            var groupMembers = options.ImplementTypeOptions.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
             // If we're implementing through one of our members, but we can't delegate all members
             // through it, then give an error message on the class decl letting the user know.
 
-            var classNodeToAddMembersTo = _classNode;
+            var classNodeToAddMembersTo = classNode;
             if (throughMember != null && canDelegateAllMembers == false)
             {
-                classNodeToAddMembersTo = _classNode.ReplaceToken(
-                    _classIdentifier,
-                    _classIdentifier.WithAdditionalAnnotations(ConflictAnnotation.Create(
+                classNodeToAddMembersTo = classNode.ReplaceToken(
+                    classIdentifier,
+                    classIdentifier.WithAdditionalAnnotations(ConflictAnnotation.Create(
                         FeaturesResources.Base_classes_contain_inaccessible_unimplemented_members)));
             }
 
@@ -110,7 +93,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 autoInsertionLocation: groupMembers,
                 sortMembers: groupMembers);
 
-            var info = await _document.GetCodeGenerationInfoAsync(context, _options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = await document.GetCodeGenerationInfoAsync(context, options.FallbackOptions, cancellationToken).ConfigureAwait(false);
 
             var updatedClassNode = info.Service.AddMembers(
                 classNodeToAddMembersTo,
@@ -118,10 +101,10 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 info,
                 cancellationToken);
 
-            var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = root.ReplaceNode(_classNode, updatedClassNode);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var newRoot = root.ReplaceNode(classNode, updatedClassNode);
 
-            return _document.WithSyntaxRoot(newRoot);
+            return document.WithSyntaxRoot(newRoot);
         }
 
         private ImmutableArray<ISymbol> GenerateMembers(
@@ -129,7 +112,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
             CancellationToken cancellationToken)
         {
-            return _unimplementedMembers
+            return unimplementedMembers
                 .SelectMany(t => t.members)
                 .Select(m => GenerateMember(compilation, m, throughMember, propertyGenerationBehavior, cancellationToken))
                 .WhereNotNull()
@@ -144,8 +127,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             cancellationToken.ThrowIfCancellationRequested();
 
             // Check if we need to add 'unsafe' to the signature we're generating.
-            var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(_classNode);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(classNode);
 
             return GenerateMember(compilation, member, throughMember, addUnsafe, propertyGenerationBehavior);
         }
@@ -178,8 +161,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             Compilation compilation, IMethodSymbol method, ISymbol? throughMember,
             DeclarationModifiers modifiers, Accessibility accessibility)
         {
-            var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             var body = throughMember == null
                 ? generator.CreateThrowNotImplementedStatement(compilation)
                 : generator.GenerateDelegateThroughMemberStatement(method, throughMember);
@@ -207,7 +190,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 propertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties;
             }
 
-            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             var preferAutoProperties = propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties;
 
             var getMethod = ShouldGenerateAccessor(property.GetMethod)
@@ -239,7 +222,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         private IEventSymbol GenerateEvent(
             IEventSymbol @event, ISymbol? throughMember, Accessibility accessibility, DeclarationModifiers modifiers)
         {
-            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             return CodeGenerationSymbolFactory.CreateEventSymbol(
                 @event, accessibility: accessibility, modifiers: modifiers,
                 addMethod: GetEventAddOrRemoveMethod(@event, @event.AddMethod, throughMember, generator.AddEventHandler),
@@ -253,7 +236,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             if (accessor == null || throughMember == null)
                 return null;
 
-            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             var throughExpression = generator.CreateDelegateThroughExpression(@event, throughMember);
             var statement = generator.ExpressionStatement(createAddOrRemoveHandler(
                 generator.MemberAccessExpression(throughExpression, @event.Name),
@@ -288,7 +271,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             foreach (var fieldOrProp in fields.Concat(properties))
             {
                 var fieldOrPropType = fieldOrProp.GetMemberType();
-                var allUnimplementedMembers = _unimplementedMembers.SelectMany(t => t.members).ToImmutableArray();
+                var allUnimplementedMembers = unimplementedMembers.SelectMany(t => t.members).ToImmutableArray();
 
                 var accessibleCount = allUnimplementedMembers.Count(m => m.IsAccessibleWithin(ClassType, throughType: fieldOrPropType));
                 if (accessibleCount > 0)

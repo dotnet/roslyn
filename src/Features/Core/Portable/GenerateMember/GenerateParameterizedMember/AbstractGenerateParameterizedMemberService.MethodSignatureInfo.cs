@@ -12,44 +12,34 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 {
     internal partial class AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
     {
-        protected class MethodSignatureInfo : SignatureInfo
+        protected class MethodSignatureInfo(
+            SemanticDocument document,
+            State state,
+            IMethodSymbol methodSymbol,
+            ImmutableArray<string> parameterNames = default) : SignatureInfo(document, state)
         {
-            private readonly IMethodSymbol _methodSymbol;
-            private readonly ImmutableArray<string> _parameterNames;
-
-            public MethodSignatureInfo(
-                SemanticDocument document,
-                State state,
-                IMethodSymbol methodSymbol,
-                ImmutableArray<string> parameterNames = default)
-                : base(document, state)
-            {
-                _methodSymbol = methodSymbol;
-                _parameterNames = parameterNames;
-            }
-
             protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
-                => _methodSymbol.ReturnType;
+                => methodSymbol.ReturnType;
 
             protected override RefKind DetermineRefKind(CancellationToken cancellationToken)
-                => _methodSymbol.RefKind;
+                => methodSymbol.RefKind;
 
             protected override ImmutableArray<ITypeParameterSymbol> DetermineTypeParametersWorker(CancellationToken cancellationToken)
-                => _methodSymbol.TypeParameters;
+                => methodSymbol.TypeParameters;
 
             protected override ImmutableArray<RefKind> DetermineParameterModifiers(CancellationToken cancellationToken)
-                => _methodSymbol.Parameters.SelectAsArray(p => p.RefKind);
+                => methodSymbol.Parameters.SelectAsArray(p => p.RefKind);
 
             protected override ImmutableArray<bool> DetermineParameterOptionality(CancellationToken cancellationToken)
-                => _methodSymbol.Parameters.SelectAsArray(p => p.IsOptional);
+                => methodSymbol.Parameters.SelectAsArray(p => p.IsOptional);
 
             protected override ImmutableArray<ITypeSymbol> DetermineParameterTypes(CancellationToken cancellationToken)
-                => _methodSymbol.Parameters.SelectAsArray(p => p.Type);
+                => methodSymbol.Parameters.SelectAsArray(p => p.Type);
 
             protected override ImmutableArray<ParameterName> DetermineParameterNames(CancellationToken cancellationToken)
-                => _parameterNames.IsDefault
-                    ? _methodSymbol.Parameters.SelectAsArray(p => new ParameterName(p.Name, isFixed: true))
-                    : _parameterNames.SelectAsArray(p => new ParameterName(p, isFixed: true));
+                => parameterNames.IsDefault
+                    ? methodSymbol.Parameters.SelectAsArray(p => new ParameterName(p.Name, isFixed: true))
+                    : parameterNames.SelectAsArray(p => new ParameterName(p, isFixed: true));
 
             protected override ImmutableArray<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken)
                 => ImmutableArray<ITypeSymbol>.Empty;

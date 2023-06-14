@@ -13,21 +13,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal partial class SuppressMessageAttributeState
+    internal partial class SuppressMessageAttributeState(Compilation compilation, INamedTypeSymbol suppressMessageAttributeType)
     {
         internal const string SuppressMessageScope = "Scope";
         internal const string SuppressMessageTarget = "Target";
 
         private static readonly ImmutableDictionary<string, TargetScope> s_targetScopesMap = CreateTargetScopesMap();
-
-        private readonly Compilation _compilation;
-        private readonly INamedTypeSymbol _suppressMessageAttributeType;
-
-        public SuppressMessageAttributeState(Compilation compilation, INamedTypeSymbol suppressMessageAttributeType)
-        {
-            _compilation = compilation;
-            _suppressMessageAttributeType = suppressMessageAttributeType;
-        }
 
         private static ImmutableDictionary<string, TargetScope> CreateTargetScopesMap()
         {
@@ -66,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var simpleAssignment = (ISimpleAssignmentOperation)initializer;
                 if (simpleAssignment.Target is IPropertyReferenceOperation propertyReference &&
-                    _suppressMessageAttributeType.Equals(propertyReference.Property.ContainingType))
+                    suppressMessageAttributeType.Equals(propertyReference.Property.ContainingType))
                 {
                     builder.Add((propertyReference.Property.Name, simpleAssignment.Value));
                 }
@@ -128,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 targetScope = TargetScope.Namespace;
             }
 
-            var resolver = new TargetSymbolResolver(_compilation, targetScope, targetSymbolString);
+            var resolver = new TargetSymbolResolver(compilation, targetScope, targetSymbolString);
             resolvedSymbols = resolver.Resolve(out targetHasDocCommentIdFormat);
             return !resolvedSymbols.IsEmpty;
         }

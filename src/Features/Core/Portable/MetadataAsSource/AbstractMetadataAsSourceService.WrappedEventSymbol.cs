@@ -9,35 +9,27 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal partial class AbstractMetadataAsSourceService
     {
-        private class WrappedEventSymbol : AbstractWrappedSymbol, IEventSymbol
+        private class WrappedEventSymbol(IEventSymbol eventSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(eventSymbol, canImplementImplicitly, docCommentFormattingService), IEventSymbol
         {
-            private readonly IEventSymbol _symbol;
-
-            public WrappedEventSymbol(IEventSymbol eventSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
-                : base(eventSymbol, canImplementImplicitly, docCommentFormattingService)
-            {
-                _symbol = eventSymbol;
-            }
-
             public ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations
             {
                 get
                 {
                     return CanImplementImplicitly
                         ? ImmutableArray.Create<IEventSymbol>()
-                        : _symbol.ExplicitInterfaceImplementations;
+                        : eventSymbol.ExplicitInterfaceImplementations;
                 }
             }
 
             public new IEventSymbol OriginalDefinition => this;
 
-            public IMethodSymbol? AddMethod => _symbol.AddMethod;
-            public bool IsWindowsRuntimeEvent => _symbol.IsWindowsRuntimeEvent;
-            public IEventSymbol? OverriddenEvent => _symbol.OverriddenEvent;
-            public IMethodSymbol? RaiseMethod => _symbol.RaiseMethod;
-            public IMethodSymbol? RemoveMethod => _symbol.RemoveMethod;
-            public ITypeSymbol Type => _symbol.Type;
-            public NullableAnnotation NullableAnnotation => _symbol.NullableAnnotation;
+            public IMethodSymbol? AddMethod => eventSymbol.AddMethod;
+            public bool IsWindowsRuntimeEvent => eventSymbol.IsWindowsRuntimeEvent;
+            public IEventSymbol? OverriddenEvent => eventSymbol.OverriddenEvent;
+            public IMethodSymbol? RaiseMethod => eventSymbol.RaiseMethod;
+            public IMethodSymbol? RemoveMethod => eventSymbol.RemoveMethod;
+            public ITypeSymbol Type => eventSymbol.Type;
+            public NullableAnnotation NullableAnnotation => eventSymbol.NullableAnnotation;
         }
     }
 }

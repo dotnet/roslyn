@@ -18,27 +18,14 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     [Export(typeof(IPdbSourceDocumentLoaderService)), Shared]
-    internal sealed class PdbSourceDocumentLoaderService : IPdbSourceDocumentLoaderService
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
+    internal sealed class PdbSourceDocumentLoaderService(
+        [Import(AllowDefault = true)] Lazy<ISourceLinkService>? sourceLinkService,
+        [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger) : IPdbSourceDocumentLoaderService
     {
         private const int SourceLinkTimeout = 1000;
         private const int ExtendedSourceLinkTimeout = 4000;
-
-        /// <summary>
-        /// Lazy import ISourceLinkService because it can cause debugger 
-        /// binaries to be eagerly loaded even if they are never used.
-        /// </summary>
-        private readonly Lazy<ISourceLinkService>? _sourceLinkService;
-        private readonly IPdbSourceDocumentLogger? _logger;
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
-        public PdbSourceDocumentLoaderService(
-            [Import(AllowDefault = true)] Lazy<ISourceLinkService>? sourceLinkService,
-            [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
-        {
-            _sourceLinkService = sourceLinkService;
-            _logger = logger;
-        }
 
         public async Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useExtendedTimeout, CancellationToken cancellationToken)
         {
@@ -62,7 +49,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded, ignoreChecksum: false, fromRemoteLocation: false) is { } existing)
             {
                 telemetry.SetSourceFileSource("embedded");
-                _logger?.Log(FeaturesResources._0_found_in_embedded_PDB_cached_source_file, sourceDocument.FilePath);
+                logger?.Log(FeaturesResources._0_found_in_embedded_PDB_cached_source_file, sourceDocument.FilePath);
                 return existing;
             }
 
@@ -105,7 +92,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     }
                     catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
                     {
-                        _logger?.Log(FeaturesResources._0_found_in_embedded_PDB_but_could_not_write_file_1, sourceDocument.FilePath, ex.Message);
+                        logger?.Log(FeaturesResources._0_found_in_embedded_PDB_but_could_not_write_file_1, sourceDocument.FilePath, ex.Message);
                         return null;
                     }
                 }
@@ -114,11 +101,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 if (result is not null)
                 {
                     telemetry.SetSourceFileSource("embedded");
-                    _logger?.Log(FeaturesResources._0_found_in_embedded_PDB, sourceDocument.FilePath);
+                    logger?.Log(FeaturesResources._0_found_in_embedded_PDB, sourceDocument.FilePath);
                 }
                 else
                 {
-                    _logger?.Log(FeaturesResources._0_found_in_embedded_PDB_but_checksum_failed, sourceDocument.FilePath);
+                    logger?.Log(FeaturesResources._0_found_in_embedded_PDB_but_checksum_failed, sourceDocument.FilePath);
                 }
 
                 return result;
@@ -129,7 +116,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         private async Task<SourceFileInfo?> TryGetSourceLinkFileAsync(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useExtendedTimeout, CancellationToken cancellationToken)
         {
-            if (sourceDocument.SourceLinkUrl is null || _sourceLinkService is null)
+            if (sourceDocument.SourceLinkUrl is null || sourceLinkService is null)
                 return null;
 
             var timeout = useExtendedTimeout ? ExtendedSourceLinkTimeout : SourceLinkTimeout;
@@ -138,7 +125,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var relativePath = Path.GetFileName(sourceDocument.FilePath);
 
             var delay = Task.Delay(timeout, cancellationToken);
-            var sourceFileTask = _sourceLinkService.Value.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, relativePath, cancellationToken);
+            var sourceFileTask = sourceLinkService.Value.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, relativePath, cancellationToken);
 
             var winner = await Task.WhenAny(sourceFileTask, delay).ConfigureAwait(false);
 
@@ -152,11 +139,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     if (result is not null)
                     {
                         telemetry.SetSourceFileSource("sourcelink");
-                        _logger?.Log(FeaturesResources._0_found_via_SourceLink, sourceDocument.FilePath);
+                        logger?.Log(FeaturesResources._0_found_via_SourceLink, sourceDocument.FilePath);
                     }
                     else
                     {
-                        _logger?.Log(FeaturesResources._0_found_via_SourceLink_but_couldnt_read_file, sourceDocument.FilePath);
+                        logger?.Log(FeaturesResources._0_found_via_SourceLink_but_couldnt_read_file, sourceDocument.FilePath);
                     }
 
                     return result;
@@ -164,7 +151,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 else
                 {
                     telemetry.SetSourceFileSource("timeout");
-                    _logger?.Log(FeaturesResources.Timeout_SourceLink);
+                    logger?.Log(FeaturesResources.Timeout_SourceLink);
                 }
             }
 
@@ -179,11 +166,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 if (result is not null)
                 {
                     telemetry.SetSourceFileSource("ondisk");
-                    _logger?.Log(FeaturesResources._0_found_in_original_location, sourceDocument.FilePath);
+                    logger?.Log(FeaturesResources._0_found_in_original_location, sourceDocument.FilePath);
                 }
                 else
                 {
-                    _logger?.Log(FeaturesResources._0_found_in_original_location_but_checksum_failed, sourceDocument.FilePath);
+                    logger?.Log(FeaturesResources._0_found_in_original_location_but_checksum_failed, sourceDocument.FilePath);
                 }
 
                 return result;

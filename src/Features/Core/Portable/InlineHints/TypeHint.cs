@@ -8,24 +8,15 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InlineHints
 {
-    internal readonly struct TypeHint
+    internal readonly struct TypeHint(ITypeSymbol type, TextSpan span, TextChange? textChange, bool leadingSpace = false, bool trailingSpace = false)
     {
         private static readonly ImmutableArray<SymbolDisplayPart> s_spaceArray = ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Space, symbol: null, " "));
 
-        public ITypeSymbol Type { get; }
-        public TextSpan Span { get; }
-        public TextChange? TextChange { get; }
-        public ImmutableArray<SymbolDisplayPart> Prefix { get; }
-        public ImmutableArray<SymbolDisplayPart> Suffix { get; }
-
-        public TypeHint(ITypeSymbol type, TextSpan span, TextChange? textChange, bool leadingSpace = false, bool trailingSpace = false)
-        {
-            Type = type;
-            Span = span;
-            TextChange = textChange;
-            Prefix = CreateSpaceSymbolPartArray(leadingSpace);
-            Suffix = CreateSpaceSymbolPartArray(trailingSpace);
-        }
+        public ITypeSymbol Type { get; } = type;
+        public TextSpan Span { get; } = span;
+        public TextChange? TextChange { get; } = textChange;
+        public ImmutableArray<SymbolDisplayPart> Prefix { get; } = CreateSpaceSymbolPartArray(leadingSpace);
+        public ImmutableArray<SymbolDisplayPart> Suffix { get; } = CreateSpaceSymbolPartArray(trailingSpace);
 
         private static ImmutableArray<SymbolDisplayPart> CreateSpaceSymbolPartArray(bool hasSpace)
             => hasSpace ? s_spaceArray : ImmutableArray<SymbolDisplayPart>.Empty;

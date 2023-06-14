@@ -15,16 +15,10 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 {
     internal static partial class ValueTracker
     {
-        private class OperationCollector
+        private class OperationCollector(ValueTrackingProgressCollector progressCollector, Solution solution)
         {
-            public ValueTrackingProgressCollector ProgressCollector { get; }
-            public Solution Solution { get; }
-
-            public OperationCollector(ValueTrackingProgressCollector progressCollector, Solution solution)
-            {
-                ProgressCollector = progressCollector;
-                Solution = solution;
-            }
+            public ValueTrackingProgressCollector ProgressCollector { get; } = progressCollector;
+            public Solution Solution { get; } = solution;
 
             public Task VisitAsync(IOperation operation, CancellationToken cancellationToken)
                 => operation switch

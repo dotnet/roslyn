@@ -26,13 +26,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             /// <summary>
             /// Batch fixer for pragma suppression removal code action.
             /// </summary>
-            private sealed class RemoveSuppressionBatchFixAllProvider : AbstractSuppressionBatchFixAllProvider
+            private sealed class RemoveSuppressionBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider) : AbstractSuppressionBatchFixAllProvider
             {
-                private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
-
-                public RemoveSuppressionBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-                    => _suppressionFixProvider = suppressionFixProvider;
-
                 protected override async Task AddDocumentFixesAsync(
                     Document document, ImmutableArray<Diagnostic> diagnostics,
                     ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
@@ -45,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     foreach (var diagnostic in diagnostics.Where(d => d.Location.IsInSource && d.IsSuppressed))
                     {
                         var span = diagnostic.Location.SourceSpan;
-                        var removeSuppressionFixes = await _suppressionFixProvider.GetFixesAsync(
+                        var removeSuppressionFixes = await suppressionFixProvider.GetFixesAsync(
                             document, span, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
                         var removeSuppressionFix = removeSuppressionFixes.SingleOrDefault();
                         if (removeSuppressionFix != null)
@@ -74,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     if (pragmaActionsBuilder.Count > 0)
                     {
                         var pragmaBatchFix = PragmaBatchFixHelpers.CreateBatchPragmaFix(
-                            _suppressionFixProvider, document,
+                            suppressionFixProvider, document,
                             pragmaActionsBuilder.ToImmutableAndFree(),
                             pragmaDiagnosticsBuilder.ToImmutableAndFree(),
                             fixAllState, cancellationToken);
@@ -90,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     foreach (var diagnostic in diagnostics.Where(d => !d.Location.IsInSource && d.IsSuppressed))
                     {
-                        var removeSuppressionFixes = await _suppressionFixProvider.GetFixesAsync(
+                        var removeSuppressionFixes = await suppressionFixProvider.GetFixesAsync(
                             project, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
                         if (removeSuppressionFixes.SingleOrDefault()?.Action is RemoveSuppressionCodeAction removeSuppressionCodeAction)
                         {

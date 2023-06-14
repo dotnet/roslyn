@@ -25,21 +25,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => new SymbolMappingService(((MetadataAsSourceWorkspace)workspaceServices.Workspace).FileService);
 
-        private sealed class SymbolMappingService : ISymbolMappingService
+        private sealed class SymbolMappingService(MetadataAsSourceFileService fileService) : ISymbolMappingService
         {
-            private readonly MetadataAsSourceFileService _fileService;
-
-            public SymbolMappingService(MetadataAsSourceFileService fileService)
-            {
-                _fileService = fileService;
-            }
-
             public Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
             {
                 if (document.Project.Solution.WorkspaceKind is not WorkspaceKind.MetadataAsSource)
                     throw new ArgumentException(FeaturesResources.Document_must_be_contained_in_the_workspace_that_created_this_service, nameof(document));
 
-                return _fileService.MapSymbolAsync(document, symbolId, cancellationToken);
+                return fileService.MapSymbolAsync(document, symbolId, cancellationToken);
             }
 
             public Task<SymbolMappingResult?> MapSymbolAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)

@@ -15,21 +15,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
-    internal abstract partial class AbstractMoveToNamespaceCodeAction : CodeActionWithOptions
+    internal abstract partial class AbstractMoveToNamespaceCodeAction(
+        IMoveToNamespaceService moveToNamespaceService,
+        MoveToNamespaceAnalysisResult analysisResult,
+        CodeCleanupOptionsProvider cleanupOptions) : CodeActionWithOptions
     {
-        private readonly IMoveToNamespaceService _moveToNamespaceService;
-        private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult;
-        private readonly CodeCleanupOptionsProvider _cleanupOptions;
-
-        public AbstractMoveToNamespaceCodeAction(
-            IMoveToNamespaceService moveToNamespaceService,
-            MoveToNamespaceAnalysisResult analysisResult,
-            CodeCleanupOptionsProvider cleanupOptions)
-        {
-            _moveToNamespaceService = moveToNamespaceService;
-            _moveToNamespaceAnalysisResult = analysisResult;
-            _cleanupOptions = cleanupOptions;
-        }
 
         /// <summary>
         /// This code action does notify clients about the rename it performs.  However, this is an optional part of
@@ -40,10 +30,10 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         public override object GetOptions(CancellationToken cancellationToken)
         {
-            return _moveToNamespaceService.GetChangeNamespaceOptions(
-                _moveToNamespaceAnalysisResult.Document,
-                _moveToNamespaceAnalysisResult.OriginalNamespace,
-                _moveToNamespaceAnalysisResult.Namespaces);
+            return moveToNamespaceService.GetChangeNamespaceOptions(
+                analysisResult.Document,
+                analysisResult.OriginalNamespace,
+                analysisResult.Namespaces);
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
@@ -53,10 +43,10 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 !moveToNamespaceOptions.IsCancelled &&
                 !string.IsNullOrEmpty(moveToNamespaceOptions.Namespace))
             {
-                var moveToNamespaceResult = await _moveToNamespaceService.MoveToNamespaceAsync(
-                    _moveToNamespaceAnalysisResult,
+                var moveToNamespaceResult = await moveToNamespaceService.MoveToNamespaceAsync(
+                    analysisResult,
                     moveToNamespaceOptions.Namespace,
-                    _cleanupOptions,
+                    cleanupOptions,
                     cancellationToken).ConfigureAwait(false);
 
                 if (moveToNamespaceResult.Succeeded)

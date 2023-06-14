@@ -30,17 +30,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
     /// 
     /// 'Derived1' is less specific than 'Derived2' compared to 'Base'
     /// </summary>
-    internal sealed class InheritanceDistanceComparer<TExpressionSyntax>
+    internal sealed class InheritanceDistanceComparer<TExpressionSyntax>(SemanticModel semanticModel)
     : IComparer<(TExpressionSyntax syntax, ITypeSymbol symbol)>
     where TExpressionSyntax : SyntaxNode
     {
-        private readonly SemanticModel _semanticModel;
-
-        public InheritanceDistanceComparer(SemanticModel semanticModel)
-        {
-            _semanticModel = semanticModel;
-        }
-
         public int Compare((TExpressionSyntax syntax, ITypeSymbol symbol) x,
             (TExpressionSyntax syntax, ITypeSymbol symbol) y)
         {
@@ -51,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             }
             else
             {
-                var baseType = _semanticModel.GetTypeInfo(x.syntax).Type;
+                var baseType = semanticModel.GetTypeInfo(x.syntax).Type;
                 var xDist = GetInheritanceDistance(baseType, x.symbol);
                 var yDist = GetInheritanceDistance(baseType, y.symbol);
                 return xDist.CompareTo(yDist);
@@ -90,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             if (baseType is null)
                 return 0;
 
-            var conversion = _semanticModel.Compilation.ClassifyCommonConversion(baseType, castType);
+            var conversion = semanticModel.Compilation.ClassifyCommonConversion(baseType, castType);
 
             // If the node has the explicit conversion operator, then it has the shortest distance
             // since explicit conversion operator is defined by users and has the highest priority 

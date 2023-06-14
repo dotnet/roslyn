@@ -10,13 +10,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal partial class AbstractStructuralTypeDisplayService
     {
-        private class StructuralTypeCollectorVisitor : SymbolVisitor
+        private class StructuralTypeCollectorVisitor(Dictionary<INamedTypeSymbol, (int order, int count)> namedTypes) : SymbolVisitor
         {
             private readonly ISet<INamedTypeSymbol> _seenTypes = new HashSet<INamedTypeSymbol>();
-            private readonly Dictionary<INamedTypeSymbol, (int order, int count)> _namedTypes;
-
-            public StructuralTypeCollectorVisitor(Dictionary<INamedTypeSymbol, (int order, int count)> namedTypes)
-                => _namedTypes = namedTypes;
 
             public override void DefaultVisit(ISymbol node)
                 => throw new NotImplementedException();
@@ -71,10 +67,10 @@ namespace Microsoft.CodeAnalysis.LanguageService
             {
                 // If we're hitting an anonymous/tuple type another time, then up the count we have for it.
                 // that way we can tell how often this type appears in the final signature.
-                if (_namedTypes.TryGetValue(symbol, out var orderAndCount))
+                if (namedTypes.TryGetValue(symbol, out var orderAndCount))
                 {
                     orderAndCount.count++;
-                    _namedTypes[symbol] = orderAndCount;
+                    namedTypes[symbol] = orderAndCount;
                     return;
                 }
 
@@ -82,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 {
                     if (symbol.IsAnonymousType())
                     {
-                        _namedTypes.Add(symbol, (order: _namedTypes.Count, count: 1));
+                        namedTypes.Add(symbol, (order: namedTypes.Count, count: 1));
 
                         if (symbol.IsDelegateType())
                         {
@@ -96,7 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                     }
                     else if (symbol.IsTupleType)
                     {
-                        _namedTypes.Add(symbol, (order: _namedTypes.Count, count: 1));
+                        namedTypes.Add(symbol, (order: namedTypes.Count, count: 1));
 
                         foreach (var field in symbol.TupleElements)
                             field.Accept(this);

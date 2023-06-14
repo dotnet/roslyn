@@ -22,33 +22,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveStaticMembers
 {
-    internal class MoveStaticMembersWithDialogCodeAction : CodeActionWithOptions
+    internal class MoveStaticMembersWithDialogCodeAction(
+        Document document,
+        IMoveStaticMembersOptionsService service,
+        INamedTypeSymbol selectedType,
+        CleanCodeGenerationOptionsProvider fallbackOptions,
+        ImmutableArray<ISymbol> selectedMembers) : CodeActionWithOptions
     {
-        private readonly Document _document;
-        private readonly ImmutableArray<ISymbol> _selectedMembers;
-        private readonly INamedTypeSymbol _selectedType;
-        private readonly IMoveStaticMembersOptionsService _service;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
-
         public override string Title => FeaturesResources.Move_static_members_to_another_type;
-
-        public MoveStaticMembersWithDialogCodeAction(
-            Document document,
-            IMoveStaticMembersOptionsService service,
-            INamedTypeSymbol selectedType,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
-            ImmutableArray<ISymbol> selectedMembers)
-        {
-            _document = document;
-            _service = service;
-            _selectedType = selectedType;
-            _fallbackOptions = fallbackOptions;
-            _selectedMembers = selectedMembers;
-        }
 
         public override object? GetOptions(CancellationToken cancellationToken)
         {
-            return _service.GetMoveMembersToTypeOptions(_document, _selectedType, _selectedMembers);
+            return service.GetMoveMembersToTypeOptions(document, selectedType, selectedMembers);
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
@@ -59,8 +44,8 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             }
 
             // Find the original doc root
-            var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // add annotations to the symbols that we selected so we can find them later to pull up
             // These symbols should all have (singular) definitions, but in the case that we can't find
@@ -70,14 +55,14 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 .WhereNotNull()
                 .SelectAsArray(loc => loc.FindNode(cancellationToken));
             root = root.TrackNodes(memberNodes);
-            var sourceDoc = _document.WithSyntaxRoot(root);
+            var sourceDoc = document.WithSyntaxRoot(root);
 
             if (!moveOptions.IsNewType)
             {
                 // we already have our destination type, but we need to find the document it is in
                 // When it is an existing type, "FileName" points to a full path rather than just the name
                 // There should be no two docs that have the same file path
-                var destinationDocId = _document.Project.Solution.GetDocumentIdsWithFilePath(moveOptions.FileName).Single();
+                var destinationDocId = document.Project.Solution.GetDocumentIdsWithFilePath(moveOptions.FileName).Single();
                 var fixedSolution = await RefactorAndMoveAsync(
                     moveOptions.SelectedMembers,
                     memberNodes,
@@ -92,10 +77,10 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             }
 
             // otherwise, we need to create a destination ourselves
-            var typeParameters = ExtractTypeHelpers.GetRequiredTypeParametersForMembers(_selectedType, moveOptions.SelectedMembers);
+            var typeParameters = ExtractTypeHelpers.GetRequiredTypeParametersForMembers(selectedType, moveOptions.SelectedMembers);
             // which indices of the old type params should we keep for a new class reference, used for refactoring usages
-            var typeArgIndices = Enumerable.Range(0, _selectedType.TypeParameters.Length)
-                .Where(i => typeParameters.Contains(_selectedType.TypeParameters[i]))
+            var typeArgIndices = Enumerable.Range(0, selectedType.TypeParameters.Length)
+                .Where(i => typeParameters.Contains(selectedType.TypeParameters[i]))
                 .ToImmutableArrayOrEmpty();
 
             // even though we can move members here, we will move them by calling PullMembersUp
@@ -103,7 +88,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 ImmutableArray.Create<AttributeData>(),
                 Accessibility.NotApplicable,
                 DeclarationModifiers.Static,
-                GetNewTypeKind(_selectedType),
+                GetNewTypeKind(selectedType),
                 moveOptions.TypeName!,
                 typeParameters: typeParameters);
 
@@ -111,11 +96,11 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 sourceDoc.Project.Solution,
                 moveOptions.NamespaceDisplay,
                 moveOptions.FileName,
-                _document.Project.Id,
-                _document.Folders,
+                document.Project.Id,
+                document.Folders,
                 newType,
-                _document,
-                _fallbackOptions,
+                document,
+                fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 
             // get back type declaration in the newly created file
@@ -139,7 +124,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node, cancellationToken), false));
 
             var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
-            var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             return new CodeActionOperation[] { new ApplyChangesOperation(movedSolution) };
         }
@@ -205,7 +190,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             newType = (INamedTypeSymbol)newTypeSemanticModel.GetRequiredDeclaredSymbol(newTypeRoot.GetCurrentNode(newTypeNode)!, cancellationToken);
 
             var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
-            return await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+            return await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, fallbackOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<Solution> RefactorReferencesAsync(

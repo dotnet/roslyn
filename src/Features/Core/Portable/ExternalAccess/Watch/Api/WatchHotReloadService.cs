@@ -16,13 +16,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
 {
     internal sealed class WatchHotReloadService
     {
-        private sealed class DebuggerService : IManagedHotReloadService
+        private sealed class DebuggerService(ImmutableArray<string> capabilities) : IManagedHotReloadService
         {
-            private readonly ImmutableArray<string> _capabilities;
-
-            public DebuggerService(ImmutableArray<string> capabilities)
-                => _capabilities = capabilities;
-
             public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
                 => ValueTaskFactory.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
 
@@ -30,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
                 => ValueTaskFactory.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
 
             public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-                => ValueTaskFactory.FromResult(_capabilities);
+                => ValueTaskFactory.FromResult(capabilities);
 
             public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
                 => ValueTaskFactory.CompletedTask;

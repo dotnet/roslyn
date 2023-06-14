@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken);
     }
 
-    internal class DefaultNavigateToSearchHost : INavigateToSearcherHost
+    internal class DefaultNavigateToSearchHost(
+        Solution solution,
+        IAsynchronousOperationListener asyncListener,
+        CancellationToken disposalToken) : INavigateToSearcherHost
     {
-        private readonly Solution _solution;
-        private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly CancellationToken _disposalToken;
 
         /// <summary>
         /// Single task used to both hydrate the remote host with the initial workspace solution,
@@ -41,22 +41,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static readonly object s_gate = new();
         private static Task? s_remoteHostHydrateTask = null;
 
-        public DefaultNavigateToSearchHost(
-            Solution solution,
-            IAsynchronousOperationListener asyncListener,
-            CancellationToken disposalToken)
-        {
-            _solution = solution;
-            _asyncListener = asyncListener;
-            _disposalToken = disposalToken;
-        }
-
         public INavigateToSearchService? GetNavigateToSearchService(Project project)
             => project.GetLanguageService<INavigateToSearchService>();
 
         public async ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
         {
-            var service = _solution.Services.GetRequiredService<IWorkspaceStatusService>();
+            var service = solution.Services.GetRequiredService<IWorkspaceStatusService>();
 
             // We consider ourselves fully loaded when both the project system has completed loaded
             // us, and we've totally hydrated the oop side.  Until that happens, we'll attempt to
@@ -92,26 +82,26 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 if (s_remoteHostHydrateTask == null)
                 {
                     // If there are no projects in this solution that use OOP, then there's nothing we need to do.
-                    if (_solution.Projects.All(p => !RemoteSupportedLanguages.IsSupported(p.Language)))
+                    if (solution.Projects.All(p => !RemoteSupportedLanguages.IsSupported(p.Language)))
                     {
                         s_remoteHostHydrateTask = Task.CompletedTask;
                     }
                     else
                     {
-                        var asyncToken = _asyncListener.BeginAsyncOperation(nameof(GetRemoteHostHydrateTask));
+                        var asyncToken = asyncListener.BeginAsyncOperation(nameof(GetRemoteHostHydrateTask));
 
                         s_remoteHostHydrateTask = Task.Run(async () =>
                         {
-                            var client = await RemoteHostClient.TryGetClientAsync(_solution.Services, _disposalToken).ConfigureAwait(false);
+                            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, disposalToken).ConfigureAwait(false);
                             if (client != null)
                             {
                                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
-                                    _solution,
+                                    solution,
                                     (service, solutionInfo, cancellationToken) =>
                                     service.HydrateAsync(solutionInfo, cancellationToken),
-                                    _disposalToken).ConfigureAwait(false);
+                                    disposalToken).ConfigureAwait(false);
                             }
-                        }, _disposalToken);
+                        }, disposalToken);
                         s_remoteHostHydrateTask.CompletesAsyncOperation(asyncToken);
                     }
                 }

@@ -15,28 +15,20 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal abstract partial class MethodExtractor
     {
-        protected class VariableInfo
+        protected class VariableInfo(
+            VariableSymbol variableSymbol,
+            VariableStyle variableStyle,
+            bool useAsReturnValue = false)
         {
-            private readonly VariableSymbol _variableSymbol;
-            private readonly VariableStyle _variableStyle;
-            private readonly bool _useAsReturnValue;
-
-            public VariableInfo(
-                VariableSymbol variableSymbol,
-                VariableStyle variableStyle,
-                bool useAsReturnValue = false)
-            {
-                _variableSymbol = variableSymbol;
-                _variableStyle = variableStyle;
-                _useAsReturnValue = useAsReturnValue;
-            }
+            private readonly VariableSymbol _variableSymbol = variableSymbol;
+            private readonly VariableStyle _variableStyle = variableStyle;
 
             public bool UseAsReturnValue
             {
                 get
                 {
-                    Contract.ThrowIfFalse(!_useAsReturnValue || _variableStyle.ReturnStyle.ReturnBehavior != ReturnBehavior.None);
-                    return _useAsReturnValue;
+                    Contract.ThrowIfFalse(!useAsReturnValue || _variableStyle.ReturnStyle.ReturnBehavior != ReturnBehavior.None);
+                    return useAsReturnValue;
                 }
             }
 
@@ -52,8 +44,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    return (!_useAsReturnValue && _variableStyle.ParameterStyle.ParameterBehavior != ParameterBehavior.None) ||
-                           (_useAsReturnValue && _variableStyle.ReturnStyle.ParameterBehavior != ParameterBehavior.None);
+                    return (!useAsReturnValue && _variableStyle.ParameterStyle.ParameterBehavior != ParameterBehavior.None) ||
+                           (useAsReturnValue && _variableStyle.ReturnStyle.ParameterBehavior != ParameterBehavior.None);
                 }
             }
 
@@ -61,13 +53,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    return _useAsReturnValue ? _variableStyle.ReturnStyle.ParameterBehavior : _variableStyle.ParameterStyle.ParameterBehavior;
+                    return useAsReturnValue ? _variableStyle.ReturnStyle.ParameterBehavior : _variableStyle.ParameterStyle.ParameterBehavior;
                 }
             }
 
             public DeclarationBehavior GetDeclarationBehavior(CancellationToken cancellationToken)
             {
-                if (_useAsReturnValue)
+                if (useAsReturnValue)
                 {
                     return _variableStyle.ReturnStyle.DeclarationBehavior;
                 }
@@ -84,7 +76,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    if (_useAsReturnValue)
+                    if (useAsReturnValue)
                     {
                         return _variableStyle.ReturnStyle.ReturnBehavior;
                     }

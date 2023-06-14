@@ -22,7 +22,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
     /// <summary>
     /// Helper class to detect regex pattern tokens in a document efficiently.
     /// </summary>
-    internal sealed class RegexLanguageDetector : AbstractLanguageDetector<RegexOptions, RegexTree>
+    internal sealed class RegexLanguageDetector(
+        EmbeddedLanguageInfo info,
+        INamedTypeSymbol? regexType,
+        HashSet<string> methodNamesOfInterest) : AbstractLanguageDetector<RegexOptions, RegexTree>(info, LanguageIdentifiers)
     {
         public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Regex", "Regexp");
 
@@ -34,19 +37,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         /// examine for a particular compilation.
         /// </summary>
         private static readonly ConditionalWeakTable<Compilation, RegexLanguageDetector> _modelToDetector = new();
-
-        private readonly INamedTypeSymbol? _regexType;
-        private readonly HashSet<string> _methodNamesOfInterest;
-
-        public RegexLanguageDetector(
-            EmbeddedLanguageInfo info,
-            INamedTypeSymbol? regexType,
-            HashSet<string> methodNamesOfInterest)
-            : base(info, LanguageIdentifiers)
-        {
-            _regexType = regexType;
-            _methodNamesOfInterest = methodNamesOfInterest;
-        }
 
         public static RegexLanguageDetector GetOrCreate(
             Compilation compilation, EmbeddedLanguageInfo info)
@@ -98,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             CancellationToken cancellationToken,
             out RegexOptions options)
         {
-            if (_regexType == null)
+            if (regexType == null)
             {
                 options = default;
                 return false;
@@ -111,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             {
                 var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(invocationOrCreation);
                 var name = GetNameOfInvokedExpression(invokedExpression);
-                if (name != null && _methodNamesOfInterest.Contains(name))
+                if (name != null && methodNamesOfInterest.Contains(name))
                 {
                     // Is a string argument to a method that looks like it could be a Regex method.  
                     // Need to do deeper analysis.
@@ -120,12 +110,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                     // allocation.
                     var symbolInfo = semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken);
                     var method = symbolInfo.Symbol;
-                    if (TryAnalyzeInvocation(_regexType, argumentNode, semanticModel, method, cancellationToken, out options))
+                    if (TryAnalyzeInvocation(regexType, argumentNode, semanticModel, method, cancellationToken, out options))
                         return true;
 
                     foreach (var candidate in symbolInfo.CandidateSymbols)
                     {
-                        if (TryAnalyzeInvocation(_regexType, argumentNode, semanticModel, candidate, cancellationToken, out options))
+                        if (TryAnalyzeInvocation(regexType, argumentNode, semanticModel, candidate, cancellationToken, out options))
                             return true;
                     }
                 }
@@ -139,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                     if (syntaxFacts.StringComparer.Compare(nameof(Regex), name) == 0)
                     {
                         var constructor = semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
-                        if (_regexType.Equals(constructor?.ContainingType))
+                        if (regexType.Equals(constructor?.ContainingType))
                         {
                             // Argument to "new Regex".  Need to do deeper analysis
                             return AnalyzeStringLiteral(argumentNode, semanticModel, cancellationToken, out options);
@@ -150,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             else if (syntaxFacts.IsImplicitObjectCreationExpression(invocationOrCreation))
             {
                 var constructor = semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
-                if (_regexType.Equals(constructor?.ContainingType))
+                if (regexType.Equals(constructor?.ContainingType))
                 {
                     // Argument to "new Regex".  Need to do deeper analysis
                     return AnalyzeStringLiteral(argumentNode, semanticModel, cancellationToken, out options);

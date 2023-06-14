@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
     /// also update the wrapping most-recently-used list when the code action is actually
     /// invoked.
     /// </summary>
-    internal class WrapItemsAction : DocumentChangeAction
+    internal class WrapItemsAction(string title, string parentTitle, Func<CancellationToken, Task<Document>> createChangedDocument) : DocumentChangeAction(title, createChangedDocument, title, CodeActionPriority.Low)
     {
         // Keeps track of the invoked code actions.  That way we can prioritize those code actions 
         // in the future since they're more likely the ones the user wants.  This is important as 
@@ -29,22 +29,9 @@ namespace Microsoft.CodeAnalysis.Wrapping
         // choose to be prioritized accordingly.
         private static ImmutableArray<string> s_mruTitles = ImmutableArray<string>.Empty;
 
-        public string ParentTitle { get; }
+        public string ParentTitle { get; } = parentTitle;
 
-        public string SortTitle { get; }
-
-        // Make our code action low priority.  This option will be offered *a lot*, and 
-        // much of  the time will not be something the user particularly wants to do.  
-        // It should be offered after all other normal refactorings.
-        //
-        // This value is only relevant if this code action is the only one in its group,
-        // and it ends up getting inlined as a top-level-action that is offered.
-        public WrapItemsAction(string title, string parentTitle, Func<CancellationToken, Task<Document>> createChangedDocument)
-            : base(title, createChangedDocument, title, CodeActionPriority.Low)
-        {
-            ParentTitle = parentTitle;
-            SortTitle = parentTitle + "_" + title;
-        }
+        public string SortTitle { get; } = parentTitle + "_" + title;
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
@@ -96,17 +83,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
         private static string GetSortTitle(CodeAction codeAction)
             => (codeAction as WrapItemsAction)?.SortTitle ?? codeAction.Title;
 
-        private class RecordCodeActionOperation : CodeActionOperation
+        private class RecordCodeActionOperation(string sortTitle, string parentTitle) : CodeActionOperation
         {
-            private readonly string _sortTitle;
-            private readonly string _parentTitle;
-
-            public RecordCodeActionOperation(string sortTitle, string parentTitle)
-            {
-                _sortTitle = sortTitle;
-                _parentTitle = parentTitle;
-            }
-
             internal override bool ApplyDuringTests => false;
 
             public override void Apply(Workspace workspace, CancellationToken cancellationToken)
@@ -114,8 +92,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 // Record both the sortTitle of the nested action and the tile of the parent
                 // action.  This way we any invocation of a code action helps prioritize both
                 // the parent lists and the nested lists.
-                s_mruTitles = s_mruTitles.Remove(_sortTitle).Remove(_parentTitle)
-                                         .Insert(0, _sortTitle).Insert(0, _parentTitle);
+                s_mruTitles = s_mruTitles.Remove(sortTitle).Remove(parentTitle)
+                                         .Insert(0, sortTitle).Insert(0, parentTitle);
             }
         }
     }

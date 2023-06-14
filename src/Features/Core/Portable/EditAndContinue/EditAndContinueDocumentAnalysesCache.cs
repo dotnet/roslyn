@@ -22,18 +22,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// The work is triggered by an incremental analyzer on idle or explicitly when "continue" operation is executed.
     /// Contains analyses of the latest observed document versions.
     /// </summary>
-    internal sealed class EditAndContinueDocumentAnalysesCache
+    internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveStatementsMap> baseActiveStatements, AsyncLazy<EditAndContinueCapabilities> capabilities)
     {
         private readonly object _guard = new();
         private readonly Dictionary<DocumentId, (AsyncLazy<DocumentAnalysisResults> results, Project baseProject, Document document, ImmutableArray<LinePositionSpan> activeStatementSpans)> _analyses = new();
-        private readonly AsyncLazy<ActiveStatementsMap> _baseActiveStatements;
-        private readonly AsyncLazy<EditAndContinueCapabilities> _capabilities;
-
-        public EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveStatementsMap> baseActiveStatements, AsyncLazy<EditAndContinueCapabilities> capabilities)
-        {
-            _baseActiveStatements = baseActiveStatements;
-            _capabilities = capabilities;
-        }
+        private readonly AsyncLazy<ActiveStatementsMap> _baseActiveStatements = baseActiveStatements;
 
         public async ValueTask<ImmutableArray<DocumentAnalysisResults>> GetDocumentAnalysesAsync(
             CommittedSolution oldSolution,
@@ -194,7 +187,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     try
                     {
                         var analyzer = document.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
-                        return await analyzer.AnalyzeDocumentAsync(baseProject, _baseActiveStatements, document, activeStatementSpans, _capabilities, cancellationToken).ConfigureAwait(false);
+                        return await analyzer.AnalyzeDocumentAsync(baseProject, _baseActiveStatements, document, activeStatementSpans, capabilities, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                     {

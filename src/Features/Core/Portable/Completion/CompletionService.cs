@@ -351,18 +351,13 @@ namespace Microsoft.CodeAnalysis.Completion
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(CompletionService completionServiceWithProviders)
         {
-            private readonly CompletionService _completionServiceWithProviders;
-
-            public TestAccessor(CompletionService completionServiceWithProviders)
-                => _completionServiceWithProviders = completionServiceWithProviders;
-
             public ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string> roles)
-                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetImportedAndBuiltInProviders(roles);
+                => completionServiceWithProviders._providerManager.GetTestAccessor().GetImportedAndBuiltInProviders(roles);
 
             public Task<ImmutableArray<CompletionProvider>> GetProjectProvidersAsync(Project project)
-                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetProjectProvidersAsync(project);
+                => completionServiceWithProviders._providerManager.GetTestAccessor().GetProjectProvidersAsync(project);
 
             public async Task<CompletionContext> GetContextAsync(
                 CompletionProvider provider,
@@ -373,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 CancellationToken cancellationToken)
             {
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                var defaultItemSpan = _completionServiceWithProviders.GetDefaultCompletionListSpan(text, position);
+                var defaultItemSpan = completionServiceWithProviders.GetDefaultCompletionListSpan(text, position);
 
                 return await CompletionService.GetContextAsync(
                     provider,
@@ -387,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             public void SuppressPartialSemantics()
-                => _completionServiceWithProviders._suppressPartialSemantics = true;
+                => completionServiceWithProviders._suppressPartialSemantics = true;
         }
     }
 }

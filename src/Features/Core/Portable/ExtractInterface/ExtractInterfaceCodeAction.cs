@@ -10,29 +10,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
 {
-    internal class ExtractInterfaceCodeAction : CodeActionWithOptions
+    internal class ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult) : CodeActionWithOptions
     {
-        private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult;
-        private readonly AbstractExtractInterfaceService _extractInterfaceService;
-
-        public ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult)
-        {
-            _extractInterfaceService = extractInterfaceService;
-            _typeAnalysisResult = typeAnalysisResult;
-        }
-
         public override object GetOptions(CancellationToken cancellationToken)
         {
-            var containingNamespaceDisplay = _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
+            var containingNamespaceDisplay = typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
-                : _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
+                : typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
 
             return AbstractExtractInterfaceService.GetExtractInterfaceOptionsAsync(
-                _typeAnalysisResult.DocumentToExtractFrom,
-                _typeAnalysisResult.TypeToExtractFrom,
-                _typeAnalysisResult.ExtractableMembers,
+                typeAnalysisResult.DocumentToExtractFrom,
+                typeAnalysisResult.TypeToExtractFrom,
+                typeAnalysisResult.ExtractableMembers,
                 containingNamespaceDisplay,
-                _typeAnalysisResult.FallbackOptions,
+                typeAnalysisResult.FallbackOptions,
                 cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
@@ -42,8 +33,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
             if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
             {
-                var extractInterfaceResult = await _extractInterfaceService
-                        .ExtractInterfaceFromAnalyzedTypeAsync(_typeAnalysisResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);
+                var extractInterfaceResult = await extractInterfaceService
+                        .ExtractInterfaceFromAnalyzedTypeAsync(typeAnalysisResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);
 
                 if (extractInterfaceResult.Succeeded)
                 {

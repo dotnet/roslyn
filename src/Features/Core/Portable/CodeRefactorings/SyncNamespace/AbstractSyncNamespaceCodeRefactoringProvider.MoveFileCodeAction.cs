@@ -23,32 +23,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         where TCompilationUnitSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        private class MoveFileCodeAction : CodeAction
+        private class MoveFileCodeAction(State state, ImmutableArray<string> newFolders) : CodeAction
         {
-            private readonly State _state;
-            private readonly ImmutableArray<string> _newfolders;
-
             public override string Title
-                => _newfolders.Length > 0
-                ? string.Format(FeaturesResources.Move_file_to_0, string.Join(PathUtilities.DirectorySeparatorStr, _newfolders))
+                => newFolders.Length > 0
+                ? string.Format(FeaturesResources.Move_file_to_0, string.Join(PathUtilities.DirectorySeparatorStr, newFolders))
                 : FeaturesResources.Move_file_to_project_root_folder;
-
-            public MoveFileCodeAction(State state, ImmutableArray<string> newFolders)
-            {
-                _state = state;
-                _newfolders = newFolders;
-            }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
-                var document = _state.Document;
-                var solution = _state.Document.Project.Solution;
+                var document = state.Document;
+                var solution = state.Document.Project.Solution;
                 var newDocumentId = DocumentId.CreateNewId(document.Project.Id, document.Name);
 
                 solution = solution.RemoveDocument(document.Id);
 
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                solution = solution.AddDocument(newDocumentId, document.Name, text, folders: _newfolders);
+                solution = solution.AddDocument(newDocumentId, document.Name, text, folders: newFolders);
 
                 return ImmutableArray.Create<CodeActionOperation>(
                     new ApplyChangesOperation(solution),

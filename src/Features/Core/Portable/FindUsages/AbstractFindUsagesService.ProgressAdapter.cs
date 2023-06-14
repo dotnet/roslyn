@@ -24,41 +24,30 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// Forwards <see cref="IStreamingFindLiteralReferencesProgress"/> calls to an
         /// <see cref="IFindUsagesContext"/> instance.
         /// </summary>
-        private sealed class FindLiteralsProgressAdapter : IStreamingFindLiteralReferencesProgress
+        private sealed class FindLiteralsProgressAdapter(
+            IFindUsagesContext context, DefinitionItem definition) : IStreamingFindLiteralReferencesProgress
         {
-            private readonly IFindUsagesContext _context;
-            private readonly DefinitionItem _definition;
-
             public IStreamingProgressTracker ProgressTracker
-                => _context.ProgressTracker;
-
-            public FindLiteralsProgressAdapter(
-                IFindUsagesContext context, DefinitionItem definition)
-            {
-                _context = context;
-                _definition = definition;
-            }
+                => context.ProgressTracker;
 
             public async ValueTask OnReferenceFoundAsync(Document document, TextSpan span, CancellationToken cancellationToken)
             {
-                var options = await _context.GetOptionsAsync(document.Project.Language, cancellationToken).ConfigureAwait(false);
+                var options = await context.GetOptionsAsync(document.Project.Language, cancellationToken).ConfigureAwait(false);
 
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                     document, span, options.ClassificationOptions, cancellationToken).ConfigureAwait(false);
 
-                await _context.OnReferenceFoundAsync(
-                    new SourceReferenceItem(_definition, documentSpan, SymbolUsageInfo.None), cancellationToken).ConfigureAwait(false);
+                await context.OnReferenceFoundAsync(
+                    new SourceReferenceItem(definition, documentSpan, SymbolUsageInfo.None), cancellationToken).ConfigureAwait(false);
             }
         }
 
         /// <summary>
         /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
         /// </summary>
-        private sealed class FindReferencesProgressAdapter : IStreamingFindReferencesProgress
+        private sealed class FindReferencesProgressAdapter(
+            Solution solution, IFindUsagesContext context, FindReferencesSearchOptions options) : IStreamingFindReferencesProgress
         {
-            private readonly Solution _solution;
-            private readonly IFindUsagesContext _context;
-            private readonly FindReferencesSearchOptions _options;
 
             /// <summary>
             /// We will hear about definition symbols many times while performing FAR.  We'll
@@ -75,15 +64,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
             public IStreamingProgressTracker ProgressTracker
-                => _context.ProgressTracker;
-
-            public FindReferencesProgressAdapter(
-                Solution solution, IFindUsagesContext context, FindReferencesSearchOptions options)
-            {
-                _solution = solution;
-                _context = context;
-                _options = options;
-            }
+                => context.ProgressTracker;
 
             // Do nothing functions.  The streaming far service doesn't care about
             // any of these.
@@ -103,9 +84,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     if (!_definitionToItem.TryGetValue(group, out var definitionItem))
                     {
                         definitionItem = await group.ToClassifiedDefinitionItemAsync(
-                            _context,
-                            _solution,
-                            _options,
+                            context,
+                            solution,
+                            options,
                             isPrimary: _definitionToItem.Count == 0,
                             includeHiddenLocations: false,
                             cancellationToken).ConfigureAwait(false);
@@ -120,20 +101,20 @@ namespace Microsoft.CodeAnalysis.FindUsages
             public async ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
             {
                 var definitionItem = await GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
-                await _context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+                await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
             }
 
             public async ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation location, CancellationToken cancellationToken)
             {
                 var definitionItem = await GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
                 var referenceItem = await location.TryCreateSourceReferenceItemAsync(
-                    _context,
+                    context,
                     definitionItem,
                     includeHiddenLocations: false,
                     cancellationToken).ConfigureAwait(false);
 
                 if (referenceItem != null)
-                    await _context.OnReferenceFoundAsync(referenceItem, cancellationToken).ConfigureAwait(false);
+                    await context.OnReferenceFoundAsync(referenceItem, cancellationToken).ConfigureAwait(false);
             }
         }
     }

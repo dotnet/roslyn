@@ -8,21 +8,14 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
     internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
     {
-        private readonly struct AddConstructorParameterResult
+        private readonly struct AddConstructorParameterResult(
+            ImmutableArray<AddConstructorParametersCodeAction> requiredParameterActions,
+            ImmutableArray<AddConstructorParametersCodeAction> optionalParameterActions,
+            bool useSubMenu)
         {
-            internal readonly ImmutableArray<AddConstructorParametersCodeAction> RequiredParameterActions;
-            internal readonly ImmutableArray<AddConstructorParametersCodeAction> OptionalParameterActions;
-            internal readonly bool UseSubMenu;
-
-            public AddConstructorParameterResult(
-                ImmutableArray<AddConstructorParametersCodeAction> requiredParameterActions,
-                ImmutableArray<AddConstructorParametersCodeAction> optionalParameterActions,
-                bool useSubMenu)
-            {
-                RequiredParameterActions = requiredParameterActions;
-                OptionalParameterActions = optionalParameterActions;
-                UseSubMenu = useSubMenu;
-            }
+            internal readonly ImmutableArray<AddConstructorParametersCodeAction> RequiredParameterActions = requiredParameterActions;
+            internal readonly ImmutableArray<AddConstructorParametersCodeAction> OptionalParameterActions = optionalParameterActions;
+            internal readonly bool UseSubMenu = useSubMenu;
         }
     }
 }

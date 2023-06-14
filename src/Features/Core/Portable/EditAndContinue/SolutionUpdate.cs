@@ -9,30 +9,20 @@ using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal readonly struct SolutionUpdate
+    internal readonly struct SolutionUpdate(
+        ModuleUpdates moduleUpdates,
+        ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions,
+        ImmutableArray<ProjectBaseline> projectBaselines,
+        ImmutableArray<ProjectDiagnostics> diagnostics,
+        ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> documentsWithRudeEdits,
+        Diagnostic? syntaxError)
     {
-        public readonly ModuleUpdates ModuleUpdates;
-        public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> NonRemappableRegions;
-        public readonly ImmutableArray<ProjectBaseline> ProjectBaselines;
-        public readonly ImmutableArray<ProjectDiagnostics> Diagnostics;
-        public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> DocumentsWithRudeEdits;
-        public readonly Diagnostic? SyntaxError;
-
-        public SolutionUpdate(
-            ModuleUpdates moduleUpdates,
-            ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions,
-            ImmutableArray<ProjectBaseline> projectBaselines,
-            ImmutableArray<ProjectDiagnostics> diagnostics,
-            ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> documentsWithRudeEdits,
-            Diagnostic? syntaxError)
-        {
-            ModuleUpdates = moduleUpdates;
-            NonRemappableRegions = nonRemappableRegions;
-            ProjectBaselines = projectBaselines;
-            Diagnostics = diagnostics;
-            DocumentsWithRudeEdits = documentsWithRudeEdits;
-            SyntaxError = syntaxError;
-        }
+        public readonly ModuleUpdates ModuleUpdates = moduleUpdates;
+        public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> NonRemappableRegions = nonRemappableRegions;
+        public readonly ImmutableArray<ProjectBaseline> ProjectBaselines = projectBaselines;
+        public readonly ImmutableArray<ProjectDiagnostics> Diagnostics = diagnostics;
+        public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> DocumentsWithRudeEdits = documentsWithRudeEdits;
+        public readonly Diagnostic? SyntaxError = syntaxError;
 
         public static SolutionUpdate Blocked(
             ImmutableArray<ProjectDiagnostics> diagnostics,

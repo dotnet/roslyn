@@ -32,23 +32,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             return type.SubstituteTypes(visitor.Substitutions, compilation);
         }
 
-        private sealed class DetermineSubstitutionsVisitor : AsyncSymbolVisitor
+        private sealed class DetermineSubstitutionsVisitor(
+            Compilation compilation, ISet<string> availableTypeParameterNames, Project project, CancellationToken cancellationToken) : AsyncSymbolVisitor
         {
             public readonly Dictionary<ITypeSymbol, ITypeSymbol> Substitutions =
                 new();
-            private readonly CancellationToken _cancellationToken;
-            private readonly Compilation _compilation;
-            private readonly ISet<string> _availableTypeParameterNames;
-            private readonly Project _project;
-
-            public DetermineSubstitutionsVisitor(
-                Compilation compilation, ISet<string> availableTypeParameterNames, Project project, CancellationToken cancellationToken)
-            {
-                _compilation = compilation;
-                _availableTypeParameterNames = availableTypeParameterNames;
-                _project = project;
-                _cancellationToken = cancellationToken;
-            }
 
             public override ValueTask VisitDynamicType(IDynamicTypeSymbol symbol)
                 => default;
@@ -67,7 +55,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
             public override async ValueTask VisitTypeParameter(ITypeParameterSymbol symbol)
             {
-                if (_availableTypeParameterNames.Contains(symbol.Name))
+                if (availableTypeParameterNames.Contains(symbol.Name))
                     return;
 
                 switch (symbol.ConstraintTypes.Length)
@@ -96,7 +84,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 if (!symbol.ConstraintTypes.All(t => t is INamedTypeSymbol))
                     return null;
 
-                var solution = _project.Solution;
+                var solution = project.Solution;
                 var projects = solution.Projects.ToImmutableHashSet();
 
                 var commonTypes = await GetDerivedAndImplementedTypesAsync(
@@ -121,27 +109,27 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 // If the resultant intersecting type contains any Type arguments that could be replaced 
                 // using the type constraints then recursively update the type until all constraints are appropriately handled
                 var substitutedType = await ReplaceTypeParametersBasedOnTypeConstraintsAsync(
-                    _project, commonType, _compilation, _availableTypeParameterNames, _cancellationToken).ConfigureAwait(false);
+                    project, commonType, compilation, availableTypeParameterNames, cancellationToken).ConfigureAwait(false);
 
-                var similarTypes = SymbolFinder.FindSimilarSymbols(substitutedType, _compilation, _cancellationToken);
+                var similarTypes = SymbolFinder.FindSimilarSymbols(substitutedType, compilation, cancellationToken);
                 if (similarTypes.Any())
                     return similarTypes.First();
 
-                similarTypes = SymbolFinder.FindSimilarSymbols(commonType, _compilation, _cancellationToken);
+                similarTypes = SymbolFinder.FindSimilarSymbols(commonType, compilation, cancellationToken);
                 return similarTypes.FirstOrDefault() ?? symbol;
             }
 
             private async Task<ISet<INamedTypeSymbol>> GetDerivedAndImplementedTypesAsync(
                 INamedTypeSymbol constraintType, IImmutableSet<Project> projects)
             {
-                var solution = _project.Solution;
+                var solution = project.Solution;
 
                 var symbol = constraintType;
                 var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
-                    symbol, solution, transitive: true, projects, _cancellationToken).ConfigureAwait(false);
+                    symbol, solution, transitive: true, projects, cancellationToken).ConfigureAwait(false);
 
                 var implementedTypes = await SymbolFinder.FindImplementationsAsync(
-                    symbol, solution, transitive: true, projects, _cancellationToken).ConfigureAwait(false);
+                    symbol, solution, transitive: true, projects, cancellationToken).ConfigureAwait(false);
 
                 return derivedClasses.Concat(implementedTypes).ToSet();
             }

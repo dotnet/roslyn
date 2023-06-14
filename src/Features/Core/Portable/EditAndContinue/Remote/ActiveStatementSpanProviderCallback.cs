@@ -10,12 +10,8 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class ActiveStatementSpanProviderCallback
+    internal sealed class ActiveStatementSpanProviderCallback(ActiveStatementSpanProvider provider)
     {
-        private readonly ActiveStatementSpanProvider _provider;
-
-        public ActiveStatementSpanProviderCallback(ActiveStatementSpanProvider provider)
-            => _provider = provider;
 
         /// <summary>
         /// Remote API.
@@ -24,7 +20,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             try
             {
-                return await _provider(documentId, filePath, cancellationToken).ConfigureAwait(false);
+                return await provider(documentId, filePath, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {

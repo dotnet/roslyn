@@ -11,15 +11,10 @@ using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal sealed class CompletionHelper
+    internal sealed class CompletionHelper(bool isCaseSensitive)
     {
         private static CompletionHelper CaseSensitiveInstance { get; } = new CompletionHelper(isCaseSensitive: true);
         private static CompletionHelper CaseInsensitiveInstance { get; } = new CompletionHelper(isCaseSensitive: false);
-
-        private readonly bool _isCaseSensitive;
-
-        public CompletionHelper(bool isCaseSensitive)
-            => _isCaseSensitive = isCaseSensitive;
 
         public static CompletionHelper GetHelper(Document document)
         {
@@ -41,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             if (match1 != null && match2 != null)
             {
-                var result = CompareItems(match1.Value, match2.Value, item1, item2, _isCaseSensitive, filterTextHasNoUpperCase);
+                var result = CompareItems(match1.Value, match2.Value, item1, item2, isCaseSensitive, filterTextHasNoUpperCase);
                 if (result != 0)
                 {
                     return result;

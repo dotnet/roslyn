@@ -8,13 +8,10 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
 {
-    internal sealed class JsonTree : EmbeddedSyntaxTree<JsonKind, JsonNode, JsonCompilationUnit>
+    internal sealed class JsonTree(
+        VirtualCharSequence text,
+        JsonCompilationUnit root,
+        ImmutableArray<EmbeddedDiagnostic> diagnostics) : EmbeddedSyntaxTree<JsonKind, JsonNode, JsonCompilationUnit>(text, root, diagnostics)
     {
-        public JsonTree(
-            VirtualCharSequence text,
-            JsonCompilationUnit root,
-            ImmutableArray<EmbeddedDiagnostic> diagnostics) : base(text, root, diagnostics)
-        {
-        }
     }
 }

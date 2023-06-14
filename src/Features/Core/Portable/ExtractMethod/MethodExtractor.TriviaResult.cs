@@ -15,26 +15,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal abstract partial class MethodExtractor
     {
-        protected abstract class TriviaResult
+        protected abstract class TriviaResult(SemanticDocument document, ITriviaSavedResult result, int endOfLineKind, int whitespaceKind)
         {
-            private readonly int _endOfLineKind;
-            private readonly int _whitespaceKind;
-
-            private readonly ITriviaSavedResult _result;
-
-            public TriviaResult(SemanticDocument document, ITriviaSavedResult result, int endOfLineKind, int whitespaceKind)
-            {
-                SemanticDocument = document;
-
-                _result = result;
-                _endOfLineKind = endOfLineKind;
-                _whitespaceKind = whitespaceKind;
-            }
-
             protected abstract AnnotationResolver GetAnnotationResolver(SyntaxNode callsite, SyntaxNode methodDefinition);
             protected abstract TriviaResolver GetTriviaResolver(SyntaxNode methodDefinition);
 
-            public SemanticDocument SemanticDocument { get; }
+            public SemanticDocument SemanticDocument { get; } = document;
 
             public async Task<OperationStatus<SemanticDocument>> ApplyAsync(GeneratedCode generatedCode, CancellationToken cancellationToken)
             {
@@ -58,13 +44,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 return OperationStatus.Succeeded.With(
-                    await document.WithSyntaxRootAsync(_result.RestoreTrivia(root, annotationResolver, triviaResolver), cancellationToken).ConfigureAwait(false));
+                    await document.WithSyntaxRootAsync(result.RestoreTrivia(root, annotationResolver, triviaResolver), cancellationToken).ConfigureAwait(false));
             }
 
             protected IEnumerable<SyntaxTrivia> FilterTriviaList(IEnumerable<SyntaxTrivia> list)
             {
                 // has noisy token
-                if (list.Any(t => t.RawKind != _endOfLineKind && t.RawKind != _whitespaceKind))
+                if (list.Any(t => t.RawKind != endOfLineKind && t.RawKind != whitespaceKind))
                 {
                     return RemoveLeadingElasticBeforeEndOfLine(list);
                 }
@@ -86,12 +72,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     i++;
 
-                    if (trivia.RawKind == _endOfLineKind)
+                    if (trivia.RawKind == endOfLineKind)
                     {
                         if (seenFirstEndOfLine)
                         {
                             // empty line. remove it
-                            if (currentLine.All(t => t.RawKind == _endOfLineKind || t.RawKind == _whitespaceKind))
+                            if (currentLine.All(t => t.RawKind == endOfLineKind || t.RawKind == whitespaceKind))
                             {
                                 continue;
                             }
@@ -128,7 +114,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var listWithoutHead = list.Skip(1);
                 trivia = listWithoutHead.FirstOrDefault();
-                if (trivia.RawKind == _endOfLineKind)
+                if (trivia.RawKind == endOfLineKind)
                 {
                     return listWithoutHead;
                 }
@@ -156,7 +142,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    if (trivia.RawKind == _endOfLineKind)
+                    if (trivia.RawKind == endOfLineKind)
                     {
                         numberOfEndOfLinesWithoutAnyNoisyTrivia++;
 
@@ -164,7 +150,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         {
                             // get rid of any whitespace trivia from stack
                             var top = stack.Peek();
-                            while (!top.IsElastic() && top.RawKind == _whitespaceKind)
+                            while (!top.IsElastic() && top.RawKind == whitespaceKind)
                             {
                                 stack.Pop();
                                 top = stack.Peek();

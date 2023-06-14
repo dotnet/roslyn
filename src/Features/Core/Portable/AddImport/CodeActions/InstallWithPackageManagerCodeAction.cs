@@ -15,44 +15,26 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private class InstallWithPackageManagerCodeAction : CodeAction
+        private class InstallWithPackageManagerCodeAction(
+            IPackageInstallerService installerService,
+            string packageName) : CodeAction
         {
-            private readonly IPackageInstallerService _installerService;
-            private readonly string _packageName;
-
-            public InstallWithPackageManagerCodeAction(
-                IPackageInstallerService installerService,
-                string packageName)
-            {
-                _installerService = installerService;
-                _packageName = packageName;
-            }
-
             public override string Title => FeaturesResources.Install_with_package_manager;
 
             protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
                 return Task.FromResult(SpecializedCollections.SingletonEnumerable<CodeActionOperation>(
-                    new InstallWithPackageManagerCodeActionOperation(_installerService, _packageName)));
+                    new InstallWithPackageManagerCodeActionOperation(installerService, packageName)));
             }
 
-            private class InstallWithPackageManagerCodeActionOperation : CodeActionOperation
+            private class InstallWithPackageManagerCodeActionOperation(
+                IPackageInstallerService installerService,
+                string packageName) : CodeActionOperation
             {
-                private readonly IPackageInstallerService _installerService;
-                private readonly string _packageName;
-
-                public InstallWithPackageManagerCodeActionOperation(
-                    IPackageInstallerService installerService,
-                    string packageName)
-                {
-                    _installerService = installerService;
-                    _packageName = packageName;
-                }
-
                 public override string Title => FeaturesResources.Install_with_package_manager;
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-                    => _installerService.ShowManagePackagesDialog(_packageName);
+                    => installerService.ShowManagePackagesDialog(packageName);
             }
         }
     }

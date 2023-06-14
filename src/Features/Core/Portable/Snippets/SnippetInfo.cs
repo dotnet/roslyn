@@ -6,19 +6,11 @@
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
-    internal sealed class SnippetInfo
+    internal sealed class SnippetInfo(string shortcut, string title, string description, string path)
     {
-        public string Shortcut { get; }
-        public string Title { get; }
-        public string Description { get; }
-        public string Path { get; }
-
-        public SnippetInfo(string shortcut, string title, string description, string path)
-        {
-            Shortcut = shortcut;
-            Title = title;
-            Description = description;
-            Path = path;
-        }
+        public string Shortcut { get; } = shortcut;
+        public string Title { get; } = title;
+        public string Description { get; } = description;
+        public string Path { get; } = path;
     }
 }

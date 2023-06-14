@@ -19,27 +19,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// <summary>
 /// Provides C# and VB analyzers a convenient access to common editorconfig options with fallback to IDE default values.
 /// </summary>
-internal readonly struct AnalyzerOptionsProvider
+/// <param name="options">
+/// Document editorconfig options.
+/// </param>
+/// <param name="fallbackOptions">
+/// Fallback options - the default options in Code Style layer.
+/// </param>
+internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string language, IdeAnalyzerOptions fallbackOptions)
 {
-    /// <summary>
-    /// Document editorconfig options.
-    /// </summary>
-    private readonly IOptionsReader _options;
-
-    /// <summary>
-    /// Fallback options - the default options in Code Style layer.
-    /// </summary>
-    private readonly IdeAnalyzerOptions _fallbackOptions;
-
-    private readonly string _language;
-
-    public AnalyzerOptionsProvider(IOptionsReader options, string language, IdeAnalyzerOptions fallbackOptions)
-    {
-        _options = options;
-        _language = language;
-        _fallbackOptions = fallbackOptions;
-    }
-
     public AnalyzerOptionsProvider(IOptionsReader options, string language, AnalyzerOptions fallbackOptions)
         : this(options, language, fallbackOptions.GetIdeOptions())
     {
@@ -55,16 +42,16 @@ internal readonly struct AnalyzerOptionsProvider
     public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration => GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, FallbackSimplifierOptions.PreferPredefinedTypeKeywordInDeclaration);
 
     public SimplifierOptions GetSimplifierOptions(ISimplification simplification)
-        => simplification.GetSimplifierOptions(_options, _fallbackOptions.CleanupOptions?.SimplifierOptions);
+        => simplification.GetSimplifierOptions(options, fallbackOptions.CleanupOptions?.SimplifierOptions);
 
     // SyntaxFormattingOptions
 
     public SyntaxFormattingOptions GetSyntaxFormattingOptions(ISyntaxFormatting formatting)
-        => formatting.GetFormattingOptions(_options, _fallbackOptions.CleanupOptions?.FormattingOptions);
+        => formatting.GetFormattingOptions(options, fallbackOptions.CleanupOptions?.FormattingOptions);
 
     // CodeGenerationOptions
 
-    public NamingStylePreferences NamingPreferences => GetOption(NamingStyleOptions.NamingPreferences, _fallbackOptions.GenerationOptions?.NamingStyle ?? NamingStylePreferences.Default);
+    public NamingStylePreferences NamingPreferences => GetOption(NamingStyleOptions.NamingPreferences, fallbackOptions.GenerationOptions?.NamingStyle ?? NamingStylePreferences.Default);
 
     // CodeStyleOptions
 
@@ -99,22 +86,22 @@ internal readonly struct AnalyzerOptionsProvider
     public string FileHeaderTemplate => GetOption(CodeStyleOptions2.FileHeaderTemplate, defaultValue: string.Empty); // no fallback IDE option
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
-        => _options.GetOption(option, defaultValue);
+        => options.GetOption(option, defaultValue);
 
     private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
-        => _options.GetOption(option, _language, defaultValue);
+        => options.GetOption(option, language, defaultValue);
 
     private IdeCodeStyleOptions FallbackCodeStyleOptions
-        => _fallbackOptions.CodeStyleOptions ?? IdeCodeStyleOptions.CommonDefaults;
+        => fallbackOptions.CodeStyleOptions ?? IdeCodeStyleOptions.CommonDefaults;
 
     private SimplifierOptions FallbackSimplifierOptions
-        => _fallbackOptions.CleanupOptions?.SimplifierOptions ?? SimplifierOptions.CommonDefaults;
+        => fallbackOptions.CleanupOptions?.SimplifierOptions ?? SimplifierOptions.CommonDefaults;
 
     internal IOptionsReader GetAnalyzerConfigOptions()
-        => _options;
+        => options;
 
     internal IdeAnalyzerOptions GetFallbackOptions()
-        => _fallbackOptions;
+        => fallbackOptions;
 }
 
 internal static partial class AnalyzerOptionsProviders

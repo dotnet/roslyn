@@ -12,13 +12,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
 internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
 {
-    private sealed class NewUnitTestingIncrementalAnalyzer : IUnitTestingIncrementalAnalyzer
+    private sealed class NewUnitTestingIncrementalAnalyzer(INewUnitTestingIncrementalAnalyzerImplementation implementation) : IUnitTestingIncrementalAnalyzer
     {
-        private readonly INewUnitTestingIncrementalAnalyzerImplementation _implementation;
-
-        public NewUnitTestingIncrementalAnalyzer(INewUnitTestingIncrementalAnalyzerImplementation implementation)
-            => _implementation = implementation;
-
         public Task AnalyzeDocumentAsync(
             Document document,
 #if false // Not used in unit testing crawling
@@ -27,7 +22,7 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
             UnitTestingInvocationReasons reasons,
             CancellationToken cancellationToken)
         {
-            return _implementation.AnalyzeDocumentAsync(
+            return implementation.AnalyzeDocumentAsync(
                 document,
 #if false // Not used in unit testing crawling
                 bodyOpt,
@@ -44,7 +39,7 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
             UnitTestingInvocationReasons reasons,
             CancellationToken cancellationToken)
         {
-            return _implementation.AnalyzeProjectAsync(
+            return implementation.AnalyzeProjectAsync(
                 project,
 #if false // Not used in unit testing crawling
                 semanticsChanged,
@@ -75,7 +70,7 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
 
         public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
-            _implementation.RemoveDocument(documentId);
+            implementation.RemoveDocument(documentId);
             return Task.CompletedTask;
         }
 

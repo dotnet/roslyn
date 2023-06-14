@@ -6,24 +6,32 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
-    internal readonly struct BlockSpan
+    internal readonly struct BlockSpan(
+        string type,
+        bool isCollapsible,
+        TextSpan textSpan,
+        TextSpan hintSpan,
+        (TextSpan textSpan, TextSpan hintSpan)? primarySpans = null,
+        string bannerText = BlockSpan.Ellipses,
+        bool autoCollapse = false,
+        bool isDefaultCollapsed = false)
     {
         private const string Ellipses = "...";
 
         /// <summary>
         /// Whether or not this span can be collapsed.
         /// </summary>
-        public bool IsCollapsible { get; }
+        public bool IsCollapsible { get; } = isCollapsible;
 
         /// <summary>
         /// The span of text to collapse.
         /// </summary>
-        public TextSpan TextSpan { get; }
+        public TextSpan TextSpan { get; } = textSpan;
 
         /// <summary>
         /// The span of text to display in the hint on mouse hover.
         /// </summary>
-        public TextSpan HintSpan { get; }
+        public TextSpan HintSpan { get; } = hintSpan;
 
         /// <summary>
         /// Gets the optional span of the primary header of the code block represented by this tag. For example, in the
@@ -42,52 +50,32 @@ namespace Microsoft.CodeAnalysis.Structure
         /// block span for the  "if" block. This allows structure visualizing features to provide more useful context
         /// when visualizing "else" structure blocks.
         /// </summary>
-        public (TextSpan textSpan, TextSpan hintSpan)? PrimarySpans { get; }
+        public (TextSpan textSpan, TextSpan hintSpan)? PrimarySpans { get; } = primarySpans;
 
         /// <summary>
         /// The text to display inside the collapsed region.
         /// </summary>
-        public string BannerText { get; }
+        public string BannerText { get; } = bannerText;
 
         /// <summary>
         /// Whether or not this region should be automatically collapsed when the 'Collapse to Definitions' command is invoked.
         /// </summary>
-        public bool AutoCollapse { get; }
+        public bool AutoCollapse { get; } = autoCollapse;
 
         /// <summary>
         /// Whether this region should be collapsed by default when a file is opened the first time.
         /// </summary>
-        public bool IsDefaultCollapsed { get; }
+        public bool IsDefaultCollapsed { get; } = isDefaultCollapsed;
 
         /// <summary>
         /// A string defined from <see cref="BlockTypes"/>.
         /// </summary>
-        public string Type { get; }
+        public string Type { get; } = type;
 
         public BlockSpan(
             string type, bool isCollapsible, TextSpan textSpan, string bannerText = Ellipses, bool autoCollapse = false, bool isDefaultCollapsed = false)
             : this(type, isCollapsible, textSpan, textSpan, primarySpans: null, bannerText, autoCollapse, isDefaultCollapsed)
         {
-        }
-
-        public BlockSpan(
-            string type,
-            bool isCollapsible,
-            TextSpan textSpan,
-            TextSpan hintSpan,
-            (TextSpan textSpan, TextSpan hintSpan)? primarySpans = null,
-            string bannerText = Ellipses,
-            bool autoCollapse = false,
-            bool isDefaultCollapsed = false)
-        {
-            TextSpan = textSpan;
-            HintSpan = hintSpan;
-            PrimarySpans = primarySpans;
-            BannerText = bannerText;
-            AutoCollapse = autoCollapse;
-            IsDefaultCollapsed = isDefaultCollapsed;
-            IsCollapsible = isCollapsible;
-            Type = type;
         }
 
         public override string ToString()

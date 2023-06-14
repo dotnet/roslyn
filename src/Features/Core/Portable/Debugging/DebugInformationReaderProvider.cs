@@ -39,19 +39,14 @@ namespace Microsoft.CodeAnalysis.Debugging
                 => throw ExceptionUtilities.Unreachable();
         }
 
-        private sealed class Portable : DebugInformationReaderProvider
+        private sealed class Portable(MetadataReaderProvider pdbReaderProvider) : DebugInformationReaderProvider
         {
-            private readonly MetadataReaderProvider _pdbReaderProvider;
-
-            public Portable(MetadataReaderProvider pdbReaderProvider)
-                => _pdbReaderProvider = pdbReaderProvider;
-
             public override EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
-                => EditAndContinueMethodDebugInfoReader.Create(_pdbReaderProvider.GetMetadataReader());
+                => EditAndContinueMethodDebugInfoReader.Create(pdbReaderProvider.GetMetadataReader());
 
             public override ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken)
             {
-                var reader = _pdbReaderProvider.GetMetadataReader();
+                var reader = pdbReaderProvider.GetMetadataReader();
                 unsafe
                 {
                     using var metadataStream = new UnmanagedMemoryStream(reader.MetadataPointer, reader.MetadataLength);
@@ -62,24 +57,16 @@ namespace Microsoft.CodeAnalysis.Debugging
             }
 
             public override void Dispose()
-                => _pdbReaderProvider.Dispose();
+                => pdbReaderProvider.Dispose();
         }
 
-        private sealed class Native : DebugInformationReaderProvider
+        private sealed class Native(Stream stream, ISymUnmanagedReader5 symReader, int version) : DebugInformationReaderProvider
         {
-            private readonly Stream _stream;
-            private readonly int _version;
-            private ISymUnmanagedReader5 _symReader;
-
-            public Native(Stream stream, ISymUnmanagedReader5 symReader, int version)
-            {
-                _stream = stream;
-                _symReader = symReader;
-                _version = version;
-            }
+            private readonly Stream _stream = stream;
+            private ISymUnmanagedReader5 _symReader = symReader;
 
             public override EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
-                => EditAndContinueMethodDebugInfoReader.Create(_symReader, _version);
+                => EditAndContinueMethodDebugInfoReader.Create(_symReader, version);
 
             public override async ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken)
             {

@@ -15,42 +15,28 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
-        internal sealed class GlobalSuppressMessageCodeAction : AbstractGlobalSuppressMessageCodeAction
+        internal sealed class GlobalSuppressMessageCodeAction(
+            ISymbol targetSymbol, INamedTypeSymbol suppressMessageAttribute,
+            Project project, Diagnostic diagnostic,
+            AbstractSuppressionCodeFixProvider fixer,
+            CodeActionOptionsProvider fallbackOptions) : AbstractGlobalSuppressMessageCodeAction(fixer, project)
         {
-            private readonly ISymbol _targetSymbol;
-            private readonly INamedTypeSymbol _suppressMessageAttribute;
-            private readonly Diagnostic _diagnostic;
-            private readonly CodeActionOptionsProvider _fallbackOptions;
-
-            public GlobalSuppressMessageCodeAction(
-                ISymbol targetSymbol, INamedTypeSymbol suppressMessageAttribute,
-                Project project, Diagnostic diagnostic,
-                AbstractSuppressionCodeFixProvider fixer,
-                CodeActionOptionsProvider fallbackOptions)
-                : base(fixer, project)
-            {
-                _targetSymbol = targetSymbol;
-                _suppressMessageAttribute = suppressMessageAttribute;
-                _diagnostic = diagnostic;
-                _fallbackOptions = fallbackOptions;
-            }
-
             protected override async Task<Document> GetChangedSuppressionDocumentAsync(CancellationToken cancellationToken)
             {
                 var suppressionsDoc = await GetOrCreateSuppressionsDocumentAsync(cancellationToken).ConfigureAwait(false);
                 var services = suppressionsDoc.Project.Solution.Services;
                 var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
-                var options = await suppressionsDoc.GetSyntaxFormattingOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var options = await suppressionsDoc.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 suppressionsRoot = Fixer.AddGlobalSuppressMessageAttribute(
-                    suppressionsRoot, _targetSymbol, _suppressMessageAttribute, _diagnostic, services, options, addImportsService, cancellationToken);
+                    suppressionsRoot, targetSymbol, suppressMessageAttribute, diagnostic, services, options, addImportsService, cancellationToken);
                 return suppressionsDoc.WithSyntaxRoot(suppressionsRoot);
             }
 
-            protected override string DiagnosticIdForEquivalenceKey => _diagnostic.Id;
+            protected override string DiagnosticIdForEquivalenceKey => diagnostic.Id;
 
-            internal ISymbol TargetSymbol_TestOnly => _targetSymbol;
+            internal ISymbol TargetSymbol_TestOnly => targetSymbol;
         }
     }
 }

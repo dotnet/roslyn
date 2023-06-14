@@ -12,45 +12,32 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 {
     internal partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
     {
-        private class GenerateParameterCodeAction : CodeAction
+        private class GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations, int parameterIndex) : CodeAction
         {
-            private readonly Document _document;
-            private readonly State _state;
-            private readonly bool _includeOverridesAndImplementations;
-            private readonly int _parameterIndex;
-
-            public GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations, int parameterIndex)
-            {
-                _document = document;
-                _state = state;
-                _includeOverridesAndImplementations = includeOverridesAndImplementations;
-                _parameterIndex = parameterIndex;
-            }
-
             public override string Title
             {
                 get
                 {
-                    var text = _includeOverridesAndImplementations
+                    var text = includeOverridesAndImplementations
                         ? FeaturesResources.Generate_parameter_0_and_overrides_implementations
                         : FeaturesResources.Generate_parameter_0;
 
                     return string.Format(
                         text,
-                        _state.IdentifierToken.ValueText);
+                        state.IdentifierToken.ValueText);
                 }
             }
 
             protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
                 return AddParameterService.AddParameterAsync(
-                    _document,
-                    _state.ContainingMethod,
-                    _state.LocalType,
+                    document,
+                    state.ContainingMethod,
+                    state.LocalType,
                     RefKind.None,
-                    _state.IdentifierToken.ValueText,
-                    _parameterIndex,
-                    _includeOverridesAndImplementations,
+                    state.IdentifierToken.ValueText,
+                    parameterIndex,
+                    includeOverridesAndImplementations,
                     cancellationToken).AsNullable();
             }
         }

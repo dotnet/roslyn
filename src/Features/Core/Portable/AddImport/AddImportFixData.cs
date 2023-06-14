@@ -14,10 +14,23 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.AddImport
 {
     [DataContract]
-    internal sealed class AddImportFixData
+    internal sealed class AddImportFixData(
+        AddImportFixKind kind,
+        ImmutableArray<TextChange> textChanges,
+        string title = null,
+        ImmutableArray<string> tags = default,
+        CodeActionPriority priority = default,
+        ProjectId projectReferenceToAdd = null,
+        ProjectId portableExecutableReferenceProjectId = null,
+        string portableExecutableReferenceFilePathToAdd = null,
+        string assemblyReferenceAssemblyName = null,
+        string assemblyReferenceFullyQualifiedTypeName = null,
+        string packageSource = null,
+        string packageName = null,
+        string packageVersionOpt = null)
     {
         [DataMember(Order = 0)]
-        public AddImportFixKind Kind { get; }
+        public AddImportFixKind Kind { get; } = kind;
 
         /// <summary>
         /// Text changes to make to the document.  Usually just the import to add.  May also
@@ -26,25 +39,25 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// add a project/metadata reference.
         /// </summary>
         [DataMember(Order = 1)]
-        public readonly ImmutableArray<TextChange> TextChanges;
+        public readonly ImmutableArray<TextChange> TextChanges = textChanges;
 
         /// <summary>
         /// String to display in the lightbulb menu.
         /// </summary>
         [DataMember(Order = 2)]
-        public readonly string Title;
+        public readonly string Title = title;
 
         /// <summary>
         /// Tags that control what glyph is displayed in the lightbulb menu.
         /// </summary>
         [DataMember(Order = 3)]
-        public readonly ImmutableArray<string> Tags;
+        public readonly ImmutableArray<string> Tags = tags;
 
         /// <summary>
         /// The priority this item should have in the lightbulb list.
         /// </summary>
         [DataMember(Order = 4)]
-        public readonly CodeActionPriority Priority;
+        public readonly CodeActionPriority Priority = priority;
 
         #region When adding P2P references.
 
@@ -52,7 +65,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// The optional id for a <see cref="Project"/> we'd like to add a reference to.
         /// </summary>
         [DataMember(Order = 5)]
-        public readonly ProjectId ProjectReferenceToAdd;
+        public readonly ProjectId ProjectReferenceToAdd = projectReferenceToAdd;
 
         #endregion
 
@@ -64,70 +77,39 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// referenced from.
         /// </summary>
         [DataMember(Order = 6)]
-        public readonly ProjectId PortableExecutableReferenceProjectId;
+        public readonly ProjectId PortableExecutableReferenceProjectId = portableExecutableReferenceProjectId;
 
         /// <summary>
         /// If we want to add a <see cref="PortableExecutableReference"/> metadata reference, this 
         /// is the <see cref="PortableExecutableReference.FilePath"/> for it.
         /// </summary>
         [DataMember(Order = 7)]
-        public readonly string PortableExecutableReferenceFilePathToAdd;
+        public readonly string PortableExecutableReferenceFilePathToAdd = portableExecutableReferenceFilePathToAdd;
 
         #endregion
 
         #region When adding an assembly reference
 
         [DataMember(Order = 8)]
-        public readonly string AssemblyReferenceAssemblyName;
+        public readonly string AssemblyReferenceAssemblyName = assemblyReferenceAssemblyName;
 
         [DataMember(Order = 9)]
-        public readonly string AssemblyReferenceFullyQualifiedTypeName;
+        public readonly string AssemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName;
 
         #endregion
 
         #region When adding a package reference
 
         [DataMember(Order = 10)]
-        public readonly string PackageSource;
+        public readonly string PackageSource = packageSource;
 
         [DataMember(Order = 11)]
-        public readonly string PackageName;
+        public readonly string PackageName = packageName;
 
         [DataMember(Order = 12)]
-        public readonly string PackageVersionOpt;
+        public readonly string PackageVersionOpt = packageVersionOpt;
 
         #endregion
-
-        // Must be public since it's used for deserialization.
-        public AddImportFixData(
-            AddImportFixKind kind,
-            ImmutableArray<TextChange> textChanges,
-            string title = null,
-            ImmutableArray<string> tags = default,
-            CodeActionPriority priority = default,
-            ProjectId projectReferenceToAdd = null,
-            ProjectId portableExecutableReferenceProjectId = null,
-            string portableExecutableReferenceFilePathToAdd = null,
-            string assemblyReferenceAssemblyName = null,
-            string assemblyReferenceFullyQualifiedTypeName = null,
-            string packageSource = null,
-            string packageName = null,
-            string packageVersionOpt = null)
-        {
-            Kind = kind;
-            TextChanges = textChanges;
-            Title = title;
-            Tags = tags;
-            Priority = priority;
-            ProjectReferenceToAdd = projectReferenceToAdd;
-            PortableExecutableReferenceProjectId = portableExecutableReferenceProjectId;
-            PortableExecutableReferenceFilePathToAdd = portableExecutableReferenceFilePathToAdd;
-            AssemblyReferenceAssemblyName = assemblyReferenceAssemblyName;
-            AssemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName;
-            PackageSource = packageSource;
-            PackageName = packageName;
-            PackageVersionOpt = packageVersionOpt;
-        }
 
         public static AddImportFixData CreateForProjectSymbol(ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId projectReferenceToAdd)
             => new(AddImportFixKind.ProjectSymbol,

@@ -13,20 +13,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
-    internal readonly struct EmbeddedLanguageDetector
+    internal readonly struct EmbeddedLanguageDetector(
+        EmbeddedLanguageInfo info,
+        ImmutableArray<string> languageIdentifiers)
     {
-        private readonly EmbeddedLanguageInfo Info;
-        private readonly HashSet<string> LanguageIdentifiers;
-        private readonly EmbeddedLanguageCommentDetector _commentDetector;
-
-        public EmbeddedLanguageDetector(
-            EmbeddedLanguageInfo info,
-            ImmutableArray<string> languageIdentifiers)
-        {
-            Info = info;
-            LanguageIdentifiers = new HashSet<string>(languageIdentifiers, StringComparer.OrdinalIgnoreCase);
-            _commentDetector = new EmbeddedLanguageCommentDetector(languageIdentifiers);
-        }
+        private readonly HashSet<string> LanguageIdentifiers = new HashSet<string>(languageIdentifiers, StringComparer.OrdinalIgnoreCase);
+        private readonly EmbeddedLanguageCommentDetector _commentDetector = new EmbeddedLanguageCommentDetector(languageIdentifiers);
 
         /// <summary>
         /// Determines if <paramref name="token"/> is an embedded language token.  If the token is, the specific
@@ -58,10 +50,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             identifier = null;
             options = null;
 
-            if (Info.IsAnyStringLiteral(token.RawKind))
+            if (info.IsAnyStringLiteral(token.RawKind))
                 return IsEmbeddedLanguageStringLiteralToken(token, semanticModel, cancellationToken, out identifier, out options);
 
-            if (token.RawKind == Info.SyntaxKinds.InterpolatedStringTextToken)
+            if (token.RawKind == info.SyntaxKinds.InterpolatedStringTextToken)
             {
                 options = null;
                 return IsEmbeddedLanguageInterpolatedStringTextToken(token, semanticModel, cancellationToken, out identifier);
@@ -141,7 +133,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             // [StringSyntax] attribute on the first parameter.
 
             identifier = null;
-            var syntaxFacts = Info.SyntaxFacts;
+            var syntaxFacts = info.SyntaxFacts;
             var interpolationFormatClause = token.Parent;
             var interpolation = interpolationFormatClause?.Parent;
             if (interpolation?.RawKind != syntaxFacts.SyntaxKinds.Interpolation)
@@ -187,7 +179,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
         {
             identifier = null;
             options = null;
-            var syntaxFacts = Info.SyntaxFacts;
+            var syntaxFacts = info.SyntaxFacts;
             if (!syntaxFacts.IsLiteralExpression(token.Parent))
                 return false;
 
@@ -252,7 +244,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 
         private SyntaxNode? TryFindContainer(SyntaxToken token)
         {
-            var syntaxFacts = Info.SyntaxFacts;
+            var syntaxFacts = info.SyntaxFacts;
             var node = syntaxFacts.WalkUpParentheses(token.GetRequiredParent());
 
             // if we're inside some collection-like initializer, find the instance actually being created. 
@@ -269,12 +261,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             [NotNullWhen(true)] out string? identifier)
         {
             // First, see if this is an `X = "..."` argument that is binding to a field/prop on the attribute.
-            var fieldOrProperty = Info.SemanticFacts.FindFieldOrPropertyForAttributeArgument(semanticModel, argument, cancellationToken);
+            var fieldOrProperty = info.SemanticFacts.FindFieldOrPropertyForAttributeArgument(semanticModel, argument, cancellationToken);
             if (fieldOrProperty != null)
                 return HasMatchingStringSyntaxAttribute(fieldOrProperty, out identifier);
 
             // Otherwise, see if it's a normal named/position argument to the attribute.
-            var parameter = Info.SemanticFacts.FindParameterForAttributeArgument(semanticModel, argument, allowUncertainCandidates: true, allowParams: true, cancellationToken);
+            var parameter = info.SemanticFacts.FindParameterForAttributeArgument(semanticModel, argument, allowUncertainCandidates: true, allowParams: true, cancellationToken);
             return HasMatchingStringSyntaxAttribute(parameter, out identifier);
         }
 
@@ -284,11 +276,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             CancellationToken cancellationToken,
             [NotNullWhen(true)] out string? identifier)
         {
-            var fieldOrProperty = Info.SemanticFacts.FindFieldOrPropertyForArgument(semanticModel, argument, cancellationToken);
+            var fieldOrProperty = info.SemanticFacts.FindFieldOrPropertyForArgument(semanticModel, argument, cancellationToken);
             if (fieldOrProperty != null)
                 return HasMatchingStringSyntaxAttribute(fieldOrProperty, out identifier);
 
-            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argument, allowUncertainCandidates: true, allowParams: true, cancellationToken);
+            var parameter = info.SemanticFacts.FindParameterForArgument(semanticModel, argument, allowUncertainCandidates: true, allowParams: true, cancellationToken);
             return HasMatchingStringSyntaxAttribute(parameter, out identifier);
         }
 
@@ -380,7 +372,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 
         private string? GetNameOfInvokedExpression(SyntaxNode invokedExpression)
         {
-            var syntaxFacts = Info.SyntaxFacts;
+            var syntaxFacts = info.SyntaxFacts;
             if (syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
             {
                 return syntaxFacts.GetIdentifierOfSimpleName(syntaxFacts.GetNameOfMemberAccessExpression(invokedExpression)).ValueText;

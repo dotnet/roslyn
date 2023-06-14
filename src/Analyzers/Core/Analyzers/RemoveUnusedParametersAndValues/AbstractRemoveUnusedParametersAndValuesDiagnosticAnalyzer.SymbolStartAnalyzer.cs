@@ -22,42 +22,25 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
     internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
-        private sealed partial class SymbolStartAnalyzer
+        private sealed partial class SymbolStartAnalyzer(
+            AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,
+            INamedTypeSymbol eventArgsTypeOpt,
+            ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
+            DeserializationConstructorCheck deserializationConstructorCheck,
+            INamedTypeSymbol iCustomMarshaler,
+            SymbolStartAnalysisContext symbolStartAnalysisContext)
         {
-            private readonly AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer _compilationAnalyzer;
-
-            private readonly INamedTypeSymbol _eventArgsTypeOpt;
-            private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
-            private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
-            private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates;
-            private readonly INamedTypeSymbol _iCustomMarshaler;
-            private readonly SymbolStartAnalysisContext _symbolStartAnalysisContext;
+            private readonly AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer _compilationAnalyzer = compilationAnalyzer;
+            private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore = attributeSetForMethodsToIgnore;
+            private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates = new ConcurrentDictionary<IMethodSymbol, bool>();
+            private readonly SymbolStartAnalysisContext _symbolStartAnalysisContext = symbolStartAnalysisContext;
 
             /// <summary>
             /// Map from unused parameters to a boolean value indicating if the parameter has a read reference or not.
             /// For example, a parameter whose initial value is overwritten before any reads
             /// is an unused parameter with read reference(s).
             /// </summary>
-            private readonly ConcurrentDictionary<IParameterSymbol, bool> _unusedParameters;
-
-            public SymbolStartAnalyzer(
-                AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,
-                INamedTypeSymbol eventArgsTypeOpt,
-                ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
-                DeserializationConstructorCheck deserializationConstructorCheck,
-                INamedTypeSymbol iCustomMarshaler,
-                SymbolStartAnalysisContext symbolStartAnalysisContext)
-            {
-                _compilationAnalyzer = compilationAnalyzer;
-
-                _eventArgsTypeOpt = eventArgsTypeOpt;
-                _attributeSetForMethodsToIgnore = attributeSetForMethodsToIgnore;
-                _deserializationConstructorCheck = deserializationConstructorCheck;
-                _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
-                _methodsUsedAsDelegates = new ConcurrentDictionary<IMethodSymbol, bool>();
-                _iCustomMarshaler = iCustomMarshaler;
-                _symbolStartAnalysisContext = symbolStartAnalysisContext;
-            }
+            private readonly ConcurrentDictionary<IParameterSymbol, bool> _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
 
             public static void CreateAndRegisterActions(
                 CompilationStartAnalysisContext context,
@@ -227,7 +210,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     method.IsAccessor() ||
                     method.IsAnonymousFunction() ||
                     _compilationAnalyzer.MethodHasHandlesClause(method) ||
-                    _deserializationConstructorCheck.IsDeserializationConstructor(method))
+                    deserializationConstructorCheck.IsDeserializationConstructor(method))
                 {
                     return false;
                 }
@@ -241,9 +224,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // Ignore event handler methods "Handler(object, MyEventArgs)"
                 // as event handlers are required to match this signature
                 // regardless of whether or not the parameters are used.
-                if (_eventArgsTypeOpt != null &&
+                if (eventArgsTypeOpt != null &&
                     method.Parameters is [{ Type.SpecialType: SpecialType.System_Object }, var secondParam] &&
-                    secondParam.Type.InheritsFromOrEquals(_eventArgsTypeOpt))
+                    secondParam.Type.InheritsFromOrEquals(eventArgsTypeOpt))
                 {
                     return false;
                 }
@@ -282,7 +265,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // See https://docs.microsoft.com/dotnet/api/system.runtime.interopservices.icustommarshaler#implementing-the-getinstance-method
                 if (method is { MetadataName: "GetInstance", IsStatic: true, Parameters.Length: 1, ContainingType: { } containingType } methodSymbol &&
                     methodSymbol.Parameters[0].Type.SpecialType == SpecialType.System_String &&
-                    containingType.AllInterfaces.Any((@interface, marshaler) => @interface.Equals(marshaler), _iCustomMarshaler))
+                    containingType.AllInterfaces.Any((@interface, marshaler) => @interface.Equals(marshaler), iCustomMarshaler))
                 {
                     return false;
                 }

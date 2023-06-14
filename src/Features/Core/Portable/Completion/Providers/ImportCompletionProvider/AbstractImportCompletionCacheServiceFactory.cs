@@ -65,23 +65,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             _projectItemsCache.Clear();
         }
 
-        private class ImportCompletionCacheService : IImportCompletionCacheService<TProjectCacheEntry, TMetadataCacheEntry>
+        private class ImportCompletionCacheService(
+            ConcurrentDictionary<string, TMetadataCacheEntry> peCache,
+            ConcurrentDictionary<ProjectId, TProjectCacheEntry> projectCache,
+            AsyncBatchingWorkQueue<Project> workQueue) : IImportCompletionCacheService<TProjectCacheEntry, TMetadataCacheEntry>
         {
-            public IDictionary<string, TMetadataCacheEntry> PEItemsCache { get; }
+            public IDictionary<string, TMetadataCacheEntry> PEItemsCache { get; } = peCache;
 
-            public IDictionary<ProjectId, TProjectCacheEntry> ProjectItemsCache { get; }
+            public IDictionary<ProjectId, TProjectCacheEntry> ProjectItemsCache { get; } = projectCache;
 
-            public AsyncBatchingWorkQueue<Project> WorkQueue { get; }
-
-            public ImportCompletionCacheService(
-                ConcurrentDictionary<string, TMetadataCacheEntry> peCache,
-                ConcurrentDictionary<ProjectId, TProjectCacheEntry> projectCache,
-                AsyncBatchingWorkQueue<Project> workQueue)
-            {
-                PEItemsCache = peCache;
-                ProjectItemsCache = projectCache;
-                WorkQueue = workQueue;
-            }
+            public AsyncBatchingWorkQueue<Project> WorkQueue { get; } = workQueue;
         }
     }
 }

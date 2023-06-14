@@ -269,26 +269,19 @@ namespace Microsoft.CodeAnalysis.Completion
             internal TestAccessor GetTestAccessor()
                 => new(this);
 
-            internal readonly struct TestAccessor
+            internal readonly struct TestAccessor(ProviderManager providerManager)
             {
-                private readonly ProviderManager _providerManager;
-
-                public TestAccessor(ProviderManager providerManager)
-                {
-                    _providerManager = providerManager;
-                }
-
                 public ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string> roles)
                 {
-                    return _providerManager.GetImportedAndBuiltInProviders(roles);
+                    return providerManager.GetImportedAndBuiltInProviders(roles);
                 }
 
                 public async Task<ImmutableArray<CompletionProvider>> GetProjectProvidersAsync(Project project)
                 {
-                    _providerManager._projectProvidersWorkQueue.AddWork(project.AnalyzerReferences);
-                    await _providerManager._projectProvidersWorkQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+                    providerManager._projectProvidersWorkQueue.AddWork(project.AnalyzerReferences);
+                    await providerManager._projectProvidersWorkQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
                     // Now the extension cache is guaranteed to be populated.
-                    return _providerManager.GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project);
+                    return providerManager.GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project);
                 }
             }
         }

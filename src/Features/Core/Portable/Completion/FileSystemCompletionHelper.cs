@@ -256,15 +256,10 @@ namespace Microsoft.CodeAnalysis.Completion
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(FileSystemCompletionHelper fileSystemCompletionHelper)
         {
-            private readonly FileSystemCompletionHelper _fileSystemCompletionHelper;
-
-            public TestAccessor(FileSystemCompletionHelper fileSystemCompletionHelper)
-                => _fileSystemCompletionHelper = fileSystemCompletionHelper;
-
             internal ImmutableArray<CompletionItem> GetItems(string directoryPath, CancellationToken cancellationToken)
-                => _fileSystemCompletionHelper.GetItems(directoryPath, cancellationToken);
+                => fileSystemCompletionHelper.GetItems(directoryPath, cancellationToken);
         }
     }
 }

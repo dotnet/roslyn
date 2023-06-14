@@ -56,19 +56,13 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
         /// <summary>
         /// Handles information about updating the document with the refactoring.
         /// </summary>
-        internal sealed class DocumentUpdateInfo
+        internal sealed class DocumentUpdateInfo(TStatement source, IEnumerable<TStatement> destinations)
         {
-            public readonly TStatement Source;
-            public readonly ImmutableArray<TStatement> Destinations;
+            public readonly TStatement Source = source;
+            public readonly ImmutableArray<TStatement> Destinations = ImmutableArray.CreateRange(destinations);
 
             public DocumentUpdateInfo(TStatement source, TStatement destination) : this(source, new[] { destination })
             {
-            }
-
-            public DocumentUpdateInfo(TStatement source, IEnumerable<TStatement> destinations)
-            {
-                Source = source;
-                Destinations = ImmutableArray.CreateRange(destinations);
             }
 
             /// <summary>

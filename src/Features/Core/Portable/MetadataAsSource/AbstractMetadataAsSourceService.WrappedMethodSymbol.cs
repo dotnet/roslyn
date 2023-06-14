@@ -12,28 +12,20 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal partial class AbstractMetadataAsSourceService
     {
-        private class WrappedMethodSymbol : AbstractWrappedSymbol, IMethodSymbol
+        private class WrappedMethodSymbol(IMethodSymbol methodSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(methodSymbol, canImplementImplicitly, docCommentFormattingService), IMethodSymbol
         {
-            private readonly IMethodSymbol _symbol;
+            public int Arity => methodSymbol.Arity;
 
-            public WrappedMethodSymbol(IMethodSymbol methodSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
-                : base(methodSymbol, canImplementImplicitly, docCommentFormattingService)
-            {
-                _symbol = methodSymbol;
-            }
+            public ISymbol AssociatedSymbol => methodSymbol.AssociatedSymbol;
 
-            public int Arity => _symbol.Arity;
+            public INamedTypeSymbol AssociatedAnonymousDelegate => methodSymbol.AssociatedAnonymousDelegate;
 
-            public ISymbol AssociatedSymbol => _symbol.AssociatedSymbol;
+            public IMethodSymbol ConstructedFrom => methodSymbol.ConstructedFrom;
 
-            public INamedTypeSymbol AssociatedAnonymousDelegate => _symbol.AssociatedAnonymousDelegate;
+            public bool IsReadOnly => methodSymbol.IsReadOnly;
+            public bool IsInitOnly => methodSymbol.IsInitOnly;
 
-            public IMethodSymbol ConstructedFrom => _symbol.ConstructedFrom;
-
-            public bool IsReadOnly => _symbol.IsReadOnly;
-            public bool IsInitOnly => _symbol.IsInitOnly;
-
-            public System.Reflection.MethodImplAttributes MethodImplementationFlags => _symbol.MethodImplementationFlags;
+            public System.Reflection.MethodImplAttributes MethodImplementationFlags => methodSymbol.MethodImplementationFlags;
 
             public ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
             {
@@ -41,19 +33,19 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     return CanImplementImplicitly
                         ? ImmutableArray.Create<IMethodSymbol>()
-                        : _symbol.ExplicitInterfaceImplementations;
+                        : methodSymbol.ExplicitInterfaceImplementations;
                 }
             }
 
-            public bool HidesBaseMethodsByName => _symbol.HidesBaseMethodsByName;
+            public bool HidesBaseMethodsByName => methodSymbol.HidesBaseMethodsByName;
 
-            public bool IsExtensionMethod => _symbol.IsExtensionMethod;
+            public bool IsExtensionMethod => methodSymbol.IsExtensionMethod;
 
-            public bool IsGenericMethod => _symbol.IsGenericMethod;
+            public bool IsGenericMethod => methodSymbol.IsGenericMethod;
 
-            public bool IsAsync => _symbol.IsAsync;
+            public bool IsAsync => methodSymbol.IsAsync;
 
-            public MethodKind MethodKind => _symbol.MethodKind;
+            public MethodKind MethodKind => methodSymbol.MethodKind;
 
             public new IMethodSymbol OriginalDefinition
             {
@@ -63,79 +55,79 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
-            public IMethodSymbol OverriddenMethod => _symbol.OverriddenMethod;
+            public IMethodSymbol OverriddenMethod => methodSymbol.OverriddenMethod;
 
-            public ImmutableArray<IParameterSymbol> Parameters => _symbol.Parameters;
+            public ImmutableArray<IParameterSymbol> Parameters => methodSymbol.Parameters;
 
-            public IMethodSymbol PartialDefinitionPart => _symbol.PartialDefinitionPart;
+            public IMethodSymbol PartialDefinitionPart => methodSymbol.PartialDefinitionPart;
 
-            public IMethodSymbol PartialImplementationPart => _symbol.PartialImplementationPart;
+            public IMethodSymbol PartialImplementationPart => methodSymbol.PartialImplementationPart;
 
-            public bool IsPartialDefinition => _symbol.IsPartialDefinition;
+            public bool IsPartialDefinition => methodSymbol.IsPartialDefinition;
 
-            public ITypeSymbol ReceiverType => _symbol.ReceiverType;
+            public ITypeSymbol ReceiverType => methodSymbol.ReceiverType;
 
-            public NullableAnnotation ReceiverNullableAnnotation => _symbol.ReceiverNullableAnnotation;
+            public NullableAnnotation ReceiverNullableAnnotation => methodSymbol.ReceiverNullableAnnotation;
 
             public IMethodSymbol ReducedFrom
                     // This implementation feels incorrect!
-                    => _symbol.ReducedFrom;
+                    => methodSymbol.ReducedFrom;
 
             public ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
             {
                 // This implementation feels incorrect, but it follows the pattern that other extension method related APIs are using!
-                return _symbol.GetTypeInferredDuringReduction(reducedFromTypeParameter);
+                return methodSymbol.GetTypeInferredDuringReduction(reducedFromTypeParameter);
             }
 
-            public bool ReturnsVoid => _symbol.ReturnsVoid;
+            public bool ReturnsVoid => methodSymbol.ReturnsVoid;
 
-            public bool ReturnsByRef => _symbol.ReturnsByRef;
+            public bool ReturnsByRef => methodSymbol.ReturnsByRef;
 
-            public bool ReturnsByRefReadonly => _symbol.ReturnsByRefReadonly;
+            public bool ReturnsByRefReadonly => methodSymbol.ReturnsByRefReadonly;
 
-            public RefKind RefKind => _symbol.RefKind;
+            public RefKind RefKind => methodSymbol.RefKind;
 
-            public ITypeSymbol ReturnType => _symbol.ReturnType;
+            public ITypeSymbol ReturnType => methodSymbol.ReturnType;
 
-            public NullableAnnotation ReturnNullableAnnotation => _symbol.ReturnNullableAnnotation;
+            public NullableAnnotation ReturnNullableAnnotation => methodSymbol.ReturnNullableAnnotation;
 
             public ImmutableArray<AttributeData> GetReturnTypeAttributes()
-                => _symbol.GetReturnTypeAttributes();
+                => methodSymbol.GetReturnTypeAttributes();
 
-            public ImmutableArray<CustomModifier> RefCustomModifiers => _symbol.RefCustomModifiers;
+            public ImmutableArray<CustomModifier> RefCustomModifiers => methodSymbol.RefCustomModifiers;
 
-            public ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => _symbol.ReturnTypeCustomModifiers;
+            public ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => methodSymbol.ReturnTypeCustomModifiers;
 
-            public ImmutableArray<ITypeSymbol> TypeArguments => _symbol.TypeArguments;
+            public ImmutableArray<ITypeSymbol> TypeArguments => methodSymbol.TypeArguments;
 
-            public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => _symbol.TypeArgumentNullableAnnotations;
+            public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => methodSymbol.TypeArgumentNullableAnnotations;
 
-            public ImmutableArray<ITypeParameterSymbol> TypeParameters => _symbol.TypeParameters;
+            public ImmutableArray<ITypeParameterSymbol> TypeParameters => methodSymbol.TypeParameters;
 
             public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
-                => _symbol.Construct(typeArguments);
+                => methodSymbol.Construct(typeArguments);
 
             public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
-                => _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
+                => methodSymbol.Construct(typeArguments, typeArgumentNullableAnnotations);
 
             public DllImportData GetDllImportData()
-                => _symbol.GetDllImportData();
+                => methodSymbol.GetDllImportData();
 
             public IMethodSymbol ReduceExtensionMethod(ITypeSymbol receiverType)
             {
                 // This implementation feels incorrect!
-                return _symbol.ReduceExtensionMethod(receiverType);
+                return methodSymbol.ReduceExtensionMethod(receiverType);
             }
 
-            public bool IsVararg => _symbol.IsVararg;
+            public bool IsVararg => methodSymbol.IsVararg;
 
-            public bool IsCheckedBuiltin => _symbol.IsCheckedBuiltin;
+            public bool IsCheckedBuiltin => methodSymbol.IsCheckedBuiltin;
 
-            public bool IsConditional => _symbol.IsConditional;
+            public bool IsConditional => methodSymbol.IsConditional;
 
-            public SignatureCallingConvention CallingConvention => _symbol.CallingConvention;
+            public SignatureCallingConvention CallingConvention => methodSymbol.CallingConvention;
 
-            public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => _symbol.UnmanagedCallingConventionTypes;
+            public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => methodSymbol.UnmanagedCallingConventionTypes;
         }
     }
 }

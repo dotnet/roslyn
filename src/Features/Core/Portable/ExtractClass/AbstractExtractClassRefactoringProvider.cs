@@ -16,15 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractClass
 {
-    internal abstract class AbstractExtractClassRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractExtractClassRefactoringProvider(IExtractClassOptionsService? service) : CodeRefactoringProvider
     {
-        private readonly IExtractClassOptionsService? _optionsService;
-
-        public AbstractExtractClassRefactoringProvider(IExtractClassOptionsService? service)
-        {
-            _optionsService = service;
-        }
-
         protected abstract Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context);
         protected abstract Task<SyntaxNode?> GetSelectedClassDeclarationAsync(CodeRefactoringContext context);
 
@@ -40,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 return;
             }
 
-            var optionsService = _optionsService ?? solution.Services.GetService<IExtractClassOptionsService>();
+            var optionsService = service ?? solution.Services.GetService<IExtractClassOptionsService>();
             if (optionsService is null)
             {
                 return;

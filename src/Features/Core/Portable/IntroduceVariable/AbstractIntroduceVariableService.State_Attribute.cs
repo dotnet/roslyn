@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         {
             private bool IsInAttributeContext()
             {
-                if (!_service.IsInAttributeArgumentInitializer(Expression))
+                if (!service.IsInAttributeArgumentInitializer(Expression))
                 {
                     return false;
                 }

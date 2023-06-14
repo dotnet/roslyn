@@ -6,15 +6,9 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQArrayType : RQArrayOrPointerType
+    internal class RQArrayType(int rank, RQType elementType) : RQArrayOrPointerType(elementType)
     {
-        public readonly int Rank;
-
-        public RQArrayType(int rank, RQType elementType)
-            : base(elementType)
-        {
-            Rank = rank;
-        }
+        public readonly int Rank = rank;
 
         public override SimpleTreeNode ToSimpleTree()
         {

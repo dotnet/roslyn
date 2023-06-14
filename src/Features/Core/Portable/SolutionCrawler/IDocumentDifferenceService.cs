@@ -8,16 +8,10 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal class DocumentDifferenceResult
+    internal class DocumentDifferenceResult(InvocationReasons changeType, SyntaxNode? changedMember = null)
     {
-        public InvocationReasons ChangeType { get; }
-        public SyntaxNode? ChangedMember { get; }
-
-        public DocumentDifferenceResult(InvocationReasons changeType, SyntaxNode? changedMember = null)
-        {
-            ChangeType = changeType;
-            ChangedMember = changedMember;
-        }
+        public InvocationReasons ChangeType { get; } = changeType;
+        public SyntaxNode? ChangedMember { get; } = changedMember;
     }
 
     internal interface IDocumentDifferenceService : ILanguageService

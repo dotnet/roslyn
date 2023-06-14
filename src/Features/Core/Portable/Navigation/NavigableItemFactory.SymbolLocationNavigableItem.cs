@@ -15,11 +15,14 @@ namespace Microsoft.CodeAnalysis.Navigation
 {
     internal partial class NavigableItemFactory
     {
-        private class SymbolLocationNavigableItem : INavigableItem
+        private class SymbolLocationNavigableItem(
+            Solution solution,
+            ISymbol symbol,
+            Location location,
+            ImmutableArray<TaggedText>? displayTaggedParts) : INavigableItem
         {
-            private readonly Solution _solution;
-            private readonly ISymbol _symbol;
-            private readonly Location _location;
+            private readonly Solution _solution = solution;
+            private readonly Location _location = location;
 
             /// <summary>
             /// Lazily-initialized backing field for <see cref="Document"/>.
@@ -27,25 +30,13 @@ namespace Microsoft.CodeAnalysis.Navigation
             /// <seealso cref="LazyInitialization.EnsureInitialized{T, U}(ref StrongBox{T}, Func{U, T}, U)"/>
             private StrongBox<INavigableItem.NavigableDocument> _lazyDocument;
 
-            public SymbolLocationNavigableItem(
-                Solution solution,
-                ISymbol symbol,
-                Location location,
-                ImmutableArray<TaggedText>? displayTaggedParts)
-            {
-                _solution = solution;
-                _symbol = symbol;
-                _location = location;
-                DisplayTaggedParts = displayTaggedParts.GetValueOrDefault();
-            }
-
             public bool DisplayFileLocation => true;
 
-            public ImmutableArray<TaggedText> DisplayTaggedParts { get; }
+            public ImmutableArray<TaggedText> DisplayTaggedParts { get; } = displayTaggedParts.GetValueOrDefault();
 
-            public Glyph Glyph => _symbol.GetGlyph();
+            public Glyph Glyph => symbol.GetGlyph();
 
-            public bool IsImplicitlyDeclared => _symbol.IsImplicitlyDeclared;
+            public bool IsImplicitlyDeclared => symbol.IsImplicitlyDeclared;
 
             public INavigableItem.NavigableDocument Document
             {

@@ -30,22 +30,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
     }
 
-    internal sealed class StackFrameMethodDeclarationNode : StackFrameDeclarationNode
+    internal sealed class StackFrameMethodDeclarationNode(
+        StackFrameQualifiedNameNode memberAccessExpression,
+        StackFrameTypeArgumentList? typeArguments,
+        StackFrameParameterList argumentList) : StackFrameDeclarationNode(StackFrameKind.MethodDeclaration)
     {
-        public readonly StackFrameQualifiedNameNode MemberAccessExpression;
-        public readonly StackFrameTypeArgumentList? TypeArguments;
-        public readonly StackFrameParameterList ArgumentList;
-
-        public StackFrameMethodDeclarationNode(
-            StackFrameQualifiedNameNode memberAccessExpression,
-            StackFrameTypeArgumentList? typeArguments,
-            StackFrameParameterList argumentList)
-            : base(StackFrameKind.MethodDeclaration)
-        {
-            MemberAccessExpression = memberAccessExpression;
-            TypeArguments = typeArguments;
-            ArgumentList = argumentList;
-        }
+        public readonly StackFrameQualifiedNameNode MemberAccessExpression = memberAccessExpression;
+        public readonly StackFrameTypeArgumentList? TypeArguments = typeArguments;
+        public readonly StackFrameParameterList ArgumentList = argumentList;
 
         internal override int ChildCount => 3;
 
@@ -137,14 +129,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     /// <summary>
     /// The simplest identifier node, which wraps a <see cref="StackFrameKind.IdentifierToken" />
     /// </summary>
-    internal sealed class StackFrameIdentifierNameNode : StackFrameSimpleNameNode
+    internal sealed class StackFrameIdentifierNameNode(StackFrameToken identifier) : StackFrameSimpleNameNode(identifier, StackFrameKind.TypeIdentifier)
     {
         internal override int ChildCount => 1;
-
-        public StackFrameIdentifierNameNode(StackFrameToken identifier)
-            : base(identifier, StackFrameKind.TypeIdentifier)
-        {
-        }
 
         public override void Accept(IStackFrameNodeVisitor visitor)
             => visitor.Visit(this);

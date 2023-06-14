@@ -4,13 +4,8 @@
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal readonly struct UnitTestingDefinitionItemWrapper
+    internal readonly struct UnitTestingDefinitionItemWrapper(FindUsages.DefinitionItem definition)
     {
-        internal FindUsages.DefinitionItem UnderlyingObject { get; }
-
-        public UnitTestingDefinitionItemWrapper(FindUsages.DefinitionItem definition)
-        {
-            UnderlyingObject = definition;
-        }
+        internal FindUsages.DefinitionItem UnderlyingObject { get; } = definition;
     }
 }

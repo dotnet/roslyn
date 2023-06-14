@@ -56,21 +56,12 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
             }
 
-            private sealed class AddAssemblyReferenceCodeActionOperation : CodeActionOperation
+            private sealed class AddAssemblyReferenceCodeActionOperation(
+                string assemblyReferenceAssemblyName,
+                string assemblyReferenceFullyQualifiedTypeName,
+                Project newProject) : CodeActionOperation
             {
-                private readonly string _assemblyReferenceAssemblyName;
-                private readonly string _assemblyReferenceFullyQualifiedTypeName;
-                private readonly Project _newProject;
-
-                public AddAssemblyReferenceCodeActionOperation(
-                    string assemblyReferenceAssemblyName,
-                    string assemblyReferenceFullyQualifiedTypeName,
-                    Project newProject)
-                {
-                    _assemblyReferenceAssemblyName = assemblyReferenceAssemblyName;
-                    _assemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName;
-                    _newProject = newProject;
-                }
+                private readonly Project _newProject = newProject;
 
                 internal override bool ApplyDuringTests => true;
 
@@ -113,8 +104,8 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                     return assemblyResolverService.ResolveAssemblyPath(
                         _newProject.Id,
-                        _assemblyReferenceAssemblyName,
-                        _assemblyReferenceFullyQualifiedTypeName);
+                        assemblyReferenceAssemblyName,
+                        assemblyReferenceFullyQualifiedTypeName);
                 }
             }
         }

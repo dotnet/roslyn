@@ -26,7 +26,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     [ExportMetadataAsSourceFileProvider(ProviderName), Shared]
-    internal class DecompilationMetadataAsSourceFileProvider : IMetadataAsSourceFileProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssemblyLookupService implementationAssemblyLookupService) : IMetadataAsSourceFileProvider
     {
         internal const string ProviderName = "Decompilation";
 
@@ -44,19 +46,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// </summary>
         private readonly ConcurrentDictionary<string, MetadataAsSourceGeneratedFileInfo> _generatedFilenameToInformation = new(StringComparer.OrdinalIgnoreCase);
 
-        private readonly IImplementationAssemblyLookupService _implementationAssemblyLookupService;
-
         /// <summary>
         /// Only accessed and mutated from UI thread.
         /// </summary>
         private IBidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId> _openedDocumentIds = BidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId>.Empty;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DecompilationMetadataAsSourceFileProvider(IImplementationAssemblyLookupService implementationAssemblyLookupService)
-        {
-            _implementationAssemblyLookupService = implementationAssemblyLookupService;
-        }
 
         public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
             MetadataAsSourceWorkspace metadataWorkspace,
@@ -232,7 +225,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             if (assemblyLocation is not null &&
                 isReferenceAssembly &&
-                !_implementationAssemblyLookupService.TryFindImplementationAssemblyPath(assemblyLocation, out assemblyLocation))
+                !implementationAssemblyLookupService.TryFindImplementationAssemblyPath(assemblyLocation, out assemblyLocation))
             {
                 try
                 {

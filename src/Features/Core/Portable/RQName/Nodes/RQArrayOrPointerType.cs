@@ -4,11 +4,8 @@
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal abstract class RQArrayOrPointerType : RQType
+    internal abstract class RQArrayOrPointerType(RQType elementType) : RQType
     {
-        public readonly RQType ElementType;
-
-        public RQArrayOrPointerType(RQType elementType)
-            => ElementType = elementType;
+        public readonly RQType ElementType = elementType;
     }
 }

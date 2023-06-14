@@ -96,20 +96,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 s_logs.RemoveFirst();
         }
 
-        private sealed class Updater
+        private sealed class Updater(SymbolSearchUpdateEngine service, string source, string localSettingsDirectory)
         {
-            private readonly SymbolSearchUpdateEngine _service;
-            private readonly string _source;
-            private readonly DirectoryInfo _cacheDirectoryInfo;
-
-            public Updater(SymbolSearchUpdateEngine service, string source, string localSettingsDirectory)
-            {
-                _service = service;
-                _source = source;
-
-                _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
+            private readonly DirectoryInfo _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
                     localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{AddReferenceDatabaseTextFileFormatVersion}"))));
-            }
 
             /// <summary>
             /// Internal for testing purposes.
@@ -117,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             internal async ValueTask UpdateInBackgroundAsync(CancellationToken cancellationToken)
             {
                 // We only support this single source currently.
-                if (_source != PackageSourceHelper.NugetOrgSourceName)
+                if (source != PackageSourceHelper.NugetOrgSourceName)
                 {
                     return;
                 }
@@ -190,9 +180,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // Ensure we get a fresh FileInfo for the db.  We need to make sure that the data we're querying
                     // (like .Exists) is up to date and isn't the a cached value from a prior run.
                     var databaseFileInfo = new FileInfo(
-                        Path.Combine(_cacheDirectoryInfo.FullName, ConvertToFileName(_source) + ".txt"));
+                        Path.Combine(_cacheDirectoryInfo.FullName, ConvertToFileName(source) + ".txt"));
 
-                    if (_service._ioService.Exists(databaseFileInfo))
+                    if (service._ioService.Exists(databaseFileInfo))
                     {
                         LogInfo("Local database file exists. Patching local database");
                         return await PatchLocalDatabaseAsync(databaseFileInfo, cancellationToken).ConfigureAwait(false);
@@ -203,7 +193,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         return await DownloadFullDatabaseAsync(databaseFileInfo, cancellationToken).ConfigureAwait(false);
                     }
                 }
-                catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
                 {
                     // Something bad happened (IO Exception, network exception etc.).
                     // ask our caller to try updating again a minute from now.
@@ -211,7 +201,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // Note: we skip OperationCanceledException because it's not 'bad'.
                     // It's the standard way to indicate that we've been asked to shut
                     // down.
-                    var delay = _service._delayService.ExpectedFailureDelay;
+                    var delay = service._delayService.ExpectedFailureDelay;
                     LogException(e, $"Error occurred updating. Retrying update in {delay}");
                     return delay;
                 }
@@ -222,12 +212,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 LogInfo("Cleaning cache directory");
 
                 // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
-                if (!_service._ioService.Exists(_cacheDirectoryInfo))
+                if (!service._ioService.Exists(_cacheDirectoryInfo))
                 {
                     LogInfo("Creating cache directory");
 
                     // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
-                    _service._ioService.Create(_cacheDirectoryInfo);
+                    service._ioService.Create(_cacheDirectoryInfo);
                     LogInfo("Cache directory created");
                 }
 
@@ -268,7 +258,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // cache.  So we want to actually wait some long enough amount of time so that
                     // we can retrieve good data the next time around.
 
-                    var failureDelay = _service._delayService.CatastrophicFailureDelay;
+                    var failureDelay = service._delayService.CatastrophicFailureDelay;
                     LogInfo($"Unable to parse full database element. Update again in {failureDelay}");
                     return (succeeded: false, failureDelay);
                 }
@@ -281,13 +271,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 {
                     CreateAndSetInMemoryDatabase(bytes);
                 }
-                catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
                 {
                     // We retrieved bytes from the server, but we couldn't make a DB
                     // out of it.  That's very bad.  Just trying again one minute later
                     // isn't going to help.  We need to wait until there is good data
                     // on the server for us to download.
-                    var failureDelay = _service._delayService.CatastrophicFailureDelay;
+                    var failureDelay = service._delayService.CatastrophicFailureDelay;
                     LogInfo($"Unable to create database from full database element. Update again in {failureDelay}");
                     return (succeeded: false, failureDelay);
                 }
@@ -297,7 +287,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 // we're waiting to write.
                 await WriteDatabaseFileAsync(databaseFileInfo, bytes, cancellationToken).ConfigureAwait(false);
 
-                var delay = _service._delayService.UpdateSucceededDelay;
+                var delay = service._delayService.UpdateSucceededDelay;
                 LogInfo($"Processing full database element completed. Update again in {delay}");
                 return (succeeded: true, delay);
             }
@@ -324,21 +314,21 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                             LogInfo("Writing temp file");
 
                             // (intentionally not wrapped in IOUtilities.  If this throws we want to retry writing).
-                            _service._ioService.WriteAndFlushAllBytes(tempFilePath, bytes);
+                            service._ioService.WriteAndFlushAllBytes(tempFilePath, bytes);
                             LogInfo("Writing temp file completed");
 
                             // If we have an existing db file, try to replace it file with the temp file.
                             // Otherwise, just move the temp file into place.
-                            if (_service._ioService.Exists(databaseFileInfo))
+                            if (service._ioService.Exists(databaseFileInfo))
                             {
                                 LogInfo("Replacing database file");
-                                _service._ioService.Replace(tempFilePath, databaseFileInfo.FullName, destinationBackupFileName: null, ignoreMetadataErrors: true);
+                                service._ioService.Replace(tempFilePath, databaseFileInfo.FullName, destinationBackupFileName: null, ignoreMetadataErrors: true);
                                 LogInfo("Replace database file completed");
                             }
                             else
                             {
                                 LogInfo("Moving database file");
-                                _service._ioService.Move(tempFilePath, databaseFileInfo.FullName);
+                                service._ioService.Move(tempFilePath, databaseFileInfo.FullName);
                                 LogInfo("Moving database file completed");
                             }
                         }
@@ -346,7 +336,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         {
                             // Try to delete the temp file if it is still around.
                             // If this fails, that's unfortunately, but just proceed.
-                            IOUtilities.PerformIO(() => _service._ioService.Delete(new FileInfo(tempFilePath)));
+                            IOUtilities.PerformIO(() => service._ioService.Delete(new FileInfo(tempFilePath)));
                         }
                     }, cancellationToken).ConfigureAwait(false);
 
@@ -359,7 +349,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                 LogInfo("Reading in local database");
                 // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
-                var databaseBytes = _service._ioService.ReadAllBytes(databaseFileInfo.FullName);
+                var databaseBytes = service._ioService.ReadAllBytes(databaseFileInfo.FullName);
                 LogInfo($"Reading in local database completed. databaseBytes.Length={databaseBytes.Length}");
 
                 // Make a database instance out of those bytes and set is as the current in memory database
@@ -371,7 +361,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 {
                     database = CreateAndSetInMemoryDatabase(databaseBytes);
                 }
-                catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
                 {
                     LogException(e, "Error creating database from local copy. Downloading full database");
                     return await DownloadFullDatabaseAsync(databaseFileInfo, cancellationToken).ConfigureAwait(false);
@@ -400,7 +390,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             private AddReferenceDatabase CreateAndSetInMemoryDatabase(byte[] bytes)
             {
                 var database = CreateDatabaseFromBytes(bytes);
-                _service._sourceToDatabase[_source] = new AddReferenceDatabaseWrapper(database);
+                service._sourceToDatabase[source] = new AddReferenceDatabaseWrapper(database);
                 return database;
             }
 
@@ -419,7 +409,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                     // Fall through and download full database.
                 }
-                catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
                 {
                     LogException(e, "Error occurred while processing patch element. Downloading full database");
                     // Fall through and download full database.
@@ -436,7 +426,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 if (upToDate)
                 {
                     LogInfo("Local version is up to date");
-                    return _service._delayService.UpdateSucceededDelay;
+                    return service._delayService.UpdateSucceededDelay;
                 }
 
                 if (tooOld)
@@ -450,14 +440,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 // We have patch data.  Apply it to our current database bytes to produce the new
                 // database.
                 LogInfo("Applying patch");
-                var finalBytes = _service._patchService.ApplyPatch(databaseBytes, patchBytes);
+                var finalBytes = service._patchService.ApplyPatch(databaseBytes, patchBytes);
                 LogInfo($"Applying patch completed. finalBytes.Length={finalBytes.Length}");
 
                 CreateAndSetInMemoryDatabase(finalBytes);
 
                 await WriteDatabaseFileAsync(databaseFileInfo, finalBytes, cancellationToken).ConfigureAwait(false);
 
-                return _service._delayService.UpdateSucceededDelay;
+                return service._delayService.UpdateSucceededDelay;
             }
 
             private static void ParsePatchElement(XElement patchElement, out bool upToDate, out bool tooOld, out byte[] patchBytes)
@@ -491,7 +481,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             private AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
             {
                 LogInfo("Creating database from bytes");
-                var result = _service._databaseFactoryService.CreateDatabaseFromBytes(bytes);
+                var result = service._databaseFactoryService.CreateDatabaseFromBytes(bytes);
                 LogInfo("Creating database from bytes completed");
                 return result;
             }
@@ -512,7 +502,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 //         minutes ago, then the client will attempt to download the file.
                 //         In the interim period null will be returned from client.ReadFile.
                 var pollingMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
-                using var client = _service._fileDownloaderFactory.CreateClient(HostId, serverPath, pollingMinutes);
+                using var client = service._fileDownloaderFactory.CreateClient(HostId, serverPath, pollingMinutes);
 
                 LogInfo("Creating download client completed");
 
@@ -545,7 +535,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 if (stream == null)
                 {
                     LogInfo("Read file completed. Client returned no data");
-                    return (element: null, _service._delayService.CachePollDelay);
+                    return (element: null, service._delayService.CachePollDelay);
                 }
 
                 LogInfo("Read file completed. Client returned data");
@@ -573,13 +563,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     LogInfo("Converting data to XElement completed");
                     return (element, delay: default);
                 }
-                catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
                 {
                     // We retrieved bytes from the server, but we couldn't make parse it an xml. out of it.  That's very
                     // bad.  Just trying again one minute later isn't going to help.  We need to wait until there is
                     // good data on the server for us to download.
                     LogInfo($"Unable to parse file as XElement");
-                    return (element: null, _service._delayService.CatastrophicFailureDelay);
+                    return (element: null, service._delayService.CatastrophicFailureDelay);
                 }
             }
 
@@ -595,7 +585,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         action(cancellationToken);
                         return;
                     }
-                    catch (Exception e) when (IOUtilities.IsNormalIOException(e) || _service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
+                    catch (Exception e) when (IOUtilities.IsNormalIOException(e) || service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
                     {
                         // The exception filter above might be a little funny looking. We always
                         // want to enter this catch block, but if we ran into a normal IO exception
@@ -604,7 +594,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         // couldn't write to it. The call to IsNormalIOException will shortcut
                         // around the reporting in this case.
 
-                        var delay = _service._delayService.FileWriteDelay;
+                        var delay = service._delayService.FileWriteDelay;
                         LogException(e, $"Operation failed. Trying again after {delay}");
                         await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                     }
@@ -617,7 +607,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 var contentsAttribute = element.Attribute(ContentAttributeName);
                 if (contentsAttribute == null)
                 {
-                    _service._reportAndSwallowExceptionUnlessCanceled(new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute"), CancellationToken.None);
+                    service._reportAndSwallowExceptionUnlessCanceled(new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute"), CancellationToken.None);
 
                     return (succeeded: false, null);
                 }
@@ -636,7 +626,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                     if (!StringComparer.Ordinal.Equals(expectedChecksum, actualChecksum))
                     {
-                        _service._reportAndSwallowExceptionUnlessCanceled(new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}"), CancellationToken.None);
+                        service._reportAndSwallowExceptionUnlessCanceled(new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}"), CancellationToken.None);
 
                         return (succeeded: false, null);
                     }

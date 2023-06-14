@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// Encapsulates all RPC logic as well as dispatching to the local service if the remote service is disabled.
     /// THe facade is useful for targeted testing of serialization/deserialization of EnC service calls.
     /// </summary>
-    internal readonly partial struct RemoteEditAndContinueServiceProxy
+    internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace workspace)
     {
         [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteEditAndContinueService)), Shared]
         internal sealed class CallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteEditAndContinueService.ICallback
@@ -53,22 +53,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => ((DebuggingSessionCallback)GetCallback(callbackId)).PrepareModuleForUpdateAsync(mvid, cancellationToken);
         }
 
-        private sealed class DebuggingSessionCallback
+        private sealed class DebuggingSessionCallback(IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider)
         {
-            private readonly IManagedHotReloadService _debuggerService;
-            private readonly IPdbMatchingSourceTextProvider _sourceTextProvider;
-
-            public DebuggingSessionCallback(IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider)
-            {
-                _debuggerService = debuggerService;
-                _sourceTextProvider = sourceTextProvider;
-            }
-
             public async ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
             {
                 try
                 {
-                    return await _sourceTextProvider.TryGetMatchingSourceTextAsync(filePath, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false);
+                    return await sourceTextProvider.TryGetMatchingSourceTextAsync(filePath, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
@@ -80,7 +71,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 try
                 {
-                    return await _debuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
+                    return await debuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
@@ -92,7 +83,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 try
                 {
-                    return await _debuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
+                    return await debuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
@@ -104,7 +95,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 try
                 {
-                    await _debuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken).ConfigureAwait(false);
+                    await debuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
@@ -116,7 +107,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 try
                 {
-                    return await _debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+                    return await debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
@@ -125,12 +116,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public readonly Workspace Workspace;
-
-        public RemoteEditAndContinueServiceProxy(Workspace workspace)
-        {
-            Workspace = workspace;
-        }
+        public readonly Workspace Workspace = workspace;
 
         private IEditAndContinueService GetLocalService()
             => Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;

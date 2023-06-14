@@ -14,27 +14,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddMissingReference
 {
-    internal class AddMissingReferenceCodeAction : CodeAction
+    internal class AddMissingReferenceCodeAction(Project project, string title, ProjectReference? projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity) : CodeAction
     {
-        private readonly Project _project;
-        private readonly ProjectReference? _projectReferenceToAdd;
-        private readonly AssemblyIdentity _missingAssemblyIdentity;
 
-        public override string Title { get; }
+        public override string Title { get; } = title;
 
         /// <summary>
         /// This code action only works by adding references.  As such, it requires a non document change (and is
         /// thus restricted in which hosts it can run).
         /// </summary>
         public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
-
-        public AddMissingReferenceCodeAction(Project project, string title, ProjectReference? projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity)
-        {
-            _project = project;
-            Title = title;
-            _projectReferenceToAdd = projectReferenceToAdd;
-            _missingAssemblyIdentity = missingAssemblyIdentity;
-        }
 
         public static async Task<CodeAction> CreateAsync(Project project, AssemblyIdentity missingAssemblyIdentity, CancellationToken cancellationToken)
         {
@@ -83,17 +72,17 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
             // If we have a project reference to add, then add it
-            if (_projectReferenceToAdd != null)
+            if (projectReferenceToAdd != null)
             {
                 // note: no need to post process since we are just adding a project reference and not making any code changes.
                 return Task.FromResult(SpecializedCollections.SingletonEnumerable<CodeActionOperation>(
-                    new ApplyChangesOperation(_project.AddProjectReference(_projectReferenceToAdd).Solution)));
+                    new ApplyChangesOperation(project.AddProjectReference(projectReferenceToAdd).Solution)));
             }
             else
             {
                 // We didn't have any project, so we need to try adding a metadata reference
-                var factoryService = _project.Solution.Services.GetRequiredService<IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService>();
-                var operation = factoryService.CreateAddMetadataReferenceOperation(_project.Id, _missingAssemblyIdentity);
+                var factoryService = project.Solution.Services.GetRequiredService<IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService>();
+                var operation = factoryService.CreateAddMetadataReferenceOperation(project.Id, missingAssemblyIdentity);
                 return Task.FromResult(SpecializedCollections.SingletonEnumerable(operation));
             }
         }

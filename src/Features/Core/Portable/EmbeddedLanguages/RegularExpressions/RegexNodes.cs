@@ -55,17 +55,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// This does not deviate from Roslyn principles.  While nodes for empty text are rare, they
     /// are allowed (for example, OmittedTypeArgument in C#).
     /// </summary>
-    internal sealed class RegexSequenceNode : RegexExpressionNode
+    internal sealed class RegexSequenceNode(ImmutableArray<RegexExpressionNode> children) : RegexExpressionNode(RegexKind.Sequence)
     {
-        public ImmutableArray<RegexExpressionNode> Children { get; }
+        public ImmutableArray<RegexExpressionNode> Children { get; } = children;
 
         internal override int ChildCount => Children.Length;
-
-        public RegexSequenceNode(ImmutableArray<RegexExpressionNode> children)
-            : base(RegexKind.Sequence)
-        {
-            this.Children = children;
-        }
 
         internal override RegexNodeOrToken ChildAt(int index)
             => Children[index];
@@ -126,14 +120,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// [...] node.
     /// </summary>
-    internal sealed class RegexCharacterClassNode : RegexBaseCharacterClassNode
+    internal sealed class RegexCharacterClassNode(
+        RegexToken openBracketToken, RegexSequenceNode components, RegexToken closeBracketToken) : RegexBaseCharacterClassNode(RegexKind.CharacterClass, openBracketToken, components, closeBracketToken)
     {
-        public RegexCharacterClassNode(
-            RegexToken openBracketToken, RegexSequenceNode components, RegexToken closeBracketToken)
-            : base(RegexKind.CharacterClass, openBracketToken, components, closeBracketToken)
-        {
-        }
-
         internal override int ChildCount => 3;
 
         internal override RegexNodeOrToken ChildAt(int index)
@@ -499,14 +488,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```a{5}```
     /// </summary>
-    internal sealed class RegexExactNumericQuantifierNode : RegexNumericQuantifierNode
+    internal sealed class RegexExactNumericQuantifierNode(
+        RegexPrimaryExpressionNode expression, RegexToken openBraceToken, RegexToken numberToken, RegexToken closeBraceToken) : RegexNumericQuantifierNode(RegexKind.ExactNumericQuantifier, expression, openBraceToken, numberToken, closeBraceToken)
     {
-        public RegexExactNumericQuantifierNode(
-            RegexPrimaryExpressionNode expression, RegexToken openBraceToken, RegexToken numberToken, RegexToken closeBraceToken)
-            : base(RegexKind.ExactNumericQuantifier, expression, openBraceToken, numberToken, closeBraceToken)
-        {
-        }
-
         internal override int ChildCount => 4;
 
         internal override RegexNodeOrToken ChildAt(int index)
@@ -727,14 +711,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```(?inmsx)``` node.  Changes options in a sequence for all subsequence nodes.
     /// </summary>
-    internal sealed class RegexSimpleOptionsGroupingNode : RegexOptionsGroupingNode
+    internal sealed class RegexSimpleOptionsGroupingNode(
+        RegexToken openParenToken, RegexToken questionToken, RegexToken optionsToken, RegexToken closeParenToken) : RegexOptionsGroupingNode(RegexKind.SimpleOptionsGrouping, openParenToken, questionToken, optionsToken, closeParenToken)
     {
-        public RegexSimpleOptionsGroupingNode(
-            RegexToken openParenToken, RegexToken questionToken, RegexToken optionsToken, RegexToken closeParenToken)
-            : base(RegexKind.SimpleOptionsGrouping, openParenToken, questionToken, optionsToken, closeParenToken)
-        {
-        }
-
         internal override int ChildCount => 4;
 
         internal override RegexNodeOrToken ChildAt(int index)
@@ -1256,13 +1235,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// One of \b \B \A \G \z \Z
     /// </summary>
-    internal sealed class RegexAnchorEscapeNode : RegexTypeEscapeNode
+    internal sealed class RegexAnchorEscapeNode(RegexToken backslashToken, RegexToken typeToken) : RegexTypeEscapeNode(RegexKind.AnchorEscape, backslashToken, typeToken)
     {
-        public RegexAnchorEscapeNode(RegexToken backslashToken, RegexToken typeToken)
-            : base(RegexKind.AnchorEscape, backslashToken, typeToken)
-        {
-        }
-
         internal override int ChildCount => 2;
 
         internal override RegexNodeOrToken ChildAt(int index)
@@ -1280,13 +1254,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// One of \s \S \d \D \w \W
     /// </summary>
-    internal sealed class RegexCharacterClassEscapeNode : RegexTypeEscapeNode
+    internal sealed class RegexCharacterClassEscapeNode(RegexToken backslashToken, RegexToken typeToken) : RegexTypeEscapeNode(RegexKind.CharacterClassEscape, backslashToken, typeToken)
     {
-        public RegexCharacterClassEscapeNode(RegexToken backslashToken, RegexToken typeToken)
-            : base(RegexKind.CharacterClassEscape, backslashToken, typeToken)
-        {
-        }
-
         internal override int ChildCount => 2;
 
         internal override RegexNodeOrToken ChildAt(int index)
@@ -1304,17 +1273,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```\cX``` escape
     /// </summary>
-    internal sealed class RegexControlEscapeNode : RegexTypeEscapeNode
+    internal sealed class RegexControlEscapeNode(RegexToken backslashToken, RegexToken typeToken, RegexToken controlToken) : RegexTypeEscapeNode(RegexKind.ControlEscape, backslashToken, typeToken)
     {
-        public RegexControlEscapeNode(RegexToken backslashToken, RegexToken typeToken, RegexToken controlToken)
-            : base(RegexKind.ControlEscape, backslashToken, typeToken)
-        {
-            ControlToken = controlToken;
-        }
-
         internal override int ChildCount => 3;
 
-        public RegexToken ControlToken { get; }
+        public RegexToken ControlToken { get; } = controlToken;
 
         internal override RegexNodeOrToken ChildAt(int index)
             => index switch
@@ -1332,17 +1295,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```\xFF``` escape.
     /// </summary>
-    internal sealed class RegexHexEscapeNode : RegexTypeEscapeNode
+    internal sealed class RegexHexEscapeNode(RegexToken backslashToken, RegexToken typeToken, RegexToken hexText) : RegexTypeEscapeNode(RegexKind.HexEscape, backslashToken, typeToken)
     {
-        public RegexHexEscapeNode(RegexToken backslashToken, RegexToken typeToken, RegexToken hexText)
-            : base(RegexKind.HexEscape, backslashToken, typeToken)
-        {
-            HexText = hexText;
-        }
-
         internal override int ChildCount => 3;
 
-        public RegexToken HexText { get; }
+        public RegexToken HexText { get; } = hexText;
 
         internal override RegexNodeOrToken ChildAt(int index)
             => index switch
@@ -1360,17 +1317,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```\uFFFF``` escape.
     /// </summary>
-    internal sealed class RegexUnicodeEscapeNode : RegexTypeEscapeNode
+    internal sealed class RegexUnicodeEscapeNode(RegexToken backslashToken, RegexToken typeToken, RegexToken hexText) : RegexTypeEscapeNode(RegexKind.UnicodeEscape, backslashToken, typeToken)
     {
-        public RegexUnicodeEscapeNode(RegexToken backslashToken, RegexToken typeToken, RegexToken hexText)
-            : base(RegexKind.UnicodeEscape, backslashToken, typeToken)
-        {
-            HexText = hexText;
-        }
-
         internal override int ChildCount => 3;
 
-        public RegexToken HexText { get; }
+        public RegexToken HexText { get; } = hexText;
 
         internal override RegexNodeOrToken ChildAt(int index)
             => index switch
@@ -1388,22 +1339,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```\'name'``` or ```\&lt;name&gt;``` escape.
     /// </summary>
-    internal sealed class RegexCaptureEscapeNode : RegexEscapeNode
+    internal sealed class RegexCaptureEscapeNode(
+        RegexToken backslashToken, RegexToken openToken, RegexToken captureToken, RegexToken closeToken) : RegexEscapeNode(RegexKind.CaptureEscape, backslashToken)
     {
-        public RegexCaptureEscapeNode(
-            RegexToken backslashToken, RegexToken openToken, RegexToken captureToken, RegexToken closeToken)
-            : base(RegexKind.CaptureEscape, backslashToken)
-        {
-            OpenToken = openToken;
-            CaptureToken = captureToken;
-            CloseToken = closeToken;
-        }
-
         internal override int ChildCount => 4;
 
-        public RegexToken OpenToken { get; }
-        public RegexToken CaptureToken { get; }
-        public RegexToken CloseToken { get; }
+        public RegexToken OpenToken { get; } = openToken;
+        public RegexToken CaptureToken { get; } = captureToken;
+        public RegexToken CloseToken { get; } = closeToken;
 
         internal override RegexNodeOrToken ChildAt(int index)
             => index switch
@@ -1422,23 +1365,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```\k'name'``` or ```\k&lt;name&gt;``` escape.
     /// </summary>
-    internal sealed class RegexKCaptureEscapeNode : RegexTypeEscapeNode
+    internal sealed class RegexKCaptureEscapeNode(
+        RegexToken backslashToken, RegexToken typeToken,
+        RegexToken openToken, RegexToken captureToken, RegexToken closeToken) : RegexTypeEscapeNode(RegexKind.KCaptureEscape, backslashToken, typeToken)
     {
-        public RegexKCaptureEscapeNode(
-            RegexToken backslashToken, RegexToken typeToken,
-            RegexToken openToken, RegexToken captureToken, RegexToken closeToken)
-            : base(RegexKind.KCaptureEscape, backslashToken, typeToken)
-        {
-            OpenToken = openToken;
-            CaptureToken = captureToken;
-            CloseToken = closeToken;
-        }
-
         internal override int ChildCount => 5;
 
-        public RegexToken OpenToken { get; }
-        public RegexToken CaptureToken { get; }
-        public RegexToken CloseToken { get; }
+        public RegexToken OpenToken { get; } = openToken;
+        public RegexToken CaptureToken { get; } = captureToken;
+        public RegexToken CloseToken { get; } = closeToken;
 
         internal override RegexNodeOrToken ChildAt(int index)
             => index switch
@@ -1458,17 +1393,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```\1``` escape. In contexts where back-references are not allowed.
     /// </summary>
-    internal sealed class RegexOctalEscapeNode : RegexEscapeNode
+    internal sealed class RegexOctalEscapeNode(RegexToken backslashToken, RegexToken octalText) : RegexEscapeNode(RegexKind.OctalEscape, backslashToken)
     {
-        public RegexOctalEscapeNode(RegexToken backslashToken, RegexToken octalText)
-            : base(RegexKind.OctalEscape, backslashToken)
-        {
-            OctalText = octalText;
-        }
-
         internal override int ChildCount => 2;
 
-        public RegexToken OctalText { get; }
+        public RegexToken OctalText { get; } = octalText;
 
         internal override RegexNodeOrToken ChildAt(int index)
         {
@@ -1488,17 +1417,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```\1```
     /// </summary>
-    internal sealed class RegexBackreferenceEscapeNode : RegexEscapeNode
+    internal sealed class RegexBackreferenceEscapeNode(RegexToken backslashToken, RegexToken numberToken) : RegexEscapeNode(RegexKind.BackreferenceEscape, backslashToken)
     {
-        public RegexBackreferenceEscapeNode(RegexToken backslashToken, RegexToken numberToken)
-            : base(RegexKind.BackreferenceEscape, backslashToken)
-        {
-            NumberToken = numberToken;
-        }
-
         internal override int ChildCount => 2;
 
-        public RegexToken NumberToken { get; }
+        public RegexToken NumberToken { get; } = numberToken;
 
         internal override RegexNodeOrToken ChildAt(int index)
             => index switch

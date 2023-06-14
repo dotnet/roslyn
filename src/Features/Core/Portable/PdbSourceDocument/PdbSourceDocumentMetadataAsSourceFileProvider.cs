@@ -27,14 +27,15 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     [ExportMetadataAsSourceFileProvider(ProviderName), Shared]
     [ExtensionOrder(Before = DecompilationMetadataAsSourceFileProvider.ProviderName)]
-    internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider : IMetadataAsSourceFileProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
+        IPdbFileLocatorService pdbFileLocatorService,
+        IPdbSourceDocumentLoaderService pdbSourceDocumentLoaderService,
+        IImplementationAssemblyLookupService implementationAssemblyLookupService,
+        [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger) : IMetadataAsSourceFileProvider
     {
         internal const string ProviderName = "PdbSource";
-
-        private readonly IPdbFileLocatorService _pdbFileLocatorService;
-        private readonly IPdbSourceDocumentLoaderService _pdbSourceDocumentLoaderService;
-        private readonly IImplementationAssemblyLookupService _implementationAssemblyLookupService;
-        private readonly IPdbSourceDocumentLogger? _logger;
 
         /// <summary>
         /// Accessed only in <see cref="GetGeneratedFileAsync"/> and <see cref="CleanupGeneratedFiles"/>, both of which
@@ -56,20 +57,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         /// potentially happening.
         /// </summary>
         private readonly ConcurrentDictionary<string, SourceDocumentInfo> _fileToDocumentInfoMap = new();
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PdbSourceDocumentMetadataAsSourceFileProvider(
-            IPdbFileLocatorService pdbFileLocatorService,
-            IPdbSourceDocumentLoaderService pdbSourceDocumentLoaderService,
-            IImplementationAssemblyLookupService implementationAssemblyLookupService,
-            [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
-        {
-            _pdbFileLocatorService = pdbFileLocatorService;
-            _pdbSourceDocumentLoaderService = pdbSourceDocumentLoaderService;
-            _implementationAssemblyLookupService = implementationAssemblyLookupService;
-            _logger = logger;
-        }
 
         public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
             MetadataAsSourceWorkspace metadataWorkspace,
@@ -96,8 +83,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var assemblyVersion = symbol.ContainingAssembly.Identity.Version.ToString();
 
             // Clear the log so messages from the previously generated file don't confuse the user
-            _logger?.Clear();
-            _logger?.Log(FeaturesResources.Navigating_to_symbol_0_from_1, symbol, assemblyName);
+            logger?.Clear();
+            logger?.Log(FeaturesResources.Navigating_to_symbol_0_from_1, symbol, assemblyName);
 
             var compilation = await sourceProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
@@ -109,7 +96,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             telemetryMessage.SetDll(Path.GetFileName(dllPath));
 
-            _logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
+            logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
 
             // There is no way to go from parameter metadata to its containing method or type, so we need use the symbol API first to
             // get the method it belongs to.
@@ -122,17 +109,17 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (isReferenceAssembly)
             {
                 telemetryMessage.SetReferenceAssembly("yes");
-                if (_implementationAssemblyLookupService.TryFindImplementationAssemblyPath(dllPath, out dllPath))
+                if (implementationAssemblyLookupService.TryFindImplementationAssemblyPath(dllPath, out dllPath))
                 {
-                    _logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
+                    logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
 
                     // If the original assembly was a reference assembly, we can't trust that the implementation assembly
                     // we found actually contains the types, so we need to find it, following any type forwards.
 
-                    dllPath = _implementationAssemblyLookupService.FollowTypeForwards(symbolToFind, dllPath, _logger);
+                    dllPath = implementationAssemblyLookupService.FollowTypeForwards(symbolToFind, dllPath, logger);
                     if (dllPath is null)
                     {
-                        _logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
+                        logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
                         return null;
                     }
 
@@ -143,7 +130,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     var dllReference = IOUtilities.PerformIO(() => MetadataReference.CreateFromFile(dllPath));
                     if (dllReference is null)
                     {
-                        _logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
+                        logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
                         return null;
                     }
 
@@ -156,7 +143,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     var newSymbol = resolution.Symbol;
                     if (newSymbol is null)
                     {
-                        _logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
+                        logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
                         return null;
                     }
 
@@ -166,7 +153,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 }
                 else
                 {
-                    _logger?.Log(FeaturesResources.Source_is_a_reference_assembly);
+                    logger?.Log(FeaturesResources.Source_is_a_reference_assembly);
                     return null;
                 }
             }
@@ -174,7 +161,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             ImmutableDictionary<string, string> pdbCompilationOptions;
             ImmutableArray<SourceDocument> sourceDocuments;
             // We know we have a DLL, call and see if we can find metadata readers for it, and for the PDB (whereever it may be)
-            using (var documentDebugInfoReader = await _pdbFileLocatorService.GetDocumentDebugInfoReaderAsync(dllPath, options.AlwaysUseDefaultSymbolServers, telemetryMessage, cancellationToken).ConfigureAwait(false))
+            using (var documentDebugInfoReader = await pdbFileLocatorService.GetDocumentDebugInfoReaderAsync(dllPath, options.AlwaysUseDefaultSymbolServers, telemetryMessage, cancellationToken).ConfigureAwait(false))
             {
                 if (documentDebugInfoReader is null)
                     return null;
@@ -188,7 +175,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 sourceDocuments = documentDebugInfoReader.FindSourceDocuments(handle);
                 if (sourceDocuments.Length == 0)
                 {
-                    _logger?.Log(FeaturesResources.No_source_document_info_found_in_PDB);
+                    logger?.Log(FeaturesResources.No_source_document_info_found_in_PDB);
                     return null;
                 }
             }
@@ -238,7 +225,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // we can't provide any results, so there is no point adding a project to the workspace etc.
             var useExtendedTimeout = _sourceLinkEnabledProjects.Contains(projectId);
             var encoding = defaultEncoding ?? Encoding.UTF8;
-            var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetryMessage, useExtendedTimeout, cancellationToken)).ToArray();
+            var sourceFileInfoTasks = sourceDocuments.Select(sd => pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetryMessage, useExtendedTimeout, cancellationToken)).ToArray();
             var sourceFileInfos = await Task.WhenAll(sourceFileInfoTasks).ConfigureAwait(false);
             if (sourceFileInfos is null || sourceFileInfos.Where(t => t is null).Any())
                 return null;
@@ -281,7 +268,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // TODO: Find language another way for non portable PDBs: https://github.com/dotnet/roslyn/issues/55834
             if (!pdbCompilationOptions.TryGetValue(Cci.CompilationOptionNames.Language, out var languageName) || languageName is null)
             {
-                _logger?.Log(FeaturesResources.Source_code_language_information_was_not_found_in_PDB);
+                logger?.Log(FeaturesResources.Source_code_language_information_was_not_found_in_PDB);
                 return null;
             }
 
@@ -423,7 +410,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // The MetadataAsSourceFileService will clean up the entire temp folder so no need to do anything here
             _fileToDocumentInfoMap.Clear();
             _sourceLinkEnabledProjects.Clear();
-            _implementationAssemblyLookupService.Clear();
+            implementationAssemblyLookupService.Clear();
         }
     }
 

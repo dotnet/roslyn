@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
-    internal sealed partial class DateAndTimeEmbeddedCompletionProvider : EmbeddedLanguageCompletionProvider
+    internal sealed partial class DateAndTimeEmbeddedCompletionProvider(DateAndTimeEmbeddedLanguage language) : EmbeddedLanguageCompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -27,11 +27,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
         private static readonly CompletionItemRules s_rules =
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));
-
-        private readonly DateAndTimeEmbeddedLanguage _language;
-
-        public DateAndTimeEmbeddedCompletionProvider(DateAndTimeEmbeddedLanguage language)
-            => _language = language;
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('"', ':');
 
@@ -75,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
 
-            var stringTokenOpt = await _language.TryGetDateAndTimeTokenAtPositionAsync(
+            var stringTokenOpt = await language.TryGetDateAndTimeTokenAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
 
             if (stringTokenOpt == null)
@@ -92,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             }
 
             // Note: it's acceptable if this fails to convert.  We just won't show the example in that case.
-            var virtualChars = _language.Info.VirtualCharService.TryConvertToVirtualChars(stringToken);
+            var virtualChars = language.Info.VirtualCharService.TryConvertToVirtualChars(stringToken);
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 

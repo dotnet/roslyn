@@ -15,23 +15,16 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
 [ExportLanguageService(typeof(ITaskListService), InternalLanguageNames.TypeScript), Shared]
-internal sealed class VSTypeScriptTaskListService : ITaskListService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSTypeScriptTaskListService([Import(AllowDefault = true)] IVSTypeScriptTaskListServiceImplementation impl) : ITaskListService
 {
-    private readonly IVSTypeScriptTaskListServiceImplementation? _impl;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VSTypeScriptTaskListService([Import(AllowDefault = true)] IVSTypeScriptTaskListServiceImplementation impl)
-    {
-        _impl = impl;
-    }
-
     public async Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken)
     {
-        if (_impl is null)
+        if (impl is null)
             return ImmutableArray<TaskListItem>.Empty;
 
-        var result = await _impl.GetTaskListItemsAsync(
+        var result = await impl.GetTaskListItemsAsync(
             document,
             descriptors.SelectAsArray(d => new VSTypeScriptTaskListItemDescriptorWrapper(d)),
             cancellationToken).ConfigureAwait(false);

@@ -6,14 +6,11 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQProperty : RQPropertyBase
+    internal class RQProperty(
+        RQUnconstructedType containingType,
+        RQMethodPropertyOrEventName memberName,
+        int typeParameterCount,
+        IList<RQParameter> parameters) : RQPropertyBase(containingType, memberName, typeParameterCount, parameters)
     {
-        public RQProperty(
-            RQUnconstructedType containingType,
-            RQMethodPropertyOrEventName memberName,
-            int typeParameterCount,
-            IList<RQParameter> parameters)
-            : base(containingType, memberName, typeParameterCount, parameters)
-        { }
     }
 }

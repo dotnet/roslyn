@@ -15,28 +15,13 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
     internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
     {
-        private sealed class FieldDelegatingCodeAction : CodeAction
+        private sealed class FieldDelegatingCodeAction(
+            AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
+            Document document,
+            State state,
+            bool addNullChecks,
+            CleanCodeGenerationOptionsProvider fallbackOptions) : CodeAction
         {
-            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
-            private readonly Document _document;
-            private readonly State _state;
-            private readonly bool _addNullChecks;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
-
-            public FieldDelegatingCodeAction(
-                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
-                Document document,
-                State state,
-                bool addNullChecks,
-                CleanCodeGenerationOptionsProvider fallbackOptions)
-            {
-                _service = service;
-                _document = document;
-                _state = state;
-                _addNullChecks = addNullChecks;
-                _fallbackOptions = fallbackOptions;
-            }
-
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 // First, see if there are any constructors that would take the first 'n' arguments
@@ -46,44 +31,44 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
                 var parameterToExistingFieldMap = ImmutableDictionary.CreateBuilder<string, ISymbol>();
-                for (var i = 0; i < _state.Parameters.Length; i++)
-                    parameterToExistingFieldMap[_state.Parameters[i].Name] = _state.SelectedMembers[i];
+                for (var i = 0; i < state.Parameters.Length; i++)
+                    parameterToExistingFieldMap[state.Parameters[i].Name] = state.SelectedMembers[i];
 
-                var factory = _document.GetRequiredLanguageService<SyntaxGenerator>();
+                var factory = document.GetRequiredLanguageService<SyntaxGenerator>();
 
-                var semanticModel = await _document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxTree = semanticModel.SyntaxTree;
-                var preferThrowExpression = await _service.PrefersThrowExpressionAsync(_document, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var preferThrowExpression = await service.PrefersThrowExpressionAsync(document, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 var members = factory.CreateMemberDelegatingConstructor(
                     semanticModel,
-                    _state.ContainingType.Name,
-                    _state.ContainingType,
-                    _state.Parameters,
-                    _state.Accessibility,
+                    state.ContainingType.Name,
+                    state.ContainingType,
+                    state.Parameters,
+                    state.Accessibility,
                     parameterToExistingFieldMap.ToImmutable(),
                     parameterToNewMemberMap: null,
-                    addNullChecks: _addNullChecks,
+                    addNullChecks: addNullChecks,
                     preferThrowExpression: preferThrowExpression,
                     generateProperties: false,
-                    _state.IsContainedInUnsafeType);
+                    state.IsContainedInUnsafeType);
 
                 // If the user has selected a set of members (i.e. TextSpan is not empty), then we will
                 // choose the right location (i.e. null) to insert the constructor.  However, if they're 
                 // just invoking the feature manually at a specific location, then we'll insert the 
                 // members at that specific place in the class/struct.
-                var afterThisLocation = _state.TextSpan.IsEmpty
-                    ? syntaxTree.GetLocation(_state.TextSpan)
+                var afterThisLocation = state.TextSpan.IsEmpty
+                    ? syntaxTree.GetLocation(state.TextSpan)
                     : null;
 
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
                     new CodeGenerationSolutionContext(
-                        _document.Project.Solution,
+                        document.Project.Solution,
                         new CodeGenerationContext(
-                            contextLocation: syntaxTree.GetLocation(_state.TextSpan),
+                            contextLocation: syntaxTree.GetLocation(state.TextSpan),
                             afterThisLocation: afterThisLocation),
-                        _fallbackOptions),
-                    _state.ContainingType,
+                        fallbackOptions),
+                    state.ContainingType,
                     members,
                     cancellationToken).ConfigureAwait(false);
 
@@ -94,18 +79,18 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             {
                 get
                 {
-                    var parameters = _state.Parameters.Select(p => _service.ToDisplayString(p, SimpleFormat));
+                    var parameters = state.Parameters.Select(p => service.ToDisplayString(p, SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
 
-                    if (_state.DelegatedConstructor == null)
+                    if (state.DelegatedConstructor == null)
                     {
                         return string.Format(FeaturesResources.Generate_constructor_0_1,
-                            _state.ContainingType.Name, parameterString);
+                            state.ContainingType.Name, parameterString);
                     }
                     else
                     {
                         return string.Format(FeaturesResources.Generate_field_assigning_constructor_0_1,
-                            _state.ContainingType.Name, parameterString);
+                            state.ContainingType.Name, parameterString);
                     }
                 }
             }

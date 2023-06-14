@@ -9,21 +9,14 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal abstract class RQMethodOrProperty : RQMethodPropertyOrEvent
+    internal abstract class RQMethodOrProperty(
+        RQUnconstructedType containingType,
+        RQMethodPropertyOrEventName memberName,
+        int typeParameterCount,
+        IList<RQParameter> parameters) : RQMethodPropertyOrEvent(containingType, memberName)
     {
-        public readonly int TypeParameterCount;
-        public readonly ReadOnlyCollection<RQParameter> Parameters;
-
-        public RQMethodOrProperty(
-            RQUnconstructedType containingType,
-            RQMethodPropertyOrEventName memberName,
-            int typeParameterCount,
-            IList<RQParameter> parameters)
-            : base(containingType, memberName)
-        {
-            TypeParameterCount = typeParameterCount;
-            Parameters = new ReadOnlyCollection<RQParameter>(parameters);
-        }
+        public readonly int TypeParameterCount = typeParameterCount;
+        public readonly ReadOnlyCollection<RQParameter> Parameters = new ReadOnlyCollection<RQParameter>(parameters);
 
         protected override void AppendChildren(List<SimpleTreeNode> childList)
         {

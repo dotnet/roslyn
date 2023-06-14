@@ -21,32 +21,28 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// definitions found to third parties in case they want to add any additional definitions
         /// to the results we present.
         /// </summary>
-        private sealed class DefinitionTrackingContext : IFindUsagesContext
+        private sealed class DefinitionTrackingContext(IFindUsagesContext underlyingContext) : IFindUsagesContext
         {
-            private readonly IFindUsagesContext _underlyingContext;
             private readonly object _gate = new();
             private readonly List<DefinitionItem> _definitions = new();
 
-            public DefinitionTrackingContext(IFindUsagesContext underlyingContext)
-                => _underlyingContext = underlyingContext;
-
             public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-                => _underlyingContext.GetOptionsAsync(language, cancellationToken);
+                => underlyingContext.GetOptionsAsync(language, cancellationToken);
 
             public IStreamingProgressTracker ProgressTracker
-                => _underlyingContext.ProgressTracker;
+                => underlyingContext.ProgressTracker;
 
             public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
-                => _underlyingContext.ReportMessageAsync(message, cancellationToken);
+                => underlyingContext.ReportMessageAsync(message, cancellationToken);
 
             public ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
-                => _underlyingContext.ReportInformationalMessageAsync(message, cancellationToken);
+                => underlyingContext.ReportInformationalMessageAsync(message, cancellationToken);
 
             public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
-                => _underlyingContext.SetSearchTitleAsync(title, cancellationToken);
+                => underlyingContext.SetSearchTitleAsync(title, cancellationToken);
 
             public ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
-                => _underlyingContext.OnReferenceFoundAsync(reference, cancellationToken);
+                => underlyingContext.OnReferenceFoundAsync(reference, cancellationToken);
 
             public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
@@ -55,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     _definitions.Add(definition);
                 }
 
-                return _underlyingContext.OnDefinitionFoundAsync(definition, cancellationToken);
+                return underlyingContext.OnDefinitionFoundAsync(definition, cancellationToken);
             }
 
             public ImmutableArray<DefinitionItem> GetDefinitions()

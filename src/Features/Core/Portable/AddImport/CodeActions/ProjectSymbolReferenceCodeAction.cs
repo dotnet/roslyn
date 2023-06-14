@@ -53,19 +53,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return Task.FromResult<CodeActionOperation?>(new AddProjectReferenceCodeActionOperation(OriginalDocument.Project.Id, FixData.ProjectReferenceToAdd, applyOperation));
             }
 
-            private sealed class AddProjectReferenceCodeActionOperation : CodeActionOperation
+            private sealed class AddProjectReferenceCodeActionOperation(ProjectId referencingProject, ProjectId referencedProject, ApplyChangesOperation applyOperation) : CodeActionOperation
             {
-                private readonly ProjectId _referencingProject;
-                private readonly ProjectId _referencedProject;
-                private readonly ApplyChangesOperation _applyOperation;
-
-                public AddProjectReferenceCodeActionOperation(ProjectId referencingProject, ProjectId referencedProject, ApplyChangesOperation applyOperation)
-                {
-                    _referencingProject = referencingProject;
-                    _referencedProject = referencedProject;
-                    _applyOperation = applyOperation;
-                }
-
                 internal override bool ApplyDuringTests => true;
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
@@ -73,7 +62,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     if (!CanApply(workspace))
                         return;
 
-                    _applyOperation.Apply(workspace, cancellationToken);
+                    applyOperation.Apply(workspace, cancellationToken);
                 }
 
                 internal override Task<bool> TryApplyAsync(
@@ -82,12 +71,12 @@ namespace Microsoft.CodeAnalysis.AddImport
                     if (!CanApply(workspace))
                         return SpecializedTasks.False;
 
-                    return _applyOperation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken);
+                    return applyOperation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken);
                 }
 
                 private bool CanApply(Workspace workspace)
                 {
-                    return workspace.CanAddProjectReference(_referencingProject, _referencedProject);
+                    return workspace.CanAddProjectReference(referencingProject, referencedProject);
                 }
             }
         }

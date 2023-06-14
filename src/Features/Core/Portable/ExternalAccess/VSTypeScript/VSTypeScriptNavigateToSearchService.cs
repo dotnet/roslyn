@@ -20,21 +20,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(INavigateToSearchService), InternalLanguageNames.TypeScript), Shared]
-    internal sealed class VSTypeScriptNavigateToSearchService : INavigateToSearchService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptNavigateToSearchService(
+        [Import(AllowDefault = true)] IVSTypeScriptNavigateToSearchService? searchService) : INavigateToSearchService
     {
-        private readonly IVSTypeScriptNavigateToSearchService? _searchService;
+        public IImmutableSet<string> KindsProvided => searchService?.KindsProvided ?? ImmutableHashSet<string>.Empty;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptNavigateToSearchService(
-            [Import(AllowDefault = true)] IVSTypeScriptNavigateToSearchService? searchService)
-        {
-            _searchService = searchService;
-        }
-
-        public IImmutableSet<string> KindsProvided => _searchService?.KindsProvided ?? ImmutableHashSet<string>.Empty;
-
-        public bool CanFilter => _searchService?.CanFilter ?? false;
+        public bool CanFilter => searchService?.CanFilter ?? false;
 
         public async Task SearchDocumentAsync(
             Document document,
@@ -44,9 +37,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
-            if (_searchService != null)
+            if (searchService != null)
             {
-                var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                var results = await searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
                 foreach (var result in results)
                     await onResultFound(Convert(result)).ConfigureAwait(false);
             }
@@ -61,9 +54,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
-            if (_searchService != null)
+            if (searchService != null)
             {
-                var results = await _searchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                var results = await searchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
                 foreach (var result in results)
                     await onResultFound(Convert(result)).ConfigureAwait(false);
             }
@@ -97,21 +90,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)
             => new WrappedNavigateToSearchResult(result);
 
-        private class WrappedNavigateToSearchResult : INavigateToSearchResult
+        private class WrappedNavigateToSearchResult(IVSTypeScriptNavigateToSearchResult result) : INavigateToSearchResult
         {
-            private readonly IVSTypeScriptNavigateToSearchResult _result;
+            public string AdditionalInformation => result.AdditionalInformation;
 
-            public WrappedNavigateToSearchResult(IVSTypeScriptNavigateToSearchResult result)
-            {
-                _result = result;
-            }
-
-            public string AdditionalInformation => _result.AdditionalInformation;
-
-            public string Kind => _result.Kind;
+            public string Kind => result.Kind;
 
             public NavigateToMatchKind MatchKind
-                => _result.MatchKind switch
+                => result.MatchKind switch
                 {
                     VSTypeScriptNavigateToMatchKind.Exact => NavigateToMatchKind.Exact,
                     VSTypeScriptNavigateToMatchKind.Prefix => NavigateToMatchKind.Prefix,
@@ -124,20 +110,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
                     VSTypeScriptNavigateToMatchKind.CamelCaseSubstring => NavigateToMatchKind.CamelCaseSubstring,
                     VSTypeScriptNavigateToMatchKind.CamelCaseNonContiguousSubstring => NavigateToMatchKind.CamelCaseNonContiguousSubstring,
                     VSTypeScriptNavigateToMatchKind.Fuzzy => NavigateToMatchKind.Fuzzy,
-                    _ => throw ExceptionUtilities.UnexpectedValue(_result.MatchKind),
+                    _ => throw ExceptionUtilities.UnexpectedValue(result.MatchKind),
                 };
 
-            public bool IsCaseSensitive => _result.IsCaseSensitive;
+            public bool IsCaseSensitive => result.IsCaseSensitive;
 
-            public string Name => _result.Name;
+            public string Name => result.Name;
 
-            public ImmutableArray<TextSpan> NameMatchSpans => _result.NameMatchSpans;
+            public ImmutableArray<TextSpan> NameMatchSpans => result.NameMatchSpans;
 
-            public string SecondarySort => _result.SecondarySort;
+            public string SecondarySort => result.SecondarySort;
 
-            public string Summary => _result.Summary;
+            public string Summary => result.Summary;
 
-            public INavigableItem NavigableItem => new VSTypeScriptNavigableItemWrapper(_result.NavigableItem);
+            public INavigableItem NavigableItem => new VSTypeScriptNavigableItemWrapper(result.NavigableItem);
 
             public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
         }

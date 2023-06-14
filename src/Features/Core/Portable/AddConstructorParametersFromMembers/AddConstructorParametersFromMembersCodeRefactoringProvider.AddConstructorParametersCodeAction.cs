@@ -19,56 +19,38 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
     internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
     {
-        private class AddConstructorParametersCodeAction : CodeAction
+        /// <param name="useSubMenuName">
+        /// If there is more than one constructor, the suggested actions will be split into two sub menus,
+        /// one for regular parameters and one for optional. This boolean is used by the Title property
+        /// to determine if the code action should be given the complete title or the sub menu title
+        /// </param>
+        private class AddConstructorParametersCodeAction(
+            Document document,
+            CodeGenerationContextInfo info,
+            ConstructorCandidate constructorCandidate,
+            ISymbol containingType,
+            ImmutableArray<IParameterSymbol> missingParameters,
+            bool useSubMenuName) : CodeAction
         {
-            private readonly Document _document;
-            private readonly CodeGenerationContextInfo _info;
-            private readonly ConstructorCandidate _constructorCandidate;
-            private readonly ISymbol _containingType;
-            private readonly ImmutableArray<IParameterSymbol> _missingParameters;
-
-            /// <summary>
-            /// If there is more than one constructor, the suggested actions will be split into two sub menus,
-            /// one for regular parameters and one for optional. This boolean is used by the Title property
-            /// to determine if the code action should be given the complete title or the sub menu title
-            /// </summary>
-            private readonly bool _useSubMenuName;
-
-            public AddConstructorParametersCodeAction(
-                Document document,
-                CodeGenerationContextInfo info,
-                ConstructorCandidate constructorCandidate,
-                ISymbol containingType,
-                ImmutableArray<IParameterSymbol> missingParameters,
-                bool useSubMenuName)
-            {
-                _document = document;
-                _info = info;
-                _constructorCandidate = constructorCandidate;
-                _containingType = containingType;
-                _missingParameters = missingParameters;
-                _useSubMenuName = useSubMenuName;
-            }
-
             protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
-                var services = _document.Project.Solution.Services;
-                var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();
+                var services = document.Project.Solution.Services;
+                var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
                 var constructor = declarationService.GetDeclarations(
-                    _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
+                    constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
-                var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
+                var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
 
                 var newConstructor = constructor;
-                newConstructor = codeGenerator.AddParameters(newConstructor, _missingParameters, _info, cancellationToken);
-                newConstructor = codeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), _info, cancellationToken)
+                newConstructor = codeGenerator.AddParameters(newConstructor, missingParameters, info, cancellationToken);
+                newConstructor = codeGenerator.AddStatements(newConstructor, CreateAssignStatements(constructorCandidate), info, cancellationToken)
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var syntaxTree = constructor.SyntaxTree;
                 var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNode(constructor, newConstructor);
 
                 // Make sure we get the document that contains the constructor we just updated
-                var constructorDocument = _document.Project.GetDocument(syntaxTree);
+                var constructorDocument = document.Project.GetDocument(syntaxTree);
                 Contract.ThrowIfNull(constructorDocument);
 
                 return Task.FromResult<Solution?>(constructorDocument.WithSyntaxRoot(newRoot).Project.Solution);
@@ -76,11 +58,11 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
             private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)
             {
-                var factory = _document.GetRequiredLanguageService<SyntaxGenerator>();
-                for (var i = 0; i < _missingParameters.Length; ++i)
+                var factory = document.GetRequiredLanguageService<SyntaxGenerator>();
+                for (var i = 0; i < missingParameters.Length; ++i)
                 {
                     var memberName = constructorCandidate.MissingMembers[i].Name;
-                    var parameterName = _missingParameters[i].Name;
+                    var parameterName = missingParameters[i].Name;
                     yield return factory.ExpressionStatement(
                         factory.AssignmentStatement(
                             factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(memberName)),
@@ -92,17 +74,17 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             {
                 get
                 {
-                    var parameters = _constructorCandidate.Constructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
+                    var parameters = constructorCandidate.Constructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
-                    var signature = $"{_containingType.Name}({parameterString})";
+                    var signature = $"{containingType.Name}({parameterString})";
 
-                    if (_useSubMenuName)
+                    if (useSubMenuName)
                     {
                         return string.Format(CodeFixesResources.Add_to_0, signature);
                     }
                     else
                     {
-                        return _missingParameters[0].IsOptional
+                        return missingParameters[0].IsOptional
                             ? string.Format(FeaturesResources.Add_optional_parameters_to_0, signature)
                             : string.Format(FeaturesResources.Add_parameters_to_0, signature);
                     }
@@ -115,7 +97,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             /// 
             /// In this case we don't want to use the title as it depends on the class name for the ctor.
             /// </summary>
-            internal string ActionName => _missingParameters[0].IsOptional
+            internal string ActionName => missingParameters[0].IsOptional
                 ? nameof(FeaturesResources.Add_optional_parameters_to_0)
                 : nameof(FeaturesResources.Add_parameters_to_0);
         }

@@ -21,43 +21,26 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
     internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
-        private class GenerateConstructorWithDialogCodeAction : CodeActionWithOptions
+        private class GenerateConstructorWithDialogCodeAction(
+            AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
+            Document document,
+            TextSpan textSpan,
+            INamedTypeSymbol containingType,
+            Accessibility? desiredAccessibility,
+            ImmutableArray<ISymbol> viableMembers,
+            ImmutableArray<PickMembersOption> pickMembersOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
         {
-            private readonly Document _document;
-            private readonly INamedTypeSymbol _containingType;
-            private readonly Accessibility? _desiredAccessibility;
-            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
-            private readonly TextSpan _textSpan;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
+            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service = service;
 
-            internal ImmutableArray<ISymbol> ViableMembers { get; }
-            internal ImmutableArray<PickMembersOption> PickMembersOptions { get; }
+            internal ImmutableArray<ISymbol> ViableMembers { get; } = viableMembers;
+            internal ImmutableArray<PickMembersOption> PickMembersOptions { get; } = pickMembersOptions;
 
             public override string Title => FeaturesResources.Generate_constructor;
 
-            public GenerateConstructorWithDialogCodeAction(
-                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
-                Document document,
-                TextSpan textSpan,
-                INamedTypeSymbol containingType,
-                Accessibility? desiredAccessibility,
-                ImmutableArray<ISymbol> viableMembers,
-                ImmutableArray<PickMembersOption> pickMembersOptions,
-                CleanCodeGenerationOptionsProvider fallbackOptions)
-            {
-                _service = service;
-                _document = document;
-                _textSpan = textSpan;
-                _containingType = containingType;
-                _desiredAccessibility = desiredAccessibility;
-                ViableMembers = viableMembers;
-                PickMembersOptions = pickMembersOptions;
-                _fallbackOptions = fallbackOptions;
-            }
-
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var service = _service._pickMembersService_forTesting ?? _document.Project.Solution.Services.GetRequiredService<IPickMembersService>();
+                var service = _service._pickMembersService_forTesting ?? document.Project.Solution.Services.GetRequiredService<IPickMembersService>();
 
                 return service.PickMembers(
                     FeaturesResources.Pick_members_to_be_used_as_constructor_parameters,
@@ -77,18 +60,18 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 if (addNullChecksOption != null)
                 {
                     // ILegacyGlobalOptionsWorkspaceService is guaranteed to be not null here because we have checked it before the code action is provided.
-                    var globalOptions = _document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+                    var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
 
                     // If we presented the 'Add null check' option, then persist whatever value
                     // the user chose.  That way we'll keep that as the default for the next time
                     // the user opens the dialog.
-                    globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(_document.Project.Language, addNullChecksOption.Value);
+                    globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(document.Project.Language, addNullChecksOption.Value);
                 }
 
                 var addNullChecks = (addNullChecksOption?.Value ?? false);
                 var state = await State.TryGenerateAsync(
-                    _service, _document, _textSpan, _containingType, _desiredAccessibility,
-                    result.Members, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    _service, document, textSpan, containingType, desiredAccessibility,
+                    result.Members, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 if (state == null)
                 {
@@ -98,12 +81,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 // There was an existing constructor that matched what the user wants to create.
                 // Generate it if it's the implicit, no-arg, constructor, otherwise just navigate
                 // to the existing constructor
-                var solution = _document.Project.Solution;
+                var solution = document.Project.Solution;
                 if (state.MatchingConstructor != null)
                 {
                     if (state.MatchingConstructor.IsImplicitlyDeclared)
                     {
-                        var codeAction = new FieldDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions);
+                        var codeAction = new FieldDelegatingCodeAction(_service, document, state, addNullChecks, fallbackOptions);
                         return await codeAction.GetOperationsAsync(solution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
                     }
 
@@ -117,8 +100,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 else
                 {
                     var codeAction = state.DelegatedConstructor != null
-                        ? new ConstructorDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions)
-                        : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions);
+                        ? new ConstructorDelegatingCodeAction(_service, document, state, addNullChecks, fallbackOptions)
+                        : (CodeAction)new FieldDelegatingCodeAction(_service, document, state, addNullChecks, fallbackOptions);
 
                     return await codeAction.GetOperationsAsync(solution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
                 }

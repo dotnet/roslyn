@@ -6,10 +6,8 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQPointerType : RQArrayOrPointerType
+    internal class RQPointerType(RQType elementType) : RQArrayOrPointerType(elementType)
     {
-        public RQPointerType(RQType elementType) : base(elementType) { }
-
         public override SimpleTreeNode ToSimpleTree()
             => new SimpleGroupNode(RQNameStrings.Pointer, ElementType.ToSimpleTree());
     }

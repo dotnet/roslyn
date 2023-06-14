@@ -11,49 +11,41 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal partial class AbstractMetadataAsSourceService
     {
-        private class WrappedFieldSymbol : AbstractWrappedSymbol, IFieldSymbol
+        private class WrappedFieldSymbol(IFieldSymbol fieldSymbol, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(fieldSymbol, canImplementImplicitly: false, docCommentFormattingService: docCommentFormattingService), IFieldSymbol
         {
-            private readonly IFieldSymbol _symbol;
-
-            public WrappedFieldSymbol(IFieldSymbol fieldSymbol, IDocumentationCommentFormattingService docCommentFormattingService)
-                : base(fieldSymbol, canImplementImplicitly: false, docCommentFormattingService: docCommentFormattingService)
-            {
-                _symbol = fieldSymbol;
-            }
-
-            public new IFieldSymbol OriginalDefinition => _symbol.OriginalDefinition;
+            public new IFieldSymbol OriginalDefinition => fieldSymbol.OriginalDefinition;
 
             public IFieldSymbol CorrespondingTupleField => null;
 
-            public ISymbol AssociatedSymbol => _symbol.AssociatedSymbol;
+            public ISymbol AssociatedSymbol => fieldSymbol.AssociatedSymbol;
 
-            public object ConstantValue => _symbol.ConstantValue;
+            public object ConstantValue => fieldSymbol.ConstantValue;
 
-            public RefKind RefKind => _symbol.RefKind;
+            public RefKind RefKind => fieldSymbol.RefKind;
 
-            public ImmutableArray<CustomModifier> RefCustomModifiers => _symbol.RefCustomModifiers;
+            public ImmutableArray<CustomModifier> RefCustomModifiers => fieldSymbol.RefCustomModifiers;
 
-            public ImmutableArray<CustomModifier> CustomModifiers => _symbol.CustomModifiers;
+            public ImmutableArray<CustomModifier> CustomModifiers => fieldSymbol.CustomModifiers;
 
-            public bool HasConstantValue => _symbol.HasConstantValue;
+            public bool HasConstantValue => fieldSymbol.HasConstantValue;
 
-            public bool IsConst => _symbol.IsConst;
+            public bool IsConst => fieldSymbol.IsConst;
 
-            public bool IsReadOnly => _symbol.IsReadOnly;
+            public bool IsReadOnly => fieldSymbol.IsReadOnly;
 
-            public bool IsVolatile => _symbol.IsVolatile;
+            public bool IsVolatile => fieldSymbol.IsVolatile;
 
-            public bool IsRequired => _symbol.IsRequired;
+            public bool IsRequired => fieldSymbol.IsRequired;
 
-            public bool IsFixedSizeBuffer => _symbol.IsFixedSizeBuffer;
+            public bool IsFixedSizeBuffer => fieldSymbol.IsFixedSizeBuffer;
 
-            public int FixedSize => _symbol.FixedSize;
+            public int FixedSize => fieldSymbol.FixedSize;
 
-            public ITypeSymbol Type => _symbol.Type;
+            public ITypeSymbol Type => fieldSymbol.Type;
 
-            public NullableAnnotation NullableAnnotation => _symbol.NullableAnnotation;
+            public NullableAnnotation NullableAnnotation => fieldSymbol.NullableAnnotation;
 
-            public bool IsExplicitlyNamedTupleElement => _symbol.IsExplicitlyNamedTupleElement;
+            public bool IsExplicitlyNamedTupleElement => fieldSymbol.IsExplicitlyNamedTupleElement;
         }
     }
 }

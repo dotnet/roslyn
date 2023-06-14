@@ -12,44 +12,32 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private class MetadataSymbolsSearchScope : SearchScope
+        private class MetadataSymbolsSearchScope(
+            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+            Project assemblyProject,
+            IAssemblySymbol assembly,
+            PortableExecutableReference metadataReference,
+            bool exact) : SearchScope(provider, exact)
         {
-            private readonly Project _assemblyProject;
-            private readonly IAssemblySymbol _assembly;
-            private readonly PortableExecutableReference _metadataReference;
-
-            public MetadataSymbolsSearchScope(
-                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                Project assemblyProject,
-                IAssemblySymbol assembly,
-                PortableExecutableReference metadataReference,
-                bool exact)
-                : base(provider, exact)
-            {
-                _assemblyProject = assemblyProject;
-                _assembly = assembly;
-                _metadataReference = metadataReference;
-            }
-
             public override SymbolReference CreateReference<T>(SymbolResult<T> searchResult)
             {
                 return new MetadataSymbolReference(
                     provider,
                     searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol),
-                    _assemblyProject.Id,
-                    _metadataReference);
+                    assemblyProject.Id,
+                    metadataReference);
             }
 
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
                 SymbolFilter filter, SearchQuery searchQuery, CancellationToken cancellationToken)
             {
-                var service = _assemblyProject.Solution.Services.GetRequiredService<ISymbolTreeInfoCacheService>();
-                var info = await service.TryGetPotentiallyStaleMetadataSymbolTreeInfoAsync(_assemblyProject, _metadataReference, cancellationToken).ConfigureAwait(false);
+                var service = assemblyProject.Solution.Services.GetRequiredService<ISymbolTreeInfoCacheService>();
+                var info = await service.TryGetPotentiallyStaleMetadataSymbolTreeInfoAsync(assemblyProject, metadataReference, cancellationToken).ConfigureAwait(false);
                 if (info == null)
                     return ImmutableArray<ISymbol>.Empty;
 
                 var declarations = await info.FindAsync(
-                    searchQuery, _assembly, filter, cancellationToken).ConfigureAwait(false);
+                    searchQuery, assembly, filter, cancellationToken).ConfigureAwait(false);
 
                 return declarations;
             }

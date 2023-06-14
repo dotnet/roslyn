@@ -13,23 +13,16 @@ using Microsoft.CodeAnalysis.StackTraceExplorer;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
-    internal class UnitTestingStackTraceServiceAccessor : IUnitTestingStackTraceServiceAccessor
+    [method: Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+    internal class UnitTestingStackTraceServiceAccessor(
+        IStackTraceExplorerService stackTraceExplorerService) : IUnitTestingStackTraceServiceAccessor
     {
-        private readonly IStackTraceExplorerService _stackTraceExplorerService;
-
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        public UnitTestingStackTraceServiceAccessor(
-            IStackTraceExplorerService stackTraceExplorerService)
-        {
-            _stackTraceExplorerService = stackTraceExplorerService;
-        }
-
         public (Document? document, int lineNumber) GetDocumentAndLine(Workspace workspace, UnitTestingParsedFrameWrapper parsedFrame)
-            => _stackTraceExplorerService.GetDocumentAndLine(workspace.CurrentSolution, parsedFrame.UnderlyingObject);
+            => stackTraceExplorerService.GetDocumentAndLine(workspace.CurrentSolution, parsedFrame.UnderlyingObject);
 
         public async Task<UnitTestingDefinitionItemWrapper?> TryFindMethodDefinitionAsync(Workspace workspace, UnitTestingParsedFrameWrapper parsedFrame, CancellationToken cancellationToken)
         {
-            var definition = await _stackTraceExplorerService.TryFindDefinitionAsync(workspace.CurrentSolution, parsedFrame.UnderlyingObject, StackFrameSymbolPart.Method, cancellationToken).ConfigureAwait(false);
+            var definition = await stackTraceExplorerService.TryFindDefinitionAsync(workspace.CurrentSolution, parsedFrame.UnderlyingObject, StackFrameSymbolPart.Method, cancellationToken).ConfigureAwait(false);
             return definition is null
                 ? null
                 : new UnitTestingDefinitionItemWrapper(definition);

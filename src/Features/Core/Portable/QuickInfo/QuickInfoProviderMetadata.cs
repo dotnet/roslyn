@@ -7,11 +7,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
-    internal class QuickInfoProviderMetadata : OrderableLanguageMetadata
+    internal class QuickInfoProviderMetadata(IDictionary<string, object> data) : OrderableLanguageMetadata(data)
     {
-        public QuickInfoProviderMetadata(IDictionary<string, object> data)
-            : base(data)
-        {
-        }
     }
 }

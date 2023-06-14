@@ -14,14 +14,8 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 {
     internal static partial class ValueTracker
     {
-        private class FindReferencesProgress : IStreamingFindReferencesProgress, IStreamingProgressTracker
+        private class FindReferencesProgress(OperationCollector valueTrackingProgressCollector) : IStreamingFindReferencesProgress, IStreamingProgressTracker
         {
-            private readonly OperationCollector _operationCollector;
-            public FindReferencesProgress(OperationCollector valueTrackingProgressCollector)
-            {
-                _operationCollector = valueTrackingProgressCollector;
-            }
-
             public IStreamingProgressTracker ProgressTracker => this;
 
             public ValueTask AddItemsAsync(int count, CancellationToken _) => new();
@@ -72,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                     if (syntaxFacts.IsLeftSideOfAnyAssignment(node))
                     {
-                        await AddItemsFromAssignmentAsync(location.Document, node, _operationCollector, cancellationToken).ConfigureAwait(false);
+                        await AddItemsFromAssignmentAsync(location.Document, node, valueTrackingProgressCollector, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
@@ -83,7 +77,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                             return;
                         }
 
-                        await _operationCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
+                        await valueTrackingProgressCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 else if (symbol is IPropertySymbol { IsIndexer: true } propertySymbol)
@@ -111,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                             var argumentOperation = semanticModel.GetOperation(argument, cancellationToken);
                             if (argumentOperation is not null)
                             {
-                                await _operationCollector.VisitAsync(argumentOperation, cancellationToken).ConfigureAwait(false);
+                                await valueTrackingProgressCollector.VisitAsync(argumentOperation, cancellationToken).ConfigureAwait(false);
                             }
                         }
                     }
@@ -129,7 +123,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         var expressionOperation = semanticModel.GetOperation(expression, cancellationToken);
                         if (expressionOperation is not null)
                         {
-                            await _operationCollector.VisitAsync(expressionOperation, cancellationToken).ConfigureAwait(false);
+                            await valueTrackingProgressCollector.VisitAsync(expressionOperation, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
@@ -157,7 +151,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     return;
                 }
 
-                await _operationCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
+                await valueTrackingProgressCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task TrackMethodInvocationArgumentsAsync(ReferenceLocation referenceLocation, CancellationToken cancellationToken)
@@ -187,7 +181,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     return;
                 }
 
-                await _operationCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
+                await valueTrackingProgressCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
             }
         }
     }

@@ -4,22 +4,16 @@
 
 namespace Microsoft.CodeAnalysis.UnusedReferences
 {
-    internal sealed class ReferenceUpdate
+    internal sealed class ReferenceUpdate(UpdateAction action, ReferenceInfo referenceInfo)
     {
         /// <summary>
         /// Indicates action to perform on the reference.
         /// </summary>
-        public UpdateAction Action { get; set; }
+        public UpdateAction Action { get; set; } = action;
 
         /// <summary>
         /// Gets the reference to be updated.
         /// </summary>
-        public ReferenceInfo ReferenceInfo { get; }
-
-        public ReferenceUpdate(UpdateAction action, ReferenceInfo referenceInfo)
-        {
-            Action = action;
-            ReferenceInfo = referenceInfo;
-        }
+        public ReferenceInfo ReferenceInfo { get; } = referenceInfo;
     }
 }

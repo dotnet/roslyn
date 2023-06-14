@@ -27,14 +27,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal sealed class EditAndContinueService : IEditAndContinueService
     {
         [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
-        internal sealed class WorkspaceService : IEditAndContinueWorkspaceService
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class WorkspaceService(IEditAndContinueService service) : IEditAndContinueWorkspaceService
         {
-            public IEditAndContinueService Service { get; }
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public WorkspaceService(IEditAndContinueService service)
-                => Service = service;
+            public IEditAndContinueService Service { get; } = service;
         }
 
         internal static readonly TraceLog Log;
@@ -263,23 +260,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(EditAndContinueService service)
         {
-            private readonly EditAndContinueService _service;
-
-            public TestAccessor(EditAndContinueService service)
-            {
-                _service = service;
-            }
-
             public void SetOutputProvider(Func<Project, CompilationOutputs> value)
-                => _service._compilationOutputsProvider = value;
+                => service._compilationOutputsProvider = value;
 
             public DebuggingSession GetDebuggingSession(DebuggingSessionId id)
-                => _service.TryGetDebuggingSession(id) ?? throw ExceptionUtilities.UnexpectedValue(id);
+                => service.TryGetDebuggingSession(id) ?? throw ExceptionUtilities.UnexpectedValue(id);
 
             public ImmutableArray<DebuggingSession> GetActiveDebuggingSessions()
-                => _service.GetActiveDebuggingSessions();
+                => service.GetActiveDebuggingSessions();
 
         }
     }

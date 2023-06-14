@@ -17,24 +17,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal partial class UnitTestingWorkCoordinator
         {
-            private abstract class UnitTestingAsyncWorkItemQueue<TKey> : IDisposable
+            private abstract class UnitTestingAsyncWorkItemQueue<TKey>(UnitTestingSolutionCrawlerProgressReporter progressReporter) : IDisposable
                 where TKey : class
             {
                 private readonly object _gate = new();
-                private readonly SemaphoreSlim _semaphore;
+                private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 0);
                 private bool _disposed;
-
-                private readonly UnitTestingSolutionCrawlerProgressReporter _progressReporter;
 
                 // map containing cancellation source for the item given out.
                 private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new();
-
-                public UnitTestingAsyncWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter)
-                {
-                    _semaphore = new SemaphoreSlim(initialCount: 0);
-
-                    _progressReporter = progressReporter;
-                }
 
                 protected abstract int WorkItemCount_NoLock { get; }
 
@@ -104,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             //    but there can be still work in progress
                             // 6. all works are considered done when last item is marked done by MarkWorkItemDoneFor
                             //    and at the point, we will set progress to stop.
-                            _progressReporter.Start();
+                            progressReporter.Start();
 
                             // increase count 
                             _semaphore.Release();
@@ -127,7 +118,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         // every works enqueued by "AddOrReplace" will be processed
                         // at some point, and when it is processed, this method will be called to mark
                         // work has been done.
-                        _progressReporter.Stop();
+                        progressReporter.Stop();
                     }
                 }
 

@@ -6,10 +6,8 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQNamespace : RQTypeOrNamespace
+    internal class RQNamespace(IList<string> namespaceNames) : RQTypeOrNamespace(namespaceNames)
     {
-        public RQNamespace(IList<string> namespaceNames) : base(namespaceNames) { }
-
         protected override string RQKeyword
         {
             get { return RQNameStrings.Namespace; }

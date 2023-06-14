@@ -19,19 +19,11 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// SearchScope used for searching *only* the source symbols contained within a project/compilation.
         /// i.e. symbols from metadata will not be searched.
         /// </summary>
-        private class SourceSymbolsProjectSearchScope : ProjectSearchScope
+        private class SourceSymbolsProjectSearchScope(
+            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+            ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly,
+            Project project, bool ignoreCase) : ProjectSearchScope(provider, project, ignoreCase)
         {
-            private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> _projectToAssembly;
-
-            public SourceSymbolsProjectSearchScope(
-                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly,
-                Project project, bool ignoreCase)
-                : base(provider, project, ignoreCase)
-            {
-                _projectToAssembly = projectToAssembly;
-            }
-
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
                 SymbolFilter filter, SearchQuery searchQuery, CancellationToken cancellationToken)
             {
@@ -46,7 +38,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // Don't create the assembly until it is actually needed by the SymbolTreeInfo.FindAsync
                 // code.  Creating the assembly can be costly and we want to avoid it until it is actually
                 // needed.
-                var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
+                var lazyAssembly = projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
 
                 var declarations = await info.FindAsync(
                     searchQuery, lazyAssembly, filter, cancellationToken).ConfigureAwait(false);

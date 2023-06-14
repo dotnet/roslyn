@@ -13,25 +13,21 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
-    internal abstract class AbstractAddMissingImportsRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService? pasteTrackingService) : CodeRefactoringProvider
     {
-        private readonly IPasteTrackingService? _pasteTrackingService;
         protected abstract string CodeActionTitle { get; }
-
-        public AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService? pasteTrackingService)
-            => _pasteTrackingService = pasteTrackingService;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             // If we aren't in a host that supports paste tracking, we can't do anything. This is just to avoid creating MEF part rejections for
             // things composing the Features layer.
-            if (_pasteTrackingService == null)
+            if (pasteTrackingService == null)
                 return;
 
             var (document, _, cancellationToken) = context;
             // Currently this refactoring requires the SourceTextContainer to have a pasted text span.
             var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            if (!_pasteTrackingService.TryGetPastedTextSpan(sourceText.Container, out var textSpan))
+            if (!pasteTrackingService.TryGetPastedTextSpan(sourceText.Container, out var textSpan))
             {
                 return;
             }

@@ -238,20 +238,15 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             return (projectChanges, textChanges);
         }
 
-        protected sealed class CleanUpNewLinesFormatter : AbstractFormattingRule
+        protected sealed class CleanUpNewLinesFormatter(SourceText text) : AbstractFormattingRule
         {
-            private readonly SourceText _text;
-
-            public CleanUpNewLinesFormatter(SourceText text)
-                => _text = text;
-
             public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // Since we know the general shape of these new import statements, we simply look for where
                 // tokens are not on the same line and force them to only be separated by a single newline.
 
-                _text.GetLineAndOffset(previousToken.Span.Start, out var previousLine, out _);
-                _text.GetLineAndOffset(currentToken.Span.Start, out var currentLine, out _);
+                text.GetLineAndOffset(previousToken.Span.Start, out var previousLine, out _);
+                text.GetLineAndOffset(currentToken.Span.Start, out var currentLine, out _);
 
                 if (previousLine != currentLine)
                 {

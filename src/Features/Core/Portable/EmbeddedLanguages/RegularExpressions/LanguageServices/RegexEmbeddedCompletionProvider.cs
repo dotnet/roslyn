@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
     using static FeaturesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal sealed partial class RegexEmbeddedCompletionProvider : EmbeddedLanguageCompletionProvider
+    internal sealed partial class RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language) : EmbeddedLanguageCompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -34,11 +34,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         private static readonly CompletionItemRules s_rules =
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, Array.Empty<char>()));
-
-        private readonly RegexEmbeddedLanguage _language;
-
-        public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language)
-            => _language = language;
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(
             '\\', // any escape
@@ -77,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             }
 
             var position = context.Position;
-            var (tree, stringToken) = await _language.TryGetTreeAndTokenAtPositionAsync(
+            var (tree, stringToken) = await language.TryGetTreeAndTokenAtPositionAsync(
                 context.Document, position, context.CancellationToken).ConfigureAwait(false);
 
             if (tree == null ||
@@ -87,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                 return;
             }
 
-            var embeddedContext = new EmbeddedCompletionContext(_language, context, tree, stringToken);
+            var embeddedContext = new EmbeddedCompletionContext(language, context, tree, stringToken);
             ProvideCompletions(embeddedContext);
 
             if (embeddedContext.Items.Count == 0)

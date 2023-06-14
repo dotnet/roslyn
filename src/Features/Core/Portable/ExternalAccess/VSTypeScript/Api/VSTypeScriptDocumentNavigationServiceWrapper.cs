@@ -10,19 +10,10 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal readonly struct VSTypeScriptDocumentNavigationServiceWrapper
+    internal readonly struct VSTypeScriptDocumentNavigationServiceWrapper(
+        IDocumentNavigationService underlyingObject,
+        IWorkspaceThreadingServiceProvider threadingProvider)
     {
-        private readonly IDocumentNavigationService _underlyingObject;
-        private readonly IWorkspaceThreadingServiceProvider _threadingProvider;
-
-        public VSTypeScriptDocumentNavigationServiceWrapper(
-            IDocumentNavigationService underlyingObject,
-            IWorkspaceThreadingServiceProvider threadingProvider)
-        {
-            _underlyingObject = underlyingObject;
-            _threadingProvider = threadingProvider;
-        }
-
         public static VSTypeScriptDocumentNavigationServiceWrapper Create(Workspace workspace)
             => new(workspace.Services.GetRequiredService<IDocumentNavigationService>(),
                    workspace.Services.GetRequiredService<IWorkspaceThreadingServiceProvider>());
@@ -34,8 +25,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         [Obsolete("Call overload that doesn't take options", error: false)]
         public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet? options, CancellationToken cancellationToken)
         {
-            var obj = _underlyingObject;
-            return _threadingProvider.Service.Run(async () =>
+            var obj = underlyingObject;
+            return threadingProvider.Service.Run(async () =>
             {
                 var location = await obj.GetLocationForPositionAsync(
                     workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);
@@ -46,8 +37,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 
         public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
-            var obj = _underlyingObject;
-            return _threadingProvider.Service.Run(async () =>
+            var obj = underlyingObject;
+            return threadingProvider.Service.Run(async () =>
             {
                 var location = await obj.GetLocationForPositionAsync(
                     workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);

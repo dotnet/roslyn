@@ -18,21 +18,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 {
     internal partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
     {
-        private sealed class GenerateLocalCodeAction : CodeAction
+        private sealed class GenerateLocalCodeAction(TService service, Document document, State state, CodeGenerationOptionsProvider fallbackOptions) : CodeAction
         {
-            private readonly TService _service;
-            private readonly Document _document;
-            private readonly State _state;
-            private readonly CodeGenerationOptionsProvider _fallbackOptions;
-
-            public GenerateLocalCodeAction(TService service, Document document, State state, CodeGenerationOptionsProvider fallbackOptions)
-            {
-                _service = service;
-                _document = document;
-                _state = state;
-                _fallbackOptions = fallbackOptions;
-            }
-
             public override string Title
             {
                 get
@@ -41,39 +28,39 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                     return string.Format(
                         text,
-                        _state.IdentifierToken.ValueText);
+                        state.IdentifierToken.ValueText);
                 }
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var newRoot = await GetNewRootAsync(cancellationToken).ConfigureAwait(false);
-                var newDocument = _document.WithSyntaxRoot(newRoot);
+                var newDocument = document.WithSyntaxRoot(newRoot);
 
                 return newDocument;
             }
 
             private async Task<SyntaxNode> GetNewRootAsync(CancellationToken cancellationToken)
             {
-                var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, semanticModel, cancellationToken, out var newRoot))
+                if (service.TryConvertToLocalDeclaration(state.LocalType, state.IdentifierToken, semanticModel, cancellationToken, out var newRoot))
                 {
                     return newRoot;
                 }
 
-                var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
-                var initializer = _state.IsOnlyWrittenTo
+                var syntaxFactory = document.GetLanguageService<SyntaxGenerator>();
+                var initializer = state.IsOnlyWrittenTo
                     ? null
-                    : syntaxFactory.DefaultExpression(_state.LocalType);
+                    : syntaxFactory.DefaultExpression(state.LocalType);
 
-                var type = _state.LocalType;
-                var localStatement = syntaxFactory.LocalDeclarationStatement(type, _state.IdentifierToken.ValueText, initializer);
+                var type = state.LocalType;
+                var localStatement = syntaxFactory.LocalDeclarationStatement(type, state.IdentifierToken.ValueText, initializer);
                 localStatement = localStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
-                var root = _state.IdentifierToken.GetAncestors<SyntaxNode>().Last();
-                var context = new CodeGenerationContext(beforeThisLocation: _state.IdentifierToken.GetLocation());
-                var info = await _document.GetCodeGenerationInfoAsync(context, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var root = state.IdentifierToken.GetAncestors<SyntaxNode>().Last();
+                var context = new CodeGenerationContext(beforeThisLocation: state.IdentifierToken.GetLocation());
+                var info = await document.GetCodeGenerationInfoAsync(context, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 return info.Service.AddStatements(
                     root,

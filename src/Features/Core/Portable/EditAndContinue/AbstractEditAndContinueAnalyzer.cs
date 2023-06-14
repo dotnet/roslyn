@@ -894,22 +894,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal readonly struct ActiveNode
+        internal readonly struct ActiveNode(int activeStatementIndex, SyntaxNode oldNode, SyntaxNode? enclosingLambdaBody, int statementPart, SyntaxNode? newTrackedNode)
         {
-            public readonly int ActiveStatementIndex;
-            public readonly SyntaxNode OldNode;
-            public readonly SyntaxNode? NewTrackedNode;
-            public readonly SyntaxNode? EnclosingLambdaBody;
-            public readonly int StatementPart;
-
-            public ActiveNode(int activeStatementIndex, SyntaxNode oldNode, SyntaxNode? enclosingLambdaBody, int statementPart, SyntaxNode? newTrackedNode)
-            {
-                ActiveStatementIndex = activeStatementIndex;
-                OldNode = oldNode;
-                NewTrackedNode = newTrackedNode;
-                EnclosingLambdaBody = enclosingLambdaBody;
-                StatementPart = statementPart;
-            }
+            public readonly int ActiveStatementIndex = activeStatementIndex;
+            public readonly SyntaxNode OldNode = oldNode;
+            public readonly SyntaxNode? NewTrackedNode = newTrackedNode;
+            public readonly SyntaxNode? EnclosingLambdaBody = enclosingLambdaBody;
+            public readonly int StatementPart = statementPart;
         }
 
         /// <summary>
@@ -2367,21 +2358,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private readonly struct ConstructorEdit
+        private readonly struct ConstructorEdit(INamedTypeSymbol oldType)
         {
-            public readonly INamedTypeSymbol OldType;
+            public readonly INamedTypeSymbol OldType = oldType;
 
             /// <summary>
             /// Contains syntax maps for all changed data member initializers or constructor declarations (of constructors emitting initializers)
             /// in the currently analyzed document. The key is the declaration of the member.
             /// </summary>
-            public readonly Dictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode?>?> ChangedDeclarations;
-
-            public ConstructorEdit(INamedTypeSymbol oldType)
-            {
-                OldType = oldType;
-                ChangedDeclarations = new Dictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode?>?>();
-            }
+            public readonly Dictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode?>?> ChangedDeclarations = new Dictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode?>?>();
         }
 
         protected virtual bool IsRudeEditDueToPrimaryConstructor(ISymbol symbol, CancellationToken cancellationToken)
@@ -6262,22 +6247,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(AbstractEditAndContinueAnalyzer abstractEditAndContinueAnalyzer)
         {
-            private readonly AbstractEditAndContinueAnalyzer _abstractEditAndContinueAnalyzer;
-
-            public TestAccessor(AbstractEditAndContinueAnalyzer abstractEditAndContinueAnalyzer)
-                => _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
-
             internal void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, EditScript<SyntaxNode> syntacticEdits, Dictionary<SyntaxNode, EditKind> editMap)
-                => _abstractEditAndContinueAnalyzer.ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
+                => abstractEditAndContinueAnalyzer.ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
 
             internal BidirectionalMap<SyntaxNode> ComputeMap(
                 Match<SyntaxNode> bodyMatch,
                 ArrayBuilder<ActiveNode> memberBodyActiveNodes,
                 ref Dictionary<SyntaxNode, LambdaInfo>? lazyActiveOrMatchedLambdas)
             {
-                return _abstractEditAndContinueAnalyzer.ComputeMap(bodyMatch, memberBodyActiveNodes, ref lazyActiveOrMatchedLambdas);
+                return abstractEditAndContinueAnalyzer.ComputeMap(bodyMatch, memberBodyActiveNodes, ref lazyActiveOrMatchedLambdas);
             }
         }
 

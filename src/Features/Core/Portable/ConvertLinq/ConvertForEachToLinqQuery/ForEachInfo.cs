@@ -8,38 +8,27 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 {
-    internal readonly struct ForEachInfo<TForEachStatement, TStatement>
+    internal readonly struct ForEachInfo<TForEachStatement, TStatement>(
+        TForEachStatement forEachStatement,
+        SemanticModel semanticModel,
+        ImmutableArray<ExtendedSyntaxNode> convertingExtendedNodes,
+        ImmutableArray<SyntaxToken> identifiers,
+        ImmutableArray<TStatement> statements,
+        ImmutableArray<SyntaxToken> leadingTokens,
+        ImmutableArray<SyntaxToken> trailingTokens)
     {
-        public TForEachStatement ForEachStatement { get; }
+        public TForEachStatement ForEachStatement { get; } = forEachStatement;
 
-        public SemanticModel SemanticModel { get; }
+        public SemanticModel SemanticModel { get; } = semanticModel;
 
-        public ImmutableArray<ExtendedSyntaxNode> ConvertingExtendedNodes { get; }
+        public ImmutableArray<ExtendedSyntaxNode> ConvertingExtendedNodes { get; } = convertingExtendedNodes;
 
-        public ImmutableArray<SyntaxToken> Identifiers { get; }
+        public ImmutableArray<SyntaxToken> Identifiers { get; } = identifiers;
 
-        public ImmutableArray<TStatement> Statements { get; }
+        public ImmutableArray<TStatement> Statements { get; } = statements;
 
-        public ImmutableArray<SyntaxToken> LeadingTokens { get; }
+        public ImmutableArray<SyntaxToken> LeadingTokens { get; } = leadingTokens;
 
-        public ImmutableArray<SyntaxToken> TrailingTokens { get; }
-
-        public ForEachInfo(
-            TForEachStatement forEachStatement,
-            SemanticModel semanticModel,
-            ImmutableArray<ExtendedSyntaxNode> convertingExtendedNodes,
-            ImmutableArray<SyntaxToken> identifiers,
-            ImmutableArray<TStatement> statements,
-            ImmutableArray<SyntaxToken> leadingTokens,
-            ImmutableArray<SyntaxToken> trailingTokens)
-        {
-            ForEachStatement = forEachStatement;
-            SemanticModel = semanticModel;
-            ConvertingExtendedNodes = convertingExtendedNodes;
-            Identifiers = identifiers;
-            Statements = statements;
-            LeadingTokens = leadingTokens;
-            TrailingTokens = trailingTokens;
-        }
+        public ImmutableArray<SyntaxToken> TrailingTokens { get; } = trailingTokens;
     }
 }

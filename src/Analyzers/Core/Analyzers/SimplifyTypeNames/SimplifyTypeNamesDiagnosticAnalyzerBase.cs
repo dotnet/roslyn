@@ -192,9 +192,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        private class AnalyzerImpl
+        private class AnalyzerImpl(SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions> analyzer)
         {
-            private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions> _analyzer;
 
             /// <summary>
             /// Tracks the analysis state of syntax trees in a compilation. Each syntax tree has the properties:
@@ -221,12 +220,9 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? intervalTree)> _codeBlockIntervals
                 = new();
 
-            public AnalyzerImpl(SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions> analyzer)
-                => _analyzer = analyzer;
-
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
             {
-                if (_analyzer.IsIgnoredCodeBlock(context.CodeBlock))
+                if (analyzer.IsIgnoredCodeBlock(context.CodeBlock))
                     return;
 
                 var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.CodeBlock.SyntaxTree, _ => (new StrongBox<bool>(false), SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), Array.Empty<TextSpan>())));
@@ -238,7 +234,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                     return;
 
                 var root = context.GetAnalysisRoot(findInTrivia: true);
-                var diagnostics = _analyzer.AnalyzeCodeBlock(context, root);
+                var diagnostics = analyzer.AnalyzeCodeBlock(context, root);
 
                 // After this point, cancellation is not allowed due to possible state alteration
                 if (!TryProceedWithInterval(addIfAvailable: root == context.CodeBlock, context.CodeBlock.FullSpan, completed, intervalTree))
@@ -294,7 +290,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 }
 
                 var root = context.GetAnalysisRoot(findInTrivia: true);
-                var diagnostics = _analyzer.AnalyzeSemanticModel(context, root, intervalTree);
+                var diagnostics = analyzer.AnalyzeSemanticModel(context, root, intervalTree);
 
                 // After this point, cancellation is not allowed due to possible state alteration
                 foreach (var diagnostic in diagnostics)

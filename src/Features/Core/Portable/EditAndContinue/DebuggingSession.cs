@@ -823,37 +823,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(DebuggingSession instance)
         {
-            private readonly DebuggingSession _instance;
-
-            public TestAccessor(DebuggingSession instance)
-                => _instance = instance;
-
             public ImmutableHashSet<Guid> GetModulesPreparedForUpdate()
             {
-                lock (_instance._modulesPreparedForUpdateGuard)
+                lock (instance._modulesPreparedForUpdateGuard)
                 {
-                    return _instance._modulesPreparedForUpdate.ToImmutableHashSet();
+                    return instance._modulesPreparedForUpdate.ToImmutableHashSet();
                 }
             }
 
             public EmitBaseline GetProjectEmitBaseline(ProjectId id)
             {
-                lock (_instance._projectEmitBaselinesGuard)
+                lock (instance._projectEmitBaselinesGuard)
                 {
-                    return _instance._projectBaselines[id].EmitBaseline;
+                    return instance._projectBaselines[id].EmitBaseline;
                 }
             }
 
             public ImmutableArray<IDisposable> GetBaselineModuleReaders()
-                => _instance.GetBaselineModuleReaders();
+                => instance.GetBaselineModuleReaders();
 
             public PendingUpdate? GetPendingSolutionUpdate()
-                => _instance._pendingUpdate;
+                => instance._pendingUpdate;
 
             public void SetTelemetryLogger(Action<FunctionId, LogMessage> logger, Func<int> getNextId)
-                => _instance._reportTelemetry = data => DebuggingSessionTelemetry.Log(data, logger, getNextId);
+                => instance._reportTelemetry = data => DebuggingSessionTelemetry.Log(data, logger, getNextId);
         }
     }
 }

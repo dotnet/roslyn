@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string s_suppressionPrefix = "~";
 
         [StructLayout(LayoutKind.Auto)]
-        private struct TargetSymbolResolver
+        private struct TargetSymbolResolver(Compilation compilation, TargetScope scope, string fullyQualifiedName)
         {
             private static readonly char[] s_nameDelimiters = { ':', '.', '+', '(', ')', '<', '>', '[', ']', '{', '}', ',', '&', '*', '`' };
             private static readonly string[] s_callingConventionStrings =
@@ -33,19 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
 
             private static readonly ParameterInfo[] s_noParameters = Array.Empty<ParameterInfo>();
-
-            private readonly Compilation _compilation;
-            private readonly TargetScope _scope;
-            private readonly string _name;
-            private int _index;
-
-            public TargetSymbolResolver(Compilation compilation, TargetScope scope, string fullyQualifiedName)
-            {
-                _compilation = compilation;
-                _scope = scope;
-                _name = fullyQualifiedName;
-                _index = 0;
-            }
+            private int _index = 0;
 
             private static string RemovePrefix(string id, string prefix)
             {
@@ -65,14 +53,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public ImmutableArray<ISymbol> Resolve(out bool resolvedWithDocCommentIdFormat)
             {
                 resolvedWithDocCommentIdFormat = false;
-                if (string.IsNullOrEmpty(_name))
+                if (string.IsNullOrEmpty(fullyQualifiedName))
                 {
                     return ImmutableArray<ISymbol>.Empty;
                 }
 
                 // Try to parse the name as declaration ID generated from symbol's documentation comment Id.
-                var nameWithoutPrefix = RemovePrefix(_name, s_suppressionPrefix);
-                var docIdResults = DocumentationCommentId.GetSymbolsForDeclarationId(nameWithoutPrefix, _compilation);
+                var nameWithoutPrefix = RemovePrefix(fullyQualifiedName, s_suppressionPrefix);
+                var docIdResults = DocumentationCommentId.GetSymbolsForDeclarationId(nameWithoutPrefix, compilation);
                 if (docIdResults.Length > 0)
                 {
                     resolvedWithDocCommentIdFormat = true;
@@ -83,13 +71,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Parse 'e:' prefix used by FxCop to differentiate between event and non-event symbols of the same name.
                 bool isEvent = false;
-                if (_name.Length >= 2 && _name[0] == 'e' && _name[1] == ':')
+                if (fullyQualifiedName.Length >= 2 && fullyQualifiedName[0] == 'e' && fullyQualifiedName[1] == ':')
                 {
                     isEvent = true;
                     _index = 2;
                 }
 
-                INamespaceOrTypeSymbol containingSymbol = _compilation.GlobalNamespace;
+                INamespaceOrTypeSymbol containingSymbol = compilation.GlobalNamespace;
                 bool? segmentIsNamedTypeName = null;
 
                 while (true)
@@ -101,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (segment == "Item" && PeekNextChar() == '[')
                     {
                         isIndexerProperty = true;
-                        if (_compilation.Language == LanguageNames.CSharp)
+                        if (compilation.Language == LanguageNames.CSharp)
                         {
                             segment = "this[]";
                         }
@@ -126,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ParameterInfo[] parameters = null;
 
                     // Check for generic arity
-                    if (_scope != TargetScope.Namespace && PeekNextChar() == '`')
+                    if (scope != TargetScope.Namespace && PeekNextChar() == '`')
                     {
                         ++_index;
                         arity = ReadNextInteger();
@@ -178,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    if (_scope == TargetScope.Member && !isIndexerProperty && parameters != null)
+                    if (scope == TargetScope.Member && !isIndexerProperty && parameters != null)
                     {
                         TypeInfo? returnType = null;
                         if (PeekNextChar() == ':')
@@ -197,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     ISymbol singleResult;
 
-                    switch (_scope)
+                    switch (scope)
                     {
                         case TargetScope.Namespace:
                             singleResult = candidateMembers.FirstOrDefault(s => s.Kind == SymbolKind.Namespace);
@@ -225,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             break;
 
                         default:
-                            throw ExceptionUtilities.UnexpectedValue(_scope);
+                            throw ExceptionUtilities.UnexpectedValue(scope);
                     }
 
                     if (singleResult != null)
@@ -254,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         foreach (string callingConvention in s_callingConventionStrings)
                         {
-                            if (callingConvention == _name.Substring(_index, callingConvention.Length))
+                            if (callingConvention == fullyQualifiedName.Substring(_index, callingConvention.Length))
                             {
                                 _index += callingConvention.Length;
                                 break;
@@ -267,18 +255,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Find the end of the next name segment, special case constructors which start with '.'
                 int delimiterOffset = PeekNextChar() == '.' ?
-                    _name.IndexOfAny(s_nameDelimiters, _index + 1) :
-                    _name.IndexOfAny(s_nameDelimiters, _index);
+                    fullyQualifiedName.IndexOfAny(s_nameDelimiters, _index + 1) :
+                    fullyQualifiedName.IndexOfAny(s_nameDelimiters, _index);
 
                 if (delimiterOffset >= 0)
                 {
-                    segment = _name[_index..delimiterOffset];
+                    segment = fullyQualifiedName[_index..delimiterOffset];
                     _index = delimiterOffset;
                 }
                 else
                 {
-                    segment = _name[_index..];
-                    _index = _name.Length;
+                    segment = fullyQualifiedName[_index..];
+                    _index = fullyQualifiedName.Length;
                 }
 
                 return segment;
@@ -286,16 +274,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private char PeekNextChar()
             {
-                return _index >= _name.Length ? '\0' : _name[_index];
+                return _index >= fullyQualifiedName.Length ? '\0' : fullyQualifiedName[_index];
             }
 
             private int ReadNextInteger()
             {
                 int n = 0;
 
-                while (_index < _name.Length && char.IsDigit(_name[_index]))
+                while (_index < fullyQualifiedName.Length && char.IsDigit(fullyQualifiedName[_index]))
                 {
-                    n = n * 10 + (_name[_index] - '0');
+                    n = n * 10 + (fullyQualifiedName[_index] - '0');
                     ++_index;
                 }
 
@@ -425,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         if (nextChar == '*')
                         {
                             ++_index;
-                            typeSymbol = _compilation.CreatePointerTypeSymbol(typeSymbol);
+                            typeSymbol = compilation.CreatePointerTypeSymbol(typeSymbol);
                             continue;
                         }
 
@@ -453,14 +441,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // overloads a method from metadata which uses custom modifiers.
                 if (PeekNextChar() == '{')
                 {
-                    for (; _index < _name.Length && _name[_index] != '}'; ++_index) { }
+                    for (; _index < fullyQualifiedName.Length && fullyQualifiedName[_index] != '}'; ++_index) { }
                 }
             }
 
             private void IgnorePointerAndArraySpecifiers()
             {
                 bool inBrackets = false;
-                for (; _index < _name.Length; ++_index)
+                for (; _index < fullyQualifiedName.Length; ++_index)
                 {
                     switch (PeekNextChar())
                     {
@@ -573,7 +561,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private TypeInfo? ParseNamedType(ISymbol bindingContext)
             {
-                INamespaceOrTypeSymbol containingSymbol = _compilation.GlobalNamespace;
+                INamespaceOrTypeSymbol containingSymbol = compilation.GlobalNamespace;
 
                 int startIndex = _index;
 
@@ -709,7 +697,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     else if (nextChar == ']')
                     {
                         ++_index;
-                        return _compilation.CreateArrayTypeSymbol(typeSymbol, rank);
+                        return compilation.CreateArrayTypeSymbol(typeSymbol, rank);
                     }
                     else if (!char.IsDigit(nextChar) && nextChar != '.')
                     {
@@ -893,16 +881,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             [StructLayout(LayoutKind.Auto)]
-            private readonly struct ParameterInfo
+            private readonly struct ParameterInfo(TypeInfo type, bool isRefOrOut)
             {
-                public readonly TypeInfo Type;
-                public readonly bool IsRefOrOut;
-
-                public ParameterInfo(TypeInfo type, bool isRefOrOut)
-                {
-                    this.Type = type;
-                    this.IsRefOrOut = isRefOrOut;
-                }
+                public readonly TypeInfo Type = type;
+                public readonly bool IsRefOrOut = isRefOrOut;
             }
         }
     }

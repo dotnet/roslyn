@@ -9,16 +9,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportSignatureHelpProviderAttribute : ExportAttribute
+    internal class ExportSignatureHelpProviderAttribute(string name, string language) : ExportAttribute(typeof(ISignatureHelpProvider))
     {
-        public string Name { get; }
-        public string Language { get; }
-
-        public ExportSignatureHelpProviderAttribute(string name, string language)
-            : base(typeof(ISignatureHelpProvider))
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            Language = language ?? throw new ArgumentNullException(nameof(language));
-        }
+        public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
+        public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
     }
 }

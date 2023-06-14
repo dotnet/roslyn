@@ -28,21 +28,13 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         void RemoveSetMethod(SyntaxEditor editor, SyntaxNode setMethodDeclaration);
     }
 
-    internal readonly struct GetAndSetMethods
+    internal readonly struct GetAndSetMethods(
+        IMethodSymbol getMethod, IMethodSymbol setMethod,
+        SyntaxNode getMethodDeclaration, SyntaxNode setMethodDeclaration)
     {
-        public readonly IMethodSymbol GetMethod;
-        public readonly IMethodSymbol SetMethod;
-        public readonly SyntaxNode GetMethodDeclaration;
-        public readonly SyntaxNode SetMethodDeclaration;
-
-        public GetAndSetMethods(
-            IMethodSymbol getMethod, IMethodSymbol setMethod,
-            SyntaxNode getMethodDeclaration, SyntaxNode setMethodDeclaration)
-        {
-            GetMethod = getMethod;
-            SetMethod = setMethod;
-            GetMethodDeclaration = getMethodDeclaration;
-            SetMethodDeclaration = setMethodDeclaration;
-        }
+        public readonly IMethodSymbol GetMethod = getMethod;
+        public readonly IMethodSymbol SetMethod = setMethod;
+        public readonly SyntaxNode GetMethodDeclaration = getMethodDeclaration;
+        public readonly SyntaxNode SetMethodDeclaration = setMethodDeclaration;
     }
 }

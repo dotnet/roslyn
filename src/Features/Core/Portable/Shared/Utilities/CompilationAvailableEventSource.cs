@@ -19,20 +19,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// is asked for for a particular project, any existing outstanding work to produce a <see cref="Compilation"/> for
     /// a prior <see cref="Project"/> will be cancelled.
     /// </summary>
-    internal class CompilationAvailableEventSource : IDisposable
+    internal class CompilationAvailableEventSource(
+        IAsynchronousOperationListener asyncListener) : IDisposable
     {
-        private readonly IAsynchronousOperationListener _asyncListener;
 
         /// <summary>
         /// Cancellation tokens controlling background computation of the compilation.
         /// </summary>
         private readonly ReferenceCountedDisposable<CancellationSeries> _cancellationSeries = new(new CancellationSeries());
-
-        public CompilationAvailableEventSource(
-            IAsynchronousOperationListener asyncListener)
-        {
-            _asyncListener = asyncListener;
-        }
 
         public void Dispose()
             => _cancellationSeries.Dispose();
@@ -61,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             // it and notify any listening clients.
             var cancellationToken = cancellationSeries.Target.CreateNext();
 
-            var token = _asyncListener.BeginAsyncOperation(nameof(EnsureCompilationAvailability));
+            var token = asyncListener.BeginAsyncOperation(nameof(EnsureCompilationAvailability));
             var task = Task.Run(async () =>
             {
                 // Support cancellation without throwing.
@@ -70,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // changes to their code.  During that time, features that use this are already kicking off fast work
                 // with frozen-partial semantics and we'd like that to not have to contend with more expensive work
                 // kicked off in OOP to compute full compilations.
-                await _asyncListener.Delay(DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitableInternal(captureContext: false);
+                await asyncListener.Delay(DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitableInternal(captureContext: false);
                 if (cancellationToken.IsCancellationRequested)
                     return;
 

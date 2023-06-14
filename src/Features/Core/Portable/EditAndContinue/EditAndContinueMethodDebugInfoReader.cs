@@ -109,17 +109,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => TryGetDocumentChecksum(_symReader, documentPath, out checksum, out algorithmId);
         }
 
-        private sealed class Portable : EditAndContinueMethodDebugInfoReader
+        private sealed class Portable(MetadataReader pdbReader) : EditAndContinueMethodDebugInfoReader
         {
-            private readonly MetadataReader _pdbReader;
-
-            public Portable(MetadataReader pdbReader)
-                => _pdbReader = pdbReader;
-
             public override bool IsPortable => true;
 
             public override StandaloneSignatureHandle GetLocalSignature(MethodDefinitionHandle methodHandle)
-                => _pdbReader.GetMethodDebugInformation(methodHandle.ToDebugInformationHandle()).LocalSignature;
+                => pdbReader.GetMethodDebugInformation(methodHandle.ToDebugInformationHandle()).LocalSignature;
 
             public override EditAndContinueMethodDebugInformation GetDebugInfo(MethodDefinitionHandle methodHandle)
                 => EditAndContinueMethodDebugInformation.Create(
@@ -128,8 +123,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     compressedStateMachineStateMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncStateMachineStateMap));
 
             private ImmutableArray<byte> GetCdiBytes(MethodDefinitionHandle methodHandle, Guid kind)
-                => TryGetCustomDebugInformation(_pdbReader, methodHandle, kind, out var cdi) ?
-                    _pdbReader.GetBlobContent(cdi.Value) : default;
+                => TryGetCustomDebugInformation(pdbReader, methodHandle, kind, out var cdi) ?
+                    pdbReader.GetBlobContent(cdi.Value) : default;
 
             /// <exception cref="BadImageFormatException">Invalid data format.</exception>
             private static bool TryGetCustomDebugInformation(MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
@@ -157,14 +152,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             public override bool TryGetDocumentChecksum(string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId)
             {
-                foreach (var documentHandle in _pdbReader.Documents)
+                foreach (var documentHandle in pdbReader.Documents)
                 {
-                    var document = _pdbReader.GetDocument(documentHandle);
+                    var document = pdbReader.GetDocument(documentHandle);
 
-                    if (_pdbReader.StringComparer.Equals(document.Name, documentPath, IgnoreCaseWhenComparingDocumentNames))
+                    if (pdbReader.StringComparer.Equals(document.Name, documentPath, IgnoreCaseWhenComparingDocumentNames))
                     {
-                        checksum = _pdbReader.GetBlobContent(document.Hash);
-                        algorithmId = _pdbReader.GetGuid(document.HashAlgorithm);
+                        checksum = pdbReader.GetBlobContent(document.Hash);
+                        algorithmId = pdbReader.GetGuid(document.HashAlgorithm);
                         return true;
                     }
                 }

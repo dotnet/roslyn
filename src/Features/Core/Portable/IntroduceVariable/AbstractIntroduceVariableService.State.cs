@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
     internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
     {
-        private sealed partial class State
+        private sealed partial class State(TService service, SemanticDocument document, CodeCleanupOptions options)
         {
-            public SemanticDocument Document { get; }
-            public CodeCleanupOptions Options { get; }
+            public SemanticDocument Document { get; } = document;
+            public CodeCleanupOptions Options { get; } = options;
             public TExpressionSyntax Expression { get; private set; }
 
             public bool InAttributeContext { get; private set; }
@@ -38,14 +38,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             public bool IsConstant { get; private set; }
 
             private SemanticMap _semanticMap;
-            private readonly TService _service;
-
-            public State(TService service, SemanticDocument document, CodeCleanupOptions options)
-            {
-                _service = service;
-                Document = document;
-                Options = options;
-            }
 
             public static async Task<State> GenerateAsync(
                 TService service,
@@ -100,7 +92,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 if (!CanIntroduceVariable(textSpan.IsEmpty, cancellationToken))
                     return false;
 
-                IsConstant = IsExpressionConstant(Document, Expression, _service, cancellationToken);
+                IsConstant = IsExpressionConstant(Document, Expression, service, cancellationToken);
 
                 // Note: the ordering of these clauses are important.  They go, generally, from
                 // innermost to outermost order.
@@ -126,7 +118,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                var enclosingBlocks = _service.GetContainingExecutableBlocks(Expression);
+                var enclosingBlocks = service.GetContainingExecutableBlocks(Expression);
                 if (enclosingBlocks.Any())
                 {
                     // If we're inside a block, then don't even try the other options (like field,
@@ -146,7 +138,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
                 // If we are inside a block within an Expression bodied member we should generate inside the block, 
                 // instead of rewriting a concise expression bodied member to its equivalent that has a body with a block.
-                if (_service.IsInExpressionBodiedMember(Expression))
+                if (service.IsInExpressionBodiedMember(Expression))
                 {
                     if (CanGenerateInto<TTypeDeclarationSyntax>(cancellationToken))
                     {
@@ -157,7 +149,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                if (_service.IsInAutoPropertyInitializer(Expression))
+                if (service.IsInAutoPropertyInitializer(Expression))
                 {
                     if (CanGenerateInto<TTypeDeclarationSyntax>(cancellationToken))
                     {
@@ -246,7 +238,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 bool isSpanEmpty,
                 CancellationToken cancellationToken)
             {
-                if (!_service.CanIntroduceVariableFor(Expression))
+                if (!service.CanIntroduceVariableFor(Expression))
                 {
                     return false;
                 }

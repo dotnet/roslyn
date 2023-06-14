@@ -12,29 +12,22 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a <see cref="TextSpan"/> location in a <see cref="Document"/>.
     /// </summary>
-    internal readonly struct DocumentSpan : IEquatable<DocumentSpan>
+    internal readonly struct DocumentSpan(
+        Document document,
+        TextSpan sourceSpan,
+        ImmutableDictionary<string, object>? properties) : IEquatable<DocumentSpan>
     {
-        public Document Document { get; }
-        public TextSpan SourceSpan { get; }
+        public Document Document { get; } = document;
+        public TextSpan SourceSpan { get; } = sourceSpan;
 
         /// <summary>
         /// Additional information attached to a document span by it creator.
         /// </summary>
-        public ImmutableDictionary<string, object>? Properties { get; }
+        public ImmutableDictionary<string, object>? Properties { get; } = properties ?? ImmutableDictionary<string, object>.Empty;
 
         public DocumentSpan(Document document, TextSpan sourceSpan)
             : this(document, sourceSpan, properties: null)
         {
-        }
-
-        public DocumentSpan(
-            Document document,
-            TextSpan sourceSpan,
-            ImmutableDictionary<string, object>? properties)
-        {
-            Document = document;
-            SourceSpan = sourceSpan;
-            Properties = properties ?? ImmutableDictionary<string, object>.Empty;
         }
 
         public override bool Equals(object? obj)

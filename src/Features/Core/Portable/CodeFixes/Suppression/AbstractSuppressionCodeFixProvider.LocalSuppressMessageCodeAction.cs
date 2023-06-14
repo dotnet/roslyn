@@ -11,44 +11,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
-        internal sealed class LocalSuppressMessageCodeAction : AbstractSuppressionCodeAction
+        internal sealed class LocalSuppressMessageCodeAction(
+            AbstractSuppressionCodeFixProvider fixer,
+            ISymbol targetSymbol,
+            INamedTypeSymbol suppressMessageAttribute,
+            SyntaxNode targetNode,
+            Document document,
+            Diagnostic diagnostic) : AbstractSuppressionCodeAction(fixer, FeaturesResources.in_Source_attribute)
         {
-            private readonly AbstractSuppressionCodeFixProvider _fixer;
-            private readonly ISymbol _targetSymbol;
-            private readonly INamedTypeSymbol _suppressMessageAttribute;
-            private readonly SyntaxNode _targetNode;
-            private readonly Document _document;
-            private readonly Diagnostic _diagnostic;
-
-            public LocalSuppressMessageCodeAction(
-                AbstractSuppressionCodeFixProvider fixer,
-                ISymbol targetSymbol,
-                INamedTypeSymbol suppressMessageAttribute,
-                SyntaxNode targetNode,
-                Document document,
-                Diagnostic diagnostic)
-                : base(fixer, FeaturesResources.in_Source_attribute)
-            {
-                _fixer = fixer;
-                _targetSymbol = targetSymbol;
-                _suppressMessageAttribute = suppressMessageAttribute;
-                _targetNode = targetNode;
-                _document = document;
-                _diagnostic = diagnostic;
-            }
-
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var newTargetNode = _fixer.AddLocalSuppressMessageAttribute(
-                    _targetNode, _targetSymbol, _suppressMessageAttribute, _diagnostic);
-                var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var newRoot = root.ReplaceNode<SyntaxNode>(_targetNode, newTargetNode);
-                return _document.WithSyntaxRoot(newRoot);
+                var newTargetNode = this.Fixer.AddLocalSuppressMessageAttribute(
+                    targetNode, targetSymbol, suppressMessageAttribute, diagnostic);
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var newRoot = root.ReplaceNode<SyntaxNode>(targetNode, newTargetNode);
+                return document.WithSyntaxRoot(newRoot);
             }
 
-            protected override string DiagnosticIdForEquivalenceKey => _diagnostic.Id;
+            protected override string DiagnosticIdForEquivalenceKey => diagnostic.Id;
 
-            internal SyntaxNode TargetNode_TestOnly => _targetNode;
+            internal SyntaxNode TargetNode_TestOnly => targetNode;
         }
     }
 }

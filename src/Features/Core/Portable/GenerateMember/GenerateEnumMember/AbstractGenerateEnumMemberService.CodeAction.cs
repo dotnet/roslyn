@@ -15,45 +15,34 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
 {
     internal abstract partial class AbstractGenerateEnumMemberService<TService, TSimpleNameSyntax, TExpressionSyntax>
     {
-        private partial class GenerateEnumMemberCodeAction : CodeAction
+        private partial class GenerateEnumMemberCodeAction(
+            Document document,
+            State state,
+            CodeAndImportGenerationOptionsProvider fallbackOptions) : CodeAction
         {
-            private readonly Document _document;
-            private readonly State _state;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
-
-            public GenerateEnumMemberCodeAction(
-                Document document,
-                State state,
-                CodeAndImportGenerationOptionsProvider fallbackOptions)
-            {
-                _document = document;
-                _state = state;
-                _fallbackOptions = fallbackOptions;
-            }
-
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var languageServices = _document.Project.Solution.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
+                var languageServices = document.Project.Solution.Services.GetLanguageServices(state.TypeToGenerateIn.Language);
                 var codeGenerator = languageServices.GetService<ICodeGenerationService>();
                 var semanticFacts = languageServices.GetService<ISemanticFactsService>();
 
-                var value = semanticFacts.LastEnumValueHasInitializer(_state.TypeToGenerateIn)
-                    ? EnumValueUtilities.GetNextEnumValue(_state.TypeToGenerateIn)
+                var value = semanticFacts.LastEnumValueHasInitializer(state.TypeToGenerateIn)
+                    ? EnumValueUtilities.GetNextEnumValue(state.TypeToGenerateIn)
                     : null;
 
                 var result = await codeGenerator.AddFieldAsync(
                     new CodeGenerationSolutionContext(
-                        _document.Project.Solution,
+                        document.Project.Solution,
                         new CodeGenerationContext(
-                            contextLocation: _state.IdentifierToken.GetLocation()),
-                        _fallbackOptions),
-                    _state.TypeToGenerateIn,
+                            contextLocation: state.IdentifierToken.GetLocation()),
+                        fallbackOptions),
+                    state.TypeToGenerateIn,
                     CodeGenerationSymbolFactory.CreateFieldSymbol(
                         attributes: default,
                         accessibility: Accessibility.Public,
                         modifiers: default,
-                        type: _state.TypeToGenerateIn,
-                        name: _state.IdentifierToken.ValueText,
+                        type: state.TypeToGenerateIn,
+                        name: state.IdentifierToken.ValueText,
                         hasConstantValue: value != null,
                         constantValue: value),
                     cancellationToken).ConfigureAwait(false);
@@ -66,7 +55,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 get
                 {
                     return string.Format(
-                        FeaturesResources.Generate_enum_member_0, _state.IdentifierToken.ValueText);
+                        FeaturesResources.Generate_enum_member_0, state.IdentifierToken.ValueText);
                 }
             }
         }

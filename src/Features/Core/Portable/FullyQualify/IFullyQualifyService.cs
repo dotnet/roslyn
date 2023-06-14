@@ -12,34 +12,22 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify;
 
 [DataContract]
-internal readonly struct FullyQualifyFixData
+internal readonly struct FullyQualifyFixData(string name, ImmutableArray<FullyQualifyIndividualFixData> individualFixData)
 {
     [DataMember(Order = 0)]
-    public readonly string Name;
+    public readonly string Name = name;
 
     [DataMember(Order = 1)]
-    public readonly ImmutableArray<FullyQualifyIndividualFixData> IndividualFixData;
-
-    public FullyQualifyFixData(string name, ImmutableArray<FullyQualifyIndividualFixData> individualFixData)
-    {
-        Name = name;
-        IndividualFixData = individualFixData;
-    }
+    public readonly ImmutableArray<FullyQualifyIndividualFixData> IndividualFixData = individualFixData;
 }
 
 [DataContract]
-internal readonly struct FullyQualifyIndividualFixData
+internal readonly struct FullyQualifyIndividualFixData(string title, ImmutableArray<TextChange> textChanges)
 {
     [DataMember(Order = 0)]
-    public readonly string Title;
+    public readonly string Title = title;
     [DataMember(Order = 1)]
-    public readonly ImmutableArray<TextChange> TextChanges;
-
-    public FullyQualifyIndividualFixData(string title, ImmutableArray<TextChange> textChanges)
-    {
-        Title = title;
-        TextChanges = textChanges;
-    }
+    public readonly ImmutableArray<TextChange> TextChanges = textChanges;
 }
 
 internal interface IFullyQualifyService : ILanguageService

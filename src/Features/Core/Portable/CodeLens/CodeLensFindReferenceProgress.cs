@@ -23,17 +23,19 @@ namespace Microsoft.CodeAnalysis.CodeLens
     /// <remarks>
     /// All public methods of this type could be called from multiple threads.
     /// </remarks>
-    internal sealed class CodeLensFindReferencesProgress : IFindReferencesProgress, IDisposable
+    internal sealed class CodeLensFindReferencesProgress(
+        ISymbol queriedDefinition,
+        SyntaxNode queriedNode,
+        int searchCap,
+        CancellationToken cancellationToken) : IFindReferencesProgress, IDisposable
     {
-        private readonly CancellationTokenSource _aggregateCancellationTokenSource;
-        private readonly SyntaxNode _queriedNode;
-        private readonly ISymbol _queriedSymbol;
-        private readonly ConcurrentSet<Location> _locations;
+        private readonly CancellationTokenSource _aggregateCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        private readonly ConcurrentSet<Location> _locations = new ConcurrentSet<Location>(LocationComparer.Instance);
 
         /// <remarks>
         /// If the cap is 0, then there is no cap.
         /// </remarks>
-        public int SearchCap { get; }
+        public int SearchCap { get; } = searchCap;
 
         /// <summary>
         /// The cancellation token that aggregates the original cancellation token + this progress
@@ -45,20 +47,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
         public int ReferencesCount => _locations.Count;
 
         public ImmutableArray<Location> Locations => _locations.ToImmutableArray();
-
-        public CodeLensFindReferencesProgress(
-            ISymbol queriedDefinition,
-            SyntaxNode queriedNode,
-            int searchCap,
-            CancellationToken cancellationToken)
-        {
-            _queriedSymbol = queriedDefinition;
-            _queriedNode = queriedNode;
-            _aggregateCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            _locations = new ConcurrentSet<Location>(LocationComparer.Instance);
-
-            SearchCap = searchCap;
-        }
 
         public void OnStarted()
         {
@@ -88,8 +76,8 @@ namespace Microsoft.CodeAnalysis.CodeLens
             // Returns nodes from source not equal to actual location
             return from syntaxReference in symbol.DeclaringSyntaxReferences
                    let candidateSyntaxNode = syntaxReference.GetSyntax(cancellationToken)
-                   where !(_queriedNode.Span == candidateSyntaxNode.Span &&
-                           _queriedNode.SyntaxTree.FilePath.Equals(candidateSyntaxNode.SyntaxTree.FilePath,
+                   where !(queriedNode.Span == candidateSyntaxNode.Span &&
+                           queriedNode.SyntaxTree.FilePath.Equals(candidateSyntaxNode.SyntaxTree.FilePath,
                                StringComparison.OrdinalIgnoreCase))
                    select candidateSyntaxNode.GetLocation();
         }
@@ -105,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             // Add remote locations for all the syntax references except the queried syntax node.
             // To query for the partial locations, filter definition locations that occur in source whose span is part of
             // span of any syntax node from Definition.DeclaringSyntaxReferences except for the queried syntax node.
-            var locations = symbol.Locations.Intersect(_queriedSymbol.Locations, LocationComparer.Instance).Any()
+            var locations = symbol.Locations.Intersect(queriedDefinition.Locations, LocationComparer.Instance).Any()
                 ? GetPartialLocations(symbol, _aggregateCancellationTokenSource.Token)
                 : symbol.Locations;
 
@@ -130,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             // so should we. Otherwise named types may have a reference count of 0, even if there are calls to its constructors, which might cause
             // people think the class is not in use (#49636).
             // Invocations to implicit parameterless constructors need to be included too.
-            var isConstructorInvocation = _queriedSymbol.Kind == SymbolKind.NamedType &&
+            var isConstructorInvocation = queriedDefinition.Kind == SymbolKind.NamedType &&
                                           (definition as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
             return (isImplicitlyDeclared && !isConstructorInvocation) ||
                    !reference.Location.IsInSource ||
