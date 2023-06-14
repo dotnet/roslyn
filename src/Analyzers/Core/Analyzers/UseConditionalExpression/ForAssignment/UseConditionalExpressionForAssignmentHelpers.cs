@@ -101,8 +101,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                             declaredPatternSymbols.AddIfNotNull(declarationPatternOperation.DeclaredSymbol);
                     }
 
-                    return ContainsLocalReference(declaredPatternSymbols, trueTarget) ||
-                           ContainsLocalReference(declaredPatternSymbols, falseTarget);
+                    if (declaredPatternSymbols.Count > 0)
+                    {
+                        return ContainsLocalReference(declaredPatternSymbols, trueTarget) ||
+                               ContainsLocalReference(declaredPatternSymbols, falseTarget);
+                    }
                 }
 
                 return false;
