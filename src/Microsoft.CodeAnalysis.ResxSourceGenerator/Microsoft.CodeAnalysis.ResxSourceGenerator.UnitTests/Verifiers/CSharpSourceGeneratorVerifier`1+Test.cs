@@ -31,15 +31,27 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
     public static partial class CSharpSourceGeneratorVerifier<TSourceGenerator>
         where TSourceGenerator : IIncrementalGenerator, new()
     {
-        public class Test(string identifier, [CallerFilePath] string? testFile = null, [CallerMemberName] string? testMethod = null) : CSharpSourceGeneratorTest<TSourceGenerator, XUnitVerifier>
+        public class Test : CSharpSourceGeneratorTest<TSourceGenerator, XUnitVerifier>
         {
-            private readonly string _identifier = identifier;
-            private readonly string? _testFile = testFile;
-            private readonly string? _testMethod = testMethod;
+            private readonly string _identifier;
+            private readonly string? _testFile;
+            private readonly string? _testMethod;
 
             public Test([CallerFilePath] string? testFile = null, [CallerMemberName] string? testMethod = null)
                 : this(string.Empty, testFile, testMethod)
             {
+            }
+
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0290:Use primary constructor", Justification = "Require regular .ctor for #if code")]
+            public Test(string identifier, [CallerFilePath] string? testFile = null, [CallerMemberName] string? testMethod = null)
+            {
+                _identifier = identifier;
+                _testFile = testFile;
+                _testMethod = testMethod;
+
+#if WRITE_EXPECTED
+                TestBehaviors |= TestBehaviors.SkipGeneratedSourcesCheck;
+#endif
             }
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.Default;
