@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis
         private readonly string _toolFileVersion;
         private readonly Version _toolAssemblyVersion;
 
+        private string? _totalAnalyzerExecutionTime;
+
         public SarifV2ErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture)
             : base(stream, culture)
         {
@@ -114,12 +116,14 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteObjectEnd(); // result
         }
 
-        public override void AddAnalyzerDescriptors(ImmutableArray<(DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)> descriptors)
+        public override void AddAnalyzerDescriptorsAndExecutionTime(ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptors, double totalAnalyzerExecutionTime)
         {
-            foreach (var (descriptor, hasAnyExternalSuppression) in descriptors.OrderBy(d => d.Descriptor.Id))
+            foreach (var (descriptor, info) in descriptors.OrderBy(d => d.Descriptor.Id))
             {
-                _descriptors.Add(descriptor, hasAnyExternalSuppression);
+                _descriptors.Add(descriptor, info);
             }
+
+            _totalAnalyzerExecutionTime = ReportAnalyzerUtil.GetFormattedAnalyzerExecutionTime(totalAnalyzerExecutionTime, _culture).Trim();
         }
 
         private void WriteLocations(Location location, IReadOnlyList<Location> additionalLocations)
@@ -183,6 +187,15 @@ namespace Microsoft.CodeAnalysis
         {
             _writer.WriteArrayEnd(); //results
 
+            if (!string.IsNullOrEmpty(_totalAnalyzerExecutionTime))
+            {
+                _writer.WriteObjectStart("properties");
+
+                _writer.Write("analyzerExecutionTime", _totalAnalyzerExecutionTime);
+
+                _writer.WriteObjectEnd(); // properties
+            }
+
             WriteTool();
 
             _writer.Write("columnKind", "utf16CodeUnits");
@@ -215,7 +228,7 @@ namespace Microsoft.CodeAnalysis
             {
                 _writer.WriteArrayStart("rules");
 
-                foreach (var (_, descriptor, hasAnyExternalSuppression) in _descriptors.ToSortedList())
+                foreach (var (_, descriptor, descriptorInfo) in _descriptors.ToSortedList())
                 {
                     _writer.WriteObjectStart(); // rule
                     _writer.Write("id", descriptor.Id);
@@ -250,9 +263,13 @@ namespace Microsoft.CodeAnalysis
                     // 2. If there is any source suppression for diagnostic(s) with the rule ID through pragma directive,
                     //    SuppressMessageAttribute, DiagnosticSuppressor, etc.
                     var hasAnySourceSuppression = _diagnosticIdsWithAnySourceSuppressions.Contains(descriptor.Id);
-                    var isEverSuppressed = hasAnyExternalSuppression || hasAnySourceSuppression;
+                    var isEverSuppressed = descriptorInfo.HasAnyExternalSuppression || hasAnySourceSuppression;
+                    
+                    var reportAnalyzerExecutionTime = !string.IsNullOrEmpty(_totalAnalyzerExecutionTime);
+                    Debug.Assert(reportAnalyzerExecutionTime || descriptorInfo.ExecutionTime == 0);
+                    Debug.Assert(reportAnalyzerExecutionTime || descriptorInfo.ExecutionPercentage == 0);
 
-                    if (!string.IsNullOrEmpty(descriptor.Category) || isEverSuppressed || descriptor.ImmutableCustomTags.Any())
+                    if (!string.IsNullOrEmpty(descriptor.Category) || isEverSuppressed || reportAnalyzerExecutionTime || descriptor.ImmutableCustomTags.Any())
                     {
                         _writer.WriteObjectStart("properties");
 
@@ -267,7 +284,7 @@ namespace Microsoft.CodeAnalysis
 
                             _writer.WriteArrayStart("suppressionKinds");
 
-                            if (hasAnyExternalSuppression)
+                            if (descriptorInfo.HasAnyExternalSuppression)
                             {
                                 _writer.Write("external");
                             }
@@ -278,6 +295,15 @@ namespace Microsoft.CodeAnalysis
                             }
 
                             _writer.WriteArrayEnd(); // suppressionKinds
+                        }
+
+                        if (reportAnalyzerExecutionTime)
+                        {
+                            var executionTime = ReportAnalyzerUtil.GetFormattedAnalyzerExecutionTime(descriptorInfo.ExecutionTime, _culture).Trim();
+                            _writer.Write("executionTimeInSeconds", executionTime);
+
+                            var executionPercentage = ReportAnalyzerUtil.GetFormattedAnalyzerExecutionPercentage(descriptorInfo.ExecutionPercentage, _culture).Trim();
+                            _writer.Write("executionTimeInPercentage", executionPercentage);
                         }
 
                         if (descriptor.ImmutableCustomTags.Any())
@@ -336,9 +362,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private sealed class DiagnosticDescriptorSet
         {
-            private readonly record struct DescriptorInfo(int Index, bool HasAnyExternalSuppression);
+            private readonly record struct DescriptorInfoWithIndex(int Index, DiagnosticDescriptorErrorLoggerInfo Info);
             // DiagnosticDescriptor -> DescriptorInfo
-            private readonly Dictionary<DiagnosticDescriptor, DescriptorInfo> _distinctDescriptors = new(SarifDiagnosticComparer.Instance);
+            private readonly Dictionary<DiagnosticDescriptor, DescriptorInfoWithIndex> _distinctDescriptors = new(SarifDiagnosticComparer.Instance);
 
             /// <summary>
             /// The total number of descriptors in the set.
@@ -351,24 +377,23 @@ namespace Microsoft.CodeAnalysis
             /// <returns>
             /// The unique key assigned to the given descriptor.
             /// </returns>
-            public int Add(DiagnosticDescriptor descriptor, bool? hasAnyExternalSuppression = null)
+            public int Add(DiagnosticDescriptor descriptor, DiagnosticDescriptorErrorLoggerInfo? info = null)
             {
-                if (_distinctDescriptors.TryGetValue(descriptor, out var descriptorInfo))
+                if (_distinctDescriptors.TryGetValue(descriptor, out var descriptorInfoWithIndex))
                 {
                     // Descriptor has already been seen.
                     // Update 'HasAnyExternalSuppression' value if different from the saved one.
-                    if (hasAnyExternalSuppression.HasValue &&
-                        descriptorInfo.HasAnyExternalSuppression != hasAnyExternalSuppression.Value)
+                    if (info.HasValue && descriptorInfoWithIndex.Info != info)
                     {
-                        descriptorInfo = new(descriptorInfo.Index, hasAnyExternalSuppression.Value);
-                        _distinctDescriptors[descriptor] = descriptorInfo;
+                        descriptorInfoWithIndex = new(descriptorInfoWithIndex.Index, info.Value);
+                        _distinctDescriptors[descriptor] = descriptorInfoWithIndex;
                     }
 
-                    return descriptorInfo.Index;
+                    return descriptorInfoWithIndex.Index;
                 }
                 else
                 {
-                    _distinctDescriptors.Add(descriptor, new(Index: Count, hasAnyExternalSuppression ?? false));
+                    _distinctDescriptors.Add(descriptor, new(Index: Count, info ?? default));
                     return Count - 1;
                 }
             }
@@ -376,16 +401,16 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Converts the set to a list, sorted by index.
             /// </summary>
-            public List<(int Index, DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)> ToSortedList()
+            public List<(int Index, DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> ToSortedList()
             {
                 Debug.Assert(Count > 0);
 
-                var list = new List<(int Index, DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)>(Count);
+                var list = new List<(int Index, DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)>(Count);
 
                 foreach (var pair in _distinctDescriptors)
                 {
                     Debug.Assert(list.Capacity > list.Count);
-                    list.Add((pair.Value.Index, pair.Key, pair.Value.HasAnyExternalSuppression));
+                    list.Add((pair.Value.Index, pair.Key, pair.Value.Info));
                 }
 
                 Debug.Assert(list.Capacity == list.Count);

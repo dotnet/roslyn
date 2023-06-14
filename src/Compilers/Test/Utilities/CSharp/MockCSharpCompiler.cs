@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         private readonly ImmutableArray<ISourceGenerator> _generators;
         internal Compilation Compilation;
         internal AnalyzerOptions AnalyzerOptions;
+        internal ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> DescriptorsWithInfo;
+        internal double TotalAnalyzerExecutionTime;
 
         public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null)
             : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, loader)
@@ -88,5 +90,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             AnalyzerOptions = base.CreateAnalyzerOptions(additionalTextFiles, analyzerConfigOptionsProvider);
             return AnalyzerOptions;
         }
+
+        protected override void AddAnalyzerDescriptorsAndExecutionTime(ErrorLogger errorLogger, ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptorsWithInfo, double totalAnalyzerExecutionTime)
+        {
+            DescriptorsWithInfo = descriptorsWithInfo;
+            TotalAnalyzerExecutionTime = totalAnalyzerExecutionTime;
+
+            base.AddAnalyzerDescriptorsAndExecutionTime(errorLogger, descriptorsWithInfo, totalAnalyzerExecutionTime);
+        }
+
+        public string GetAnalyzerExecutionTimeFormattedString()
+            => ReportAnalyzerUtil.GetFormattedAnalyzerExecutionTime(TotalAnalyzerExecutionTime, Culture).Trim();
     }
 }

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Diagnostics.Add(diagnostic);
         }
 
-        public override void AddAnalyzerDescriptors(ImmutableArray<(DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)> descriptors)
+        public override void AddAnalyzerDescriptorsAndExecutionTime(ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptors, double totalAnalyzerExecutionTime)
         {
         }
     }

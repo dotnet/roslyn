@@ -20,14 +20,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         Protected MustOverride ReadOnly Property ErrorLogQualifier As String
 
         Friend MustOverride Function GetExpectedOutputForNoDiagnostics(
-            cmd As CommonCompiler) As String
+            cmd As MockVisualBasicCompiler) As String
 
         Friend MustOverride Function GetExpectedOutputForSimpleCompilerDiagnostics(
-            cmd As CommonCompiler,
+            cmd As MockVisualBasicCompiler,
             sourceFilePath As String) As String
 
         Friend MustOverride Function GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(
-            cmd As CommonCompiler,
+            cmd As MockVisualBasicCompiler,
             sourceFilePath As String,
             ParamArray suppressionKinds As String()) As String
 
