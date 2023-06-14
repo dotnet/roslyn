@@ -119,12 +119,10 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
         var namedType = semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
         var constructor = semanticModel.GetRequiredDeclaredSymbol(constructorDeclaration, cancellationToken);
 
-        using var _1 = PooledDictionary<ISymbol, SyntaxNode>.GetInstance(out var removedMembers);
-
         // If we're removing members, first go through and update all references to that member to use the parameter name.
         var typeDeclarationNodes = namedType.DeclaringSyntaxReferences.Select(r => (TypeDeclarationSyntax)r.GetSyntax(cancellationToken));
         var namedTypeDocuments = typeDeclarationNodes.Select(r => solution.GetRequiredDocument(r.SyntaxTree)).ToImmutableHashSet();
-        await RemoveMembersAsync().ConfigureAwait(false);
+        var removedMembers = await RemoveMembersAsync().ConfigureAwait(false);
 
         // If the constructor has a base-initializer, then go find the base-type in the inheritance list for the
         // typedecl and move it there.
@@ -349,36 +347,39 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
             }
         }
 
-        async ValueTask RemoveMembersAsync()
+        async ValueTask<ImmutableDictionary<ISymbol, SyntaxNode>> RemoveMembersAsync()
         {
-            if (!removeMembers)
-                return;
-
-            // Go through each pair of member/parameterName.  Update all references to member to now refer to
-            // parameterName. This is safe as the analyzer ensured that all existing locations would safely be able
-            // to do this.  Then once those are all done, actually remove the members.
-            foreach (var (memberName, parameterName) in properties)
+            var removedMembers = ImmutableDictionary<ISymbol, SyntaxNode>.Empty;
+            if (removeMembers)
             {
-                Contract.ThrowIfNull(parameterName);
+                // Go through each pair of member/parameterName.  Update all references to member to now refer to
+                // parameterName. This is safe as the analyzer ensured that all existing locations would safely be able
+                // to do this.  Then once those are all done, actually remove the members.
+                foreach (var (memberName, parameterName) in properties)
+                {
+                    Contract.ThrowIfNull(parameterName);
 
-                var (member, nodeToRemove) = GetMemberToRemove(memberName);
-                if (member is null)
-                    continue;
+                    var (member, nodeToRemove) = GetMemberToRemove(memberName);
+                    if (member is null)
+                        continue;
 
-                removedMembers[member] = nodeToRemove;
-                await ReplaceReferencesToMemberWithParameterAsync(
-                    member, CSharpSyntaxFacts.Instance.EscapeIdentifier(parameterName)).ConfigureAwait(false);
+                    removedMembers = removedMembers.Add(member, nodeToRemove);
+                    await ReplaceReferencesToMemberWithParameterAsync(
+                        member, CSharpSyntaxFacts.Instance.EscapeIdentifier(parameterName)).ConfigureAwait(false);
+                }
+
+                foreach (var group in removedMembers.Values.GroupBy(n => n.SyntaxTree))
+                {
+                    var syntaxTree = group.Key;
+                    var memberDocument = solution.GetRequiredDocument(syntaxTree);
+                    var documentEditor = await solutionEditor.GetDocumentEditorAsync(memberDocument.Id, cancellationToken).ConfigureAwait(false);
+
+                    foreach (var memberToRemove in group)
+                        documentEditor.RemoveNode(memberToRemove);
+                }
             }
 
-            foreach (var group in removedMembers.Values.GroupBy(n => n.SyntaxTree))
-            {
-                var syntaxTree = group.Key;
-                var memberDocument = solution.GetRequiredDocument(syntaxTree);
-                var documentEditor = await solutionEditor.GetDocumentEditorAsync(memberDocument.Id, cancellationToken).ConfigureAwait(false);
-
-                foreach (var memberToRemove in group)
-                    documentEditor.RemoveNode(memberToRemove);
-            }
+            return removedMembers;
         }
 
         (ISymbol? member, SyntaxNode nodeToRemove) GetMemberToRemove(string memberName)
