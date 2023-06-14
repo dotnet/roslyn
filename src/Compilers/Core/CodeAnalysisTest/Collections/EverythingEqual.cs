@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
     /// <typeparam name="T"></typeparam>
     internal class EverythingEqual<T> : IEqualityComparer<T>, IEqualityComparer
     {
-        private static readonly EverythingEqual<T> s_singleton = new();
+        private static readonly EverythingEqual<T> s_singleton = new EverythingEqual<T>();
 
         private EverythingEqual() { }
 

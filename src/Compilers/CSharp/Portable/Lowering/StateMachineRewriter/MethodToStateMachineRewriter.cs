@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Note that there is a dispatch occurring at every try-finally statement, so this
         /// variable takes on a new set of values inside each try block.
         /// </summary>
-        private Dictionary<LabelSymbol, List<StateMachineState>> _dispatches = new();
+        private Dictionary<LabelSymbol, List<StateMachineState>> _dispatches = new Dictionary<LabelSymbol, List<StateMachineState>>();
 
         /// <summary>
         /// A pool of fields used to hoist locals. They appear in this set when not in scope,

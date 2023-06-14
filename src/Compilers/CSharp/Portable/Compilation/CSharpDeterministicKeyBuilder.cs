@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class CSharpDeterministicKeyBuilder : DeterministicKeyBuilder
     {
-        internal static readonly CSharpDeterministicKeyBuilder Instance = new();
+        internal static readonly CSharpDeterministicKeyBuilder Instance = new CSharpDeterministicKeyBuilder();
 
         private CSharpDeterministicKeyBuilder()
         {

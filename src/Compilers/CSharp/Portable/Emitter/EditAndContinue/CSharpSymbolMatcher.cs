@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private abstract class MatchDefs
         {
             private readonly EmitContext _sourceContext;
-            private readonly ConcurrentDictionary<Cci.IDefinition, Cci.IDefinition?> _matches = new(ReferenceEqualityComparer.Instance);
+            private readonly ConcurrentDictionary<Cci.IDefinition, Cci.IDefinition?> _matches = new ConcurrentDictionary<Cci.IDefinition, Cci.IDefinition?>(ReferenceEqualityComparer.Instance);
             private IReadOnlyDictionary<string, Cci.INamespaceTypeDefinition>? _lazyTopLevelTypes;
 
             public MatchDefs(EmitContext sourceContext)
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? _otherDeletedMembers;
 
             private readonly SymbolComparer _comparer;
-            private readonly ConcurrentDictionary<Symbol, Symbol?> _matches = new(ReferenceEqualityComparer.Instance);
+            private readonly ConcurrentDictionary<Symbol, Symbol?> _matches = new ConcurrentDictionary<Symbol, Symbol?>(ReferenceEqualityComparer.Instance);
 
             /// <summary>
             /// A cache of members per type, populated when the first member for a given
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             /// for caching, and indexing by name, is to avoid searching sequentially
             /// through all members of a given kind each time a member is matched.
             /// </summary>
-            private readonly ConcurrentDictionary<ISymbolInternal, IReadOnlyDictionary<string, ImmutableArray<ISymbolInternal>>> _otherMembers = new(ReferenceEqualityComparer.Instance);
+            private readonly ConcurrentDictionary<ISymbolInternal, IReadOnlyDictionary<string, ImmutableArray<ISymbolInternal>>> _otherMembers = new ConcurrentDictionary<ISymbolInternal, IReadOnlyDictionary<string, ImmutableArray<ISymbolInternal>>>(ReferenceEqualityComparer.Instance);
 
             public MatchSymbols(
                 IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,

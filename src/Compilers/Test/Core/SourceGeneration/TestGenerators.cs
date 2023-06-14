@@ -15,7 +15,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
 {
     internal class SingleFileTestGenerator : ISourceGenerator
     {
-        private readonly List<(string content, string hintName)> _sources = new();
+        private readonly List<(string content, string hintName)> _sources = new List<(string content, string hintName)>();
 
         public SingleFileTestGenerator()
         {

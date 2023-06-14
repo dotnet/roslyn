@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly record struct DescriptorInfo(int Index, bool HasAnyExternalSuppression);
             // DiagnosticDescriptor -> DescriptorInfo
-            private readonly Dictionary<DiagnosticDescriptor, DescriptorInfo> _distinctDescriptors = new(SarifDiagnosticComparer.Instance);
+            private readonly Dictionary<DiagnosticDescriptor, DescriptorInfo> _distinctDescriptors = new Dictionary<DiagnosticDescriptor, DescriptorInfo>(SarifDiagnosticComparer.Instance);
 
             /// <summary>
             /// The total number of descriptors in the set.
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis
                     if (hasAnyExternalSuppression.HasValue &&
                         descriptorInfo.HasAnyExternalSuppression != hasAnyExternalSuppression.Value)
                     {
-                        descriptorInfo = new(descriptorInfo.Index, hasAnyExternalSuppression.Value);
+                        descriptorInfo = new DescriptorInfo(descriptorInfo.Index, hasAnyExternalSuppression.Value);
                         _distinctDescriptors[descriptor] = descriptorInfo;
                     }
 
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    _distinctDescriptors.Add(descriptor, new(Index: Count, hasAnyExternalSuppression ?? false));
+                    _distinctDescriptors.Add(descriptor, new DescriptorInfo(Index: Count, hasAnyExternalSuppression ?? false));
                     return Count - 1;
                 }
             }

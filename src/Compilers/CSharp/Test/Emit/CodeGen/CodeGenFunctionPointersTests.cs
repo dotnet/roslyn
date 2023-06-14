@@ -10546,7 +10546,7 @@ public unsafe class C
 }}
 ");
 
-            List<DiagnosticDescription> diagnostics = new()
+            List<DiagnosticDescription> diagnostics = new List<DiagnosticDescription>()
             {
                 // (10,39): error CS8786: Calling convention of 'C.M()' is not compatible with 'Default'.
                 //         delegate*<void> ptrManaged = &M;

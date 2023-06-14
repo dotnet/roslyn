@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             dstBuilder = GetBuilder(dstBuilder.ToImmutable());
             var table = dstBuilder.GetLatestStateTableForNode(inputNode);
 
-            AssertTableEntries(table, new[] { (1, EntryState.Cached, 0), new(2, EntryState.Cached, 0), new(3, EntryState.Cached, 0) });
+            AssertTableEntries(table, new[] { (1, EntryState.Cached, 0), (2, EntryState.Cached, 0), (3, EntryState.Cached, 0) });
         }
 
         [Fact]
@@ -943,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty, trackIncrementalGeneratorSteps: true);
 
-            List<IncrementalGeneratorRunStep> steps = new();
+            List<IncrementalGeneratorRunStep> steps = new List<IncrementalGeneratorRunStep>();
 
             _ = dstBuilder.GetLatestStateTableForNode(addOneNode);
 

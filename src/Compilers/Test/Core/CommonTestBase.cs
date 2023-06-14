@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public bool IncludeTokensAndModuleIds { get; init; }
 
-        public static readonly Verification Skipped = new() { Status = VerificationStatus.Skipped };
-        public static readonly Verification Passes = new() { Status = VerificationStatus.Passes };
-        public static readonly Verification FailsPEVerify = new() { Status = VerificationStatus.FailsPEVerify };
-        public static readonly Verification FailsILVerify = new() { Status = VerificationStatus.FailsILVerify };
-        public static readonly Verification Fails = new() { Status = VerificationStatus.Fails };
-        public static readonly Verification PassesOrFailFast = new() { Status = VerificationStatus.PassesOrFailFast };
+        public static readonly Verification Skipped = new Verification() { Status = VerificationStatus.Skipped };
+        public static readonly Verification Passes = new Verification() { Status = VerificationStatus.Passes };
+        public static readonly Verification FailsPEVerify = new Verification() { Status = VerificationStatus.FailsPEVerify };
+        public static readonly Verification FailsILVerify = new Verification() { Status = VerificationStatus.FailsILVerify };
+        public static readonly Verification Fails = new Verification() { Status = VerificationStatus.Fails };
+        public static readonly Verification PassesOrFailFast = new Verification() { Status = VerificationStatus.PassesOrFailFast };
     }
 
 #nullable disable

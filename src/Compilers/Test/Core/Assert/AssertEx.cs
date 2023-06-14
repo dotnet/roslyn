@@ -926,7 +926,7 @@ namespace Roslyn.Test.Utilities
                 }
                 catch (Exception ex)
                 {
-                    (exceptions ??= new()).Add((index, ex));
+                    (exceptions ??= new List<(int, Exception)>()).Add((index, ex));
                 }
             }
 

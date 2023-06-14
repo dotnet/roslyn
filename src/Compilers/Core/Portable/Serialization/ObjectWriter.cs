@@ -390,10 +390,10 @@ namespace Roslyn.Utilities
             private int _nextId;
 
             private static readonly ObjectPool<SegmentedDictionary<object, int>> s_referenceDictionaryPool =
-                new(() => new SegmentedDictionary<object, int>(128, ReferenceEqualityComparer.Instance));
+                new ObjectPool<SegmentedDictionary<object, int>>(() => new SegmentedDictionary<object, int>(128, ReferenceEqualityComparer.Instance));
 
             private static readonly ObjectPool<SegmentedDictionary<object, int>> s_valueDictionaryPool =
-                new(() => new SegmentedDictionary<object, int>(128));
+                new ObjectPool<SegmentedDictionary<object, int>>(() => new SegmentedDictionary<object, int>(128));
 
             public WriterReferenceMap(bool valueEquality)
             {

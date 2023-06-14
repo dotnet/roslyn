@@ -425,8 +425,8 @@ namespace Microsoft.CodeAnalysis
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public class SuppressorForErrorLogTest : DiagnosticSuppressor
         {
-            public static readonly SuppressionDescriptor Descriptor1 = new("SPR0001", AnalyzerForErrorLogTest.Descriptor1.Id, "SuppressorJustification1");
-            public static readonly SuppressionDescriptor Descriptor2 = new("SPR0002", AnalyzerForErrorLogTest.Descriptor2.Id, "SuppressorJustification2");
+            public static readonly SuppressionDescriptor Descriptor1 = new SuppressionDescriptor("SPR0001", AnalyzerForErrorLogTest.Descriptor1.Id, "SuppressorJustification1");
+            public static readonly SuppressionDescriptor Descriptor2 = new SuppressionDescriptor("SPR0002", AnalyzerForErrorLogTest.Descriptor2.Id, "SuppressorJustification2");
 
             public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
                 => ImmutableArray.Create(Descriptor1, Descriptor2);
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: false);
 
-            internal readonly ConcurrentSet<ISymbol> CallbackSymbols = new();
+            internal readonly ConcurrentSet<ISymbol> CallbackSymbols = new ConcurrentSet<ISymbol>();
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
             public override void Initialize(AnalysisContext context)
@@ -2591,7 +2591,7 @@ namespace Microsoft.CodeAnalysis
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         public sealed class LocalNonLocalDiagnosticsAnalyzer : DiagnosticAnalyzer
         {
-            private static readonly DiagnosticDescriptor s_descriptor = new("ID0001", "Title", "{0}", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor("ID0001", "Title", "{0}", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
             private readonly ActionKind _actionKind;
 
             public enum ActionKind
@@ -2797,7 +2797,7 @@ namespace Microsoft.CodeAnalysis
                 new DiagnosticDescriptor(DiagnosticId, "test", "test", "test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             private readonly AnalyzerRegisterActionKind _actionKind;
-            private readonly CancellationTokenSource _cancellationTokenSource = new();
+            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
             public CancellationTestAnalyzer(AnalyzerRegisterActionKind actionKind)
             {
@@ -2861,28 +2861,28 @@ namespace Microsoft.CodeAnalysis
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         public sealed class AllActionsAnalyzer : DiagnosticAnalyzer
         {
-            private static readonly DiagnosticDescriptor s_descriptor = new("ID0001", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor("ID0001", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             private readonly bool _testSyntaxTreeAction;
             private readonly bool _testSemanticModelAction;
             private readonly bool _testSymbolStartAction;
             private readonly bool _testBlockActions;
 
-            public readonly List<SyntaxTree> AnalyzedTrees = new();
-            public readonly List<SemanticModel> AnalyzedSemanticModels = new();
-            public readonly List<ISymbol> AnalyzedSymbols = new();
-            public readonly List<ISymbol> AnalyzedSymbolStartSymbols = new();
-            public readonly List<ISymbol> AnalyzedSymbolEndSymbols = new();
-            public readonly List<IOperation> AnalyzedOperations = new();
-            public readonly List<ISymbol> AnalyzedOperationBlockSymbols = new();
-            public readonly List<IOperation> AnalyzedOperationsInsideOperationBlock = new();
-            public readonly List<ISymbol> AnalyzedOperationBlockStartSymbols = new();
-            public readonly List<ISymbol> AnalyzedOperationBlockEndSymbols = new();
-            public readonly List<SyntaxNode> AnalyzedSyntaxNodes = new();
-            public readonly List<ISymbol> AnalyzedCodeBlockSymbols = new();
-            public readonly List<SyntaxNode> AnalyzedSyntaxNodesInsideCodeBlock = new();
-            public readonly List<ISymbol> AnalyzedCodeBlockStartSymbols = new();
-            public readonly List<ISymbol> AnalyzedCodeBlockEndSymbols = new();
+            public readonly List<SyntaxTree> AnalyzedTrees = new List<SyntaxTree>();
+            public readonly List<SemanticModel> AnalyzedSemanticModels = new List<SemanticModel>();
+            public readonly List<ISymbol> AnalyzedSymbols = new List<ISymbol>();
+            public readonly List<ISymbol> AnalyzedSymbolStartSymbols = new List<ISymbol>();
+            public readonly List<ISymbol> AnalyzedSymbolEndSymbols = new List<ISymbol>();
+            public readonly List<IOperation> AnalyzedOperations = new List<IOperation>();
+            public readonly List<ISymbol> AnalyzedOperationBlockSymbols = new List<ISymbol>();
+            public readonly List<IOperation> AnalyzedOperationsInsideOperationBlock = new List<IOperation>();
+            public readonly List<ISymbol> AnalyzedOperationBlockStartSymbols = new List<ISymbol>();
+            public readonly List<ISymbol> AnalyzedOperationBlockEndSymbols = new List<ISymbol>();
+            public readonly List<SyntaxNode> AnalyzedSyntaxNodes = new List<SyntaxNode>();
+            public readonly List<ISymbol> AnalyzedCodeBlockSymbols = new List<ISymbol>();
+            public readonly List<SyntaxNode> AnalyzedSyntaxNodesInsideCodeBlock = new List<SyntaxNode>();
+            public readonly List<ISymbol> AnalyzedCodeBlockStartSymbols = new List<ISymbol>();
+            public readonly List<ISymbol> AnalyzedCodeBlockEndSymbols = new List<ISymbol>();
 
             public AllActionsAnalyzer(bool testSyntaxTreeAction, bool testSemanticModelAction, bool testSymbolStartAction, bool testBlockActions)
             {

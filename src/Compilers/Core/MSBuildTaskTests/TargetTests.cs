@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             proj.Xml.AddTarget("PrepareForBuild");
 
             // create a dummy WriteLinesToFile task
-            addTask(proj, "WriteLinesToFile", new()
+            addTask(proj, "WriteLinesToFile", new Dictionary<string, string>()
             {
                 { "Lines", "System.String[]" },
                 { "File", "System.String" },
@@ -934,13 +934,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             });
 
             // dummy makeDir task
-            addTask(proj, "MakeDir", new()
+            addTask(proj, "MakeDir", new Dictionary<string, string>()
             {
                 { "Directories", "System.String[]" }
             });
 
             // dummy Message task
-            addTask(proj, "Message", new()
+            addTask(proj, "Message", new Dictionary<string, string>()
             {
                 { "Text", "System.String" },
                 { "Importance", "System.String" }

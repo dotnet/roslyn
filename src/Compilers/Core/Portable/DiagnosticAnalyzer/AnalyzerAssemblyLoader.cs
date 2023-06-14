@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     internal abstract partial class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
     {
-        private readonly object _guard = new();
+        private readonly object _guard = new object();
 
         /// <summary>
         /// Set of analyzer dependencies original full paths to the data calculated for that path
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
         /// </remarks>
-        private readonly Dictionary<string, (AssemblyName? AssemblyName, string RealAssemblyPath)?> _analyzerAssemblyInfoMap = new();
+        private readonly Dictionary<string, (AssemblyName? AssemblyName, string RealAssemblyPath)?> _analyzerAssemblyInfoMap = new Dictionary<string, (AssemblyName? AssemblyName, string RealAssemblyPath)?>();
 
         /// <summary>
         /// Maps analyzer dependency simple names to the set of original full paths it was loaded from. This _only_ 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
         /// </remarks>
-        private readonly Dictionary<string, ImmutableHashSet<string>> _knownAssemblyPathsBySimpleName = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, ImmutableHashSet<string>> _knownAssemblyPathsBySimpleName = new Dictionary<string, ImmutableHashSet<string>>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// The implementation needs to load an <see cref="Assembly"/> with the specified <see cref="AssemblyName"/>. The

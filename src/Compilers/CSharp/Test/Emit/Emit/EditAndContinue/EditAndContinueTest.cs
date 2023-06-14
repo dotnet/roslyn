@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         private readonly CSharpParseOptions? _parseOptions;
         private readonly TargetFramework _targetFramework;
 
-        private readonly List<IDisposable> _disposables = new();
-        private readonly List<GenerationInfo> _generations = new();
-        private readonly List<SourceWithMarkedNodes> _sources = new();
+        private readonly List<IDisposable> _disposables = new List<IDisposable>();
+        private readonly List<GenerationInfo> _generations = new List<GenerationInfo>();
+        private readonly List<SourceWithMarkedNodes> _sources = new List<SourceWithMarkedNodes>();
 
         private bool _hasVerified;
 

@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             Func<Compilation, ISymbol> symbolProvider,
             Func<Compilation, ISymbol> newSymbolProvider = null,
             bool preserveLocalVariables = false)
-            => new(kind, symbolProvider, newSymbolProvider, preserveLocalVariables);
+            => new SemanticEditDescription(kind, symbolProvider, newSymbolProvider, preserveLocalVariables);
 
         internal static EditAndContinueLogEntry Row(int rowNumber, TableIndex table, EditAndContinueOperation operation)
         {

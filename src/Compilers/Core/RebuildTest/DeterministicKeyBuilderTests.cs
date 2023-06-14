@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     {
         private static readonly char[] s_trimChars = { ' ', '\n', '\r' };
 
-        public static EmitOptions EmitOptions { get; } = new();
+        public static EmitOptions EmitOptions { get; } = new EmitOptions();
         public static SourceHashAlgorithm HashAlgorithm { get; } = SourceHashAlgorithm.Sha256;
         public static SourceHashAlgorithm[] HashAlgorithms { get; } = new[]
         {

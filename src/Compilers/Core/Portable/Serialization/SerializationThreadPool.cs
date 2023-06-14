@@ -32,7 +32,7 @@ namespace Roslyn.Utilities
             private static readonly TimeSpan s_idleTimeout = TimeSpan.FromSeconds(1);
 
             /// <summary>The queue of work items. Also used as a lock to protect all relevant state.</summary>
-            private static readonly Queue<(Delegate function, object? state, TaskCompletionSource<object?> tcs)> s_queue = new();
+            private static readonly Queue<(Delegate function, object? state, TaskCompletionSource<object?> tcs)> s_queue = new Queue<(Delegate function, object? state, TaskCompletionSource<object?> tcs)>();
 
             /// <summary>The number of threads currently waiting in <c>tryDequeue</c> for work to arrive.</summary>
             private static int s_availableThreads = 0;

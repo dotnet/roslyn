@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Emit
                         if (edit.OldSymbol is IMethodSymbol && edit.NewSymbol is { } newContainingSymbol)
                         {
                             Debug.Assert(edit.OldSymbol != null);
-                            lazyDeletedMembersBuilder ??= new();
+                            lazyDeletedMembersBuilder ??= new Dictionary<ISymbol, ISet<ISymbol>>();
                             if (!lazyDeletedMembersBuilder.TryGetValue(newContainingSymbol, out var set))
                             {
                                 set = new HashSet<ISymbol>();

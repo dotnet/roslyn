@@ -13483,9 +13483,9 @@ class C
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
             var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
-            ValidateWrittenSources(new()
+            ValidateWrittenSources(new Dictionary<string, Dictionary<string, string>>()
             {
-                { Path.Combine(generatedDir.Path, generatorPrefix, expectedDir), new() { { expectedFileName, generatedSource } } }
+                { Path.Combine(generatedDir.Path, generatorPrefix, expectedDir), new Dictionary<string, string>() { { expectedFileName, generatedSource } } }
             });
 
             // Clean up temp files
@@ -13509,14 +13509,14 @@ class C
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator1 }, analyzers: null);
 
             var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator1);
-            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource1 } } } });
+            ValidateWrittenSources(new Dictionary<string, Dictionary<string, string>>() { { Path.Combine(generatedDir.Path, generatorPrefix), new Dictionary<string, string>() { { "generatedSource.cs", generatedSource1 } } } });
 
             var generatedSource2 = "public class D { }";
             var generator2 = new SingleFileTestGenerator(generatedSource2, "generatedSource.cs");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator2 }, analyzers: null);
 
-            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource2 } } } });
+            ValidateWrittenSources(new Dictionary<string, Dictionary<string, string>>() { { Path.Combine(generatedDir.Path, generatorPrefix), new Dictionary<string, string>() { { "generatedSource.cs", generatedSource2 } } } });
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -13546,10 +13546,10 @@ class C
             var generator1Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
             var generator2Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator2);
 
-            ValidateWrittenSources(new()
+            ValidateWrittenSources(new Dictionary<string, Dictionary<string, string>>()
             {
-                { Path.Combine(generatedDir.Path, generator1Prefix), new() { { source1Name, source1 } } },
-                { Path.Combine(generatedDir.Path, generator2Prefix), new() { { source2Name, source2 } } }
+                { Path.Combine(generatedDir.Path, generator1Prefix), new Dictionary<string, string>() { { source1Name, source1 } } },
+                { Path.Combine(generatedDir.Path, generator2Prefix), new Dictionary<string, string>() { { source2Name, source2 } } }
             });
 
             // Clean up temp files
@@ -13585,9 +13585,9 @@ class C
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
             var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
-            ValidateWrittenSources(new()
+            ValidateWrittenSources(new Dictionary<string, Dictionary<string, string>>()
             {
-                { Path.Combine(generatedDir.Path, generatorPrefix, expectedDir), new() { { generatedFileName, generatedSource } } }
+                { Path.Combine(generatedDir.Path, generatorPrefix, expectedDir), new Dictionary<string, string>() { { generatedFileName, generatedSource } } }
             });
 
             // Clean up temp files
@@ -13637,10 +13637,10 @@ public class TestGenerator : ISourceGenerator
 
             // This is wrong! Both generators are writing the same file out, over the top of each other
             // See https://github.com/dotnet/roslyn/issues/47990
-            ValidateWrittenSources(new()
+            ValidateWrittenSources(new Dictionary<string, Dictionary<string, string>>()
             {
                 //  { Path.Combine(generatedDir.Path,  "generator", "TestGenerator"), new() { { "generatedSource.cs", "//from version 1.0.0.0" } } },
-                { Path.Combine(generatedDir.Path, "generator", "TestGenerator"), new() { { "generatedSource.cs", "//from version 2.0.0.0" } } }
+                { Path.Combine(generatedDir.Path, "generator", "TestGenerator"), new Dictionary<string, string>() { { "generatedSource.cs", "//from version 2.0.0.0" } } }
             });
         }
 
@@ -13658,7 +13658,7 @@ class C
             var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
-            ValidateWrittenSources(new() { { generatedDir.Path, new() } });
+            ValidateWrittenSources(new Dictionary<string, Dictionary<string, string>>() { { generatedDir.Path, new Dictionary<string, string>() } });
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -13702,7 +13702,7 @@ class C
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
             var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
-            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource } } } });
+            ValidateWrittenSources(new Dictionary<string, Dictionary<string, string>>() { { Path.Combine(generatedDir.Path, generatorPrefix), new Dictionary<string, string>() { { "generatedSource.cs", generatedSource } } } });
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);

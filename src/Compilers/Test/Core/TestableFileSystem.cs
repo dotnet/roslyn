@@ -69,7 +69,7 @@ namespace Roslyn.Test.Utilities
             return CreateForMap(map);
         }
 
-        public static TestableFileSystem CreateForMap() => CreateForMap(new());
+        public static TestableFileSystem CreateForMap() => CreateForMap(new Dictionary<string, TestableFile>());
 
         public static TestableFileSystem CreateForMap(Dictionary<string, TestableFile> map)
             => new TestableFileSystem(map)

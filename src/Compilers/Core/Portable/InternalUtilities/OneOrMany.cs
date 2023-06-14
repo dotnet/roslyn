@@ -230,7 +230,7 @@ namespace Roslyn.Utilities
             => this.HasOne ? ImmutableArray.Create(_one) : _many;
 
         public Enumerator GetEnumerator()
-            => new(this);
+            => new Enumerator(this);
 
         internal struct Enumerator
         {

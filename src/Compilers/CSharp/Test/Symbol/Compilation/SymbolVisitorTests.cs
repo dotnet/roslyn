@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class LoggingSymbolVisitor : SymbolVisitor
         {
-            private readonly StringBuilder _output = new();
+            private readonly StringBuilder _output = new StringBuilder();
             private int _indent;
 
             public override string ToString() => _output.ToString();
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class LoggingSymbolVisitorWithReturnValue : SymbolVisitor<string>
         {
-            private readonly StringBuilder _output = new();
+            private readonly StringBuilder _output = new StringBuilder();
             private int _indent;
 
             public override string ToString() => _output.ToString();

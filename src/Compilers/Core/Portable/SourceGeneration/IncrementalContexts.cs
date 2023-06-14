@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
             _sourceExtension = sourceExtension;
         }
 
-        public SyntaxValueProvider SyntaxProvider => new(this, _syntaxInputBuilder, RegisterOutput, SyntaxHelper);
+        public SyntaxValueProvider SyntaxProvider => new SyntaxValueProvider(this, _syntaxInputBuilder, RegisterOutput, SyntaxHelper);
 
         public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.Compilation));
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
         // (e.g. we don't care if it has the same conceptual value, we're ok rerunning as long as the actual instance
         // changes).
         internal IncrementalValueProvider<CompilationOptions> CompilationOptionsProvider
-            => new(SharedInputNodes.CompilationOptions.WithRegisterOutput(RegisterOutput)
+            => new IncrementalValueProvider<CompilationOptions>(SharedInputNodes.CompilationOptions.WithRegisterOutput(RegisterOutput)
                 .WithComparer(ReferenceEqualityComparer.Instance)
                 .WithTrackingName(WellKnownGeneratorInputs.CompilationOptions));
 

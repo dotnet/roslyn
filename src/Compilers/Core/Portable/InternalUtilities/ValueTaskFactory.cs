@@ -14,9 +14,9 @@ namespace Roslyn.Utilities
     {
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a ValueTask wrapper, not an asynchronous method.")]
         public static ValueTask<T> FromResult<T>(T result)
-            => new(result);
+            => new ValueTask<T>(result);
 
         public static ValueTask CompletedTask
-            => new();
+            => new ValueTask();
     }
 }

@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             FullPath = fullPath;
             _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
 
-            _diagnosticAnalyzers = new(this, typeof(DiagnosticAnalyzerAttribute), GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
-            _generators = new(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false, coerceFunction: CoerceGeneratorType);
+            _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, typeof(DiagnosticAnalyzerAttribute), GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
+            _generators = new Extensions<ISourceGenerator>(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false, coerceFunction: CoerceGeneratorType);
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private class ExtTypeComparer : IEqualityComparer<TExtension>
             {
-                public static readonly ExtTypeComparer Instance = new();
+                public static readonly ExtTypeComparer Instance = new ExtTypeComparer();
 
                 public bool Equals(TExtension? x, TExtension? y) => object.Equals(x?.GetType(), y?.GetType());
 

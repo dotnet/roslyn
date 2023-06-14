@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </returns>
         /// <remarks>The values are not affected by line mapping directives (<c>#line</c>).</remarks>
         public override FileLinePositionSpan GetLineSpan(TextSpan span, CancellationToken cancellationToken = default)
-            => new(FilePath, GetLinePosition(span.Start, cancellationToken), GetLinePosition(span.End, cancellationToken));
+            => new FileLinePositionSpan(FilePath, GetLinePosition(span.Start, cancellationToken), GetLinePosition(span.End, cancellationToken));
 
         /// <summary>
         /// Gets the location in terms of path, line and column after applying source line mapping directives (<c>#line</c>).

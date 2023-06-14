@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public Builder ToBuilder(string? stepName, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer = null, int? tableCapacity = null)
-            => new(this, stepName, stepTrackingEnabled, equalityComparer, tableCapacity);
+            => new Builder(this, stepName, stepTrackingEnabled, equalityComparer, tableCapacity);
 
         public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName, IEqualityComparer<T> equalityComparer)
         {
@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis
                 return new TableEntry(OneOrMany.Create(itemBuilder.ToImmutableArray()), s_allCachedEntries, anyRemoved: false);
             }
 
-            public TableEntry AsRemovedDueToInputRemoval() => new(_items, s_allRemovedDueToInputRemoval, anyRemoved: true);
+            public TableEntry AsRemovedDueToInputRemoval() => new TableEntry(_items, s_allRemovedDueToInputRemoval, anyRemoved: true);
 
             private static ImmutableArray<EntryState> GetSingleArray(EntryState state) => state switch
             {
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis
             };
 
             public Enumerator GetEnumerator()
-                => new(this);
+                => new Enumerator(this);
 
             public struct Enumerator
             {

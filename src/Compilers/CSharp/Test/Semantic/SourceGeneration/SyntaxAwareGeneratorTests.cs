@@ -943,7 +943,7 @@ class C
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            List<string> syntaxFilterVisited = new();
+            List<string> syntaxFilterVisited = new List<string>();
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) =>

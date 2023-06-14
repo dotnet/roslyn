@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration;
 /// </summary>
 internal sealed class GlobalAliases : IEquatable<GlobalAliases>
 {
-    public static readonly GlobalAliases Empty = new(ImmutableArray<(string aliasName, string symbolName)>.Empty);
+    public static readonly GlobalAliases Empty = new GlobalAliases(ImmutableArray<(string aliasName, string symbolName)>.Empty);
 
     public readonly ImmutableArray<(string aliasName, string symbolName)> AliasAndSymbolNames;
 
@@ -55,7 +55,7 @@ internal sealed class GlobalAliases : IEquatable<GlobalAliases>
         if (ga2.AliasAndSymbolNames.Length == 0)
             return ga1;
 
-        return new(ga1.AliasAndSymbolNames.Concat(ga2.AliasAndSymbolNames));
+        return new GlobalAliases(ga1.AliasAndSymbolNames.Concat(ga2.AliasAndSymbolNames));
     }
 
     public override int GetHashCode()

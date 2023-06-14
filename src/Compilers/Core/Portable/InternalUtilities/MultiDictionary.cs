@@ -215,7 +215,7 @@ namespace Roslyn.Utilities
 
         public Dictionary<K, ValueSet>.ValueCollection Values => _dictionary.Values;
 
-        private readonly ValueSet _emptySet = new(null, null);
+        private readonly ValueSet _emptySet = new ValueSet(null, null);
 
         // Returns an empty set if there is no such key in the dictionary.
         public ValueSet this[K k]

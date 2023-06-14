@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void HashSet_Generic_RemoveWhere_NewObject() // Regression Dev10_624201
         {
             object[] array = new object[2];
-            object obj = new();
+            object obj = new object();
             SegmentedHashSet<object> set = new SegmentedHashSet<object>();
 
             set.Add(obj);

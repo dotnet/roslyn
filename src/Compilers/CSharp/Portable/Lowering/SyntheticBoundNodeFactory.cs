@@ -992,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SwitchSection(ImmutableArray.Create(value), statements);
 
         public SyntheticSwitchSection SwitchSection(ImmutableArray<int> values, params BoundStatement[] statements)
-            => new(values, ImmutableArray.Create(statements));
+            => new SyntheticSwitchSection(values, ImmutableArray.Create(statements));
 
         /// <summary>
         /// Produce an int switch.

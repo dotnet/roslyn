@@ -319,13 +319,13 @@ namespace Roslyn.Utilities
             private readonly SegmentedList<T> _values;
 
             private static readonly ObjectPool<SegmentedList<T>> s_objectListPool
-                = new(() => new SegmentedList<T>(20));
+                = new ObjectPool<SegmentedList<T>>(() => new SegmentedList<T>(20));
 
             private ReaderReferenceMap(SegmentedList<T> values)
                 => _values = values;
 
             public static ReaderReferenceMap<T> Create()
-                => new(s_objectListPool.Allocate());
+                => new ReaderReferenceMap<T>(s_objectListPool.Allocate());
 
             public void Dispose()
             {

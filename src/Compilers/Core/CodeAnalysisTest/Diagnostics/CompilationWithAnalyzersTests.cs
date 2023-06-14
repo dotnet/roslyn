@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
     public class CompilationWithAnalyzersTests : TestBase
     {
-        private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel);
+        private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel);
 
         [Fact]
         public void GetEffectiveDiagnostics_Errors()

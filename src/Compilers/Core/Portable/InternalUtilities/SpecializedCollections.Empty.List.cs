@@ -20,7 +20,7 @@ namespace Roslyn.Utilities
 
             internal class List<T> : Collection<T>, IList<T>, IReadOnlyList<T>
             {
-                public static new readonly List<T> Instance = new();
+                public static new readonly List<T> Instance = new List<T>();
 
                 protected List()
                 {
