@@ -1,0 +1,18 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Tools\PrivateAnalyzers\Core\Microsoft.CodeAnalysis.PrivateAnalyzers.csproj">
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Condition="'$(Language)' == 'C#'" Include="$(MSBuildThisFileDirectory)..\Tools\PrivateAnalyzers\CSharp\Microsoft.CodeAnalysis.PrivateAnalyzers.CSharp.csproj">
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Condition="'$(Language)' == 'VB'" Include="$(MSBuildThisFileDirectory)..\Tools\PrivateAnalyzers\VisualBasic\Microsoft.CodeAnalysis.PrivateAnalyzers.VisualBasic.csproj">
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

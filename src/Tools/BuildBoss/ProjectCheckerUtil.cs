@@ -148,7 +148,8 @@ namespace BuildBoss
             // version, so that way the source generator can actually be loaded by the toolset. We don't apply this rule to
             // any other project, as any other project having a reason to reference a version of Roslyn via a PackageReference
             // probably doesn't fall under this rule.
-            if (ProjectFilePath.Contains("CompilerGeneratorTools") && packageReference.Name == "Microsoft.CodeAnalysis.Common")
+            if ((ProjectFilePath.Contains("CompilerGeneratorTools") && packageReference.Name == "Microsoft.CodeAnalysis.Common")
+                || (ProjectFilePath.Contains("PrivateAnalyzers") && packageReference.Name is "Microsoft.CodeAnalysis.Common" or "Microsoft.CodeAnalysis.CSharp" or "Microsoft.CodeAnalysis.VisualBasic"))
             {
                 yield return "$(SourceGeneratorMicrosoftCodeAnalysisVersion)";
             }
