@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
 
 #if CODE_STYLE
-            internal CodeActionPriority Priority { get; }
+            internal CodeActionPriority Priority { get; } = priority;
 #else
             internal override CodeActionPriority Priority { get; } = priority;
 
