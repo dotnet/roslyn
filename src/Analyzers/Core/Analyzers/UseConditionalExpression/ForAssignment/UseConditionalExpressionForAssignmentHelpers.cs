@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
-            if (ReferencesPatternVariableInAssignment(ifOperation.Condition, trueAssignment?.Target, falseAssignment?.Target))
+            if (ReferencesDeclaredVariableInAssignment(ifOperation.Condition, trueAssignment?.Target, falseAssignment?.Target))
                 return false;
 
             isRef = trueAssignment?.IsRef == true;
@@ -90,15 +90,18 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                      ^ compilation.ClassifyCommonConversion(secondType, firstType).IsImplicit;
             }
 
-            static bool ReferencesPatternVariableInAssignment(IOperation condition, IOperation? trueTarget, IOperation? falseTarget)
+            static bool ReferencesDeclaredVariableInAssignment(IOperation condition, IOperation? trueTarget, IOperation? falseTarget)
             {
                 if (trueTarget is not null || falseTarget is not null)
                 {
                     using var _1 = PooledHashSet<ISymbol>.GetInstance(out var declaredPatternSymbols);
                     foreach (var operation in condition.DescendantsAndSelf())
                     {
-                        if (operation is IDeclarationPatternOperation declarationPatternOperation)
-                            declaredPatternSymbols.AddIfNotNull(declarationPatternOperation.DeclaredSymbol);
+                        if (operation is IDeclarationPatternOperation declarationPattern)
+                            declaredPatternSymbols.AddIfNotNull(declarationPattern.DeclaredSymbol);
+
+                        if (operation is IDeclarationExpressionOperation { Expression: ILocalReferenceOperation localReference })
+                            declaredPatternSymbols.AddIfNotNull(localReference.Local);
                     }
 
                     if (declaredPatternSymbols.Count > 0)

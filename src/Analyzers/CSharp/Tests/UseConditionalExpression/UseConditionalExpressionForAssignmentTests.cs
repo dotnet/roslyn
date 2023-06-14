@@ -2072,5 +2072,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68578")]
+        public async Task TestMissingWhenAssignmentReferencesOutVariable()
+        {
+            await TestMissingAsync("""
+                using System;
+
+                public class Class1
+                {
+                    public int i;
+                }
+
+                public class Program
+                {
+                    public static void Test(object obj)
+                    {
+                        if (TryGetValue(out var c))
+                        {
+                            c.i = 1;
+                        }
+                        else    
+                        {
+                            throw new Exception();
+                        }
+                    }
+
+                    private static bool TryGetValue(out Class1 c) => throw new NotImplementedException();
+                }
+                """);
+        }
     }
 }
