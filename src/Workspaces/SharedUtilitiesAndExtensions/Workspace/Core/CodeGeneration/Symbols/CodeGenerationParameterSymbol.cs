@@ -14,37 +14,26 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal class CodeGenerationParameterSymbol : CodeGenerationSymbol, IParameterSymbol
+    internal class CodeGenerationParameterSymbol(
+        INamedTypeSymbol containingType,
+        ImmutableArray<AttributeData> attributes,
+        RefKind refKind,
+        bool isParams,
+        ITypeSymbol type,
+        string name,
+        bool isOptional,
+        bool hasDefaultValue,
+        object defaultValue) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, new DeclarationModifiers(), name), IParameterSymbol
     {
-        public RefKind RefKind { get; }
-        public bool IsParams { get; }
-        public ITypeSymbol Type { get; }
+        public RefKind RefKind { get; } = refKind;
+        public bool IsParams { get; } = isParams;
+        public ITypeSymbol Type { get; } = type;
         public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
-        public bool IsOptional { get; }
+        public bool IsOptional { get; } = isOptional;
         public int Ordinal { get; }
 
-        public bool HasExplicitDefaultValue { get; }
-        public object ExplicitDefaultValue { get; }
-
-        public CodeGenerationParameterSymbol(
-            INamedTypeSymbol containingType,
-            ImmutableArray<AttributeData> attributes,
-            RefKind refKind,
-            bool isParams,
-            ITypeSymbol type,
-            string name,
-            bool isOptional,
-            bool hasDefaultValue,
-            object defaultValue)
-            : base(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, new DeclarationModifiers(), name)
-        {
-            this.RefKind = refKind;
-            this.IsParams = isParams;
-            this.Type = type;
-            this.IsOptional = isOptional;
-            this.HasExplicitDefaultValue = hasDefaultValue;
-            this.ExplicitDefaultValue = defaultValue;
-        }
+        public bool HasExplicitDefaultValue { get; } = hasDefaultValue;
+        public object ExplicitDefaultValue { get; } = defaultValue;
 
         protected override CodeGenerationSymbol Clone()
         {

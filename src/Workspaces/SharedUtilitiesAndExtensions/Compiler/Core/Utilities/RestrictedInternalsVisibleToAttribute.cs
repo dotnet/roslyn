@@ -7,15 +7,9 @@ using System.Collections.Immutable;
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-    internal sealed class RestrictedInternalsVisibleToAttribute : Attribute
+    internal sealed class RestrictedInternalsVisibleToAttribute(string assemblyName, params string[] allowedNamespaces) : Attribute
     {
-        public RestrictedInternalsVisibleToAttribute(string assemblyName, params string[] allowedNamespaces)
-        {
-            AssemblyName = assemblyName;
-            AllowedNamespaces = allowedNamespaces.ToImmutableArray();
-        }
-
-        public string AssemblyName { get; }
-        public ImmutableArray<string> AllowedNamespaces { get; }
+        public string AssemblyName { get; } = assemblyName;
+        public ImmutableArray<string> AllowedNamespaces { get; } = allowedNamespaces.ToImmutableArray();
     }
 }

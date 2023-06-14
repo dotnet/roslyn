@@ -31,13 +31,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// retrieving data from <see cref="SolutionDataTableName"/>.  Note that with the Solution 
         /// table there is no need for key->id translation.  i.e. the key acts as the ID itself.
         /// </summary>
-        private sealed class SolutionAccessor : Accessor<SolutionKey, SolutionPrimaryKey>
+        private sealed class SolutionAccessor(SQLitePersistentStorage storage) : Accessor<SolutionKey, SolutionPrimaryKey>(Table.Solution,
+                  storage)
         {
-            public SolutionAccessor(SQLitePersistentStorage storage)
-                : base(Table.Solution,
-                      storage)
-            {
-            }
 
             // For the SolutionDataTable the key itself acts as the data-id.
             protected override SolutionPrimaryKey? TryGetDatabaseKey(SqlConnection connection, SolutionKey key, bool allowWrite)

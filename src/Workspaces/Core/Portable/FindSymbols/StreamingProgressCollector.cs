@@ -23,24 +23,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// APIs to return all the results at the end of the operation, as opposed to broadcasting
     /// the results as they are found.
     /// </summary>
-    internal class StreamingProgressCollector : IStreamingFindReferencesProgress
+    internal class StreamingProgressCollector(
+        IStreamingFindReferencesProgress underlyingProgress) : IStreamingFindReferencesProgress
     {
         private readonly object _gate = new();
-        private readonly IStreamingFindReferencesProgress _underlyingProgress;
-
         private readonly Dictionary<ISymbol, List<ReferenceLocation>> _symbolToLocations = new();
 
-        public IStreamingProgressTracker ProgressTracker => _underlyingProgress.ProgressTracker;
+        public IStreamingProgressTracker ProgressTracker => underlyingProgress.ProgressTracker;
 
         public StreamingProgressCollector()
             : this(NoOpStreamingFindReferencesProgress.Instance)
         {
-        }
-
-        public StreamingProgressCollector(
-            IStreamingFindReferencesProgress underlyingProgress)
-        {
-            _underlyingProgress = underlyingProgress;
         }
 
         public ImmutableArray<ReferencedSymbol> GetReferencedSymbols()
@@ -55,11 +48,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public ValueTask OnStartedAsync(CancellationToken cancellationToken) => _underlyingProgress.OnStartedAsync(cancellationToken);
-        public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => _underlyingProgress.OnCompletedAsync(cancellationToken);
+        public ValueTask OnStartedAsync(CancellationToken cancellationToken) => underlyingProgress.OnStartedAsync(cancellationToken);
+        public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => underlyingProgress.OnCompletedAsync(cancellationToken);
 
-        public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => _underlyingProgress.OnFindInDocumentCompletedAsync(document, cancellationToken);
-        public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => _underlyingProgress.OnFindInDocumentStartedAsync(document, cancellationToken);
+        public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => underlyingProgress.OnFindInDocumentCompletedAsync(document, cancellationToken);
+        public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => underlyingProgress.OnFindInDocumentStartedAsync(document, cancellationToken);
 
         public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
         {
@@ -71,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         _symbolToLocations[definition] = new List<ReferenceLocation>();
                 }
 
-                return _underlyingProgress.OnDefinitionFoundAsync(group, cancellationToken);
+                return underlyingProgress.OnDefinitionFoundAsync(group, cancellationToken);
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
@@ -86,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _symbolToLocations[definition].Add(location);
             }
 
-            return _underlyingProgress.OnReferenceFoundAsync(group, definition, location, cancellationToken);
+            return underlyingProgress.OnReferenceFoundAsync(group, definition, location, cancellationToken);
         }
     }
 }

@@ -11,19 +11,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportIncrementalAnalyzerProviderAttribute : ExportAttribute
+    internal class ExportIncrementalAnalyzerProviderAttribute(string name, string[] workspaceKinds) : ExportAttribute(typeof(IIncrementalAnalyzerProvider))
     {
-        public bool HighPriorityForActiveFile { get; }
-        public string Name { get; }
-        public string[] WorkspaceKinds { get; }
-
-        public ExportIncrementalAnalyzerProviderAttribute(string name, string[] workspaceKinds)
-            : base(typeof(IIncrementalAnalyzerProvider))
-        {
-            this.WorkspaceKinds = workspaceKinds;
-            this.Name = name ?? throw new ArgumentNullException(nameof(name));
-            this.HighPriorityForActiveFile = false;
-        }
+        public bool HighPriorityForActiveFile { get; } = false;
+        public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
+        public string[] WorkspaceKinds { get; } = workspaceKinds;
 
         public ExportIncrementalAnalyzerProviderAttribute(bool highPriorityForActiveFile, string name, string[] workspaceKinds)
             : this(name, workspaceKinds)

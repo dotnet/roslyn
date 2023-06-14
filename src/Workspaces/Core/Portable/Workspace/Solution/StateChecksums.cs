@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
-    internal sealed class SolutionStateChecksums : ChecksumWithChildren
+    internal sealed class SolutionStateChecksums(ImmutableArray<object> children) : ChecksumWithChildren(children)
     {
         public SolutionStateChecksums(
             Checksum attributesChecksum,
@@ -22,10 +22,6 @@ namespace Microsoft.CodeAnalysis.Serialization
             Checksum frozenSourceGeneratedDocumentIdentity,
             Checksum frozenSourceGeneratedDocumentText)
             : this(ImmutableArray.Create<object>(attributesChecksum, projectChecksums, analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentity, frozenSourceGeneratedDocumentText))
-        {
-        }
-
-        public SolutionStateChecksums(ImmutableArray<object> children) : base(children)
         {
         }
 
@@ -89,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
     }
 
-    internal class ProjectStateChecksums : ChecksumWithChildren
+    internal class ProjectStateChecksums(ImmutableArray<object> children) : ChecksumWithChildren(children)
     {
         public ProjectStateChecksums(
             Checksum infoChecksum,
@@ -111,10 +107,6 @@ namespace Microsoft.CodeAnalysis.Serialization
                 analyzerReferenceChecksums,
                 additionalDocumentChecksums,
                 analyzerConfigDocumentChecksums))
-        {
-        }
-
-        public ProjectStateChecksums(ImmutableArray<object> children) : base(children)
         {
         }
 
@@ -207,14 +199,10 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
     }
 
-    internal class DocumentStateChecksums : ChecksumWithChildren
+    internal class DocumentStateChecksums(ImmutableArray<object> children) : ChecksumWithChildren(children)
     {
         public DocumentStateChecksums(Checksum infoChecksum, Checksum textChecksum)
             : this(ImmutableArray.Create<object>(infoChecksum, textChecksum))
-        {
-        }
-
-        public DocumentStateChecksums(ImmutableArray<object> children) : base(children)
         {
         }
 
