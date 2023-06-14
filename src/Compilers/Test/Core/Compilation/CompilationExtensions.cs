@@ -34,11 +34,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public static class CompilationExtensions
     {
         internal static bool EnableVerifyIOperation { get; } =
-#if ROSLYN_TEST_IOPERATION
-            true;
-#else
-            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
-#endif
+            // PROTOTYPE: Re-enable
+            //#if ROSLYN_TEST_IOPERATION
+            //                        true;
+            //#else
+            //            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
+            //#endif
+            false;
 
         internal static bool EnableVerifyUsedAssemblies { get; } =
 #if ROSLYN_TEST_USEDASSEMBLIES

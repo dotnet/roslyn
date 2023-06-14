@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (collectionTypeKind)
             {
                 case CollectionLiteralTypeKind.CollectionInitializer:
-                    return BindCollectionInitializerCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, diagnostics);
+                    return BindCollectionInitializerCollectionLiteral(node, collectionTypeKind, targetType, wasCompilerGenerated: wasCompilerGenerated, diagnostics);
                 case CollectionLiteralTypeKind.Array:
                 case CollectionLiteralTypeKind.Span:
                 case CollectionLiteralTypeKind.ReadOnlySpan:
@@ -468,10 +468,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
                 var result = BindCollectionInitializerCollectionLiteral(
                     node,
+                    collectionTypeKind,
                     GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, syntax).Construct(elementType),
                     wasCompilerGenerated: wasCompilerGenerated,
                     diagnostics);
-                return result.Update(result.Placeholder, result.CollectionCreation, result.Elements, targetType);
+                return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.Elements, targetType);
             }
 
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
@@ -482,6 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return new BoundCollectionLiteralExpression(
                 syntax,
+                collectionTypeKind,
                 implicitReceiver,
                 collectionCreation: null,
                 builder.ToImmutableAndFree(),
@@ -517,6 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundCollectionLiteralExpression BindCollectionInitializerCollectionLiteral(
             BoundUnconvertedCollectionLiteralExpression node,
+            CollectionLiteralTypeKind collectionTypeKind,
             TypeSymbol targetType,
             bool wasCompilerGenerated,
             BindingDiagnosticBag diagnostics,
@@ -576,6 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return new BoundCollectionLiteralExpression(
                 syntax,
+                collectionTypeKind,
                 implicitReceiver,
                 collectionCreation,
                 builder.ToImmutableAndFree(),
@@ -594,10 +598,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE: Improve perf. For instance, emit [] as Array.Empty<T>() rather than a List<T>.
             var result = BindCollectionInitializerCollectionLiteral(
                 node,
+                CollectionLiteralTypeKind.ListInterface,
                 GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, node.Syntax).Construct(elementType),
                 wasCompilerGenerated: wasCompilerGenerated,
                 diagnostics);
-            return result.Update(result.Placeholder, result.CollectionCreation, result.Elements, targetType);
+            return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.Elements, targetType);
         }
 
         private BoundCollectionLiteralExpression BindCollectionLiteralForErrorRecovery(
@@ -615,6 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return new BoundCollectionLiteralExpression(
                 syntax,
+                collectionTypeKind: CollectionLiteralTypeKind.None,
                 placeholder: null,
                 collectionCreation: null,
                 elements: builder.ToImmutableAndFree(),

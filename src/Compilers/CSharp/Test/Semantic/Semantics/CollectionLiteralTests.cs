@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(3, collections.Length);
             VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: "System.Object", ConversionKind.NoConversion);
             VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "dynamic", ConversionKind.NoConversion);
-            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: "?", ConversionKind.Identity);
+            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: "?", ConversionKind.NoConversion);
         }
 
         [Fact]
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(3, collections.Length);
             VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: "System.Object", ConversionKind.NoConversion);
             VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "dynamic", ConversionKind.NoConversion);
-            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: "?", ConversionKind.Identity);
+            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: "?", ConversionKind.NoConversion);
         }
 
         [Fact]
@@ -4641,12 +4641,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyTypes(model, collections[3], expectedType: null, expectedConvertedType: "System.ReadOnlySpan<System.Object>", ConversionKind.CollectionLiteral);
             VerifyTypes(model, collections[4], expectedType: null, expectedConvertedType: "S1", ConversionKind.CollectionLiteral);
             VerifyTypes(model, collections[5], expectedType: null, expectedConvertedType: "S2", ConversionKind.NoConversion);
-            VerifyTypes(model, collections[6], expectedType: null, expectedConvertedType: "System.Int32[]", ConversionKind.Identity);
-            VerifyTypes(model, collections[7], expectedType: null, expectedConvertedType: "System.Collections.Generic.List<System.Object>", ConversionKind.Identity);
-            VerifyTypes(model, collections[8], expectedType: null, expectedConvertedType: "System.Span<System.Int32>", ConversionKind.Identity);
-            VerifyTypes(model, collections[9], expectedType: null, expectedConvertedType: "System.ReadOnlySpan<System.Object>", ConversionKind.Identity);
-            VerifyTypes(model, collections[10], expectedType: null, expectedConvertedType: "S1", ConversionKind.Identity);
-            VerifyTypes(model, collections[11], expectedType: null, expectedConvertedType: "S2", ConversionKind.Identity);
+            VerifyTypes(model, collections[6], expectedType: null, expectedConvertedType: "System.Int32[]", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[7], expectedType: null, expectedConvertedType: "System.Collections.Generic.List<System.Object>", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[8], expectedType: null, expectedConvertedType: "System.Span<System.Int32>", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[9], expectedType: null, expectedConvertedType: "System.ReadOnlySpan<System.Object>", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[10], expectedType: null, expectedConvertedType: "S1", ConversionKind.CollectionLiteral);
+            VerifyTypes(model, collections[11], expectedType: null, expectedConvertedType: "S2", ConversionKind.NoConversion);
         }
 
         private static void VerifyTypes(SemanticModel model, ExpressionSyntax expr, string expectedType, string expectedConvertedType, ConversionKind expectedConversionKind)
@@ -4675,15 +4675,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                // (6,17): error CS9503: There is no target type for the collection literal.
                 //         var x = [default(TypedReference)];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = [default(TypedReference)]").WithArguments("collection literals").WithLocation(6, 13),
-                // (7,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[default(TypedReference)]").WithLocation(6, 17),
+                // (7,17): error CS9503: There is no target type for the collection literal.
                 //         var y = [default(ArgIterator)];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "y = [default(ArgIterator)]").WithArguments("collection literals").WithLocation(7, 13),
-                // (8,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[default(ArgIterator)]").WithLocation(7, 17),
+                // (8,17): error CS9503: There is no target type for the collection literal.
                 //         var z = [default(RuntimeArgumentHandle)];
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = [default(RuntimeArgumentHandle)]").WithArguments("collection literals").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[default(RuntimeArgumentHandle)]").WithLocation(8, 17));
         }
 
         [Fact]
