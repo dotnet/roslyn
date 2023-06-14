@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
@@ -68,6 +71,9 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
+            if (ReferencesDeclaredVariableInAssignment(ifOperation.Condition, trueAssignment?.Target, falseAssignment?.Target))
+                return false;
+
             isRef = trueAssignment?.IsRef == true;
             return UseConditionalExpressionHelpers.CanConvert(
                 syntaxFacts, ifOperation, trueStatement, falseStatement);
@@ -82,6 +88,49 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
                 return compilation.ClassifyCommonConversion(firstType, secondType).IsImplicit
                      ^ compilation.ClassifyCommonConversion(secondType, firstType).IsImplicit;
+            }
+
+            static bool ReferencesDeclaredVariableInAssignment(IOperation condition, IOperation? trueTarget, IOperation? falseTarget)
+            {
+                if (trueTarget is not null || falseTarget is not null)
+                {
+                    using var _1 = PooledHashSet<ILocalSymbol>.GetInstance(out var symbolsDeclaredInConditional);
+                    foreach (var operation in condition.DescendantsAndSelf())
+                    {
+                        // `if (x is String s)`
+                        if (operation is IDeclarationPatternOperation { DeclaredSymbol: ILocalSymbol local })
+                            symbolsDeclaredInConditional.AddIfNotNull(local);
+
+                        // `if (Goo(out String s))`
+                        if (operation is IDeclarationExpressionOperation { Expression: ILocalReferenceOperation localReference })
+                            symbolsDeclaredInConditional.AddIfNotNull(localReference.Local);
+                    }
+
+                    if (symbolsDeclaredInConditional.Count > 0)
+                    {
+                        return ContainsLocalReference(symbolsDeclaredInConditional, trueTarget) ||
+                               ContainsLocalReference(symbolsDeclaredInConditional, falseTarget);
+                    }
+                }
+
+                return false;
+            }
+
+            static bool ContainsLocalReference(HashSet<ILocalSymbol> declaredPatternSymbols, IOperation? target)
+            {
+                if (target is not null)
+                {
+                    foreach (var operation in target.DescendantsAndSelf())
+                    {
+                        if (operation is ILocalReferenceOperation { Local: var local } &&
+                            declaredPatternSymbols.Contains(local))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
             }
         }
 

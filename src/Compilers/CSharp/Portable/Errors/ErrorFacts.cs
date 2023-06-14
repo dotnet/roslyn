@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterDisallowsNull));
             nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterNotNullIfNotNull));
             nullableWarnings.Add(GetId(ErrorCode.WRN_ReturnNotNullIfNotNull));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor));
 
             NullableWarnings = nullableWarnings.ToImmutable();
         }
@@ -530,6 +532,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                case ErrorCode.WRN_InterceptorSignatureMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                     return 1;
                 default:
                     return 0;
@@ -579,6 +584,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                 case ErrorCode.ERR_CannotBeConvertedToUtf8:
                 case ErrorCode.ERR_FileTypeNonUniquePath:
+                case ErrorCode.ERR_InterceptorSignatureMismatch:
+                case ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter:
+                case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:
+                case ErrorCode.ERR_DuplicateInterceptor:
+                case ErrorCode.WRN_InterceptorSignatureMismatch:
+                case ErrorCode.ERR_InterceptorNotAccessible:
+                case ErrorCode.ERR_InterceptorScopedMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
+                case ErrorCode.ERR_InterceptorCannotInterceptNameof:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;
@@ -2309,8 +2324,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias:
                 case ErrorCode.ERR_BadStaticAfterUnsafe:
                 case ErrorCode.ERR_BadCaseInSwitchArm:
+                case ErrorCode.ERR_InterceptorsFeatureNotEnabled:
+                case ErrorCode.ERR_InterceptorCannotBeGeneric:
+                case ErrorCode.ERR_InterceptorPathNotInCompilation:
+                case ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate:
+                case ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate:
+                case ErrorCode.ERR_InterceptorPositionBadToken:
+                case ErrorCode.ERR_InterceptorLineOutOfRange:
+                case ErrorCode.ERR_InterceptorCharacterOutOfRange:
+                case ErrorCode.ERR_InterceptorMethodMustBeOrdinary:
+                case ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition:
+                case ErrorCode.ERR_InterceptorFilePathCannotBeNull:
+                case ErrorCode.ERR_InterceptorNameNotInvoked:
+                case ErrorCode.ERR_InterceptorNonUniquePath:
+                case ErrorCode.ERR_InterceptorLineCharacterMustBePositive:
                 case ErrorCode.ERR_ConstantValueOfTypeExpected:
                 case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny:
+                case ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly:
+                case ErrorCode.ERR_BadUsingStaticType:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
