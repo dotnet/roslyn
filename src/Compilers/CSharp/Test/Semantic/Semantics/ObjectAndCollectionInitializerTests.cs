@@ -3780,6 +3780,77 @@ class C : System.Collections.Generic.List<C>
             }
         }
 
+        [Fact]
+        public void GetComplexCollectionInitializerConversionInfo_NoConversion()
+        {
+            var source = """
+                using System.Collections.Generic;
+                _ = new Dictionary<string, string> { { "a", "b" } };
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+            var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(2, literals.Length);
+            foreach (var literal in literals)
+            {
+                var conversion = model.GetConversion(literal);
+                Assert.Equal(ConversionKind.Identity, conversion.Kind);
+                var typeInfo = model.GetTypeInfo(literal);
+                Assert.Same(typeInfo.Type, typeInfo.ConvertedType);
+            }
+        }
+
+        [Fact]
+        public void GetComplexCollectionInitializerConversionInfo_ImplicitReferenceConversion()
+        {
+            var source = """
+                using System.Collections.Generic;
+                _ = new Dictionary<object, object> { { "a", "b" } };
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+            var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(2, literals.Length);
+            foreach (var literal in literals)
+            {
+                var conversion = model.GetConversion(literal);
+                Assert.Equal(ConversionKind.ImplicitReference, conversion.Kind);
+                var typeInfo = model.GetTypeInfo(literal);
+                Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
+                Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
+            }
+        }
+
+        [Fact]
+        public void GetComplexCollectionInitializerConversionInfo_ImplicitBoxingConversion()
+        {
+            var source = """
+                using System.Collections.Generic;
+                _ = new Dictionary<object, object> { { 1, 2 } };
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+            var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(2, literals.Length);
+            foreach (var literal in literals)
+            {
+                var conversion = model.GetConversion(literal);
+                Assert.Equal(ConversionKind.Boxing, conversion.Kind);
+                var typeInfo = model.GetTypeInfo(literal);
+                Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+                Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
+            }
+        }
+
         [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerArray()
         {
