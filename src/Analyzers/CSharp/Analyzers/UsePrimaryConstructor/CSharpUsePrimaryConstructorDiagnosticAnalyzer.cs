@@ -11,12 +11,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -381,12 +379,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor
                     Dictionary<ISymbol, IParameterSymbol> candidateMembersToRemove)
                 {
                     var semanticModel = compilation.GetSemanticModel(primaryConstructorDeclaration.SyntaxTree);
+
+                    var body = primaryConstructorDeclaration.ExpressionBody ?? (SyntaxNode?)primaryConstructorDeclaration.Body;
+                    if (body?.ContainsDirectives is true)
+                        return false;
+
                     return primaryConstructorDeclaration switch
                     {
                         { ExpressionBody.Expression: AssignmentExpressionSyntax assignmentExpression }
                             => IsAssignmentToInstanceMember(namedType, semanticModel, assignmentExpression, candidateMembersToRemove, out _),
-                        { Body: { } body }
-                            => AnalyzeBlockBody(namedType, semanticModel, body, candidateMembersToRemove),
+                        { Body: { } block }
+                            => AnalyzeBlockBody(namedType, semanticModel, block, candidateMembersToRemove),
                         _ => false,
                     };
                 }
