@@ -22,7 +22,7 @@ namespace Analyzer.Utilities.PooledObjects
                 _index = -1;
             }
 
-            public T Current => _builder[_index];
+            public readonly T Current => _builder[_index];
 
             public bool MoveNext()
             {
@@ -30,7 +30,7 @@ namespace Analyzer.Utilities.PooledObjects
                 return _index < _builder.Count;
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
             }
 

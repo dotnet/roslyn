@@ -124,14 +124,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 Equals(otherParameters);
         }
 
-        public bool Equals(InterproceduralAnalysisConfiguration other)
+        public readonly bool Equals(InterproceduralAnalysisConfiguration other)
         {
             return InterproceduralAnalysisKind == other.InterproceduralAnalysisKind &&
                 MaxInterproceduralMethodCallChain == other.MaxInterproceduralMethodCallChain &&
                 MaxInterproceduralLambdaOrLocalFunctionCallChain == other.MaxInterproceduralLambdaOrLocalFunctionCallChain;
         }
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return RoslynHashCode.Combine(
                 InterproceduralAnalysisKind.GetHashCode(),
