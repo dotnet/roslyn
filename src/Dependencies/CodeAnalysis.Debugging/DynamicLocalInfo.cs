@@ -8,10 +8,17 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Debugging
 {
-    internal readonly struct DynamicLocalInfo(ImmutableArray<bool> flags, int slotId, string localName)
+    internal readonly struct DynamicLocalInfo
     {
-        public readonly ImmutableArray<bool> Flags = flags;
-        public readonly int SlotId = slotId;
-        public readonly string LocalName = localName;
+        public readonly ImmutableArray<bool> Flags;
+        public readonly int SlotId;
+        public readonly string LocalName;
+
+        public DynamicLocalInfo(ImmutableArray<bool> flags, int slotId, string localName)
+        {
+            Flags = flags;
+            SlotId = slotId;
+            LocalName = localName;
+        }
     }
 }
