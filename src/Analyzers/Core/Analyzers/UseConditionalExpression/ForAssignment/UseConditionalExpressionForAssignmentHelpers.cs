@@ -97,9 +97,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                     using var _1 = PooledHashSet<ILocalSymbol>.GetInstance(out var symbolsDeclaredInConditional);
                     foreach (var operation in condition.DescendantsAndSelf())
                     {
+                        // `if (x is String s)`
                         if (operation is IDeclarationPatternOperation { DeclaredSymbol: ILocalSymbol local })
                             symbolsDeclaredInConditional.AddIfNotNull(local);
 
+                        // `if (Goo(out String s))`
                         if (operation is IDeclarationExpressionOperation { Expression: ILocalReferenceOperation localReference })
                             symbolsDeclaredInConditional.AddIfNotNull(localReference.Local);
                     }
