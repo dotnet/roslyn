@@ -5882,6 +5882,14 @@ parse_member_name:;
                     case ScanTypeFlags.GenericTypeOrMethod:
                         result = ScanTypeFlags.GenericTypeOrMethod;
                         break;
+
+                    case ScanTypeFlags.NonGenericTypeOrExpression:
+                        // Explicitly keeping this case in the switch for clarity.  We parsed out another portion of the
+                        // type argument list that looks like it's a non-generic-type-or-expr (the simplest case just
+                        // being "X").  That changes nothing here wrt determining what type of entity we have here, so
+                        // just fall through and see if we're followed by a "," (in which case keep going), or a ">", in
+                        // which case we're done.
+                        break;
                 }
             }
             while (this.CurrentToken.Kind == SyntaxKind.CommaToken);
@@ -11685,6 +11693,14 @@ done:;
 
                 case ScanTypeFlags.GenericTypeOrExpression:
                 case ScanTypeFlags.NonGenericTypeOrExpression:
+                    // if we have `(A)[]` then treat that always as a cast of an empty collection literal.  `[]` is not
+                    // legal on the RHS in any other circumstances for a parenthesized expr.
+                    if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken &&
+                        this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken)
+                    {
+                        return true;
+                    }
+
                     // check for ambiguous type or expression followed by disambiguating token.  i.e.
                     //
                     // "(A)b" is a cast.  But "(A)+b" is not a cast.  
