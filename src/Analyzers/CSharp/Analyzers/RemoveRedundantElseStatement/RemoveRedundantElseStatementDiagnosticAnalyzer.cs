@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.IfStatement);
@@ -99,14 +99,19 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 
             while (elseClause is not null)
             {
-                var endsWithJump = ifStatement.Statement switch
-                {
-                    BlockSyntax block => IsJumpStatement(block.Statements.LastOrDefault()),
-                    _ => IsJumpStatement(ifStatement.Statement),
-                };
+                //var endsWithJump = ifStatement.Statement switch
+                //{
+                //    BlockSyntax block => IsJumpStatement(block.Statements.LastOrDefault()),
+                //    _ => IsJumpStatement(ifStatement.Statement),
+                //};
 
-                // doing this only makes sense when every if ends with a jump
-                if (!endsWithJump)
+                //// doing this only makes sense when every if ends with a jump
+                //if (!endsWithJump)
+                //{
+                //    return null;
+                //}
+
+                if (!AllCodePathsEndWithJump(ifStatement.Statement))
                 {
                     return null;
                 }
@@ -117,14 +122,38 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
                     break;
                 }
 
+                ifStatement = elseIfStatement;
                 elseClause = elseIfStatement.Else;
             }
 
             return elseClause;
         }
 
+        private static bool AllCodePathsEndWithJump(StatementSyntax statement)
+        {
+            if (IsJumpStatement(statement))
+            {
+                return true;
+            }
+            else if (statement is IfStatementSyntax ifStatement)
+            {
+                var redundantElse = FindRedundantElse(ifStatement);
+                return redundantElse is not null && AllCodePathsEndWithJump(redundantElse.Statement);
+            }
+
+            return statement switch
+            {
+                BlockSyntax block => AllCodePathsEndWithJump(block.Statements.LastOrDefault()),
+                WhileStatementSyntax whileStatement => AllCodePathsEndWithJump(whileStatement.Statement),
+                ForStatementSyntax forStatement => AllCodePathsEndWithJump(forStatement.Statement),
+                CommonForEachStatementSyntax commonForEach => AllCodePathsEndWithJump(commonForEach.Statement),
+                _ => false,
+            };
+        }
+
         private static bool IsJumpStatement(StatementSyntax? statement)
         {
+            // 
             return statement is
                 ReturnStatementSyntax or
                 BreakStatementSyntax or

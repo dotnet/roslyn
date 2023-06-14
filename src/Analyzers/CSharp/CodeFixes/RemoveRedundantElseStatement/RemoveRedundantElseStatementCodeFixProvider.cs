@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.ConditionalExpressionInStringInterpolation;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
     using static SyntaxFactory;
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveRedundantElseStatement), Shared]
-    internal class RemoveRedundantElseStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal sealed class RemoveRedundantElseStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -41,62 +42,57 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            foreach (var diagnostic in diagnostics)
-            {
-                var root = editor.OriginalRoot;
+            var ifStatements = diagnostics.Select(x => (IfStatementSyntax)x.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
+            var blocks = ifStatements.Select(u => u.Parent);
 
-                var topMostIf = (IfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
-                var elseClause = (ElseClauseSyntax)diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
-                var parent = topMostIf.Parent;
-
-                var updatedRoot = parent switch
+            var root = editor.OriginalRoot;
+            var updatedRoot = root.ReplaceNodes(
+                blocks,
+                (original, current) => current switch
                 {
-                    BlockSyntax block => RewriteBlock(root, block, topMostIf, elseClause),
-                    SwitchSectionSyntax switchSection => RewriteSwitchSection(root, switchSection, topMostIf, elseClause),
-                    GlobalStatementSyntax global => RewriteGlobal(root, global, topMostIf, elseClause),
-                    _ => throw new ArgumentException(nameof(topMostIf))
-                };
+                    BlockSyntax block => RewriteBlock((BlockSyntax)original, block, ifStatements),
+                    SwitchSectionSyntax switchSection => RewriteSwitchSection((SwitchSectionSyntax)original, switchSection, ifStatements),
+                    //GlobalStatementSyntax global => RewriteGlobal(global, dic[original].Item1, dic[original].Item2),
+                }
+            );
 
-                editor.ReplaceNode(root, updatedRoot);
-            }
+            editor.ReplaceNode(root, updatedRoot);
 
             return Task.CompletedTask;
         }
 
-        private static SyntaxNode RewriteBlock(SyntaxNode root, BlockSyntax block, IfStatementSyntax topMostIf, ElseClauseSyntax elseClause)
+        private static SyntaxNode RewriteBlock(BlockSyntax original, BlockSyntax current, ISet<IfStatementSyntax> ifStatements)
         {
-            var topMostIfIdx = block.Statements.IndexOf(topMostIf);
+            var statementToUpdateIndex = original.Statements.IndexOf(statement => ifStatements.Contains(statement));
+            var statementToUpdate = (IfStatementSyntax)current.Statements[statementToUpdateIndex];
 
-            var newTopMostIf = topMostIf.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
-            var newBlock = block.ReplaceNode(topMostIf, newTopMostIf);
-            var newStatements = newBlock.Statements.InsertRange(topMostIfIdx + 1, Expand(elseClause));
+            var elseClause = GetLastElse(statementToUpdate);
+            var ifWithoutElse = statementToUpdate.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
+            var newStatements = new[] { ifWithoutElse }.Concat(Expand(elseClause));
 
-            newBlock = newBlock.WithStatements(newStatements);
-
-            return root.ReplaceNode(block, newBlock);
+            var updatedStatements = current.Statements.ReplaceRange(statementToUpdate, newStatements);
+            return current.WithStatements(updatedStatements);
         }
 
-        private static SyntaxNode RewriteSwitchSection(SyntaxNode root, SwitchSectionSyntax switchSection, IfStatementSyntax topMostIf, ElseClauseSyntax elseClause)
+        private static SyntaxNode RewriteSwitchSection(SwitchSectionSyntax original, SwitchSectionSyntax current, ISet<IfStatementSyntax> ifStatements)
         {
-            var topMostIfIdx = switchSection.Statements.IndexOf(topMostIf);
+            var statementToUpdateIndex = original.Statements.IndexOf(statement => ifStatements.Contains(statement));
+            var statementToUpdate = (IfStatementSyntax)current.Statements[statementToUpdateIndex];
 
-            var newTopMostIf = topMostIf.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
-            var newBlock = switchSection.ReplaceNode(topMostIf, newTopMostIf);
-            var newStatements = newBlock.Statements.InsertRange(topMostIfIdx + 1, Expand(elseClause));
+            var elseClause = GetLastElse(statementToUpdate);
+            var ifWithoutElse = statementToUpdate.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
+            var newStatements = new[] { ifWithoutElse }.Concat(Expand(elseClause));
 
-            newBlock = newBlock.WithStatements(newStatements);
-
-            return root.ReplaceNode(switchSection, newBlock);
+            var updatedStatements = current.Statements.ReplaceRange(statementToUpdate, newStatements);
+            return current.WithStatements(updatedStatements);
         }
 
-        private static SyntaxNode RewriteGlobal(SyntaxNode root, GlobalStatementSyntax globalStatement, IfStatementSyntax topMostIf, ElseClauseSyntax elseClause)
+        private static SyntaxNode RewriteGlobal(GlobalStatementSyntax globalStatement, IfStatementSyntax topMostIf, ElseClauseSyntax elseClause)
         {
-            var newTopMostIf = topMostIf.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
-            globalStatement = globalStatement.ReplaceNode(topMostIf, newTopMostIf);
+            var updatedTopMostIf = topMostIf.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
+            var updatedGlobalStatement = globalStatement.ReplaceNode(topMostIf, updatedTopMostIf);
 
             var compilationUnit = (CompilationUnitSyntax?)globalStatement.Parent;
 
@@ -104,18 +100,30 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             {
                 var memberToUpdateIndex = compilationUnit.Members.IndexOf(globalStatement);
 
+                var updatedCompilationUnit = compilationUnit.ReplaceNode(globalStatement, updatedGlobalStatement);
+
                 var updatedStatements = Expand(elseClause)
                     .Select(GlobalStatement);
 
-                var newMembers = compilationUnit.Members
-                    .RemoveAt(memberToUpdateIndex)
-                    .InsertRange(memberToUpdateIndex, updatedStatements);
+                var newMembers = updatedCompilationUnit.Members
+                    .InsertRange(memberToUpdateIndex + 1, updatedStatements);
 
-                var newCompilationUnit = compilationUnit.WithMembers(newMembers);
-                return root.ReplaceNode(compilationUnit, newCompilationUnit);
+                updatedCompilationUnit = updatedCompilationUnit.WithMembers(newMembers);
+
+                return updatedCompilationUnit;
             }
 
-            return root;
+            return compilationUnit;
+        }
+
+        private static ElseClauseSyntax GetLastElse(IfStatementSyntax ifStatement)
+        {
+            while (ifStatement.Else?.Statement is IfStatementSyntax elseIfStatement)
+            {
+                ifStatement = elseIfStatement;
+            }
+
+            return ifStatement.Else ?? throw new ArgumentException("Else can't be null", nameof(ifStatement));
         }
 
         private static ImmutableArray<StatementSyntax> Expand(ElseClauseSyntax elseClause)

@@ -226,6 +226,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
         }
 
         [Fact]
+        public async Task TestRedundantElseFix_ElseIfWithoutJump()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    
+                    class C
+                    {
+                        int Fib(int n) 
+                        {
+                            if (n < 0)
+                            {
+                                throw new ArgumentException();
+                            }
+                            else if (n <= 2)
+                            {
+                            }
+                            
+                            return Fib(n - 1) + Fib(n - 2);
+                        }
+                    }
+                    """
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestRedundantElseFix_IfElseWithBreak()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -458,37 +485,154 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
         }
 
         [Fact]
-        public async Task TestRedundantElseFix_GlobalStatement()
+        public async Task TestRedundantElseFix_NestedIfStatements()
         {
             await VerifyCS.VerifyCodeFixAsync("""
                 using System;
 
-                int i = 0;
-                while (true)
+                class C
                 {
-                    if (i == 5)
+                    int M(int n) 
                     {
-                        break;
-                    }
-                    [|else|] 
-                    {
-                        i++;
+                        if (true)
+                        {
+                            if (false)
+                            {
+                                return 0;
+                            }
+                            [|else|]
+                            {
+                                return 0;
+                            }
+                        }
+                        [|else|]
+                        {
+                            return 0;
+                        }
                     }
                 }
                 """, """
                 using System;
                 
-                int i = 0;
-                while (true)
+                class C
                 {
-                    if (i == 5)
+                    int M(int n) 
                     {
-                        break;
-                    }
+                        if (true)
+                        {
+                            if (false)
+                            {
+                                return 0;
+                            }
 
-                    i++;
+                            return 0;
+                        }
+
+                        return 0;
+                    }
                 }
                 """);
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_NestedIfStatementsInSwitch()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                using System;
+
+                class C
+                {
+                    int M(int n) 
+                    {
+                        if (true)
+                        {
+                            switch (n)
+                            {
+                                default:
+                                    if (true)
+                                    {
+                                        break;
+                                    }
+                                    [|else|]
+                                    {
+                                        break;
+                                    }
+                            }
+
+                            return 0;
+                        }
+                        [|else|]
+                        {
+                            return 0;
+                        }
+                    }
+                }
+                """, """
+                using System;
+                
+                class C
+                {
+                    int M(int n) 
+                    {
+                        if (true)
+                        {
+                            switch (n)
+                            {
+                                default:
+                                    if (true)
+                                    {
+                                        break;
+                                    }
+
+                                    break;
+                            }
+
+                            return 0;
+                        }
+
+                        return 0;
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_GlobalStatement()
+        {
+            var test = new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    
+                    if (false)
+                    {
+                        return;
+                    }
+                    [|else|]
+                    {
+                        Console.WriteLine("Success");
+                    }
+                    """,
+                FixedCode = """
+                    using System;
+                    
+                    if (false)
+                    {
+                        return;
+                    }
+                    
+                    Console.WriteLine("Success");
+
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            test.ExpectedDiagnostics.Add(
+                // /0/Test0.cs(3,1): error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805").WithSpan(3, 1, 10, 2)
+            );
+
+            await test.RunAsync();
         }
 
         [Fact]
