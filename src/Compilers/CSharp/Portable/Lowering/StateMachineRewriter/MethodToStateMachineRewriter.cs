@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(local.SynthesizedKind switch
                              {
                                  SynthesizedLocalKind.Spill => awaitSyntaxOpt.IsKind(SyntaxKind.AwaitExpression) || awaitSyntaxOpt.IsKind(SyntaxKind.SwitchExpression),
-                                 SynthesizedLocalKind.ForEachArray => awaitSyntaxOpt is CommonForEachStatementSyntax, // PROTOTYPE(InlineArrays): Confirm EnC handles this local properly.
+                                 SynthesizedLocalKind.ForEachArray => awaitSyntaxOpt is CommonForEachStatementSyntax,
                                  _ => false
                              });
 #pragma warning restore format
