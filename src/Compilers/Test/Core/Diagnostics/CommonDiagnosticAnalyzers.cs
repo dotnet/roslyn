@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis
                 var descriptor1Info = descriptorsWithInfo.Single(d => d.Descriptor.Id == Descriptor1.Id).Info;
                 var descriptor1ExecutionTime = ReportAnalyzerUtil.GetFormattedAnalyzerExecutionTime(descriptor1Info.ExecutionTime, culture).Trim();
                 var descriptor1ExecutionPercentage = ReportAnalyzerUtil.GetFormattedAnalyzerExecutionPercentage(descriptor1Info.ExecutionPercentage, culture).Trim();
-                
+
                 var descriptor2Info = descriptorsWithInfo.Single(d => d.Descriptor.Id == Descriptor2.Id).Info;
                 var descriptor2ExecutionTime = ReportAnalyzerUtil.GetFormattedAnalyzerExecutionTime(descriptor2Info.ExecutionTime, culture).Trim();
                 var descriptor2ExecutionPercentage = ReportAnalyzerUtil.GetFormattedAnalyzerExecutionPercentage(descriptor2Info.ExecutionPercentage, culture).Trim();
