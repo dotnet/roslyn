@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Helper to merge many disparate text changes to a single document together into a total set of changes.
     /// </summary>
-    internal class TextChangeMerger(Document document)
+    internal class TextChangeMerger
     {
         private readonly struct IntervalIntrospector : IIntervalIntrospector<TextChange>
         {
@@ -24,10 +24,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
         }
 
-        private readonly IDocumentTextDifferencingService _differenceService = document.Project.Solution.Services.GetRequiredService<IDocumentTextDifferencingService>();
+        private readonly Document _oldDocument;
+        private readonly IDocumentTextDifferencingService _differenceService;
 
         private readonly SimpleIntervalTree<TextChange, IntervalIntrospector> _totalChangesIntervalTree =
             SimpleIntervalTree.Create(new IntervalIntrospector(), Array.Empty<TextChange>());
+
+        public TextChangeMerger(Document document)
+        {
+            _oldDocument = document;
+            _differenceService = document.Project.Solution.Services.GetRequiredService<IDocumentTextDifferencingService>();
+        }
 
         /// <summary>
         /// Try to merge the changes made to <paramref name="newDocument"/> into the tracked changes. If there is any
@@ -35,11 +42,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public async Task TryMergeChangesAsync(Document newDocument, CancellationToken cancellationToken)
         {
-            Debug.Assert(newDocument.Id == document.Id);
+            Debug.Assert(newDocument.Id == _oldDocument.Id);
 
             cancellationToken.ThrowIfCancellationRequested();
             var currentChanges = await _differenceService.GetTextChangesAsync(
-                document, newDocument, cancellationToken).ConfigureAwait(false);
+                _oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
 
             if (AllChangesCanBeApplied(_totalChangesIntervalTree, currentChanges))
             {
@@ -64,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // WithChanges requires a ordered list of TextChanges without any overlap.
             var changesToApply = _totalChangesIntervalTree.Distinct().OrderBy(tc => tc.Span.Start);
 
-            var oldText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var oldText = await _oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = oldText.WithChanges(changesToApply);
 
             return newText;
