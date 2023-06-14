@@ -39,7 +39,7 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
     /// Watching the file is currently the only way to detect the feedback session.
     /// </summary>
     private readonly string _vsFeedbackSemaphoreFullPath;
-    private readonly FileSystemWatcher _vsFeedbackSemaphoreFileWatcher;
+    private readonly FileSystemWatcher? _vsFeedbackSemaphoreFileWatcher;
 
     private readonly int _vsProcessId;
     private readonly DateTime _vsProcessStartTime;
@@ -64,6 +64,12 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
         _tempDir = Path.GetTempPath();
         var vsFeedbackTempDir = Path.Combine(_tempDir, VSFeedbackSemaphoreDir);
         _vsFeedbackSemaphoreFullPath = Path.Combine(vsFeedbackTempDir, VSFeedbackSemaphoreFileName);
+
+        // Directory may not exist in scenarios such as Razor integration tests
+        if (!Directory.Exists(vsFeedbackTempDir))
+        {
+            return;
+        }
 
         _vsFeedbackSemaphoreFileWatcher = new FileSystemWatcher(vsFeedbackTempDir, VSFeedbackSemaphoreFileName);
         _vsFeedbackSemaphoreFileWatcher.Created += (_, _) => OnFeedbackSemaphoreCreatedOrChanged();
