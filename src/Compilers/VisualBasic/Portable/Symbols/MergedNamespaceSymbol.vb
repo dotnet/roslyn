@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' HashSet And then initialzing the HashSet from the array.
             Dim childNames As ArrayBuilder(Of String) = ArrayBuilder(Of String).GetInstance(childCount)
 #Else
-            Dim childNames As New HashSet(Of String)(comparer)
+            Dim childNames As New HashSet(Of String)(childCount, comparer)
 #End If
 
             For Each nsSym As NamespaceSymbol In _namespacesToMerge
