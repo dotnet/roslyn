@@ -462,7 +462,7 @@ End Class
                  End Sub,
                  Sub(expected, actual, view)
                      AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual)
-                     Assert.Equal(4, view.Caret.Position.BufferPosition.GetContainingLine().LineNumber)
+                     Assert.Equal(4, view.Caret.Position.BufferPosition.GetContainingLineNumber())
                      Assert.Equal(4, view.Caret.Position.VirtualSpaces)
                  End Sub)
         End Sub
