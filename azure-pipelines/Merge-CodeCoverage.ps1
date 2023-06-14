@@ -42,7 +42,7 @@ try {
             New-Item -Type Directory -Path (Split-Path $OutputFile) | Out-Null
         }
 
-        & dotnet tool run dotnet-coverage merge $Inputs -o $OutputFile -f cobertura
+        & dotnet dotnet-coverage merge $Inputs -o $OutputFile -f cobertura
     } else {
         Write-Error "No reports found to merge."
     }
