@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public bool IsBoxing { get; set; }
         public bool IsUnboxing { get; set; }
 
-        public override bool Equals(object obj)
+        public override readonly bool Equals(object obj)
             => obj is ConversionInference other && Equals(other);
 
         public readonly bool Equals(ConversionInference other)

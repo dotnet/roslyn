@@ -34,7 +34,7 @@ namespace Analyzer.Utilities.PooledObjects
             {
             }
 
-            object? System.Collections.IEnumerator.Current => this.Current;
+            readonly object? System.Collections.IEnumerator.Current => this.Current;
 
             public void Reset()
             {
