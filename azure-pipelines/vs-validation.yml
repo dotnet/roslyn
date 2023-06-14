@@ -17,8 +17,6 @@ stages:
   jobs:
   - template: build.yml
     parameters:
-      EnableCompliance: false
-      EnableAPIScan: false
       windowsPool: VSEngSS-MicroBuild2022-1ES
       includeMacOS: false
       RunTests: false

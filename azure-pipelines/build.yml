@@ -9,10 +9,10 @@ parameters:
   default: true
 - name: EnableCompliance
   type: boolean
-  default: true
+  default: false
 - name: EnableAPIScan
   type: boolean
-  default: true
+  default: false
 
 jobs:
 - job: Windows
