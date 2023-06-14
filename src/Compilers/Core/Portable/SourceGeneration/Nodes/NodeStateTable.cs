@@ -154,6 +154,9 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
+        /// <remarks>
+        /// The builder is <b>not</b> threadsafe.
+        /// </remarks>
         public sealed class Builder
         {
             private readonly ArrayBuilder<TableEntry> _states;
@@ -388,8 +391,12 @@ namespace Microsoft.CodeAnalysis
 
             private bool TryGetPreviousEntry(out TableEntry previousEntry)
             {
-                var canUsePrevious = _previous._states.Length > (_states.Count - _insertedCount);
-                previousEntry = canUsePrevious ? _previous._states[_states.Count - _insertedCount] : default;
+                // When indexing into the previous table we need to subtract the number of entries that have been explicitly added
+                // to the current table, as they didn't exist in the previous one.
+                var previousTableEntryIndex = _states.Count - _insertedCount;
+
+                var canUsePrevious = _previous._states.Length > (previousTableEntryIndex);
+                previousEntry = canUsePrevious ? _previous._states[previousTableEntryIndex] : default;
                 return canUsePrevious;
             }
 
