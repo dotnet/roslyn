@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
     public sealed class CodeMetricsAnalysisContext(Compilation compilation, CancellationToken cancellationToken,
         Func<INamedTypeSymbol, bool>? isExcludedFromInheritanceCountFunc = null)
     {
-        private readonly ConcurrentDictionary<SyntaxTree, SemanticModel> _semanticModelMap = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
+        private readonly ConcurrentDictionary<SyntaxTree, SemanticModel> _semanticModelMap = new();
 
         public Compilation Compilation { get; } = compilation;
         public CancellationToken CancellationToken { get; } = cancellationToken;
