@@ -94,11 +94,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             {
                 if (trueTarget is not null || falseTarget is not null)
                 {
-                    using var _1 = PooledHashSet<ISymbol>.GetInstance(out var symbolsDeclaredInConditional);
+                    using var _1 = PooledHashSet<ILocalSymbol>.GetInstance(out var symbolsDeclaredInConditional);
                     foreach (var operation in condition.DescendantsAndSelf())
                     {
-                        if (operation is IDeclarationPatternOperation declarationPattern)
-                            symbolsDeclaredInConditional.AddIfNotNull(declarationPattern.DeclaredSymbol);
+                        if (operation is IDeclarationPatternOperation { DeclaredSymbol: ILocalSymbol local })
+                            symbolsDeclaredInConditional.AddIfNotNull(local);
 
                         if (operation is IDeclarationExpressionOperation { Expression: ILocalReferenceOperation localReference })
                             symbolsDeclaredInConditional.AddIfNotNull(localReference.Local);
@@ -114,14 +114,14 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
-            static bool ContainsLocalReference(HashSet<ISymbol> declaredPatternSymbols, IOperation? target)
+            static bool ContainsLocalReference(HashSet<ILocalSymbol> declaredPatternSymbols, IOperation? target)
             {
                 if (target is not null)
                 {
                     foreach (var operation in target.DescendantsAndSelf())
                     {
-                        if (operation is ILocalReferenceOperation localReferenceOperation &&
-                            declaredPatternSymbols.Contains(localReferenceOperation.Local))
+                        if (operation is ILocalReferenceOperation { Local: var local } &&
+                            declaredPatternSymbols.Contains(local))
                         {
                             return true;
                         }
