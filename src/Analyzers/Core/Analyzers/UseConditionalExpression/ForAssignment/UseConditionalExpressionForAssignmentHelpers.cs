@@ -94,20 +94,20 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             {
                 if (trueTarget is not null || falseTarget is not null)
                 {
-                    using var _1 = PooledHashSet<ISymbol>.GetInstance(out var declaredPatternSymbols);
+                    using var _1 = PooledHashSet<ISymbol>.GetInstance(out var symbolsDeclaredInConditional);
                     foreach (var operation in condition.DescendantsAndSelf())
                     {
                         if (operation is IDeclarationPatternOperation declarationPattern)
-                            declaredPatternSymbols.AddIfNotNull(declarationPattern.DeclaredSymbol);
+                            symbolsDeclaredInConditional.AddIfNotNull(declarationPattern.DeclaredSymbol);
 
                         if (operation is IDeclarationExpressionOperation { Expression: ILocalReferenceOperation localReference })
-                            declaredPatternSymbols.AddIfNotNull(localReference.Local);
+                            symbolsDeclaredInConditional.AddIfNotNull(localReference.Local);
                     }
 
-                    if (declaredPatternSymbols.Count > 0)
+                    if (symbolsDeclaredInConditional.Count > 0)
                     {
-                        return ContainsLocalReference(declaredPatternSymbols, trueTarget) ||
-                               ContainsLocalReference(declaredPatternSymbols, falseTarget);
+                        return ContainsLocalReference(symbolsDeclaredInConditional, trueTarget) ||
+                               ContainsLocalReference(symbolsDeclaredInConditional, falseTarget);
                     }
                 }
 
