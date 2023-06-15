@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MethodGroupResolution(Symbol otherSymbol, LookupResultKind resultKind, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
             : this(methodGroup: null, otherSymbol, overloadResolutionResult: null, analyzedArguments: null, resultKind, diagnostics)
         {
+            Debug.Assert(resultKind != LookupResultKind.Viable);
         }
 
         public MethodGroupResolution(
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(resultKind != LookupResultKind.Ambiguous); // HasAnyApplicableMethod is expecting Viable methods.
             Debug.Assert(!diagnostics.Diagnostics.IsDefault);
             Debug.Assert(!diagnostics.Dependencies.IsDefault);
+            Debug.Assert(overloadResolutionResult == null || methodGroup != null);
 
             this.MethodGroup = methodGroup;
             this.OtherSymbol = otherSymbol;

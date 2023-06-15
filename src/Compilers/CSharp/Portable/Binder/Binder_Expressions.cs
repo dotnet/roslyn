@@ -7342,6 +7342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+#nullable enable
         protected MethodGroupResolution BindExtensionMethod(
             SyntaxNode expression,
             string methodName,
@@ -7354,32 +7355,82 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool withDependencies)
         {
             var firstResult = new MethodGroupResolution();
-            AnalyzedArguments actualArguments = null;
+            AnalyzedArguments? actualArguments = null;
 
             foreach (var scope in new ExtensionScopes(this))
+            {
+                if (tryResolveExtensionMethod(this, expression, methodName, analyzedArguments, left, typeArgumentsWithAnnotations,
+                    isMethodGroupConversion, returnRefKind, returnType, withDependencies, scope,
+                    ref actualArguments, out MethodGroupResolution result))
+                {
+                    if (analyzedArguments == null)
+                    {
+                        // Found a match and didn't need to do overload resolution
+                        return result;
+                    }
+
+                    // If the search in the current scope resulted in any applicable method (regardless of whether a best
+                    // applicable method could be determined) then our search is complete. Otherwise, store aside the
+                    // first non-applicable result and continue searching for an applicable result.
+                    if (result.HasAnyApplicableMethod)
+                    {
+                        firstResult.Free();
+                        return result;
+                    }
+                    else if (firstResult.IsEmpty)
+                    {
+                        firstResult = result;
+                    }
+                    else
+                    {
+                        // Neither the first result, nor applicable. No need to save result.
+                        result.Free();
+                    }
+                }
+            }
+
+            Debug.Assert((actualArguments == null) || !firstResult.IsEmpty);
+            actualArguments?.Free();
+            return firstResult;
+
+            static bool tryResolveExtensionMethod(
+                Binder binder,
+                SyntaxNode expression,
+                string methodName,
+                AnalyzedArguments analyzedArguments,
+                BoundExpression left,
+                ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
+                bool isMethodGroupConversion,
+                RefKind returnRefKind,
+                TypeSymbol returnType,
+                bool withDependencies,
+                ExtensionScope scope,
+                ref AnalyzedArguments? actualArguments,
+                out MethodGroupResolution result)
             {
                 var methodGroup = MethodGroup.GetInstance();
                 var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies);
 
-                this.PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, expression, left, methodName, typeArgumentsWithAnnotations, diagnostics);
+                binder.PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, expression, left, methodName, typeArgumentsWithAnnotations, diagnostics);
 
                 // analyzedArguments will be null if the caller is resolving for error recovery to the first method group
                 // that can accept that receiver, regardless of arguments, when the signature cannot be inferred.
                 // (In the error case of nameof(o.M) or the error case of o.M = null; for instance.)
                 if (analyzedArguments == null)
                 {
-                    if (expression == EnclosingNameofArgument)
+                    if (expression == binder.EnclosingNameofArgument)
                     {
                         for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
                         {
-                            if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type, this.Compilation) == null)
+                            if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type, binder.Compilation) == null)
                                 methodGroup.Methods.RemoveAt(i);
                         }
                     }
 
                     if (methodGroup.Methods.Count != 0)
                     {
-                        return new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
+                        result = new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
+                        return true;
                     }
                 }
 
@@ -7387,7 +7438,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     methodGroup.Free();
                     diagnostics.Free();
-                    continue;
+                    result = default;
+                    return false;
                 }
 
                 if (actualArguments == null)
@@ -7400,8 +7452,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                OverloadResolution.MethodInvocationOverloadResolution(
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+                binder.OverloadResolution.MethodInvocationOverloadResolution(
                     methods: methodGroup.Methods,
                     typeArguments: methodGroup.TypeArguments,
                     receiver: methodGroup.Receiver,
@@ -7416,36 +7468,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
 
                 // Note: the MethodGroupResolution instance is responsible for freeing its copy of actual arguments
-                var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, AnalyzedArguments.GetInstance(actualArguments), methodGroup.ResultKind, sealedDiagnostics);
-
-                // If the search in the current scope resulted in any applicable method (regardless of whether a best
-                // applicable method could be determined) then our search is complete. Otherwise, store aside the
-                // first non-applicable result and continue searching for an applicable result.
-                if (result.HasAnyApplicableMethod)
-                {
-                    if (!firstResult.IsEmpty)
-                    {
-                        firstResult.MethodGroup.Free();
-                        firstResult.OverloadResolutionResult.Free();
-                    }
-                    return result;
-                }
-                else if (firstResult.IsEmpty)
-                {
-                    firstResult = result;
-                }
-                else
-                {
-                    // Neither the first result, nor applicable. No need to save result.
-                    overloadResolutionResult.Free();
-                    methodGroup.Free();
-                }
+                result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, AnalyzedArguments.GetInstance(actualArguments), methodGroup.ResultKind, sealedDiagnostics);
+                return true;
             }
-
-            Debug.Assert((actualArguments == null) || !firstResult.IsEmpty);
-            actualArguments?.Free();
-            return firstResult;
         }
+#nullable disable
 
         private void PopulateExtensionMethodsFromSingleBinder(
             ExtensionScope scope,
