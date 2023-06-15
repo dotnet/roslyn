@@ -4019,8 +4019,7 @@ class C
     [Fact]
     public void CastVersusIndexAmbiguity24_B()
     {
-        // PROTOTYPE: No errors here syntactically.  But user will likely get one semantically.
-        //
+        // No errors here syntactically.  But user will likely get one semantically.
         // We may want a dedicated error to tell them to parenthesize the brackets if they're trying to cast this as a list.
         UsingExpression("(A)[1]");
 
@@ -4054,8 +4053,8 @@ class C
     [Fact]
     public void CastVersusIndexAmbiguity24_C()
     {
-        // PROTOTYPE: This is not a great diagnostic.  Users could easily run into this and be confused.  Can we do
-        // better.  For example:
+        // This is not a great diagnostic.  Users could easily run into this and be confused.  Can we do
+        // better. For example:
         //
         // 1. tell them we think this is an indexer, and `1:2` isn't a valid argument.
         // 2. tell them to parenthesize the brackets if they're trying to cast this as a list.
@@ -4105,7 +4104,7 @@ class C
     [Fact]
     public void CastVersusIndexAmbiguity24_D()
     {
-        // PROTOTYPE: No errors here syntactically.  But user will likely get one semantically.  Specifically, this
+        // No errors here syntactically.  But user will likely get one semantically.  Specifically, this
         // could look like a case of a collection literal with a spread element in it, or as indexing into a
         // parenthesized expression with a range expression.
         //

@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (elements.Any(e => e is BoundCollectionLiteralSpreadElement))
             {
                 // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
-                // PROTOTYPE: Avoid the intermediate list if the compile-time type of the spread element includes a length.
+                // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
                 var result = BindCollectionInitializerCollectionLiteral(
                     node,
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetType is NamedTypeSymbol namedType)
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                // PROTOTYPE: Should we use List<T>(int capacity) constructor when the size is known?
+                // https://github.com/dotnet/roslyn/issues/68785: Use ctor with `int capacity` when the size is known.
                 collectionCreation = BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
                 collectionCreation.WasCompilerGenerated = true;
                 analyzedArguments.Free();
@@ -548,8 +548,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-            // PROTOTYPE: When generating a List<T>, should we use the well-known
-            // member List<T>.Add() rather than relying on lookup?
             var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
             var builder = ArrayBuilder<BoundExpression>.GetInstance(node.Elements.Length);
             foreach (var element in node.Elements)
@@ -557,9 +555,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = element switch
                 {
                     BoundBadExpression => element,
-                    // PROTOTYPE: Should spread elements support target type?
-                    // string[] a = [..b ? [null] : []];
-                    // See CollectionLiteralTests.SpreadElement_05, _06.
                     BoundCollectionLiteralSpreadElement spreadElement => BindCollectionInitializerSpreadElementAddMethod(
                             (SpreadElementSyntax)spreadElement.Syntax,
                             spreadElement,
@@ -595,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol elementType,
             BindingDiagnosticBag diagnostics)
         {
-            // PROTOTYPE: Improve perf. For instance, emit [] as Array.Empty<T>() rather than a List<T>.
+            // https://github.com/dotnet/roslyn/issues/68785: Emit [] as Array.Empty<T>() rather than a List<T>.
             var result = BindCollectionInitializerCollectionLiteral(
                 node,
                 CollectionLiteralTypeKind.ListInterface,

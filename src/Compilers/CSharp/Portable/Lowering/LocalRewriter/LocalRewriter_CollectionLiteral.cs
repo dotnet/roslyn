@@ -61,17 +61,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (elements.Any(i => i is BoundCollectionLiteralSpreadElement))
             {
                 // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
-                // PROTOTYPE: Avoid the intermediate list if the compile-time type of the spread element includes a length.
-                // PROTOTYPE: Use Enumerable.TryGetNonEnumeratedCount() at runtime for other cases.
+                // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
+                // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
                 var listType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(elementType);
                 var listToArray = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)!).AsMember(listType);
                 var list = VisitCollectionInitializerCollectionLiteralExpression(node);
-                array = _factory.Call(list, listToArray); // PROTOTYPE: Improve perf. For instance, avoid copying to a new array.
+                array = _factory.Call(list, listToArray);
             }
             else
             {
                 int arrayLength = elements.Length;
-                // PROTOTYPE: Should [] be emitted as Array.Empty<T>()?
+                // https://github.com/dotnet/roslyn/issues/68785: Emit [] as Array.Empty<T>() rather than a List<T>.
                 var initialization = (arrayLength == 0)
                     ? null
                     : new BoundArrayInitialization(
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
 
-            // PROTOTYPE: Improve perf. For instance, emit [] as Array.Empty<T>() rather than a List<T>.
+            // https://github.com/dotnet/roslyn/issues/68785: Emit [] as Array.Empty<T>() rather than a List<T>.
             var list = VisitCollectionInitializerCollectionLiteralExpression(node);
             return _factory.Convert(node.Type, list);
         }

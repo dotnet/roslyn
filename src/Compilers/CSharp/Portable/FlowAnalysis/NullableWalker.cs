@@ -3473,12 +3473,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
-            // PROTOTYPE: Do we need to call inferInitialObjectState() to set the initial state of the instance?
+            // https://github.com/dotnet/roslyn/issues/68786: Use inferInitialObjectState() to set the initial
+            // state of the instance: see the call to InheritNullableStateOfTrackableStruct() in particular.
             int containerSlot = GetOrCreatePlaceholderSlot(node);
-            bool delayCompletionForType = false; // PROTOTYPE: Should be true if the collection literal is target typed.
+            bool delayCompletionForType = false; // https://github.com/dotnet/roslyn/issues/68786: Should be true if the collection literal is target typed.
 
-            // PROTOTYPE: Test nullability of elements when the collection literal is target typed
-            // and the inferred target type has distinct element type nullability.
+            // https://github.com/dotnet/roslyn/issues/68786: Set nullability of elements from the inferred target type nullability.
             foreach (var element in node.Elements)
             {
                 switch (element)
@@ -3488,7 +3488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var completion = VisitCollectionElementInitializer(initializer, collectionType, delayCompletionForType);
                         if (completion is { })
                         {
-                            // PROTOTYPE: Complete the analysis later.
+                            // https://github.com/dotnet/roslyn/issues/68786: Complete the analysis later.
                             completion(containerSlot, collectionType);
                         }
                         break;
