@@ -178,6 +178,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         int ExpressionStatement { get; }
         int ForEachStatement { get; }
+        int ForStatement { get; }
         int IfStatement { get; }
         int LocalDeclarationStatement { get; }
         int? LocalFunctionStatement { get; }

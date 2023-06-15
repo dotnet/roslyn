@@ -11,25 +11,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal static class EditorBrowsableHelpers
     {
-        public readonly struct EditorBrowsableInfo
+        public readonly struct EditorBrowsableInfo(Compilation compilation)
         {
-            public Compilation Compilation { get; }
-            public INamedTypeSymbol? HideModuleNameAttribute { get; }
-            public IMethodSymbol? EditorBrowsableAttributeConstructor { get; }
-            public ImmutableArray<IMethodSymbol> TypeLibTypeAttributeConstructors { get; }
-            public ImmutableArray<IMethodSymbol> TypeLibFuncAttributeConstructors { get; }
-            public ImmutableArray<IMethodSymbol> TypeLibVarAttributeConstructors { get; }
+            public Compilation Compilation { get; } = compilation;
+            public INamedTypeSymbol? HideModuleNameAttribute { get; } = compilation.HideModuleNameAttribute();
+            public IMethodSymbol? EditorBrowsableAttributeConstructor { get; } = GetSpecialEditorBrowsableAttributeConstructor(compilation);
+            public ImmutableArray<IMethodSymbol> TypeLibTypeAttributeConstructors { get; } = GetSpecialTypeLibTypeAttributeConstructors(compilation);
+            public ImmutableArray<IMethodSymbol> TypeLibFuncAttributeConstructors { get; } = GetSpecialTypeLibFuncAttributeConstructors(compilation);
+            public ImmutableArray<IMethodSymbol> TypeLibVarAttributeConstructors { get; } = GetSpecialTypeLibVarAttributeConstructors(compilation);
             public bool IsDefault => Compilation == null;
-
-            public EditorBrowsableInfo(Compilation compilation)
-            {
-                Compilation = compilation;
-                HideModuleNameAttribute = compilation.HideModuleNameAttribute();
-                EditorBrowsableAttributeConstructor = GetSpecialEditorBrowsableAttributeConstructor(compilation);
-                TypeLibTypeAttributeConstructors = GetSpecialTypeLibTypeAttributeConstructors(compilation);
-                TypeLibFuncAttributeConstructors = GetSpecialTypeLibFuncAttributeConstructors(compilation);
-                TypeLibVarAttributeConstructors = GetSpecialTypeLibVarAttributeConstructors(compilation);
-            }
         }
 
         /// <summary>

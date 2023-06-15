@@ -11,17 +11,11 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// <summary>
     /// this is a collection that has its own checksum and contains only checksum or checksum collection as its children.
     /// </summary>
-    internal abstract class ChecksumWithChildren : IChecksummedObject
+    internal abstract class ChecksumWithChildren(ImmutableArray<object> children) : IChecksummedObject
     {
-        public ChecksumWithChildren(ImmutableArray<object> children)
-        {
-            Checksum = CreateChecksum(children);
-            Children = children;
-        }
+        public Checksum Checksum { get; } = CreateChecksum(children);
 
-        public Checksum Checksum { get; }
-
-        public ImmutableArray<object> Children { get; }
+        public ImmutableArray<object> Children { get; } = children;
 
         private static Checksum CreateChecksum(ImmutableArray<object> children)
         {

@@ -13,39 +13,30 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     /// Gives information about an identifier span that was affected by Rename (Reference or Non reference)
     /// </summary>
     [DataContract]
-    internal readonly struct RelatedLocation : IEquatable<RelatedLocation>
+    internal readonly struct RelatedLocation(TextSpan conflictCheckSpan, DocumentId documentId, RelatedLocationType type, bool isReference = false, TextSpan complexifiedTargetSpan = default) : IEquatable<RelatedLocation>
     {
         /// <summary>
         /// The Span of the original identifier if it was in source, otherwise the span to check for implicit
         /// references.
         /// </summary>
         [DataMember(Order = 0)]
-        public readonly TextSpan ConflictCheckSpan;
+        public readonly TextSpan ConflictCheckSpan = conflictCheckSpan;
 
         [DataMember(Order = 1)]
-        public readonly DocumentId DocumentId;
+        public readonly DocumentId DocumentId = documentId;
 
         [DataMember(Order = 2)]
-        public readonly RelatedLocationType Type;
+        public readonly RelatedLocationType Type = type;
 
         [DataMember(Order = 3)]
-        public readonly bool IsReference;
+        public readonly bool IsReference = isReference;
 
         /// <summary>
         /// If there was a conflict at ConflictCheckSpan during rename, then the next phase in rename uses
         /// ComplexifiedTargetSpan span to be expanded to resolve the conflict.
         /// </summary>
         [DataMember(Order = 4)]
-        public readonly TextSpan ComplexifiedTargetSpan;
-
-        public RelatedLocation(TextSpan conflictCheckSpan, DocumentId documentId, RelatedLocationType type, bool isReference = false, TextSpan complexifiedTargetSpan = default)
-        {
-            ConflictCheckSpan = conflictCheckSpan;
-            Type = type;
-            IsReference = isReference;
-            DocumentId = documentId;
-            ComplexifiedTargetSpan = complexifiedTargetSpan;
-        }
+        public readonly TextSpan ComplexifiedTargetSpan = complexifiedTargetSpan;
 
         public RelatedLocation WithType(RelatedLocationType type)
             => new(ConflictCheckSpan, DocumentId, type, IsReference, ComplexifiedTargetSpan);

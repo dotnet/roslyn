@@ -462,4 +462,29 @@ class A
             }
         }
     }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/5777")]
+    public async Task EditRangeShouldEndAtCursorPosition(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"pub{|caret:|}class";
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
+        var caret = testLspServer.GetLocations("caret").Single();
+        var completionParams = new LSP.CompletionParams()
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Position = caret.Range.Start,
+            Context = new LSP.CompletionContext()
+            {
+                TriggerKind = LSP.CompletionTriggerKind.Invoked,
+            }
+        };
+
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+        var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        AssertEx.NotNull(results);
+        Assert.NotEmpty(results.Items);
+        Assert.Equal(new() { Start = new(0, 0), End = caret.Range.Start }, results.ItemDefaults.EditRange.Value.First);
+    }
 }

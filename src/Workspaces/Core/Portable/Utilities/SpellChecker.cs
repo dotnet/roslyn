@@ -10,19 +10,11 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Roslyn.Utilities
 {
-    internal readonly struct SpellChecker : IObjectWritable, IChecksummedObject
+    internal readonly struct SpellChecker(Checksum checksum, BKTree bKTree) : IObjectWritable, IChecksummedObject
     {
         private const string SerializationFormat = "3";
 
-        public Checksum Checksum { get; }
-
-        private readonly BKTree _bkTree;
-
-        public SpellChecker(Checksum checksum, BKTree bKTree)
-        {
-            Checksum = checksum;
-            _bkTree = bKTree;
-        }
+        public Checksum Checksum { get; } = checksum;
 
         public SpellChecker(Checksum checksum, IEnumerable<string> corpus)
             : this(checksum, BKTree.Create(corpus))
@@ -34,7 +26,7 @@ namespace Roslyn.Utilities
             using var result = TemporaryArray<string>.Empty;
             using var checker = new WordSimilarityChecker(value, substringsAreSimilar);
 
-            _bkTree.Find(ref result.AsRef(), value, threshold: null);
+            bKTree.Find(ref result.AsRef(), value, threshold: null);
 
             foreach (var current in result)
             {
@@ -49,7 +41,7 @@ namespace Roslyn.Utilities
         {
             writer.WriteString(SerializationFormat);
             Checksum.WriteTo(writer);
-            _bkTree.WriteTo(writer);
+            bKTree.WriteTo(writer);
         }
 
         internal static SpellChecker? TryReadFrom(ObjectReader reader)

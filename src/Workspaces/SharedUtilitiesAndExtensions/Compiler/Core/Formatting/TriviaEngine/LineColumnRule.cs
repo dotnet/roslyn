@@ -4,31 +4,21 @@
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal readonly struct LineColumnRule
+    internal readonly struct LineColumnRule(
+LineColumnRule.SpaceOperations spaceOperation,
+LineColumnRule.LineOperations lineOperation,
+LineColumnRule.IndentationOperations indentationOperation,
+        int lines,
+        int spaces,
+        int indentation)
     {
-        public readonly SpaceOperations SpaceOperation;
-        public readonly LineOperations LineOperation;
-        public readonly IndentationOperations IndentationOperation;
+        public readonly SpaceOperations SpaceOperation = spaceOperation;
+        public readonly LineOperations LineOperation = lineOperation;
+        public readonly IndentationOperations IndentationOperation = indentationOperation;
 
-        public readonly int Lines;
-        public readonly int Spaces;
-        public readonly int Indentation;
-
-        public LineColumnRule(
-            SpaceOperations spaceOperation,
-            LineOperations lineOperation,
-            IndentationOperations indentationOperation,
-            int lines,
-            int spaces,
-            int indentation)
-        {
-            SpaceOperation = spaceOperation;
-            LineOperation = lineOperation;
-            IndentationOperation = indentationOperation;
-            Lines = lines;
-            Spaces = spaces;
-            Indentation = indentation;
-        }
+        public readonly int Lines = lines;
+        public readonly int Spaces = spaces;
+        public readonly int Indentation = indentation;
 
         public LineColumnRule With(int? lines = null, int? spaces = null, int? indentation = null, LineOperations? lineOperation = null, SpaceOperations? spaceOperation = null, IndentationOperations? indentationOperation = null)
             => new(

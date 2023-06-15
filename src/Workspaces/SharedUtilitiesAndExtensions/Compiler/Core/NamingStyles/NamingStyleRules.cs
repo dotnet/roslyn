@@ -10,18 +10,15 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal class NamingStyleRules
+    internal class NamingStyleRules(ImmutableArray<NamingRule> namingRules)
     {
-        public ImmutableArray<NamingRule> NamingRules { get; }
+        public ImmutableArray<NamingRule> NamingRules { get; } = namingRules;
 
         private readonly ImmutableArray<SymbolKind> _symbolKindsThatCanBeOverridden =
             ImmutableArray.Create(
                 SymbolKind.Method,
                 SymbolKind.Property,
                 SymbolKind.Event);
-
-        public NamingStyleRules(ImmutableArray<NamingRule> namingRules)
-            => NamingRules = namingRules;
 
         internal bool TryGetApplicableRule(ISymbol symbol, out NamingRule applicableRule)
         {

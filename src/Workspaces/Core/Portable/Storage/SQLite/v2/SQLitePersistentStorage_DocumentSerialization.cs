@@ -30,18 +30,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// <see cref="Accessor{TKey, TDatabaseId}"/> responsible for storing and 
         /// retrieving data from <see cref="DocumentDataTableName"/>.
         /// </summary>
-        private sealed class DocumentAccessor : Accessor<DocumentKey, DocumentPrimaryKey>
+        private sealed class DocumentAccessor(SQLitePersistentStorage storage) : Accessor<DocumentKey, DocumentPrimaryKey>(Table.Document,
+                  storage,
+                  (ProjectPathIdColumnName, SQLiteIntegerType),
+                  (ProjectNameIdColumnName, SQLiteIntegerType),
+                  (DocumentFolderIdColumnName, SQLiteIntegerType),
+                  (DocumentNameIdColumnName, SQLiteIntegerType))
         {
-            public DocumentAccessor(SQLitePersistentStorage storage)
-                : base(Table.Document,
-                      storage,
-                      (ProjectPathIdColumnName, SQLiteIntegerType),
-                      (ProjectNameIdColumnName, SQLiteIntegerType),
-                      (DocumentFolderIdColumnName, SQLiteIntegerType),
-                      (DocumentNameIdColumnName, SQLiteIntegerType))
-            {
-            }
-
             protected override DocumentPrimaryKey? TryGetDatabaseKey(SqlConnection connection, DocumentKey key, bool allowWrite)
                 => Storage.TryGetDocumentPrimaryKey(connection, key, allowWrite);
 

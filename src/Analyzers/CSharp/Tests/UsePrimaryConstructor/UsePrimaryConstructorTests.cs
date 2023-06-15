@@ -2872,4 +2872,68 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestSeeTag1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                /// <summary>
+                /// Provides strongly typed wrapper around <see cref="_i"/>.
+                /// </summary>
+                class C
+                {
+                    private int _i;
+
+                    public [|C|](int i)
+                    {
+                        _i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                /// <summary>
+                /// Provides strongly typed wrapper around <see cref="_i"/>.
+                /// </summary>
+                class C(int i)
+                {
+                    private int _i = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSeeTag2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                /// <summary>
+                /// Provides strongly typed wrapper around <see cref="_i"/>.
+                /// </summary>
+                class C
+                {
+                    private int _i;
+
+                    public [|C|](int i)
+                    {
+                        _i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                /// <summary>
+                /// Provides strongly typed wrapper around <paramref name="i"/>.
+                /// </summary>
+                class C(int i)
+                {
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }

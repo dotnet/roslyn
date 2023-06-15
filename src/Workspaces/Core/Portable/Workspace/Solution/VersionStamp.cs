@@ -232,26 +232,22 @@ namespace Microsoft.CodeAnalysis
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(VersionStamp versionStamp)
         {
-            private readonly VersionStamp _versionStamp;
-
-            public TestAccessor(in VersionStamp versionStamp)
-                => _versionStamp = versionStamp;
 
             /// <summary>
             /// True if this VersionStamp is newer than the specified one.
             /// </summary>
             internal bool IsNewerThan(in VersionStamp version)
             {
-                if (_versionStamp._utcLastModified > version._utcLastModified)
+                if (versionStamp._utcLastModified > version._utcLastModified)
                 {
                     return true;
                 }
 
-                if (_versionStamp._utcLastModified == version._utcLastModified)
+                if (versionStamp._utcLastModified == version._utcLastModified)
                 {
-                    return GetGlobalVersion(_versionStamp) > GetGlobalVersion(version);
+                    return GetGlobalVersion(versionStamp) > GetGlobalVersion(version);
                 }
 
                 return false;

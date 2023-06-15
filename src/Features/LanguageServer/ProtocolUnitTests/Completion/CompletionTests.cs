@@ -1447,6 +1447,27 @@ class A
             Assert.True(list.SuggestionMode);
         }
 
+        [Theory, CombinatorialData]
+        public async Task EditRangeShouldNotEndAtCursorPosition(bool mutatingLspWorkspace)
+        {
+            var markup = @"pub{|caret:|}class";
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
+            var caret = testLspServer.GetLocations("caret").Single();
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.CSharp, SnippetsRule.NeverInclude);
+
+            var completionParams = CreateCompletionParams(
+                caret,
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams);
+            AssertEx.NotNull(results);
+            Assert.NotEmpty(results.Items);
+            Assert.Equal(new() { Start = new(0, 0), End = new(0, 8) }, results.ItemDefaults.EditRange.Value.First);
+        }
+
         internal static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
         {
             return testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName,

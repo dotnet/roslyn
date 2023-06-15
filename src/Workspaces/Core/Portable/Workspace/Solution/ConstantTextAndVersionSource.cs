@@ -12,14 +12,9 @@ namespace Microsoft.CodeAnalysis;
 /// <summary>
 /// This value source keeps a strong reference to a value.
 /// </summary>
-internal sealed class ConstantTextAndVersionSource : ITextAndVersionSource
+internal sealed class ConstantTextAndVersionSource(TextAndVersion value) : ITextAndVersionSource
 {
-    private readonly TextAndVersion _value;
-
-    public ConstantTextAndVersionSource(TextAndVersion value)
-    {
-        _value = value;
-    }
+    private readonly TextAndVersion _value = value;
 
     public bool CanReloadText
         => false;

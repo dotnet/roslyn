@@ -13,27 +13,18 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// Stores the source information for an <see cref="IAsyncToken"/> value.  Helpful when 
         /// tracking down tokens which aren't properly disposed.
         /// </summary>
-        internal sealed class DiagnosticAsyncToken : AsyncToken
+        internal sealed class DiagnosticAsyncToken(
+            AsynchronousOperationListener listener,
+            string name,
+            object? tag,
+            string filePath,
+            int lineNumber) : AsyncToken(listener)
         {
-            public string Name { get; }
-            public string FilePath { get; }
-            public int LineNumber { get; }
-            public object? Tag { get; }
+            public string Name { get; } = name;
+            public string FilePath { get; } = filePath;
+            public int LineNumber { get; } = lineNumber;
+            public object? Tag { get; } = tag;
             public Task? Task { get; set; }
-
-            public DiagnosticAsyncToken(
-                AsynchronousOperationListener listener,
-                string name,
-                object? tag,
-                string filePath,
-                int lineNumber)
-                : base(listener)
-            {
-                Name = name;
-                Tag = tag;
-                FilePath = filePath;
-                LineNumber = lineNumber;
-            }
 
             internal void AssociateWithTask(Task task)
                 => Task = task;
