@@ -216,7 +216,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
+#pragma warning disable SYSLIB0050 // 'TypeAttributes.Serializable' is obsolete
                 return (_flags & FieldAttributes.NotSerialized) != 0;
+#pragma warning restore SYSLIB0050
             }
         }
 
