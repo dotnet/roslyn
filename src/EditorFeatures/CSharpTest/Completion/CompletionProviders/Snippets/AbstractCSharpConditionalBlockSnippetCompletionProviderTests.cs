@@ -467,5 +467,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
+
+        [WpfFact]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetTest()
+        {
+            var markupBeforeCommit = """
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                        // comment
+                        arg.$$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                        // comment
+                        {{ItemToCommit}} (arg)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
     }
 }

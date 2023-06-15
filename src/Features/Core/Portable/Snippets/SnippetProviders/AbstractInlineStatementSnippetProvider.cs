@@ -38,6 +38,12 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         /// </summary>
         protected bool ConstructedFromInlineExpression { get; private set; }
 
+        /// <summary>
+        /// Syntax node of original inline expression in the tree. Use it only to ask semantic questions about this node
+        /// </summary>
+        /// <remarks>Must never be <see langword="null"/> if incoming inlineExpression is not <see langword="null"/></remarks>
+        protected SyntaxNode? OriginalInlineExpression { get; private set; }
+
         protected sealed override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
@@ -65,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             _ = TryGetInlineExpression(targetToken, syntaxFacts, out var inlineExpression);
 
-            var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, inlineExpression);
+            OriginalInlineExpression = inlineExpression;
+            var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, inlineExpression?.WithoutLeadingTrivia());
             ConstructedFromInlineExpression = inlineExpression is not null;
 
             return new TextChange(inlineExpression?.Parent?.Span ?? TextSpan.FromBounds(position, position), statement.ToFullString());
