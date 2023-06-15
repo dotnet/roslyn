@@ -1,0 +1,121 @@
+<Project>
+  <!-- This file represents the version of packages that are included in the shared dependencies NPM module.
+       You may copy it to any other repo to ensure you reference the same versions of packages that will ship in the product.
+       Periodically refresh it from its original location:
+       https://dev.azure.com/devdiv/DevDiv/_git/vs-green-server?path=/src/SharedDependencies/Directory.Packages.props&version=GBmain
+  -->
+  <PropertyGroup>
+    <ServiceHubVersion>4.3.125</ServiceHubVersion>
+    <ServiceBrokerVersion>4.3.5-preview</ServiceBrokerVersion>
+    <CodeAnalysisVersion>4.6.0-3.23212.2</CodeAnalysisVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Humanizer.Core" Version="2.14.1" />
+    <PackageVersion Include="MessagePack" Version="2.5.108" />
+    <PackageVersion Include="MessagePack.Annotations" Version="2.5.108" />
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />
+    <PackageVersion Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="$(CodeAnalysisVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="$(CodeAnalysisVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(CodeAnalysisVersion)" />
+    <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageVersion Include="Microsoft.NET.StringTools" Version="17.7.0-preview-23206-02" />
+    <PackageVersion Include="Microsoft.NETCore.Platforms" Version="5.0.0" />
+    <PackageVersion Include="Microsoft.NETCore.Targets" Version="1.1.0" />
+    <PackageVersion Include="Microsoft.ServiceHub.Analyzers" Version="$(ServiceBrokerVersion)" />
+    <PackageVersion Include="Microsoft.ServiceHub.Client" Version="$(ServiceHubVersion)" />
+    <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="$(ServiceBrokerVersion)" />
+    <PackageVersion Include="Microsoft.ServiceHub.Resources" Version="$(ServiceHubVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.7.5-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="17.7.5-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="17.7.35172-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="17.7.35172-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Interop" Version="17.7.35172-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.LiveShare.CoreContracts" Version="1.4.98" IsInternal="true" />
+    <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem.Query" Version="17.7.164-pre" />
+    <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
+    <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.7.3-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.7.47" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.7.4-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.7.4-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Utilities" Version="17.7.35169-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.42" />
+    <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.6.11" />
+    <PackageVersion Include="Microsoft.Win32.Primitives" Version="4.3.0" />
+    <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="7.0.0" />
+    <PackageVersion Include="Nerdbank.Streams" Version="2.9.112" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="runtime.native.System" Version="4.3.0" />
+    <PackageVersion Include="StreamJsonRpc" Version="2.16.4-preview" />
+    <PackageVersion Include="System.Buffers" Version="4.5.1" />
+    <PackageVersion Include="System.CodeDom" Version="6.0.0" />
+    <PackageVersion Include="System.Collections" Version="4.3.0" />
+    <PackageVersion Include="System.Collections.Immutable" Version="7.0.0" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
+    <PackageVersion Include="System.ComponentModel.Composition" Version="7.0.0" />
+    <PackageVersion Include="System.Composition" Version="7.0.0" />
+    <PackageVersion Include="System.Composition.AttributedModel" Version="7.0.0" />
+    <PackageVersion Include="System.Composition.Convention" Version="7.0.0" />
+    <PackageVersion Include="System.Composition.Hosting" Version="7.0.0" />
+    <PackageVersion Include="System.Composition.Runtime" Version="7.0.0" />
+    <PackageVersion Include="System.Composition.TypedParts" Version="7.0.0" />
+    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
+    <PackageVersion Include="System.Diagnostics.Debug" Version="4.3.0" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="7.0.1" />
+    <PackageVersion Include="System.Diagnostics.EventLog" Version="7.0.0" />
+    <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="7.0.0" />
+    <PackageVersion Include="System.Diagnostics.Process" Version="4.3.0" />
+    <PackageVersion Include="System.Diagnostics.TraceSource" Version="4.3.0" />
+    <PackageVersion Include="System.Diagnostics.Tracing" Version="4.3.0" />
+    <PackageVersion Include="System.Drawing.Common" Version="7.0.0" />
+    <PackageVersion Include="System.Globalization" Version="4.3.0" />
+    <PackageVersion Include="System.IO" Version="4.3.0" />
+    <PackageVersion Include="System.IO.FileSystem" Version="4.3.0" />
+    <PackageVersion Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
+    <PackageVersion Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
+    <PackageVersion Include="System.IO.Packaging" Version="7.0.0" />
+    <PackageVersion Include="System.IO.Pipelines" Version="7.0.0" />
+    <PackageVersion Include="System.IO.Pipes" Version="4.3.0" />
+    <PackageVersion Include="System.Management" Version="5.0.0" />
+    <PackageVersion Include="System.Memory" Version="4.5.5" />
+    <PackageVersion Include="System.Net.Primitives" Version="4.3.0" />
+    <PackageVersion Include="System.Net.Sockets" Version="4.3.0" />
+    <PackageVersion Include="System.Numerics.Vectors" Version="4.4.0" />
+    <PackageVersion Include="System.Reflection" Version="4.3.0" />
+    <PackageVersion Include="System.Reflection.Emit" Version="4.7.0" />
+    <PackageVersion Include="System.Reflection.Emit.ILGeneration" Version="4.7.0" />
+    <PackageVersion Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
+    <PackageVersion Include="System.Reflection.Metadata" Version="7.0.0" />
+    <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
+    <PackageVersion Include="System.Reflection.Primitives" Version="4.3.0" />
+    <PackageVersion Include="System.Reflection.TypeExtensions" Version="4.7.0" />
+    <PackageVersion Include="System.Resources.ResourceManager" Version="4.3.0" />
+    <PackageVersion Include="System.Runtime" Version="4.3.0" />
+    <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+    <PackageVersion Include="System.Runtime.Extensions" Version="4.3.0" />
+    <PackageVersion Include="System.Runtime.Handles" Version="4.3.0" />
+    <PackageVersion Include="System.Runtime.InteropServices" Version="4.3.0" />
+    <PackageVersion Include="System.Security.AccessControl" Version="6.0.0" />
+    <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="7.0.0" />
+    <PackageVersion Include="System.Security.Permissions" Version="7.0.0" />
+    <PackageVersion Include="System.Security.Principal" Version="4.3.0" />
+    <PackageVersion Include="System.Security.Principal.Windows" Version="5.0.0" />
+    <PackageVersion Include="System.Text.Encoding" Version="4.3.0" />
+    <PackageVersion Include="System.Text.Encoding.CodePages" Version="7.0.0" />
+    <PackageVersion Include="System.Text.Encoding.Extensions" Version="4.3.0" />
+    <PackageVersion Include="System.Text.Encodings.Web" Version="7.0.0" />
+    <PackageVersion Include="System.Text.Json" Version="7.0.0" />
+    <PackageVersion Include="System.Threading" Version="4.3.0" />
+    <PackageVersion Include="System.Threading.AccessControl" Version="7.0.0" />
+    <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
+    <PackageVersion Include="System.Threading.Overlapped" Version="4.3.0" />
+    <PackageVersion Include="System.Threading.Tasks" Version="4.3.0" />
+    <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="7.0.0" />
+    <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageVersion Include="System.Threading.Thread" Version="4.3.0" />
+    <PackageVersion Include="System.Threading.ThreadPool" Version="4.3.0" />
+    <PackageVersion Include="System.Windows.Extensions" Version="7.0.0" />
+  </ItemGroup>
+</Project>
