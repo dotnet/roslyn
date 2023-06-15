@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis
                 // to the current table, as they didn't exist in the previous one.
                 var previousTableEntryIndex = _states.Count - _insertedCount;
 
-                var canUsePrevious = _previous._states.Length > (previousTableEntryIndex);
+                var canUsePrevious = _previous._states.Length > previousTableEntryIndex;
                 previousEntry = canUsePrevious ? _previous._states[previousTableEntryIndex] : default;
                 return canUsePrevious;
             }
