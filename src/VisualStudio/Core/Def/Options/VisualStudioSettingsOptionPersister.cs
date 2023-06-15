@@ -3,13 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
@@ -27,11 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
     /// </summary>
     internal sealed class VisualStudioSettingsOptionPersister
     {
-        // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
-        [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
-        private class SVsSettingsPersistenceManager { };
-
-        private readonly ISettingsManager? _settingManager;
+        private readonly ISettingsManager _settingManager;
         private readonly Action<OptionKey2, object?> _refreshOption;
         private readonly ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> _readFallbacks;
 
@@ -45,20 +37,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
         /// <remarks>
         /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.InitializeAsync"/>
         /// </remarks>
-        public VisualStudioSettingsOptionPersister(Action<OptionKey2, object?> refreshOption, ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> readFallbacks, ISettingsManager? settingsManager)
+        public VisualStudioSettingsOptionPersister(Action<OptionKey2, object?> refreshOption, ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> readFallbacks, ISettingsManager settingsManager)
         {
             _settingManager = settingsManager;
             _refreshOption = refreshOption;
             _readFallbacks = readFallbacks;
 
-            // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
-            // contributing package. In that case persistence of settings won't work (we don't bother with a backup solution for persistence
-            // as the scenario seems exceedingly unlikely), but we shouldn't crash the IDE.
-            if (_settingManager != null)
-            {
-                var settingsSubset = _settingManager.GetSubset("*");
-                settingsSubset.SettingChangedAsync += OnSettingChangedAsync;
-            }
+            var settingsSubset = _settingManager.GetSubset("*");
+            settingsSubset.SettingChangedAsync += OnSettingChangedAsync;
         }
 
         private Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
