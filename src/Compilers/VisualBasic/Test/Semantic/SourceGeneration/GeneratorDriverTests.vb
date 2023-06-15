@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestGenerators
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -293,6 +294,297 @@ End Class",
                                           {(gen001, "com"), (gen001, "ano")},
                                           Diagnostic("GEN001", "com").WithLocation(4, 6),
                                           Diagnostic("GEN001", "ano").WithLocation(5, 6))
+        End Sub
+
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        Public Sub Diagnostic_DetachedSyntaxTree_Incremental()
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = GetCompilation(parseOptions)
+
+            Dim generator = New PipelineCallbackGenerator(
+                Sub(ctx)
+                    ctx.RegisterSourceOutput(ctx.CompilationProvider,
+                        Sub(ctx2, comp)
+                            Dim syntaxTree = VisualBasicSyntaxTree.ParseText(comp.SyntaxTrees.Single().GetText(), parseOptions)
+                            ctx2.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                                "TEST0001",
+                                "Test",
+                                "Test diagnostic",
+                                DiagnosticSeverity.Warning,
+                                DiagnosticSeverity.Warning,
+                                isEnabledByDefault:=True,
+                                warningLevel:=1,
+                                location:=Location.Create(syntaxTree, TextSpan.FromBounds(2, 4))))
+                        End Sub)
+                End Sub).AsSourceGenerator()
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, Diagnostics)
+            diagnostics.Verify(Diagnostic("TEST0001", "Pu").WithLocation(2, 1))
+            compilation.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        Public Sub Diagnostic_DetachedSyntaxTree_Incremental_AdditionalLocations()
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = GetCompilation(parseOptions)
+
+            Dim generator = New PipelineCallbackGenerator(
+                Sub(ctx)
+                    ctx.RegisterSourceOutput(ctx.CompilationProvider,
+                        Sub(ctx2, comp)
+                            Dim validSyntaxTree = comp.SyntaxTrees.Single()
+                            Dim invalidSyntaxTree = VisualBasicSyntaxTree.ParseText(validSyntaxTree.GetText(), parseOptions)
+                            ctx2.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                                "TEST0001",
+                                "Test",
+                                "Test diagnostic",
+                                DiagnosticSeverity.Warning,
+                                DiagnosticSeverity.Warning,
+                                isEnabledByDefault:=True,
+                                warningLevel:=1,
+                                location:=Location.Create(validSyntaxTree, TextSpan.FromBounds(2, 4)),
+                                additionalLocations:={Location.Create(invalidSyntaxTree, TextSpan.FromBounds(2, 4))}))
+                        End Sub)
+                End Sub).AsSourceGenerator()
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
+            diagnostics.Verify(Diagnostic("TEST0001", "Pu").WithLocation(2, 1))
+            compilation.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        Public Sub Diagnostic_DetachedSyntaxTree_Execute()
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = GetCompilation(parseOptions)
+
+            Dim generator As ISourceGenerator = New CallbackGenerator(
+                Sub(ctx)
+                End Sub,
+                Sub(ctx)
+                    Dim syntaxTree = VisualBasicSyntaxTree.ParseText(ctx.Compilation.SyntaxTrees.Single().GetText(), parseOptions)
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault:=True,
+                        warningLevel:=1,
+                        location:=Location.Create(syntaxTree, TextSpan.FromBounds(2, 4))))
+                End Sub)
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
+            diagnostics.Verify(Diagnostic("TEST0001", "Pu").WithLocation(2, 1))
+            compilation.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        Public Sub Diagnostic_DetachedSyntaxTree_Execute_AdditionalLocations()
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = GetCompilation(parseOptions)
+
+            Dim generator As ISourceGenerator = New CallbackGenerator(
+                Sub(ctx)
+                End Sub,
+                Sub(ctx)
+                    Dim validSyntaxTree = ctx.Compilation.SyntaxTrees.Single()
+                    Dim invalidSyntaxTree = VisualBasicSyntaxTree.ParseText(validSyntaxTree.GetText(), parseOptions)
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault:=True,
+                        warningLevel:=1,
+                        location:=Location.Create(validSyntaxTree, TextSpan.FromBounds(2, 4)),
+                        additionalLocations:={Location.Create(invalidSyntaxTree, TextSpan.FromBounds(2, 4))}))
+                End Sub)
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
+            diagnostics.Verify(Diagnostic("TEST0001", "Pu").WithLocation(2, 1))
+            compilation.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        Public Sub Diagnostic_SpanOutsideRange_Incremental()
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = GetCompilation(parseOptions)
+
+            Dim generator = New PipelineCallbackGenerator(
+                Sub(ctx)
+                    ctx.RegisterSourceOutput(ctx.CompilationProvider,
+                        Sub(ctx2, comp)
+                            Dim syntaxTree = comp.SyntaxTrees.Single()
+                            ctx2.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                                "TEST0001",
+                                "Test",
+                                "Test diagnostic",
+                                DiagnosticSeverity.Warning,
+                                DiagnosticSeverity.Warning,
+                                isEnabledByDefault:=True,
+                                warningLevel:=1,
+                                location:=Location.Create(syntaxTree, TextSpan.FromBounds(2, 100))))
+                        End Sub)
+                End Sub).AsSourceGenerator()
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
+            diagnostics.Verify(Diagnostic("TEST0001", "Pu").WithLocation(2, 1))
+            compilation.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        Public Sub Diagnostic_SpanOutsideRange_Incremental_AdditionalLocations()
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = GetCompilation(parseOptions)
+
+            Dim generator = New PipelineCallbackGenerator(
+                Sub(ctx)
+                    ctx.RegisterSourceOutput(ctx.CompilationProvider,
+                        Sub(ctx2, comp)
+                            Dim syntaxTree = comp.SyntaxTrees.Single()
+                            ctx2.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                                "TEST0001",
+                                "Test",
+                                "Test diagnostic",
+                                DiagnosticSeverity.Warning,
+                                DiagnosticSeverity.Warning,
+                                isEnabledByDefault:=True,
+                                warningLevel:=1,
+                                location:=Location.Create(syntaxTree, TextSpan.FromBounds(2, 4)),
+                                additionalLocations:={Location.Create(syntaxTree, TextSpan.FromBounds(2, 100))}))
+                        End Sub)
+                End Sub).AsSourceGenerator()
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
+            diagnostics.Verify(Diagnostic("TEST0001", "Pu").WithLocation(2, 1))
+            compilation.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        Public Sub Diagnostic_SpanOutsideRange_Execute()
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = GetCompilation(parseOptions)
+
+            Dim generator As ISourceGenerator = New CallbackGenerator(
+                Sub(ctx)
+                End Sub,
+                Sub(ctx)
+                    Dim syntaxTree = ctx.Compilation.SyntaxTrees.Single()
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault:=True,
+                        warningLevel:=1,
+                        location:=Location.Create(syntaxTree, TextSpan.FromBounds(2, 100))))
+                End Sub)
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
+            diagnostics.Verify(Diagnostic("TEST0001", "Pu").WithLocation(2, 1))
+            compilation.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        Public Sub Diagnostic_SpanOutsideRange_Execute_AdditionalLocations()
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = GetCompilation(parseOptions)
+
+            Dim generator As ISourceGenerator = New CallbackGenerator(
+                Sub(ctx)
+                End Sub,
+                Sub(ctx)
+                    Dim syntaxTree = ctx.Compilation.SyntaxTrees.Single()
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault:=True,
+                        warningLevel:=1,
+                        location:=Location.Create(syntaxTree, TextSpan.FromBounds(2, 4)),
+                        additionalLocations:={Location.Create(syntaxTree, TextSpan.FromBounds(2, 100))}))
+                End Sub)
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
+            diagnostics.Verify(Diagnostic("TEST0001", "Pu").WithLocation(2, 1))
+            compilation.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        Public Sub Diagnostic_SpaceInIdentifier_Incremental()
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = GetCompilation(parseOptions)
+
+            Dim generator = New PipelineCallbackGenerator(
+                Sub(ctx)
+                    ctx.RegisterSourceOutput(ctx.CompilationProvider,
+                        Sub(ctx2, comp)
+                            Dim syntaxTree = comp.SyntaxTrees.Single()
+                            ctx2.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                                "TEST 0001",
+                                "Test",
+                                "Test diagnostic",
+                                DiagnosticSeverity.Warning,
+                                DiagnosticSeverity.Warning,
+                                isEnabledByDefault:=True,
+                                warningLevel:=1,
+                                location:=Location.Create(syntaxTree, TextSpan.FromBounds(2, 4))))
+                        End Sub)
+                End Sub).AsSourceGenerator()
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
+            diagnostics.Verify(Diagnostic("TEST 0001", "Pu").WithLocation(2, 1))
+            compilation.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        Public Sub Diagnostic_SpaceInIdentifier_Execute()
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = GetCompilation(parseOptions)
+
+            Dim generator As ISourceGenerator = New CallbackGenerator(
+                Sub(ctx)
+                End Sub,
+                Sub(ctx)
+                    Dim syntaxTree = ctx.Compilation.SyntaxTrees.Single()
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST 0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault:=True,
+                        warningLevel:=1,
+                        location:=Location.Create(syntaxTree, TextSpan.FromBounds(2, 4))))
+                End Sub)
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
+            diagnostics.Verify(Diagnostic("TEST 0001", "Pu").WithLocation(2, 1))
+            compilation.VerifyDiagnostics()
         End Sub
 
         <Fact>

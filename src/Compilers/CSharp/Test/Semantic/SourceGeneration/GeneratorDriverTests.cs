@@ -3554,6 +3554,307 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_DetachedSyntaxTree_Incremental()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (ctx, _) =>
+                {
+                    var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions);
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 1,
+                        location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 2))));
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify();
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_DetachedSyntaxTree_Incremental_AdditionalLocations()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (ctx, comp) =>
+                {
+                    var validSyntaxTree = comp.SyntaxTrees.Single();
+                    var invalidSyntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions);
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 1,
+                        location: Location.Create(validSyntaxTree, TextSpan.FromBounds(0, 2)),
+                        additionalLocations: new[] { Location.Create(invalidSyntaxTree, TextSpan.FromBounds(0, 2)) }));
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(Diagnostic("TEST0001", "cl").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_DetachedSyntaxTree_Execute()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new CallbackGenerator(ctx => { }, ctx =>
+            {
+                var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions);
+                ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                    "TEST0001",
+                    "Test",
+                    "Test diagnostic",
+                    DiagnosticSeverity.Warning,
+                    DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    warningLevel: 1,
+                    location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 2))));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify();
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_DetachedSyntaxTree_Execute_AdditionalLocations()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new CallbackGenerator(ctx => { }, ctx =>
+            {
+                var validSyntaxTree = ctx.Compilation.SyntaxTrees.Single();
+                var invalidSyntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions);
+                ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                    "TEST0001",
+                    "Test",
+                    "Test diagnostic",
+                    DiagnosticSeverity.Warning,
+                    DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    warningLevel: 1,
+                    location: Location.Create(validSyntaxTree, TextSpan.FromBounds(0, 2)),
+                    additionalLocations: new[] { Location.Create(invalidSyntaxTree, TextSpan.FromBounds(0, 2)) }));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(Diagnostic("TEST0001", "cl").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_SpanOutsideRange_Incremental()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (ctx, comp) =>
+                {
+                    var syntaxTree = comp.SyntaxTrees.Single();
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 1,
+                        location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 100))));
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify();
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_SpanOutsideRange_Incremental_AdditionalLocations()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (ctx, comp) =>
+                {
+                    var syntaxTree = comp.SyntaxTrees.Single();
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 1,
+                        location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 2)),
+                        additionalLocations: new[] { Location.Create(syntaxTree, TextSpan.FromBounds(0, 100)) }));
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(Diagnostic("TEST0001", "cl").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_SpanOutsideRange_Execute()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new CallbackGenerator(ctx => { }, ctx =>
+            {
+                var syntaxTree = ctx.Compilation.SyntaxTrees.Single();
+                ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                    "TEST0001",
+                    "Test",
+                    "Test diagnostic",
+                    DiagnosticSeverity.Warning,
+                    DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    warningLevel: 1,
+                    location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 100))));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify();
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_SpanOutsideRange_Execute_AdditionalLocations()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new CallbackGenerator(ctx => { }, ctx =>
+            {
+                var syntaxTree = ctx.Compilation.SyntaxTrees.Single();
+                ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                    "TEST0001",
+                    "Test",
+                    "Test diagnostic",
+                    DiagnosticSeverity.Warning,
+                    DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    warningLevel: 1,
+                    location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 2)),
+                    additionalLocations: new[] { Location.Create(syntaxTree, TextSpan.FromBounds(0, 100)) }));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(Diagnostic("TEST0001", "cl").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_SpaceInIdentifier_Incremental()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (ctx, comp) =>
+                {
+                    var syntaxTree = comp.SyntaxTrees.Single();
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST 0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 1,
+                        location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 2))));
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(Diagnostic("TEST 0001", "cl").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_SpaceInIdentifier_Execute()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new CallbackGenerator(ctx => { }, ctx =>
+            {
+                var syntaxTree = ctx.Compilation.SyntaxTrees.Single();
+                ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                    "TEST 0001",
+                    "Test",
+                    "Test diagnostic",
+                    DiagnosticSeverity.Warning,
+                    DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    warningLevel: 1,
+                    location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 2))));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(Diagnostic("TEST 0001", "cl").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
         [Fact]
         public void IncrementalGenerator_Add_New_Generator_After_Generation()
         {
