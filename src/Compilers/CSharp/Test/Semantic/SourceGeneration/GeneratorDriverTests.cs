@@ -3554,7 +3554,8 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_DetachedSyntaxTree_Incremental()
         {
             var source = "class C {}";
@@ -3586,7 +3587,8 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_DetachedSyntaxTree_Incremental_AdditionalLocations()
         {
             var source = "class C {}";
@@ -3620,7 +3622,8 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_DetachedSyntaxTree_Execute()
         {
             var source = "class C {}";
@@ -3649,7 +3652,8 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_DetachedSyntaxTree_Execute_AdditionalLocations()
         {
             var source = "class C {}";
@@ -3680,7 +3684,8 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpanOutsideRange_Incremental()
         {
             var source = "class C {}";
@@ -3712,7 +3717,8 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpanOutsideRange_Incremental_AdditionalLocations()
         {
             var source = "class C {}";
@@ -3745,7 +3751,8 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpanOutsideRange_Execute()
         {
             var source = "class C {}";
@@ -3774,7 +3781,8 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpanOutsideRange_Execute_AdditionalLocations()
         {
             var source = "class C {}";
@@ -3804,7 +3812,8 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpaceInIdentifier_Incremental()
         {
             var source = "class C {}";
@@ -3836,7 +3845,8 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpaceInIdentifier_Execute()
         {
             var source = "class C {}";

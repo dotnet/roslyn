@@ -296,7 +296,8 @@ End Class",
                                           Diagnostic("GEN001", "ano").WithLocation(5, 6))
         End Sub
 
-        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_DetachedSyntaxTree_Incremental()
             Dim parseOptions = TestOptions.Regular
             Dim compilation As Compilation = GetCompilation(parseOptions)
@@ -326,7 +327,8 @@ End Class",
             compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_DetachedSyntaxTree_Incremental_AdditionalLocations()
             Dim parseOptions = TestOptions.Regular
             Dim compilation As Compilation = GetCompilation(parseOptions)
@@ -358,7 +360,8 @@ End Class",
             compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_DetachedSyntaxTree_Execute()
             Dim parseOptions = TestOptions.Regular
             Dim compilation As Compilation = GetCompilation(parseOptions)
@@ -387,7 +390,8 @@ End Class",
             compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_DetachedSyntaxTree_Execute_AdditionalLocations()
             Dim parseOptions = TestOptions.Regular
             Dim compilation As Compilation = GetCompilation(parseOptions)
@@ -418,7 +422,8 @@ End Class",
             compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_SpanOutsideRange_Incremental()
             Dim parseOptions = TestOptions.Regular
             Dim compilation As Compilation = GetCompilation(parseOptions)
@@ -448,7 +453,8 @@ End Class",
             compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_SpanOutsideRange_Incremental_AdditionalLocations()
             Dim parseOptions = TestOptions.Regular
             Dim compilation As Compilation = GetCompilation(parseOptions)
@@ -479,7 +485,8 @@ End Class",
             compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_SpanOutsideRange_Execute()
             Dim parseOptions = TestOptions.Regular
             Dim compilation As Compilation = GetCompilation(parseOptions)
@@ -508,7 +515,8 @@ End Class",
             compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_SpanOutsideRange_Execute_AdditionalLocations()
             Dim parseOptions = TestOptions.Regular
             Dim compilation As Compilation = GetCompilation(parseOptions)
@@ -538,7 +546,8 @@ End Class",
             compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_SpaceInIdentifier_Incremental()
             Dim parseOptions = TestOptions.Regular
             Dim compilation As Compilation = GetCompilation(parseOptions)
@@ -568,7 +577,8 @@ End Class",
             compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
+        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_SpaceInIdentifier_Execute()
             Dim parseOptions = TestOptions.Regular
             Dim compilation As Compilation = GetCompilation(parseOptions)
