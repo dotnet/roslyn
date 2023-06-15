@@ -38,12 +38,6 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         /// </summary>
         protected bool ConstructedFromInlineExpression { get; private set; }
 
-        /// <summary>
-        /// Syntax node of original inline expression in the tree. Use it only to ask semantic questions about this node
-        /// </summary>
-        /// <remarks>Must never be <see langword="null"/> if incoming inlineExpression is not <see langword="null"/></remarks>
-        protected SyntaxNode? OriginalInlineExpression { get; private set; }
-
         protected sealed override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
@@ -71,11 +65,37 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             _ = TryGetInlineExpression(targetToken, syntaxFacts, out var inlineExpression);
 
-            OriginalInlineExpression = inlineExpression;
-            var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, inlineExpression?.WithoutLeadingTrivia());
-            ConstructedFromInlineExpression = inlineExpression is not null;
+            var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, inlineExpression);
+
+            if (inlineExpression is not null)
+            {
+                ConstructedFromInlineExpression = true;
+
+                // We need to trim leading trivia of `inlineExpression` to remove unwanted comments and so on.
+                // Need to do it after the statement was generated, so snippet can ask semantic questions about given `inlineExpression`.
+                // But we cannot just use `ReplaceNode` with `inlineExpression` as argument, since corresponding node now belongs to a different syntax tree.
+                // So we manually walk statement's descendant nodes to find equivalent one to `inlineExpression` we have
+                var inlineExpressionInStatement = FindInlineExpressionInGeneratedStatement(statement, inlineExpression);
+                if (inlineExpressionInStatement is not null)
+                    statement = statement.ReplaceNode(inlineExpressionInStatement, inlineExpressionInStatement.WithoutLeadingTrivia());
+            }
 
             return new TextChange(inlineExpression?.Parent?.Span ?? TextSpan.FromBounds(position, position), statement.ToFullString());
+
+            static SyntaxNode? FindInlineExpressionInGeneratedStatement(SyntaxNode statement, SyntaxNode inlineExpression)
+            {
+                foreach (var node in statement.DescendantNodes())
+                {
+                    if (node.IsEquivalentTo(inlineExpression))
+                        return node;
+                }
+
+                // Generally we shouldn't appear here in a normal flow.
+                // But it is theoretically possible if:
+                // 1. Snippet didn't use `inlineExpression`. Most likely something it wrong with its implementation. Or it is WIP and not everything is wired up at this point
+                // 2. Snippet modified `inlineExpression` when used it. In this case responsibility of handling trivia lies on the snippet, since we don't have any means to find it
+                return null;
+            }
         }
 
         protected sealed override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)

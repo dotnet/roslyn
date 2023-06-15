@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             }
             else
             {
-                var inlineExpressionType = semanticModel.GetTypeInfo(OriginalInlineExpression!).Type;
+                var inlineExpressionType = semanticModel.GetTypeInfo(inlineExpression).Type;
                 Debug.Assert(inlineExpressionType is not null && (inlineExpressionType.IsIntegralType() || inlineExpressionType.IsNativeIntegerType));
                 iteratorTypeSyntax = inlineExpressionType.GenerateTypeSyntax();
             }
