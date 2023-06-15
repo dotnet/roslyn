@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             // covers the span ends at the cursor location, e.g. "pub" in the example above. Here we detect when that occurs and
             // adjust the span accordingly.
             var defaultSpan = !capabilityHelper.SupportVSInternalClientCapabilities && position < list.Span.End
-                ? new(list.Span.Start, position)
+                ? new(list.Span.Start, length: position - list.Span.Start)
                 : list.Span;
 
             var typedText = documentText.GetSubText(defaultSpan).ToString();
