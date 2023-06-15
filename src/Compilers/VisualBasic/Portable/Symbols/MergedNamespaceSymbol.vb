@@ -235,24 +235,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Method that is called from the CachingLookup to get all child names. Looks
         ''' in all constituent namespaces.
         ''' </summary>
-        Private Function SlowGetChildNames(comparer As IEqualityComparer(Of String)) As HashSet(Of String)
-            ' compute the final capacity of the set we'll return, to reduce heap churn
+        Private Function SlowGetChildNames(comparer As IEqualityComparer(Of String)) As SegmentedHashSet(Of String)
+            ' compute an upper bound for the final capacity of the set we'll return, to reduce heap churn
             Dim childCount As Integer = 0
 
             For Each nsSym As NamespaceSymbol In _namespacesToMerge
                 childCount += nsSym.GetMembersUnordered().Length
             Next
 
-#If NETSTANDARD2_0 Then
-            ' HashSet<T> in netstandard2.0 doesn't have a constructor that accepts a capacity
-            ' parameter.  It does, however, optimally allocate for the appropriate capacity
-            ' if it's created with an IEnumerable<T> that also implements ICollection<T>.  We'll
-            ' reduce overall heap churn by first creating an array of elements to go into the
-            ' HashSet And then initialzing the HashSet from the array.
-            Dim childNames As ArrayBuilder(Of String) = ArrayBuilder(Of String).GetInstance(childCount)
-#Else
-            Dim childNames As New HashSet(Of String)(childCount, comparer)
-#End If
+            Dim childNames As New SegmentedHashSet(Of String)(childCount, comparer)
 
             For Each nsSym As NamespaceSymbol In _namespacesToMerge
                 For Each childSym As NamespaceOrTypeSymbol In nsSym.GetMembersUnordered()
@@ -260,14 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
             Next
 
-#If NETSTANDARD2_0 Then
-            Dim asHashSet As New HashSet(Of String)(childNames, comparer)
-            childNames.Free()
-
-            Return asHashSet
-#Else
             Return childNames
-#End If
         End Function
 
         Public Overrides ReadOnly Property Name As String

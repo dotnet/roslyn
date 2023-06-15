@@ -166,9 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Method that is called from the CachingLookup to get all child names. Looks in all
         /// constituent namespaces.
         /// </summary>
-        private HashSet<ReadOnlyMemory<char>> SlowGetChildNames(IEqualityComparer<ReadOnlyMemory<char>> comparer)
+        private SegmentedHashSet<ReadOnlyMemory<char>> SlowGetChildNames(IEqualityComparer<ReadOnlyMemory<char>> comparer)
         {
-            // compute a reasonable estimate for the capacity of the set we'll return, to reduce heap churn
+            // compute an upper bound for the final capacity of the set we'll return, to reduce heap churn
             int childCount = 0;
 
             foreach (var ns in _namespacesToMerge)
@@ -176,16 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 childCount += ns.GetMembersUnordered().Length;
             }
 
-#if NETSTANDARD2_0
-            // HashSet<T> in netstandard2.0 doesn't have a constructor that accepts a capacity
-            // parameter.  It does, however, optimally allocate for the appropriate capacity
-            // if it's created with an IEnumerable<T> that also implements ICollection<T>.  We'll
-            // reduce overall heap churn by first creating an array of elements to go into the
-            // HashSet and then initialzing the HashSet from the array.
-            var childNames = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance(childCount);
-#else
-            var childNames = new HashSet<ReadOnlyMemory<char>>(childCount, comparer);
-#endif
+            var childNames = new SegmentedHashSet<ReadOnlyMemory<char>>(childCount, comparer);
 
             foreach (var ns in _namespacesToMerge)
             {
@@ -195,14 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-#if NETSTANDARD2_0
-            var asHashSet = new HashSet<ReadOnlyMemory<char>>(childNames, comparer);
-            childNames.Free();
-
-            return asHashSet;
-#else
             return childNames;
-#endif
         }
 
         public override string Name
