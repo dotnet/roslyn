@@ -21,6 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 GetType(CSharpVSResources).Assembly,
                 GetType(BasicVSResources).Assembly).
             AddParts(
+                GetType(StubIVsService_SVsSolution),
                 GetType(StubVsEditorAdaptersFactoryService)).
             AddExcludedPartTypes(
                 GetType(VisualStudioRemoteHostClientProvider.Factory), ' Do not use ServiceHub in VS unit tests, run services locally.

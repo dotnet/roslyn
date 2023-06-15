@@ -69,6 +69,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 GetType(MockWorkspaceEventListenerProvider),
                 GetType(HostDiagnosticUpdateSource),
                 GetType(HierarchyItemToProjectIdMap),
+                GetType(StubIVsService_SVsSolution),
                 GetType(DiagnosticService))
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
