@@ -1450,7 +1450,10 @@ class A
         [Theory, CombinatorialData]
         public async Task EditRangeShouldNotEndAtCursorPosition(bool mutatingLspWorkspace)
         {
-            var markup = @"pub{|caret:|}class";
+            var markup =
+@"public class C1 {}
+
+pub{|caret:|}class";
 
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var caret = testLspServer.GetLocations("caret").Single();
@@ -1465,7 +1468,7 @@ class A
             var results = await RunGetCompletionsAsync(testLspServer, completionParams);
             AssertEx.NotNull(results);
             Assert.NotEmpty(results.Items);
-            Assert.Equal(new() { Start = new(0, 0), End = new(0, 8) }, results.ItemDefaults.EditRange.Value.First);
+            Assert.Equal(new() { Start = new(2, 0), End = new(2, 8) }, results.ItemDefaults.EditRange.Value.First);
         }
 
         internal static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)

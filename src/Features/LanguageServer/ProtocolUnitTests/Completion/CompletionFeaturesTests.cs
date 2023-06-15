@@ -25,6 +25,7 @@ using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion;
+
 public class CompletionFeaturesTests : AbstractLanguageServerProtocolTests
 {
     protected override TestComposition Composition => FeaturesLspComposition;
@@ -467,7 +468,9 @@ class A
     public async Task EditRangeShouldEndAtCursorPosition(bool mutatingLspWorkspace)
     {
         var markup =
-@"pub{|caret:|}class";
+@"public class C1 {}
+
+pub{|caret:|}class";
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
@@ -485,6 +488,6 @@ class A
         var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
         AssertEx.NotNull(results);
         Assert.NotEmpty(results.Items);
-        Assert.Equal(new() { Start = new(0, 0), End = caret.Range.Start }, results.ItemDefaults.EditRange.Value.First);
+        Assert.Equal(new() { Start = new(2, 0), End = caret.Range.Start }, results.ItemDefaults.EditRange.Value.First);
     }
 }
