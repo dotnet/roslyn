@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo;
 /// </summary>
 [Export(typeof(ISearchItemsSourceProvider))]
 [Name(nameof(RoslynSearchItemsSourceProvider))]
+[DependsOnPackage(Guids.RoslynPackageIdString)]
 [ProducesResultType(CodeSearchResultType.Class)]
 [ProducesResultType(CodeSearchResultType.Constant)]
 [ProducesResultType(CodeSearchResultType.Delegate)]
