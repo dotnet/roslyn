@@ -8,6 +8,7 @@ Imports System.Runtime.InteropServices
 Imports EnvDTE
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -25,6 +26,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Public ReadOnly Composition As TestComposition = VisualStudioTestCompositions.LanguageServices.AddParts(
             GetType(MockServiceProvider),
+            GetType(StubVsServiceExporter(Of )),
+            GetType(StubVsServiceExporter(Of ,)),
             GetType(MockVisualStudioWorkspace),
             GetType(ProjectCodeModelFactory))
 

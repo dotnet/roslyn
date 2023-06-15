@@ -8,16 +8,19 @@ Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Moq
+Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
     <PartNotDiscoverable>
     <Export>
     <Export(GetType(SVsServiceProvider))>
+    <Export(GetType(SAsyncServiceProvider))>
     Friend Class MockServiceProvider
         Implements IServiceProvider
         Implements SVsServiceProvider ' The shell service provider actually implements this too for people using that type directly
         Implements IAsyncServiceProvider
+        Implements IAsyncServiceProvider2
 
         Private ReadOnly _exportProvider As Composition.ExportProvider
         Private ReadOnly _fileChangeEx As MockVsFileChangeEx = New MockVsFileChangeEx
@@ -58,7 +61,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Function
 
         Public Function GetServiceAsync(serviceType As Type) As Task(Of Object) Implements IAsyncServiceProvider.GetServiceAsync
-            Return System.Threading.Tasks.Task.FromResult(GetService(serviceType))
+            Return GetServiceAsync(serviceType, False)
+        End Function
+
+        Public Function GetServiceAsync(serviceType As Type, swallowExceptions As Boolean) As Task(Of Object) Implements IAsyncServiceProvider2.GetServiceAsync
+            Try
+                Return Task.FromResult(GetService(serviceType))
+            Catch ex As Exception When swallowExceptions
+                Return SpecializedTasks.Null(Of Object)()
+            End Try
         End Function
 
         Friend Function GetComponentModelMock() As IComponentModel
