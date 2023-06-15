@@ -2240,7 +2240,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool IsSerializable
         {
+#pragma warning disable SYSLIB0050 // 'TypeAttributes.Serializable' is obsolete
             get { return (_flags & TypeAttributes.Serializable) != 0; }
+#pragma warning restore SYSLIB0050
         }
 
         public override bool IsRefLikeType

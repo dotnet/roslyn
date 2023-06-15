@@ -14,29 +14,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal static partial class DependentTypeFinder
     {
-        private sealed class ProjectIndex
+        private sealed class ProjectIndex(
+            MultiDictionary<DocumentId, DeclaredSymbolInfo> classesAndRecordsThatMayDeriveFromSystemObject,
+            MultiDictionary<DocumentId, DeclaredSymbolInfo> valueTypes,
+            MultiDictionary<DocumentId, DeclaredSymbolInfo> enums,
+            MultiDictionary<DocumentId, DeclaredSymbolInfo> delegates,
+            MultiDictionary<string, (DocumentId, DeclaredSymbolInfo)> namedTypes)
         {
             private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<ProjectIndex>> s_projectToIndex = new();
 
-            public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> ClassesAndRecordsThatMayDeriveFromSystemObject;
-            public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> ValueTypes;
-            public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> Enums;
-            public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> Delegates;
-            public readonly MultiDictionary<string, (DocumentId, DeclaredSymbolInfo)> NamedTypes;
-
-            public ProjectIndex(
-                MultiDictionary<DocumentId, DeclaredSymbolInfo> classesAndRecordsThatMayDeriveFromSystemObject,
-                MultiDictionary<DocumentId, DeclaredSymbolInfo> valueTypes,
-                MultiDictionary<DocumentId, DeclaredSymbolInfo> enums,
-                MultiDictionary<DocumentId, DeclaredSymbolInfo> delegates,
-                MultiDictionary<string, (DocumentId, DeclaredSymbolInfo)> namedTypes)
-            {
-                ClassesAndRecordsThatMayDeriveFromSystemObject = classesAndRecordsThatMayDeriveFromSystemObject;
-                ValueTypes = valueTypes;
-                Enums = enums;
-                Delegates = delegates;
-                NamedTypes = namedTypes;
-            }
+            public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> ClassesAndRecordsThatMayDeriveFromSystemObject = classesAndRecordsThatMayDeriveFromSystemObject;
+            public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> ValueTypes = valueTypes;
+            public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> Enums = enums;
+            public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> Delegates = delegates;
+            public readonly MultiDictionary<string, (DocumentId, DeclaredSymbolInfo)> NamedTypes = namedTypes;
 
             public static Task<ProjectIndex> GetIndexAsync(
                 Project project, CancellationToken cancellationToken)

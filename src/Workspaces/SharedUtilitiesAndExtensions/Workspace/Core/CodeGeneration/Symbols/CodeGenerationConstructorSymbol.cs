@@ -14,28 +14,23 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal class CodeGenerationConstructorSymbol : CodeGenerationMethodSymbol
+    internal class CodeGenerationConstructorSymbol(
+        INamedTypeSymbol containingType,
+        ImmutableArray<AttributeData> attributes,
+        Accessibility accessibility,
+        DeclarationModifiers modifiers,
+        ImmutableArray<IParameterSymbol> parameters) : CodeGenerationMethodSymbol(containingType,
+               attributes,
+               accessibility,
+               modifiers,
+               returnType: null,
+               refKind: RefKind.None,
+               explicitInterfaceImplementations: default,
+               name: string.Empty,
+               typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+               parameters: parameters,
+               returnTypeAttributes: ImmutableArray<AttributeData>.Empty)
     {
-        public CodeGenerationConstructorSymbol(
-            INamedTypeSymbol containingType,
-            ImmutableArray<AttributeData> attributes,
-            Accessibility accessibility,
-            DeclarationModifiers modifiers,
-            ImmutableArray<IParameterSymbol> parameters)
-            : base(containingType,
-                   attributes,
-                   accessibility,
-                   modifiers,
-                   returnType: null,
-                   refKind: RefKind.None,
-                   explicitInterfaceImplementations: default,
-                   name: string.Empty,
-                   typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
-                   parameters: parameters,
-                   returnTypeAttributes: ImmutableArray<AttributeData>.Empty)
-        {
-        }
-
         public override MethodKind MethodKind => MethodKind.Constructor;
 
         protected override CodeGenerationSymbol Clone()

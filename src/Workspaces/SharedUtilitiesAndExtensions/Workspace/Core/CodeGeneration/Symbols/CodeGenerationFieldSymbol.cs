@@ -14,28 +14,20 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal class CodeGenerationFieldSymbol : CodeGenerationSymbol, IFieldSymbol
+    internal class CodeGenerationFieldSymbol(
+        INamedTypeSymbol containingType,
+        ImmutableArray<AttributeData> attributes,
+        Accessibility accessibility,
+        DeclarationModifiers modifiers,
+        ITypeSymbol type,
+        string name,
+        bool hasConstantValue,
+        object constantValue) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, accessibility, modifiers, name), IFieldSymbol
     {
-        public ITypeSymbol Type { get; }
+        public ITypeSymbol Type { get; } = type;
         public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
-        public object ConstantValue { get; }
-        public bool HasConstantValue { get; }
-
-        public CodeGenerationFieldSymbol(
-            INamedTypeSymbol containingType,
-            ImmutableArray<AttributeData> attributes,
-            Accessibility accessibility,
-            DeclarationModifiers modifiers,
-            ITypeSymbol type,
-            string name,
-            bool hasConstantValue,
-            object constantValue)
-            : base(containingType?.ContainingAssembly, containingType, attributes, accessibility, modifiers, name)
-        {
-            this.Type = type;
-            this.HasConstantValue = hasConstantValue;
-            this.ConstantValue = constantValue;
-        }
+        public object ConstantValue { get; } = constantValue;
+        public bool HasConstantValue { get; } = hasConstantValue;
 
         protected override CodeGenerationSymbol Clone()
         {

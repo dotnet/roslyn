@@ -66,7 +66,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
         ConstructorDeclarationSyntax constructorDeclaration,
         IMethodSymbol constructor,
         ImmutableDictionary<string, string?> properties,
-        Dictionary<ISymbol, SyntaxNode> removedMembers)
+        ImmutableDictionary<ISymbol, SyntaxNode> removedMembers)
     {
         // First, take the constructor doc comments and merge those into the type's doc comments.
         // Then, take any removed fields/properties and merge their comments into the type's doc comments.
@@ -164,7 +164,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
         static SyntaxTriviaList MergeTypeDeclarationAndRemovedMembersDocComments(
             IMethodSymbol constructor,
             ImmutableDictionary<string, string?> properties,
-            Dictionary<ISymbol, SyntaxNode> removedMembers,
+            ImmutableDictionary<ISymbol, SyntaxNode> removedMembers,
             SyntaxTriviaList typeDeclarationLeadingTrivia)
         {
             // now, if we're removing any members, and they had doc comments, and we don't already have doc comments for

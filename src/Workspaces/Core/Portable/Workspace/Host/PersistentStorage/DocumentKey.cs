@@ -16,27 +16,19 @@ namespace Microsoft.CodeAnalysis.Storage
     /// solution load), but querying the data is still desired.
     /// </summary>
     [DataContract]
-    internal readonly struct DocumentKey : IEqualityComparer<DocumentKey>, IEquatable<DocumentKey>
+    internal readonly struct DocumentKey(ProjectKey project, DocumentId id, string? filePath, string name) : IEqualityComparer<DocumentKey>, IEquatable<DocumentKey>
     {
         [DataMember(Order = 0)]
-        public readonly ProjectKey Project;
+        public readonly ProjectKey Project = project;
 
         [DataMember(Order = 1)]
-        public readonly DocumentId Id;
+        public readonly DocumentId Id = id;
 
         [DataMember(Order = 2)]
-        public readonly string? FilePath;
+        public readonly string? FilePath = filePath;
 
         [DataMember(Order = 3)]
-        public readonly string Name;
-
-        public DocumentKey(ProjectKey project, DocumentId id, string? filePath, string name)
-        {
-            Project = project;
-            Id = id;
-            FilePath = filePath;
-            Name = name;
-        }
+        public readonly string Name = name;
 
         public static DocumentKey ToDocumentKey(Document document)
             => ToDocumentKey(ProjectKey.ToProjectKey(document.Project), document.State);

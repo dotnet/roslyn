@@ -14,22 +14,15 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 {
-    internal sealed class FormatCodeCleanupProvider : ICodeCleanupProvider
+    internal sealed class FormatCodeCleanupProvider(IEnumerable<AbstractFormattingRule>? rules = null) : ICodeCleanupProvider
     {
-        private readonly IEnumerable<AbstractFormattingRule>? _rules;
-
-        public FormatCodeCleanupProvider(IEnumerable<AbstractFormattingRule>? rules = null)
-        {
-            _rules = rules;
-        }
-
         public string Name => PredefinedCodeCleanupProviderNames.Format;
 
         public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var result = formatter.GetFormattingResult(root, spans, options.FormattingOptions, _rules, cancellationToken);
+            var result = formatter.GetFormattingResult(root, spans, options.FormattingOptions, rules, cancellationToken);
 
             // apply changes to an old text if it already exists
             return document.TryGetText(out var oldText)
@@ -40,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SolutionServices services, CancellationToken cancellationToken)
         {
             var formatter = services.GetRequiredLanguageService<ISyntaxFormattingService>(root.Language);
-            var result = formatter.GetFormattingResult(root, spans, options, _rules, cancellationToken);
+            var result = formatter.GetFormattingResult(root, spans, options, rules, cancellationToken);
 
             // apply changes to an old text if it already exists
             return (root.SyntaxTree != null && root.SyntaxTree.TryGetText(out var oldText))

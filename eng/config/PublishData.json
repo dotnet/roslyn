@@ -19,6 +19,7 @@
       "Microsoft.CodeAnalysis.CSharp.Features": "arcade",
       "Microsoft.CodeAnalysis.CSharp.Scripting": "arcade",
       "Microsoft.CodeAnalysis.CSharp.Workspaces": "vssdk",
+      "Microsoft.CodeAnalysis.Test.Utilities": "vs-impl",
       "Microsoft.CodeAnalysis.VisualBasic": "vssdk",
       "Microsoft.CodeAnalysis.VisualBasic.CodeStyle": "arcade",
       "Microsoft.CodeAnalysis.VisualBasic.Features": "arcade",

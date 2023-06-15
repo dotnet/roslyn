@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal sealed partial class TopLevelSyntaxTreeIndex
     {
-        private readonly struct ExtensionMethodInfo
+        private readonly struct ExtensionMethodInfo(ImmutableDictionary<string, ImmutableArray<int>> receiverTypeNameToExtensionMethodMap)
         {
             // We divide extension methods into two categories, simple and complex, for filtering purpose.
             // Whether a method is simple is determined based on if we can determine it's receiver type easily
@@ -39,14 +39,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// T (where T is a type parameter) => ""
             /// T[,] (where T is a type parameter) => "T[]"
             /// </summary>
-            public readonly ImmutableDictionary<string, ImmutableArray<int>> ReceiverTypeNameToExtensionMethodMap { get; }
+            public readonly ImmutableDictionary<string, ImmutableArray<int>> ReceiverTypeNameToExtensionMethodMap { get; } = receiverTypeNameToExtensionMethodMap;
 
             public bool ContainsExtensionMethod => !ReceiverTypeNameToExtensionMethodMap.IsEmpty;
-
-            public ExtensionMethodInfo(ImmutableDictionary<string, ImmutableArray<int>> receiverTypeNameToExtensionMethodMap)
-            {
-                ReceiverTypeNameToExtensionMethodMap = receiverTypeNameToExtensionMethodMap;
-            }
 
             public void WriteTo(ObjectWriter writer)
             {

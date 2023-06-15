@@ -14,31 +14,22 @@ namespace Microsoft.CodeAnalysis.Storage
     /// solution load), but querying the data is still desired.
     /// </summary>
     [DataContract]
-    internal readonly struct ProjectKey
+    internal readonly struct ProjectKey(SolutionKey solution, ProjectId id, string? filePath, string name, Checksum parseOptionsChecksum)
     {
         [DataMember(Order = 0)]
-        public readonly SolutionKey Solution;
+        public readonly SolutionKey Solution = solution;
 
         [DataMember(Order = 1)]
-        public readonly ProjectId Id;
+        public readonly ProjectId Id = id;
 
         [DataMember(Order = 2)]
-        public readonly string? FilePath;
+        public readonly string? FilePath = filePath;
 
         [DataMember(Order = 3)]
-        public readonly string Name;
+        public readonly string Name = name;
 
         [DataMember(Order = 4)]
-        public readonly Checksum ParseOptionsChecksum;
-
-        public ProjectKey(SolutionKey solution, ProjectId id, string? filePath, string name, Checksum parseOptionsChecksum)
-        {
-            Solution = solution;
-            Id = id;
-            FilePath = filePath;
-            Name = name;
-            ParseOptionsChecksum = parseOptionsChecksum;
-        }
+        public readonly Checksum ParseOptionsChecksum = parseOptionsChecksum;
 
         public static ProjectKey ToProjectKey(Project project)
             => ToProjectKey(project.Solution.State, project.State);

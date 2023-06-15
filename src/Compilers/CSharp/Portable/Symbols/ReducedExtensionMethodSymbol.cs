@@ -530,6 +530,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsEffectivelyReadOnly => _reducedFrom.Parameters[0].RefKind == RefKind.In;
 
+        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        {
+            thisParameter = _reducedFrom.Parameters[0];
+            return true;
+        }
+
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
             get { return ImmutableArray<MethodSymbol>.Empty; }

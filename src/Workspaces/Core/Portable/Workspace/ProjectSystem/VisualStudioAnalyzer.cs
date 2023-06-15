@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 {
     // TODO: Remove. This is only needed to support Solution Explorer Analyzer node population. 
     // Analyzers should not be loaded in devenv process (see https://github.com/dotnet/roslyn/issues/43008).
-    internal sealed class ProjectAnalyzerReference : IDisposable
+    internal sealed class ProjectAnalyzerReference(string fullPath, IProjectSystemDiagnosticSource projectSystemDiagnosticSource, ProjectId projectId, string language) : IDisposable
     {
         // Shadow copy analyzer files coming from packages to avoid locking the files in NuGet cache.
         // NOTE: It is important that we share the same shadow copy assembly loader for all VisualStudioAnalyzer instances.
@@ -19,24 +19,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         private static readonly IAnalyzerAssemblyLoader s_analyzerAssemblyLoader =
             new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"));
 
-        private readonly ProjectId _projectId;
-        private readonly IProjectSystemDiagnosticSource _projectSystemDiagnosticSource;
-        private readonly string _language;
-
         // these 2 are mutable states that must be guarded under the _gate.
         private readonly object _gate = new();
         private AnalyzerReference? _analyzerReference;
         private ImmutableArray<DiagnosticData> _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
 
-        public ProjectAnalyzerReference(string fullPath, IProjectSystemDiagnosticSource projectSystemDiagnosticSource, ProjectId projectId, string language)
-        {
-            FullPath = fullPath;
-            _projectSystemDiagnosticSource = projectSystemDiagnosticSource;
-            _projectId = projectId;
-            _language = language;
-        }
-
-        public string FullPath { get; }
+        public string FullPath { get; } = fullPath;
 
         public AnalyzerReference GetReference()
         {
@@ -58,12 +46,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
         private void OnAnalyzerLoadError(object? sender, AnalyzerLoadFailureEventArgs e)
         {
-            var data = _projectSystemDiagnosticSource.CreateAnalyzerLoadFailureDiagnostic(e, FullPath, _projectId, _language);
+            var data = projectSystemDiagnosticSource.CreateAnalyzerLoadFailureDiagnostic(e, FullPath, projectId, language);
 
             lock (_gate)
             {
                 _analyzerLoadErrors = _analyzerLoadErrors.Add(data);
-                _projectSystemDiagnosticSource.UpdateDiagnosticsForProject(_projectId, this, _analyzerLoadErrors);
+                projectSystemDiagnosticSource.UpdateDiagnosticsForProject(projectId, this, _analyzerLoadErrors);
             }
         }
 
@@ -77,10 +65,10 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
                 if (!loadErrors.IsEmpty)
                 {
-                    _projectSystemDiagnosticSource.ClearDiagnosticsForProject(_projectId, this);
+                    projectSystemDiagnosticSource.ClearDiagnosticsForProject(projectId, this);
                 }
 
-                _projectSystemDiagnosticSource.ClearAnalyzerReferenceDiagnostics(fileReference, _language, _projectId);
+                projectSystemDiagnosticSource.ClearAnalyzerReferenceDiagnostics(fileReference, language, projectId);
             }
         }
 

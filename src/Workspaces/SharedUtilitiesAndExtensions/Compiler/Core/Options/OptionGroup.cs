@@ -9,36 +9,28 @@ namespace Microsoft.CodeAnalysis.Options
     /// <summary>
     /// Group/sub-feature associated with an option.
     /// </summary>
-    internal sealed class OptionGroup
+    internal sealed class OptionGroup(string name, string description, int priority = int.MaxValue, OptionGroup? parent = null)
     {
         public static readonly OptionGroup Default = new(string.Empty, string.Empty, int.MaxValue);
-
-        public OptionGroup(string name, string description, int priority = int.MaxValue, OptionGroup? parent = null)
-        {
-            Description = description;
-            Priority = priority;
-            Parent = parent;
-            Name = name;
-        }
 
         /// <summary>
         /// Optional parent group.
         /// </summary>
-        public OptionGroup? Parent { get; }
+        public OptionGroup? Parent { get; } = parent;
 
         /// <summary>
         /// A localizable resource description string for the option group.
         /// </summary>
-        public string Description { get; }
+        public string Description { get; } = description;
 
         /// <summary>
         /// Name of the option group
         /// </summary>
-        public string Name { get; }
+        public string Name { get; } = name;
 
         /// <summary>
         /// Relative priority of the option group with respect to other option groups within the same feature.
         /// </summary>
-        public int Priority { get; }
+        public int Priority { get; } = priority;
     }
 }

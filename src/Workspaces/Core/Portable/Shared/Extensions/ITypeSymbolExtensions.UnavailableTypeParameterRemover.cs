@@ -12,17 +12,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ITypeSymbolExtensions
     {
-        private class UnavailableTypeParameterRemover : SymbolVisitor<ITypeSymbol>
+        private class UnavailableTypeParameterRemover(Compilation compilation, ISet<string> availableTypeParameterNames) : SymbolVisitor<ITypeSymbol>
         {
-            private readonly Compilation _compilation;
-            private readonly ISet<string> _availableTypeParameterNames;
-
-            public UnavailableTypeParameterRemover(Compilation compilation, ISet<string> availableTypeParameterNames)
-            {
-                _compilation = compilation;
-                _availableTypeParameterNames = availableTypeParameterNames;
-            }
-
             public override ITypeSymbol DefaultVisit(ISymbol node)
                 => throw new NotImplementedException();
 
@@ -37,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return _compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
+                return compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
             }
 
             public override ITypeSymbol VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
@@ -65,17 +56,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return _compilation.CreatePointerTypeSymbol(elementType);
+                return compilation.CreatePointerTypeSymbol(elementType);
             }
 
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)
             {
-                if (_availableTypeParameterNames.Contains(symbol.Name))
+                if (availableTypeParameterNames.Contains(symbol.Name))
                 {
                     return symbol;
                 }
 
-                return _compilation.ObjectType;
+                return compilation.ObjectType;
             }
         }
     }

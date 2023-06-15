@@ -8,11 +8,8 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
-    internal abstract class TextReaderWithLength : TextReader
+    internal abstract class TextReaderWithLength(int length) : TextReader
     {
-        public TextReaderWithLength(int length)
-            => Length = length;
-
-        public int Length { get; }
+        public int Length { get; } = length;
     }
 }

@@ -118,19 +118,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         ///     "a", "NS3.a"
         /// 
         /// </summary>
-        private class MutableComplexifiedSpan
+        private class MutableComplexifiedSpan(
+            TextSpan originalSpan, TextSpan newSpan, List<(TextSpan oldSpan, TextSpan newSpan)> modifiedSubSpans)
         {
-            public TextSpan OriginalSpan;
-            public TextSpan NewSpan;
-            public List<(TextSpan oldSpan, TextSpan newSpan)> ModifiedSubSpans;
-
-            public MutableComplexifiedSpan(
-                TextSpan originalSpan, TextSpan newSpan, List<(TextSpan oldSpan, TextSpan newSpan)> modifiedSubSpans)
-            {
-                OriginalSpan = originalSpan;
-                NewSpan = newSpan;
-                ModifiedSubSpans = modifiedSubSpans;
-            }
+            public TextSpan OriginalSpan = originalSpan;
+            public TextSpan NewSpan = newSpan;
+            public List<(TextSpan oldSpan, TextSpan newSpan)> ModifiedSubSpans = modifiedSubSpans;
         }
 
         internal void ClearDocuments(IEnumerable<DocumentId> conflictLocationDocumentIds)

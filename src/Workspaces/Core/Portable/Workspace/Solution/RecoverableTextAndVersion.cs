@@ -15,22 +15,14 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A recoverable TextAndVersion source that saves its text to temporary storage.
     /// </summary>
-    internal sealed partial class RecoverableTextAndVersion : ITextAndVersionSource
+    internal sealed partial class RecoverableTextAndVersion(ITextAndVersionSource initialSource, SolutionServices services) : ITextAndVersionSource
     {
-        private readonly SolutionServices _services;
 
         // Starts as ITextAndVersionSource and is replaced with RecoverableText when the TextAndVersion value is requested.
         // At that point the initial source is no longer referenced and can be garbage collected.
-        private object _initialSourceOrRecoverableText;
+        private object _initialSourceOrRecoverableText = initialSource;
 
-        public bool CanReloadText { get; }
-
-        public RecoverableTextAndVersion(ITextAndVersionSource initialSource, SolutionServices services)
-        {
-            _initialSourceOrRecoverableText = initialSource;
-            _services = services;
-            CanReloadText = initialSource.CanReloadText;
-        }
+        public bool CanReloadText { get; } = initialSource.CanReloadText;
 
         /// <returns>
         /// True if the <paramref name="source"/> is available, false if <paramref name="text"/> is returned.
@@ -96,7 +88,7 @@ namespace Microsoft.CodeAnalysis
 
                 Interlocked.CompareExchange(
                     ref _initialSourceOrRecoverableText,
-                    value: new RecoverableText(source, textAndVersion, options, _services),
+                    value: new RecoverableText(source, textAndVersion, options, services),
                     comparand: source);
             }
 
@@ -110,7 +102,7 @@ namespace Microsoft.CodeAnalysis
                     : recoverableText.InitialSource.GetValue(options, cancellationToken);
                 Interlocked.Exchange(
                     ref _initialSourceOrRecoverableText,
-                    new RecoverableText(recoverableText.InitialSource, textAndVersion, options, _services));
+                    new RecoverableText(recoverableText.InitialSource, textAndVersion, options, services));
             }
 
             return (RecoverableText)_initialSourceOrRecoverableText;

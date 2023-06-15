@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" IsImplicitlyDefined="true" PrivateAssets="all" />
     <PackageReference Include="XunitXml.TestLogger" Version="$(XunitXmlTestLoggerVersion)" />
   </ItemGroup>
 

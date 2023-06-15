@@ -512,12 +512,8 @@ namespace Microsoft.CodeAnalysis
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(ProjectDependencyGraph instance)
         {
-            private readonly ProjectDependencyGraph _instance;
-
-            public TestAccessor(ProjectDependencyGraph instance)
-                => _instance = instance;
 
             /// <summary>
             /// Gets the list of projects that directly or transitively depend on this project, if it has already been
@@ -530,7 +526,7 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentNullException(nameof(projectId));
                 }
 
-                _instance._reverseTransitiveReferencesMap.TryGetValue(projectId, out var projects);
+                instance._reverseTransitiveReferencesMap.TryGetValue(projectId, out var projects);
                 return projects;
             }
         }

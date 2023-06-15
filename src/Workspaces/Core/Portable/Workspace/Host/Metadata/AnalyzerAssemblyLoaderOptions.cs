@@ -4,13 +4,8 @@
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal readonly struct AnalyzerAssemblyLoaderOptions
+    internal readonly struct AnalyzerAssemblyLoaderOptions(bool shadowCopy)
     {
-        public bool ShadowCopy { get; }
-
-        public AnalyzerAssemblyLoaderOptions(bool shadowCopy)
-        {
-            ShadowCopy = shadowCopy;
-        }
+        public bool ShadowCopy { get; } = shadowCopy;
     }
 }
