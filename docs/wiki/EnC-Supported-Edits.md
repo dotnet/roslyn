@@ -50,9 +50,3 @@ This document captures the current state. Potential future improvements in this 
 | Edit a member referencing an embedded interop type | - |
 | Edit a member with On Error or Resume statements | Specific to Visual Basic |
 | Edit a member containing an Aggregate, Group By, Simple Join, or Group Join LINQ query clause | Specific to Visual Basic |
-
-### App Model EnC Support
-
-| Support EnC | Do Not Support EnC | 
-| ------------------ |------------------------------| 
-| <ul><li>Apps that support the 4.6 desktop version of the CLR for both x86 and x64 (e.g., Console, WPF, Windows 8.1 apps)</li><li>UWP in Windows 10</li><ul> | <ul><li>ASP.NET 5 apps</li><li>Silverlight 5</li><li>Windows Phone 8.1</li><li>Windows Phone 10</li><li>Windows Phone emulator scenarios</li><li>Windows Store 8.1</li></ul>|
