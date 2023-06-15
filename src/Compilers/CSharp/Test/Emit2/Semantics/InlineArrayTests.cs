@@ -108,7 +108,7 @@ public class Enclosing
 47
 48
 ";
-            CompileAndVerify(comp, expectedOutput: output, verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics();
 
             var t = comp.GetSpecialType(SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute);
             Assert.Equal(SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute, t.SpecialType);
@@ -1527,7 +1527,7 @@ public class Enclosing
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111").VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -1562,7 +1562,7 @@ public class Enclosing<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111").VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -1597,7 +1597,7 @@ public class Enclosing
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111").VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -1632,7 +1632,7 @@ public class Enclosing<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111").VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -1667,7 +1667,7 @@ public class Enclosing<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111").VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -1858,7 +1858,7 @@ public struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             // No warning CS0414: The field 'Buffer._element0' is assigned but its value is never used
-            CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [Fact]
@@ -1992,44 +1992,32 @@ class Program
 " + Buffer10Definition;
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M1",
 @"
 {
-  // Code size       24 (0x18)
-  .maxstack  2
-  .locals init (System.Span<int> V_0)
+  // Code size       13 (0xd)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  ldind.i4
-  IL_0017:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  ldind.i4
+  IL_000c:  ret
 }
 ");
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       26 (0x1a)
+  // Code size       15 (0xf)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  ldc.i4.s   111
-  IL_0018:  stind.i4
-  IL_0019:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  ldc.i4.s   111
+  IL_000d:  stind.i4
+  IL_000e:  ret
 }
 ");
 
@@ -2095,23 +2083,17 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (System.Span<int> V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  ret
 }
 ");
         }
@@ -2138,23 +2120,17 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
 {
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (System.Span<int> V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  ret
 }
 ");
         }
@@ -2257,23 +2233,17 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (System.Span<int> V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  ret
 }
 ");
         }
@@ -2301,23 +2271,17 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
 {
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (System.Span<int> V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  ret
 }
 ");
         }
@@ -2348,23 +2312,17 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (System.Span<int> V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  ret
 }
 ");
         }
@@ -2396,23 +2354,17 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
 {
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (System.Span<int> V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  ret
 }
 ");
         }
@@ -2442,7 +2394,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -2467,7 +2419,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -2492,7 +2444,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [Fact]
@@ -2593,7 +2545,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -2619,7 +2571,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -2648,7 +2600,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -2678,7 +2630,206 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementAccess_Variable_19()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Console.Write(M1(x));
+        System.Console.Write(' ');
+        System.Console.Write(M3(x));
+        M2(x);
+        System.Console.Write(' ');
+        System.Console.Write(M1(x));
+        System.Console.Write(' ');
+        System.Console.Write(M3(x));
+    }
+
+    static int M1(C x) => x.F[1];
+    static void M2(C x) => x.F[1] = 111;
+    static int M3(C x) { var i = 1; return x.F[i]; }
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 0 111 111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M1",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.1
+  IL_0007:  call       ""InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000c:  ldind.i4
+  IL_000d:  ret
+}
+");
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.1
+  IL_0007:  call       ""InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000c:  ldc.i4.s   111
+  IL_000e:  stind.i4
+  IL_000f:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementAccess_Variable_20()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Console.Write(M1(x));
+        System.Console.Write(' ');
+        System.Console.Write(M3(x));
+        M2(x);
+        System.Console.Write(' ');
+        System.Console.Write(M1(x));
+        System.Console.Write(' ');
+        System.Console.Write(M3(x));
+    }
+
+    static int M1(C x) => x.F[9];
+    static void M2(C x) => x.F[9] = 111;
+    static int M3(C x) { var i = 9; return x.F[i]; }
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 0 111 111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M1",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   9
+  IL_0008:  call       ""InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  ldind.i4
+  IL_000e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   9
+  IL_0008:  call       ""InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  ldc.i4.s   111
+  IL_000f:  stind.i4
+  IL_0010:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementAccess_Variable_21()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Console.Write(M1(x, 0));
+        System.Console.Write(' ');
+        System.Console.Write(M3(x));
+        M2(x, 0);
+        System.Console.Write(' ');
+        System.Console.Write(M1(x, 0));
+        System.Console.Write(' ');
+        System.Console.Write(M3(x));
+    }
+
+    static int M1(C x, int i) => x.F[i];
+    static void M2(C x, int i) => x.F[i] = 111;
+    static int M3(C x) => x.F[0];
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 0 111 111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M1",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldarg.1
+  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0016:  ldind.i4
+  IL_0017:  ret
+}
+");
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldarg.1
+  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0016:  ldc.i4.s   111
+  IL_0018:  stind.i4
+  IL_0019:  ret
+}
+");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -4629,6 +4780,695 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementAccess_Await_15()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Console.Write(M1(x).Result);
+        M2(x).Wait();
+        System.Console.Write(' ');
+        System.Console.Write(M1(x).Result);
+    }
+
+    static async Task<int> M1(C x) => GetInt(ref x.F[1], await FromResult(0));
+    static async Task M2(C x) => x.F[1] = await FromResult(111);
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
+
+    static int GetInt(ref int x, int y) => x;
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      183 (0xb7)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                int V_2,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<M1>d__1.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004b
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""C Program.<M1>d__1.x""
+    IL_0011:  stfld      ""C Program.<M1>d__1.<>7__wrap1""
+    IL_0016:  ldc.i4.0
+    IL_0017:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
+    IL_001c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0021:  stloc.3
+    IL_0022:  ldloca.s   V_3
+    IL_0024:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0029:  brtrue.s   IL_0067
+    IL_002b:  ldarg.0
+    IL_002c:  ldc.i4.0
+    IL_002d:  dup
+    IL_002e:  stloc.0
+    IL_002f:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_0034:  ldarg.0
+    IL_0035:  ldloc.3
+    IL_0036:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_003b:  ldarg.0
+    IL_003c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+    IL_0041:  ldloca.s   V_3
+    IL_0043:  ldarg.0
+    IL_0044:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<M1>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<M1>d__1)""
+    IL_0049:  leave.s    IL_00b6
+    IL_004b:  ldarg.0
+    IL_004c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_0051:  stloc.3
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_0058:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_005e:  ldarg.0
+    IL_005f:  ldc.i4.m1
+    IL_0060:  dup
+    IL_0061:  stloc.0
+    IL_0062:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_0067:  ldloca.s   V_3
+    IL_0069:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_006e:  stloc.2
+    IL_006f:  ldarg.0
+    IL_0070:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
+    IL_0075:  ldflda     ""Buffer10<int> C.F""
+    IL_007a:  ldc.i4.1
+    IL_007b:  call       ""InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_0080:  ldloc.2
+    IL_0081:  call       ""int Program.GetInt(ref int, int)""
+    IL_0086:  stloc.1
+    IL_0087:  leave.s    IL_00a2
+  }
+  catch System.Exception
+  {
+    IL_0089:  stloc.s    V_4
+    IL_008b:  ldarg.0
+    IL_008c:  ldc.i4.s   -2
+    IL_008e:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_0093:  ldarg.0
+    IL_0094:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+    IL_0099:  ldloc.s    V_4
+    IL_009b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_00a0:  leave.s    IL_00b6
+  }
+  IL_00a2:  ldarg.0
+  IL_00a3:  ldc.i4.s   -2
+  IL_00a5:  stfld      ""int Program.<M1>d__1.<>1__state""
+  IL_00aa:  ldarg.0
+  IL_00ab:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+  IL_00b0:  ldloc.1
+  IL_00b1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00b6:  ret
+}
+");
+
+            verifier.VerifyIL("Program.<M2>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      183 (0xb7)
+  .maxstack  3
+  .locals init (int V_0,
+            int V_1,
+            System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
+            System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<M2>d__2.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004c
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""C Program.<M2>d__2.x""
+    IL_0011:  stfld      ""C Program.<M2>d__2.<>7__wrap1""
+    IL_0016:  ldc.i4.s   111
+    IL_0018:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
+    IL_001d:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0022:  stloc.2
+    IL_0023:  ldloca.s   V_2
+    IL_0025:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_002a:  brtrue.s   IL_0068
+    IL_002c:  ldarg.0
+    IL_002d:  ldc.i4.0
+    IL_002e:  dup
+    IL_002f:  stloc.0
+    IL_0030:  stfld      ""int Program.<M2>d__2.<>1__state""
+    IL_0035:  ldarg.0
+    IL_0036:  ldloc.2
+    IL_0037:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M2>d__2.<>u__1""
+    IL_003c:  ldarg.0
+    IL_003d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M2>d__2.<>t__builder""
+    IL_0042:  ldloca.s   V_2
+    IL_0044:  ldarg.0
+    IL_0045:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<M2>d__2>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<M2>d__2)""
+    IL_004a:  leave.s    IL_00b6
+    IL_004c:  ldarg.0
+    IL_004d:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M2>d__2.<>u__1""
+    IL_0052:  stloc.2
+    IL_0053:  ldarg.0
+    IL_0054:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M2>d__2.<>u__1""
+    IL_0059:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_005f:  ldarg.0
+    IL_0060:  ldc.i4.m1
+    IL_0061:  dup
+    IL_0062:  stloc.0
+    IL_0063:  stfld      ""int Program.<M2>d__2.<>1__state""
+    IL_0068:  ldloca.s   V_2
+    IL_006a:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_006f:  stloc.1
+    IL_0070:  ldarg.0
+    IL_0071:  ldfld      ""C Program.<M2>d__2.<>7__wrap1""
+    IL_0076:  ldflda     ""Buffer10<int> C.F""
+    IL_007b:  ldc.i4.1
+    IL_007c:  call       ""InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_0081:  ldloc.1
+    IL_0082:  stind.i4
+    IL_0083:  ldarg.0
+    IL_0084:  ldnull
+    IL_0085:  stfld      ""C Program.<M2>d__2.<>7__wrap1""
+    IL_008a:  leave.s    IL_00a3
+  }
+  catch System.Exception
+  {
+    IL_008c:  stloc.3
+    IL_008d:  ldarg.0
+    IL_008e:  ldc.i4.s   -2
+    IL_0090:  stfld      ""int Program.<M2>d__2.<>1__state""
+    IL_0095:  ldarg.0
+    IL_0096:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M2>d__2.<>t__builder""
+    IL_009b:  ldloc.3
+    IL_009c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00a1:  leave.s    IL_00b6
+  }
+  IL_00a3:  ldarg.0
+  IL_00a4:  ldc.i4.s   -2
+  IL_00a6:  stfld      ""int Program.<M2>d__2.<>1__state""
+  IL_00ab:  ldarg.0
+  IL_00ac:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M2>d__2.<>t__builder""
+  IL_00b1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00b6:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementAccess_Await_16()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class C
+{
+    public readonly Buffer10<int> F;
+
+    public C()
+    {
+        F[1] = 111;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Console.Write(M1(x).Result);
+    }
+
+    static async Task<int> M1(C x) => GetInt(in x.F[1], await FromResult(0));
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
+
+    static int GetInt(in int x, int y) => x;
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      183 (0xb7)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                int V_2,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<M1>d__1.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004b
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""C Program.<M1>d__1.x""
+    IL_0011:  stfld      ""C Program.<M1>d__1.<>7__wrap1""
+    IL_0016:  ldc.i4.0
+    IL_0017:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
+    IL_001c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0021:  stloc.3
+    IL_0022:  ldloca.s   V_3
+    IL_0024:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0029:  brtrue.s   IL_0067
+    IL_002b:  ldarg.0
+    IL_002c:  ldc.i4.0
+    IL_002d:  dup
+    IL_002e:  stloc.0
+    IL_002f:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_0034:  ldarg.0
+    IL_0035:  ldloc.3
+    IL_0036:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_003b:  ldarg.0
+    IL_003c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+    IL_0041:  ldloca.s   V_3
+    IL_0043:  ldarg.0
+    IL_0044:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<M1>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<M1>d__1)""
+    IL_0049:  leave.s    IL_00b6
+    IL_004b:  ldarg.0
+    IL_004c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_0051:  stloc.3
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_0058:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_005e:  ldarg.0
+    IL_005f:  ldc.i4.m1
+    IL_0060:  dup
+    IL_0061:  stloc.0
+    IL_0062:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_0067:  ldloca.s   V_3
+    IL_0069:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_006e:  stloc.2
+    IL_006f:  ldarg.0
+    IL_0070:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
+    IL_0075:  ldflda     ""Buffer10<int> C.F""
+    IL_007a:  ldc.i4.1
+    IL_007b:  call       ""InlineArrayElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>, int)""
+    IL_0080:  ldloc.2
+    IL_0081:  call       ""int Program.GetInt(in int, int)""
+    IL_0086:  stloc.1
+    IL_0087:  leave.s    IL_00a2
+  }
+  catch System.Exception
+  {
+    IL_0089:  stloc.s    V_4
+    IL_008b:  ldarg.0
+    IL_008c:  ldc.i4.s   -2
+    IL_008e:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_0093:  ldarg.0
+    IL_0094:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+    IL_0099:  ldloc.s    V_4
+    IL_009b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_00a0:  leave.s    IL_00b6
+  }
+  IL_00a2:  ldarg.0
+  IL_00a3:  ldc.i4.s   -2
+  IL_00a5:  stfld      ""int Program.<M1>d__1.<>1__state""
+  IL_00aa:  ldarg.0
+  IL_00ab:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+  IL_00b0:  ldloc.1
+  IL_00b1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00b6:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementAccess_Await_17()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Console.Write(M1(x).Result);
+        M2(x).Wait();
+        System.Console.Write(' ');
+        System.Console.Write(M1(x).Result);
+    }
+
+    static async Task<int> M1(C x) => GetInt(ref x.F[0], await FromResult(0));
+    static async Task M2(C x) => x.F[0] = await FromResult(111);
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
+
+    static int GetInt(ref int x, int y) => x;
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      182 (0xb6)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                int V_2,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<M1>d__1.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004b
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""C Program.<M1>d__1.x""
+    IL_0011:  stfld      ""C Program.<M1>d__1.<>7__wrap1""
+    IL_0016:  ldc.i4.0
+    IL_0017:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
+    IL_001c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0021:  stloc.3
+    IL_0022:  ldloca.s   V_3
+    IL_0024:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0029:  brtrue.s   IL_0067
+    IL_002b:  ldarg.0
+    IL_002c:  ldc.i4.0
+    IL_002d:  dup
+    IL_002e:  stloc.0
+    IL_002f:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_0034:  ldarg.0
+    IL_0035:  ldloc.3
+    IL_0036:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_003b:  ldarg.0
+    IL_003c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+    IL_0041:  ldloca.s   V_3
+    IL_0043:  ldarg.0
+    IL_0044:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<M1>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<M1>d__1)""
+    IL_0049:  leave.s    IL_00b5
+    IL_004b:  ldarg.0
+    IL_004c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_0051:  stloc.3
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_0058:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_005e:  ldarg.0
+    IL_005f:  ldc.i4.m1
+    IL_0060:  dup
+    IL_0061:  stloc.0
+    IL_0062:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_0067:  ldloca.s   V_3
+    IL_0069:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_006e:  stloc.2
+    IL_006f:  ldarg.0
+    IL_0070:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
+    IL_0075:  ldflda     ""Buffer10<int> C.F""
+    IL_007a:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+    IL_007f:  ldloc.2
+    IL_0080:  call       ""int Program.GetInt(ref int, int)""
+    IL_0085:  stloc.1
+    IL_0086:  leave.s    IL_00a1
+  }
+  catch System.Exception
+  {
+    IL_0088:  stloc.s    V_4
+    IL_008a:  ldarg.0
+    IL_008b:  ldc.i4.s   -2
+    IL_008d:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_0092:  ldarg.0
+    IL_0093:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+    IL_0098:  ldloc.s    V_4
+    IL_009a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_009f:  leave.s    IL_00b5
+  }
+  IL_00a1:  ldarg.0
+  IL_00a2:  ldc.i4.s   -2
+  IL_00a4:  stfld      ""int Program.<M1>d__1.<>1__state""
+  IL_00a9:  ldarg.0
+  IL_00aa:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+  IL_00af:  ldloc.1
+  IL_00b0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00b5:  ret
+}
+");
+
+            verifier.VerifyIL("Program.<M2>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      182 (0xb6)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<M2>d__2.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004c
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""C Program.<M2>d__2.x""
+    IL_0011:  stfld      ""C Program.<M2>d__2.<>7__wrap1""
+    IL_0016:  ldc.i4.s   111
+    IL_0018:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
+    IL_001d:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0022:  stloc.2
+    IL_0023:  ldloca.s   V_2
+    IL_0025:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_002a:  brtrue.s   IL_0068
+    IL_002c:  ldarg.0
+    IL_002d:  ldc.i4.0
+    IL_002e:  dup
+    IL_002f:  stloc.0
+    IL_0030:  stfld      ""int Program.<M2>d__2.<>1__state""
+    IL_0035:  ldarg.0
+    IL_0036:  ldloc.2
+    IL_0037:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M2>d__2.<>u__1""
+    IL_003c:  ldarg.0
+    IL_003d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M2>d__2.<>t__builder""
+    IL_0042:  ldloca.s   V_2
+    IL_0044:  ldarg.0
+    IL_0045:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<M2>d__2>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<M2>d__2)""
+    IL_004a:  leave.s    IL_00b5
+    IL_004c:  ldarg.0
+    IL_004d:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M2>d__2.<>u__1""
+    IL_0052:  stloc.2
+    IL_0053:  ldarg.0
+    IL_0054:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M2>d__2.<>u__1""
+    IL_0059:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_005f:  ldarg.0
+    IL_0060:  ldc.i4.m1
+    IL_0061:  dup
+    IL_0062:  stloc.0
+    IL_0063:  stfld      ""int Program.<M2>d__2.<>1__state""
+    IL_0068:  ldloca.s   V_2
+    IL_006a:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_006f:  stloc.1
+    IL_0070:  ldarg.0
+    IL_0071:  ldfld      ""C Program.<M2>d__2.<>7__wrap1""
+    IL_0076:  ldflda     ""Buffer10<int> C.F""
+    IL_007b:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+    IL_0080:  ldloc.1
+    IL_0081:  stind.i4
+    IL_0082:  ldarg.0
+    IL_0083:  ldnull
+    IL_0084:  stfld      ""C Program.<M2>d__2.<>7__wrap1""
+    IL_0089:  leave.s    IL_00a2
+  }
+  catch System.Exception
+  {
+    IL_008b:  stloc.3
+    IL_008c:  ldarg.0
+    IL_008d:  ldc.i4.s   -2
+    IL_008f:  stfld      ""int Program.<M2>d__2.<>1__state""
+    IL_0094:  ldarg.0
+    IL_0095:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M2>d__2.<>t__builder""
+    IL_009a:  ldloc.3
+    IL_009b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00a0:  leave.s    IL_00b5
+  }
+  IL_00a2:  ldarg.0
+  IL_00a3:  ldc.i4.s   -2
+  IL_00a5:  stfld      ""int Program.<M2>d__2.<>1__state""
+  IL_00aa:  ldarg.0
+  IL_00ab:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M2>d__2.<>t__builder""
+  IL_00b0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00b5:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementAccess_Await_18()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class C
+{
+    public readonly Buffer10<int> F;
+
+    public C()
+    {
+        F[0] = 111;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Console.Write(M1(x).Result);
+    }
+
+    static async Task<int> M1(C x) => GetInt(in x.F[0], await FromResult(0));
+
+    static async Task<T> FromResult<T>(T r)
+    {
+        await Task.Yield();
+        await Task.Delay(2);
+        return await Task.FromResult(r);
+    }
+
+    static int GetInt(in int x, int y) => x;
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      182 (0xb6)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                int V_2,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<M1>d__1.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004b
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""C Program.<M1>d__1.x""
+    IL_0011:  stfld      ""C Program.<M1>d__1.<>7__wrap1""
+    IL_0016:  ldc.i4.0
+    IL_0017:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
+    IL_001c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0021:  stloc.3
+    IL_0022:  ldloca.s   V_3
+    IL_0024:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0029:  brtrue.s   IL_0067
+    IL_002b:  ldarg.0
+    IL_002c:  ldc.i4.0
+    IL_002d:  dup
+    IL_002e:  stloc.0
+    IL_002f:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_0034:  ldarg.0
+    IL_0035:  ldloc.3
+    IL_0036:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_003b:  ldarg.0
+    IL_003c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+    IL_0041:  ldloca.s   V_3
+    IL_0043:  ldarg.0
+    IL_0044:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<M1>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<M1>d__1)""
+    IL_0049:  leave.s    IL_00b5
+    IL_004b:  ldarg.0
+    IL_004c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_0051:  stloc.3
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M1>d__1.<>u__1""
+    IL_0058:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_005e:  ldarg.0
+    IL_005f:  ldc.i4.m1
+    IL_0060:  dup
+    IL_0061:  stloc.0
+    IL_0062:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_0067:  ldloca.s   V_3
+    IL_0069:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_006e:  stloc.2
+    IL_006f:  ldarg.0
+    IL_0070:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
+    IL_0075:  ldflda     ""Buffer10<int> C.F""
+    IL_007a:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+    IL_007f:  ldloc.2
+    IL_0080:  call       ""int Program.GetInt(in int, int)""
+    IL_0085:  stloc.1
+    IL_0086:  leave.s    IL_00a1
+  }
+  catch System.Exception
+  {
+    IL_0088:  stloc.s    V_4
+    IL_008a:  ldarg.0
+    IL_008b:  ldc.i4.s   -2
+    IL_008d:  stfld      ""int Program.<M1>d__1.<>1__state""
+    IL_0092:  ldarg.0
+    IL_0093:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+    IL_0098:  ldloc.s    V_4
+    IL_009a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_009f:  leave.s    IL_00b5
+  }
+  IL_00a1:  ldarg.0
+  IL_00a2:  ldc.i4.s   -2
+  IL_00a4:  stfld      ""int Program.<M1>d__1.<>1__state""
+  IL_00a9:  ldarg.0
+  IL_00aa:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
+  IL_00af:  ldloc.1
+  IL_00b0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00b5:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_Index_Variable_01()
         {
             var src = @"
@@ -4654,44 +5494,32 @@ class Program
 " + Buffer10Definition;
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M1",
 @"
 {
-  // Code size       24 (0x18)
-  .maxstack  2
-  .locals init (System.Span<int> V_0)
+  // Code size       13 (0xd)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  ldind.i4
-  IL_0017:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  ldind.i4
+  IL_000c:  ret
 }
 ");
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       26 (0x1a)
+  // Code size       15 (0xf)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  ldc.i4.s   111
-  IL_0018:  stind.i4
-  IL_0019:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  ldc.i4.s   111
+  IL_000d:  stind.i4
+  IL_000e:  ret
 }
 ");
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
@@ -6642,15 +7470,14 @@ class Program
 " + Buffer10Definition;
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       42 (0x2a)
-  .maxstack  2
-  .locals init (int? V_0,
-                System.Span<int> V_1)
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (int? V_0)
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_000d
   IL_0003:  ldloca.s   V_0
@@ -6659,15 +7486,10 @@ class Program
   IL_000c:  ret
   IL_000d:  ldarg.0
   IL_000e:  ldflda     ""Buffer10<int> C.F""
-  IL_0013:  ldc.i4.s   10
-  IL_0015:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_001a:  stloc.1
-  IL_001b:  ldloca.s   V_1
-  IL_001d:  ldc.i4.0
-  IL_001e:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0023:  ldind.i4
-  IL_0024:  newobj     ""int?..ctor(int)""
-  IL_0029:  ret
+  IL_0013:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0018:  ldind.i4
+  IL_0019:  newobj     ""int?..ctor(int)""
+  IL_001e:  ret
 }
 ");
 
@@ -6765,16 +7587,15 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       56 (0x38)
+  // Code size       45 (0x2d)
   .maxstack  2
   .locals init (int? V_0,
-                Buffer10<int> V_1,
-                System.ReadOnlySpan<int> V_2)
+                Buffer10<int> V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int>? C.F""
   IL_0006:  dup
@@ -6788,15 +7609,10 @@ class Program
   IL_0019:  call       ""readonly Buffer10<int> Buffer10<int>?.GetValueOrDefault()""
   IL_001e:  stloc.1
   IL_001f:  ldloca.s   V_1
-  IL_0021:  ldc.i4.s   10
-  IL_0023:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_0028:  stloc.2
-  IL_0029:  ldloca.s   V_2
-  IL_002b:  ldc.i4.0
-  IL_002c:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0031:  ldind.i4
-  IL_0032:  newobj     ""int?..ctor(int)""
-  IL_0037:  ret
+  IL_0021:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0026:  ldind.i4
+  IL_0027:  newobj     ""int?..ctor(int)""
+  IL_002c:  ret
 }
 ");
         }
@@ -6889,16 +7705,15 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       57 (0x39)
-  .maxstack  2
+  // Code size       46 (0x2e)
+  .maxstack  1
   .locals init (int? V_0,
-                Buffer10<int> V_1,
-                System.ReadOnlySpan<int> V_2)
+                Buffer10<int> V_1)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""readonly bool C?.HasValue.get""
   IL_0007:  brtrue.s   IL_0013
@@ -6911,15 +7726,10 @@ class Program
   IL_001a:  ldfld      ""Buffer10<int> C.F""
   IL_001f:  stloc.1
   IL_0020:  ldloca.s   V_1
-  IL_0022:  ldc.i4.s   10
-  IL_0024:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_0029:  stloc.2
-  IL_002a:  ldloca.s   V_2
-  IL_002c:  ldc.i4.0
-  IL_002d:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0032:  ldind.i4
-  IL_0033:  newobj     ""int?..ctor(int)""
-  IL_0038:  ret
+  IL_0022:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0027:  ldind.i4
+  IL_0028:  newobj     ""int?..ctor(int)""
+  IL_002d:  ret
 }
 ");
         }
@@ -7159,33 +7969,27 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       43 (0x2b)
+  // Code size       32 (0x20)
   .maxstack  2
   .locals init (Buffer10<int> V_0,
-                System.ReadOnlySpan<int> V_1,
-                int V_2)
+                int V_1)
   IL_0000:  call       ""Buffer10<int> Program.M3()""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
-  IL_0008:  ldc.i4.s   10
-  IL_000a:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloca.s   V_1
-  IL_0012:  ldc.i4.0
-  IL_0013:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0018:  ldind.i4
-  IL_0019:  stloc.2
-  IL_001a:  ldloca.s   V_2
-  IL_001c:  ldloca.s   V_0
-  IL_001e:  initobj    ""Buffer10<int>""
-  IL_0024:  ldloc.0
-  IL_0025:  call       ""int Program.M4(in int, Buffer10<int>)""
-  IL_002a:  ret
+  IL_0008:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000d:  ldind.i4
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  initobj    ""Buffer10<int>""
+  IL_0019:  ldloc.0
+  IL_001a:  call       ""int Program.M4(in int, Buffer10<int>)""
+  IL_001f:  ret
 }
 ");
 
@@ -7411,30 +8215,24 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       34 (0x22)
-  .maxstack  2
+  // Code size       23 (0x17)
+  .maxstack  1
   .locals init (Buffer10<int> V_0,
-                System.ReadOnlySpan<int> V_1,
-                int V_2)
+                int V_1)
   IL_0000:  call       ""Buffer10<int> Program.M3()""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
-  IL_0008:  ldc.i4.s   10
-  IL_000a:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloca.s   V_1
-  IL_0012:  ldc.i4.0
-  IL_0013:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0018:  ldind.i4
-  IL_0019:  stloc.2
-  IL_001a:  ldloca.s   V_2
-  IL_001c:  call       ""int Program.M4(in int)""
-  IL_0021:  ret
+  IL_0008:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000d:  ldind.i4
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  call       ""int Program.M4(in int)""
+  IL_0016:  ret
 }
 ");
         }
@@ -7535,24 +8333,18 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       24 (0x18)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       13 (0xd)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  ldind.i4
-  IL_0017:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  ldind.i4
+  IL_000c:  ret
 }
 ");
         }
@@ -7588,24 +8380,18 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       24 (0x18)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       13 (0xd)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  ldind.i4
-  IL_0017:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  ldind.i4
+  IL_000c:  ret
 }
 ");
         }
@@ -7645,24 +8431,18 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       28 (0x1c)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       17 (0x11)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  call       ""int Program.M4(in int)""
-  IL_001b:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  call       ""int Program.M4(in int)""
+  IL_0010:  ret
 }
 ");
         }
@@ -7741,23 +8521,17 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  ret
 }
 ");
         }
@@ -7792,23 +8566,17 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  ret
 }
 ");
         }
@@ -7916,24 +8684,18 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
 {
-  // Code size       24 (0x18)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       13 (0xd)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  ldind.i4
-  IL_0017:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  ldind.i4
+  IL_000c:  ret
 }
 ");
         }
@@ -7970,24 +8732,18 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
 {
-  // Code size       24 (0x18)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       13 (0xd)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  ldind.i4
-  IL_0017:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  ldind.i4
+  IL_000c:  ret
 }
 ");
         }
@@ -8028,24 +8784,18 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
 {
-  // Code size       28 (0x1c)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       17 (0x11)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  call       ""int C.M4(in int)""
-  IL_001b:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  call       ""int C.M4(in int)""
+  IL_0010:  ret
 }
 ");
         }
@@ -8166,23 +8916,17 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
 {
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  ret
 }
 ");
         }
@@ -8257,23 +9001,17 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
 {
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  ret
 }
 ");
         }
@@ -8905,24 +9643,18 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       24 (0x18)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       13 (0xd)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  ldind.i4
-  IL_0017:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  ldind.i4
+  IL_000c:  ret
 }
 ");
 
@@ -8985,24 +9717,18 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       24 (0x18)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       13 (0xd)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  ldind.i4
-  IL_0017:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  ldind.i4
+  IL_000c:  ret
 }
 ");
         }
@@ -9043,24 +9769,18 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       28 (0x1c)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       17 (0x11)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  call       ""int Program.M4(in int)""
-  IL_001b:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  call       ""int Program.M4(in int)""
+  IL_0010:  ret
 }
 ");
         }
@@ -9141,23 +9861,17 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  ret
 }
 ");
         }
@@ -9193,23 +9907,17 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (System.ReadOnlySpan<int> V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0016:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_000b:  ret
 }
 ");
         }
@@ -9280,7 +9988,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -9315,7 +10023,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -9354,7 +10062,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [Fact]
@@ -9433,7 +10141,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -9467,7 +10175,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [Fact]
@@ -9506,6 +10214,149 @@ class Program
                 //         c.F[0][0] = 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "c.F[0][0]").WithArguments("method", "this.get").WithLocation(24, 9)
                 );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementAccess_Variable_Readonly_19()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<int> F;
+
+    public C()
+    {
+        var b = new Buffer10<int>();
+        var i = 1;
+        b[i] = 111;
+        F = b;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(M2(c));
+    }
+
+    static int M2(in C c) => c.F[1];
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.1
+  IL_0007:  call       ""InlineArrayElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_000c:  ldind.i4
+  IL_000d:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementAccess_Variable_Readonly_20()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<int> F;
+
+    public C()
+    {
+        var b = new Buffer10<int>();
+        var i = 9;
+        b[i] = 111;
+        F = b;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(M2(c));
+    }
+
+    static int M2(in C c) => c.F[9];
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   9
+  IL_0008:  call       ""InlineArrayElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_000d:  ldind.i4
+  IL_000e:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementAccess_Variable_Readonly_21()
+        {
+            var src = @"
+struct C
+{
+    public Buffer10<int> F;
+
+    public C()
+    {
+        var b = new Buffer10<int>();
+        var i = 0;
+        b[i] = 111;
+        F = b;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        System.Console.Write(M2(c, 0));
+    }
+
+    static int M2(in C c, int i) => c.F[i];
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (System.ReadOnlySpan<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldarg.1
+  IL_0011:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
+  IL_0016:  ldind.i4
+  IL_0017:  ret
+}
+");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -10226,28 +11077,22 @@ class Program
 
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 1 0", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 1 0").VerifyDiagnostics();
 
             verifier.VerifyIL("C..ctor",
 @"
 {
-  // Code size       37 (0x25)
+  // Code size       26 (0x1a)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  initobj    ""Buffer10<int>""
   IL_000c:  ldarg.0
   IL_000d:  ldflda     ""Buffer10<int> C.F""
-  IL_0012:  ldc.i4.s   10
-  IL_0014:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_0019:  stloc.0
-  IL_001a:  ldloca.s   V_0
-  IL_001c:  ldc.i4.0
-  IL_001d:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0022:  ldc.i4.1
-  IL_0023:  stind.i4
-  IL_0024:  ret
+  IL_0012:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0017:  ldc.i4.1
+  IL_0018:  stind.i4
+  IL_0019:  ret
 }
 ");
         }
@@ -10399,14 +11244,13 @@ public struct Buffer2<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             verifier.VerifyIL("C..ctor",
 @"
 {
-  // Code size       71 (0x47)
+  // Code size       52 (0x34)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer2<int> C.F""
   IL_0006:  initobj    ""Buffer2<int>""
@@ -10416,25 +11260,16 @@ public struct Buffer2<T>
   IL_0013:  stfld      ""int Buffer2<int>._element0""
   IL_0018:  ldarg.0
   IL_0019:  ldflda     ""Buffer2<int> C.F""
-  IL_001e:  ldc.i4.2
-  IL_001f:  call       ""InlineArrayAsSpan<Buffer2<int>, int>(ref Buffer2<int>, int)""
-  IL_0024:  stloc.0
-  IL_0025:  ldloca.s   V_0
-  IL_0027:  ldc.i4.0
-  IL_0028:  call       ""ref int System.Span<int>.this[int].get""
-  IL_002d:  ldc.i4.1
-  IL_002e:  stind.i4
-  IL_002f:  ldarg.0
-  IL_0030:  ldflda     ""Buffer2<int> C.F""
-  IL_0035:  ldc.i4.2
-  IL_0036:  call       ""InlineArrayAsSpan<Buffer2<int>, int>(ref Buffer2<int>, int)""
-  IL_003b:  stloc.0
-  IL_003c:  ldloca.s   V_0
-  IL_003e:  ldc.i4.1
-  IL_003f:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0044:  ldc.i4.2
-  IL_0045:  stind.i4
-  IL_0046:  ret
+  IL_001e:  call       ""InlineArrayFirstElementRef<Buffer2<int>, int>(ref Buffer2<int>)""
+  IL_0023:  ldc.i4.1
+  IL_0024:  stind.i4
+  IL_0025:  ldarg.0
+  IL_0026:  ldflda     ""Buffer2<int> C.F""
+  IL_002b:  ldc.i4.1
+  IL_002c:  call       ""InlineArrayElementRef<Buffer2<int>, int>(ref Buffer2<int>, int)""
+  IL_0031:  ldc.i4.2
+  IL_0032:  stind.i4
+  IL_0033:  ret
 }
 ");
         }
@@ -10472,14 +11307,13 @@ public struct Buffer2<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1 2", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 2").VerifyDiagnostics();
 
             verifier.VerifyIL("C..ctor",
 @"
 {
-  // Code size       48 (0x30)
+  // Code size       39 (0x27)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer2<int> C.F""
   IL_0006:  initobj    ""Buffer2<int>""
@@ -10489,15 +11323,11 @@ public struct Buffer2<T>
   IL_0013:  stfld      ""int Buffer2<int>._element0""
   IL_0018:  ldarg.0
   IL_0019:  ldflda     ""Buffer2<int> C.F""
-  IL_001e:  ldc.i4.2
-  IL_001f:  call       ""InlineArrayAsSpan<Buffer2<int>, int>(ref Buffer2<int>, int)""
-  IL_0024:  stloc.0
-  IL_0025:  ldloca.s   V_0
-  IL_0027:  ldc.i4.1
-  IL_0028:  call       ""ref int System.Span<int>.this[int].get""
-  IL_002d:  ldc.i4.2
-  IL_002e:  stind.i4
-  IL_002f:  ret
+  IL_001e:  ldc.i4.1
+  IL_001f:  call       ""InlineArrayElementRef<Buffer2<int>, int>(ref Buffer2<int>, int)""
+  IL_0024:  ldc.i4.2
+  IL_0025:  stind.i4
+  IL_0026:  ret
 }
 ");
         }
@@ -10544,7 +11374,7 @@ public struct Buffer2<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 2 1 0", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 2 1 0").VerifyDiagnostics();
 
             verifier.VerifyIL("C..ctor",
 @"
@@ -10593,7 +11423,7 @@ public struct Buffer1<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
             verifier.VerifyIL("C..ctor",
 @"
@@ -11007,26 +11837,20 @@ public struct Buffer10
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 1 0", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 1 0").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer10..ctor",
 @"
 {
-  // Code size       27 (0x1b)
+  // Code size       16 (0x10)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  initobj    ""Buffer10""
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.s   10
-  IL_000a:  call       ""InlineArrayAsSpan<Buffer10, int>(ref Buffer10, int)""
-  IL_000f:  stloc.0
-  IL_0010:  ldloca.s   V_0
-  IL_0012:  ldc.i4.0
-  IL_0013:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0018:  ldc.i4.1
-  IL_0019:  stind.i4
-  IL_001a:  ret
+  IL_0008:  call       ""InlineArrayFirstElementRef<Buffer10, int>(ref Buffer10)""
+  IL_000d:  ldc.i4.1
+  IL_000e:  stind.i4
+  IL_000f:  ret
 }
 ");
         }
@@ -11137,38 +11961,28 @@ public struct Buffer2
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer2..ctor",
 @"
 {
-  // Code size       51 (0x33)
+  // Code size       32 (0x20)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  initobj    ""Buffer2""
   IL_0007:  ldarg.0
   IL_0008:  ldc.i4.0
   IL_0009:  stfld      ""int Buffer2._element0""
   IL_000e:  ldarg.0
-  IL_000f:  ldc.i4.2
-  IL_0010:  call       ""InlineArrayAsSpan<Buffer2, int>(ref Buffer2, int)""
-  IL_0015:  stloc.0
-  IL_0016:  ldloca.s   V_0
-  IL_0018:  ldc.i4.0
-  IL_0019:  call       ""ref int System.Span<int>.this[int].get""
-  IL_001e:  ldc.i4.1
-  IL_001f:  stind.i4
-  IL_0020:  ldarg.0
-  IL_0021:  ldc.i4.2
-  IL_0022:  call       ""InlineArrayAsSpan<Buffer2, int>(ref Buffer2, int)""
-  IL_0027:  stloc.0
-  IL_0028:  ldloca.s   V_0
-  IL_002a:  ldc.i4.1
-  IL_002b:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0030:  ldc.i4.2
-  IL_0031:  stind.i4
-  IL_0032:  ret
+  IL_000f:  call       ""InlineArrayFirstElementRef<Buffer2, int>(ref Buffer2)""
+  IL_0014:  ldc.i4.1
+  IL_0015:  stind.i4
+  IL_0016:  ldarg.0
+  IL_0017:  ldc.i4.1
+  IL_0018:  call       ""InlineArrayElementRef<Buffer2, int>(ref Buffer2, int)""
+  IL_001d:  ldc.i4.2
+  IL_001e:  stind.i4
+  IL_001f:  ret
 }
 ");
         }
@@ -11201,29 +12015,24 @@ public struct Buffer2
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1 2", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 2").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer2..ctor",
 @"
 {
-  // Code size       33 (0x21)
+  // Code size       24 (0x18)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  initobj    ""Buffer2""
   IL_0007:  ldarg.0
   IL_0008:  ldc.i4.1
   IL_0009:  stfld      ""int Buffer2._element0""
   IL_000e:  ldarg.0
-  IL_000f:  ldc.i4.2
-  IL_0010:  call       ""InlineArrayAsSpan<Buffer2, int>(ref Buffer2, int)""
-  IL_0015:  stloc.0
-  IL_0016:  ldloca.s   V_0
-  IL_0018:  ldc.i4.1
-  IL_0019:  call       ""ref int System.Span<int>.this[int].get""
-  IL_001e:  ldc.i4.2
-  IL_001f:  stind.i4
-  IL_0020:  ret
+  IL_000f:  ldc.i4.1
+  IL_0010:  call       ""InlineArrayElementRef<Buffer2, int>(ref Buffer2, int)""
+  IL_0015:  ldc.i4.2
+  IL_0016:  stind.i4
+  IL_0017:  ret
 }
 ");
         }
@@ -11265,7 +12074,7 @@ public struct Buffer2
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 2 1 0", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 2 1 0").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer2..ctor",
 @"
@@ -11307,7 +12116,7 @@ public struct Buffer1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
@@ -11352,7 +12161,7 @@ public struct Buffer1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
@@ -11398,7 +12207,7 @@ public struct Buffer1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 0", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 0").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
@@ -11542,28 +12351,22 @@ public struct Buffer2
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer2..ctor",
 @"
 {
-  // Code size       32 (0x20)
+  // Code size       22 (0x16)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  initobj    ""Buffer2""
   IL_0007:  ldarg.0
   IL_0008:  ldc.i4.1
   IL_0009:  stfld      ""int Buffer2._element0""
   IL_000e:  ldarg.0
-  IL_000f:  ldc.i4.2
-  IL_0010:  call       ""InlineArrayAsSpan<Buffer2, int>(ref Buffer2, int)""
-  IL_0015:  stloc.0
-  IL_0016:  ldloca.s   V_0
-  IL_0018:  ldc.i4.0
-  IL_0019:  call       ""ref int System.Span<int>.this[int].get""
-  IL_001e:  pop
-  IL_001f:  ret
+  IL_000f:  call       ""InlineArrayFirstElementRef<Buffer2, int>(ref Buffer2)""
+  IL_0014:  pop
+  IL_0015:  ret
 }
 ");
 
@@ -11607,26 +12410,20 @@ public struct Buffer1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
 {
-  // Code size       25 (0x19)
+  // Code size       15 (0xf)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.1
   IL_0002:  stfld      ""int Buffer1._element0""
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  call       ""InlineArrayAsSpan<Buffer1, int>(ref Buffer1, int)""
-  IL_000e:  stloc.0
-  IL_000f:  ldloca.s   V_0
-  IL_0011:  ldc.i4.0
-  IL_0012:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0017:  pop
-  IL_0018:  ret
+  IL_0008:  call       ""InlineArrayFirstElementRef<Buffer1, int>(ref Buffer1)""
+  IL_000d:  pop
+  IL_000e:  ret
 }
 ");
 
@@ -11674,26 +12471,20 @@ public struct Buffer1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 0", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 0").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
 {
-  // Code size       25 (0x19)
+  // Code size       15 (0xf)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
   IL_0002:  stfld      ""int Buffer1._element0""
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  call       ""InlineArrayAsSpan<Buffer1, int>(ref Buffer1, int)""
-  IL_000e:  stloc.0
-  IL_000f:  ldloca.s   V_0
-  IL_0011:  ldc.i4.0
-  IL_0012:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0017:  pop
-  IL_0018:  ret
+  IL_0008:  call       ""InlineArrayFirstElementRef<Buffer1, int>(ref Buffer1)""
+  IL_000d:  pop
+  IL_000e:  ret
 }
 ");
 
@@ -11748,24 +12539,18 @@ public struct Buffer1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
 {
-  // Code size       19 (0x13)
+  // Code size        9 (0x9)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  call       ""InlineArrayAsSpan<Buffer1, int>(ref Buffer1, int)""
-  IL_0007:  stloc.0
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  ldc.i4.0
-  IL_000b:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0010:  ldc.i4.1
-  IL_0011:  stind.i4
-  IL_0012:  ret
+  IL_0001:  call       ""InlineArrayFirstElementRef<Buffer1, int>(ref Buffer1)""
+  IL_0006:  ldc.i4.1
+  IL_0007:  stind.i4
+  IL_0008:  ret
 }
 ");
         }
@@ -11795,24 +12580,18 @@ public struct Buffer1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
 {
-  // Code size       19 (0x13)
+  // Code size        9 (0x9)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  call       ""InlineArrayAsSpan<Buffer1, int>(ref Buffer1, int)""
-  IL_0007:  stloc.0
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  ldc.i4.0
-  IL_000b:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0010:  ldc.i4.1
-  IL_0011:  stind.i4
-  IL_0012:  ret
+  IL_0001:  call       ""InlineArrayFirstElementRef<Buffer1, int>(ref Buffer1)""
+  IL_0006:  ldc.i4.1
+  IL_0007:  stind.i4
+  IL_0008:  ret
 }
 ");
         }
@@ -12746,7 +13525,8 @@ class Program
 {
     static void M3(C x)
     {
-        _ = x.F[0];
+        var i = 0;
+        _ = x.F[i];
         _ = x.F[..5];
         _ = (System.Span<int>)x.F;
     }
@@ -12763,6 +13543,8 @@ class Program
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName));
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName));
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName));
                 }).VerifyDiagnostics();
 
             verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName,
@@ -12792,7 +13574,8 @@ class Program
 {
     static void M3(in C x)
     {
-        _ = x.F[0];
+        var i = 0;
+        _ = x.F[i];
         _ = x.F[..5];
         _ = (System.ReadOnlySpan<int>)x.F;
     }
@@ -12809,6 +13592,8 @@ class Program
                                    t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName).ToTestDisplayString());
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName));
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName));
                 }).VerifyDiagnostics();
 
             verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName,
@@ -12839,6 +13624,7 @@ class Program
 {
     static void M3(C x)
     {
+        _ = x.F[1];
         foreach (var y in x.F)
         {}
     }
@@ -12855,6 +13641,8 @@ class Program
                     Assert.Equal("ref TElement <PrivateImplementationDetails>.InlineArrayElementRef<TBuffer, TElement>(ref TBuffer buffer, System.Int32 index)",
                                  t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName).ToTestDisplayString());
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName));
                 }).VerifyDiagnostics();
 
             verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName,
@@ -12884,6 +13672,7 @@ class Program
 {
     static void M3(in C x)
     {
+        _ = x.F[1];
         foreach (var y in x.F)
         {}
     }
@@ -12900,6 +13689,8 @@ class Program
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName));
                     Assert.Equal("ref readonly TElement <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<TBuffer, TElement>(in TBuffer buffer, System.Int32 index)",
                                  t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName).ToTestDisplayString());
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName));
                 }).VerifyDiagnostics();
 
             verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName,
@@ -12913,6 +13704,95 @@ class Program
   IL_000b:  ldarg.1
   IL_000c:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.Add<TElement>(ref TElement, int)""
   IL_0011:  ret
+}
+");
+        }
+
+        [Fact]
+        public void PrivateImplementationDetails_05()
+        {
+            var src = @"
+class C
+{
+    public Buffer10<int> F = default;
+}
+
+class Program
+{
+    static void M3(C x)
+    {
+        _ = x.F[0];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr,
+                symbolValidator: m =>
+                {
+                    var t = m.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName));
+                    Assert.Equal("ref TElement <PrivateImplementationDetails>.InlineArrayFirstElementRef<TBuffer, TElement>(ref TBuffer buffer)",
+                                 t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName).ToTestDisplayString());
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName));
+                }).VerifyDiagnostics();
+
+            verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName,
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void PrivateImplementationDetails_06()
+        {
+            var src = @"#pragma warning disable CS0649
+struct C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void M3(in C x)
+    {
+        _ = x.F[0];
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr,
+                symbolValidator: m =>
+                {
+                    var t = m.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName));
+                    Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName));
+                    Assert.Equal("ref readonly TElement <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<TBuffer, TElement>(in TBuffer buffer)",
+                                 t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName).ToTestDisplayString());
+                }).VerifyDiagnostics();
+
+            verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName,
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped in TBuffer)""
+  IL_0006:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
+  IL_000b:  ret
 }
 ");
         }
@@ -13135,28 +14015,22 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "-1 110", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "-1 110").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       29 (0x1d)
+  // Code size       18 (0x12)
   .maxstack  3
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  dup
-  IL_0017:  ldind.i4
-  IL_0018:  ldc.i4.s   111
-  IL_001a:  add
-  IL_001b:  stind.i4
-  IL_001c:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  dup
+  IL_000c:  ldind.i4
+  IL_000d:  ldc.i4.s   111
+  IL_000f:  add
+  IL_0010:  stind.i4
+  IL_0011:  ret
 }
 ");
         }
@@ -15540,39 +16414,27 @@ public struct Buffer10<T>
             verifier.VerifyIL("Program.M1",
 @"
 {
-  // Code size       24 (0x18)
-  .maxstack  2
-  .locals init (System.Span<int> V_0)
+  // Code size       13 (0xd)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  ldind.i4
-  IL_0017:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  ldind.i4
+  IL_000c:  ret
 }
 ");
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       26 (0x1a)
+  // Code size       15 (0xf)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  ldc.i4.s   111
-  IL_0018:  stind.i4
-  IL_0019:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  ldc.i4.s   111
+  IL_000d:  stind.i4
+  IL_000e:  ret
 }
 ");
         }
@@ -15622,39 +16484,27 @@ public struct Buffer10<T>
             verifier.VerifyIL("Program.M1",
 @"
 {
-  // Code size       24 (0x18)
-  .maxstack  2
-  .locals init (System.Span<int> V_0)
+  // Code size       13 (0xd)
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  ldind.i4
-  IL_0017:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  ldind.i4
+  IL_000c:  ret
 }
 ");
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       26 (0x1a)
+  // Code size       15 (0xf)
   .maxstack  2
-  .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0016:  ldc.i4.s   111
-  IL_0018:  stind.i4
-  IL_0019:  ret
+  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_000b:  ldc.i4.s   111
+  IL_000d:  stind.i4
+  IL_000e:  ret
 }
 ");
         }
@@ -16253,7 +17103,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test",
 @"
@@ -16351,7 +17201,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test",
 @"
@@ -16424,7 +17274,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test",
 @"
@@ -16568,7 +17418,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test",
 @"
@@ -16703,7 +17553,7 @@ public struct Buffer4<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test",
 @"
@@ -16890,7 +17740,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test",
 @"
@@ -17123,7 +17973,7 @@ public struct Buffer4<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: " 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: " 111 112 113 114").VerifyDiagnostics();
         }
 
         [Fact]
@@ -18479,7 +19329,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<Test>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
@@ -18582,7 +19432,7 @@ class Program
 }
 ");
             comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -19213,7 +20063,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<Test>d__1.System.Collections.IEnumerator.MoveNext",
 @"
@@ -19276,7 +20126,7 @@ class Program
 }
 ");
             comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114").VerifyDiagnostics();
         }
     }
 }

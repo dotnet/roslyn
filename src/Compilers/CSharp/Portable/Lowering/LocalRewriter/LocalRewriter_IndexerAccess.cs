@@ -184,39 +184,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var getItemOrSliceHelper = (MethodSymbol?)_compilation.GetWellKnownTypeMember(node.GetItemOrSliceHelper);
-
             Debug.Assert(getItemOrSliceHelper is object);
-
-            NamedTypeSymbol spanType = getItemOrSliceHelper.ContainingType;
-            MethodSymbol createSpan;
-
-            if (node.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int or WellKnownMember.System_ReadOnlySpan_T__get_Item)
-            {
-                createSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsReadOnlySpanExists(node.Syntax, spanType, (NamedTypeSymbol)getItemOrSliceHelper.Parameters[0].Type, _diagnostics.DiagnosticBag);
-            }
-            else
-            {
-                createSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsSpanExists(node.Syntax, spanType, (NamedTypeSymbol)getItemOrSliceHelper.Parameters[0].Type, _diagnostics.DiagnosticBag);
-            }
-
-            createSpan = createSpan.Construct(node.Expression.Type, node.Expression.Type.TryGetInlineArrayElementField()!.Type);
-
-            getItemOrSliceHelper = getItemOrSliceHelper.AsMember((NamedTypeSymbol)createSpan.ReturnType);
 
             BoundExpression result;
             _ = node.Expression.Type.HasInlineArrayAttribute(out int length);
 
             if (node.Argument.Type.SpecialType == SpecialType.System_Int32)
             {
-                // createSpan(ref receiver, length)[index]
-
-                result = _factory.Call(_factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true), getItemOrSliceHelper, VisitExpression(node.Argument));
-
-                // PROTOTYPE(InlineArrays): If we know at compile time that the index is within bounds of the array,
-                //                          we can use InlineArrayElementRef/InlineArrayElementRefReadOnly helpers and
-                //                          avoid span creation.
-                //                          Also, if the index is 0, we can optimize the code even more by using a helper
-                //                          that doesn't take an offset.
+                result = getElementRef(node, rewrittenReceiver, index: VisitExpression(node.Argument), getItemOrSliceHelper, length);
             }
             else
             {
@@ -224,17 +199,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (TypeSymbol.Equals(node.Argument.Type, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.AllIgnoreOptions))
                 {
-                    // createSpan(ref receiver, length)[index translated to int]
-
                     BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Argument, out PatternIndexOffsetLoweringStrategy strategy);
                     BoundExpression integerArgument = makePatternIndexOffsetExpression(makeOffsetInput, length, strategy);
-                    result = _factory.Call(_factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true), getItemOrSliceHelper, integerArgument);
 
-                    // PROTOTYPE(InlineArrays): If we know at compile time that the index is within bounds of the array,
-                    //                          we can use InlineArrayElementRef/InlineArrayElementRefReadOnly helpers and
-                    //                          avoid span creation.
-                    //                          Also, if the index is 0, we can optimize the code even more by using a helper
-                    //                          that doesn't take an offset.
+                    result = getElementRef(node, rewrittenReceiver, index: integerArgument, getItemOrSliceHelper, length);
                 }
                 else
                 {
@@ -242,6 +210,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Debug.Assert(receiverStore is null);
                     Debug.Assert(TypeSymbol.Equals(node.Argument.Type, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.AllIgnoreOptions));
+
+                    MethodSymbol createSpan = getCreateSpanHelper(node, spanType: getItemOrSliceHelper.ContainingType, intType: (NamedTypeSymbol)getItemOrSliceHelper.Parameters[0].Type);
+                    getItemOrSliceHelper = getItemOrSliceHelper.AsMember((NamedTypeSymbol)createSpan.ReturnType);
 
                     BoundRangeExpression? rangeExpr;
                     BoundExpression? startMakeOffsetInput, endMakeOffsetInput, rewrittenRangeArg;
@@ -307,6 +278,82 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return integerArgument;
+            }
+
+            MethodSymbol getCreateSpanHelper(BoundInlineArrayAccess node, NamedTypeSymbol spanType, NamedTypeSymbol intType)
+            {
+                Debug.Assert(node.Expression.Type is object);
+
+                MethodSymbol createSpan;
+                if (node.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int or WellKnownMember.System_ReadOnlySpan_T__get_Item)
+                {
+                    createSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsReadOnlySpanExists(node.Syntax, spanType, intType, _diagnostics.DiagnosticBag);
+                }
+                else
+                {
+                    createSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsSpanExists(node.Syntax, spanType, intType, _diagnostics.DiagnosticBag);
+                }
+
+                return createSpan.Construct(node.Expression.Type, node.Expression.Type.TryGetInlineArrayElementField()!.Type);
+            }
+
+            BoundExpression getElementRef(BoundInlineArrayAccess node, BoundExpression rewrittenReceiver, BoundExpression index, MethodSymbol getItemOrSliceHelper, int length)
+            {
+                Debug.Assert(node.Expression.Type is object);
+                Debug.Assert(index.Type?.SpecialType == SpecialType.System_Int32);
+
+                var intType = (NamedTypeSymbol)index.Type;
+
+                if (index.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: int constIndex })
+                {
+                    if (constIndex == 0)
+                    {
+                        // getFirstElementRef(ref receiver)
+                        MethodSymbol elementRef;
+
+                        if (node.GetItemOrSliceHelper is WellKnownMember.System_Span_T__get_Item)
+                        {
+                            elementRef = _factory.ModuleBuilderOpt.EnsureInlineArrayFirstElementRefExists(node.Syntax, _diagnostics.DiagnosticBag);
+                        }
+                        else
+                        {
+                            Debug.Assert(node.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__get_Item);
+                            elementRef = _factory.ModuleBuilderOpt.EnsureInlineArrayFirstElementRefReadOnlyExists(node.Syntax, _diagnostics.DiagnosticBag);
+                        }
+
+                        elementRef = elementRef.Construct(node.Expression.Type, node.Expression.Type.TryGetInlineArrayElementField()!.Type);
+
+                        return _factory.Call(null, elementRef, rewrittenReceiver, useStrictArgumentRefKinds: true);
+                    }
+                    else if (constIndex > 0 && constIndex < length)
+                    {
+                        // getElementRef(ref receiver, index)
+                        MethodSymbol elementRef;
+
+                        if (node.GetItemOrSliceHelper is WellKnownMember.System_Span_T__get_Item)
+                        {
+                            elementRef = _factory.ModuleBuilderOpt.EnsureInlineArrayElementRefExists(node.Syntax, intType, _diagnostics.DiagnosticBag);
+                        }
+                        else
+                        {
+                            Debug.Assert(node.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__get_Item);
+                            elementRef = _factory.ModuleBuilderOpt.EnsureInlineArrayElementRefReadOnlyExists(node.Syntax, intType, _diagnostics.DiagnosticBag);
+                        }
+
+                        elementRef = elementRef.Construct(node.Expression.Type, node.Expression.Type.TryGetInlineArrayElementField()!.Type);
+
+                        return _factory.Call(null, elementRef, rewrittenReceiver, index, useStrictArgumentRefKinds: true);
+                    }
+                }
+
+                Debug.Assert(index.ConstantValueOpt is null); // Binder should have reported an error due to index out of bounds, or should have handled by code above.
+
+                // createSpan(ref receiver, length)[index]
+
+                NamedTypeSymbol spanType = getItemOrSliceHelper.ContainingType;
+                MethodSymbol createSpan = getCreateSpanHelper(node, spanType, intType);
+                getItemOrSliceHelper = getItemOrSliceHelper.AsMember((NamedTypeSymbol)createSpan.ReturnType);
+                return _factory.Call(_factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true), getItemOrSliceHelper, index);
             }
         }
 

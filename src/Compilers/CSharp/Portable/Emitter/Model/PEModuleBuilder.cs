@@ -2000,6 +2000,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                       diagnostics);
         }
 
+        internal MethodSymbol EnsureInlineArrayFirstElementRefExists(SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName,
+                                                      static (sourceModule, privateImplClass, _) =>
+                                                      {
+                                                          return new SynthesizedInlineArrayFirstElementRefMethod(
+                                                              sourceModule,
+                                                              privateImplClass,
+                                                              PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName);
+                                                      },
+                                                      (object?)null,
+                                                      diagnostics);
+        }
+
+        internal MethodSymbol EnsureInlineArrayFirstElementRefReadOnlyExists(SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName,
+                                                      static (sourceModule, privateImplClass, _) =>
+                                                      {
+                                                          return new SynthesizedInlineArrayFirstElementRefReadOnlyMethod(
+                                                              sourceModule,
+                                                              privateImplClass,
+                                                              PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName);
+                                                      },
+                                                      (object?)null,
+                                                      diagnostics);
+        }
+
 #nullable disable
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
