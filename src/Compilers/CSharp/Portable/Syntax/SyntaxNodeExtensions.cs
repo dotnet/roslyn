@@ -361,5 +361,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+
+        internal static Location? GetInterceptableLocation(this InvocationExpressionSyntax syntax)
+        {
+            // If a qualified name is used as a valid receiver of an invocation syntax at some point,
+            // we probably want to treat it similarly to a MemberAccessExpression.
+            // However, we don't expect to encounter it.
+            Debug.Assert(syntax.Expression is not QualifiedNameSyntax);
+
+            return syntax.Expression switch
+            {
+                MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Location,
+                SimpleNameSyntax name => name.Location,
+                _ => null
+            };
+        }
     }
 }

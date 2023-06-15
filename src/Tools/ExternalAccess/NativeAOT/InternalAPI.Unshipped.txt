@@ -1,0 +1,3 @@
+#nullable enable
+InterceptorUtils
+static InterceptorUtils.GetInterceptor(Microsoft.CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax! invocation, Microsoft.CodeAnalysis.CSharp.CSharpCompilation! compilation, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol?
