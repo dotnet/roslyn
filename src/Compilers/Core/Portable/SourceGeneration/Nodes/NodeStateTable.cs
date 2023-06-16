@@ -262,6 +262,12 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
+                if (previousEntry.Count == 0)
+                {
+                    // it's possible that the previous execution removed this item, but we left in an empty entry as a placeholder. In which case, we can't modify it
+                    return false;
+                }
+
                 Debug.Assert(previousEntry.Count == 1);
                 var (chosen, state, _) = GetModifiedItemAndState(previousEntry.GetItem(0), value, comparer);
                 _states.Add(new TableEntry(OneOrMany.Create(chosen), state));
