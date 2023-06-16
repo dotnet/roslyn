@@ -79,17 +79,27 @@ namespace Analyzer.Utilities.PooledObjects
             return new Enumerator((_storage ?? EmptyHashSet).GetEnumerator());
         }
 
-        public readonly struct Enumerable(HashSet<T> set)
+        public readonly struct Enumerable
         {
-            private readonly HashSet<T> _set = set;
+            private readonly HashSet<T> _set;
+
+            public Enumerable(HashSet<T> set)
+            {
+                _set = set;
+            }
 
             public Enumerator GetEnumerator()
                 => new(_set.GetEnumerator());
         }
 
-        public struct Enumerator(HashSet<T>.Enumerator enumerator)
+        public struct Enumerator
         {
-            private HashSet<T>.Enumerator _enumerator = enumerator;
+            private HashSet<T>.Enumerator _enumerator;
+
+            public Enumerator(HashSet<T>.Enumerator enumerator)
+            {
+                _enumerator = enumerator;
+            }
 
             public bool MoveNext()
                 => _enumerator.MoveNext();

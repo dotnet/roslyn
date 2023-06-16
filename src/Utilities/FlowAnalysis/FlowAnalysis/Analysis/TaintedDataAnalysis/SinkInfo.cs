@@ -11,38 +11,47 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// Info for a tainted data sink type.
     /// </summary>
     /// <remarks>It's bad if tainted data reaches a sink.</remarks>
-    internal sealed class SinkInfo(string fullTypeName, ImmutableHashSet<SinkKind> sinkKinds, bool isInterface, bool isAnyStringParameterInConstructorASink, ImmutableHashSet<string> sinkProperties, ImmutableDictionary<string, ImmutableHashSet<string>> sinkMethodParameters) : ITaintedDataInfo, IEquatable<SinkInfo>
+    internal sealed class SinkInfo : ITaintedDataInfo, IEquatable<SinkInfo>
     {
+        public SinkInfo(string fullTypeName, ImmutableHashSet<SinkKind> sinkKinds, bool isInterface, bool isAnyStringParameterInConstructorASink, ImmutableHashSet<string> sinkProperties, ImmutableDictionary<string, ImmutableHashSet<string>> sinkMethodParameters)
+        {
+            FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
+            SinkKinds = sinkKinds ?? throw new ArgumentNullException(nameof(sinkKinds));
+            IsInterface = isInterface;
+            IsAnyStringParameterInConstructorASink = isAnyStringParameterInConstructorASink;
+            SinkProperties = sinkProperties ?? throw new ArgumentNullException(nameof(sinkProperties));
+            SinkMethodParameters = sinkMethodParameters ?? throw new ArgumentNullException(nameof(sinkMethodParameters));
+        }
 
         /// <summary>
         /// Full name of the type that can lead to sinks.
         /// </summary>
-        public string FullTypeName { get; } = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
+        public string FullTypeName { get; }
 
         /// <summary>
         /// Type of sink.
         /// </summary>
-        public ImmutableHashSet<SinkKind> SinkKinds { get; } = sinkKinds ?? throw new ArgumentNullException(nameof(sinkKinds));
+        public ImmutableHashSet<SinkKind> SinkKinds { get; }
 
         /// <summary>
         /// Indicates this sink type is an interface.
         /// </summary>
-        public bool IsInterface { get; } = isInterface;
+        public bool IsInterface { get; }
 
         /// <summary>
         /// Indicates that any string parameter in the constructor is a sink.
         /// </summary>
-        public bool IsAnyStringParameterInConstructorASink { get; } = isAnyStringParameterInConstructorASink;
+        public bool IsAnyStringParameterInConstructorASink { get; }
 
         /// <summary>
         /// Set of properties on the type that are sinks.
         /// </summary>
-        public ImmutableHashSet<string> SinkProperties { get; } = sinkProperties ?? throw new ArgumentNullException(nameof(sinkProperties));
+        public ImmutableHashSet<string> SinkProperties { get; }
 
         /// <summary>
         /// Mapping of method name to parameter names that are sinks.
         /// </summary>
-        public ImmutableDictionary<string, ImmutableHashSet<string>> SinkMethodParameters { get; } = sinkMethodParameters ?? throw new ArgumentNullException(nameof(sinkMethodParameters));
+        public ImmutableDictionary<string, ImmutableHashSet<string>> SinkMethodParameters { get; }
 
         /// <summary>
         /// Indicates that this <see cref="SinkInfo"/> uses <see cref="ValueContentAbstractValue"/>s.

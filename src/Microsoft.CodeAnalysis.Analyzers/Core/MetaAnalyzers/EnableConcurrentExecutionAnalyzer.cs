@@ -87,9 +87,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             return null;
         }
 
-        private sealed class EnableConcurrentExecutionOperationAnalyzer(IParameterSymbol analysisContextParameter)
+        private sealed class EnableConcurrentExecutionOperationAnalyzer
         {
-            private readonly IParameterSymbol _analysisContextParameter = analysisContextParameter;
+            private readonly IParameterSymbol _analysisContextParameter;
+
+            public EnableConcurrentExecutionOperationAnalyzer(IParameterSymbol analysisContextParameter)
+            {
+                _analysisContextParameter = analysisContextParameter;
+            }
 
             public bool EnabledConcurrentExecution { get; private set; }
 

@@ -381,10 +381,16 @@ namespace Analyzer.Utilities
         /// On the rule CA1710, we allow user specific suffix to be registered for symbol names using the following format:
         /// MyClass->Suffix or T:MyNamespace.MyClass->Suffix or N:MyNamespace->Suffix.
         /// </example>
-        public sealed class NameParts(string symbolName, TValue associatedValue)
+        public sealed class NameParts
         {
-            public string SymbolName { get; } = symbolName.Trim();
-            public TValue AssociatedValue { get; } = associatedValue;
+            public NameParts(string symbolName, TValue associatedValue)
+            {
+                SymbolName = symbolName.Trim();
+                AssociatedValue = associatedValue;
+            }
+
+            public string SymbolName { get; }
+            public TValue AssociatedValue { get; }
         }
     }
 }

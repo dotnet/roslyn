@@ -5,10 +5,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// An abstract domain implementation for analyses that store dictionary typed data along with predicated data.
     /// </summary>
-    public class PredicatedAnalysisDataDomain<TAnalysisData, TValue>(MapAbstractDomain<AnalysisEntity, TValue> coreDataAnalysisDomain) : AbstractAnalysisDomain<TAnalysisData>
+    public class PredicatedAnalysisDataDomain<TAnalysisData, TValue> : AbstractAnalysisDomain<TAnalysisData>
         where TAnalysisData : AnalysisEntityBasedPredicateAnalysisData<TValue>
     {
-        protected MapAbstractDomain<AnalysisEntity, TValue> CoreDataAnalysisDomain { get; } = coreDataAnalysisDomain;
+        public PredicatedAnalysisDataDomain(MapAbstractDomain<AnalysisEntity, TValue> coreDataAnalysisDomain)
+        {
+            CoreDataAnalysisDomain = coreDataAnalysisDomain;
+        }
+
+        protected MapAbstractDomain<AnalysisEntity, TValue> CoreDataAnalysisDomain { get; }
 
         public override TAnalysisData Clone(TAnalysisData value) => (TAnalysisData)value.Clone();
 

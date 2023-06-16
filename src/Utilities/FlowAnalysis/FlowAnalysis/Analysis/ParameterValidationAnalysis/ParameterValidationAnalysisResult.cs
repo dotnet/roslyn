@@ -7,10 +7,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
     /// <summary>
     /// Analysis result from execution of <see cref="ParameterValidationAnalysis"/> on a control flow graph.
     /// </summary>
-    internal sealed class ParameterValidationAnalysisResult(
-        DataFlowAnalysisResult<ParameterValidationBlockAnalysisResult, ParameterValidationAbstractValue> parameterValidationAnalysisResult,
-        ImmutableDictionary<IParameterSymbol, SyntaxNode> hazardousParameterUsages) : DataFlowAnalysisResult<ParameterValidationBlockAnalysisResult, ParameterValidationAbstractValue>(parameterValidationAnalysisResult)
+    internal sealed class ParameterValidationAnalysisResult : DataFlowAnalysisResult<ParameterValidationBlockAnalysisResult, ParameterValidationAbstractValue>
     {
-        public ImmutableDictionary<IParameterSymbol, SyntaxNode> HazardousParameterUsages { get; } = hazardousParameterUsages;
+        public ParameterValidationAnalysisResult(
+            DataFlowAnalysisResult<ParameterValidationBlockAnalysisResult, ParameterValidationAbstractValue> parameterValidationAnalysisResult,
+            ImmutableDictionary<IParameterSymbol, SyntaxNode> hazardousParameterUsages)
+            : base(parameterValidationAnalysisResult)
+        {
+            HazardousParameterUsages = hazardousParameterUsages;
+        }
+
+        public ImmutableDictionary<IParameterSymbol, SyntaxNode> HazardousParameterUsages { get; }
     }
 }

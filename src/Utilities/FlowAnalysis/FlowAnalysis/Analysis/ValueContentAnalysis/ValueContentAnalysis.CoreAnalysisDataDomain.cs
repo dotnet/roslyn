@@ -14,8 +14,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// <summary>
         /// An abstract analysis domain implementation for core analysis data tracked by <see cref="ValueContentAnalysis"/>.
         /// </summary>
-        private sealed class CoreAnalysisDataDomain(AbstractValueDomain<ValueContentAbstractValue> valueDomain, PointsToAnalysisResult? pointsToAnalysisResult) : AnalysisEntityMapAbstractDomain<ValueContentAbstractValue>(valueDomain, pointsToAnalysisResult)
+        private sealed class CoreAnalysisDataDomain : AnalysisEntityMapAbstractDomain<ValueContentAbstractValue>
         {
+            public CoreAnalysisDataDomain(AbstractValueDomain<ValueContentAbstractValue> valueDomain, PointsToAnalysisResult? pointsToAnalysisResult)
+                : base(valueDomain, pointsToAnalysisResult)
+            {
+            }
+
             protected override ValueContentAbstractValue GetDefaultValue(AnalysisEntity analysisEntity) => ValueContentAbstractValue.MayBeContainsNonLiteralState;
             protected override bool CanSkipNewEntry(AnalysisEntity analysisEntity, ValueContentAbstractValue value) => value.NonLiteralState == ValueContainsNonLiteralState.Maybe;
             protected override void AssertValidEntryForMergedMap(AnalysisEntity analysisEntity, ValueContentAbstractValue value)

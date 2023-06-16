@@ -12,9 +12,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         /// <summary>
         /// An abstract analysis domain implementation for <see cref="CoreCopyAnalysisData"/>.
         /// </summary>
-        private sealed class CoreCopyAnalysisDataDomain(AbstractValueDomain<CopyAbstractValue> valueDomain, Func<AnalysisEntity, CopyAbstractValue> getDefaultCopyValue) : MapAbstractDomain<AnalysisEntity, CopyAbstractValue>(valueDomain)
+        private sealed class CoreCopyAnalysisDataDomain : MapAbstractDomain<AnalysisEntity, CopyAbstractValue>
         {
-            private readonly Func<AnalysisEntity, CopyAbstractValue> _getDefaultCopyValue = getDefaultCopyValue;
+            private readonly Func<AnalysisEntity, CopyAbstractValue> _getDefaultCopyValue;
+
+            public CoreCopyAnalysisDataDomain(AbstractValueDomain<CopyAbstractValue> valueDomain, Func<AnalysisEntity, CopyAbstractValue> getDefaultCopyValue)
+                : base(valueDomain)
+            {
+                _getDefaultCopyValue = getDefaultCopyValue;
+            }
 
 #pragma warning disable CA1725 // Parameter names should match base declaration
             public override CoreCopyAnalysisData Merge(CoreCopyAnalysisData map1, CoreCopyAnalysisData map2)

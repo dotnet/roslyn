@@ -10,28 +10,36 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// <summary>
     /// Info for a tainted data sanitizer type, which makes tainted data untainted.
     /// </summary>
-    internal sealed class SanitizerInfo(
-        string fullTypeName,
-        bool isInterface,
-        bool isConstructorSanitizing,
-        ImmutableHashSet<(MethodMatcher methodMatcher, ImmutableHashSet<(string IfTaintedParameter, string ThenUnTaintedTarget)>)> sanitizingMethods,
-        ImmutableHashSet<string> sanitizingInstanceMethods) : ITaintedDataInfo, IEquatable<SanitizerInfo>
+    internal sealed class SanitizerInfo : ITaintedDataInfo, IEquatable<SanitizerInfo>
     {
+        public SanitizerInfo(
+            string fullTypeName,
+            bool isInterface,
+            bool isConstructorSanitizing,
+            ImmutableHashSet<(MethodMatcher methodMatcher, ImmutableHashSet<(string IfTaintedParameter, string ThenUnTaintedTarget)>)> sanitizingMethods,
+            ImmutableHashSet<string> sanitizingInstanceMethods)
+        {
+            FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
+            IsInterface = isInterface;
+            IsConstructorSanitizing = isConstructorSanitizing;
+            SanitizingMethods = sanitizingMethods ?? throw new ArgumentNullException(nameof(sanitizingMethods));
+            SanitizingInstanceMethods = sanitizingInstanceMethods ?? throw new ArgumentNullException(nameof(sanitizingInstanceMethods));
+        }
 
         /// <summary>
         /// Full type name of the...type (namespace + type).
         /// </summary>
-        public string FullTypeName { get; } = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
+        public string FullTypeName { get; }
 
         /// <summary>
         /// Indicates that this sanitizer type is an interface.
         /// </summary>
-        public bool IsInterface { get; } = isInterface;
+        public bool IsInterface { get; }
 
         /// <summary>
         /// Indicates that any tainted data entering a constructor becomes untainted.
         /// </summary>
-        public bool IsConstructorSanitizing { get; } = isConstructorSanitizing;
+        public bool IsConstructorSanitizing { get; }
 
         /// <summary>
         /// Methods that untaint tainted data.
@@ -50,12 +58,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         ///
         /// will treat the parameter "b" as untainted when parameter "a" is tainted of the "Bar" method.
         /// </remarks>
-        public ImmutableHashSet<(MethodMatcher MethodMatcher, ImmutableHashSet<(string IfTaintedParameter, string ThenUnTaintedTarget)>)> SanitizingMethods { get; } = sanitizingMethods ?? throw new ArgumentNullException(nameof(sanitizingMethods));
+        public ImmutableHashSet<(MethodMatcher MethodMatcher, ImmutableHashSet<(string IfTaintedParameter, string ThenUnTaintedTarget)>)> SanitizingMethods { get; }
 
         /// <summary>
         /// Methods that untaint tainted instance.
         /// </summary>
-        public ImmutableHashSet<string> SanitizingInstanceMethods { get; } = sanitizingInstanceMethods ?? throw new ArgumentNullException(nameof(sanitizingInstanceMethods));
+        public ImmutableHashSet<string> SanitizingInstanceMethods { get; }
 
         /// <summary>
         /// Indicates that this <see cref="SanitizerInfo"/> uses <see cref="ValueContentAbstractValue"/>s.

@@ -8,10 +8,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// <summary>
     /// Generates and stores the default <see cref="PointsToAbstractValue"/> for <see cref="AnalysisEntity"/> instances generated for member and element reference operations.
     /// </summary>
-    internal sealed class DefaultPointsToValueGenerator(TrackedEntitiesBuilder trackedEntitiesBuilder)
+    internal sealed class DefaultPointsToValueGenerator
     {
-        private readonly TrackedEntitiesBuilder _trackedEntitiesBuilder = trackedEntitiesBuilder;
-        private readonly ImmutableDictionary<AnalysisEntity, PointsToAbstractValue>.Builder _defaultPointsToValueMapBuilder = ImmutableDictionary.CreateBuilder<AnalysisEntity, PointsToAbstractValue>();
+        private readonly TrackedEntitiesBuilder _trackedEntitiesBuilder;
+        private readonly ImmutableDictionary<AnalysisEntity, PointsToAbstractValue>.Builder _defaultPointsToValueMapBuilder;
+
+        public DefaultPointsToValueGenerator(TrackedEntitiesBuilder trackedEntitiesBuilder)
+        {
+            _trackedEntitiesBuilder = trackedEntitiesBuilder;
+            _defaultPointsToValueMapBuilder = ImmutableDictionary.CreateBuilder<AnalysisEntity, PointsToAbstractValue>();
+        }
 
         public PointsToAnalysisKind PointsToAnalysisKind => _trackedEntitiesBuilder.PointsToAnalysisKind;
 

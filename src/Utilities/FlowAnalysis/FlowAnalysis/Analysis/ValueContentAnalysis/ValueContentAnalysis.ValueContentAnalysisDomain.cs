@@ -12,8 +12,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// <summary>
         /// An abstract analysis domain implementation for <see cref="ValueContentAnalysisData"/> tracked by <see cref="ValueContentAnalysis"/>.
         /// </summary>
-        private sealed class ValueContentAnalysisDomain(PointsToAnalysisResult? pointsToAnalysisResult) : PredicatedAnalysisDataDomain<ValueContentAnalysisData, ValueContentAbstractValue>(new CoreAnalysisDataDomain(ValueContentAbstractValueDomain.Default, pointsToAnalysisResult))
+        private sealed class ValueContentAnalysisDomain : PredicatedAnalysisDataDomain<ValueContentAnalysisData, ValueContentAbstractValue>
         {
+            public ValueContentAnalysisDomain(PointsToAnalysisResult? pointsToAnalysisResult)
+                : base(new CoreAnalysisDataDomain(ValueContentAbstractValueDomain.Default, pointsToAnalysisResult))
+            {
+            }
+
             public ValueContentAnalysisData MergeAnalysisDataForBackEdge(ValueContentAnalysisData forwardEdgeAnalysisData, ValueContentAnalysisData backEdgeAnalysisData)
             {
                 if (!forwardEdgeAnalysisData.IsReachableBlockData && backEdgeAnalysisData.IsReachableBlockData)

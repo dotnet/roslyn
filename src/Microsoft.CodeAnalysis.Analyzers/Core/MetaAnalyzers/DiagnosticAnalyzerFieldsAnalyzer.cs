@@ -72,12 +72,21 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             return new FieldsAnalyzer(compilationType, symbolType, operationType, attributeUsageAttribute, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
         }
 
-        private sealed class FieldsAnalyzer(INamedTypeSymbol compilationType, INamedTypeSymbol symbolType, INamedTypeSymbol operationType, INamedTypeSymbol? attributeUsageAttribute, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute) : SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TStructDeclarationSyntax, TFieldDeclarationSyntax>(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
+        private sealed class FieldsAnalyzer : SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TStructDeclarationSyntax, TFieldDeclarationSyntax>
         {
-            private readonly INamedTypeSymbol _compilationType = compilationType;
-            private readonly INamedTypeSymbol _symbolType = symbolType;
-            private readonly INamedTypeSymbol _operationType = operationType;
-            private readonly INamedTypeSymbol? _attributeUsageAttribute = attributeUsageAttribute;
+            private readonly INamedTypeSymbol _compilationType;
+            private readonly INamedTypeSymbol _symbolType;
+            private readonly INamedTypeSymbol _operationType;
+            private readonly INamedTypeSymbol? _attributeUsageAttribute;
+
+            public FieldsAnalyzer(INamedTypeSymbol compilationType, INamedTypeSymbol symbolType, INamedTypeSymbol operationType, INamedTypeSymbol? attributeUsageAttribute, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+                : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
+            {
+                _compilationType = compilationType;
+                _symbolType = symbolType;
+                _operationType = operationType;
+                _attributeUsageAttribute = attributeUsageAttribute;
+            }
 
             protected override void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext)
             {

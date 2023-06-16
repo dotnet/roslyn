@@ -87,9 +87,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             return null;
         }
 
-        private sealed class ConfigureGeneratedCodeAnalyzer(IParameterSymbol analysisContextParameter)
+        private sealed class ConfigureGeneratedCodeAnalyzer
         {
-            private readonly IParameterSymbol _analysisContextParameter = analysisContextParameter;
+            private readonly IParameterSymbol _analysisContextParameter;
+
+            public ConfigureGeneratedCodeAnalyzer(IParameterSymbol analysisContextParameter)
+            {
+                _analysisContextParameter = analysisContextParameter;
+            }
 
             public bool ConfiguredGeneratedCodeAnalysis { get; private set; }
 

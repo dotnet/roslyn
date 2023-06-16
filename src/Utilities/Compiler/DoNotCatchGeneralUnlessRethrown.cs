@@ -109,13 +109,19 @@ namespace Analyzer.Utilities
         /// <summary>
         /// Walks an IOperation tree to find catch blocks that handle general types without rethrowing them.
         /// </summary>
-        private sealed class DisallowGeneralCatchUnlessRethrowWalker(Func<INamedTypeSymbol, bool> isDisallowedCatchType, bool checkAnonymousFunctions) : OperationWalker
+        private sealed class DisallowGeneralCatchUnlessRethrowWalker : OperationWalker
         {
-            private readonly Func<INamedTypeSymbol, bool> _isDisallowedCatchType = isDisallowedCatchType;
-            private readonly bool _checkAnonymousFunctions = checkAnonymousFunctions;
+            private readonly Func<INamedTypeSymbol, bool> _isDisallowedCatchType;
+            private readonly bool _checkAnonymousFunctions;
             private readonly Stack<bool> _seenRethrowInCatchClauses = new();
 
             public ISet<ICatchClauseOperation> CatchClausesForDisallowedTypesWithoutRethrow { get; } = new HashSet<ICatchClauseOperation>();
+
+            public DisallowGeneralCatchUnlessRethrowWalker(Func<INamedTypeSymbol, bool> isDisallowedCatchType, bool checkAnonymousFunctions)
+            {
+                _isDisallowedCatchType = isDisallowedCatchType;
+                _checkAnonymousFunctions = checkAnonymousFunctions;
+            }
 
             public override void VisitAnonymousFunction(IAnonymousFunctionOperation operation)
             {

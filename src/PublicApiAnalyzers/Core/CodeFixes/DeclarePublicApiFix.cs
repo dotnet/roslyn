@@ -181,13 +181,20 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return lines;
         }
 
-        internal class AdditionalDocumentChangeAction(string title, DocumentId? apiDocId, bool isPublic, Func<CancellationToken, Task<Solution>> createChangedAdditionalDocument) : CodeAction
+        internal class AdditionalDocumentChangeAction : CodeAction
         {
-            private readonly Func<CancellationToken, Task<Solution>> _createChangedAdditionalDocument = createChangedAdditionalDocument;
+            private readonly Func<CancellationToken, Task<Solution>> _createChangedAdditionalDocument;
 
-            public override string Title { get; } = title;
+            public AdditionalDocumentChangeAction(string title, DocumentId? apiDocId, bool isPublic, Func<CancellationToken, Task<Solution>> createChangedAdditionalDocument)
+            {
+                this.Title = title;
+                EquivalenceKey = apiDocId.CreateEquivalenceKey(isPublic);
+                _createChangedAdditionalDocument = createChangedAdditionalDocument;
+            }
 
-            public override string EquivalenceKey { get; } = apiDocId.CreateEquivalenceKey(isPublic);
+            public override string Title { get; }
+
+            public override string EquivalenceKey { get; }
 
             protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
@@ -195,14 +202,23 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
         }
 
-        private class FixAllAdditionalDocumentChangeAction(string title, DocumentId? apiDocId, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix, bool isPublic) : CodeAction
+        private class FixAllAdditionalDocumentChangeAction : CodeAction
         {
-            private readonly List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> _diagnosticsToFix = diagnosticsToFix;
-            private readonly bool _isPublic = isPublic;
-            private readonly DocumentId? _apiDocId = apiDocId;
-            private readonly Solution _solution = solution;
+            private readonly List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> _diagnosticsToFix;
+            private readonly bool _isPublic;
+            private readonly DocumentId? _apiDocId;
+            private readonly Solution _solution;
 
-            public override string Title { get; } = title;
+            public FixAllAdditionalDocumentChangeAction(string title, DocumentId? apiDocId, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix, bool isPublic)
+            {
+                this.Title = title;
+                _apiDocId = apiDocId;
+                _solution = solution;
+                _diagnosticsToFix = diagnosticsToFix;
+                this._isPublic = isPublic;
+            }
+
+            public override string Title { get; }
 
             protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {

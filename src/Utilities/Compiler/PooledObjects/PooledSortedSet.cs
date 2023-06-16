@@ -14,9 +14,15 @@ namespace Analyzer.Utilities.PooledObjects
     /// Pooled <see cref="SortedSet{T}"/>.
     /// </summary>
     /// <typeparam name="T">Type of elements in the set.</typeparam>
-    internal sealed class PooledSortedSet<T>(ObjectPool<PooledSortedSet<T>>? pool, IComparer<T>? comparer = null) : SortedSet<T>(comparer), IDisposable
+    internal sealed class PooledSortedSet<T> : SortedSet<T>, IDisposable
     {
-        private readonly ObjectPool<PooledSortedSet<T>>? _pool = pool;
+        private readonly ObjectPool<PooledSortedSet<T>>? _pool;
+
+        public PooledSortedSet(ObjectPool<PooledSortedSet<T>>? pool, IComparer<T>? comparer = null)
+            : base(comparer)
+        {
+            _pool = pool;
+        }
 
         public void Dispose() => Free(CancellationToken.None);
 

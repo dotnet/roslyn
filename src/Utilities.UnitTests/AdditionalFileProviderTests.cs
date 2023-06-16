@@ -105,11 +105,17 @@ namespace Analyzers.Utilities.UnitTests
         private static AdditionalText CreateAdditionalFile(string fileName, string content = "")
             => new FakeAdditionalText(fileName, content);
 
-        private sealed class FakeAdditionalText(string path, string text = "") : AdditionalText
+        private sealed class FakeAdditionalText : AdditionalText
         {
-            private readonly SourceText _text = SourceText.From(text);
+            private readonly SourceText _text;
 
-            public override string Path { get; } = path;
+            public FakeAdditionalText(string path, string text = "")
+            {
+                Path = path;
+                _text = SourceText.From(text);
+            }
+
+            public override string Path { get; }
 
             public override SourceText GetText(CancellationToken cancellationToken = default) => _text;
         }

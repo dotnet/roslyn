@@ -6,8 +6,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
     internal partial class TaintedDataAnalysis
     {
-        private sealed class TaintedDataAnalysisDomain(MapAbstractDomain<AnalysisEntity, TaintedDataAbstractValue> coreDataAnalysisDomain) : PredicatedAnalysisDataDomain<TaintedDataAnalysisData, TaintedDataAbstractValue>(coreDataAnalysisDomain)
+        private sealed class TaintedDataAnalysisDomain : PredicatedAnalysisDataDomain<TaintedDataAnalysisData, TaintedDataAbstractValue>
         {
+            public TaintedDataAnalysisDomain(MapAbstractDomain<AnalysisEntity, TaintedDataAbstractValue> coreDataAnalysisDomain)
+                : base(coreDataAnalysisDomain)
+            {
+            }
         }
     }
 }

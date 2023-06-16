@@ -11,10 +11,16 @@ namespace Analyzer.Utilities.PooledObjects
         /// <summary>
         /// struct enumerator used in foreach.
         /// </summary>
-        internal struct Enumerator(ArrayBuilder<T> builder) : IEnumerator<T>
+        internal struct Enumerator : IEnumerator<T>
         {
-            private readonly ArrayBuilder<T> _builder = builder;
-            private int _index = -1;
+            private readonly ArrayBuilder<T> _builder;
+            private int _index;
+
+            public Enumerator(ArrayBuilder<T> builder)
+            {
+                _builder = builder;
+                _index = -1;
+            }
 
             public readonly T Current => _builder[_index];
 

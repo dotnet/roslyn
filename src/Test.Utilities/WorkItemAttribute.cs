@@ -5,9 +5,15 @@ using System;
 namespace Test.Utilities
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
-    public sealed class WorkItemAttribute(int id, string source) : Attribute
+    public sealed class WorkItemAttribute : Attribute
     {
-        public int Id { get; } = id;
-        public string Source { get; } = source;
+        public WorkItemAttribute(int id, string source)
+        {
+            Id = id;
+            Source = source;
+        }
+
+        public int Id { get; }
+        public string Source { get; }
     }
 }

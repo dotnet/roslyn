@@ -199,11 +199,17 @@ namespace Roslyn.Diagnostics.Analyzers
         }
 
         [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "This type is never compared.")]
-        private readonly struct VisitReleaser<T>(HashSet<T> set, T value) : IDisposable
+        private readonly struct VisitReleaser<T> : IDisposable
             where T : class
         {
-            private readonly HashSet<T> _set = set;
-            private readonly T _value = value;
+            private readonly HashSet<T> _set;
+            private readonly T _value;
+
+            public VisitReleaser(HashSet<T> set, T value)
+            {
+                _set = set;
+                _value = value;
+            }
 
             public void Dispose()
             {

@@ -59,9 +59,14 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                 Operations);
         }
 
-        protected sealed class AttributeChecker(INamedTypeSymbol perfSensitiveAttributeSymbol)
+        protected sealed class AttributeChecker
         {
-            private INamedTypeSymbol PerfSensitiveAttributeSymbol { get; } = perfSensitiveAttributeSymbol;
+            private INamedTypeSymbol PerfSensitiveAttributeSymbol { get; }
+
+            public AttributeChecker(INamedTypeSymbol perfSensitiveAttributeSymbol)
+            {
+                PerfSensitiveAttributeSymbol = perfSensitiveAttributeSymbol;
+            }
 
             public bool TryGetContainsPerformanceSensitiveInfo(ISymbol symbol, out PerformanceSensitiveInfo info)
             {
@@ -125,15 +130,22 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
         }
 
 #pragma warning disable CA1815 // Override equals and operator equals on value types. This type is never used for comparison
-        protected readonly struct PerformanceSensitiveInfo(
-            bool allowCaptures = true,
-            bool allowGenericEnumeration = true,
-            bool allowLocks = true)
+        protected readonly struct PerformanceSensitiveInfo
 #pragma warning restore CA1815
         {
-            public bool AllowCaptures { get; } = allowCaptures;
-            public bool AllowGenericEnumeration { get; } = allowGenericEnumeration;
-            public bool AllowLocks { get; } = allowLocks;
+            public bool AllowCaptures { get; }
+            public bool AllowGenericEnumeration { get; }
+            public bool AllowLocks { get; }
+
+            public PerformanceSensitiveInfo(
+                bool allowCaptures = true,
+                bool allowGenericEnumeration = true,
+                bool allowLocks = true)
+            {
+                AllowCaptures = allowCaptures;
+                AllowGenericEnumeration = allowGenericEnumeration;
+                AllowLocks = allowLocks;
+            }
         }
     }
 }

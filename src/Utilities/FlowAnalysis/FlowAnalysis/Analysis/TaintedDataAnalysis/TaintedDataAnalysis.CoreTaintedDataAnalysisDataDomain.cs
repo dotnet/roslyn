@@ -7,8 +7,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     internal partial class TaintedDataAnalysis
     {
-        private sealed class CoreTaintedDataAnalysisDataDomain(PointsToAnalysisResult? pointsToAnalysisResult) : AnalysisEntityMapAbstractDomain<TaintedDataAbstractValue>(TaintedDataAbstractValueDomain.Default, pointsToAnalysisResult)
+        private sealed class CoreTaintedDataAnalysisDataDomain : AnalysisEntityMapAbstractDomain<TaintedDataAbstractValue>
         {
+            public CoreTaintedDataAnalysisDataDomain(PointsToAnalysisResult? pointsToAnalysisResult)
+                : base(TaintedDataAbstractValueDomain.Default, pointsToAnalysisResult)
+            {
+            }
+
             protected override bool CanSkipNewEntry(AnalysisEntity analysisEntity, TaintedDataAbstractValue value)
             {
                 return value.Kind == TaintedDataAbstractValueKind.NotTainted;

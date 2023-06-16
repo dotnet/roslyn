@@ -64,11 +64,17 @@ namespace Analyzer.Utilities
             }
         }
 
-        private sealed class Entry(TKey key, TValue value)
+        private sealed class Entry
         {
-            public TKey Key { get; } = key;
+            public Entry(TKey key, TValue value)
+            {
+                Key = key;
+                Value = value;
+            }
 
-            public TValue Value { get; } = value;
+            public TKey Key { get; }
+
+            public TValue Value { get; }
         }
     }
 }

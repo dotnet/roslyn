@@ -19,13 +19,22 @@ namespace System
     /// </remarks>
     [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Matches implementation from dotnet/runtime")]
     [SuppressMessage("Usage", "CA2231:Overload operator equals on overriding value type Equals", Justification = "Matches implementation from dotnet/runtime")]
-    internal readonly struct Range(Index start, Index end) : IEquatable<Range>
+    internal readonly struct Range : IEquatable<Range>
     {
         /// <summary>Represent the inclusive start index of the Range.</summary>
-        public Index Start { get; } = start;
+        public Index Start { get; }
 
         /// <summary>Represent the exclusive end index of the Range.</summary>
-        public Index End { get; } = end;
+        public Index End { get; }
+
+        /// <summary>Construct a Range object using the start and end indexes.</summary>
+        /// <param name="start">Represent the inclusive start index of the range.</param>
+        /// <param name="end">Represent the exclusive end index of the range.</param>
+        public Range(Index start, Index end)
+        {
+            Start = start;
+            End = end;
+        }
 
         /// <summary>Indicates whether the current Range object is equal to another object of the same type.</summary>
         /// <param name="obj">An object to compare with this object</param>

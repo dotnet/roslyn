@@ -208,9 +208,14 @@ namespace Analyzer.Utilities.Extensions
             return count > 0;
         }
 
-        private sealed class ComparisonComparer<T>(Comparison<T> compare) : Comparer<T>
+        private sealed class ComparisonComparer<T> : Comparer<T>
         {
-            private readonly Comparison<T> _compare = compare;
+            private readonly Comparison<T> _compare;
+
+            public ComparisonComparer(Comparison<T> compare)
+            {
+                _compare = compare;
+            }
 
             public override int Compare([AllowNull] T x, [AllowNull] T y)
             {
