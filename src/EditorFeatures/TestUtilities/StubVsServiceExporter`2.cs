@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -26,7 +27,6 @@ internal class StubVsServiceExporter<TService, TInterface> : IVsService<TService
     where TInterface : class
 {
     private readonly AsyncLazy<TInterface> _serviceGetter;
-    private Task<TInterface?>? _nullableGetter;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -44,44 +44,31 @@ internal class StubVsServiceExporter<TService, TInterface> : IVsService<TService
     /// <inheritdoc />
     public Task<TInterface?> GetValueOrNullAsync(CancellationToken cancellationToken)
     {
-        // If we already have a cached result for this call, return it immediately. Otherwise, calculate it on first
-        // use.
-        return _nullableGetter ?? GetValueOrNullSlowAsync(cancellationToken);
-    }
+        var value = GetValueAsync(cancellationToken);
+        if (value.IsCompleted)
+        {
+            return TransformResult(value);
+        }
 
-    private Task<TInterface?> GetValueOrNullSlowAsync(CancellationToken cancellationToken)
-    {
-        return _serviceGetter.GetValueAsync(cancellationToken).ContinueWith(
-            static (t, state) =>
-            {
-                var self = (StubVsServiceExporter<TService, TInterface>)state;
-                var result = self._nullableGetter;
-                if (result is not null)
-                    return result;
-
-                switch (t.Status)
-                {
-                    case TaskStatus.Faulted:
-                        // Our caller never wants exceptions
-                        result = RoslynUtilities::SpecializedTasks.Null<TInterface>();
-                        break;
-
-                    case TaskStatus.Canceled:
-                        // In cancellation cases, this will rethrow the OCE, which we want. However, we avoid caching
-                        // this result by returning immediately.
-                        return RoslynUtilities::SpecializedTasks.AsNullable(t);
-
-                    default:
-                        result = RoslynUtilities::SpecializedTasks.AsNullable(t);
-                        break;
-                }
-
-                result = Interlocked.CompareExchange(ref self._nullableGetter, result, null) ?? result;
-                return result;
-            },
-            state: this,
+        return value.ContinueWith(
+            static t => TransformResult(t),
             CancellationToken.None, // token is already passed to antecedent, and this is a tiny sync continuation, so no need to make it also cancelable.
             TaskContinuationOptions.ExecuteSynchronously,
             TaskScheduler.Default).Unwrap();
+
+        static Task<TInterface?> TransformResult(Task<TInterface> task)
+        {
+            Debug.Assert(task.IsCompleted);
+            if (task.Status == TaskStatus.Faulted)
+            {
+                // Our caller never wants exceptions, so return a cached null value
+                return RoslynUtilities::SpecializedTasks.Null<TInterface>();
+            }
+            else
+            {
+                // Whether this is cancelled or ran to completion, we return the value as-is
+                return RoslynUtilities::SpecializedTasks.AsNullable(task);
+            }
+        }
     }
 }
