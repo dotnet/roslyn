@@ -29,7 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
         {
             // SLocalRegistry service is free-threaded -- see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1408594.
             var localRegistry = await localRegistryService.GetValueAsync().ConfigureAwait(false);
-            Contract.ThrowIfNull(localRegistry);
             Contract.ThrowIfFalse(ErrorHandler.Succeeded(localRegistry.GetLocalRegistryRootEx((uint)__VsLocalRegistryType.RegType_UserSettings, out var rootHandle, out var rootPath)));
 
             var handle = (__VsLocalRegistryRootHandle)rootHandle;
