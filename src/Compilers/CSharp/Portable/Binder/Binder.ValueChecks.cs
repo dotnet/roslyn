@@ -4683,7 +4683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SignatureOnlyMethodSymbol GetInlineArrayConversionEquivalentSignatureMethod(BoundExpression inlineArray, TypeSymbol resultType, out ImmutableArray<BoundExpression> arguments, out ImmutableArray<RefKind> refKinds)
         {
-            // inlineArray[Range] is equivalent to calling a method with the signature:
+            // An inline array conversion is equivalent to calling a method with the signature:
             // - Span<T> Convert(ref inlineArray), or
             // - ReadOnlySpan<T> Convert(in inlineArray)
 
