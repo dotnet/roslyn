@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -4671,7 +4670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<MethodSymbol>.Empty);
 
             arguments = ImmutableArray.Create(elementAccess.Expression);
-            refKinds = ImmutableArray.Create(equivalentSignatureMethod.Parameters.Single().RefKind);
+            refKinds = ImmutableArray.Create(parameterRefKind);
 
             return equivalentSignatureMethod;
         }
@@ -4688,9 +4687,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // - Span<T> Convert(ref inlineArray), or
             // - ReadOnlySpan<T> Convert(in inlineArray)
 
+            RefKind parameterRefKind = resultType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions) ? RefKind.In : RefKind.Ref;
+
             var equivalentSignatureMethod = new SignatureOnlyMethodSymbol(
                 name: "",
-                this._symbol.ContainingType,
+                _symbol.ContainingType,
                 MethodKind.Ordinary,
                 Cci.CallingConvention.Default,
                 ImmutableArray<TypeParameterSymbol>.Empty,
@@ -4698,7 +4699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             TypeWithAnnotations.Create(inlineArray.Type),
                                                             ImmutableArray<CustomModifier>.Empty,
                                                             isParams: false,
-                                                            resultType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions) ? RefKind.In : RefKind.Ref
+                                                            parameterRefKind
                                                             )),
                 RefKind.None,
                 isInitOnly: false,
@@ -4708,7 +4709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<MethodSymbol>.Empty);
 
             arguments = ImmutableArray.Create(inlineArray);
-            refKinds = ImmutableArray.Create(equivalentSignatureMethod.Parameters.Single().RefKind);
+            refKinds = ImmutableArray.Create(parameterRefKind);
 
             return equivalentSignatureMethod;
         }
