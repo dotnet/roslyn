@@ -1513,7 +1513,7 @@ lVbRuntimePlus:
                 .ReportAnalyzer = reportAnalyzer,
                 .SkipAnalyzers = skipAnalyzers,
                 .EmbeddedFiles = embeddedFiles.AsImmutable(),
-                .GeneratedFilesOutputDirectory = generatedFilesOutputDirectory
+                .GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,
                 .ReportIVTs = reportIVTs
             }
         End Function
