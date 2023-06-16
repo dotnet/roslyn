@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -600,6 +601,52 @@ namespace Microsoft.CodeAnalysis
             => ReportDiagnostics(diagnostics.Select(info => Diagnostic.Create(info)), consoleOutput, errorLoggerOpt, compilation);
 
         /// <summary>
+        /// Reports all IVT information for the given compilation and references, to aid in troubleshooting otherwise inexplicable IVT failures.
+        /// </summary>
+        private void ReportIVTInfos(TextWriter consoleOutput, ErrorLogger? errorLogger, Compilation compilation, ImmutableArray<Diagnostic> diagnostics)
+        {
+            // Annotate any bad accesses with what assemblies they came from, if they are from a foreign assembly
+            DiagnoseBadAccesses(consoleOutput, errorLogger, compilation, diagnostics);
+
+            // Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.
+            consoleOutput.WriteLine(CodeAnalysisResources.InternalsVisibleToHeaderSummary);
+
+            var currentAssembly = compilation.Assembly;
+            var currentAssemblyInternal = compilation.GetSymbolInternal<IAssemblySymbolInternal>(currentAssembly);
+
+            // Current assembly: '{0}'
+            consoleOutput.WriteLine(string.Format(CodeAnalysisResources.InternalsVisibleToCurrentAssembly, currentAssembly.Identity.GetDisplayName(fullKey: true)));
+
+            // Now, go through each of the referenced assemblies and print their IVT information.
+            foreach (var assembly in currentAssembly.Modules.First().ReferencedAssemblySymbols.OrderBy(a => a.Name))
+            {
+                // Assembly reference: '{0}'
+                //   Grants IVT to current assembly: {1}
+                //   Grants IVTs to:
+
+                var assemblyInternal = compilation.GetSymbolInternal<IAssemblySymbolInternal>(assembly);
+                bool grantsIvt = currentAssemblyInternal.AreInternalsVisibleToThisAssembly(assemblyInternal);
+                var assemblyPublicKey = AssemblyIdentity.PublicKeyToString(assembly.Identity.PublicKey);
+
+                consoleOutput.WriteLine(string.Format(CodeAnalysisResources.InternalsVisibleToReferencedAssembly, assembly.Identity.GetDisplayName(fullKey: true), grantsIvt, assemblyPublicKey));
+
+                foreach (var simpleName in assemblyInternal.GetInternalsVisibleToAssemblyNames())
+                {
+                    //     Assembly name: '{0}'
+                    //     Public Keys:
+                    consoleOutput.WriteLine(string.Format(CodeAnalysisResources.InternalsVisibleToReferencedAssemblyDetails, simpleName));
+                    foreach (var key in assemblyInternal.GetInternalsVisibleToPublicKeys(simpleName))
+                    {
+                        consoleOutput.Write("      ");
+                        consoleOutput.WriteLine(AssemblyIdentity.PublicKeyToString(key));
+                    }
+                }
+            }
+        }
+
+        private protected abstract void DiagnoseBadAccesses(TextWriter consoleOutput, ErrorLogger? errorLogger, Compilation compilation, ImmutableArray<Diagnostic> diagnostics);
+
+        /// <summary>
         /// Returns true if there are any error diagnostics in the bag which cannot be suppressed and
         /// are guaranteed to break the build.
         /// Only diagnostics which have default severity error and are tagged as NotConfigurable fall in this bucket.
@@ -913,11 +960,17 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            diagnostics.Free();
             if (Arguments.ReportAnalyzer)
             {
                 ReportAnalyzerUtil.Report(consoleOutput, analyzerDriver, driverTimingInfo, Culture, compilation.Options.ConcurrentBuild);
             }
+
+            if (Arguments.ReportIVTs)
+            {
+                ReportIVTInfos(consoleOutput, errorLogger, compilation, diagnostics.ToReadOnly());
+            }
+
+            diagnostics.Free();
 
             return exitCode;
         }

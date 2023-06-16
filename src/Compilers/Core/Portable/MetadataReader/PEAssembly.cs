@@ -169,6 +169,14 @@ namespace Microsoft.CodeAnalysis
             return result ?? SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
         }
 
+        internal IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            if (_lazyInternalsVisibleToMap == null)
+                Interlocked.CompareExchange(ref _lazyInternalsVisibleToMap, BuildInternalsVisibleToMap(), null);
+
+            return _lazyInternalsVisibleToMap.Keys;
+        }
+
         internal bool DeclaresTheObjectClass
         {
             get

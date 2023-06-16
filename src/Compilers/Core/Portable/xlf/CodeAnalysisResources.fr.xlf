@@ -99,6 +99,32 @@
         <target state="translated">Le hintName « {0} »du fichier source ajouté doit être unique dans un générateur.</target>
         <note>{0}: the provided hintname</note>
       </trans-unit>
+      <trans-unit id="InternalsVisibleToCurrentAssembly">
+        <source>Current assembly: '{0}'</source>
+        <target state="new">Current assembly: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToHeaderSummary">
+        <source>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</source>
+        <target state="new">Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssembly">
+        <source>Assembly reference: '{0}'
+  Grants IVT to current assembly: {1}
+  Grants IVTs to:</source>
+        <target state="new">Assembly reference: '{0}'
+  Grants IVT to current assembly: {1}
+  Grants IVTs to:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssemblyDetails">
+        <source>    Assembly name: '{0}'
+    Public Keys:</source>
+        <target state="new">    Assembly name: '{0}'
+    Public Keys:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
         <target state="translated">Le fichier supplémentaire n'appartient pas au 'CompilationWithAnalyzers' sous-jacent.</target>

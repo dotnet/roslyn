@@ -5224,6 +5224,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -5687,5 +5690,8 @@
   </data>
   <data name="ERR_UnsupportedRefReturningCallInWithStatement" xml:space="preserve">
     <value>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</value>
+  </data>
+  <data name="ERR_SymbolDefinedInAssembly" xml:space="preserve">
+    <value>'{0}' is defined in assembly '{1}'.</value>
   </data>
 </root>
