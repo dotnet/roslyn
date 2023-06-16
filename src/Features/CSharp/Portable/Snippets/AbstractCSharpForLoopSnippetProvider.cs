@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 iteratorTypeSyntax = inlineExpressionType.GenerateTypeSyntax();
             }
 
+            inlineExpression = inlineExpression?.WithoutLeadingTrivia();
+
             var variableDeclaration = SyntaxFactory.VariableDeclaration(
                 iteratorTypeSyntax,
                 variables: SyntaxFactory.SingletonSeparatedList(

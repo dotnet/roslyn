@@ -467,5 +467,118 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
+
+        [WpfTheory]
+        [InlineData("// comment")]
+        [InlineData("/* comment */")]
+        [InlineData("#region test")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest1(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                        {{trivia}}
+                        arg.$$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                        {{trivia}}
+                        {{ItemToCommit}} (arg)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("#if true")]
+        [InlineData("#pragma warning disable CS0108")]
+        [InlineData("#nullable enable")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest2(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                {{trivia}}
+                        arg.$$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                class Program
+                {
+                    void M(bool arg)
+                    {
+                {{trivia}}
+                        {{ItemToCommit}} (arg)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("// comment")]
+        [InlineData("/* comment */")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest1(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                {{trivia}}
+                true.$$
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                {{trivia}}
+                {{ItemToCommit}} (true)
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("#region test")]
+        [InlineData("#if true")]
+        [InlineData("#pragma warning disable CS0108")]
+        [InlineData("#nullable enable")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest2(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                {{trivia}}
+                true.$$
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+
+                {{trivia}}
+                {{ItemToCommit}} (true)
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
     }
 }
