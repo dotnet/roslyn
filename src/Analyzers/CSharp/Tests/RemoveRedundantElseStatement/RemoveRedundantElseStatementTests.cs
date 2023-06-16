@@ -653,12 +653,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                                 if (i == n)
                                 {
                                     i+=1;
-                                    int j = 3;
+                                    int j = 0;
                                     return j;
                                 }
                                 else
                                 {
-                                    int j = 5;
+                                    int j = 0;
                                     return j;
                                 }
                             }
@@ -688,11 +688,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                                 }
                                 else
                                 {
-                                    int j = 3;
+                                    int j = 0;
                                 }
 
                     			{
-                    				int j = 5;
+                    				int j = 0;
                     			}
                             }
                         }

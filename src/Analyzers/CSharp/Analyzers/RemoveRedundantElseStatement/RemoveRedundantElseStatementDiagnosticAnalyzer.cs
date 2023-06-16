@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.IfStatement);
@@ -73,14 +73,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 
             var ifStatement = (IfStatementSyntax)context.Node;
 
-            if (ifStatement.Parent is not BlockSyntax and not GlobalStatementSyntax and not SwitchSectionSyntax)
+            if (ifStatement.Parent is not BlockSyntax and not SwitchSectionSyntax and not GlobalStatementSyntax)
             {
                 return;
             }
 
             var redundantElse = FindRedundantElse(ifStatement);
 
-            if (redundantElse is null || WillCauseVariableCollision(context.SemanticModel, ifStatement, redundantElse, context.CancellationToken))
+            if (redundantElse is null ||
+                WillCauseVariableCollision(context.SemanticModel, ifStatement, redundantElse, context.CancellationToken))
             {
                 return;
             }
@@ -99,24 +100,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 
             while (elseClause is not null)
             {
-                //var endsWithJump = ifStatement.Statement switch
-                //{
-                //    BlockSyntax block => IsJumpStatement(block.Statements.LastOrDefault()),
-                //    _ => IsJumpStatement(ifStatement.Statement),
-                //};
-
-                //// doing this only makes sense when every if ends with a jump
-                //if (!endsWithJump)
-                //{
-                //    return null;
-                //}
-
                 if (!AllCodePathsEndWithJump(ifStatement.Statement))
                 {
                     return null;
                 }
 
-                // reached else not followed by an if
+                // Reached else not followed by an if
                 if (elseClause.Statement is not IfStatementSyntax elseIfStatement)
                 {
                     break;
@@ -129,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             return elseClause;
         }
 
-        private static bool AllCodePathsEndWithJump(StatementSyntax statement)
+        private static bool AllCodePathsEndWithJump(StatementSyntax? statement)
         {
             if (IsJumpStatement(statement))
             {
@@ -153,7 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 
         private static bool IsJumpStatement(StatementSyntax? statement)
         {
-            // 
+            // Goto could be added as well
+            // but it would require more analysis
             return statement is
                 ReturnStatementSyntax or
                 BreakStatementSyntax or
@@ -168,12 +158,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
                 return false;
             }
 
-            var outerScope = ifStatement?.Parent switch
+            var outerScope = ifStatement.Parent switch
             {
                 BlockSyntax block => block,
                 SwitchSectionSyntax switchSection => switchSection.Parent,
                 GlobalStatementSyntax global => global.Parent,
-                _ => throw new ArgumentException(nameof(ifStatement.Parent))
+                _ => throw new ArgumentException($"Unsupported node type: {ifStatement.Parent?.GetType()}", nameof(ifStatement.Parent)),
             };
 
             var existingSymbols = semanticModel
