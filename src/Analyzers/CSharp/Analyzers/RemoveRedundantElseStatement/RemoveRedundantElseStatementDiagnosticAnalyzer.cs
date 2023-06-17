@@ -126,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             }
             else if (statement is IfStatementSyntax ifStatement)
             {
+                // Check for nested if/else
                 var redundantElse = FindRedundantElse(ifStatement);
                 return redundantElse is not null && AllCodePathsEndWithJump(redundantElse.Statement);
             }
@@ -133,9 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             return statement switch
             {
                 BlockSyntax block when block.Statements.Any() => AllCodePathsEndWithJump(block.Statements.Last()),
-                WhileStatementSyntax whileStatement => AllCodePathsEndWithJump(whileStatement.Statement),
-                ForStatementSyntax forStatement => AllCodePathsEndWithJump(forStatement.Statement),
-                CommonForEachStatementSyntax commonForEach => AllCodePathsEndWithJump(commonForEach.Statement),
                 _ => false,
             };
         }
