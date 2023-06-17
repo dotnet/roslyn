@@ -46,9 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
         protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var ifStatements = diagnostics.Select(diagnostic => diagnostic.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
-            var nodesToUpdate = ifStatements.Select(statement => statement.Parent);
+            var nodesToUpdate = ifStatements.Select(statement => statement.Parent!);
 
             var root = editor.OriginalRoot;
+
             var updatedRoot = root.ReplaceNodes(
                 nodesToUpdate,
                 (original, current) => ComputeReplacementNode(original, current, ifStatements)
@@ -59,17 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             return Task.CompletedTask;
         }
 
-        public static SyntaxNode ComputeReplacementNode(SyntaxNode? original, SyntaxNode? current, ISet<SyntaxNode> ifStatements)
+        public static SyntaxNode ComputeReplacementNode(SyntaxNode original, SyntaxNode current, ISet<SyntaxNode> ifStatements)
         {
-            if (original is null)
-            {
-                throw new ArgumentNullException(nameof(original));
-            }
-            else if (current is null)
-            {
-                throw new ArgumentNullException(nameof(current));
-            }
-
             return original switch
             {
                 CompilationUnitSyntax compilationUnit => RewriteGlobalStatement(compilationUnit, (CompilationUnitSyntax)current, ifStatements),
@@ -77,15 +69,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             };
         }
 
-        private static SyntaxNode RewriteGlobalStatement(CompilationUnitSyntax original, CompilationUnitSyntax current, ISet<SyntaxNode> ifStatements)
+        private static CompilationUnitSyntax RewriteGlobalStatement(CompilationUnitSyntax original, CompilationUnitSyntax current, ISet<SyntaxNode> ifStatements)
         {
             var memberToUpdateIndex = original.Members.IndexOf(ifStatements.Contains);
-            var memberToUpdate = original.Members[memberToUpdateIndex] as GlobalStatementSyntax;
+            var memberToUpdate = (GlobalStatementSyntax)original.Members[memberToUpdateIndex];
 
             var elseClause = GetLastElse((IfStatementSyntax)memberToUpdate.Statement);
             var ifWithoutElse = memberToUpdate.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
 
-            var updatedCompilationUnit = current.ReplaceNode(memberToUpdate, ifWithoutElse);
+            var updatedCompilationUnit = current.ReplaceNode(memberToUpdate, ifWithoutElse!);
             var newStatements = Expand(elseClause).Select(GlobalStatement);
 
             var updatedMembers = updatedCompilationUnit.Members
@@ -106,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             var ifWithoutElse = statementToUpdate.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
             var newStatements = new[] { ifWithoutElse }.Concat(Expand(elseClause));
 
-            var updatedStatements = currentNodeStatements.ReplaceRange(statementToUpdate, newStatements);
+            var updatedStatements = currentNodeStatements.ReplaceRange(statementToUpdate, newStatements!);
 
             return current switch
             {
