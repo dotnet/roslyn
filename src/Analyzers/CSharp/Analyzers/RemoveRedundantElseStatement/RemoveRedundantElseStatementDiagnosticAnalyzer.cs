@@ -142,11 +142,17 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
         {
             // Goto could be added as well
             // but it would require more analysis
-            return statement is
-                ReturnStatementSyntax or
-                BreakStatementSyntax or
-                ThrowStatementSyntax or
-                ContinueStatementSyntax;
+            switch (statement.Kind())
+            {
+                case SyntaxKind.ReturnStatement:
+                case SyntaxKind.BreakStatement:
+                case SyntaxKind.ContinueStatement:
+                case SyntaxKind.YieldBreakStatement:
+                case SyntaxKind.ThrowStatement:
+                    return true;
+            }
+
+            return false;
         }
 
         private static bool WillCauseVariableCollision(SemanticModel semanticModel, IfStatementSyntax ifStatement, ElseClauseSyntax elseClause, CancellationToken cancellationToken)

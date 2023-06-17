@@ -381,6 +381,85 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
         }
 
         [Fact]
+        public async Task TestRedundantElseFix_YieldBreak()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    IEnumerable<int> M(int n) 
+                    {
+                        int i = 0;
+                        while (true)
+                        {
+                            if (i == n)
+                            {
+                                yield break;
+                            }
+                            [|else|]
+                            {
+                                yield return i++;
+                            }
+                        }
+                    }
+                }
+                """, """
+                using System;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    IEnumerable<int> M(int n) 
+                    {
+                        int i = 0;
+                        while (true)
+                        {
+                            if (i == n)
+                            {
+                                yield break;
+                            }
+
+                            yield return i++;
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantElseFix_YieldReturn()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    using System.Collections.Generic;
+                    
+                    class C
+                    {
+                        IEnumerable<int> M(int n) 
+                        {
+                            int i = 0;
+                            while (true)
+                            {
+                                if (i < n)
+                                {
+                                    yield return i++;
+                                }
+                                else
+                                {
+                                    yield break;
+                                }
+                            }
+                        }
+                    }
+                    """
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestRedundantElseFix_InSwitchCase()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -599,7 +678,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
         [Fact]
         public async Task TestRedundantElseFix_GlobalStatement()
         {
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = """
                     using System;
@@ -628,9 +707,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                     OutputKind = OutputKind.ConsoleApplication
                 },
                 LanguageVersion = LanguageVersion.CSharp9
-            };
-
-            await test.RunAsync();
+            }.RunAsync();
         }
 
         [Fact]
@@ -739,7 +816,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
         [Fact]
         public async Task TestRedundantElseFix_VariableCollisionGlobalStatement()
         {
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = """
                     using System;
@@ -757,21 +834,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                         int i = 1;
                     }
                     """,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
                 LanguageVersion = LanguageVersion.CSharp9
-            };
-
-            test.ExpectedDiagnostics.Add(
-                // /0/Test0.cs(3,1): error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805").WithSpan(3, 1, 10, 2)
-            );
-
-            await test.RunAsync();
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestRedundantElseFix_VariableCollisionGlobalStatementSwitch()
         {
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = """
                     int n = 0;
@@ -795,15 +869,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                             break;
                     }
                     """,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
                 LanguageVersion = LanguageVersion.CSharp9
-            };
-
-            test.ExpectedDiagnostics.Add(
-                // /0/Test0.cs(1,1): error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805").WithSpan(1, 1, 1, 11)
-            );
-
-            await test.RunAsync();
+            }.RunAsync();
         }
 
         [Fact]
