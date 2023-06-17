@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
                 BlockSyntax block => block,
                 SwitchSectionSyntax switchSection => switchSection.Parent,
                 GlobalStatementSyntax global => global.Parent,
-                _ => throw new ArgumentException($"Unsupported node type: {ifStatement.Parent?.GetType()}", nameof(ifStatement.Parent)),
+                _ => throw new InvalidOperationException($"Invalid parent node kind: {ifStatement.Parent?.Kind()}")
             };
 
             var existingSymbols = semanticModel

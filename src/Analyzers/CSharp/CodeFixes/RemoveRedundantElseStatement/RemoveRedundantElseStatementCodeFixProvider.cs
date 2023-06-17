@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             {
                 BlockSyntax block => block.WithStatements(updatedStatements),
                 SwitchSectionSyntax switchSelection => switchSelection.WithStatements(updatedStatements),
-                _ => throw new ArgumentException($"Unsupported node type: {current.GetType()}", nameof(current)),
+                _ => throw new ArgumentException($"Invalid node kind: {current.Kind()}", nameof(current)),
             };
         }
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             {
                 BlockSyntax block => block.Statements,
                 SwitchSectionSyntax switchSelection => switchSelection.Statements,
-                _ => throw new ArgumentException($"Unsupported node type: {node.GetType()}", nameof(node)),
+                _ => throw new ArgumentException($"Invalid kind type: {node.Kind()}", nameof(node)),
             };
         }
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
                 ifStatement = elseIfStatement;
             }
 
-            return ifStatement.Else ?? throw new ArgumentException("Else can't be null", nameof(ifStatement));
+            return ifStatement.Else!;
         }
 
         private static ImmutableArray<StatementSyntax> Expand(ElseClauseSyntax elseClause)
