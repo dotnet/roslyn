@@ -620,17 +620,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                     {
                         return;
                     }
-                    
                     Console.WriteLine("Success");
 
                     """,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
                 LanguageVersion = LanguageVersion.CSharp9
             };
-
-            test.ExpectedDiagnostics.Add(
-                // /0/Test0.cs(3,1): error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805").WithSpan(3, 1, 10, 2)
-            );
 
             await test.RunAsync();
         }
