@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             return elseClause;
         }
 
-        private static bool AllCodePathsEndWithJump(StatementSyntax? statement)
+        private static bool AllCodePathsEndWithJump(StatementSyntax statement)
         {
             if (IsJumpStatement(statement))
             {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 
             return statement switch
             {
-                BlockSyntax block => AllCodePathsEndWithJump(block.Statements.LastOrDefault()),
+                BlockSyntax block when block.Statements.Any() => AllCodePathsEndWithJump(block.Statements.Last()),
                 WhileStatementSyntax whileStatement => AllCodePathsEndWithJump(whileStatement.Statement),
                 ForStatementSyntax forStatement => AllCodePathsEndWithJump(forStatement.Statement),
                 CommonForEachStatementSyntax commonForEach => AllCodePathsEndWithJump(commonForEach.Statement),
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             };
         }
 
-        private static bool IsJumpStatement(StatementSyntax? statement)
+        private static bool IsJumpStatement(StatementSyntax statement)
         {
             // Goto could be added as well
             // but it would require more analysis
