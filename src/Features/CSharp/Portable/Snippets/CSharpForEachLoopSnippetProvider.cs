@@ -63,10 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
             using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
             GetPartsOfForEachStatement(node, out var identifier, out var expression, out var _1);
-            arrayBuilder.Add(new SnippetPlaceholder(identifier.ToString(), ImmutableArray.Create(identifier.SpanStart)));
+            arrayBuilder.Add(new SnippetPlaceholder(identifier.ToString(), identifier.SpanStart));
 
             if (!ConstructedFromInlineExpression)
-                arrayBuilder.Add(new SnippetPlaceholder(expression.ToString(), ImmutableArray.Create(expression.SpanStart)));
+                arrayBuilder.Add(new SnippetPlaceholder(expression.ToString(), expression.SpanStart));
 
             return arrayBuilder.ToImmutableArray();
 
