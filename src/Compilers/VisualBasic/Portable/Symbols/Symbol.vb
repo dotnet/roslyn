@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ObsoleteState As ThreeState
             Get
                 Select Case ObsoleteKind
-                    Case ObsoleteAttributeKind.None, ObsoleteAttributeKind.Experimental
+                    Case ObsoleteAttributeKind.None, ObsoleteAttributeKind.Experimental, ObsoleteAttributeKind.NewExperimental
                         Return ThreeState.False
                     Case ObsoleteAttributeKind.Uninitialized
                         Return ThreeState.Unknown

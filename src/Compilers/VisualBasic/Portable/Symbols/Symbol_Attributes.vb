@@ -158,6 +158,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 kind = ObsoleteAttributeKind.Deprecated
             ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.ExperimentalAttribute) Then
                 kind = ObsoleteAttributeKind.Experimental
+            ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.NewExperimentalAttribute) Then
+                kind = ObsoleteAttributeKind.NewExperimental
             Else
                 boundAttribute = Nothing
                 obsoleteData = Nothing

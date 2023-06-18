@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis
         Obsolete,
         Deprecated,
         Experimental,
+        NewExperimental,
     }
 
     /// <summary>

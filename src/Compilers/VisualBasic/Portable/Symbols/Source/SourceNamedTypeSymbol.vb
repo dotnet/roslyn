@@ -1818,6 +1818,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                      AttributeDescription.ObsoleteAttribute.Name,
                                      AttributeDescription.DeprecatedAttribute.Name,
                                      AttributeDescription.ExperimentalAttribute.Name,
+                                     AttributeDescription.NewExperimentalAttribute.Name,
                                      AttributeDescription.MyGroupCollectionAttribute.Name,
                                      AttributeDescription.TypeIdentifierAttribute.Name
 

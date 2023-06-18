@@ -1321,6 +1321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case ObsoleteAttributeKind.None:
                     case ObsoleteAttributeKind.Experimental:
+                    case ObsoleteAttributeKind.NewExperimental:
                         return ThreeState.False;
                     case ObsoleteAttributeKind.Uninitialized:
                         return ThreeState.Unknown;

@@ -166,6 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 kind = ObsoleteAttributeKind.Experimental;
             }
+            else if (CSharpAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.NewExperimentalAttribute))
+            {
+                kind = ObsoleteAttributeKind.NewExperimental;
+            }
             else
             {
                 obsoleteData = null;

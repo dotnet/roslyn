@@ -157,6 +157,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 result = result Or QuickAttributes.Obsolete
             ElseIf Matches(name, inAttribute, AttributeDescription.ExperimentalAttribute) Then
                 result = result Or QuickAttributes.Obsolete
+            ElseIf Matches(name, inAttribute, AttributeDescription.NewExperimentalAttribute) Then
+                result = result Or QuickAttributes.Obsolete
             ElseIf Matches(name, inAttribute, AttributeDescription.MyGroupCollectionAttribute) Then
                 result = result Or QuickAttributes.TypeIdentifier
             ElseIf Matches(name, inAttribute, AttributeDescription.TypeIdentifierAttribute) Then

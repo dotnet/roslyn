@@ -1163,18 +1163,82 @@ namespace Microsoft.CodeAnalysis
                 return obsoleteData;
             }
 
-            // [Experimental] is always a warning, not an
-            // error, so search for [Experimental] last.
+            // [Windows.Foundation.Metadata.Experimental] is always a warning, not an error.
             info = FindTargetAttribute(token, AttributeDescription.ExperimentalAttribute);
             if (info.HasValue)
             {
                 return TryExtractExperimentalDataFromAttribute(info);
             }
 
+            // [Experimental] is always a warning, not an error, so search for it last.
+            info = FindTargetAttribute(token, AttributeDescription.NewExperimentalAttribute);
+            if (info.HasValue)
+            {
+                return TryExtractNewExperimentalDataFromAttribute(info, decoder);
+            }
+
             return null;
         }
 
 #nullable enable
+        private ObsoleteAttributeData? TryExtractNewExperimentalDataFromAttribute(AttributeInfo attributeInfo, IAttributeNamedArgumentDecoder decoder)
+        {
+            Debug.Assert(attributeInfo.HasValue);
+            if (!TryGetAttributeReader(attributeInfo.Handle, out var sig))
+            {
+                return null;
+            }
+
+            string? diagnosticId;
+            if (attributeInfo.SignatureIndex != 0)
+            {
+                throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
+            }
+
+            // ExperimentalAttribute(string)
+            if (sig.RemainingBytes <= 0 || !CrackStringInAttributeValue(out diagnosticId, ref sig))
+            {
+                return null;
+            }
+
+            string? urlFormat = crackUrlFormat(decoder, ref sig);
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.NewExperimental, message: null, isError: false, diagnosticId, urlFormat);
+
+            static string? crackUrlFormat(IAttributeNamedArgumentDecoder decoder, ref BlobReader sig)
+            {
+                if (sig.RemainingBytes <= 0)
+                {
+                    return null;
+                }
+
+                string? urlFormat = null;
+
+                try
+                {
+                    // See CIL spec section II.23.3 Custom attributes
+                    //
+                    // Next is a description of the optional “named” fields and properties.
+                    // This starts with NumNamed– an unsigned int16 giving the number of “named” properties or fields that follow.
+                    var numNamed = sig.ReadUInt16();
+                    for (int i = 0; i < numNamed && urlFormat is null; i++)
+                    {
+                        var ((name, value), isProperty, typeCode, /* elementTypeCode */ _) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
+                        if (typeCode == SerializationTypeCode.String && isProperty && value.ValueInternal is string stringValue)
+                        {
+                            if (urlFormat is null && name == ObsoleteAttributeData.UrlFormatPropertyName)
+                            {
+                                urlFormat = stringValue;
+                            }
+                        }
+                    }
+                }
+                catch (BadImageFormatException) { }
+                catch (UnsupportedSignatureContent) { }
+
+                return urlFormat;
+            }
+        }
+
         internal string? GetFirstUnsupportedCompilerFeatureFromToken(EntityHandle token, IAttributeNamedArgumentDecoder attributeNamedArgumentDecoder, CompilerFeatureRequiredFeatures allowedFeatures)
         {
             List<AttributeInfo>? infos = FindTargetAttributes(token, AttributeDescription.CompilerFeatureRequiredAttribute);
