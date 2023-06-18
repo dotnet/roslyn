@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public virtual ImmutableArray<string> AdditionalFilterTexts => ImmutableArray<string>.Empty;
 
-        protected readonly SyntaxAnnotation _cursorAnnotation = new();
-        protected readonly SyntaxAnnotation _findSnippetAnnotation = new();
+        protected readonly SyntaxAnnotation CursorAnnotation = new();
+        protected readonly SyntaxAnnotation FindSnippetAnnotation = new();
 
         /// <summary>
         /// Implemented by each SnippetProvider to determine if that particular position is a valid
@@ -106,8 +106,8 @@ namespace Microsoft.CodeAnalysis.Snippets
             var documentWithIndentation = await AddIndentationToDocumentAsync(reformattedDocument, position, syntaxFacts, cancellationToken).ConfigureAwait(false);
 
             var reformattedRoot = await documentWithIndentation.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).FirstOrDefault();
-            var mainChangeNode = reformattedRoot.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
+            var caretTarget = reformattedRoot.GetAnnotatedNodes(CursorAnnotation).FirstOrDefault();
+            var mainChangeNode = reformattedRoot.GetAnnotatedNodes(FindSnippetAnnotation).FirstOrDefault();
 
             Contract.ThrowIfNull(caretTarget);
             Contract.ThrowIfNull(mainChangeNode);
@@ -165,12 +165,12 @@ namespace Microsoft.CodeAnalysis.Snippets
                 var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
                 document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    document, _findSnippetAnnotation, addImportPlacementOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    document, FindSnippetAnnotation, addImportPlacementOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                document = await Simplifier.ReduceAsync(document, _findSnippetAnnotation, simplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Simplifier.ReduceAsync(document, FindSnippetAnnotation, simplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // format any node with explicit formatter annotation
-                document = await Formatter.FormatAsync(document, _findSnippetAnnotation, syntaxFormattingOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Formatter.FormatAsync(document, FindSnippetAnnotation, syntaxFormattingOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // format any elastic whitespace
                 document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, syntaxFormattingOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         private async Task<Document> AddFormatAnnotationAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, _findSnippetAnnotation, _cursorAnnotation, position, cancellationToken).ConfigureAwait(false);
+            var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, FindSnippetAnnotation, CursorAnnotation, position, cancellationToken).ConfigureAwait(false);
             document = document.WithSyntaxRoot(annotatedSnippetRoot);
             return document;
         }

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
+            var snippet = root.GetAnnotatedNodes(FindSnippetAnnotation).FirstOrDefault();
 
             if (snippet is not BaseTypeDeclarationSyntax originalTypeDeclaration)
                 return document;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var newTypeDeclaration = originalTypeDeclaration.WithCloseBraceToken(
                 originalTypeDeclaration.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
 
-            var newRoot = root.ReplaceNode(originalTypeDeclaration, newTypeDeclaration.WithAdditionalAnnotations(_cursorAnnotation, _findSnippetAnnotation));
+            var newRoot = root.ReplaceNode(originalTypeDeclaration, newTypeDeclaration.WithAdditionalAnnotations(CursorAnnotation, FindSnippetAnnotation));
             return document.WithSyntaxRoot(newRoot);
         }
 

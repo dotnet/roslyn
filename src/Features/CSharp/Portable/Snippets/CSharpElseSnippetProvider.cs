@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
             return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<ElseClauseSyntax>(
                 document,
-                _findSnippetAnnotation,
+                FindSnippetAnnotation,
                 static c => (BlockSyntax)c.Statement,
                 cancellationToken);
         }

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
             return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<ForEachStatementSyntax>(
                 document,
-                _findSnippetAnnotation,
+                FindSnippetAnnotation,
                 static s => (BlockSyntax)s.Statement,
                 cancellationToken);
         }
