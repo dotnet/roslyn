@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             var reformattedDocument = await CleanupDocumentAsync(formatAnnotatedSnippetDocument, cancellationToken).ConfigureAwait(false);
 
             // Finds the added snippet and adds indentation where necessary (braces).
-            var documentWithIndentation = await AddIndentationToDocumentAsync(reformattedDocument, position, syntaxFacts, cancellationToken).ConfigureAwait(false);
+            var documentWithIndentation = await AddIndentationToDocumentAsync(reformattedDocument, cancellationToken).ConfigureAwait(false);
 
             var reformattedRoot = await documentWithIndentation.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var caretTarget = reformattedRoot.GetAnnotatedNodes(CursorAnnotation).FirstOrDefault();
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// The SyntaxGenerator does not insert this space for us nor does the LSP Snippet Expander.
         /// We need to manually add that spacing to snippets containing blocks.
         /// </summary>
-        protected virtual async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected virtual async Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             return await Task.FromResult(document).ConfigureAwait(false);
         }

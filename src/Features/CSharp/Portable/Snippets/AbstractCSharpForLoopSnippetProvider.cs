@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return line.Span.End;
         }
 
-        protected override Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<ForStatementSyntax>(
                 document,

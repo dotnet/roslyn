@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return node.GetAncestorOrThis<BaseTypeDeclarationSyntax>();
         }
 
-        protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected override async Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var snippet = root.GetAnnotatedNodes(FindSnippetAnnotation).FirstOrDefault();
