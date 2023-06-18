@@ -99,11 +99,11 @@
     <PropertyGroup>
       <CompilerApiVersion>$([System.Version]::Parse($(VersionPrefix)).Major).$([System.Version]::Parse($(VersionPrefix)).Minor)</CompilerApiVersion>
       <CompilerVersionTargetsFileContent>
-<![CDATA[<Project>
+<Project>
   <PropertyGroup>
     <CompilerApiVersion>roslyn$(CompilerApiVersion)</CompilerApiVersion>
   </PropertyGroup>
-</Project>]]>
+</Project>
       </CompilerVersionTargetsFileContent>
     </PropertyGroup>
 
