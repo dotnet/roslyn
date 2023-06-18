@@ -4,13 +4,11 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -57,23 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return line.Span.End;
         }
 
-        protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected override Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
-
-            if (snippet is not ConstructorDeclarationSyntax constructorDeclaration)
-                return document;
-
-            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = СSharpSnippetIndentationHelpers.GetBlockLikeIndentationString(document, constructorDeclaration.Body!.SpanStart, syntaxFormattingOptions, cancellationToken);
-
-            var blockStatement = constructorDeclaration.Body;
-            blockStatement = blockStatement!.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
-            var newConstructorDeclaration = constructorDeclaration.ReplaceNode(constructorDeclaration.Body!, blockStatement);
-
-            var newRoot = root.ReplaceNode(constructorDeclaration, newConstructorDeclaration);
-            return document.WithSyntaxRoot(newRoot);
+            return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<ConstructorDeclarationSyntax>(
+                document,
+                _findSnippetAnnotation,
+                static d => d.Body!,
+                cancellationToken);
         }
     }
 }

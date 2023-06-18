@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -117,23 +116,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return line.Span.End;
         }
 
-        protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected override Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
-
-            if (snippet is not ForStatementSyntax forStatement)
-                return document;
-
-            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = СSharpSnippetIndentationHelpers.GetBlockLikeIndentationString(document, forStatement.Statement.SpanStart, syntaxFormattingOptions, cancellationToken);
-
-            var blockStatement = (BlockSyntax)forStatement.Statement;
-            blockStatement = blockStatement.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
-            var newForStatement = forStatement.ReplaceNode(forStatement.Statement, blockStatement);
-
-            var newRoot = root.ReplaceNode(forStatement, newForStatement);
-            return document.WithSyntaxRoot(newRoot);
+            return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<ForStatementSyntax>(
+                document,
+                _findSnippetAnnotation,
+                static s => (BlockSyntax)s.Statement,
+                cancellationToken);
         }
 
         private static void GetPartsOfForStatement(SyntaxNode node, out SyntaxNode? declaration, out SyntaxNode? condition, out SyntaxNode? incrementor, out SyntaxNode? statement)

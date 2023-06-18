@@ -4,12 +4,10 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -78,23 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return line.Span.End;
         }
 
-        protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected override Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
-
-            if (snippet is not ElseClauseSyntax elseClauseSyntax)
-                return document;
-
-            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = СSharpSnippetIndentationHelpers.GetBlockLikeIndentationString(document, elseClauseSyntax.Statement.SpanStart, syntaxFormattingOptions, cancellationToken);
-
-            var blockStatement = (BlockSyntax)elseClauseSyntax.Statement;
-            blockStatement = blockStatement.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
-            var newElseClauseSyntax = elseClauseSyntax.ReplaceNode(elseClauseSyntax.Statement, blockStatement);
-
-            var newRoot = root.ReplaceNode(elseClauseSyntax, newElseClauseSyntax);
-            return document.WithSyntaxRoot(newRoot);
+            return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<ElseClauseSyntax>(
+                document,
+                _findSnippetAnnotation,
+                static c => (BlockSyntax)c.Statement,
+                cancellationToken);
         }
     }
 }

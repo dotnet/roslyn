@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -73,23 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         }
 
-        protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected override Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
-
-            if (snippet is not ForEachStatementSyntax foreachStatement)
-                return document;
-
-            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = СSharpSnippetIndentationHelpers.GetBlockLikeIndentationString(document, foreachStatement.Statement.SpanStart, syntaxFormattingOptions, cancellationToken);
-
-            var blockStatement = (BlockSyntax)foreachStatement.Statement;
-            blockStatement = blockStatement.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
-            var newForEachStatement = foreachStatement.ReplaceNode(foreachStatement.Statement, blockStatement);
-
-            var newRoot = root.ReplaceNode(foreachStatement, newForEachStatement);
-            return document.WithSyntaxRoot(newRoot);
+            return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<ForEachStatementSyntax>(
+                document,
+                _findSnippetAnnotation,
+                static s => (BlockSyntax)s.Statement,
+                cancellationToken);
         }
 
         /// <summary>

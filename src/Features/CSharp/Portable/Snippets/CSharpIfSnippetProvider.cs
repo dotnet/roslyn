@@ -4,14 +4,11 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
@@ -44,23 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return ifStatement.Condition;
         }
 
-        protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected override Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
-
-            if (snippet is not IfStatementSyntax ifStatementSyntax)
-                return document;
-
-            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = СSharpSnippetIndentationHelpers.GetBlockLikeIndentationString(document, ifStatementSyntax.Statement.SpanStart, syntaxFormattingOptions, cancellationToken);
-
-            var blockStatement = (BlockSyntax)ifStatementSyntax.Statement;
-            blockStatement = blockStatement.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
-            var newIfStatementSyntax = ifStatementSyntax.ReplaceNode(ifStatementSyntax.Statement, blockStatement);
-
-            var newRoot = root.ReplaceNode(ifStatementSyntax, newIfStatementSyntax);
-            return document.WithSyntaxRoot(newRoot);
+            return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<IfStatementSyntax>(
+                document,
+                _findSnippetAnnotation,
+                static s => (BlockSyntax)s.Statement,
+                cancellationToken);
         }
     }
 }
