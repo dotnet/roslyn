@@ -56,7 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 
             var updatedRoot = root.ReplaceNodes(
                 nodesToUpdate,
-                (original, current) => ComputeReplacementNode(original, current, ifStatements)
+                (original, current) => original switch
+                {
+                    CompilationUnitSyntax compilationUnit => RewriteCompilationUnit(compilationUnit, (CompilationUnitSyntax)current, ifStatements),
+                    _ => RewriteNode(original, current, ifStatements),
+                }
             );
 
             editor.ReplaceNode(root, updatedRoot);
@@ -64,16 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             return Task.CompletedTask;
         }
 
-        public static SyntaxNode ComputeReplacementNode(SyntaxNode original, SyntaxNode current, ISet<SyntaxNode> ifStatements)
-        {
-            return original switch
-            {
-                CompilationUnitSyntax compilationUnit => RewriteGlobalStatement(compilationUnit, (CompilationUnitSyntax)current, ifStatements),
-                _ => RewriteNode(original, current, ifStatements),
-            };
-        }
-
-        private static CompilationUnitSyntax RewriteGlobalStatement(CompilationUnitSyntax original, CompilationUnitSyntax current, ISet<SyntaxNode> ifStatements)
+        private static CompilationUnitSyntax RewriteCompilationUnit(CompilationUnitSyntax original, CompilationUnitSyntax current, ISet<SyntaxNode> ifStatements)
         {
             var memberToUpdateIndex = original.Members.IndexOf(ifStatements.Contains);
             var memberToUpdate = (GlobalStatementSyntax)original.Members[memberToUpdateIndex];
@@ -108,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             {
                 BlockSyntax block => block.WithStatements(updatedStatements),
                 SwitchSectionSyntax switchSelection => switchSelection.WithStatements(updatedStatements),
-                _ => throw new ArgumentException($"Invalid node kind: {current.Kind()}", nameof(current)),
+                _ => throw ExceptionUtilities.UnexpectedValue(current.Kind())
             };
         }
 
@@ -118,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             {
                 BlockSyntax block => block.Statements,
                 SwitchSectionSyntax switchSelection => switchSelection.Statements,
-                _ => throw new ArgumentException($"Invalid kind type: {node.Kind()}", nameof(node)),
+                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
             };
         }
 
