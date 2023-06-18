@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -59,22 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return line.Span.End;
         }
 
-        private static string GetIndentation(Document document, ConstructorDeclarationSyntax constructorDeclaration, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
-        {
-            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(constructorDeclaration.Body!.SpanStart).LineNumber;
-
-            var indentationOptions = new IndentationOptions(syntaxFormattingOptions);
-            var newLine = indentationOptions.FormattingOptions.NewLine;
-
-            var indentationService = parsedDocument.LanguageServices.GetRequiredService<IIndentationService>();
-            var indentation = indentationService.GetIndentation(parsedDocument, openBraceLine + 1, indentationOptions, cancellationToken);
-
-            // Adding the offset calculated with one tab so that it is indented once past the line containing the opening brace
-            var newIndentation = new IndentationResult(indentation.BasePosition, indentation.Offset + syntaxFormattingOptions.TabSize);
-            return newIndentation.GetIndentationString(parsedDocument.Text, syntaxFormattingOptions.UseTabs, syntaxFormattingOptions.TabSize) + newLine;
-        }
-
         protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -84,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 return document;
 
             var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = GetIndentation(document, constructorDeclaration, syntaxFormattingOptions, cancellationToken);
+            var indentationString = СSharpSnippetIndentationHelpers.GetBlockLikeIndentationString(document, constructorDeclaration.Body!.SpanStart, syntaxFormattingOptions, cancellationToken);
 
             var blockStatement = constructorDeclaration.Body;
             blockStatement = blockStatement!.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
