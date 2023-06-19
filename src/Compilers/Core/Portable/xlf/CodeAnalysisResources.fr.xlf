@@ -696,13 +696,13 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="needs-review-translation">Échec de l'analyseur</target>
+        <target state="translated">Échec de l'analyseur</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="needs-review-translation">L'analyseur '{0}' a levé une exception de type '{1}' avec le message '{2}'.
+        <target state="translated">L'analyseur '{0}' a levé une exception de type '{1}' avec le message '{2}'.
 {3}</target>
         <note>{0}: Analyzer name
 {1}: Type name

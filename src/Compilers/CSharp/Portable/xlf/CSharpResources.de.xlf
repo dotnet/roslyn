@@ -5173,7 +5173,7 @@
       </trans-unit>
       <trans-unit id="WRN_NewNotRequired">
         <source>The member '{0}' does not hide an accessible member. The new keyword is not required.</source>
-        <target state="translated">Das Mitglied "{0}" blendet kein verfügbares Mitglied aus. Das neue Schlüsselwort ist nicht erforderlich.</target>
+        <target state="translated">Das Mitglied "{0}" blendet kein verfügbares Mitglied aus. Das Schlüsselwort "neu" ist nicht erforderlich.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewNotRequired_Title">
@@ -8701,7 +8701,7 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
         <source>Iterators cannot have pointer type parameters</source>
-        <target state="needs-review-translation">Iteratoren dürfen keine unsicheren Parameter oder yield-Typen aufweisen.</target>
+        <target state="new">Iterators cannot have pointer type parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -10044,7 +10044,7 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
         <source>Async methods cannot have pointer type parameters</source>
-        <target state="needs-review-translation">Async-Methoden dürfen über keine unsicheren Parameter oder Rückgabetypen verfügen.</target>
+        <target state="new">Async methods cannot have pointer type parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
