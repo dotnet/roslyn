@@ -7,7 +7,7 @@
 
     <!-- Avoid ID conflicts with the package project. -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
-    <MicrosoftCodeAnalysisVersion>3.9.0</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForResxSourceGenerators)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
 
   <ItemGroup>

@@ -34,7 +34,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             protected override void SetAbstractValue(AnalysisEntity analysisEntity, ValueContentAbstractValue value)
                 => SetAbstractValue(CurrentAnalysisData, analysisEntity, value);
 
-            private static void SetAbstractValue(ValueContentAnalysisData analysisData, AnalysisEntity analysisEntity, ValueContentAbstractValue value)
+            private void SetAbstractValue(ValueContentAnalysisData analysisData, AnalysisEntity analysisEntity, ValueContentAbstractValue value)
+                => SetAbstractValue(analysisData, analysisEntity, value, HasCompletePointsToAnalysisResult);
+
+            private static void SetAbstractValue(ValueContentAnalysisData analysisData, AnalysisEntity analysisEntity, ValueContentAbstractValue value, bool hasCompletePointsToAnalysisResult)
             {
                 // PERF: Avoid creating an entry if the value is the default unknown value.
                 if (value == ValueContentAbstractValue.MayBeContainsNonLiteralState &&
@@ -43,7 +46,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                     return;
                 }
 
-                analysisData.SetAbstractValue(analysisEntity, value);
+                if (analysisEntity.ShouldBeTrackedForAnalysis(hasCompletePointsToAnalysisResult))
+                {
+                    analysisData.SetAbstractValue(analysisEntity, value);
+                }
             }
 
             protected override bool HasAbstractValue(AnalysisEntity analysisEntity)

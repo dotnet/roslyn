@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 
     internal partial class GlobalFlowStateAnalysis : ForwardDataFlowAnalysis<GlobalFlowStateAnalysisData, GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisResult, GlobalFlowStateBlockAnalysisResult, GlobalFlowStateAnalysisValueSet>
     {
-        internal class GlobalFlowStateAnalysisValueSetDomain : AbstractValueDomain<GlobalFlowStateAnalysisValueSet>
+        internal sealed class GlobalFlowStateAnalysisValueSetDomain : AbstractValueDomain<GlobalFlowStateAnalysisValueSet>
         {
             public static GlobalFlowStateAnalysisValueSetDomain Instance = new();
 

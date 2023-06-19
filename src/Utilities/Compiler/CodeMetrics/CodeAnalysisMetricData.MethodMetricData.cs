@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 {
                     MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, method.ReturnType);
                 }
+
                 int? depthOfInheritance = null;
                 int maintainabilityIndex = CalculateMaintainabilityIndex(computationalComplexityMetrics, cyclomaticComplexity);
                 MetricsHelper.RemoveContainingTypes(method, coupledTypesBuilder);

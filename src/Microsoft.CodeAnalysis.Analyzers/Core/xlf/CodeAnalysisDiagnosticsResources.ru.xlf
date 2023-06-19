@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../CodeAnalysisDiagnosticsResources.resx">
     <body>
+      <trans-unit id="AddCompilationEndCustomTagDescription">
+        <source>'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</source>
+        <target state="translated">Дескриптор "DiagnosticDescriptor", назначенный полю, используется для передачи диагностических данных окончания компиляции, но конструктор "DiagnosticDescriptor" не передал необходимый настраиваемый тег "CompilationEnd". Дополнительные сведения см. в документации по "WellKnownDiagnosticTags.CompilationEnd".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddCompilationEndCustomTagMessage">
+        <source>Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</source>
+        <target state="translated">Добавить настраиваемый тег "CompilationEnd" к дескриптору диагностики, используемому для инициализации поля "{0}", поскольку он передает диагностические данные окончания компиляции</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddCompilationEndCustomTagTitle">
+        <source>Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</source>
+        <target state="translated">Добавить настраиваемый тег "CompilationEnd" к дескриптору диагностики окончания компиляции</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
         <source>Add rule entry to unshipped release file</source>
         <target state="translated">Добавить запись правила в неотправленный файл выпуска</target>
@@ -571,8 +586,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
-        <source>Do not ignore values returned by methods on immutable objects.</source>
-        <target state="translated">Не игнорируйте значения, возвращаемые методами для неизменяемых объектов.</target>
+        <source>Do not ignore values returned by methods on immutable objects</source>
+        <target state="translated">Не игнорировать значения, возвращаемые методами для неизменяемых объектов</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">

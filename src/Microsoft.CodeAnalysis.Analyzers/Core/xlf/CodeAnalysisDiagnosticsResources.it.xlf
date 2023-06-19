@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../CodeAnalysisDiagnosticsResources.resx">
     <body>
+      <trans-unit id="AddCompilationEndCustomTagDescription">
+        <source>'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</source>
+        <target state="translated">'DiagnosticDescriptor' assegnato al campo viene usato per segnalare una diagnostica di fine compilazione, ma il costruttore 'DiagnosticDescriptor' utilizzato per inizializzarlo non passa il tag personalizzato richiesto "CompilationEnd". Per informazioni dettagliate, vedere la documentazione di 'WellKnownDiagnosticTags.CompilationEnd'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddCompilationEndCustomTagMessage">
+        <source>Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</source>
+        <target state="translated">Aggiungere il tag personalizzato "CompilationEnd" al descrittore di diagnostica usato per inizializzare il campo '{0}' in quanto viene usato per segnalare una diagnostica di fine compilazione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddCompilationEndCustomTagTitle">
+        <source>Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</source>
+        <target state="translated">Aggiungere il tag personalizzato "CompilationEnd" al descrittore di diagnostica di fine della compilazione</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
         <source>Add rule entry to unshipped release file</source>
         <target state="translated">Aggiungere la voce della regola per il file di versione non distribuito</target>
@@ -571,8 +586,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
-        <source>Do not ignore values returned by methods on immutable objects.</source>
-        <target state="translated">Non ignorare i valori restituiti dai metodi su oggetti non modificabili.</target>
+        <source>Do not ignore values returned by methods on immutable objects</source>
+        <target state="translated">Non ignorare i valori restituiti dai metodi su oggetti non modificabili</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">

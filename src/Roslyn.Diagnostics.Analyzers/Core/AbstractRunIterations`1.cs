@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
@@ -70,11 +71,11 @@ namespace Roslyn.Diagnostics.Analyzers
             context.RegisterRefactoring(
                 CodeAction.Create(
                     RoslynDiagnosticsAnalyzersResources.Run_iterations,
-                    cancellationToken => RunIterationsAsync(context.Document, method, convertToTheory, cancellationToken),
+                    cancellationToken => AbstractRunIterations<TMethodDeclarationSyntax>.RunIterationsAsync(context.Document, method, convertToTheory, cancellationToken),
                     equivalenceKey: nameof(RoslynDiagnosticsAnalyzersResources.Run_iterations)));
         }
 
-        private async Task<Document> RunIterationsAsync(Document document, TMethodDeclarationSyntax method, bool convertToTheory, CancellationToken cancellationToken)
+        private static async Task<Document> RunIterationsAsync(Document document, TMethodDeclarationSyntax method, bool convertToTheory, CancellationToken cancellationToken)
         {
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
             SyntaxNode updatedMethod = method;
@@ -84,14 +85,14 @@ namespace Roslyn.Diagnostics.Analyzers
                 foreach (var attribute in syntaxGenerator.GetAttributes(method))
                 {
                     var name = syntaxGenerator.GetName(attribute);
-                    if (name.EndsWith("Fact"))
+                    if (name.EndsWith("Fact", StringComparison.Ordinal))
                     {
                         updatedMethod = updatedMethod.ReplaceNode(
                             attribute,
                             ReplaceName(syntaxGenerator, attribute, name[0..^4] + "Theory"));
                         break;
                     }
-                    else if (name.EndsWith("FactAttribute"))
+                    else if (name.EndsWith("FactAttribute", StringComparison.Ordinal))
                     {
                         updatedMethod = updatedMethod.ReplaceNode(
                             attribute,
@@ -125,7 +126,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 updatedMethod = syntaxGenerator.WithStatements(updatedMethod, new[] { assignment }.Concat(statements));
             }
 
-            var root = await method.SyntaxTree.GetRootAsync(cancellationToken);
+            var root = await method.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(root.ReplaceNode(method, updatedMethod));
         }
 

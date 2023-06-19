@@ -11,7 +11,7 @@ namespace Analyzer.Utilities
     /// <see cref="IComparer{T}"/> for <see cref="ITypeSymbol"/>s sorted by display strings.
     /// </summary>
 #pragma warning disable CA1812 // Is too instantiated.
-    internal class SymbolByDisplayStringComparer : IComparer<ITypeSymbol>
+    internal sealed class SymbolByDisplayStringComparer : IComparer<ITypeSymbol>
 #pragma warning restore CA1812
     {
         /// <summary>

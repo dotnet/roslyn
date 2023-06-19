@@ -17,21 +17,6 @@
         <target state="translated">Çözümdeki tüm öğeleri API'ye ekleyin</target>
         <note />
       </trans-unit>
-      <trans-unit id="AnnotateAllItemsInDocumentToTheApiTitle">
-        <source>Annotate all items in document '{0}' in the API</source>
-        <target state="translated">API'de yer alan '{0}' belgesindeki tüm öğelere not ekleyin</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInProjectToTheApiTitle">
-        <source>Annotate all items in project '{0}' in the API</source>
-        <target state="translated">API'de yer alan '{0}' projesindeki tüm öğelere not ekleyin</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInTheSolutionToTheApiTitle">
-        <source>Annotate all items in the solution in the API</source>
-        <target state="translated">API'de yer alan çözümdeki tüm öğelere not ekleyin</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnnotateInternalApiDescription">
         <source>All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
         <target state="translated">Tüm genel türler ve üyeler PublicAPI.txt içinde null atanabilirlik ek açıklamalarıyla tanımlanmalıdır. Bu işlem, kod incelemeleri ve kaynak denetimi geçmişindeki API null atanabilirlik değişikliklerine dikkat çeker ve hataya neden olan değişikliklerin önlenmesine yardımcı olur.</target>
@@ -177,16 +162,6 @@
         <target state="translated">Dahili API dosyalarının içeriği geçersiz</target>
         <note />
       </trans-unit>
-      <trans-unit id="InternalApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": InternalAPI.Unshipped.txt and internalAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">Çözüm, "AdditionalFiles" türünde iki dosya içermelidir: InternalAPI.Unshipped.txt ve internalAPI.Shipped.txt. Bu dosyalardan en az biri eksik veya yanlış türde.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="InternalApiFilesMissingTitle">
-        <source>One or both of the internal API files are missing</source>
-        <target state="translated">Dahili API dosyalarından biri veya ikisi eksik</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ObliviousInternalApiDescription">
         <source>All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
         <target state="translated">Tüm dahili üyeler, null atanabilir veya null atanamaz başvuru türleri kullanmalı, ancak habersiz başvuru türleri kullanmamalıdır.</target>
@@ -245,16 +220,6 @@
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
         <target state="translated">Genel API dosyalarının içerikleri geçersiz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">Çözüm, "AdditionalFiles" türüne sahip iki dosya içermelidir: PublicAPI.Unshipped.txt ve PublicAPI.Shipped.txt. Bu dosyalardan en az biri eksik veya yanlış türe sahip.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingTitle">
-        <source>One or both of the public API files are missing</source>
-        <target state="translated">Ortak API dosyalarından biri veya her ikisi de eksik</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiDescription">

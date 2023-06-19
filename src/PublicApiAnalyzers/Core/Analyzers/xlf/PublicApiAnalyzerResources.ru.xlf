@@ -17,21 +17,6 @@
         <target state="translated">Добавить все элементы решения в API</target>
         <note />
       </trans-unit>
-      <trans-unit id="AnnotateAllItemsInDocumentToTheApiTitle">
-        <source>Annotate all items in document '{0}' in the API</source>
-        <target state="translated">Добавлять заметки для всех элементов в документе "{0}" в API</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInProjectToTheApiTitle">
-        <source>Annotate all items in project '{0}' in the API</source>
-        <target state="translated">Добавлять заметки для всех элементов в проекте "{0}" в API</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInTheSolutionToTheApiTitle">
-        <source>Annotate all items in the solution in the API</source>
-        <target state="translated">Добавлять заметки ко всем элементам решения в API</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnnotateInternalApiDescription">
         <source>All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
         <target state="translated">Все внутренние типы и элементы должны быть объявлены в InternalAPI.txt. с заметками допустимости значений NULL. Это привлекает внимание к изменениям допустимости значений NULL в API при проверках кода и в журнале системы управления версиями и помогает предотвратить критические изменения.</target>
@@ -177,16 +162,6 @@
         <target state="translated">Недопустимое содержимое внутренних файлов API</target>
         <note />
       </trans-unit>
-      <trans-unit id="InternalApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": InternalAPI.Unshipped.txt and internalAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">Решение должно содержать два файла с типом "AdditionalFiles": InternalAPI.Unshipped.txt и internalAPI.Shipped.txt. По меньшей мере один из этих файлов отсутствует или относится к неправильному типу.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="InternalApiFilesMissingTitle">
-        <source>One or both of the internal API files are missing</source>
-        <target state="translated">Отсутствует один или оба файла внутреннего API</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ObliviousInternalApiDescription">
         <source>All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
         <target state="translated">Все внутренние элементы должны использовать ссылочные типы, допускающие или не допускающие значение NULL, но не игнорируемые ссылочные типы.</target>
@@ -245,16 +220,6 @@
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
         <target state="translated">Недопустимое содержимое файлов открытого API</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">Решение должно содержать два файла с типом "AdditionalFiles": PublicAPI.Unshipped.txt и PublicAPI.Shipped.txt. По меньшей мере один из этих файлов отсутствует или имеет неправильный тип.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingTitle">
-        <source>One or both of the public API files are missing</source>
-        <target state="translated">Отсутствует один или оба файла открытого API</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiDescription">

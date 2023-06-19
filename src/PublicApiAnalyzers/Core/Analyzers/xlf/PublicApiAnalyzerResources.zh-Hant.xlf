@@ -17,21 +17,6 @@
         <target state="translated">將解決方案中的所有項目新增至 API</target>
         <note />
       </trans-unit>
-      <trans-unit id="AnnotateAllItemsInDocumentToTheApiTitle">
-        <source>Annotate all items in document '{0}' in the API</source>
-        <target state="translated">標註 API 中文件 '{0}' 的所有項目</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInProjectToTheApiTitle">
-        <source>Annotate all items in project '{0}' in the API</source>
-        <target state="translated">標註 API 中專案 '{0}' 的所有項目</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInTheSolutionToTheApiTitle">
-        <source>Annotate all items in the solution in the API</source>
-        <target state="translated">標註 API 中解決方案的所有項目</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnnotateInternalApiDescription">
         <source>All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
         <target state="translated">應在 InternalAPI.txt 中宣告所有內部類型與成員並加上可 NULL 性註釋。這麼做會讓您注意到程式碼檢閱與原始檔控制歷程記錄中的 API 可 NULL 性變更，同時有助於避免重大變更。</target>
@@ -177,16 +162,6 @@
         <target state="translated">內部 API 檔案的內容無效</target>
         <note />
       </trans-unit>
-      <trans-unit id="InternalApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": InternalAPI.Unshipped.txt and internalAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">解決方案必須包含兩個類型為 "AdditionalFiles" 的檔案: InternalAPI.Unshipped.txt 與 internalAPI.Shipped.txt。這些檔案中至少遺失一個或具有錯誤的類型。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="InternalApiFilesMissingTitle">
-        <source>One or both of the internal API files are missing</source>
-        <target state="translated">遺失兩個內部 API 檔案的其中一個或兩者</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ObliviousInternalApiDescription">
         <source>All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
         <target state="translated">所有內部成員都應使用可為 Null 或不可為 Null 的參考類型，但不可使用無警示的參考類型。</target>
@@ -245,16 +220,6 @@
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
         <target state="translated">公用 API 檔案的內容無效</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">解決方案必須包含兩個類型為 "AdditionalFiles" 的檔案: PublicAPI.Unshipped.txt 與 PublicAPI.Shipped.txt。其中至少缺少一個檔案或檔案類型錯誤。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingTitle">
-        <source>One or both of the public API files are missing</source>
-        <target state="translated">缺少兩個公用 API 檔案的其中一個或兩者</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiDescription">

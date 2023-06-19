@@ -30,8 +30,7 @@ namespace Test.Utilities
                 TestCode = source,
             };
 
-            test.ExpectedDiagnostics.AddRange(expected);
-            await test.RunAsync();
+            await RunTestAsync(test, expected);
         }
 
         public static Task VerifyCodeFixAsync(string source, string fixedSource)
@@ -48,6 +47,11 @@ namespace Test.Utilities
                 FixedCode = fixedSource,
             };
 
+            await RunTestAsync(test, expected);
+        }
+
+        public static async Task RunTestAsync(Test test, params DiagnosticResult[] expected)
+        {
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }

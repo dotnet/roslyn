@@ -15,7 +15,7 @@ using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
 
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 {
-    // For specification of document comment IDs see https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/documentation-comments#processing-the-documentation-file
+    // For specification of document comment IDs see https://learn.microsoft.com/dotnet/csharp/language-reference/language-specification/documentation-comments#processing-the-documentation-file
 
     public class SymbolIsBannedAnalyzerTests
     {
@@ -82,6 +82,19 @@ End Class");
         }
 
         [Fact]
+        public async Task NoDiagnosticReportedForMultilineBlankBannedTextAsync()
+        {
+            var source = @"
+
+
+";
+
+            var bannedText = @"";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact]
         public async Task DiagnosticReportedForDuplicateBannedApiLinesAsync()
         {
             var source = @"";
@@ -139,6 +152,238 @@ End Class");
 
             await test.RunAsync();
         }
+
+        #region Comments in BannedSymbols.txt tests
+
+        [Fact]
+        public async Task DiagnosticReportedForDuplicateBannedApiLinesWithCommentsAsync()
+        {
+            var source = @"";
+            var bannedText = @"
+{|#0:T:System.Console|} " + '\t' + @" //comment here with whitespace before it
+{|#1:T:System.Console|}//should not affect the reported duplicate";
+
+            var expected = new DiagnosticResult(SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule)
+                .WithLocation(1)
+                .WithLocation(0)
+                .WithArguments("System.Console");
+            await VerifyCSharpAnalyzerAsync(source, bannedText, expected);
+        }
+
+        [Fact]
+        public async Task DiagnosticReportedForDuplicateBannedApiLinesWithCommentsInDifferentFiles()
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { @"" },
+                    AdditionalFiles =
+                    {
+                        ("BannedSymbols.txt", @"{|#0:T:System.Console|} //ignore this") ,
+                        ("BannedSymbols.Other.txt", @"{|#1:T:System.Console|} //comment will not affect result")
+                    },
+                },
+                ExpectedDiagnostics =
+                {
+                    new DiagnosticResult(SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule)
+                        .WithLocation(0)
+                        .WithLocation(1)
+                        .WithArguments("System.Console")
+                }
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task NoDiagnosticReportedForCommentLine()
+        {
+            var source = @"";
+            var bannedText = @"// this comment line will be ignored";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
+            await VerifyBasicAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact]
+        public async Task NoDiagnosticReportedForCommentedOutBannedApiLineAsync()
+        {
+            var bannedText = @"//T:N.Banned";
+
+            var csharpSource = @"
+namespace N
+{
+    class Banned { }
+    class C
+    {
+        void M()
+        {
+            var c = new Banned();
+        }
+    }
+}";
+
+            await VerifyCSharpAnalyzerAsync(csharpSource, bannedText);
+
+            var visualBasicSource = @"
+Namespace N
+    Class Banned : End Class
+    Class C
+        Sub M()
+            Dim c As New Banned()
+        End Sub
+    End Class
+End Namespace";
+
+            await VerifyBasicAnalyzerAsync(visualBasicSource, bannedText);
+        }
+
+        [Fact]
+        public async Task NoDiagnosticReportedForCommentLineThatBeginsWithWhitespaceAsync()
+        {
+            var bannedText = @"  // comment here";
+
+            var csharpSource = @"
+namespace N
+{
+    class Banned { }
+    class C
+    {
+        void M()
+        {
+            var c = new Banned();
+        }
+    }
+}";
+
+            await VerifyCSharpAnalyzerAsync(csharpSource, bannedText);
+
+            var visualBasicSource = @"
+Namespace N
+    Class Banned : End Class
+    Class C
+        Sub M()
+            Dim c As New Banned()
+        End Sub
+    End Class
+End Namespace";
+
+            await VerifyBasicAnalyzerAsync(visualBasicSource, bannedText);
+        }
+
+        [Fact]
+        public async Task NoDiagnosticReportedForCommentedOutDuplicateBannedApiLinesAsync()
+        {
+            var source = @"";
+            var bannedText = @"
+//T:System.Console
+//T:System.Console";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
+            await VerifyBasicAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact]
+        public async Task DiagnosticReportedForBannedApiLineWithCommentAtTheEndAsync()
+        {
+            var bannedText = @"T:N.Banned//comment here";
+
+            var csharpSource = @"
+namespace N
+{
+    class Banned { }
+    class C
+    {
+        void M()
+        {
+            var c = {|#0:new Banned()|};
+        }
+    }
+}";
+
+            await VerifyCSharpAnalyzerAsync(csharpSource, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+
+            var visualBasicSource = @"
+Namespace N
+    Class Banned : End Class
+    Class C
+        Sub M()
+            Dim c As {|#0:New Banned()|}
+        End Sub
+    End Class
+End Namespace";
+
+            await VerifyBasicAnalyzerAsync(visualBasicSource, bannedText, GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+        }
+
+        [Fact]
+        public async Task DiagnosticReportedForBannedApiLineWithWhitespaceThenCommentAtTheEndAsync()
+        {
+            var bannedText = "T:N.Banned \t //comment here";
+
+            var csharpSource = @"
+namespace N
+{
+    class Banned { }
+    class C
+    {
+        void M()
+        {
+            var c = {|#0:new Banned()|};
+        }
+    }
+}";
+
+            await VerifyCSharpAnalyzerAsync(csharpSource, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+
+            var visualBasicSource = @"
+Namespace N
+    Class Banned : End Class
+    Class C
+        Sub M()
+            Dim c As {|#0:New Banned()|}
+        End Sub
+    End Class
+End Namespace";
+
+            await VerifyBasicAnalyzerAsync(visualBasicSource, bannedText, GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+        }
+
+        [Fact]
+        public async Task DiagnosticReportedForBannedApiLineWithMessageThenWhitespaceFollowedByCommentAtTheEndMustNotIncludeWhitespaceInMessageAsync()
+        {
+            var bannedText = "T:N.Banned;message \t //comment here";
+
+            var csharpSource = @"
+namespace N
+{
+    class Banned { }
+    class C
+    {
+        void M()
+        {
+            var c = {|#0:new Banned()|};
+        }
+    }
+}";
+
+            await VerifyCSharpAnalyzerAsync(csharpSource, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ": message"));
+
+            var visualBasicSource = @"
+Namespace N
+    Class Banned : End Class
+    Class C
+        Sub M()
+            Dim c As {|#0:New Banned()|}
+        End Sub
+    End Class
+End Namespace";
+
+            await VerifyBasicAnalyzerAsync(visualBasicSource, bannedText, GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ": message"));
+        }
+
+        #endregion Comments in BannedSymbols.txt tests
 
         [Fact]
         public async Task CSharp_BannedApiFile_MessageIncludedInDiagnosticAsync()
@@ -287,6 +532,159 @@ namespace N
 T:N.Banned";
 
             await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedNamespace_ConstructorAsync()
+        {
+            var source = @"
+namespace N
+{
+    class C
+    {
+        void M()
+        {
+            var c = {|#0:new N.C()|};
+        }
+    }
+}
+";
+
+            var bannedText = @"
+N:N";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedNamespace_Parent_ConstructorAsync()
+        {
+            var source = @"
+namespace N.NN
+{
+    class C
+    {
+        void M()
+        {
+            var a = {|#0:new N.NN.C()|};
+        }
+    }
+}
+";
+
+            var bannedText = @"
+N:N";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedNamespace_MethodGroupAsync()
+        {
+            var source = @"
+namespace N
+{
+    delegate void D();
+    class C
+    {
+        void M()
+        {
+            D d = {|#0:M|};
+        }
+    }
+}
+";
+
+            var bannedText = @"
+N:N";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedNamespace_PropertyAsync()
+        {
+            var source = @"
+namespace N
+{
+    class C
+    {
+        public int P { get; set; }
+        void M()
+        {
+            {|#0:P|} = {|#1:P|};
+        }
+    }
+}
+";
+
+            var bannedText = @"
+N:N";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText,
+                GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""),
+                GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedNamespace_MethodAsync()
+        {
+            var source = @"
+namespace N
+{
+    interface I
+    {
+        void M();
+    }
+}
+
+class C
+{
+    void M()
+    {
+        N.I i = null;
+        {|#0:i.M()|};
+    }
+}";
+            var bannedText = @"N:N";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedNamespace_TypeOfArgument()
+        {
+            var source = @"
+namespace N
+{
+    class Banned {  }
+}
+class C
+{
+    void M()
+    {
+        var type = {|#0:typeof(N.Banned)|};
+    }
+}
+";
+            var bannedText = @"N:N";
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedNamespace_Constituent()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var thread = {|#0:new System.Threading.Thread((System.Threading.ThreadStart)null)|};
+    }
+}
+";
+            var bannedText = @"N:System.Threading";
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "System.Threading", ""));
         }
 
         [Fact]

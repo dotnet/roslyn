@@ -55,7 +55,7 @@ If you are in the process of annotating an existing project, we recommended to d
 
 Sometimes APIs vary by compilation symbol such as target framework.
 
-For example when using the [`#if` preprocessor directive](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives/preprocessor-if):
+For example when using the [`#if` preprocessor directive](https://learn.microsoft.com/dotnet/csharp/language-reference/preprocessor-directives/preprocessor-if):
 
 ```c#
         public void Foo(string s)

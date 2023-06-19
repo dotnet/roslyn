@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
                     // 1st we try and fallback to using the ConvertedType
                     enumerator = typeInfo.ConvertedType.GetMembers("GetEnumerator");
                 }
+
                 if ((enumerator == null || enumerator.IsEmpty) && typeInfo.Type.Interfaces != null)
                 {
                     // 2nd fallback, now we try and find the IEnumerable Interface explicitly

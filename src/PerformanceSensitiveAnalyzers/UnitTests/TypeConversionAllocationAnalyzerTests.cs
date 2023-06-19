@@ -36,12 +36,12 @@ public class MyObject
         _ = new MyObject(10); // Allocation
     }
 }",
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(18, 17),
-#pragma warning restore RS0030 // Do not used banned APIs
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(19, 26)
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
             );
         }
 
@@ -120,13 +120,13 @@ public class MyObject
 
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(9,22): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(9, 22),
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
                 // Test0.cs(15,22): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(15, 22));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         [Fact]
@@ -189,9 +189,9 @@ public class MyClass
 
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(21,22): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(21, 22));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         [Fact]
@@ -217,13 +217,13 @@ public class MyClass
 
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(10,26): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(10, 26),
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
                 // Test0.cs(13,18): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(13, 18));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         [Fact]
@@ -301,9 +301,9 @@ public class MyClass
 
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(9,25): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(9, 25));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         [Fact]
@@ -390,17 +390,17 @@ public struct MyStruct
 
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(9,30): warning HAA0603: This will allocate a delegate instance
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(9, 30),
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
                 // Test0.cs(22,30): warning HAA0603: This will allocate a delegate instance
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(22, 30),
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
                 // Test0.cs(22,30): warning HAA0602: Struct instance method being used for delegate creation, this will result in a boxing instruction
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithLocation(22, 30));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         [Fact]
@@ -423,9 +423,9 @@ public class MyClass
 
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(10,31): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(10, 31));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         [Fact]
@@ -447,9 +447,9 @@ public class MyClass
 
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(9,26): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(9, 26));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         [Fact]
@@ -470,9 +470,9 @@ public struct AStruct
 
             await VerifyCS.VerifyAnalyzerAsync(programWithoutImplicitCastOperator,
                 // Test0.cs(10,34): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(10, 34));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
 
             const string programWithImplicitCastOperator = @"
 using System;
@@ -520,9 +520,9 @@ public struct AStruct
 
             await VerifyCS.VerifyAnalyzerAsync(programWithoutImplicitCastOperator,
                 // Test0.cs(10,22): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(10, 22));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
 
             const string programWithImplicitCastOperator = @"
 using System;
@@ -563,9 +563,9 @@ class Program
 
             await VerifyCS.VerifyAnalyzerAsync(source,
                 // Test0.cs(10,23): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(10, 23));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
 #if false
@@ -600,9 +600,9 @@ class Program
 
             await VerifyCS.VerifyAnalyzerAsync(source,
                 // Test0.cs(8,68): info HeapAnalyzerReadonlyMethodGroupAllocationRule: This will allocate a delegate instance
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ReadonlyMethodGroupAllocationRule).WithLocation(8, 68));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         [Fact]
@@ -620,9 +620,9 @@ class Program
 
             await VerifyCS.VerifyAnalyzerAsync(snippet,
                 // Test0.cs(8,19): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(8, 19));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         [Fact]
@@ -658,9 +658,9 @@ class Program
 
             await VerifyCS.VerifyAnalyzerAsync(snippet,
                 // Test0.cs(10,24): warning HAA0603: This will allocate a delegate instance
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(10, 24));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         [Fact]
@@ -701,9 +701,9 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(source,
                 // Test0.cs(11,27): warning HAA0601: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(11, 27));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         [Fact]
@@ -726,13 +726,13 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(source,
                 // Test0.cs(12,22): warning HAA0603: This will allocate a delegate instance
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(12, 22),
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
                 // Test0.cs(12,22): warning HAA0602: Struct instance method being used for delegate creation, this will result in a boxing instruction
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithLocation(12, 22));
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         [Fact]

@@ -184,10 +184,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     TaintedDataAbstractValue childValue = Visit(childOperation, argument);
                     if (childValue.Kind == TaintedDataAbstractValueKind.Tainted)
                     {
-                        if (taintedValues == null)
-                        {
-                            taintedValues = new List<TaintedDataAbstractValue>();
-                        }
+                        taintedValues ??= new List<TaintedDataAbstractValue>();
 
                         taintedValues.Add(childValue);
                     }
@@ -645,10 +642,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     {
                         if (methodMatcher(method.Name, arguments))
                         {
-                            if (taintedParameterPairs == null)
-                            {
-                                taintedParameterPairs = PooledHashSet<(string, string)>.GetInstance();
-                            }
+                            taintedParameterPairs ??= PooledHashSet<(string, string)>.GetInstance();
 
                             taintedParameterPairs.UnionWith(sourceToEnds.Where(s => taintedParameterNames.Contains(s.source)));
                         }

@@ -40,7 +40,9 @@ namespace Microsoft.CodeAnalysis
         /// Rule which should have <b>no false positives</b>, and is a valuable IDE live analysis suggestion for opportunistic improvement, but not something to be enforced in CI.
         /// This rule will be <b>enabled by default as an IDE-only suggestion</b> with severity <see cref="DiagnosticSeverity.Info"/> which will be shown in "Messages" tab in Error list.
         /// </summary>
+#pragma warning disable CA1069 // Enums values should not be duplicated - BuildWarningCandidate is used to mark a separate bucket of rules that could be promoted.
         IdeSuggestion = 3,
+#pragma warning restore CA1069 // Enums values should not be duplicated
 
         /// <summary>
         /// Rule which <b>may have some false positives</b> and hence would be noisy to be enabled by default as a suggestion or a warning in IDE live analysis or CI.

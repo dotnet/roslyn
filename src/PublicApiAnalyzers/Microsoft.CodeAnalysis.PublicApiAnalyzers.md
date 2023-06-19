@@ -146,7 +146,7 @@ Symbol '{0}' is marked as removed but it isn't deleted in source code
 
 ## [RS0051](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Add internal types and members to the declared API
 
-All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.
+All internal types and members should be declared in InternalAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.
 
 |Item|Value|
 |-|-|
@@ -206,7 +206,7 @@ All internal types and members should be declared with nullability annotations i
 
 ## [RS0056](https://github.com/dotnet/roslyn-analyzers/blob/main/src/InternalApiAnalyzers/InternalApiAnalyzers.Help.md): Enable tracking of nullability of reference types in the declared API
 
-PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).
+InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).
 
 |Item|Value|
 |-|-|

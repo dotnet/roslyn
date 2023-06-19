@@ -8,3 +8,5 @@ M:System.Reflection.Assembly.Load(System.Reflection.AssemblyName); Analyzers sho
 M:System.Reflection.Assembly.Load(System.Byte[],System.Byte[]); Analyzers should only load their dependencies via standard runtime mechanisms
 P:System.Globalization.CultureInfo.CurrentCulture; Analyzers should use the locale given by the compiler command line arguments, not the CurrentCulture
 P:System.Globalization.CultureInfo.CurrentUICulture; Analyzers should use the locale given by the compiler command line arguments, not the CurrentUICulture
+T:Microsoft.CodeAnalysis.GeneratorInitializationContext; Non-incremental source generators should not be used, implement IIncrementalGenerator instead
+T:Microsoft.CodeAnalysis.GeneratorExecutionContext; Non-incremental source generators should not be used, implement IIncrementalGenerator instead

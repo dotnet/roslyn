@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.Analyzers",
-        "version": "3.3.4",
+        "version": "3.3.5",
         "language": "en-US"
       },
       "rules": {
@@ -92,7 +92,6 @@
               "Visual Basic"
             ],
             "tags": [
-              "CompilationEnd",
               "Telemetry"
             ]
           }
@@ -111,7 +110,24 @@
               "Visual Basic"
             ],
             "tags": [
-              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1014": {
+          "id": "RS1014",
+          "shortDescription": "Do not ignore values returned by methods on immutable objects",
+          "fullDescription": "Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "ImmutableObjectMethodAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
               "Telemetry"
             ]
           }
@@ -148,7 +164,6 @@
               "Visual Basic"
             ],
             "tags": [
-              "CompilationEnd",
               "Telemetry"
             ]
           }
@@ -442,6 +457,24 @@
             ]
           }
         },
+        "RS1037": {
+          "id": "RS1037",
+          "shortDescription": "Add \"CompilationEnd\" custom tag to compilation end diagnostic descriptor",
+          "fullDescription": "'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag \"CompilationEnd\". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
         "RS2000": {
           "id": "RS2000",
           "shortDescription": "Add analyzer diagnostic IDs to analyzer release",
@@ -623,7 +656,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.Analyzers",
-        "version": "3.3.4",
+        "version": "3.3.5",
         "language": "en-US"
       },
       "rules": {
@@ -746,23 +779,6 @@
             ]
           }
         },
-        "RS1014": {
-          "id": "RS1014",
-          "shortDescription": "Do not ignore values returned by methods on immutable objects.",
-          "fullDescription": "Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "MicrosoftCodeAnalysisCorrectness",
-            "isEnabledByDefault": true,
-            "typeName": "CSharpImmutableObjectMethodAnalyzer",
-            "languages": [
-              "C#"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
         "RS1022": {
           "id": "RS1022",
           "shortDescription": "Do not use types from Workspaces assembly in an analyzer",
@@ -838,7 +854,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.VisualBasic.Analyzers",
-        "version": "3.3.4",
+        "version": "3.3.5",
         "language": "en-US"
       },
       "rules": {

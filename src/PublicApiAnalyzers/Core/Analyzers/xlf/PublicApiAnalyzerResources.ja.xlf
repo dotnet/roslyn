@@ -17,21 +17,6 @@
         <target state="translated">ソリューション内のすべての項目を API へ追加</target>
         <note />
       </trans-unit>
-      <trans-unit id="AnnotateAllItemsInDocumentToTheApiTitle">
-        <source>Annotate all items in document '{0}' in the API</source>
-        <target state="translated">API のドキュメント '{0}' 内のすべての項目に注釈を付ける</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInProjectToTheApiTitle">
-        <source>Annotate all items in project '{0}' in the API</source>
-        <target state="translated">API のプロジェクト '{0}' 内のすべての項目に注釈を付ける</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInTheSolutionToTheApiTitle">
-        <source>Annotate all items in the solution in the API</source>
-        <target state="translated">API のソリューション内のすべての項目に注釈を付ける</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnnotateInternalApiDescription">
         <source>All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
         <target state="translated">すべての内部の型とメンバーは、NULL 値許容の注釈を付けて、InternalAPI.txt で宣言する必要があります。これにより、コード レビューとソース管理履歴で API の NULL 値の許容の変更に注意を引くことができ、破壊的変更を防ぐことができます。</target>
@@ -177,16 +162,6 @@
         <target state="translated">内部 API ファイルのコンテンツが無効</target>
         <note />
       </trans-unit>
-      <trans-unit id="InternalApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": InternalAPI.Unshipped.txt and internalAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">ソリューションには、種類が "AdditionalFiles" の 2 つのファイル (InternalAPI.Unshipped.txt と InternalAPI.Unshipped.txt) が含まれている必要があります。これらのファイルのうち少なくとも 1 つが見つからないか、種類が正しくありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="InternalApiFilesMissingTitle">
-        <source>One or both of the internal API files are missing</source>
-        <target state="translated">内部 API ファイルの 1 つまたは両方が見つからない</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ObliviousInternalApiDescription">
         <source>All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
         <target state="translated">すべての内部メンバーは、Null 許容参照型と null 非許容参照型のいずれかを使用する必要がありますが、oblivious 参照型は使用しません。</target>
@@ -245,16 +220,6 @@
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
         <target state="translated">パブリック API ファイルのコンテンツが無効です</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">ソリューションには、種類が "AdditionalFiles" の 2 つのファイル (PublicAPI.Unshipped.txt と PublicAPI.Shipped.txt) が含まれている必要があります。これらのファイルのうち少なくとも 1 つが見つからないか、種類が正しくありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingTitle">
-        <source>One or both of the public API files are missing</source>
-        <target state="translated">パブリック API ファイルの 1 つまたは両方が見つからない</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiDescription">

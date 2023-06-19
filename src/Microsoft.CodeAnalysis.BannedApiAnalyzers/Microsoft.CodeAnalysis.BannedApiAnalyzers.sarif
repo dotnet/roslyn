@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.BannedApiAnalyzers",
-        "version": "3.3.4",
+        "version": "3.3.5",
         "language": "en-US"
       },
       "rules": {
@@ -14,13 +14,13 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers",
-        "version": "3.3.4",
+        "version": "3.3.5",
         "language": "en-US"
       },
       "rules": {
         "RS0030": {
           "id": "RS0030",
-          "shortDescription": "Do not used banned APIs",
+          "shortDescription": "Do not use banned APIs",
           "fullDescription": "The symbol has been marked as banned in this project, and an alternate should be used instead.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
@@ -77,13 +77,13 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers",
-        "version": "3.3.4",
+        "version": "3.3.5",
         "language": "en-US"
       },
       "rules": {
         "RS0030": {
           "id": "RS0030",
-          "shortDescription": "Do not used banned APIs",
+          "shortDescription": "Do not use banned APIs",
           "fullDescription": "The symbol has been marked as banned in this project, and an alternate should be used instead.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",

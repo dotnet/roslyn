@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 value = PointsToAbstractValue.Create(AbstractLocation.CreateAnalysisEntityDefaultLocation(analysisEntity), mayBeNull: true);
 
                 // PERF: Do not track entity and its points to value for partial analysis for entities requiring complete analysis.
-                if (PointsToAnalysisKind == PointsToAnalysisKind.Complete ||
-                    !analysisEntity.IsChildOrInstanceMemberNeedingCompletePointsToAnalysis())
+                if (analysisEntity.ShouldBeTrackedForPointsToAnalysis(PointsToAnalysisKind))
                 {
                     _trackedEntitiesBuilder.AddEntityAndPointsToValue(analysisEntity, value);
                     _defaultPointsToValueMapBuilder.Add(analysisEntity, value);

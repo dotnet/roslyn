@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return false;
             }
 
-            return pointsToAnalysisKind == PointsToAnalysisKind.Complete || !analysisEntity.IsChildOrInstanceMemberNeedingCompletePointsToAnalysis();
+            return analysisEntity.ShouldBeTrackedForPointsToAnalysis(pointsToAnalysisKind);
         }
 
         [Conditional("DEBUG")]

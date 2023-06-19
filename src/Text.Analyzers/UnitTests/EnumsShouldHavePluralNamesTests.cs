@@ -555,27 +555,27 @@ End Class
         }
 
         private static DiagnosticResult GetCSharpPluralResultAt(int line, int column)
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
             => VerifyCS.Diagnostic(EnumsShouldHavePluralNamesAnalyzer.Rule_CA1714)
                 .WithLocation(line, column);
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
 
         private static DiagnosticResult GetBasicPluralResultAt(int line, int column)
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
             => VerifyVB.Diagnostic(EnumsShouldHavePluralNamesAnalyzer.Rule_CA1714)
                 .WithLocation(line, column);
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
 
         private static DiagnosticResult GetCSharpNoPluralResultAt(int line, int column)
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
             => VerifyCS.Diagnostic(EnumsShouldHavePluralNamesAnalyzer.Rule_CA1717)
                 .WithLocation(line, column);
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
 
         private static DiagnosticResult GetBasicNoPluralResultAt(int line, int column)
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
             => VerifyVB.Diagnostic(EnumsShouldHavePluralNamesAnalyzer.Rule_CA1717)
                 .WithLocation(line, column);
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
     }
 }

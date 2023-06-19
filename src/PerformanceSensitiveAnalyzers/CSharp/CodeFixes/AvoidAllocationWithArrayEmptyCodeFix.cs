@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
                             context.RegisterCodeFix(codeAction, diagnostic);
                         }
                     }
+
                     break;
                 case ArrayCreationExpressionSyntax arrayCreation:
                     {
@@ -87,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
                             context.RegisterCodeFix(codeAction, diagnostic);
                         }
                     }
+
                     break;
             }
         }

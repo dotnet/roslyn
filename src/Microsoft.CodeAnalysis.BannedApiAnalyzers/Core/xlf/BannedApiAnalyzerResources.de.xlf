@@ -43,8 +43,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedTitle">
-        <source>Do not used banned APIs</source>
-        <target state="translated">Keine gesperrten APIs verwenden</target>
+        <source>Do not use banned APIs</source>
+        <target state="translated">Gesperrte APIs nicht verwenden</target>
         <note />
       </trans-unit>
     </body>

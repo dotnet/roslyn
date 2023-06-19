@@ -37,7 +37,7 @@ namespace Analyzer.Utilities.PooledObjects
     /// Rationale: 
     ///    If there is no intent for reusing the object, do not use pool - just use "new". 
     /// </summary>
-    internal class ObjectPool<T> where T : class
+    internal sealed class ObjectPool<T> where T : class
     {
         [DebuggerDisplay("{Value,nq}")]
 #pragma warning disable CA1815 // Override equals and operator equals on value types

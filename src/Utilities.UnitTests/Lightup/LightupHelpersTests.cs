@@ -93,7 +93,7 @@ namespace Analyzer.Utilities.UnitTests.Lightup
         }
 
         [SuppressMessage("MicrosoftCodeAnalysisCompatibility", "RS1009:Only internal implementations of this interface are allowed.", Justification = "Stub for testing.")]
-        private class EmptySymbol : ISymbol
+        private sealed class EmptySymbol : ISymbol
         {
             SymbolKind ISymbol.Kind => throw new NotImplementedException();
             string ISymbol.Language => throw new NotImplementedException();

@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using System;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Operations;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
     public abstract class SymbolIsBannedAnalyzerBase<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        protected abstract Dictionary<ISymbol, BanFileEntry>? ReadBannedApis(CompilationStartAnalysisContext compilationContext);
+        protected abstract Dictionary<(string ContainerName, string SymbolName), ImmutableArray<BanFileEntry>>? ReadBannedApis(CompilationStartAnalysisContext compilationContext);
 
         protected abstract DiagnosticDescriptor SymbolIsBannedRule { get; }
 
@@ -38,18 +38,11 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
         private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
         {
-            var entryBySymbol = ReadBannedApis(compilationContext);
-
-            if (entryBySymbol == null || entryBySymbol.Count == 0)
-            {
+            var bannedApis = ReadBannedApis(compilationContext);
+            if (bannedApis == null || bannedApis.Count == 0)
                 return;
-            }
 
-            Dictionary<ISymbol, BanFileEntry> entryByAttributeSymbol = entryBySymbol
-                .Where(pair => pair.Key is ITypeSymbol n && n.IsAttribute())
-                .ToDictionary(pair => pair.Key, pair => pair.Value);
-
-            if (entryByAttributeSymbol.Count > 0)
+            if (ShouldAnalyzeAttributes())
             {
                 compilationContext.RegisterCompilationEndAction(
                     context =>
@@ -70,6 +63,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             compilationContext.RegisterOperationAction(
                 context =>
                 {
+                    context.CancellationToken.ThrowIfCancellationRequested();
                     switch (context.Operation)
                     {
                         case IObjectCreationOperation objectCreation:
@@ -101,6 +95,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                 VerifySymbol(context.ReportDiagnostic, conversion.OperatorMethod, context.Operation.Syntax);
                                 VerifyType(context.ReportDiagnostic, conversion.OperatorMethod.ContainingType, context.Operation.Syntax);
                             }
+
                             break;
 
                         case IUnaryOperation unary:
@@ -109,6 +104,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                 VerifySymbol(context.ReportDiagnostic, unary.OperatorMethod, context.Operation.Syntax);
                                 VerifyType(context.ReportDiagnostic, unary.OperatorMethod.ContainingType, context.Operation.Syntax);
                             }
+
                             break;
 
                         case IBinaryOperation binary:
@@ -117,6 +113,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                 VerifySymbol(context.ReportDiagnostic, binary.OperatorMethod, context.Operation.Syntax);
                                 VerifyType(context.ReportDiagnostic, binary.OperatorMethod.ContainingType, context.Operation.Syntax);
                             }
+
                             break;
 
                         case IIncrementOrDecrementOperation incrementOrDecrement:
@@ -125,6 +122,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                 VerifySymbol(context.ReportDiagnostic, incrementOrDecrement.OperatorMethod, context.Operation.Syntax);
                                 VerifyType(context.ReportDiagnostic, incrementOrDecrement.OperatorMethod.ContainingType, context.Operation.Syntax);
                             }
+
                             break;
                         case ITypeOfOperation typeOfOperation:
                             VerifyType(context.ReportDiagnostic, typeOfOperation.TypeOperand, context.Operation.Syntax);
@@ -152,11 +150,57 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             return;
 
+            bool IsBannedSymbol([NotNullWhen(true)] ISymbol? symbol, [NotNullWhen(true)] out BanFileEntry? entry)
+            {
+                if (symbol is { ContainingSymbol.Name: string parentName } &&
+                    bannedApis.TryGetValue((parentName, symbol.Name), out var entries))
+                {
+                    foreach (var bannedFileEntry in entries)
+                    {
+                        foreach (var bannedSymbol in bannedFileEntry.Symbols)
+                        {
+                            if (SymbolEqualityComparer.Default.Equals(symbol, bannedSymbol))
+                            {
+                                entry = bannedFileEntry;
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                entry = null;
+                return false;
+            }
+
+            bool ShouldAnalyzeAttributes()
+            {
+                // We want to avoid realizing symbols here as that can be very expensive.  So we instead use a simple
+                // heuristic which works thanks to .net coding conventions.  Specifically, we look to see if the banned
+                // api is a type that ends in 'Attribute'.  In that case, we do the work to try to get the real symbol.
+                foreach (var kvp in bannedApis)
+                {
+                    if (!kvp.Key.SymbolName.EndsWith("Attribute", StringComparison.InvariantCulture))
+                        continue;
+
+                    foreach (var entry in kvp.Value)
+                    {
+                        if (entry.DeclarationId.StartsWith("T", StringComparison.InvariantCulture) &&
+                            entry.Symbols.Any(s => s is INamedTypeSymbol namedType && namedType.IsAttribute()))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+
             void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes, CancellationToken cancellationToken)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 foreach (var attribute in attributes)
                 {
-                    if (attribute.AttributeClass is { } attributeClass && entryByAttributeSymbol.TryGetValue(attributeClass, out var entry))
+                    if (IsBannedSymbol(attribute.AttributeClass, out var entry))
                     {
                         var node = attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken);
                         if (node != null)
@@ -164,7 +208,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                             reportDiagnostic(
                                 node.CreateDiagnostic(
                                     SymbolIsBannedRule,
-                                    attributeClass.ToDisplayString(),
+                                    attribute.AttributeClass.ToDisplayString(),
                                     string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
                         }
                     }
@@ -173,8 +217,6 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             bool VerifyType(Action<Diagnostic> reportDiagnostic, ITypeSymbol? type, SyntaxNode syntaxNode)
             {
-                RoslynDebug.Assert(entryBySymbol != null);
-
                 do
                 {
                     if (!VerifyTypeArguments(reportDiagnostic, type, syntaxNode, out type))
@@ -188,7 +230,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                         return true;
                     }
 
-                    if (entryBySymbol.TryGetValue(type, out var entry))
+                    if (IsBannedSymbol(type, out var entry))
                     {
                         reportDiagnostic(
                             syntaxNode.CreateDiagnostic(
@@ -198,11 +240,37 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                         return false;
                     }
 
+                    foreach (var currentNamespace in GetContainingNamespaces(type))
+                    {
+                        if (IsBannedSymbol(currentNamespace, out entry))
+                        {
+                            reportDiagnostic(
+                                syntaxNode.CreateDiagnostic(
+                                    SymbolIsBannedRule,
+                                    currentNamespace.ToDisplayString(),
+                                    string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
+                            return false;
+                        }
+                    }
+
                     type = type.ContainingType;
                 }
                 while (!(type is null));
 
                 return true;
+
+                static IEnumerable<INamespaceSymbol> GetContainingNamespaces(ISymbol symbol)
+                {
+                    INamespaceSymbol? currentNamespace = symbol.ContainingNamespace;
+
+                    while (currentNamespace is { IsGlobalNamespace: false })
+                    {
+                        foreach (var constituent in currentNamespace.ConstituentNamespaces)
+                            yield return constituent;
+
+                        currentNamespace = currentNamespace.ContainingNamespace;
+                    }
+                }
             }
 
             bool VerifyTypeArguments(Action<Diagnostic> reportDiagnostic, ITypeSymbol? type, SyntaxNode syntaxNode, out ITypeSymbol? originalDefinition)
@@ -220,6 +288,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                 return false;
                             }
                         }
+
                         break;
 
                     case IArrayTypeSymbol arrayTypeSymbol:
@@ -241,11 +310,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             void VerifySymbol(Action<Diagnostic> reportDiagnostic, ISymbol symbol, SyntaxNode syntaxNode)
             {
-                RoslynDebug.Assert(entryBySymbol != null);
-
                 foreach (var currentSymbol in GetSymbolAndOverridenSymbols(symbol))
                 {
-                    if (entryBySymbol.TryGetValue(currentSymbol, out var entry))
+                    if (IsBannedSymbol(currentSymbol, out var entry))
                     {
                         reportDiagnostic(
                             syntaxNode.CreateDiagnostic(
@@ -296,7 +363,10 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             public string DeclarationId { get; }
             public string Message { get; }
 
-            public BanFileEntry(string text, TextSpan span, SourceText sourceText, string path)
+            private readonly Lazy<ImmutableArray<ISymbol>> _lazySymbols;
+            public ImmutableArray<ISymbol> Symbols => _lazySymbols.Value;
+
+            public BanFileEntry(Compilation compilation, string text, TextSpan span, SourceText sourceText, string path)
             {
                 // Split the text on semicolon into declaration ID and message
                 var index = text.IndexOf(';');
@@ -320,6 +390,22 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 Span = span;
                 SourceText = sourceText;
                 Path = path;
+
+                _lazySymbols = new Lazy<ImmutableArray<ISymbol>>(
+                    () => DocumentationCommentId.GetSymbolsForDeclarationId(DeclarationId, compilation)
+                        .SelectMany(ExpandConstituentNamespaces).ToImmutableArray());
+
+                static IEnumerable<ISymbol> ExpandConstituentNamespaces(ISymbol symbol)
+                {
+                    if (symbol is not INamespaceSymbol namespaceSymbol)
+                    {
+                        yield return symbol;
+                        yield break;
+                    }
+
+                    foreach (var constituent in namespaceSymbol.ConstituentNamespaces)
+                        yield return constituent;
+                }
             }
 
             public Location Location => Location.Create(Path, Span, SourceText.Lines.GetLinePositionSpan(Span));

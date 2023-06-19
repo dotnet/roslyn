@@ -17,21 +17,6 @@
         <target state="translated">Přidat všechny položky v řešení do rozhraní API</target>
         <note />
       </trans-unit>
-      <trans-unit id="AnnotateAllItemsInDocumentToTheApiTitle">
-        <source>Annotate all items in document '{0}' in the API</source>
-        <target state="translated">Přidat anotaci ke všem položkám v dokumentu {0} v rozhraní API</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInProjectToTheApiTitle">
-        <source>Annotate all items in project '{0}' in the API</source>
-        <target state="translated">Přidat anotaci ke všem položkám v projektu {0} rozhraní API</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnnotateAllItemsInTheSolutionToTheApiTitle">
-        <source>Annotate all items in the solution in the API</source>
-        <target state="translated">Přidat anotaci ke všem položkám v řešení v rozhraní API</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnnotateInternalApiDescription">
         <source>All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
         <target state="translated">Všechny interní typy a členy by se měly deklarovat s anotacemi o možnosti použití hodnoty null v souboru InternalAPI.txt. To přitáhne pozornost ke změnám možnosti použití hodnoty null u rozhraní API při revizích a v historii správy zdrojového kódu a pomůže předejít změnám způsobujícím chybu.</target>
@@ -177,16 +162,6 @@
         <target state="translated">Obsah souborů interních rozhraní API není platný</target>
         <note />
       </trans-unit>
-      <trans-unit id="InternalApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": InternalAPI.Unshipped.txt and internalAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">Řešení musí obsahovat dva soubory typu AdditionalFiles: InternalAPI.Unshipped.txt a InternalAPI.Shipped.txt. Nejméně jeden z těchto souborů chybí nebo nemá správný typ.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="InternalApiFilesMissingTitle">
-        <source>One or both of the internal API files are missing</source>
-        <target state="translated">Chybí nejméně jeden soubor interního rozhraní API</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ObliviousInternalApiDescription">
         <source>All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
         <target state="translated">Všechny interní členové by měly používat odkazové typy s možnou hodnotou null, nebo bez ní, ale ne odkazové typy bez určení možnosti použití hodnoty null.</target>
@@ -245,16 +220,6 @@
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
         <target state="translated">Obsah souborů veřejných rozhraní API není platný</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingMessage">
-        <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="translated">Řešení musí obsahovat dva soubory typu AdditionalFiles: PublicAPI.Unshipped.txt a PublicAPI.Shipped.txt. Nejméně jeden z těchto souborů chybí nebo nemá správný typ.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="PublicApiFilesMissingTitle">
-        <source>One or both of the public API files are missing</source>
-        <target state="translated">Chybí nejméně jeden soubor veřejného rozhraní API</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiDescription">

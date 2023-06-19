@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         public void AddEntityAndPointsToValue(AnalysisEntity analysisEntity, PointsToAbstractValue value)
         {
-            Debug.Assert(PointsToAnalysisKind == PointsToAnalysisKind.Complete || !analysisEntity.IsChildOrInstanceMemberNeedingCompletePointsToAnalysis());
+            Debug.Assert(analysisEntity.ShouldBeTrackedForPointsToAnalysis(PointsToAnalysisKind));
 
             AllEntities.Add(analysisEntity);
             AddTrackedPointsToValue(value);

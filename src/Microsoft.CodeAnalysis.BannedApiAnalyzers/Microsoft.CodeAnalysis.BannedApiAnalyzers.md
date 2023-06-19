@@ -1,6 +1,6 @@
 # Microsoft.CodeAnalysis.BannedApiAnalyzers
 
-## [RS0030](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md): Do not used banned APIs
+## [RS0030](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md): Do not use banned APIs
 
 The symbol has been marked as banned in this project, and an alternate should be used instead.
 

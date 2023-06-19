@@ -15,7 +15,7 @@ namespace Analyzer.Utilities
     /// Provider that allows analyzers to easily find and use
     /// <see href="https://github.com/dotnet/roslyn/blob/main/docs/analyzers/Using%20Additional%20Files.md">additional files</see>.
     /// </summary>
-    internal class AdditionalFileProvider
+    internal sealed class AdditionalFileProvider
     {
         private readonly ImmutableArray<AdditionalText> _additionalFiles;
 

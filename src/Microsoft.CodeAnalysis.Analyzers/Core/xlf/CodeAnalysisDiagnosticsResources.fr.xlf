@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../CodeAnalysisDiagnosticsResources.resx">
     <body>
+      <trans-unit id="AddCompilationEndCustomTagDescription">
+        <source>'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</source>
+        <target state="translated">'DiagnosticDescriptor' affecté au champ est utilisé pour signaler un diagnostic de fin de compilation, mais le constructeur 'DiagnosticDescriptor' utilisé pour l’initialiser ne passe pas la balise personnalisée requise « CompilationEnd ». Pour plus d’informations, consultez la documentation de « WellKnownDiagnosticTags.CompilationEnd ».</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddCompilationEndCustomTagMessage">
+        <source>Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</source>
+        <target state="translated">Ajouter la balise personnalisée « CompilationEnd » au descripteur de diagnostic utilisé pour initialiser le champ «{0}», car il est utilisé pour signaler un diagnostic de fin de compilation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddCompilationEndCustomTagTitle">
+        <source>Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</source>
+        <target state="translated">Ajouter la balise personnalisée « CompilationEnd » au descripteur de diagnostic de fin de compilation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
         <source>Add rule entry to unshipped release file</source>
         <target state="translated">Ajouter une entrée de règle au fichier de version non fourni</target>
@@ -571,8 +586,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
-        <source>Do not ignore values returned by methods on immutable objects.</source>
-        <target state="translated">N'ignorez pas les valeurs retournées par les méthodes sur les objets non modifiables.</target>
+        <source>Do not ignore values returned by methods on immutable objects</source>
+        <target state="translated">Ne pas ignorer les valeurs retournées par les méthodes sur les objets immuables</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">
