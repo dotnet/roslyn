@@ -272,6 +272,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute,
 
         System_Runtime_CompilerServices_IsReadOnlyAttribute,
+        System_Runtime_CompilerServices_RequiresLocationAttribute,
         System_Runtime_CompilerServices_IsByRefLikeAttribute,
         System_Runtime_InteropServices_InAttribute,
         System_ObsoleteAttribute,
@@ -329,8 +330,6 @@ namespace Microsoft.CodeAnalysis
 
         System_MissingMethodException,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
-
-        System_Runtime_CompilerServices_RequiresLocationAttribute,
 
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
@@ -598,6 +597,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.ReferenceAssemblyAttribute",
 
             "System.Runtime.CompilerServices.IsReadOnlyAttribute",
+            "System.Runtime.CompilerServices.RequiresLocationAttribute",
             "System.Runtime.CompilerServices.IsByRefLikeAttribute",
             "System.Runtime.InteropServices.InAttribute",
             "System.ObsoleteAttribute",
@@ -651,8 +651,6 @@ namespace Microsoft.CodeAnalysis
             "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute",
             "System.MissingMethodException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
-
-            "System.Runtime.CompilerServices.RequiresLocationAttribute",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

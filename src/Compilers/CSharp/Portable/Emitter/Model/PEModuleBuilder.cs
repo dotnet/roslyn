@@ -1557,6 +1557,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return TrySynthesizeIsReadOnlyAttribute();
         }
 
+        internal SynthesizedAttributeData SynthesizeRequiresLocationAttribute(ParameterSymbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                Debug.Assert(false); // PROTOTYPE: Test this code path.
+                return null;
+            }
+
+            return SynthesizeRequiresLocationAttribute();
+        }
+
+        protected virtual SynthesizedAttributeData SynthesizeRequiresLocationAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
+        }
+
         internal SynthesizedAttributeData SynthesizeIsUnmanagedAttribute(Symbol symbol)
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
@@ -1735,24 +1753,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
             return Compilation.TrySynthesizeAttribute(member, isOptionalUse: true);
-        }
-
-        internal SynthesizedAttributeData SynthesizeRequiresLocationAttribute(ParameterSymbol symbol)
-        {
-            if ((object)Compilation.SourceModule != symbol.ContainingModule)
-            {
-                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
-                Debug.Assert(false); // PROTOTYPE: Test this code path.
-                return null;
-            }
-
-            return SynthesizeRequiresLocationAttribute();
-        }
-
-        protected virtual SynthesizedAttributeData SynthesizeRequiresLocationAttribute()
-        {
-            // For modules, this attribute should be present. Only assemblies generate and embed this type.
-            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
         }
 
         internal virtual SynthesizedAttributeData SynthesizeRefSafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)

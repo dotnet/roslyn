@@ -399,6 +399,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription InAttribute = new AttributeDescription("System.Runtime.InteropServices", "InAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription OutAttribute = new AttributeDescription("System.Runtime.InteropServices", "OutAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription IsReadOnlyAttribute = new AttributeDescription("System.Runtime.CompilerServices", "IsReadOnlyAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription RequiresLocationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RequiresLocationAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription IsUnmanagedAttribute = new AttributeDescription("System.Runtime.CompilerServices", "IsUnmanagedAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription CoClassAttribute = new AttributeDescription("System.Runtime.InteropServices", "CoClassAttribute", s_signatures_HasThis_Void_Type_Only);
         internal static readonly AttributeDescription GuidAttribute = new AttributeDescription("System.Runtime.InteropServices", "GuidAttribute", s_signatures_HasThis_Void_String_Only);
@@ -479,6 +480,5 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription SetsRequiredMembersAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "SetsRequiredMembersAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription CompilerFeatureRequiredAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CompilerFeatureRequiredAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription UnscopedRefAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "UnscopedRefAttribute", s_signatures_HasThis_Void_Only);
-        internal static readonly AttributeDescription RequiresLocationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RequiresLocationAttribute", s_signatures_HasThis_Void_Only);
     }
 }

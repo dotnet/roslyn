@@ -3295,6 +3295,13 @@ namespace Microsoft.CodeAnalysis
                  0,                                                                                                                                             // Arity
                      0,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                
+                 // System_Runtime_CompilerServices_RequiresLocationAttribute__ctor
+                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                     0,                                                                                                                                         // Method Signature
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
                  // System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
                  (byte)(MemberFlags.Constructor),                                                                                                               // Flags
@@ -3981,13 +3988,6 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                                       // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                                       // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
-                
-                // System_Runtime_CompilerServices_RequiresLocationAttribute__ctor
-                (byte)(MemberFlags.Constructor),                                                                                                                // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute - WellKnownType.ExtSentinel),   // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
-                     0,                                                                                                                                         // Method Signature
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -4396,6 +4396,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_RequiresLocationAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_ObsoleteAttribute__ctor
                 ".ctor",                                    // System_Span_T__ctor_Pointer
@@ -4483,7 +4484,6 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor
                 ".ctor",                                    // System_MissingMethodException__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute
-                ".ctor",                                    // System_Runtime_CompilerServices_RequiresLocationAttribute__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
