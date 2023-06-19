@@ -8536,7 +8536,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
         <source>Iterators cannot have pointer type parameters</source>
-        <target state="needs-review-translation">Iteratory nie mogą mieć niebezpiecznych parametrów ani typów przekazywania.</target>
+        <target state="new">Iterators cannot have pointer type parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9879,7 +9879,7 @@ Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nada
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
         <source>Async methods cannot have pointer type parameters</source>
-        <target state="needs-review-translation">Metody asynchroniczne nie mogą zawierać niezabezpieczonych parametrów ani zwracanych typów.</target>
+        <target state="new">Async methods cannot have pointer type parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">

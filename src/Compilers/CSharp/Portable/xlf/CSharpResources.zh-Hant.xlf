@@ -1909,7 +1909,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
-        <target state="new">instance member in 'nameof'</target>
+        <target state="translated">'nameof' 中的實例成員</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -8536,7 +8536,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
         <source>Iterators cannot have pointer type parameters</source>
-        <target state="needs-review-translation">迭代器不能有 Unsafe 參數或 yield 類型</target>
+        <target state="translated">迭代器不能具有指標型別參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9879,7 +9879,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
         <source>Async methods cannot have pointer type parameters</source>
-        <target state="needs-review-translation">非同步方法不能有 Unsafe 參數或 return 類型</target>
+        <target state="translated">非同步方法不能具有指標型別參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">

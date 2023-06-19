@@ -1779,7 +1779,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
         <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
-        <target state="new">Cannot use primary constructor parameter of type '{0}' inside an instance member</target>
+        <target state="translated">No se puede usar el parámetro de constructor principal de tipo '{0}' dentro de un miembro de instancia</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
@@ -1909,7 +1909,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
-        <target state="new">instance member in 'nameof'</target>
+        <target state="translated">miembro de instancia en 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -8536,7 +8536,7 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
         <source>Iterators cannot have pointer type parameters</source>
-        <target state="needs-review-translation">Los iteradores no pueden tener parámetros no seguros o tipos yield</target>
+        <target state="translated">Los iteradores no pueden tener parámetros de tipo de puntero</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9879,7 +9879,7 @@ Indique al compilador alguna forma de diferenciar los métodos. Por ejemplo, pue
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
         <source>Async methods cannot have pointer type parameters</source>
-        <target state="needs-review-translation">Los métodos asincrónicos no pueden tener parámetros no seguros o tipos de valor devuelto</target>
+        <target state="translated">Los métodos asincrónicos no pueden tener parámetros de tipo de puntero</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
