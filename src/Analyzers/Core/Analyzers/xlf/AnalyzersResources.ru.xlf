@@ -51,16 +51,16 @@
     &lt;NoWarn&gt;$(NoWarn),1573,1591,1712&lt;/NoWarn&gt;
   &lt;/PropertyGroup&gt;
     </source>
-        <target state="translated">Добавьте следующую группу свойств в файл проекта MSBuild, чтобы включить IDE0005 (удалить ненужное использование или импорт) при сборке.:
+        <target state="translated">Добавьте следующую группу свойств в файл проекта MSBuild, чтобы включить IDE0005 (удалить ненужное использование или импорт) при сборке:
   &lt;PropertyGroup&gt;
     &lt;!--
-      Make sure any documentation comments which are included in code get checked for syntax during the build, but do
-      not report warnings for missing comments.
-      CS1573: Parameter 'parameter' has no matching param tag in the XML comment for 'parameter' (but other parameters do)
-      CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member'
-      CS1712: Type parameter 'type_parameter' has no matching typeparam tag in the XML comment on 'type_or_member' (but other type parameters do)
+      Убедитесь, что любые комментарии к документации, включенные в код, проверяются на синтаксис во время сборки, но
+      не сообщайте о предупреждениях об отсутствующих комментариях.
+      CS1573: у параметра 'parameter' нет соответствующего тега param в комментарии XML для 'parameter' (но у других параметров есть)
+      CS1591: отсутствует комментарий XML для общедоступного типа или члена 'Type_or_Member'
+      CS1712: у параметра типа 'type_parameter' нет соответствующего тега typeparam в комментарии XML для 'type_or_member' (но у других параметров типа есть)
     --&gt;
-    &lt;GenerateDocumentationFile&gt;ИСТИНА&lt;/GenerateDocumentationFile&gt;
+    &lt;GenerateDocumentationFile&gt;True&lt;/GenerateDocumentationFile&gt;
     &lt;NoWarn&gt;$(NoWarn),1573,1591,1712&lt;/NoWarn&gt;
   &lt;/PropertyGroup&gt;
     </target>
