@@ -994,12 +994,12 @@
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
         <source>The #line directive end position must be greater than or equal to the start position</source>
-        <target state="translated">#Line 指示詞結束位置必須大於或等於開始位置</target>
+        <target state="translated">#line 指示詞結束位置必須大於或等於開始位置</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
         <source>The #line directive value is missing or out of range</source>
-        <target state="translated">#Line 指示詞值遺漏或超出範圍</target>
+        <target state="translated">#line 指示詞值遺漏或超出範圍</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
@@ -1779,7 +1779,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
         <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
-        <target state="new">Cannot use primary constructor parameter of type '{0}' inside an instance member</target>
+        <target state="translated">無法使用執行個體成員內類型 '{0}' 的主要建構函式參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
@@ -1909,7 +1909,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
-        <target state="translated">'nameof' 中的實例成員</target>
+        <target state="translated">'nameof' 中的執行個體成員</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">

@@ -1004,7 +1004,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
         <source>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</source>
-        <target state="translated">A #linha de intervalo requer espaço antes do primeiro parêntese, antes do deslocamento do caractere e antes do nome do arquivo</target>
+        <target state="translated">A #line de intervalo requer espaço antes do primeiro parêntese, antes do deslocamento do caractere e antes do nome do arquivo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
@@ -1779,7 +1779,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
         <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
-        <target state="new">Cannot use primary constructor parameter of type '{0}' inside an instance member</target>
+        <target state="translated">Não é possível usar o parâmetro de construtor primário do tipo '{0}' dentro de um membro da instância</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
@@ -1909,7 +1909,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
-        <target state="new">instance member in 'nameof'</target>
+        <target state="translated">membro da instância em 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -8536,7 +8536,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
         <source>Iterators cannot have pointer type parameters</source>
-        <target state="new">Iterators cannot have pointer type parameters</target>
+        <target state="translated">Iteradores não podem ter parâmetros de tipo de ponteiro</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9879,7 +9879,7 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
         <source>Async methods cannot have pointer type parameters</source>
-        <target state="new">Async methods cannot have pointer type parameters</target>
+        <target state="translated">Os métodos assíncronos não podem ter parâmetros de tipo de ponteiro</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
