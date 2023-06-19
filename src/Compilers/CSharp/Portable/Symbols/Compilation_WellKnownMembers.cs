@@ -526,6 +526,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute, diagnostics, location, modifyCompilation);
         }
 
+        internal void EnsureRequiresLocationAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute, diagnostics, location, modifyCompilation);
+        }
+
         internal void EnsureIsByRefLikeAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsByRefLikeAttribute, diagnostics, location, modifyCompilation);
@@ -555,11 +560,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void EnsureScopedRefAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.ScopedRefAttribute, diagnostics, location, modifyCompilation);
-        }
-
-        internal void EnsureRequiresLocationAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
-        {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute, diagnostics, location, modifyCompilation);
         }
 
         internal bool CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes attribute, BindingDiagnosticBag? diagnosticsOpt, Location locationOpt)

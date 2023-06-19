@@ -86,11 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
             var compilation = DeclaringCompilation;
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
             ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
-            ParameterHelpers.EnsureRequiresLocationAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true, moduleBuilder: null);
 
             foreach (var parameter in this.Parameters)
             {

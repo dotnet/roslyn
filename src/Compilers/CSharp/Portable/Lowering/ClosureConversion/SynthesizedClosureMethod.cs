@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 moduleBuilder.EnsureIsReadOnlyAttributeExists();
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(moduleBuilder, Parameters);
+            ParameterHelpers.EnsureRefKindAttributesExist(moduleBuilder, Parameters);
 
             if (moduleBuilder.Compilation.ShouldEmitNativeIntegerAttributes())
             {
@@ -151,8 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ParameterHelpers.EnsureNullableAttributeExists(moduleBuilder, this, Parameters);
-
-            ParameterHelpers.EnsureRequiresLocationAttributeExists(compilation: null, Parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
         }
 
         private static DeclarationModifiers MakeDeclarationModifiers(ClosureKind closureKind, MethodSymbol originalMethod)

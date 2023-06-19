@@ -1814,6 +1814,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute);
         }
 
+        internal void EnsureRequiresLocationAttributeExists()
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute);
+        }
+
         internal void EnsureIsUnmanagedAttributeExists()
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsUnmanagedAttribute);
@@ -1838,11 +1843,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal void EnsureScopedRefAttributeExists()
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.ScopedRefAttribute);
-        }
-
-        internal void EnsureRequiresLocationAttributeExists()
-        {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute);
         }
 
 #nullable enable

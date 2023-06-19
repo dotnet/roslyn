@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
 
             if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
             {
@@ -267,8 +267,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
-
-            ParameterHelpers.EnsureRequiresLocationAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true, moduleBuilder: null);
 
             Location getReturnTypeLocation()
             {

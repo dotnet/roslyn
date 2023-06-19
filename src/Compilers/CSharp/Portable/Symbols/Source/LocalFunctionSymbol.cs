@@ -125,11 +125,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetReturnTypeAttributes();
 
             var compilation = DeclaringCompilation;
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
+            ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, addTo, modifyCompilation: false);
-            ParameterHelpers.EnsureRequiresLocationAttributeExists(compilation, Parameters, addTo, modifyCompilation: false, moduleBuilder: null);
 
             addTo.AddRange(_declarationDiagnostics);
             addTo.AddDependencies((IReadOnlyCollection<AssemblySymbol>)_declarationDependencies);
