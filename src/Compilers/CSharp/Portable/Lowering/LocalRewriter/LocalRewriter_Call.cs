@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(interceptableLocation != null);
-            Debug.Assert((object)interceptor.OriginalDefinition == interceptor);
+            Debug.Assert(interceptor.IsDefinition);
             Debug.Assert(!interceptor.ContainingType.IsGenericType);
 
             if (interceptor.Arity != 0)
@@ -161,24 +161,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stack.Push(type);
                 }
 
-                var typeArgumentsBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
-                do
-                {
-                    // gather the type arguments starting from outermost containing type in to the method.
-                    typeArgumentsBuilder.AddRange(stack.Pop().GetMemberTypeArgumentsNoUseSiteDiagnostics());
-                }
-                while (stack.Count != 0);
-                stack.Free();
+                var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                method.ContainingType.GetAllTypeArgumentsNoUseSiteDiagnostics(typeArgumentsBuilder);
+                typeArgumentsBuilder.AddRange(method.TypeArgumentsWithAnnotations);
 
                 var netArity = typeArgumentsBuilder.Count;
                 if (netArity == 0)
                 {
                     this._diagnostics.Add(ErrorCode.ERR_InterceptorCannotBeGeneric, attributeLocation, interceptor, method);
+                    typeArgumentsBuilder.Free();
                     return;
                 }
                 else if (interceptor.Arity != netArity)
                 {
                     this._diagnostics.Add(ErrorCode.ERR_InterceptorArityNotCompatible, attributeLocation, interceptor, netArity, method);
+                    typeArgumentsBuilder.Free();
                     return;
                 }
 

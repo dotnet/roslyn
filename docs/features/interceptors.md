@@ -149,7 +149,7 @@ static class Program
 static class D
 {
     [InterceptsLocation("Program.cs", 12, 11)]
-    public static void Interceptor1<T1>(T2 t) => throw null!;
+    public static void Interceptor1<T2>(T2 t) => throw null!;
 }
 ```
 

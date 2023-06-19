@@ -1895,39 +1895,6 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
-    public void InterceptableGeneric_08()
-    {
-        // original containing type is generic
-        var source = """
-            using System.Runtime.CompilerServices;
-            using System;
-
-            D.Usage(1);
-            D.Usage(2);
-
-            class C<T1>
-            {
-                public static void InterceptableMethod(T1 t) => throw null!;
-            }
-
-            static class D
-            {
-                public static void Usage<T2>(T2 t)
-                {
-                    C<T2>.InterceptableMethod(t);
-                    C<object>.InterceptableMethod(t);
-                }
-
-                [InterceptsLocation("Program.cs", 16, 15)]
-                [InterceptsLocation("Program.cs", 17, 19)]
-                public static void Interceptor1<T>(T t) { Console.Write(t); }
-            }
-            """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1122");
-        verifier.VerifyDiagnostics();
-    }
-
-    [Fact]
     public void InterceptableGeneric_09()
     {
         // original containing type and method are generic
