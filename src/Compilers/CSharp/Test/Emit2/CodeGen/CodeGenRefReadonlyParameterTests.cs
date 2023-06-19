@@ -96,6 +96,59 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void BothAttributes()
+    {
+        var ilSource = """
+            .class public auto ansi abstract sealed beforefieldinit C extends System.Object
+            {
+                .method public hidebysig instance void M([in] int32& p) cil managed
+                {
+                    .param [1]
+                        .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+            }
+
+            .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsReadOnlyAttribute extends System.Object
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                {
+                    .maxstack 8
+                    ret
+                }
+            }
+            
+            .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.RequiresLocationAttribute extends System.Object
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                {
+                    .maxstack 8
+                    ret
+                }
+            }
+            """;
+        var comp = CreateCompilationWithIL("", ilSource).VerifyDiagnostics();
+
+        var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+        Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
+
+        var verifier = CompileAndVerify(comp,
+            sourceSymbolValidator: verify, symbolValidator: verify);
+        verifier.VerifyDiagnostics();
+
+        static void verify(ModuleSymbol m)
+        {
+            Assert.Null(m.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName));
+        }
+    }
+
+    [Fact]
     public void Method_Virtual()
     {
         var source = """

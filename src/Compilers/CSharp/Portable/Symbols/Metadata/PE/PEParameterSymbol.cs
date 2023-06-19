@@ -280,13 +280,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         refKind = RefKind.Out;
                     }
-                    else if (moduleSymbol.Module.HasIsReadOnlyAttribute(handle))
-                    {
-                        refKind = RefKind.In;
-                    }
                     else if (moduleSymbol.Module.HasRequiresLocationAttribute(handle))
                     {
                         refKind = RefKind.RefReadOnlyParameter;
+                    }
+                    else if (moduleSymbol.Module.HasIsReadOnlyAttribute(handle))
+                    {
+                        refKind = RefKind.In;
                     }
                     else
                     {
