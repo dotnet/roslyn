@@ -230,8 +230,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         startExpr = makePatternIndexOffsetExpression(startMakeOffsetInput, length, startStrategy);
                         BoundExpression endExpr = makePatternIndexOffsetExpression(endMakeOffsetInput, length, endStrategy);
                         rangeSizeExpr = MakeRangeSize(ref startExpr, endExpr, localsBuilder, sideEffectsBuilder);
-
-                        // PROTOTYPE(InlineArrays): Omit Slice call when arguments are 0 and <=length.
                     }
                     else
                     {
@@ -248,9 +246,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sideEffectsBuilder.Insert(0, refCapture);
                     }
 
-                    result = _factory.Sequence(localsBuilder.ToImmutableAndFree(), sideEffectsBuilder.ToImmutableAndFree(),
-                                               _factory.Call(_factory.Call(null, createSpan, possiblyRefCapturedReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true),
-                                                             getItemOrSliceHelper, startExpr, rangeSizeExpr));
+                    if (startExpr.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: 0 } &&
+                        rangeSizeExpr.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: >= 0 and int rangeSizeConst } &&
+                        rangeSizeConst <= length)
+                    {
+                        // No need to call Slice, we can create a Span of the right length from the start.
+                        result = _factory.Call(null, createSpan, possiblyRefCapturedReceiver, rangeSizeExpr, useStrictArgumentRefKinds: true);
+                    }
+                    else
+                    {
+                        result = _factory.Call(_factory.Call(null, createSpan, possiblyRefCapturedReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true),
+                                           getItemOrSliceHelper, startExpr, rangeSizeExpr);
+                    }
+
+                    result = _factory.Sequence(localsBuilder.ToImmutableAndFree(), sideEffectsBuilder.ToImmutableAndFree(), result);
                 }
             }
 
