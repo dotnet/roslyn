@@ -676,7 +676,7 @@ End Class"
         End Class
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68654")>
-        Public Async Function TestAnalyzerLocalDiagnosticsWhenReportedOnFieldSymbol() As Task
+        Public Async Function TestAnalyzerLocalDiagnosticsWhenReportedOnEnumFieldSymbol() As Task
             Dim source = "
 Public Class Outer
     Public Enum E1
@@ -692,7 +692,7 @@ End Enum"
             compilation.VerifyDiagnostics()
 
             Dim tree = compilation.SyntaxTrees(0)
-            Dim analyzer = New NamedTypeFieldSymbolAnalyzer()
+            Dim analyzer = New EnumTypeFieldSymbolAnalyzer()
             Dim compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer), AnalyzerOptions.Empty)
             Dim result = Await compilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None)
 
@@ -705,7 +705,7 @@ End Enum"
         End Function
 
         <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-        Private Class NamedTypeFieldSymbolAnalyzer
+        Private Class EnumTypeFieldSymbolAnalyzer
             Inherits DiagnosticAnalyzer
 
             Public Shared ReadOnly Descriptor As New DiagnosticDescriptor("ID0001", "Title", "Message", "Category", defaultSeverity:=DiagnosticSeverity.Warning, isEnabledByDefault:=True)
