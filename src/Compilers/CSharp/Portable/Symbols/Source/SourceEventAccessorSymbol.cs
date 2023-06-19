@@ -30,9 +30,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isAdder,
             bool isIterator,
             bool isNullableAnalysisEnabled,
-            bool hasAnyBody,
             bool isExpressionBodied)
-            : base(@event.containingType, syntaxReference, location, isIterator)
+            : base(@event.containingType, syntaxReference, location, isIterator,
+                   (@event.Modifiers, MakeFlags(
+                                                isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
+                                                RefKind.None,
+                                                @event.Modifiers,
+                                                returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
+                                                isExpressionBodied: isExpressionBodied,
+                                                isExtensionMethod: false,
+                                                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                                                isVarArg: false,
+                                                isExplicitInterfaceImplementation: @event.IsExplicitInterfaceImplementation)))
         {
             _event = @event;
 
@@ -53,19 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
-
-            this.MakeFlags(
-                isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
-                RefKind.None,
-                @event.Modifiers,
-                returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
-                hasAnyBody: hasAnyBody,
-                isExpressionBodied: isExpressionBodied,
-                isExtensionMethod: false,
-                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                isVarArg: false,
-                isMetadataVirtualIgnoringModifiers: @event.IsExplicitInterfaceImplementation && (@event.Modifiers & DeclarationModifiers.Static) == 0);
-
             _name = GetOverriddenAccessorName(@event, isAdder) ?? name;
         }
 
