@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Misc workspace has to be up and running by the time our package is usable so that it can track running
             // doc events and appropriately map files to/from it and other relevant workspaces (like the
             // metadata-as-source workspace).
-            await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync(this).ConfigureAwait(false);
+            await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync().ConfigureAwait(false);
 
             // Proffer in-process service broker services
             var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(this.JoinableTaskFactory).ConfigureAwait(false);
