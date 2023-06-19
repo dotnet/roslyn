@@ -143,21 +143,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             allowedIdsInfoList = default;
             foreach (var argument in creationArguments)
             {
-                if (argument.Parameter.Name.Equals(CategoryParameterName, StringComparison.Ordinal))
+                if (argument.Parameter?.Name.Equals(CategoryParameterName, StringComparison.Ordinal) == true)
                 {
                     // Check if the category argument is a constant or refers to a string field.
                     if (argument.Value.ConstantValue.HasValue)
                     {
                         if (argument.Value.Type != null &&
-                            argument.Value.Type.SpecialType == SpecialType.System_String)
+                            argument.Value.Type.SpecialType == SpecialType.System_String &&
+                            argument.Value.ConstantValue.Value is string value)
                         {
-                            category = (string)argument.Value.ConstantValue.Value;
+                            category = value;
                         }
                     }
                     else if (argument.Value is IFieldReferenceOperation fieldReference &&
                         fieldReference.Field.Type.SpecialType == SpecialType.System_String)
                     {
-                        category = fieldReference.ConstantValue.HasValue ? (string)fieldReference.ConstantValue.Value : fieldReference.Field.Name;
+                        category = fieldReference.ConstantValue.HasValue && fieldReference.ConstantValue.Value is string value ? value : fieldReference.Field.Name;
                     }
 
                     if (!checkCategoryAndAllowedIds)
@@ -235,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             invalidFileDiagnostics = null;
 
             var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<(string? prefix, int start, int end)>>();
-            var lines = additionalText.GetText(cancellationToken).Lines;
+            var lines = additionalText.GetText(cancellationToken)!.Lines;
             foreach (var line in lines)
             {
                 var contents = line.ToString();

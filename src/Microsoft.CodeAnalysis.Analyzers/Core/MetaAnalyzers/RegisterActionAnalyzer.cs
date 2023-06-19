@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var invocation = (TInvocationExpressionSyntax)context.Node;
                 SemanticModel semanticModel = context.SemanticModel;
 
-                ISymbol symbol = semanticModel.GetSymbolInfo(invocation, context.CancellationToken).Symbol;
+                ISymbol? symbol = semanticModel.GetSymbolInfo(invocation, context.CancellationToken).Symbol;
                 if (symbol == null || symbol.Kind != SymbolKind.Method || !symbol.Name.StartsWith("Register", StringComparison.Ordinal))
                 {
                     return;
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         int argumentCount = arguments.Count();
                         if (argumentCount >= 1)
                         {
-                            ITypeSymbol type = semanticModel.GetTypeInfo(arguments.First(), context.CancellationToken).ConvertedType;
+                            ITypeSymbol? type = semanticModel.GetTypeInfo(arguments.First(), context.CancellationToken).ConvertedType;
                             if (type == null || type.Name.Equals(nameof(Action), StringComparison.Ordinal))
                             {
                                 if (argumentCount == 1)
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     }
                     else
                     {
-                        ITypeParameterSymbol typeParam = method.TypeParameters.FirstOrDefault(t => t.Name == DiagnosticWellKnownNames.TLanguageKindEnumName);
+                        ITypeParameterSymbol? typeParam = method.TypeParameters.FirstOrDefault(t => t.Name == DiagnosticWellKnownNames.TLanguageKindEnumName);
                         if (typeParam != null)
                         {
                             int index = method.TypeParameters.IndexOf(typeParam);

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -270,7 +270,7 @@ namespace Text.Analyzers
                 var isXml = additionalText.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase);
                 var provider = isXml ? s_xmlDictionaryProvider : s_dicDictionaryProvider;
 
-                var (dictionary, exception) = context.TryGetValue(additionalText.GetText(cancellationToken), provider, out var result)
+                var (dictionary, exception) = context.TryGetValue(additionalText.GetText(cancellationToken)!, provider, out var result)
                     ? result
                     : default;
 

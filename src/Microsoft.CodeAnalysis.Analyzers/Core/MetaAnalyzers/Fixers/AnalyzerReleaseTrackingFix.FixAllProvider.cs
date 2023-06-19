@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 {
                     case FixAllScope.Document:
                         {
-                            ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
+                            ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document!).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
                             break;
                         }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 private readonly List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> _diagnosticsToFix;
                 private readonly Solution _solution;
 
-                public FixAllAdditionalDocumentChangeAction(FixAllScope fixAllScope, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix, string equivalenceKey)
+                public FixAllAdditionalDocumentChangeAction(FixAllScope fixAllScope, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix, string? equivalenceKey)
                 {
                     this.Title = fixAllScope.ToString();
                     _solution = solution;
@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 }
 
                 public override string Title { get; }
-                public override string EquivalenceKey { get; }
+                public override string? EquivalenceKey { get; }
 
-                protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                protected override async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
                 {
                     var updatedUnshippedText = new List<(DocumentId, SourceText)>();
 
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 public override string Title => CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleTitle;
                 public override string EquivalenceKey => CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleTitle;
 
-                protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                protected override async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
                 {
                     var newSolution = _solution;
                     foreach (var projectId in _projectIds)

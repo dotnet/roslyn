@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 const string valueTagPrefix = @"<value>";
                 const string valueTagSuffix = @"</value>";
                 var builder = ImmutableDictionary.CreateBuilder<string, (string value, Location location)>();
-                var sourceText = file.GetText(cancellationToken);
+                var sourceText = file.GetText(cancellationToken)!;
                 var sourceTextStr = sourceText.ToString();
                 var parsedDocument = XDocument.Parse(sourceTextStr, LoadOptions.PreserveWhitespace);
                 foreach (var dataElement in parsedDocument.Descendants("data"))

@@ -651,7 +651,7 @@ namespace Analyzer.Utilities.Extensions
             return instance?.WalkDownConversion().Type;
         }
 
-        public static ISymbol? GetReferencedMemberOrLocalOrParameter(this IOperation operation)
+        public static ISymbol? GetReferencedMemberOrLocalOrParameter(this IOperation? operation)
         {
             return operation switch
             {

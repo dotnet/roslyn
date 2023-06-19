@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -70,16 +70,9 @@ namespace Microsoft.CodeAnalysis.Analyzers
                 {
                     var symbol = symbolAnalysisContext.Symbol;
 
-                    var attributes = symbol.GetAttributes();
-                    if (attributes.Any(shouldReportNotSpecifiedEnforceAnalyzerBannedApisSetting))
+                    if (symbol.HasAnyAttribute(diagnosticAnalyzerAttributeType, generatorAttributeType))
                     {
                         symbolAnalysisContext.ReportDiagnostic(symbol.Locations.CreateDiagnostic(SymbolIsBannedInAnalyzersAnalyzer.NoSettingSpecifiedSymbolIsBannedRule, symbol));
-                    }
-
-                    bool shouldReportNotSpecifiedEnforceAnalyzerBannedApisSetting(AttributeData attributeData)
-                    {
-                        return attributeData.AttributeClass.Equals(diagnosticAnalyzerAttributeType, SymbolEqualityComparer.Default)
-                            || attributeData.AttributeClass.Equals(generatorAttributeType, SymbolEqualityComparer.Default);
                     }
                 }
             }

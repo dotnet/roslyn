@@ -3,5 +3,6 @@
   <PropertyGroup>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <NoWarn>$(NoWarn);NU1701</NoWarn>
+    <DefineConstants>$(DefineConstants),MICROSOFT_CODEANALYSIS_PUBLIC_API_ANALYZERS</DefineConstants>
   </PropertyGroup>
 </Project>

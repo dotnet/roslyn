@@ -45,7 +45,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         (methodName, arguments) =>
                             methodName == "GetBytes" &&
                             arguments.Count() == 5 &&
-                            arguments[0].Parameter.Type.SpecialType == SpecialType.System_String,
+                            arguments[0].Parameter?.Type.SpecialType == SpecialType.System_String,
                         new (ValueContentCheck, string)[]{
                             (
                                 (argumentPointsTos, argumentValueContents) =>
@@ -58,7 +58,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         (methodName, arguments) =>
                             methodName == "GetBytes" &&
                             arguments.Count() == 1 &&
-                            arguments[0].Parameter.Type.SpecialType == SpecialType.System_String,
+                            arguments[0].Parameter?.Type.SpecialType == SpecialType.System_String,
                         new (ValueContentCheck, string)[]{
                             (
                                 (argumentPointsTos, argumentValueContents) =>
@@ -73,7 +73,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         (methodName, arguments) =>
                             methodName == "GetBytes" &&
                             arguments.Count() == 5 &&
-                            arguments[0].Parameter.Type is IArrayTypeSymbol arrayTypeSymbol &&
+                            arguments[0].Parameter?.Type is IArrayTypeSymbol arrayTypeSymbol &&
                             arrayTypeSymbol.ElementType.SpecialType == SpecialType.System_Char,
                         new (string, string)[]{
                             ("chars", "bytes"),
@@ -83,7 +83,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         (methodName, arguments) =>
                             methodName == "GetBytes" &&
                             arguments.Count() == 5 &&
-                            arguments[0].Parameter.Type.SpecialType == SpecialType.System_String,
+                            arguments[0].Parameter?.Type.SpecialType == SpecialType.System_String,
                         new (string, string)[]{
                             ("chars", "bytes"),
                         }

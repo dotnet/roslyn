@@ -17,8 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers
         protected override SyntaxNode? TryGetNodeToFix(SyntaxNode root, TextSpan span)
         {
             var binaryExpression = root.FindNode(span, getInnermostNodeForTie: true).FirstAncestorOrSelf<BinaryExpressionSyntax>();
-            if (binaryExpression.Left.IsKind(SyntaxKind.InvocationExpression) ||
-                binaryExpression.Left.IsKind(SyntaxKind.ConditionalAccessExpression))
+            if (binaryExpression != null &&
+                (binaryExpression.Left.IsKind(SyntaxKind.InvocationExpression) ||
+                 binaryExpression.Left.IsKind(SyntaxKind.ConditionalAccessExpression)))
             {
                 return binaryExpression;
             }

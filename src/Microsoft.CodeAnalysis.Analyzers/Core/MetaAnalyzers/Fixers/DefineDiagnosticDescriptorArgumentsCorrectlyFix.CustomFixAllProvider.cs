@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
                 // FixAll for source document fixes are handled fine by the batch fixer.
-                if (fixAllContext.CodeActionEquivalenceKey.EndsWith(SourceDocumentEquivalenceKeySuffix, StringComparison.Ordinal))
+                if (fixAllContext.CodeActionEquivalenceKey!.EndsWith(SourceDocumentEquivalenceKeySuffix, StringComparison.Ordinal))
                 {
                     return await WellKnownFixAllProviders.BatchFixer.GetFixAsync(fixAllContext).ConfigureAwait(false);
                 }
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 {
                     case FixAllScope.Document:
                         {
-                            ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
+                            ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document!).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
                             break;
                         }
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 public override string Title { get; }
                 public override string EquivalenceKey { get; }
 
-                protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                protected override async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
                 {
                     // Group fixes by additional documents.
                     var fixInfoMap = new Dictionary<TextDocument, List<FixInfo>>();

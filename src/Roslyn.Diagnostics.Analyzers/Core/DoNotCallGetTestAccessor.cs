@@ -74,7 +74,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private void HandleObjectCreation(OperationAnalysisContext context)
         {
             var objectCreation = (IObjectCreationOperation)context.Operation;
-            if (objectCreation.Type.Name.Equals(TestAccessorHelper.TestAccessorTypeName, StringComparison.Ordinal))
+            if (objectCreation.Type!.Name.Equals(TestAccessorHelper.TestAccessorTypeName, StringComparison.Ordinal))
             {
                 // Directly constructing a TestAccessor instance
                 context.ReportDiagnostic(objectCreation.Syntax.CreateDiagnostic(DoNotCallGetTestAccessorRule));

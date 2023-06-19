@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             if (possibleInvocation is IConditionalAccessOperation conditionalAccess)
             {
                 // We don't currently report on Nullable<SyntaxToken>. If we'll report that in the future, the codefix must behave correctly.
-                if (conditionalAccess.Operation.Type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                if (conditionalAccess.Operation.Type!.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
                     return;
                 }

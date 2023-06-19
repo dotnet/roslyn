@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             p.OverriddenProperty.Equals(supportedDiagnosticBaseProperty));
                     if (supportedDiagnosticsProperty?.GetMethod != null)
                     {
-                        SyntaxReference syntaxRef = supportedDiagnosticsProperty.GetMethod.DeclaringSyntaxReferences.FirstOrDefault();
+                        SyntaxReference? syntaxRef = supportedDiagnosticsProperty.GetMethod.DeclaringSyntaxReferences.FirstOrDefault();
                         if (syntaxRef != null)
                         {
                             SyntaxNode syntax = syntaxRef.GetSyntax(cancellationToken);
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 ImmutableArray<IFieldSymbol>.Builder builder = ImmutableArray.CreateBuilder<IFieldSymbol>();
                 foreach (TIdentifierNameSyntax identifier in syntax.DescendantNodes().OfType<TIdentifierNameSyntax>())
                 {
-                    ISymbol symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol;
+                    ISymbol? symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol;
                     if (symbol != null && symbol.Kind == SymbolKind.Field)
                     {
                         var field = (IFieldSymbol)symbol;
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             protected override void AnalyzeNode(SymbolAnalysisContext symbolContext, TInvocationExpressionSyntax syntaxNode, SemanticModel semanticModel)
             {
-                ISymbol symbol = semanticModel.GetSymbolInfo(syntaxNode, symbolContext.CancellationToken).Symbol;
+                ISymbol? symbol = semanticModel.GetSymbolInfo(syntaxNode, symbolContext.CancellationToken).Symbol;
                 if (symbol == null ||
                     symbol.Kind != SymbolKind.Method ||
                     !symbol.Name.Equals(DiagnosticWellKnownNames.ReportDiagnosticName, StringComparison.OrdinalIgnoreCase) ||
@@ -207,17 +207,17 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 if (arguments?.HasExactly(1) == true)
                 {
                     SyntaxNode argument = arguments.First();
-                    ITypeSymbol type = semanticModel.GetTypeInfo(argument, symbolContext.CancellationToken).ConvertedType;
+                    ITypeSymbol? type = semanticModel.GetTypeInfo(argument, symbolContext.CancellationToken).ConvertedType;
                     if (type != null && type.Equals(_diagnosticType))
                     {
-                        ISymbol argSymbol = semanticModel.GetSymbolInfo(argument, symbolContext.CancellationToken).Symbol;
+                        ISymbol? argSymbol = semanticModel.GetSymbolInfo(argument, symbolContext.CancellationToken).Symbol;
                         if (argSymbol != null)
                         {
                             SyntaxNode? diagnosticInitializer = null;
 
                             if (argSymbol is ILocalSymbol local)
                             {
-                                SyntaxReference syntaxRef = local.DeclaringSyntaxReferences.FirstOrDefault();
+                                SyntaxReference? syntaxRef = local.DeclaringSyntaxReferences.FirstOrDefault();
                                 if (syntaxRef != null)
                                 {
                                     diagnosticInitializer = syntaxRef.GetSyntax(symbolContext.CancellationToken).FirstAncestorOrSelf<TVariableDeclaratorSyntax>();

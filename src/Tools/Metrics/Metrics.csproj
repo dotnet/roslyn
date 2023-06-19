@@ -5,6 +5,8 @@
     <OutputType>Exe</OutputType>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <!-- Disable 'CS0436' ambiguous type warnings due to transitive reference to Microsoft.CodeAnalysis.AnalyzerUtilities.dll coming from Features package reference. -->
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
     <!-- Excluded from source build. Otherwise this should be conditionalized to only be set when DotNetBuildFromSource != true -->
     <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForToolsAndUtilities)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>

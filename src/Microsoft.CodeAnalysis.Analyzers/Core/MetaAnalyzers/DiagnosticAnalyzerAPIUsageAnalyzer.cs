@@ -240,9 +240,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             return builder.ToImmutableAndFree();
         }
 
-        private static void AddUsedNamedTypeCore(ITypeSymbol typeOpt, PooledHashSet<INamedTypeSymbol> builder, ref bool hasAccessToTypeFromWorkspaceAssemblies)
+        private static void AddUsedNamedTypeCore(ITypeSymbol? type, PooledHashSet<INamedTypeSymbol> builder, ref bool hasAccessToTypeFromWorkspaceAssemblies)
         {
-            if (typeOpt is INamedTypeSymbol usedType &&
+            if (type is INamedTypeSymbol usedType &&
                 usedType.TypeKind != TypeKind.Error)
             {
                 builder.Add(usedType);
@@ -256,9 +256,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 if (usedType.IsGenericType)
                 {
-                    foreach (var type in usedType.TypeArguments)
+                    foreach (var typeArgument in usedType.TypeArguments)
                     {
-                        AddUsedNamedTypeCore(type, builder, ref hasAccessToTypeFromWorkspaceAssemblies);
+                        AddUsedNamedTypeCore(typeArgument, builder, ref hasAccessToTypeFromWorkspaceAssemblies);
                     }
                 }
             }

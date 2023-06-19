@@ -9,9 +9,8 @@
     <Import_RootNamespace>Analyzer.Utilities</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)DocumentBasedFixAllProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FixAllContextHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxGeneratorExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxNodeExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

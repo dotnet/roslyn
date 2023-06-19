@@ -130,11 +130,10 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
                 var namespaceNameComparer = compilation.IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
                 var namespaceBuilder = ImmutableSortedSet.CreateBuilder(namespaceNameComparer);
-                foreach (var assemblyAttribute in referencedAssemblySymbol.GetAttributes())
+                foreach (var assemblyAttribute in referencedAssemblySymbol.GetAttributes(restrictedInternalsVisibleToAttribute))
                 {
                     // Look for ctor: "RestrictedInternalsVisibleToAttribute(string assemblyName, params string[] namespaces)"
-                    if (!Equals(assemblyAttribute.AttributeClass, restrictedInternalsVisibleToAttribute) ||
-                        assemblyAttribute.AttributeConstructor is null ||
+                    if (assemblyAttribute.AttributeConstructor is null ||
                         assemblyAttribute.AttributeConstructor.Parameters.Length != 2 ||
                         assemblyAttribute.AttributeConstructor.Parameters[0].Type.SpecialType != SpecialType.System_String ||
                         assemblyAttribute.AttributeConstructor.Parameters[1].Type is not IArrayTypeSymbol arrayType ||
