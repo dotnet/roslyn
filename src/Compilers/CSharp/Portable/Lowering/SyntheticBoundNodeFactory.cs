@@ -788,9 +788,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Call(receiver, method, ImmutableArray<BoundExpression>.Empty);
         }
 
-        public BoundCall Call(BoundExpression? receiver, MethodSymbol method, BoundExpression arg0)
+        public BoundCall Call(BoundExpression? receiver, MethodSymbol method, BoundExpression arg0, bool useStrictArgumentRefKinds = false)
         {
-            return Call(receiver, method, ImmutableArray.Create(arg0));
+            return Call(receiver, method, ImmutableArray.Create(arg0), useStrictArgumentRefKinds);
         }
 
         public BoundCall Call(BoundExpression? receiver, MethodSymbol method, BoundExpression arg0, BoundExpression arg1, bool useStrictArgumentRefKinds = false)
