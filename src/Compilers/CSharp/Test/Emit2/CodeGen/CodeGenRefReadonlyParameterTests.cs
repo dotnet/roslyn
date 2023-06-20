@@ -30,32 +30,55 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
         }
     }
 
-    private static void VerifyRefReadonlyParameter(ParameterSymbol parameter)
+    private static void VerifyRefReadonlyParameter(ParameterSymbol parameter,
+        bool refKind = true,
+        bool metadataIn = true,
+        bool attributes = true,
+        bool modreq = false,
+        bool noUseSiteErrors = true)
     {
-        Assert.Equal(RefKind.RefReadOnlyParameter, parameter.RefKind);
-        Assert.True(parameter.IsMetadataIn);
-        VerifyRefReadonlyParameterAttributes(parameter);
-    }
-
-    private static void VerifyRefReadonlyParameterAttributes(ParameterSymbol parameter)
-    {
-        if (parameter.ContainingModule is SourceModuleSymbol)
+        if (refKind)
         {
-            Assert.Empty(parameter.GetAttributes());
+            Assert.Equal(RefKind.RefReadOnlyParameter, parameter.RefKind);
+        }
+
+        if (metadataIn)
+        {
+            Assert.True(parameter.IsMetadataIn);
+        }
+
+        if (attributes)
+        {
+            if (parameter.ContainingModule is SourceModuleSymbol)
+            {
+                Assert.Empty(parameter.GetAttributes());
+            }
+            else
+            {
+                var attribute = Assert.Single(parameter.GetAttributes());
+                Assert.Equal("System.Runtime.CompilerServices.RequiresLocationAttribute", attribute.AttributeClass.ToTestDisplayString());
+                Assert.Empty(attribute.ConstructorArguments);
+                Assert.Empty(attribute.NamedArguments);
+            }
+        }
+
+        if (modreq)
+        {
+            var mod = Assert.Single(parameter.RefCustomModifiers);
+            Assert.Equal("System.Runtime.InteropServices.InAttribute", mod.Modifier.ToTestDisplayString());
         }
         else
         {
-            var attribute = Assert.Single(parameter.GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.RequiresLocationAttribute", attribute.AttributeClass.ToTestDisplayString());
-            Assert.Empty(attribute.ConstructorArguments);
-            Assert.Empty(attribute.NamedArguments);
+            Assert.Empty(parameter.RefCustomModifiers);
         }
-    }
 
-    private static void VerifyInModreq(ParameterSymbol parameter)
-    {
-        var mod = Assert.Single(parameter.RefCustomModifiers);
-        Assert.Equal("System.Runtime.InteropServices.InAttribute", mod.Modifier.ToTestDisplayString());
+        var method = (MethodSymbol)parameter.ContainingSymbol;
+
+        if (noUseSiteErrors)
+        {
+            Assert.False(method.HasUnsupportedMetadata);
+            Assert.False(method.HasUseSiteError);
+        }
     }
 
     [Fact]
@@ -76,7 +99,6 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
 
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
             VerifyRefReadonlyParameter(p);
-            Assert.Empty(p.RefCustomModifiers);
         }
     }
 
@@ -105,7 +127,6 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
 
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
             VerifyRefReadonlyParameter(p);
-            Assert.Empty(p.RefCustomModifiers);
         }
     }
 
@@ -154,8 +175,7 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
         var comp = CreateCompilationWithIL("", ilSource).VerifyDiagnostics();
 
         var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
-        Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
-        Assert.True(p.IsMetadataIn);
+        VerifyRefReadonlyParameter(p, attributes: false);
         var attributes = p.GetAttributes();
         Assert.Equal(new[]
         {
@@ -167,7 +187,6 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             Assert.Empty(a.ConstructorArguments);
             Assert.Empty(a.NamedArguments);
         });
-        Assert.Empty(p.RefCustomModifiers);
     }
 
     [Fact]
@@ -251,9 +270,8 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
         var comp = CreateCompilationWithIL("", ilSource).VerifyDiagnostics();
 
         var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
-        VerifyRefReadonlyParameter(p);
-        VerifyInModreq(p);
-        var method = p.ContainingSymbol;
+        VerifyRefReadonlyParameter(p, modreq: true, noUseSiteErrors: false);
+        var method = (MethodSymbol)p.ContainingSymbol;
         Assert.True(method.HasUnsupportedMetadata);
         Assert.True(method.HasUseSiteError);
         Assert.Equal((int)ErrorCode.ERR_BindToBogus, method.GetUseSiteDiagnostic().Code);
@@ -276,8 +294,7 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             VerifyRequiresLocationAttributeSynthesized(m);
 
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
-            VerifyRefReadonlyParameter(p);
-            VerifyInModreq(p);
+            VerifyRefReadonlyParameter(p, modreq: true);
         }
     }
 
@@ -298,8 +315,7 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             VerifyRequiresLocationAttributeSynthesized(m);
 
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
-            VerifyRefReadonlyParameter(p);
-            VerifyInModreq(p);
+            VerifyRefReadonlyParameter(p, modreq: true);
         }
     }
 
@@ -321,7 +337,6 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
 
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C..ctor").Parameters.Single();
             VerifyRefReadonlyParameter(p);
-            Assert.Empty(p.RefCustomModifiers);
         }
     }
 
@@ -343,7 +358,6 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
 
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C..ctor").Parameters.Single();
             VerifyRefReadonlyParameter(p);
-            Assert.Empty(p.RefCustomModifiers);
         }
     }
 
@@ -367,7 +381,6 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             var ctor = c.InstanceConstructors.Single(s => s.Parameters is [{ Name: "p" }]);
             var p = ctor.Parameters.Single();
             VerifyRefReadonlyParameter(p);
-            Assert.Empty(p.RefCustomModifiers);
         }
     }
 
@@ -390,7 +403,6 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             var ctor = c.InstanceConstructors.Single(s => s.Parameters is [{ Name: "p" }]);
             var p = ctor.Parameters.Single();
             VerifyRefReadonlyParameter(p);
-            Assert.Empty(p.RefCustomModifiers);
         }
     }
 
@@ -413,7 +425,6 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             var ctor = c.InstanceConstructors.Single(s => s.Parameters is [{ Name: "p" }]);
             var p = ctor.Parameters.Single();
             VerifyRefReadonlyParameter(p);
-            Assert.Empty(p.RefCustomModifiers);
         }
     }
 
@@ -431,8 +442,7 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             VerifyRequiresLocationAttributeSynthesized(m);
 
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("D.Invoke").Parameters.Single();
-            VerifyRefReadonlyParameter(p);
-            VerifyInModreq(p);
+            VerifyRefReadonlyParameter(p, modreq: true);
         }
     }
 
@@ -456,7 +466,6 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             {
                 var p = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<<Main>$>b__0_0").Parameters.Single();
                 VerifyRefReadonlyParameter(p);
-                Assert.Empty(p.RefCustomModifiers);
             }
         }
     }
@@ -481,7 +490,6 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             {
                 var p = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<<Main>$>g__local|0_0").Parameters.Single();
                 VerifyRefReadonlyParameter(p);
-                Assert.Empty(p.RefCustomModifiers);
             }
         }
     }
@@ -506,8 +514,13 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             if (m is not SourceModuleSymbol)
             {
                 var p = m.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke").Parameters.Single();
-                VerifyRefReadonlyParameter(p);
-                Assert.Empty(p.RefCustomModifiers);
+                VerifyRefReadonlyParameter(p, noUseSiteErrors: false);
+
+                // PROTOTYPE: Invoke method is virtual but no modreq is emitted. This happens for `in` parameters, as well.
+                var method = (MethodSymbol)p.ContainingSymbol;
+                Assert.True(method.HasUnsupportedMetadata);
+                Assert.True(method.HasUseSiteError);
+                Assert.Equal((int)ErrorCode.ERR_BindToBogus, method.GetUseSiteDiagnostic().Code);
             }
         }
     }
@@ -532,10 +545,9 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
             var ptr = (FunctionPointerTypeSymbol)p.Type;
             var p2 = ptr.Signature.Parameters.Single();
+            VerifyRefReadonlyParameter(p2, refKind: false, modreq: true, attributes: false);
             Assert.Equal(m is SourceModuleSymbol ? RefKind.RefReadOnlyParameter : RefKind.In, p2.RefKind);
-            Assert.True(p2.IsMetadataIn);
             Assert.Empty(p2.GetAttributes());
-            VerifyInModreq(p2);
         }
     }
 
