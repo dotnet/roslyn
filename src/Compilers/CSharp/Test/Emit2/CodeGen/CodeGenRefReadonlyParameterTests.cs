@@ -230,6 +230,28 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void Method_Abstract()
+    {
+        var source = """
+            abstract class C
+            {
+                public abstract void M(ref readonly int p);
+            }
+            """;
+        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
+        verifier.VerifyDiagnostics();
+
+        static void verify(ModuleSymbol m)
+        {
+            VerifyRequiresLocationAttributeSynthesized(m);
+
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+            VerifyRefReadonlyParameter(p);
+            VerifyInModreq(p);
+        }
+    }
+
+    [Fact]
     public void Constructor()
     {
         var source = """

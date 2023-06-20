@@ -37,7 +37,7 @@ public class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
-    public void Modifier_Invalid()
+    public void Modifier_Invalid_01()
     {
         var source = """
             class C
@@ -59,6 +59,28 @@ public class RefReadonlyParameterTests : CSharpTestBase
         var model = comp.GetSemanticModel(syntaxTree, ignoreAccessibility: false);
         var symbol = model.GetDeclaredSymbol(parameter);
         Assert.Equal(RefKind.Ref, symbol!.RefKind);
+    }
+
+    [Fact]
+    public void Modifier_Invalid_02()
+    {
+        var source = """
+            class C
+            {
+                void M(in readonly int p) => throw null;
+            }
+            """;
+        var comp = CreateCompilation(source).VerifyDiagnostics(
+            // (3,15): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            //     void M(in readonly int p) => throw null;
+            Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 15));
+
+        var syntaxTree = comp.SyntaxTrees.Single();
+        var parameter = syntaxTree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+        Assert.Equal("in readonly int p", parameter.ToString());
+        var model = comp.GetSemanticModel(syntaxTree, ignoreAccessibility: false);
+        var symbol = model.GetDeclaredSymbol(parameter);
+        Assert.Equal(RefKind.In, symbol!.RefKind);
     }
 
     [Fact]
