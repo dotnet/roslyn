@@ -168,8 +168,8 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                         a => a.WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.MethodKeyword))).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation)));
 
                 // When moving the parameter list from the constructor to the type, we will no longer have nested types
-                // in scope.  So rewrite references to them if that's the case.
-                var parameterList = UpdateReferencesToNestedTypes(constructorDeclaration.ParameterList);
+                // or member constants in scope.  So rewrite references to them if that's the case.
+                var parameterList = UpdateReferencesToNestedMembers(constructorDeclaration.ParameterList);
 
                 parameterList = RemoveElementIndentation(
                     typeDeclaration, constructorDeclaration, parameterList,
@@ -214,22 +214,37 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                 });
         }
 
-        ParameterListSyntax UpdateReferencesToNestedTypes(ParameterListSyntax parameterList)
+        ParameterListSyntax UpdateReferencesToNestedMembers(ParameterListSyntax parameterList)
         {
             return parameterList.ReplaceNodes(
                 parameterList.DescendantNodes().OfType<SimpleNameSyntax>(),
-                (typeSyntax, updatedTypeSyntax) =>
+                (nameSyntax, currentNameSyntax) =>
                 {
-                    // Don't have to update if the type is already qualified.
-                    if (typeSyntax.Parent is QualifiedNameSyntax qualifiedNameSyntax && qualifiedNameSyntax.Right == typeSyntax)
-                        return updatedTypeSyntax;
+                    // Don't have to update if the member is already qualified.
 
-                    var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
-                    if (typeSymbol is not INamedTypeSymbol { ContainingType: not null } || !namedType.Equals(typeSymbol.ContainingType.OriginalDefinition))
-                        return updatedTypeSyntax;
+                    if (nameSyntax.Parent is not QualifiedNameSyntax qualifiedNameSyntax || qualifiedNameSyntax.Right != nameSyntax)
+                    {
+                        var symbol = semanticModel.GetSymbolInfo(nameSyntax, cancellationToken).GetAnySymbol();
+                        if (symbol is INamedTypeSymbol { ContainingType: not null } &&
+                            namedType.Equals(symbol.ContainingType.OriginalDefinition))
+                        {
+                            // reference to a nested type in an unqualified fashion.  Have to qualify this.
+                            return QualifiedName(namedType.GenerateNameSyntax(), currentNameSyntax);
+                        }
+                    }
 
-                    // reference to a nested type in an unqualified fashion.  Have to qualify this.
-                    return QualifiedName(namedType.GenerateNameSyntax(), updatedTypeSyntax);
+                    if (nameSyntax.Parent is not MemberAccessExpressionSyntax memberAccessExpression || memberAccessExpression.Name != nameSyntax)
+                    {
+                        var symbol = semanticModel.GetSymbolInfo(nameSyntax, cancellationToken).GetAnySymbol();
+                        if (symbol is IFieldSymbol { ContainingType: not null } &&
+                            namedType.Equals(symbol.ContainingType.OriginalDefinition))
+                        {
+                            // reference to a member field an unqualified fashion.  Have to qualify this.
+                            return MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, namedType.GenerateNameSyntax(), currentNameSyntax);
+                        }
+                    }
+
+                    return currentNameSyntax;
                 });
         }
 

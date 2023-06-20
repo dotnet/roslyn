@@ -2936,4 +2936,88 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestReferenceToConstantInParameterInitializer1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private const int Default = 0;
+                    private int _i;
+
+                    public [|C|](int i = Default)
+                    {
+                        _i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i = C.Default)
+                {
+                    private const int Default = 0;
+                    private int _i = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReferenceToConstantInParameterInitializer2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private const int Default = 0;
+                    private int _i;
+
+                    public [|C|](int i = C.Default)
+                    {
+                        _i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i = C.Default)
+                {
+                    private const int Default = 0;
+                    private int _i = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReferenceToConstantInParameterInitializer3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C<T>
+                {
+                    private const int Default = 0;
+                    private int _i;
+
+                    public [|C|](int i = Default)
+                    {
+                        _i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C<T>(int i = C<T>.Default)
+                {
+                    private const int Default = 0;
+                    private int _i = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }
