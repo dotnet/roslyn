@@ -388,16 +388,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (isReturn)
             {
                 // A RefReadOnly return parameter should always have this modreq, and vice versa.
+                Debug.Assert(parameter.RefKind != RefKind.RefReadOnlyParameter);
                 isBad |= (parameter.RefKind == RefKind.RefReadOnly) != hasInAttributeModifier;
             }
-            else if (parameter.RefKind == RefKind.In)
+            else if (parameter.RefKind is RefKind.In or RefKind.RefReadOnlyParameter)
             {
-                // An in parameter should not have this modreq, unless the containing symbol was virtual or abstract.
-                isBad |= isContainingSymbolVirtual != hasInAttributeModifier;
-            }
-            else if (parameter.RefKind == RefKind.RefReadOnlyParameter)
-            {
-                // A ref readonly parameter should not have this modreq, unless the containing symbol was virtual or abstract.
+                // An in/ref readonly parameter should not have this modreq, unless the containing symbol was virtual or abstract.
                 isBad |= isContainingSymbolVirtual != hasInAttributeModifier;
             }
             else if (hasInAttributeModifier)

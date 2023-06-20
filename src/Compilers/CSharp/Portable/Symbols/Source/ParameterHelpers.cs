@@ -249,8 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         compilation.EnsureIsReadOnlyAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
                     }
                 }
-
-                if (parameter.RefKind == RefKind.RefReadOnlyParameter)
+                else if (parameter.RefKind == RefKind.RefReadOnlyParameter)
                 {
                     if (moduleBuilder is { })
                     {
