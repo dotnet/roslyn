@@ -1566,13 +1566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            return SynthesizeRequiresLocationAttribute();
-        }
-
-        protected virtual SynthesizedAttributeData SynthesizeRequiresLocationAttribute()
-        {
-            // For modules, this attribute should be present. Only assemblies generate and embed this type.
-            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
+            return TrySynthesizeRequiresLocationAttribute();
         }
 
         internal SynthesizedAttributeData SynthesizeIsUnmanagedAttribute(Symbol symbol)
@@ -1779,6 +1773,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
+        }
+
+        protected virtual SynthesizedAttributeData TrySynthesizeRequiresLocationAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
         }
 
         protected virtual SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()

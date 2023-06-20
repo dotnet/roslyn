@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.TrySynthesizeIsReadOnlyAttribute();
         }
 
-        protected override SynthesizedAttributeData SynthesizeRequiresLocationAttribute()
+        protected override SynthesizedAttributeData TrySynthesizeRequiresLocationAttribute()
         {
             if ((object)_lazyRequiresLocationAttribute != null)
             {
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
 
-            return base.SynthesizeRequiresLocationAttribute();
+            return base.TrySynthesizeRequiresLocationAttribute();
         }
 
         protected override SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
