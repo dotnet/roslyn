@@ -9,9 +9,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
-public class CodeGenRefReadonlyParameterTests : CSharpTestBase
+// PROTOTYPE: Move to RefReadonlyParameterTests.cs.
+public partial class RefReadonlyParameterTests : CSharpTestBase
 {
     private const string RequiresLocationAttributeName = "RequiresLocationAttribute";
     private const string RequiresLocationAttributeNamespace = "System.Runtime.CompilerServices";
@@ -123,10 +124,16 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
 
         static void verify(ModuleSymbol m)
         {
-            Assert.NotNull(m.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName));
+            var attribute = m.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName);
+            Assert.NotNull(attribute);
 
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
             VerifyRefReadonlyParameter(p);
+
+            if (m is not SourceModuleSymbol)
+            {
+                Assert.Same(attribute, p.GetAttributes().Single().AttributeClass);
+            }
         }
     }
 

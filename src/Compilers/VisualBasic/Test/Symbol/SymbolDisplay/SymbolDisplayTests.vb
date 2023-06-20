@@ -5296,7 +5296,9 @@ End Class
             Dim comp = CreateCSharpCompilation(source, parseOptions).VerifyDiagnostics()
             Dim m = comp.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single()
             ' Ref modifiers are not included: https://github.com/dotnet/roslyn/issues/14683
-            Verify(ToDisplayParts(m), "Public Sub M(p As Integer)",
+            Dim format = SymbolDisplayFormat.VisualBasicErrorMessageFormat.
+                AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut)
+            Verify(ToDisplayParts(m, format), "Public Sub M(p As Integer)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,

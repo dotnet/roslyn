@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
-public class RefReadonlyParameterTests : CSharpTestBase
+public partial class RefReadonlyParameterTests : CSharpTestBase
 {
     [Fact]
     public void Modifier()
@@ -28,12 +29,8 @@ public class RefReadonlyParameterTests : CSharpTestBase
         CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         var comp = CreateCompilation(source).VerifyDiagnostics();
 
-        var syntaxTree = comp.SyntaxTrees.Single();
-        var parameter = syntaxTree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
-        Assert.Equal("ref readonly int p", parameter.ToString());
-        var model = comp.GetSemanticModel(syntaxTree, ignoreAccessibility: false);
-        var symbol = model.GetDeclaredSymbol(parameter);
-        Assert.Equal(RefKind.RefReadOnlyParameter, symbol!.RefKind);
+        var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+        VerifyRefReadonlyParameter(p);
     }
 
     [Fact]
@@ -53,12 +50,9 @@ public class RefReadonlyParameterTests : CSharpTestBase
             //     void M(ref params readonly int[] p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 23));
 
-        var syntaxTree = comp.SyntaxTrees.Single();
-        var parameter = syntaxTree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
-        Assert.Equal("ref params readonly int[] p", parameter.ToString());
-        var model = comp.GetSemanticModel(syntaxTree, ignoreAccessibility: false);
-        var symbol = model.GetDeclaredSymbol(parameter);
-        Assert.Equal(RefKind.Ref, symbol!.RefKind);
+        var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+        VerifyRefReadonlyParameter(p, refKind: false, metadataIn: false);
+        Assert.Equal(RefKind.Ref, p.RefKind);
     }
 
     [Fact]
@@ -75,12 +69,9 @@ public class RefReadonlyParameterTests : CSharpTestBase
             //     void M(in readonly int p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 15));
 
-        var syntaxTree = comp.SyntaxTrees.Single();
-        var parameter = syntaxTree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
-        Assert.Equal("in readonly int p", parameter.ToString());
-        var model = comp.GetSemanticModel(syntaxTree, ignoreAccessibility: false);
-        var symbol = model.GetDeclaredSymbol(parameter);
-        Assert.Equal(RefKind.In, symbol!.RefKind);
+        var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+        VerifyRefReadonlyParameter(p, refKind: false);
+        Assert.Equal(RefKind.In, p.RefKind);
     }
 
     [Fact]
