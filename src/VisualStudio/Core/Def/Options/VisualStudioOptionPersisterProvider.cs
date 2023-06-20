@@ -29,6 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
         // maps config name to a read fallback:
         private readonly ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> _readFallbacks;
 
+        // Use vs-threading's JTF-aware AsyncLazy<T>. Ensure only one persister instance is created (even in the face of
+        // parallel requests for the value) because the constructor registers global event handler callbacks.
         private readonly Threading.AsyncLazy<IOptionPersister> _lazyPersister;
 
         [ImportingConstructor]
