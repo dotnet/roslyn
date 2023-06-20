@@ -9,7 +9,7 @@
     <IsShipping>false</IsShipping>
 
     <GenerateReadyToRun Condition="'$(GenerateReadyToRun)' == '' and '$(Configuration)' == 'Release' and '$(OfficialBuild)' == 'true'">true</GenerateReadyToRun>
-    <MicrosoftNETCoreAppcrossgen2winx64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftNETCoreAppcrossgen2winx64Version>
+    <MicrosoftNETCoreAppcrossgen2winx64Version>$(MicrosoftNetCoreAppRuntimePackagesVersion)</MicrosoftNETCoreAppcrossgen2winx64Version>
   </PropertyGroup>  
 
   <ItemGroup>
