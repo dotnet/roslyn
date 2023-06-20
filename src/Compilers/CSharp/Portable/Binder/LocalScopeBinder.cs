@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalScopeBinder : Binder
     {
-        protected const int DefaultLocalSymbolArrayCapacity = 64;
+        protected const int DefaultLocalSymbolArrayCapacity = 16;
 
         private ImmutableArray<LocalSymbol> _locals;
         private ImmutableArray<LocalFunctionSymbol> _localFunctions;
