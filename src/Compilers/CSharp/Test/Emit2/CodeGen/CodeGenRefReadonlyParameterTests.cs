@@ -36,7 +36,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         bool metadataIn = true,
         bool attributes = true,
         bool modreq = false,
-        bool useSiteErrors = false)
+        bool useSiteError = false)
     {
         if (refKind)
         {
@@ -75,7 +75,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var method = (MethodSymbol)parameter.ContainingSymbol;
 
-        if (useSiteErrors)
+        if (useSiteError)
         {
             Assert.True(method.HasUnsupportedMetadata);
             Assert.True(method.HasUseSiteError);
@@ -283,7 +283,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         var comp = CreateCompilationWithIL("", ilSource).VerifyDiagnostics();
 
         var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
-        VerifyRefReadonlyParameter(p, modreq: true, useSiteErrors: true);
+        VerifyRefReadonlyParameter(p, modreq: true, useSiteError: true);
     }
 
     [Fact]
@@ -524,7 +524,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 var p = m.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke").Parameters.Single();
                 VerifyRefReadonlyParameter(p,
                     // PROTOTYPE: Invoke method is virtual but no modreq is emitted. This happens for `in` parameters, as well.
-                    useSiteErrors: true);
+                    useSiteError: true);
             }
         }
     }
