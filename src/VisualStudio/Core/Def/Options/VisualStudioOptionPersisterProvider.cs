@@ -9,7 +9,6 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
@@ -22,9 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
     [Export(typeof(VisualStudioOptionPersisterProvider))]
     internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProvider
     {
-        private readonly IVsService<SLocalRegistry, ILocalRegistry4> _localRegistryService;
-        private readonly IVsService<SVsSettingsPersistenceManager, ISettingsManager> _settingsManagerService;
-        private readonly IVsService<SVsFeatureFlags, IVsFeatureFlags> _featureFlagsService;
+        private readonly IVsService<ILocalRegistry4> _localRegistryService;
+        private readonly IVsService<ISettingsManager> _settingsManagerService;
+        private readonly IVsService<IVsFeatureFlags> _featureFlagsService;
         private readonly ILegacyGlobalOptionService _legacyGlobalOptions;
 
         // maps config name to a read fallback:
@@ -50,11 +49,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
         }
 
         public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
-            => _lazyPersister ??=
-                new VisualStudioOptionPersister(
-                    new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, await _settingsManagerService.GetValueAsync(cancellationToken).ConfigureAwait(true)),
-                    await LocalUserRegistryOptionPersister.CreateAsync(_localRegistryService).ConfigureAwait(false),
-                    new FeatureFlagPersister(await TryGetServiceAsync(_featureFlagsService).ConfigureAwait(false)));
+        {
+            return _lazyPersister ??= await CreatePersisterAsync(cancellationToken).ConfigureAwait(true);
+
+            async Task<VisualStudioOptionPersister> CreatePersisterAsync(CancellationToken cancellationToken)
+            {
+                // Obtain services before creating instances. This avoids state corruption in the event cancellation is
+                // requested (some of the constructors register event handlers that could leak if cancellation occurred
+                // in the middle of construction).
+                var settingsManager = await _settingsManagerService.GetValueAsync(cancellationToken).ConfigureAwait(true);
+                var localRegistry = await _localRegistryService.GetValueAsync(cancellationToken).ConfigureAwait(true);
+                var featureFlags = await _featureFlagsService.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
+
+                // Cancellation is not allowed after this point
+                cancellationToken = CancellationToken.None;
+
+                return new VisualStudioOptionPersister(
+                    new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, settingsManager),
+                    LocalUserRegistryOptionPersister.Create(localRegistry),
+                    new FeatureFlagPersister(featureFlags));
+            }
+        }
 
         private void RefreshOption(OptionKey2 optionKey, object? newValue)
         {
@@ -63,20 +78,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
                 // We may be updating the values of internally defined public options.
                 // Update solution snapshots of all workspaces to reflect the new values.
                 _legacyGlobalOptions.UpdateRegisteredWorkspaces();
-            }
-        }
-
-        private static async ValueTask<I?> TryGetServiceAsync<T, I>(IVsService<T, I> service)
-            where T : class
-            where I : class
-        {
-            try
-            {
-                return await service.GetValueAsync().ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-                return null;
             }
         }
     }

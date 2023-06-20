@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -19,21 +20,22 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     internal partial class VisualStudioErrorReportingService : IErrorReportingService
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IVsService<IVsActivityLog> _activityLog;
         private readonly IAsynchronousOperationListener _listener;
         private readonly VisualStudioInfoBar _infoBar;
-        private readonly SVsServiceProvider _serviceProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioErrorReportingService(
             IThreadingContext threadingContext,
+            IVsService<SVsActivityLog, IVsActivityLog> activityLog,
             IAsynchronousOperationListenerProvider listenerProvider,
             SVsServiceProvider serviceProvider)
         {
             _threadingContext = threadingContext;
+            _activityLog = activityLog;
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
             _infoBar = new VisualStudioInfoBar(threadingContext, serviceProvider, listenerProvider);
-            _serviceProvider = serviceProvider;
         }
 
         public string HostDisplayName => "Visual Studio";
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
-                var activityLog = await ((IAsyncServiceProvider)_serviceProvider).GetServiceAsync<SVsActivityLog, IVsActivityLog>(_threadingContext.JoinableTaskFactory).ConfigureAwait(true);
+                var activityLog = await _activityLog.GetValueAsync(_threadingContext.DisposalToken).ConfigureAwait(true);
 
                 activityLog.LogEntry(
                     (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
