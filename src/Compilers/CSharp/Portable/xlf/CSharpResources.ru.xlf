@@ -8701,7 +8701,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
         <source>Iterators cannot have pointer type parameters</source>
-        <target state="new">Iterators cannot have pointer type parameters</target>
+        <target state="translated">Итераторы не могут использовать параметры типа указателя</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -10044,7 +10044,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
         <source>Async methods cannot have pointer type parameters</source>
-        <target state="new">Async methods cannot have pointer type parameters</target>
+        <target state="translated">Асинхронные методы не могут использовать параметры типа указателя</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">

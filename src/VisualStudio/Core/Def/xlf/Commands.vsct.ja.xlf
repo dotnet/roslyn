@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineSortByType|ButtonText">
         <source>Sort By Type</source>
-        <target state="translated">型で並べ替え</target>
+        <target state="translated">種類で並べ替え</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineSortByType|LocCanonicalName">

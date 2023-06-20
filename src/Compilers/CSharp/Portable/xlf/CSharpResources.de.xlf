@@ -1894,7 +1894,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
         <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
-        <target state="new">Cannot use primary constructor parameter of type '{0}' inside an instance member</target>
+        <target state="translated">Der primäre Konstruktorparameter vom Typ "{0}" innerhalb eines Instanzmembers kann nicht verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
@@ -2024,7 +2024,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
-        <target state="new">instance member in 'nameof'</target>
+        <target state="translated">Instanzmember in "nameof"</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -8701,7 +8701,7 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
         <source>Iterators cannot have pointer type parameters</source>
-        <target state="new">Iterators cannot have pointer type parameters</target>
+        <target state="translated">Iteratoren dürfen keine Zeigertypparameter aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -10044,7 +10044,7 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
         <source>Async methods cannot have pointer type parameters</source>
-        <target state="new">Async methods cannot have pointer type parameters</target>
+        <target state="translated">Asynchrone Methoden dürfen keine Zeigertypparameter aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
@@ -11734,7 +11734,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_PPLoadFollowsToken">
         <source>Cannot use #load after first token in file</source>
-        <target state="translated">"#Load" kann nicht nach dem ersten Token in der Datei verwendet werden.</target>
+        <target state="translated">"#load" kann nicht nach dem ersten Token in der Datei verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="CouldNotFindFile">

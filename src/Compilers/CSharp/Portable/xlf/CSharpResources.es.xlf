@@ -1119,7 +1119,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
         <source>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</source>
-        <target state="translated">La directiva de intervalo de #línea requiere un espacio delante del primer paréntesis, antes del desplazamiento de caracteres y antes del nombre de archivo</target>
+        <target state="translated">La directiva de intervalo de #line requiere un espacio delante del primer paréntesis, antes del desplazamiento de caracteres y antes del nombre de archivo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">

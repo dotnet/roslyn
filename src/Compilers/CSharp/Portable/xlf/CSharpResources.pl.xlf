@@ -1109,7 +1109,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
         <source>The #line directive end position must be greater than or equal to the start position</source>
-        <target state="translated">Pozycja końcowa dyrektywy #wiersza musi być większa lub równa pozycji początkowej</target>
+        <target state="translated">Pozycja końcowa dyrektywy #line musi być większa lub równa pozycji początkowej</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
@@ -1894,7 +1894,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
         <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
-        <target state="new">Cannot use primary constructor parameter of type '{0}' inside an instance member</target>
+        <target state="translated">Nie można użyć podstawowego parametru konstruktora typu „{0}” wewnątrz składowej wystąpienia</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
@@ -2024,7 +2024,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
-        <target state="new">instance member in 'nameof'</target>
+        <target state="translated">składowa wystąpienia w elemencie „nameof”</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -8701,7 +8701,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
         <source>Iterators cannot have pointer type parameters</source>
-        <target state="new">Iterators cannot have pointer type parameters</target>
+        <target state="translated">Iteratory nie mogą mieć parametrów typu wskaźnika</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -10044,7 +10044,7 @@ Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nada
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
         <source>Async methods cannot have pointer type parameters</source>
-        <target state="new">Async methods cannot have pointer type parameters</target>
+        <target state="translated">Metody asynchroniczne nie mogą mieć parametrów typu wskaźnika</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
