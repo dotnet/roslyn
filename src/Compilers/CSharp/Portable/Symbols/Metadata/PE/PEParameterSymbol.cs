@@ -384,7 +384,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             bool hasInAttributeModifier = parameter.RefCustomModifiers.HasInAttributeModifier();
 
-            // PROTOTYPE: Check also RefReadOnlyParameters.
             if (isReturn)
             {
                 // A RefReadOnly return parameter should always have this modreq, and vice versa.
@@ -393,6 +392,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             else if (parameter.RefKind == RefKind.In)
             {
                 // An in parameter should not have this modreq, unless the containing symbol was virtual or abstract.
+                isBad |= isContainingSymbolVirtual != hasInAttributeModifier;
+            }
+            else if (parameter.RefKind == RefKind.RefReadOnlyParameter)
+            {
+                // A ref readonly parameter should not have this modreq, unless the containing symbol was virtual or abstract.
+                // PROTOTYPE: Test this.
                 isBad |= isContainingSymbolVirtual != hasInAttributeModifier;
             }
             else if (hasInAttributeModifier)
