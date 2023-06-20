@@ -12,6 +12,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
@@ -316,6 +320,51 @@ $@"        if (F({i}))
                     Assert.True(typeParameter.IsReferenceType);
                     comp.VerifyDiagnostics(diagnostics);
                 });
+            }
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1819416")]
+        public void LongInitializerList()
+        {
+            CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            try
+            {
+                initializerTest(cts.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                Assert.True(false, "Test timed out while getting all semantic info for long initializer list");
+            }
+
+            static void initializerTest(CancellationToken ct)
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine("""
+                    _ = new System.Collections.Generic.Dictionary<string, string>
+                    {
+                    """);
+
+                for (int i = 0; i < 75000; i++)
+                {
+                    sb.AppendLine("""    { "a", "b" },""");
+                }
+
+                sb.AppendLine("};");
+
+                var comp = CreateCompilation(sb.ToString());
+                comp.VerifyEmitDiagnostics();
+
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+
+                // If we regress perf here, this test will time out. The original condition here was a O(n^2) algorithm because the syntactic parent of each literal
+                // was being rebound on every call to GetTypeInfo.
+                foreach (var literal in tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>())
+                {
+                    ct.ThrowIfCancellationRequested();
+                    var type = model.GetTypeInfo(literal).Type;
+                    Assert.Equal(SpecialType.System_String, type.SpecialType);
+                }
             }
         }
 

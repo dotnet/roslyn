@@ -670,18 +670,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private readonly struct CompilationInfo
+            private readonly struct CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, CompilationTrackerGeneratorInfo generatorInfo)
             {
-                public Compilation Compilation { get; }
-                public bool HasSuccessfullyLoaded { get; }
-                public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
-
-                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, CompilationTrackerGeneratorInfo generatorInfo)
-                {
-                    Compilation = compilation;
-                    HasSuccessfullyLoaded = hasSuccessfullyLoaded;
-                    GeneratorInfo = generatorInfo;
-                }
+                public Compilation Compilation { get; } = compilation;
+                public bool HasSuccessfullyLoaded { get; } = hasSuccessfullyLoaded;
+                public CompilationTrackerGeneratorInfo GeneratorInfo { get; } = generatorInfo;
             }
 
             /// <summary>

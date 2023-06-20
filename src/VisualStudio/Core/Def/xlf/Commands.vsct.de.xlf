@@ -184,112 +184,112 @@
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineCollapseAll|ButtonText">
         <source>Collapse All</source>
-        <target state="new">Collapse All</target>
+        <target state="translated">Alle reduzieren</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineCollapseAll|LocCanonicalName">
         <source>DocumentOutlineCollapseAll</source>
-        <target state="new">DocumentOutlineCollapseAll</target>
+        <target state="translated">DocumentOutlineCollapseAll</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineCollapseAll|MenuText">
         <source>Collapse All</source>
-        <target state="new">Collapse All</target>
+        <target state="translated">Alle reduzieren</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineCollapseAll|ToolTipText">
         <source>Collapse All</source>
-        <target state="new">Collapse All</target>
+        <target state="translated">Alle reduzieren</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineExpandAll|ButtonText">
         <source>Expand All</source>
-        <target state="new">Expand All</target>
+        <target state="translated">Alle erweitern</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineExpandAll|LocCanonicalName">
         <source>DocumentOutlineExpandAll</source>
-        <target state="new">DocumentOutlineExpandAll</target>
+        <target state="translated">DocumentOutlineExpandAll</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineExpandAll|MenuText">
         <source>Expand All</source>
-        <target state="new">Expand All</target>
+        <target state="translated">Alle erweitern</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineExpandAll|ToolTipText">
         <source>Expand All</source>
-        <target state="new">Expand All</target>
+        <target state="translated">Alle erweitern</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineSortByName|ButtonText">
         <source>Sort By Name</source>
-        <target state="new">Sort By Name</target>
+        <target state="translated">Nach Namen sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineSortByName|LocCanonicalName">
         <source>DocumentOutlineSortByName</source>
-        <target state="new">DocumentOutlineSortByName</target>
+        <target state="translated">DocumentOutlineSortByName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineSortByName|MenuText">
         <source>Sort By Name</source>
-        <target state="new">Sort By Name</target>
+        <target state="translated">Nach Namen sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineSortByName|ToolTipText">
         <source>Sort By Name</source>
-        <target state="new">Sort By Name</target>
+        <target state="translated">Nach Namen sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineSortByOrder|ButtonText">
         <source>Sort By Order</source>
-        <target state="new">Sort By Order</target>
+        <target state="translated">Nach Reihenfolge sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineSortByOrder|LocCanonicalName">
         <source>DocumentOutlineSortByOrder</source>
-        <target state="new">DocumentOutlineSortByOrder</target>
+        <target state="translated">DocumentOutlineSortByOrder</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineSortByOrder|MenuText">
         <source>Sort By Order</source>
-        <target state="new">Sort By Order</target>
+        <target state="translated">Nach Reihenfolge sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineSortByOrder|ToolTipText">
         <source>Sort By Order</source>
-        <target state="new">Sort By Order</target>
+        <target state="translated">Nach Reihenfolge sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineSortByType|ButtonText">
         <source>Sort By Type</source>
-        <target state="new">Sort By Type</target>
+        <target state="translated">Nach Typ sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineSortByType|LocCanonicalName">
         <source>DocumentOutlineSortByType</source>
-        <target state="new">DocumentOutlineSortByType</target>
+        <target state="translated">DocumentOutlineSortByType</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineSortByType|MenuText">
         <source>Sort By Type</source>
-        <target state="new">Sort By Type</target>
+        <target state="translated">Nach Typ sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineSortByType|ToolTipText">
         <source>Sort By Type</source>
-        <target state="new">Sort By Type</target>
+        <target state="translated">Nach Typ sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineToolbar|ButtonText">
         <source>Document Outline</source>
-        <target state="new">Document Outline</target>
+        <target state="translated">Dokumentgliederung</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDocumentOutlineToolbar|LocCanonicalName">
         <source>RoslynDocumentOutlineToolbar</source>
-        <target state="new">RoslynDocumentOutlineToolbar</target>
+        <target state="translated">RoslynDocumentOutlineToolbar</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityDefault|ButtonText">

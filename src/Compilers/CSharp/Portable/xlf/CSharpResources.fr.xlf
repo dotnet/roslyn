@@ -1894,7 +1894,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
         <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
-        <target state="new">Cannot use primary constructor parameter of type '{0}' inside an instance member</target>
+        <target state="translated">Impossible d'utiliser le paramètre de constructeur principal de type '{0}' dans un membre d'instance</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
@@ -2024,7 +2024,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
-        <target state="new">instance member in 'nameof'</target>
+        <target state="translated">membre d'instance dans 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -8701,7 +8701,7 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
         <source>Iterators cannot have pointer type parameters</source>
-        <target state="needs-review-translation">Les itérateurs ne peuvent pas avoir de paramètres unsafe ou de types yield</target>
+        <target state="translated">Les itérateurs ne peuvent pas avoir de paramètres de type pointeur</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -10044,7 +10044,7 @@ Permettez au compilateur de différencier les méthodes. Par exemple, vous pouve
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
         <source>Async methods cannot have pointer type parameters</source>
-        <target state="needs-review-translation">Les méthodes ne peuvent pas avoir de paramètres unsafe ou de types de retour</target>
+        <target state="translated">Les méthodes asynchrones ne peuvent pas avoir de paramètres de type pointeur</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">

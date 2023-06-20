@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return result;
         }
 
-        private HashSet<string> Keys(int[] numbers, bool randomCase, IEqualityComparer<string> comparer)
+        private SegmentedHashSet<string> Keys(int[] numbers, bool randomCase, IEqualityComparer<string> comparer)
         {
-            var keys = new HashSet<string>(comparer);
+            var keys = new SegmentedHashSet<string>(comparer);
             foreach (var n in numbers)
             {
                 keys.Add(GetKey(n, randomCase));
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private void CompareLookups1(ILookup<string, int> look1, CachingDictionary<string, int> look2, HashSet<string> keys)
+        private void CompareLookups1(ILookup<string, int> look1, CachingDictionary<string, int> look2, SegmentedHashSet<string> keys)
         {
             foreach (string k in keys)
             {
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private void CompareLookups2(ILookup<string, int> look1, CachingDictionary<string, int> look2, HashSet<string> keys)
+        private void CompareLookups2(ILookup<string, int> look1, CachingDictionary<string, int> look2, SegmentedHashSet<string> keys)
         {
             foreach (string k in look1.Select(g => g.Key))
             {
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(look1.Count, look2.Count);
         }
 
-        private void CompareLookups2(CachingDictionary<string, int> look1, ILookup<string, int> look2, HashSet<string> keys)
+        private void CompareLookups2(CachingDictionary<string, int> look1, ILookup<string, int> look2, SegmentedHashSet<string> keys)
         {
             foreach (string k in look1.Keys)
             {
@@ -313,9 +313,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 return ImmutableArray.Create<FullyPopulateRaceHelper>(new FullyPopulateRaceHelper());
             }
 
-            HashSet<int> getKeys(IEqualityComparer<int> comparer)
+            SegmentedHashSet<int> getKeys(IEqualityComparer<int> comparer)
             {
-                return new HashSet<int>(new[] { 1 }, comparer);
+                return new SegmentedHashSet<int>(new[] { 1 }, comparer);
             }
 
             FullyPopulateRaceHelper getItem()
@@ -356,9 +356,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 return ImmutableArray.Create<FullyPopulateRaceHelper>(new FullyPopulateRaceHelper());
             }
 
-            HashSet<int> getKeys(IEqualityComparer<int> comparer)
+            SegmentedHashSet<int> getKeys(IEqualityComparer<int> comparer)
             {
-                return new HashSet<int>(new[] { 1 }, comparer);
+                return new SegmentedHashSet<int>(new[] { 1 }, comparer);
             }
 
             FullyPopulateRaceHelper getItem()

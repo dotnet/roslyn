@@ -44,7 +44,7 @@ JSON;
 JSON dizelerini renklendir;
 Geçersiz JSON dizelerini bildir;
 JSON dizeleri için düzenleyici özelliklerini algıla ve öner;
-Dosya açılırken #bölgeleri daralt;
+Dosya açılırken #regions daralt;
 Dosya açılırken İçeri Aktarmaları daralt;
 Dosya açılırken meta veri uygulamalarını daralt;
 Gelişmiş renkleri kullan;Düzenleyici Renk Düzeni;Devralma Kenar Boşluğu;İçeri Aktarma Yönergeleri;</target>

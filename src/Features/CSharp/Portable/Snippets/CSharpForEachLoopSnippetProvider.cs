@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var itemString = NameGenerator.GenerateUniqueName(
                 "item", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
 
-            return SyntaxFactory.ForEachStatement(varIdentifier, itemString, collectionIdentifier, SyntaxFactory.Block()).NormalizeWhitespace();
+            return SyntaxFactory.ForEachStatement(varIdentifier, itemString, collectionIdentifier.WithoutLeadingTrivia(), SyntaxFactory.Block()).NormalizeWhitespace();
         }
 
         /// <summary>

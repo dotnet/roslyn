@@ -45,6 +45,7 @@
       "Microsoft.CodeAnalysis.EditorFeatures.Cocoa": "vssdk",
       "Microsoft.VisualStudio.IntegrationTest.Utilities": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.DevKit": "npm",
+      "Microsoft.CodeAnalysis.LanguageServer": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.Protocol": "vs-impl",
       "Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol": "vs-impl",
       "Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol": "vs-impl",

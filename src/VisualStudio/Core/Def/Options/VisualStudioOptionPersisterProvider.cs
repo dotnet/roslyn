@@ -14,8 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Settings;
-using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
-using SAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options
 {
@@ -23,7 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
     [Export(typeof(VisualStudioOptionPersisterProvider))]
     internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProvider
     {
-        private readonly IAsyncServiceProvider _serviceProvider;
+        private readonly IVsService<SLocalRegistry, ILocalRegistry4> _localRegistryService;
+        private readonly IVsService<SVsSettingsPersistenceManager, ISettingsManager> _settingsManagerService;
+        private readonly IVsService<SVsFeatureFlags, IVsFeatureFlags> _featureFlagsService;
         private readonly ILegacyGlobalOptionService _legacyGlobalOptions;
 
         // maps config name to a read fallback:
@@ -34,12 +35,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioOptionPersisterProvider(
-            [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
+            IVsService<SLocalRegistry, ILocalRegistry4> localRegistryService,
+            IVsService<SVsSettingsPersistenceManager, ISettingsManager> settingsManagerService,
+            IVsService<SVsFeatureFlags, IVsFeatureFlags> featureFlagsService,
             [ImportMany] IEnumerable<Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> readFallbacks,
             IThreadingContext threadingContext,
             ILegacyGlobalOptionService legacyGlobalOptions)
         {
-            _serviceProvider = serviceProvider;
+            _localRegistryService = localRegistryService;
+            _settingsManagerService = settingsManagerService;
+            _featureFlagsService = featureFlagsService;
             _legacyGlobalOptions = legacyGlobalOptions;
             _readFallbacks = readFallbacks.ToImmutableDictionary(item => item.Metadata.ConfigName, item => item);
         }
@@ -47,9 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
         public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
             => _lazyPersister ??=
                 new VisualStudioOptionPersister(
-                    new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, await TryGetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>().ConfigureAwait(true)),
-                    await LocalUserRegistryOptionPersister.CreateAsync(_serviceProvider).ConfigureAwait(false),
-                    new FeatureFlagPersister(await TryGetServiceAsync<SVsFeatureFlags, IVsFeatureFlags>().ConfigureAwait(false)));
+                    new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, await _settingsManagerService.GetValueAsync(cancellationToken).ConfigureAwait(true)),
+                    await LocalUserRegistryOptionPersister.CreateAsync(_localRegistryService).ConfigureAwait(false),
+                    new FeatureFlagPersister(await TryGetServiceAsync(_featureFlagsService).ConfigureAwait(false)));
 
         private void RefreshOption(OptionKey2 optionKey, object? newValue)
         {
@@ -61,11 +66,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
             }
         }
 
-        private async ValueTask<I?> TryGetServiceAsync<T, I>() where I : class
+        private static async ValueTask<I?> TryGetServiceAsync<T, I>(IVsService<T, I> service)
+            where T : class
+            where I : class
         {
             try
             {
-                return (I?)await _serviceProvider.GetServiceAsync(typeof(T)).ConfigureAwait(false);
+                return await service.GetValueAsync().ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
