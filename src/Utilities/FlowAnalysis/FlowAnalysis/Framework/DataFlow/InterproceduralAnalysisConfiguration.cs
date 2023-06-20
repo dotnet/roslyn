@@ -118,20 +118,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public uint MaxInterproceduralLambdaOrLocalFunctionCallChain { get; }
 
-        public override bool Equals(object obj)
+        public override readonly bool Equals(object obj)
         {
             return obj is InterproceduralAnalysisConfiguration otherParameters &&
                 Equals(otherParameters);
         }
 
-        public bool Equals(InterproceduralAnalysisConfiguration other)
+        public readonly bool Equals(InterproceduralAnalysisConfiguration other)
         {
             return InterproceduralAnalysisKind == other.InterproceduralAnalysisKind &&
                 MaxInterproceduralMethodCallChain == other.MaxInterproceduralMethodCallChain &&
                 MaxInterproceduralLambdaOrLocalFunctionCallChain == other.MaxInterproceduralLambdaOrLocalFunctionCallChain;
         }
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return RoslynHashCode.Combine(
                 InterproceduralAnalysisKind.GetHashCode(),
