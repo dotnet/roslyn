@@ -255,15 +255,15 @@ namespace Microsoft.CodeAnalysis
                     return DecodeObsoleteAttribute();
                 case ObsoleteAttributeKind.Deprecated:
                     return DecodeDeprecatedAttribute();
+                case ObsoleteAttributeKind.WindowsExperimental:
+                    return DecodeWindowsExperimentalAttribute();
                 case ObsoleteAttributeKind.Experimental:
-                    return DecodeExperimentalAttribute();
-                case ObsoleteAttributeKind.NewExperimental:
-                    return decodeNewExperimentalAttribute();
+                    return decodeExperimentalAttribute();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
 
-            ObsoleteAttributeData decodeNewExperimentalAttribute()
+            ObsoleteAttributeData decodeExperimentalAttribute()
             {
                 // ExperimentalAttribute(string diagnosticId)
                 Debug.Assert(this.CommonConstructorArguments.Length == 1);
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                return new ObsoleteAttributeData(ObsoleteAttributeKind.NewExperimental, message: null, isError: false, diagnosticId, urlFormat);
+                return new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: null, isError: false, diagnosticId, urlFormat);
             }
         }
 
@@ -372,11 +372,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Decode the arguments to ExperimentalAttribute. ExperimentalAttribute has 0 arguments.
         /// </summary>
-        private ObsoleteAttributeData DecodeExperimentalAttribute()
+        private ObsoleteAttributeData DecodeWindowsExperimentalAttribute()
         {
             // ExperimentalAttribute() 
             Debug.Assert(this.CommonConstructorArguments.Length == 0);
-            return ObsoleteAttributeData.Experimental;
+            return ObsoleteAttributeData.WindowsExperimental;
         }
 
         internal static void DecodeMethodImplAttribute<T, TAttributeSyntaxNode, TAttributeData, TAttributeLocation>(

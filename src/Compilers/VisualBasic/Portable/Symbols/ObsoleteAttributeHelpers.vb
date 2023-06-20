@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Select Case symbol.ObsoleteKind
                 Case ObsoleteAttributeKind.None
                     Return ObsoleteDiagnosticKind.NotObsolete
-                Case ObsoleteAttributeKind.Experimental, ObsoleteAttributeKind.NewExperimental
+                Case ObsoleteAttributeKind.WindowsExperimental, ObsoleteAttributeKind.Experimental
                     Return ObsoleteDiagnosticKind.Diagnostic
                 Case ObsoleteAttributeKind.Uninitialized
                     ' If we haven't cracked attributes on the symbol at all or we haven't
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' uninitialized.
             Debug.Assert(Not data.IsUninitialized)
 
-            If data.Kind = ObsoleteAttributeKind.Experimental Then
+            If data.Kind = ObsoleteAttributeKind.WindowsExperimental Then
                 Debug.Assert(data.Message Is Nothing)
                 Debug.Assert(Not data.IsError)
                 ' Provide an explicit format for fully-qualified type names.
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
 
-            If data.Kind = ObsoleteAttributeKind.NewExperimental Then
+            If data.Kind = ObsoleteAttributeKind.Experimental Then
                 Debug.Assert(data.Message Is Nothing)
                 Debug.Assert(Not data.IsError)
                 ' Provide an explicit format for fully-qualified type names.

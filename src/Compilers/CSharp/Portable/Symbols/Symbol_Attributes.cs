@@ -162,13 +162,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 kind = ObsoleteAttributeKind.Deprecated;
             }
+            else if (CSharpAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.WindowsExperimentalAttribute))
+            {
+                kind = ObsoleteAttributeKind.WindowsExperimental;
+            }
             else if (CSharpAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.ExperimentalAttribute))
             {
                 kind = ObsoleteAttributeKind.Experimental;
-            }
-            else if (CSharpAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.NewExperimentalAttribute))
-            {
-                kind = ObsoleteAttributeKind.NewExperimental;
             }
             else
             {

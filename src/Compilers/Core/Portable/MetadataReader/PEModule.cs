@@ -1164,24 +1164,24 @@ namespace Microsoft.CodeAnalysis
             }
 
             // [Windows.Foundation.Metadata.Experimental] is always a warning, not an error.
-            info = FindTargetAttribute(token, AttributeDescription.ExperimentalAttribute);
+            info = FindTargetAttribute(token, AttributeDescription.WindowsExperimentalAttribute);
             if (info.HasValue)
             {
-                return TryExtractExperimentalDataFromAttribute(info);
+                return TryExtractWindowsExperimentalDataFromAttribute(info);
             }
 
             // [Experimental] is always a warning, not an error, so search for it last.
-            info = FindTargetAttribute(token, AttributeDescription.NewExperimentalAttribute);
+            info = FindTargetAttribute(token, AttributeDescription.ExperimentalAttribute);
             if (info.HasValue)
             {
-                return TryExtractNewExperimentalDataFromAttribute(info, decoder);
+                return TryExtractExperimentalDataFromAttribute(info, decoder);
             }
 
             return null;
         }
 
 #nullable enable
-        private ObsoleteAttributeData? TryExtractNewExperimentalDataFromAttribute(AttributeInfo attributeInfo, IAttributeNamedArgumentDecoder decoder)
+        private ObsoleteAttributeData? TryExtractExperimentalDataFromAttribute(AttributeInfo attributeInfo, IAttributeNamedArgumentDecoder decoder)
         {
             Debug.Assert(attributeInfo.HasValue);
             if (!TryGetAttributeReader(attributeInfo.Handle, out var sig))
@@ -1202,7 +1202,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             string? urlFormat = crackUrlFormat(decoder, ref sig);
-            return new ObsoleteAttributeData(ObsoleteAttributeKind.NewExperimental, message: null, isError: false, diagnosticId, urlFormat);
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: null, isError: false, diagnosticId, urlFormat);
 
             static string? crackUrlFormat(IAttributeNamedArgumentDecoder decoder, ref BlobReader sig)
             {
@@ -1692,14 +1692,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private ObsoleteAttributeData TryExtractExperimentalDataFromAttribute(AttributeInfo attributeInfo)
+        private ObsoleteAttributeData TryExtractWindowsExperimentalDataFromAttribute(AttributeInfo attributeInfo)
         {
             Debug.Assert(attributeInfo.HasValue);
 
             switch (attributeInfo.SignatureIndex)
             {
                 case 0: // ExperimentalAttribute() 
-                    return ObsoleteAttributeData.Experimental;
+                    return ObsoleteAttributeData.WindowsExperimental;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);

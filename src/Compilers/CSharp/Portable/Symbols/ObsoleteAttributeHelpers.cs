@@ -99,8 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case ObsoleteAttributeKind.None:
                     return ObsoleteDiagnosticKind.NotObsolete;
+                case ObsoleteAttributeKind.WindowsExperimental:
                 case ObsoleteAttributeKind.Experimental:
-                case ObsoleteAttributeKind.NewExperimental:
                     return ObsoleteDiagnosticKind.Diagnostic;
                 case ObsoleteAttributeKind.Uninitialized:
                     // If we haven't cracked attributes on the symbol at all or we haven't
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                if (data.Kind == ObsoleteAttributeKind.Experimental)
+                if (data.Kind == ObsoleteAttributeKind.WindowsExperimental)
                 {
                     Debug.Assert(data.Message == null);
                     Debug.Assert(!data.IsError);
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return new CSDiagnosticInfo(ErrorCode.WRN_Experimental, new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat));
                 }
 
-                if (data.Kind == ObsoleteAttributeKind.NewExperimental)
+                if (data.Kind == ObsoleteAttributeKind.Experimental)
                 {
                     Debug.Assert(data.Message is null);
                     Debug.Assert(!data.IsError);

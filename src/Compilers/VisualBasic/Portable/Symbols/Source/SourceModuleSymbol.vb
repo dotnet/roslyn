@@ -328,8 +328,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             checker.AddName(AttributeDescription.CaseInsensitiveExtensionAttribute.Name, QuickAttributes.Extension)
             checker.AddName(AttributeDescription.ObsoleteAttribute.Name, QuickAttributes.Obsolete)
             checker.AddName(AttributeDescription.DeprecatedAttribute.Name, QuickAttributes.Obsolete)
+            checker.AddName(AttributeDescription.WindowsExperimentalAttribute.Name, QuickAttributes.Obsolete)
             checker.AddName(AttributeDescription.ExperimentalAttribute.Name, QuickAttributes.Obsolete)
-            checker.AddName(AttributeDescription.NewExperimentalAttribute.Name, QuickAttributes.Obsolete)
             checker.AddName(AttributeDescription.MyGroupCollectionAttribute.Name, QuickAttributes.MyGroupCollection)
             checker.AddName(AttributeDescription.TypeIdentifierAttribute.Name, QuickAttributes.TypeIdentifier)
 

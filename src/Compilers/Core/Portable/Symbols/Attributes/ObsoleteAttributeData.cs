@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis
         Uninitialized,
         Obsolete,
         Deprecated,
+        WindowsExperimental,
         Experimental,
-        NewExperimental,
     }
 
     /// <summary>
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     internal sealed class ObsoleteAttributeData
     {
         public static readonly ObsoleteAttributeData Uninitialized = new ObsoleteAttributeData(ObsoleteAttributeKind.Uninitialized, message: null, isError: false, diagnosticId: null, urlFormat: null);
-        public static readonly ObsoleteAttributeData Experimental = new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: null, isError: false, diagnosticId: null, urlFormat: null);
+        public static readonly ObsoleteAttributeData WindowsExperimental = new ObsoleteAttributeData(ObsoleteAttributeKind.WindowsExperimental, message: null, isError: false, diagnosticId: null, urlFormat: null);
 
         public const string DiagnosticIdPropertyName = "DiagnosticId";
         public const string UrlFormatPropertyName = "UrlFormat";
