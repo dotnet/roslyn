@@ -208,6 +208,58 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void Modreq_NonVirtual()
+    {
+        // public class C
+        // {
+        //     public void M(modreq(In) ref readonly int p) { }
+        // }
+        var ilSource = """
+            .class public auto ansi abstract sealed beforefieldinit C extends System.Object
+            {
+                .method public hidebysig instance void M(
+                    [in] int32& modreq(System.Runtime.InteropServices.InAttribute) p
+                    ) cil managed
+                {
+                    .param [1]
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+            }
+            
+            .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.RequiresLocationAttribute extends System.Object
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                {
+                    .maxstack 8
+                    ret
+                }
+            }
+            
+            .class public auto ansi sealed beforefieldinit System.Runtime.InteropServices.InAttribute extends System.Object
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                {
+                    .maxstack 8
+                    ret
+                }
+            }
+            """;
+        var comp = CreateCompilationWithIL("", ilSource).VerifyDiagnostics();
+
+        var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+        VerifyRefReadonlyParameter(p);
+        VerifyInModreq(p);
+        var method = p.ContainingSymbol;
+        Assert.True(method.HasUnsupportedMetadata);
+        Assert.True(method.HasUseSiteError);
+        Assert.Equal((int)ErrorCode.ERR_BindToBogus, method.GetUseSiteDiagnostic().Code);
+    }
+
+    [Fact]
     public void Method_Virtual()
     {
         var source = """

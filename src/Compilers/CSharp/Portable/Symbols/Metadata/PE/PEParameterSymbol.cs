@@ -398,7 +398,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             else if (parameter.RefKind == RefKind.RefReadOnlyParameter)
             {
                 // A ref readonly parameter should not have this modreq, unless the containing symbol was virtual or abstract.
-                // PROTOTYPE: Test this.
                 isBad |= isContainingSymbolVirtual != hasInAttributeModifier;
             }
             else if (hasInAttributeModifier)
