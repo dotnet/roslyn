@@ -413,8 +413,7 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             record struct C(ref readonly int p);
             """;
         var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition },
-            sourceSymbolValidator: verify, symbolValidator: verify,
-            verify: Verification.FailsPEVerify);
+            sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics();
 
         static void verify(ModuleSymbol m)
