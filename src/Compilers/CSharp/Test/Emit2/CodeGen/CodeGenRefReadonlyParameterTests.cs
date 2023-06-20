@@ -36,7 +36,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         bool metadataIn = true,
         bool attributes = true,
         bool modreq = false,
-        bool noUseSiteErrors = true)
+        bool useSiteErrors = false)
     {
         if (refKind)
         {
@@ -75,7 +75,13 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var method = (MethodSymbol)parameter.ContainingSymbol;
 
-        if (noUseSiteErrors)
+        if (useSiteErrors)
+        {
+            Assert.True(method.HasUnsupportedMetadata);
+            Assert.True(method.HasUseSiteError);
+            Assert.Equal((int)ErrorCode.ERR_BindToBogus, method.GetUseSiteDiagnostic().Code);
+        }
+        else
         {
             Assert.False(method.HasUnsupportedMetadata);
             Assert.False(method.HasUseSiteError);
@@ -277,11 +283,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         var comp = CreateCompilationWithIL("", ilSource).VerifyDiagnostics();
 
         var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
-        VerifyRefReadonlyParameter(p, modreq: true, noUseSiteErrors: false);
-        var method = (MethodSymbol)p.ContainingSymbol;
-        Assert.True(method.HasUnsupportedMetadata);
-        Assert.True(method.HasUseSiteError);
-        Assert.Equal((int)ErrorCode.ERR_BindToBogus, method.GetUseSiteDiagnostic().Code);
+        VerifyRefReadonlyParameter(p, modreq: true, useSiteErrors: true);
     }
 
     [Fact]
@@ -520,13 +522,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             if (m is not SourceModuleSymbol)
             {
                 var p = m.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke").Parameters.Single();
-                VerifyRefReadonlyParameter(p, noUseSiteErrors: false);
-
-                // PROTOTYPE: Invoke method is virtual but no modreq is emitted. This happens for `in` parameters, as well.
-                var method = (MethodSymbol)p.ContainingSymbol;
-                Assert.True(method.HasUnsupportedMetadata);
-                Assert.True(method.HasUseSiteError);
-                Assert.Equal((int)ErrorCode.ERR_BindToBogus, method.GetUseSiteDiagnostic().Code);
+                VerifyRefReadonlyParameter(p,
+                    // PROTOTYPE: Invoke method is virtual but no modreq is emitted. This happens for `in` parameters, as well.
+                    useSiteErrors: true);
             }
         }
     }
