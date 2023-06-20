@@ -229,55 +229,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             validateExpected(output.ToString());
         }
 
-        public void VerifyMethodIL(string typeName, string methodName, string expected)
-        {
-            VerifyMethodIL(typeName, methodName, output => AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output, escapeQuotes: false));
-        }
-
-        public void VerifyMethodIL(string typeName, string methodName, Action<string> validateExpected)
-        {
-            var output = new ICSharpCode.Decompiler.PlainTextOutput();
-            using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
-            {
-                string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
-                IList<ModuleData> moduleData = testEnvironment.GetAllModuleData();
-                var mainModule = moduleData.Single(md => md.FullName == mainModuleFullName);
-                using (var moduleMetadata = ModuleMetadata.CreateFromImage(testEnvironment.GetMainImage()))
-                {
-                    var peFile = new PEFile(mainModuleFullName, moduleMetadata.Module.PEReaderOpt);
-                    var metadataReader = moduleMetadata.GetMetadataReader();
-
-                    bool found = false;
-                    foreach (var typeDefHandle in metadataReader.TypeDefinitions)
-                    {
-                        var typeDef = metadataReader.GetTypeDefinition(typeDefHandle);
-                        if (metadataReader.GetString(typeDef.Name) == typeName)
-                        {
-                            foreach (var methodDefHandle in typeDef.GetMethods())
-                            {
-                                var methodDef = metadataReader.GetMethodDefinition(methodDefHandle);
-                                if (metadataReader.GetString(methodDef.Name) == methodName)
-                                {
-                                    var disassembler = new ICSharpCode.Decompiler.Disassembler.ReflectionDisassembler(output, default);
-                                    disassembler.DisassembleMethod(peFile, methodDefHandle);
-                                    found = true;
-                                    break;
-                                }
-                            }
-
-                            if (found)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                    Assert.True(found, $"Could not find method '{typeName}.{methodName}'");
-                }
-            }
-
-            validateExpected(output.ToString());
-        }
-
         public void Emit(
             string expectedOutput,
             bool trimOutput,

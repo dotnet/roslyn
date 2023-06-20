@@ -30,6 +30,34 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
         }
     }
 
+    private static void VerifyRefReadonlyParameter(ParameterSymbol parameter)
+    {
+        Assert.Equal(RefKind.RefReadOnlyParameter, parameter.RefKind);
+        Assert.True(parameter.IsMetadataIn);
+        VerifyRefReadonlyParameterAttributes(parameter);
+    }
+
+    private static void VerifyRefReadonlyParameterAttributes(ParameterSymbol parameter)
+    {
+        if (parameter.ContainingModule is SourceModuleSymbol)
+        {
+            Assert.Empty(parameter.GetAttributes());
+        }
+        else
+        {
+            var attribute = Assert.Single(parameter.GetAttributes());
+            Assert.Equal("System.Runtime.CompilerServices.RequiresLocationAttribute", attribute.AttributeClass.ToTestDisplayString());
+            Assert.Empty(attribute.ConstructorArguments);
+            Assert.Empty(attribute.NamedArguments);
+        }
+    }
+
+    private static void VerifyInModreq(ParameterSymbol parameter)
+    {
+        var mod = Assert.Single(parameter.RefCustomModifiers);
+        Assert.Equal("System.Runtime.InteropServices.InAttribute", mod.Modifier.ToTestDisplayString());
+    }
+
     [Fact]
     public void Method()
     {
@@ -39,31 +67,16 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
                 public void M(ref readonly int p) { }
             }
             """;
-        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
-            sourceSymbolValidator: verify, symbolValidator: verify);
+        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodIL("C", "M", """
-            .method public hidebysig 
-            	instance void M (
-            		[in] int32& p
-            	) cil managed 
-            {
-            	.param [1]
-            		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-            			01 00 00 00
-            		)
-            	// Method begins at RVA 0x2067
-            	// Code size 1 (0x1)
-            	.maxstack 8
-            	IL_0000: ret
-            } // end of method C::M
-            """);
 
         static void verify(ModuleSymbol m)
         {
-            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
-            Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
             VerifyRequiresLocationAttributeSynthesized(m);
+
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+            VerifyRefReadonlyParameter(p);
+            Assert.Empty(p.RefCustomModifiers);
         }
     }
 
@@ -83,21 +96,26 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
-            sourceSymbolValidator: verify, symbolValidator: verify);
+        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics();
 
         static void verify(ModuleSymbol m)
         {
-            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
-            Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
             Assert.NotNull(m.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName));
+
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+            VerifyRefReadonlyParameter(p);
+            Assert.Empty(p.RefCustomModifiers);
         }
     }
 
     [Fact]
     public void BothAttributes()
     {
+        // public class C
+        // {
+        //     public void M([IsReadOnly] ref readonly int p) { }
+        // }
         var ilSource = """
             .class public auto ansi abstract sealed beforefieldinit C extends System.Object
             {
@@ -137,15 +155,19 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
 
         var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
         Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
-
-        var verifier = CompileAndVerify(comp,
-            sourceSymbolValidator: verify, symbolValidator: verify);
-        verifier.VerifyDiagnostics();
-
-        static void verify(ModuleSymbol m)
+        Assert.True(p.IsMetadataIn);
+        var attributes = p.GetAttributes();
+        Assert.Equal(new[]
         {
-            Assert.Null(m.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName));
-        }
+            "System.Runtime.CompilerServices.IsReadOnlyAttribute",
+            "System.Runtime.CompilerServices.RequiresLocationAttribute"
+        }, attributes.Select(a => a.AttributeClass.ToTestDisplayString()));
+        Assert.All(attributes, a =>
+        {
+            Assert.Empty(a.ConstructorArguments);
+            Assert.Empty(a.NamedArguments);
+        });
+        Assert.Empty(p.RefCustomModifiers);
     }
 
     [Fact]
@@ -157,31 +179,16 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
                 public virtual void M(ref readonly int p) { }
             }
             """;
-        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
-            sourceSymbolValidator: verify, symbolValidator: verify);
+        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodIL("C", "M", """
-            .method public hidebysig newslot virtual 
-            	instance void M (
-            		[in] int32& modreq([netstandard]System.Runtime.InteropServices.InAttribute) p
-            	) cil managed 
-            {
-            	.param [1]
-            		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-            			01 00 00 00
-            		)
-            	// Method begins at RVA 0x2067
-            	// Code size 1 (0x1)
-            	.maxstack 8
-            	IL_0000: ret
-            } // end of method C::M
-            """);
 
         static void verify(ModuleSymbol m)
         {
-            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
-            Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
             VerifyRequiresLocationAttributeSynthesized(m);
+
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+            VerifyRefReadonlyParameter(p);
+            VerifyInModreq(p);
         }
     }
 
@@ -194,33 +201,16 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
                 public C(ref readonly int p) { }
             }
             """;
-        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
-            sourceSymbolValidator: verify, symbolValidator: verify);
+        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodIL("C", ".ctor", """
-            .method public hidebysig specialname rtspecialname 
-            	instance void .ctor (
-            		[in] int32& p
-            	) cil managed 
-            {
-            	.param [1]
-            		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-            			01 00 00 00
-            		)
-            	// Method begins at RVA 0x2067
-            	// Code size 7 (0x7)
-            	.maxstack 8
-            	IL_0000: ldarg.0
-            	IL_0001: call instance void [netstandard]System.Object::.ctor()
-            	IL_0006: ret
-            } // end of method C::.ctor
-            """);
 
         static void verify(ModuleSymbol m)
         {
-            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C..ctor").Parameters.Single();
-            Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
             VerifyRequiresLocationAttributeSynthesized(m);
+
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C..ctor").Parameters.Single();
+            VerifyRefReadonlyParameter(p);
+            Assert.Empty(p.RefCustomModifiers);
         }
     }
 
@@ -230,36 +220,19 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
         var source = """
             class C(ref readonly int p);
             """;
-        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
-            sourceSymbolValidator: verify, symbolValidator: verify);
+        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics(
             // (1,26): warning CS9113: Parameter 'p' is unread.
             // class C(ref readonly int p);
             Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p").WithArguments("p").WithLocation(1, 26));
-        verifier.VerifyMethodIL("C", ".ctor", """
-            .method public hidebysig specialname rtspecialname 
-            	instance void .ctor (
-            		[in] int32& p
-            	) cil managed 
-            {
-            	.param [1]
-            		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-            			01 00 00 00
-            		)
-            	// Method begins at RVA 0x2067
-            	// Code size 7 (0x7)
-            	.maxstack 8
-            	IL_0000: ldarg.0
-            	IL_0001: call instance void [netstandard]System.Object::.ctor()
-            	IL_0006: ret
-            } // end of method C::.ctor
-            """);
 
         static void verify(ModuleSymbol m)
         {
-            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C..ctor").Parameters.Single();
-            Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
             VerifyRequiresLocationAttributeSynthesized(m);
+
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C..ctor").Parameters.Single();
+            VerifyRefReadonlyParameter(p);
+            Assert.Empty(p.RefCustomModifiers);
         }
     }
 
@@ -269,36 +242,21 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
         var source = """
             struct C(ref readonly int p);
             """;
-        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
-            sourceSymbolValidator: verify, symbolValidator: verify);
+        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics(
             // (1,27): warning CS9113: Parameter 'p' is unread.
             // struct C(ref readonly int p);
             Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p").WithArguments("p").WithLocation(1, 27));
-        verifier.VerifyMethodIL("C", ".ctor", """
-            .method public hidebysig specialname rtspecialname 
-            	instance void .ctor (
-            		[in] int32& p
-            	) cil managed 
-            {
-            	.param [1]
-            		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-            			01 00 00 00
-            		)
-            	// Method begins at RVA 0x2067
-            	// Code size 1 (0x1)
-            	.maxstack 8
-            	IL_0000: ret
-            } // end of method C::.ctor
-            """);
 
         static void verify(ModuleSymbol m)
         {
+            VerifyRequiresLocationAttributeSynthesized(m);
+
             var c = m.GlobalNamespace.GetTypeMember("C");
             var ctor = c.InstanceConstructors.Single(s => s.Parameters is [{ Name: "p" }]);
             var p = ctor.Parameters.Single();
-            Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
-            VerifyRequiresLocationAttributeSynthesized(m);
+            VerifyRefReadonlyParameter(p);
+            Assert.Empty(p.RefCustomModifiers);
         }
     }
 
@@ -308,40 +266,20 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
         var source = """
             record C(ref readonly int p);
             """;
-        var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetStandard20,
+        var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition },
             sourceSymbolValidator: verify, symbolValidator: verify,
             verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodIL("C", ".ctor", """
-            .method public hidebysig specialname rtspecialname 
-            	instance void .ctor (
-            		[in] int32& p
-            	) cil managed 
-            {
-            	.param [1]
-            		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-            			01 00 00 00
-            		)
-            	// Method begins at RVA 0x209d
-            	// Code size 15 (0xf)
-            	.maxstack 8
-            	IL_0000: ldarg.0
-            	IL_0001: ldarg.1
-            	IL_0002: ldind.i4
-            	IL_0003: stfld int32 C::'<p>k__BackingField'
-            	IL_0008: ldarg.0
-            	IL_0009: call instance void [netstandard]System.Object::.ctor()
-            	IL_000e: ret
-            } // end of method C::.ctor
-            """);
 
         static void verify(ModuleSymbol m)
         {
+            VerifyRequiresLocationAttributeSynthesized(m);
+
             var c = m.GlobalNamespace.GetTypeMember("C");
             var ctor = c.InstanceConstructors.Single(s => s.Parameters is [{ Name: "p" }]);
             var p = ctor.Parameters.Single();
-            Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
-            VerifyRequiresLocationAttributeSynthesized(m);
+            VerifyRefReadonlyParameter(p);
+            Assert.Empty(p.RefCustomModifiers);
         }
     }
 
@@ -351,38 +289,20 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
         var source = """
             record struct C(ref readonly int p);
             """;
-        var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetStandard20,
+        var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition },
             sourceSymbolValidator: verify, symbolValidator: verify,
             verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodIL("C", ".ctor", """
-            .method public hidebysig specialname rtspecialname 
-            	instance void .ctor (
-            		[in] int32& p
-            	) cil managed 
-            {
-            	.param [1]
-            		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-            			01 00 00 00
-            		)
-            	// Method begins at RVA 0x2067
-            	// Code size 9 (0x9)
-            	.maxstack 8
-            	IL_0000: ldarg.0
-            	IL_0001: ldarg.1
-            	IL_0002: ldind.i4
-            	IL_0003: stfld int32 C::'<p>k__BackingField'
-            	IL_0008: ret
-            } // end of method C::.ctor
-            """);
 
         static void verify(ModuleSymbol m)
         {
+            VerifyRequiresLocationAttributeSynthesized(m);
+
             var c = m.GlobalNamespace.GetTypeMember("C");
             var ctor = c.InstanceConstructors.Single(s => s.Parameters is [{ Name: "p" }]);
             var p = ctor.Parameters.Single();
-            Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
-            VerifyRequiresLocationAttributeSynthesized(m);
+            VerifyRefReadonlyParameter(p);
+            Assert.Empty(p.RefCustomModifiers);
         }
     }
 
@@ -392,62 +312,16 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
         var source = """
             delegate void D(ref readonly int p);
             """;
-        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
-            sourceSymbolValidator: verify, symbolValidator: verify);
+        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics();
-        verifier.VerifyTypeIL("D", """
-            .class private auto ansi sealed D
-                extends [netstandard]System.MulticastDelegate
-            {
-                // Methods
-                .method public hidebysig specialname rtspecialname 
-                	instance void .ctor (
-                		object 'object',
-                		native int 'method'
-                	) runtime managed 
-                {
-                } // end of method D::.ctor
-                .method public hidebysig newslot virtual 
-                	instance void Invoke (
-                		[in] int32& modreq([netstandard]System.Runtime.InteropServices.InAttribute) p
-                	) runtime managed 
-                {
-                	.param [1]
-                		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-                			01 00 00 00
-                		)
-                } // end of method D::Invoke
-                .method public hidebysig newslot virtual 
-                	instance class [netstandard]System.IAsyncResult BeginInvoke (
-                		[in] int32& modreq([netstandard]System.Runtime.InteropServices.InAttribute) p,
-                		class [netstandard]System.AsyncCallback callback,
-                		object 'object'
-                	) runtime managed 
-                {
-                	.param [1]
-                		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-                			01 00 00 00
-                		)
-                } // end of method D::BeginInvoke
-                .method public hidebysig newslot virtual 
-                	instance void EndInvoke (
-                		[in] int32& modreq([netstandard]System.Runtime.InteropServices.InAttribute) p,
-                		class [netstandard]System.IAsyncResult result
-                	) runtime managed 
-                {
-                	.param [1]
-                		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-                			01 00 00 00
-                		)
-                } // end of method D::EndInvoke
-            } // end of class D
-            """);
 
         static void verify(ModuleSymbol m)
         {
-            var p = m.GlobalNamespace.GetMember<MethodSymbol>("D.Invoke").Parameters.Single();
-            Assert.Equal(RefKind.RefReadOnlyParameter, p.RefKind);
             VerifyRequiresLocationAttributeSynthesized(m);
+
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("D.Invoke").Parameters.Single();
+            VerifyRefReadonlyParameter(p);
+            VerifyInModreq(p);
         }
     }
 
@@ -458,26 +332,22 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             var lam = (ref readonly int p) => { };
             System.Console.WriteLine(lam.GetType());
             """;
-        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
-            sourceSymbolValidator: VerifyRequiresLocationAttributeSynthesized, symbolValidator: VerifyRequiresLocationAttributeSynthesized,
+        var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            sourceSymbolValidator: verify, symbolValidator: verify,
             expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]");
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodIL("<>c", "<<Main>$>b__0_0", """
-            .method assembly hidebysig 
-            	instance void '<<Main>$>b__0_0' (
-            		[in] int32& p
-            	) cil managed 
+
+        static void verify(ModuleSymbol m)
+        {
+            VerifyRequiresLocationAttributeSynthesized(m);
+
+            if (m is not SourceModuleSymbol)
             {
-            	.param [1]
-            		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-            			01 00 00 00
-            		)
-            	// Method begins at RVA 0x20a6
-            	// Code size 1 (0x1)
-            	.maxstack 8
-            	IL_0000: ret
-            } // end of method '<>c'::'<<Main>$>b__0_0'
-            """);
+                var p = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<<Main>$>b__0_0").Parameters.Single();
+                VerifyRefReadonlyParameter(p);
+                Assert.Empty(p.RefCustomModifiers);
+            }
+        }
     }
 
     [Fact]
@@ -487,29 +357,22 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             void local(ref readonly int p) { }
             System.Console.WriteLine(((object)local).GetType());
             """;
-        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
-            sourceSymbolValidator: VerifyRequiresLocationAttributeSynthesized, symbolValidator: VerifyRequiresLocationAttributeSynthesized,
+        var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            sourceSymbolValidator: verify, symbolValidator: verify,
             expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]");
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodIL("Program", "<<Main>$>g__local|0_0", """
-            .method assembly hidebysig static 
-            	void '<<Main>$>g__local|0_0' (
-            		[in] int32& p
-            	) cil managed 
+
+        static void verify(ModuleSymbol m)
+        {
+            VerifyRequiresLocationAttributeSynthesized(m);
+
+            if (m is not SourceModuleSymbol)
             {
-            	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-            		01 00 00 00
-            	)
-            	.param [1]
-            		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-            			01 00 00 00
-            		)
-            	// Method begins at RVA 0x2087
-            	// Code size 1 (0x1)
-            	.maxstack 8
-            	IL_0000: ret
-            } // end of method Program::'<<Main>$>g__local|0_0'
-            """);
+                var p = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<<Main>$>g__local|0_0").Parameters.Single();
+                VerifyRefReadonlyParameter(p);
+                Assert.Empty(p.RefCustomModifiers);
+            }
+        }
     }
 
     [Theory]
@@ -521,22 +384,21 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
             {def}
             System.Console.WriteLine(((object)x).GetType());
             """;
-        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20,
-            sourceSymbolValidator: VerifyRequiresLocationAttributeSynthesized, symbolValidator: VerifyRequiresLocationAttributeSynthesized,
+        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify,
             expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]");
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodIL("<>f__AnonymousDelegate0`1", "Invoke", """
-            .method public hidebysig newslot virtual 
-            	instance void Invoke (
-            		[in] !T1& arg
-            	) runtime managed 
+
+        static void verify(ModuleSymbol m)
+        {
+            VerifyRequiresLocationAttributeSynthesized(m);
+
+            if (m is not SourceModuleSymbol)
             {
-            	.param [1]
-            		.custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-            			01 00 00 00
-            		)
-            } // end of method '<>f__AnonymousDelegate0`1'::Invoke
-            """);
+                var p = m.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke").Parameters.Single();
+                VerifyRefReadonlyParameter(p);
+                Assert.Empty(p.RefCustomModifiers);
+            }
+        }
     }
 
     [Fact]
@@ -548,36 +410,21 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
                 public unsafe void M(delegate*<ref readonly int, void> p) { }
             }
             """;
-        var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.NetStandard20,
-            sourceSymbolValidator: verify, symbolValidator: verifyMetadata);
+        var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll,
+            sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodIL("C", "M", """
-            .method public hidebysig 
-            	instance void M (
-            		method void *(int32& modreq([netstandard]System.Runtime.InteropServices.InAttribute)) p
-            	) cil managed 
-            {
-            	// Method begins at RVA 0x2067
-            	// Code size 1 (0x1)
-            	.maxstack 8
-            	IL_0000: ret
-            } // end of method C::M
-            """);
 
         static void verify(ModuleSymbol m)
         {
-            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
-            var ptr = (FunctionPointerTypeSymbol)p.Type;
-            Assert.Equal(RefKind.RefReadOnlyParameter, ptr.Signature.Parameters.Single().RefKind);
             Assert.Null(m.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName));
-        }
 
-        static void verifyMetadata(ModuleSymbol m)
-        {
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
             var ptr = (FunctionPointerTypeSymbol)p.Type;
-            Assert.Equal(RefKind.In, ptr.Signature.Parameters.Single().RefKind);
-            Assert.Null(m.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName));
+            var p2 = ptr.Signature.Parameters.Single();
+            Assert.Equal(m is SourceModuleSymbol ? RefKind.RefReadOnlyParameter : RefKind.In, p2.RefKind);
+            Assert.True(p2.IsMetadataIn);
+            Assert.Empty(p2.GetAttributes());
+            VerifyInModreq(p2);
         }
     }
 
