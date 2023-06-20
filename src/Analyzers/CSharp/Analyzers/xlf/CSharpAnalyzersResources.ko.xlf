@@ -389,7 +389,7 @@
       </trans-unit>
       <trans-unit id="Use_primary_constructor">
         <source>Use primary constructor</source>
-        <target state="new">Use primary constructor</target>
+        <target state="translated">기본 생성자 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">

@@ -131,7 +131,7 @@
       </trans-unit>
       <trans-unit id="LineCannotBeGreaterThanEnd">
         <source>The requested line number {0} must be less than the number of lines {1}.</source>
-        <target state="translated">要求的行號{0}必須小於{1}的行數。</target>
+        <target state="translated">要求的行號 {0} 必須小於 {1} 的行數。</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodSymbolExpected">
