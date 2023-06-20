@@ -50,8 +50,6 @@ namespace Microsoft.CodeAnalysis
         }
         #endregion
 
-        // PROTOTYPE: RefReadOnlyAttribute
-
         #region MarshalAsAttribute
         private MarshalPseudoCustomAttributeData _lazyMarshalAsData;
 

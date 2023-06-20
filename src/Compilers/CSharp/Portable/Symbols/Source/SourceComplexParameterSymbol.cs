@@ -802,6 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.DynamicAttribute |
                 ReservedAttributes.IsReadOnlyAttribute |
+                // PROTOTYPE: RequiresLocationAttribute
                 ReservedAttributes.IsUnmanagedAttribute |
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.TupleElementNamesAttribute |
@@ -1390,7 +1391,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 switch (RefKind)
                 {
-                    // PROTOTYPE: case RefKind.RefReadOnlyParameter
                     case RefKind.Ref:
                         if (data.HasOutAttribute && !data.HasInAttribute)
                         {
@@ -1481,7 +1481,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool IsMetadataIn
-            // PROTOTYPE: or HasRequiresLocationAttribute
             => base.IsMetadataIn || GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
 
         internal sealed override bool IsMetadataOut

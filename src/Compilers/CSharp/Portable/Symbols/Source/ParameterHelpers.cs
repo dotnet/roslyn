@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(addRefReadOnlyModifier, "If addReadonlyRef isn't true, we must have found a different location to encode the readonlyness of a function pointer");
                     ImmutableArray<CustomModifier> customModifiers = refKind switch
                     {
+                        // PROTOTYPE: Confirm encoding of ref readonly parameters in function pointers.
                         RefKind.In or RefKind.RefReadOnlyParameter => CreateInModifiers(binder, diagnostics, syntax),
                         RefKind.Out => CreateOutModifiers(binder, diagnostics, syntax),
                         _ => ImmutableArray<CustomModifier>.Empty
