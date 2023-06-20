@@ -230,6 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ParameterHandle handle,
             Symbol nullableContext,
             int countOfCustomModifiers,
+            bool isReturn,
             out bool isBad)
         {
             Debug.Assert((object)moduleSymbol != null);
@@ -280,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         refKind = RefKind.Out;
                     }
-                    else if (moduleSymbol.Module.HasRequiresLocationAttribute(handle))
+                    else if (!isReturn && moduleSymbol.Module.HasRequiresLocationAttribute(handle))
                     {
                         refKind = RefKind.RefReadOnlyParameter;
                     }
@@ -379,8 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var typeWithModifiers = TypeWithAnnotations.Create(type, customModifiers: CSharpCustomModifier.Convert(customModifiers));
 
             PEParameterSymbol parameter = customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty
-                ? new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, typeWithModifiers, handle, nullableContext, 0, out isBad)
-                : new PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, typeWithModifiers, handle, nullableContext, out isBad);
+                ? new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, typeWithModifiers, handle, nullableContext, 0, isReturn: isReturn, out isBad)
+                : new PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, typeWithModifiers, handle, nullableContext, isReturn: isReturn, out isBad);
 
             bool hasInAttributeModifier = parameter.RefCustomModifiers.HasInAttributeModifier();
 
@@ -422,10 +423,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 TypeWithAnnotations type,
                 ParameterHandle handle,
                 Symbol nullableContext,
+                bool isReturn,
                 out bool isBad) :
                     base(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, nullableContext,
                          refCustomModifiers.NullToEmpty().Length + type.CustomModifiers.Length,
-                         out isBad)
+                         isReturn: isReturn, out isBad)
             {
                 _refCustomModifiers = CSharpCustomModifier.Convert(refCustomModifiers);
 

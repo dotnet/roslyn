@@ -171,6 +171,43 @@ public class CodeGenRefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void ReturnParameter()
+    {
+        // public class C
+        // {
+        //     [return: RequiresLocation]
+        //     public ref int M() { }
+        // }
+        var ilSource = """
+            .class public auto ansi abstract sealed beforefieldinit C extends System.Object
+            {
+                .method public hidebysig instance int32& M() cil managed
+                {
+                    .param [0]
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+            }
+            
+            .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.RequiresLocationAttribute extends System.Object
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                {
+                    .maxstack 8
+                    ret
+                }
+            }
+            """;
+        var comp = CreateCompilationWithIL("", ilSource).VerifyDiagnostics();
+
+        var m = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+        Assert.Equal(RefKind.Ref, m.RefKind);
+    }
+
+    [Fact]
     public void Method_Virtual()
     {
         var source = """
