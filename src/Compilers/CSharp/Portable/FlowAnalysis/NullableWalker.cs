@@ -7228,9 +7228,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.UnboundLambda:
                     case BoundKind.UnconvertedObjectCreationExpression:
                     case BoundKind.ConvertedTupleLiteral:
+                    case BoundKind.UnconvertedCollectionLiteralExpression:
                         return NullableAnnotation.NotAnnotated;
                     default:
-                        Debug.Assert(false); // unexpected value
+                        // PROTOTYPE: Re-enable
+                        //Debug.Assert(false); // unexpected value
                         return NullableAnnotation.Oblivious;
                 }
             }

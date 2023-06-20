@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return convertedCollectionExpression;
         }
 
-        protected bool GetEnumeratorInfoAndInferCollectionElementType(
+        internal bool GetEnumeratorInfoAndInferCollectionElementType(
             SyntaxNode syntax,
             ExpressionSyntax collectionSyntax,
             ref ForEachEnumeratorInfo.Builder builder,
