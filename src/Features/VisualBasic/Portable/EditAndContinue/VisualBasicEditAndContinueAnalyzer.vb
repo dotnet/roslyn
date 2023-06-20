@@ -657,6 +657,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return SyntaxComparer.TopLevel.ComputeMatch(oldCompilationUnit, newCompilationUnit)
         End Function
 
+        Protected Overrides Function ComputeParameterMatch(oldDeclaration As SyntaxNode, newDeclaration As SyntaxNode) As Match(Of SyntaxNode)
+            Dim oldParameterList = oldDeclaration.GetParameterList()
+            If oldParameterList Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim newParameterList = newDeclaration.GetParameterList()
+            If newParameterList Is Nothing Then
+                Return Nothing
+            End If
+
+            Return SyntaxComparer.TopLevel.ComputeMatch(oldParameterList, newParameterList)
+        End Function
+
         Protected Overrides Function ComputeTopLevelDeclarationMatch(oldDeclaration As SyntaxNode, newDeclaration As SyntaxNode) As Match(Of SyntaxNode)
             Contract.ThrowIfNull(oldDeclaration.Parent)
             Contract.ThrowIfNull(newDeclaration.Parent)
@@ -815,7 +829,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return False
         End Function
 
-        Protected Overrides Function GetGlobalStatementDiagnosticSpan(node As SyntaxNode) As TextSpan
+        Protected Overrides Function GetGlobalStatementDiagnosticSpan(node As SyntaxNode, editKind As EditKind) As TextSpan
             Return Nothing
         End Function
 
