@@ -391,6 +391,7 @@ namespace Analyzer.Utilities
         public const string SystemSpan1 = "System.Span`1";
         public const string SystemStackOverflowException = "System.StackOverflowException";
         public const string SystemString = "System.String";
+        public const string SystemStringComparer = "System.StringComparer";
         public const string SystemStringComparison = "System.StringComparison";
         public const string SystemSystemException = "System.SystemException";
         public const string SystemTextEncoding = "System.Text.Encoding";
