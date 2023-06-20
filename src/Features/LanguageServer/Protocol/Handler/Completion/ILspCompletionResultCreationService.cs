@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
     {
         Task<LSP.CompletionList> ConvertToLspCompletionListAsync(
             Document document,
+            int position,
             CompletionCapabilityHelper capabilityHelper,
             CompletionList list, bool isIncomplete, long resultId,
             CancellationToken cancellationToken);
