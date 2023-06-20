@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// the same <paramref name="solutionChecksum"/>). However, this is used by Pythia/Razor/UnitTesting which all
         /// assume they can get that solution instance and use as desired by them.
         /// </summary>
-        [Obsolete("Use RunServiceAsync (that is passsed a Solution) instead", error: false)]
+        [Obsolete("Use RunServiceAsync (that is passed a Solution) instead", error: false)]
         public async ValueTask<Solution> GetSolutionAsync(ServiceBrokerClient client, Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var assetSource = new SolutionAssetSource(client);
@@ -152,7 +152,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 var assemblyName = new AssemblyName(assemblyFullName);
                 if (!string.IsNullOrEmpty(codeBasePath))
                 {
+#pragma warning disable SYSLIB0044 // Type or member is obsolete
                     assemblyName.CodeBase = codeBasePath;
+#pragma warning restore SYSLIB0044 // Type or member is obsolete
                 }
 
                 return LoadAssembly(assemblyName);
