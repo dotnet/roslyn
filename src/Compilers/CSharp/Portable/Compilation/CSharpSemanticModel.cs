@@ -5165,7 +5165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var symbol = GetDeclaredSymbolCore(declaration, cancellationToken);
             return symbol != null
                 ? ImmutableArray.Create(symbol)
-                : ImmutableArray.Create<ISymbol>();
+                : ImmutableArray<ISymbol>.Empty;
         }
 
         internal override void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken)
