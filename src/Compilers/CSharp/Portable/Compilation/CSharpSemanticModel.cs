@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -5149,13 +5150,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.GetDeclaredSymbols(field, cancellationToken);
             }
 
-            var symbol = GetDeclaredSymbolCore(declaration, cancellationToken);
-            if (symbol != null)
+            // If the type decl has a primary constructor, return that symbol as well.  This is needed so that if the
+            // 'suppression' or 'generated code' attribute is on the primary constructor (i.e. by using `[method:
+            // SuppressMessage(...)]`, it will be found when walking up to the type declaration.
+            if (declaration is TypeDeclarationSyntax { ParameterList: not null } typeDeclaration)
             {
-                return ImmutableArray.Create(symbol);
+                using var result = TemporaryArray<ISymbol>.Empty;
+
+                var namedType = GetDeclaredSymbol(typeDeclaration, cancellationToken);
+                result.Add(namedType);
+
+                if (namedType.GetSymbol<NamedTypeSymbol>() is SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor })
+                    result.Add(primaryConstructor.GetPublicSymbol());
+
+                return result.ToImmutableAndClear();
             }
 
-            return ImmutableArray.Create<ISymbol>();
+            var symbol = GetDeclaredSymbolCore(declaration, cancellationToken);
+            return symbol != null
+                ? ImmutableArray.Create(symbol)
+                : ImmutableArray.Create<ISymbol>();
         }
 
         internal override void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken)

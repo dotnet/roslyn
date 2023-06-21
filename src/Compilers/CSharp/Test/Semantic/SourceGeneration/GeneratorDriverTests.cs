@@ -1283,7 +1283,7 @@ class C { }
         [Fact, WorkItem(66337, "https://github.com/dotnet/roslyn/issues/66337")]
         public void Diagnostics_Respect_SuppressMessageAttribute()
         {
-            var gen001 = CSDiagnostic.Create("GEN001", "generators", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 2);
+            var gen001 = CSDiagnostic.Create("GEN001", "generators", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, isEnabledByDefault: true, warningLevel: 2);
 
             // reported diagnostics can have a location in source
             verify("""
@@ -1330,9 +1330,20 @@ class C { }
                 Diagnostic("GEN001", "com").WithLocation(4, 7),
                 Diagnostic("GEN001", "ano").WithLocation(5, 7));
 
+            // diagnostics are suppressed via SuppressMessageAttribute on a primary constructor
+            verify("""
+                [method: System.Diagnostics.CodeAnalysis.SuppressMessage("", "GEN001")]
+                class C(int i)
+                {
+                    public int I { get; } = i;
+                }
+                """,
+                new[] { (gen001, "int") },
+                Diagnostic("GEN001", "int", isSuppressed: true).WithLocation(2, 9));
+
             static void verify(string source, IReadOnlyList<(Diagnostic Diagnostic, string Location)> reportDiagnostics, params DiagnosticDescription[] expected)
             {
-                var parseOptions = TestOptions.Regular;
+                var parseOptions = TestOptions.RegularPreview;
                 source = source.Replace(Environment.NewLine, "\r\n");
                 var compilation = CreateCompilation(source, parseOptions: parseOptions);
                 compilation.VerifyDiagnostics();
