@@ -116,7 +116,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         }
 
         public static SemanticTokensSchema GetSchema(ClientCapabilities capabilities)
-            => capabilities.HasVisualStudioLspCapability()
+            => GetSchema(capabilities.HasVisualStudioLspCapability());
+
+        public static SemanticTokensSchema GetSchema(bool clientSupportsVisualStudioExtensions)
+            => clientSupportsVisualStudioExtensions
                 ? s_vsTokenSchema
                 : s_pureLspTokenSchema;
 
