@@ -528,7 +528,7 @@ namespace System.Diagnostics.CodeAnalysis
 C.M();
 """;
 
-        var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference()});
+        var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference() });
         comp.VerifyDiagnostics();
     }
 
@@ -588,7 +588,7 @@ namespace System.Diagnostics.CodeAnalysis
 C.M();
 """;
 
-        var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference()});
+        var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
             // (1,1): warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
@@ -629,7 +629,7 @@ namespace System.Diagnostics.CodeAnalysis
 C.M();
 """;
 
-        var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference()});
+        var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
             // (1,1): warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
@@ -670,7 +670,7 @@ namespace System.Diagnostics.CodeAnalysis
 C.M();
 """;
 
-        var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference()});
+        var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
             // (1,1): warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
@@ -813,7 +813,7 @@ namespace System.Diagnostics.CodeAnalysis
 C.M();
 """;
 
-        var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference()});
+        var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
             // (1,1): warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
