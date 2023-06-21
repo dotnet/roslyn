@@ -179,6 +179,10 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             context.AddSource(impl.OutputTextHintName, impl.OutputText);
                         }
                     }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
                     catch (Exception ex)
                     {
                         var exceptionLines = ex.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.None);
