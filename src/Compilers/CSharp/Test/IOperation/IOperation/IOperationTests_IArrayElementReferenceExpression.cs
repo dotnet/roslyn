@@ -523,7 +523,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[0]')
   Children(1):
       IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ?, IsInvalid, IsImplicit) (Syntax: '[0]')
         Initializers(1):
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
