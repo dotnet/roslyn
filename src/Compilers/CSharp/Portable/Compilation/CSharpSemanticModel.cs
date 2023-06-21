@@ -5155,15 +5155,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SuppressMessage(...)]`, it will be found when walking up to the type declaration.
             if (declaration is TypeDeclarationSyntax { ParameterList: not null } typeDeclaration)
             {
-                using var result = TemporaryArray<ISymbol>.Empty;
-
                 var namedType = GetDeclaredSymbol(typeDeclaration, cancellationToken);
-                result.Add(namedType);
 
-                if (namedType.GetSymbol<NamedTypeSymbol>() is SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor })
-                    result.Add(primaryConstructor.GetPublicSymbol());
-
-                return result.ToImmutableAndClear();
+                return namedType.GetSymbol<NamedTypeSymbol>() is SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor }
+                    ? ImmutableArray.Create<ISymbol>(namedType, primaryConstructor.GetPublicSymbol())
+                    : ImmutableArray.Create<ISymbol>(namedType);
             }
 
             var symbol = GetDeclaredSymbolCore(declaration, cancellationToken);
