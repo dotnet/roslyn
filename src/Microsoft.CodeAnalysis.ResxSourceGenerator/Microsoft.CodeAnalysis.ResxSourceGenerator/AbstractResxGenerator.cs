@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             context.AddSource(impl.OutputTextHintName, impl.OutputText);
                         }
                     }
-                    catch (OperationCanceledException)
+                    catch (OperationCanceledException) when (context.CancellationToken.IsCancellationRequested)
                     {
                         throw;
                     }
