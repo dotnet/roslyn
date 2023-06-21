@@ -2204,7 +2204,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,32): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public ref int M2() => ref F[0];
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F[0]").WithLocation(6, 32),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(6, 32),
                 // (11,20): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref y;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(11, 20)
@@ -2516,7 +2516,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,32): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public ref int M2() => ref F[0][0];
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F[0][0]").WithLocation(6, 32),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(6, 32),
                 // (11,20): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref y;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(11, 20)
@@ -5838,7 +5838,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,37): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public System.Span<int> M2() => F[..5];
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F[..5]").WithLocation(6, 37),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(6, 37),
                 // (11,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         return y;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(11, 16)
@@ -6131,7 +6131,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,47): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public System.Span<Buffer10<int>> M2() => F[..5][..3];
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F[..5]").WithLocation(6, 47),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(6, 47),
                 // (11,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         return y;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(11, 16)
@@ -6264,11 +6264,11 @@ class C
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(InlineArrays): Ref safety error is unexpected. Likely an artifact of https://github.com/dotnet/roslyn/issues/68372
+            // Ref safety error is unexpected. Likely an artifact of https://github.com/dotnet/roslyn/issues/68372
             comp.VerifyDiagnostics(
                 // (6,19): error CS8166: Cannot return a parameter by reference 'a1' because it is not a ref parameter
                 //         result1 = a1[i1];
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a1[i1]").WithArguments("a1").WithLocation(6, 19)
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a1").WithArguments("a1").WithLocation(6, 19)
                 );
         }
 
@@ -6287,11 +6287,11 @@ class C
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(InlineArrays): Ref safety error is unexpected. Likely an artifact of https://github.com/dotnet/roslyn/issues/68372
+            // Ref safety error is unexpected. Likely an artifact of https://github.com/dotnet/roslyn/issues/68372
             comp.VerifyDiagnostics(
                 // (7,19): error CS8166: Cannot return a parameter by reference 'a1' because it is not a ref parameter
                 //         result1 = a1[i1];
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a1[i1]").WithArguments("a1").WithLocation(7, 19)
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a1").WithArguments("a1").WithLocation(7, 19)
                 );
         }
 
@@ -8576,6 +8576,74 @@ class Program
 ");
         }
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementAccess_Value_07()
+        {
+            var src = @"
+class Program
+{
+    static System.Span<int> M1()
+    {
+        System.Span<int> x = stackalloc int[2];
+        return M3(x)[0];
+    }
+
+    static System.Span<int> M2()
+    {
+        System.Span<int> x = stackalloc int[2];
+        var y = M3(x)[0];
+        return y;
+    }
+
+    static Buffer10 M3(System.Span<int> x)
+    {
+        throw null;
+    }
+
+    static System.Span<int> M1(System.Span<int> xx)
+    {
+        return M3(xx)[0];
+    }
+
+    static System.Span<int> M2(System.Span<int> xx)
+    {
+        var yy = M3(xx)[0];
+        return yy;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+public ref struct Buffer10
+{
+    private System.Span<int> _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         return M3(x)[0];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("System.Span<int>").WithLocation(7, 16),
+                // (7,16): error CS8347: Cannot use a result of 'Program.M3(Span<int>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return M3(x)[0];
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M3(x)").WithArguments("Program.M3(System.Span<int>)", "x").WithLocation(7, 16),
+                // (7,19): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         return M3(x)[0];
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(7, 19),
+                // (13,17): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         var y = M3(x)[0];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("System.Span<int>").WithLocation(13, 17),
+                // (14,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(14, 16),
+                // (24,16): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         return M3(xx)[0];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("System.Span<int>").WithLocation(24, 16),
+                // (29,18): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         var yy = M3(xx)[0];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("System.Span<int>").WithLocation(29, 18)
+                );
+        }
+
         [Fact]
         public void Slice_NotValue()
         {
@@ -9304,7 +9372,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (15,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return ref F[0];
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F[0]").WithLocation(15, 20)
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(15, 20)
                 );
         }
 
@@ -9655,7 +9723,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (13,54): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public readonly System.ReadOnlySpan<int> M2() => F[..5];
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F[..5]").WithLocation(13, 54)
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(13, 54)
                 );
         }
 
@@ -15054,13 +15122,13 @@ struct C
             comp.VerifyDiagnostics(
                 // (6,37): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public System.Span<int> M2() => F[..5][0];
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F[..5]").WithLocation(6, 37),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(6, 37),
                 // (11,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         return y;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(11, 16),
                 // (14,45): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public System.ReadOnlySpan<int> M4() => F[..5][0];
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F[..5]").WithLocation(14, 45),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(14, 45),
                 // (19,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         return y;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(19, 16)
@@ -15094,15 +15162,15 @@ struct C
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (6,48): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                // (6,76): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public System.Span<Buffer10<int>> M2() => ((System.Span<Buffer10<int>>)F)[..3];
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "(System.Span<Buffer10<int>>)F").WithLocation(6, 48),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(6, 76),
                 // (11,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         return y;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(11, 16),
-                // (14,56): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                // (14,92): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public System.ReadOnlySpan<Buffer10<int>> M4() => ((System.ReadOnlySpan<Buffer10<int>>)F)[..3];
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "(System.ReadOnlySpan<Buffer10<int>>)F").WithLocation(14, 56),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(14, 92),
                 // (19,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         return y;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(19, 16)
@@ -17649,11 +17717,21 @@ class Program
             var src = @"
 class Program
 {
-    static ref int Test(Buffer4<int> x)
+    static ref int Test1(Buffer4<int> x)
     {
         foreach (ref int y in x)
         {
             return ref y;
+        }
+
+        throw null;
+    }
+
+    static ref int Test2(ref Buffer4<int> x)
+    {
+        foreach (ref int z in x)
+        {
+            return ref z;
         }
 
         throw null;
@@ -17928,7 +18006,7 @@ public struct Buffer4<T>
             var src = @"
 class Program
 {
-    static ref readonly int Test(in Buffer4<int> x)
+    static ref readonly int Test1(in Buffer4<int> x)
     {
         foreach (ref readonly int y in x)
         {
@@ -17937,13 +18015,25 @@ class Program
 
         throw null;
     }
+
+    static ref readonly int Test2()
+    {
+        Buffer4<int> x = default;
+        ref readonly Buffer4<int> xx = ref x;
+        foreach (ref readonly int yy in xx)
+        {
+            return ref yy;
+        }
+
+        throw null;
+    }
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (8,24): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
-                //             return ref y;
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(8, 24)
+                // (20,24): error CS8157: Cannot return 'yy' by reference because it was initialized to a value that cannot be returned by reference
+                //             return ref yy;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "yy").WithArguments("yy").WithLocation(20, 24)
                 );
         }
 
@@ -18167,6 +18257,59 @@ class Program
                 // (8,24): error CS1657: Cannot use 'y' as a ref or out value because it is a 'foreach iteration variable'
                 //             return ref y;
                 Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "y").WithArguments("y", "foreach iteration variable").WithLocation(8, 24)
+                );
+        }
+
+        [Fact]
+        public void Foreach_Value_05()
+        {
+            var src = @"
+class Program
+{
+    static System.Span<int> Test1()
+    {
+        System.Span<int> x = stackalloc int[2];
+        foreach (var y in GetBuffer(x))
+        {
+            return y;
+        }
+
+        throw null;
+    }
+
+    static System.Span<int> Test2(System.Span<int> xx)
+    {
+        foreach (var yy in GetBuffer(xx))
+        {
+            return yy;
+        }
+
+        throw null;
+    }
+
+    static Buffer10 GetBuffer(System.Span<int> x)
+    {
+        throw null;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+public ref struct Buffer10
+{
+    private System.Span<int> _element0;
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (7,27): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         foreach (var y in GetBuffer(x))
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(x)").WithArguments("System.Span<int>").WithLocation(7, 27),
+                // (9,20): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //             return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(9, 20),
+                // (17,28): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         foreach (var yy in GetBuffer(xx))
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(xx)").WithArguments("System.Span<int>").WithLocation(17, 28)
                 );
         }
 

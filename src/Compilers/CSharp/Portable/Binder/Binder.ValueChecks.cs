@@ -2002,7 +2002,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!valid)
                     {
-                        ReportInvocationEscapeError(syntax, symbol, parameter, checkingReceiver, diagnostics);
+                        if (symbol is not SignatureOnlyMethodSymbol)
+                        {
+                            ReportInvocationEscapeError(syntax, symbol, parameter, checkingReceiver, diagnostics);
+                        }
+
                         return false;
                     }
                 }
@@ -2068,7 +2072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // For consistency with C#10 implementation, we don't report an additional error
                         // for the receiver. (In both implementations, the call to Check*Escape() above
                         // will have reported a specific escape error for the receiver though.)
-                        if ((object)((argument as BoundCapturedReceiverPlaceholder)?.Receiver ?? argument) != receiver)
+                        if ((object)((argument as BoundCapturedReceiverPlaceholder)?.Receiver ?? argument) != receiver && symbol is not SignatureOnlyMethodSymbol)
                         {
                             ReportInvocationEscapeError(syntax, symbol, param, checkingReceiver, diagnostics);
                         }
@@ -3156,8 +3160,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var elementAccess = (BoundInlineArrayAccess)expr;
 
-                        // PROTOTYPE(InlineArrays): Confirm the rules
-                        return GetRefEscape(elementAccess.Expression, scopeOfTheContainingExpression);
+                        if (elementAccess.GetItemOrSliceHelper is not (WellKnownMember.System_ReadOnlySpan_T__get_Item or WellKnownMember.System_Span_T__get_Item) || elementAccess.IsValue)
+                        {
+                            Debug.Assert(GetInlineArrayAccessEquivalentSignatureMethod(elementAccess, out _, out _).RefKind == RefKind.None);
+                            break;
+                        }
+
+                        ImmutableArray<BoundExpression> arguments;
+                        ImmutableArray<RefKind> refKinds;
+                        SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayAccessEquivalentSignatureMethod(elementAccess, out arguments, out refKinds);
+
+                        Debug.Assert(equivalentSignatureMethod.RefKind != RefKind.None);
+
+                        return GetInvocationEscapeScope(
+                            equivalentSignatureMethod,
+                            receiver: null,
+                            equivalentSignatureMethod.Parameters,
+                            arguments,
+                            refKinds,
+                            argsToParamsOpt: default,
+                            scopeOfTheContainingExpression,
+                            isRefEscape: true);
                     }
 
                 case BoundKind.PropertyAccess:
@@ -3418,8 +3441,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var elementAccess = (BoundInlineArrayAccess)expr;
 
-                        // PROTOTYPE(InlineArrays): Confirm the rules
-                        return CheckRefEscape(node, elementAccess.Expression, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+                        if (elementAccess.GetItemOrSliceHelper is not (WellKnownMember.System_ReadOnlySpan_T__get_Item or WellKnownMember.System_Span_T__get_Item) || elementAccess.IsValue)
+                        {
+                            Debug.Assert(GetInlineArrayAccessEquivalentSignatureMethod(elementAccess, out _, out _).RefKind == RefKind.None);
+                            break;
+                        }
+
+                        ImmutableArray<BoundExpression> arguments;
+                        ImmutableArray<RefKind> refKinds;
+                        SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayAccessEquivalentSignatureMethod(elementAccess, out arguments, out refKinds);
+
+                        Debug.Assert(equivalentSignatureMethod.RefKind != RefKind.None);
+
+                        return CheckInvocationEscape(
+                            elementAccess.Syntax,
+                            equivalentSignatureMethod,
+                            receiver: null,
+                            equivalentSignatureMethod.Parameters,
+                            argsOpt: arguments,
+                            argRefKindsOpt: refKinds,
+                            argsToParamsOpt: default,
+                            checkingReceiver,
+                            escapeFrom,
+                            escapeTo,
+                            diagnostics,
+                            isRefEscape: true);
                     }
 
                 case BoundKind.FunctionPointerInvocation:
@@ -3730,11 +3776,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var elementAccess = (BoundInlineArrayAccess)expr;
 
-                        // PROTOTYPE(InlineArrays): Confirm the rules
-                        return Math.Max(GetValEscape(elementAccess.Expression, scopeOfTheContainingExpression),
-                                        (elementAccess.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__get_Item or WellKnownMember.System_Span_T__get_Item) ?
-                                            CallingMethodScope :
-                                            GetRefEscape(elementAccess.Expression, scopeOfTheContainingExpression));
+                        ImmutableArray<BoundExpression> arguments;
+                        ImmutableArray<RefKind> refKinds;
+                        SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayAccessEquivalentSignatureMethod(elementAccess, out arguments, out refKinds);
+
+                        return GetInvocationEscapeScope(
+                            equivalentSignatureMethod,
+                            receiver: null,
+                            equivalentSignatureMethod.Parameters,
+                            arguments,
+                            refKinds,
+                            argsToParamsOpt: default,
+                            scopeOfTheContainingExpression,
+                            isRefEscape: false);
                     }
 
                 case BoundKind.PropertyAccess:
@@ -3793,9 +3847,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversion.Conversion.IsInlineArray)
                     {
-                        // PROTOTYPE(InlineArrays): Confirm the rules
-                        return Math.Max(GetValEscape(conversion.Operand, scopeOfTheContainingExpression),
-                                        GetRefEscape(conversion.Operand, scopeOfTheContainingExpression));
+                        ImmutableArray<BoundExpression> arguments;
+                        ImmutableArray<RefKind> refKinds;
+                        SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayConversionEquivalentSignatureMethod(conversion, out arguments, out refKinds);
+
+                        return GetInvocationEscapeScope(
+                            equivalentSignatureMethod,
+                            receiver: null,
+                            equivalentSignatureMethod.Parameters,
+                            arguments,
+                            refKinds,
+                            argsToParamsOpt: default,
+                            scopeOfTheContainingExpression,
+                            isRefEscape: false);
                     }
 
                     return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
@@ -4200,10 +4264,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var elementAccess = (BoundInlineArrayAccess)expr;
 
-                        // PROTOTYPE(InlineArrays): Confirm the rules
-                        return CheckValEscape(node, elementAccess.Expression, escapeFrom, escapeTo, checkingReceiver, diagnostics) &&
-                               (elementAccess.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__get_Item or WellKnownMember.System_Span_T__get_Item ||
-                                CheckRefEscape(node, elementAccess.Expression, escapeFrom, escapeTo, checkingReceiver, diagnostics));
+                        ImmutableArray<BoundExpression> arguments;
+                        ImmutableArray<RefKind> refKinds;
+                        SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayAccessEquivalentSignatureMethod(elementAccess, out arguments, out refKinds);
+
+                        return CheckInvocationEscape(
+                            elementAccess.Syntax,
+                            equivalentSignatureMethod,
+                            receiver: null,
+                            equivalentSignatureMethod.Parameters,
+                            argsOpt: arguments,
+                            argRefKindsOpt: refKinds,
+                            argsToParamsOpt: default,
+                            checkingReceiver,
+                            escapeFrom,
+                            escapeTo,
+                            diagnostics,
+                            isRefEscape: false);
                     }
 
                 case BoundKind.PropertyAccess:
@@ -4289,9 +4366,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversion.Conversion.IsInlineArray)
                     {
-                        // PROTOTYPE(InlineArrays): Confirm the rules
-                        return CheckValEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver, diagnostics) &&
-                               CheckRefEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+                        ImmutableArray<BoundExpression> arguments;
+                        ImmutableArray<RefKind> refKinds;
+                        SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayConversionEquivalentSignatureMethod(conversion, out arguments, out refKinds);
+
+                        return CheckInvocationEscape(
+                            conversion.Syntax,
+                            equivalentSignatureMethod,
+                            receiver: null,
+                            equivalentSignatureMethod.Parameters,
+                            argsOpt: arguments,
+                            argRefKindsOpt: refKinds,
+                            argsToParamsOpt: default,
+                            checkingReceiver,
+                            escapeFrom,
+                            escapeTo,
+                            diagnostics,
+                            isRefEscape: false);
                     }
 
                     return CheckValEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
@@ -4521,6 +4612,106 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     #endregion
             }
+        }
+
+        private SignatureOnlyMethodSymbol GetInlineArrayAccessEquivalentSignatureMethod(BoundInlineArrayAccess elementAccess, out ImmutableArray<BoundExpression> arguments, out ImmutableArray<RefKind> refKinds)
+        {
+            RefKind resultRefKind;
+            RefKind parameterRefKind;
+
+            if (elementAccess.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__get_Item or WellKnownMember.System_Span_T__get_Item)
+            {
+                // inlineArray[index] is equivalent to calling a method with the signature:
+                // - ref T GetItem(ref inlineArray), or
+                // - ref readonly T GetItem(in inlineArray), or
+                // - T GetItem(inlineArray)
+
+                if (elementAccess.IsValue)
+                {
+                    resultRefKind = RefKind.None;
+                    parameterRefKind = RefKind.None;
+                }
+                else
+                {
+                    resultRefKind = elementAccess.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__get_Item ? RefKind.In : RefKind.Ref;
+                    parameterRefKind = resultRefKind;
+                }
+            }
+            else if (elementAccess.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int or WellKnownMember.System_Span_T__Slice_Int_Int)
+            {
+                // inlineArray[Range] is equivalent to calling a method with the signature:
+                // - Span<T> Slice(ref inlineArray), or
+                // - ReadOnlySpan<T> Slice(in inlineArray)
+                resultRefKind = RefKind.None;
+                parameterRefKind = elementAccess.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int ? RefKind.In : RefKind.Ref;
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            var equivalentSignatureMethod = new SignatureOnlyMethodSymbol(
+                name: "",
+                this._symbol.ContainingType,
+                MethodKind.Ordinary,
+                Cci.CallingConvention.Default,
+                ImmutableArray<TypeParameterSymbol>.Empty,
+                ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
+                                                            TypeWithAnnotations.Create(elementAccess.Expression.Type),
+                                                            ImmutableArray<CustomModifier>.Empty,
+                                                            isParams: false,
+                                                            parameterRefKind
+                                                            )),
+                resultRefKind,
+                isInitOnly: false,
+                isStatic: true,
+                returnType: TypeWithAnnotations.Create(elementAccess.Type),
+                ImmutableArray<CustomModifier>.Empty,
+                ImmutableArray<MethodSymbol>.Empty);
+
+            arguments = ImmutableArray.Create(elementAccess.Expression);
+            refKinds = ImmutableArray.Create(parameterRefKind);
+
+            return equivalentSignatureMethod;
+        }
+
+        private SignatureOnlyMethodSymbol GetInlineArrayConversionEquivalentSignatureMethod(BoundConversion conversion, out ImmutableArray<BoundExpression> arguments, out ImmutableArray<RefKind> refKinds)
+        {
+            Debug.Assert(conversion.Conversion.IsInlineArray);
+            return GetInlineArrayConversionEquivalentSignatureMethod(inlineArray: conversion.Operand, resultType: conversion.Type, out arguments, out refKinds);
+        }
+
+        private SignatureOnlyMethodSymbol GetInlineArrayConversionEquivalentSignatureMethod(BoundExpression inlineArray, TypeSymbol resultType, out ImmutableArray<BoundExpression> arguments, out ImmutableArray<RefKind> refKinds)
+        {
+            // An inline array conversion is equivalent to calling a method with the signature:
+            // - Span<T> Convert(ref inlineArray), or
+            // - ReadOnlySpan<T> Convert(in inlineArray)
+
+            RefKind parameterRefKind = resultType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions) ? RefKind.In : RefKind.Ref;
+
+            var equivalentSignatureMethod = new SignatureOnlyMethodSymbol(
+                name: "",
+                _symbol.ContainingType,
+                MethodKind.Ordinary,
+                Cci.CallingConvention.Default,
+                ImmutableArray<TypeParameterSymbol>.Empty,
+                ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
+                                                            TypeWithAnnotations.Create(inlineArray.Type),
+                                                            ImmutableArray<CustomModifier>.Empty,
+                                                            isParams: false,
+                                                            parameterRefKind
+                                                            )),
+                RefKind.None,
+                isInitOnly: false,
+                isStatic: true,
+                returnType: TypeWithAnnotations.Create(resultType),
+                ImmutableArray<CustomModifier>.Empty,
+                ImmutableArray<MethodSymbol>.Empty);
+
+            arguments = ImmutableArray.Create(inlineArray);
+            refKinds = ImmutableArray.Create(parameterRefKind);
+
+            return equivalentSignatureMethod;
         }
 
         private bool CheckTupleValEscape(ImmutableArray<BoundExpression> elements, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
