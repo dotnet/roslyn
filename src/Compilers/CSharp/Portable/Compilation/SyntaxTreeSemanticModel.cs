@@ -1247,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private SynthesizedPrimaryConstructor TryGetSynthesizedPrimaryConstructor(TypeDeclarationSyntax node)
+        protected override SynthesizedPrimaryConstructor TryGetSynthesizedPrimaryConstructor(TypeDeclarationSyntax node)
         {
             NamedTypeSymbol type = GetDeclaredType(node);
             var symbol = (type as SourceMemberContainerTypeSymbol)?.PrimaryConstructor;

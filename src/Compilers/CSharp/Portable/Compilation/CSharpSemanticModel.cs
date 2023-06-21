@@ -5153,13 +5153,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the type decl has a primary constructor, return that symbol as well.  This is needed so that if the
             // 'suppression' or 'generated code' attribute is on the primary constructor (i.e. by using `[method:
             // SuppressMessage(...)]`, it will be found when walking up to the type declaration.
-            if (declaration is TypeDeclarationSyntax { ParameterList: not null } typeDeclaration)
+            if (declaration is TypeDeclarationSyntax typeDeclaration)
             {
                 var namedType = GetDeclaredSymbol(typeDeclaration, cancellationToken);
+                var primaryConstructor = TryGetSynthesizedPrimaryConstructor(typeDeclaration);
 
-                return namedType.GetSymbol<NamedTypeSymbol>() is SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor }
-                    ? ImmutableArray.Create<ISymbol>(namedType, primaryConstructor.GetPublicSymbol())
-                    : ImmutableArray.Create<ISymbol>(namedType);
+                return primaryConstructor is null
+                    ? ImmutableArray.Create<ISymbol>(namedType)
+                    : ImmutableArray.Create<ISymbol>(namedType, primaryConstructor.GetPublicSymbol());
             }
 
             var symbol = GetDeclaredSymbolCore(declaration, cancellationToken);
@@ -5167,6 +5168,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? ImmutableArray.Create(symbol)
                 : ImmutableArray<ISymbol>.Empty;
         }
+
+        protected virtual SynthesizedPrimaryConstructor TryGetSynthesizedPrimaryConstructor(TypeDeclarationSyntax node)
+            => null;
 
         internal override void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken)
         {
