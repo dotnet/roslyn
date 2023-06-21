@@ -38,15 +38,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         bool modreq = false,
         bool useSiteError = false)
     {
-        if (refKind)
-        {
-            Assert.Equal(RefKind.RefReadOnlyParameter, parameter.RefKind);
-        }
+        Assert.Equal(refKind, RefKind.RefReadOnlyParameter == parameter.RefKind);
 
-        if (metadataIn)
-        {
-            Assert.True(parameter.IsMetadataIn);
-        }
+        Assert.Equal(metadataIn, parameter.IsMetadataIn);
 
         if (attributes)
         {
@@ -549,7 +543,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
             var ptr = (FunctionPointerTypeSymbol)p.Type;
             var p2 = ptr.Signature.Parameters.Single();
-            VerifyRefReadonlyParameter(p2, refKind: false, modreq: true, attributes: false);
+            VerifyRefReadonlyParameter(p2, refKind: m is SourceModuleSymbol, modreq: true, attributes: false);
             Assert.Equal(m is SourceModuleSymbol ? RefKind.RefReadOnlyParameter : RefKind.In, p2.RefKind);
             Assert.Empty(p2.GetAttributes());
         }
