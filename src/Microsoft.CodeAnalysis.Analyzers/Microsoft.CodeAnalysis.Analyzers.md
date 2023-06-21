@@ -460,6 +460,18 @@ A project containing analyzers or source generators should specify the property 
 |CodeFix|False|
 ---
 
+## RS1038: Compiler extensions should be implemented in assemblies with compiler-provided references
+
+Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.
+
+|Item|Value|
+|-|-|
+|Category|MicrosoftCodeAnalysisCorrectness|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+---
+
 ## [RS2000](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Add analyzer diagnostic IDs to analyzer release
 
 All supported analyzer diagnostic IDs should be part of an analyzer release.

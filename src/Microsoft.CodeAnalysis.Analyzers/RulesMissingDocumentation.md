@@ -38,3 +38,4 @@ RS1034 |  | Prefer 'IsKind' for checking syntax kinds |
 RS1035 |  | Do not use APIs banned for analyzers |
 RS1036 |  | Specify analyzer banned API enforcement setting |
 RS1037 |  | Add "CompilationEnd" custom tag to compilation end diagnostic descriptor |
+RS1038 |  | Compiler extensions should be implemented in assemblies with compiler-provided references |

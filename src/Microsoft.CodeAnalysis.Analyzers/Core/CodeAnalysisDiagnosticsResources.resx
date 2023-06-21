@@ -556,4 +556,19 @@
   <data name="NoSettingSpecifiedSymbolIsBannedInAnalyzersTitle" xml:space="preserve">
     <value>Specify analyzer banned API enforcement setting</value>
   </data>
+  <data name="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage" xml:space="preserve">
+    <value>This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</value>
+  </data>
+  <data name="DoNotDeclareCSharpCompilerFeatureInAssemblyWithVisualBasicReferenceMessage" xml:space="preserve">
+    <value>This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</value>
+  </data>
+  <data name="DoNotDeclareVisualBasicCompilerFeatureInAssemblyWithCSharpReferenceMessage" xml:space="preserve">
+    <value>This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</value>
+  </data>
+  <data name="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleDescription" xml:space="preserve">
+    <value>Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</value>
+  </data>
+  <data name="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleTitle" xml:space="preserve">
+    <value>Compiler extensions should be implemented in assemblies with compiler-provided references</value>
+  </data>
 </root>

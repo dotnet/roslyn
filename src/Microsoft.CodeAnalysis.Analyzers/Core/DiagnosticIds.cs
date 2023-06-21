@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string SymbolIsBannedInAnalyzersRuleId = "RS1035";
         public const string NoSettingSpecifiedSymbolIsBannedInAnalyzersRuleId = "RS1036";
         public const string AddCompilationEndCustomTagRuleId = "RS1037";
+        public const string DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleId = "RS1038";
 
         // Release tracking analyzer IDs
         public const string DeclareDiagnosticIdInAnalyzerReleaseRuleId = "RS2000";
