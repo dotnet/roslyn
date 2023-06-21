@@ -532,6 +532,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void NaturalType_24()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        (string, int)[] x1 = [(null, default)];
+                        string[] y1 = [args.Length switch { 0 => null, _ => default }];
+                        string[] z1 = [args.Length == 0 ? null : default];
+                        var x2 = [(null, default)];
+                        var y2 = [args.Length switch { 0 => null, _ => default }];
+                        var z2 = [args.Length == 0 ? null : default];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,18): error CS9503: There is no target type for the collection literal.
+                //         var x2 = [(null, default)];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[(null, default)]").WithLocation(8, 18),
+                // (9,18): error CS9503: There is no target type for the collection literal.
+                //         var y2 = [args.Length switch { 0 => null, _ => default }];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[args.Length switch { 0 => null, _ => default }]").WithLocation(9, 18),
+                // (9,31): error CS8506: No best type was found for the switch expression.
+                //         var y2 = [args.Length switch { 0 => null, _ => default }];
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(9, 31),
+                // (10,18): error CS9503: There is no target type for the collection literal.
+                //         var z2 = [args.Length == 0 ? null : default];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[args.Length == 0 ? null : default]").WithLocation(10, 18),
+                // (10,19): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between '<null>' and 'default'
+                //         var z2 = [args.Length == 0 ? null : default];
+                Diagnostic(ErrorCode.ERR_InvalidQM, "args.Length == 0 ? null : default").WithArguments("<null>", "default").WithLocation(10, 19));
+        }
+
+        [Fact]
         public void TargetType_01()
         {
             string source = """
