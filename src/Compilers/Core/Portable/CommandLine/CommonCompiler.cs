@@ -608,6 +608,8 @@ namespace Microsoft.CodeAnalysis
             // Annotate any bad accesses with what assemblies they came from, if they are from a foreign assembly
             DiagnoseBadAccesses(consoleOutput, errorLogger, compilation, diagnostics);
 
+            consoleOutput.WriteLine();
+
             // Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.
             consoleOutput.WriteLine(CodeAnalysisResources.InternalsVisibleToHeaderSummary);
 
@@ -616,6 +618,8 @@ namespace Microsoft.CodeAnalysis
 
             // Current assembly: '{0}'
             consoleOutput.WriteLine(string.Format(CodeAnalysisResources.InternalsVisibleToCurrentAssembly, currentAssembly.Identity.GetDisplayName(fullKey: true)));
+
+            consoleOutput.WriteLine();
 
             // Now, go through each of the referenced assemblies and print their IVT information.
             foreach (var assembly in currentAssembly.Modules.First().ReferencedAssemblySymbols.OrderBy(a => a.Name))
@@ -626,21 +630,33 @@ namespace Microsoft.CodeAnalysis
 
                 var assemblyInternal = compilation.GetSymbolInternal<IAssemblySymbolInternal>(assembly);
                 bool grantsIvt = currentAssemblyInternal.AreInternalsVisibleToThisAssembly(assemblyInternal);
-                var assemblyPublicKey = AssemblyIdentity.PublicKeyToString(assembly.Identity.PublicKey);
 
-                consoleOutput.WriteLine(string.Format(CodeAnalysisResources.InternalsVisibleToReferencedAssembly, assembly.Identity.GetDisplayName(fullKey: true), grantsIvt, assemblyPublicKey));
+                consoleOutput.WriteLine(string.Format(CodeAnalysisResources.InternalsVisibleToReferencedAssembly, assembly.Identity.GetDisplayName(fullKey: true), grantsIvt));
 
-                foreach (var simpleName in assemblyInternal.GetInternalsVisibleToAssemblyNames())
+                var enumerable = assemblyInternal.GetInternalsVisibleToAssemblyNames();
+
+                if (enumerable.Any())
                 {
-                    //     Assembly name: '{0}'
-                    //     Public Keys:
-                    consoleOutput.WriteLine(string.Format(CodeAnalysisResources.InternalsVisibleToReferencedAssemblyDetails, simpleName));
-                    foreach (var key in assemblyInternal.GetInternalsVisibleToPublicKeys(simpleName))
+                    foreach (var simpleName in enumerable.OrderBy<string, string>(n => n))
                     {
-                        consoleOutput.Write("      ");
-                        consoleOutput.WriteLine(AssemblyIdentity.PublicKeyToString(key));
+                        //     Assembly name: '{0}'
+                        //     Public Keys:
+                        consoleOutput.WriteLine(string.Format(CodeAnalysisResources.InternalsVisibleToReferencedAssemblyDetails, simpleName));
+                        foreach (var key in assemblyInternal.GetInternalsVisibleToPublicKeys(simpleName).Select(k => AssemblyIdentity.PublicKeyToString(k)).OrderBy(k => k))
+                        {
+                            consoleOutput.Write("      ");
+                            consoleOutput.WriteLine(key);
+                        }
                     }
                 }
+                else
+                {
+                    // Nothing
+                    consoleOutput.Write("    ");
+                    consoleOutput.WriteLine(CodeAnalysisResources.Nothing);
+                }
+
+                consoleOutput.WriteLine();
             }
         }
 

@@ -180,6 +180,11 @@
         <target state="translated">指定的作業有非 null 的父代。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nothing">
+        <source>Nothing</source>
+        <target state="new">Nothing</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
         <target state="translated">指定的作業有 null 的語意模型。</target>

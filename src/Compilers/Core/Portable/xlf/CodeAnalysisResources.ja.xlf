@@ -180,6 +180,11 @@
         <target state="translated">指定した操作の親が null 以外です。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nothing">
+        <source>Nothing</source>
+        <target state="new">Nothing</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
         <target state="translated">指定した操作のセマンティック モデルが null です。</target>

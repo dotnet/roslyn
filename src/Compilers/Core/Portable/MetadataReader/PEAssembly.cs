@@ -159,8 +159,7 @@ namespace Microsoft.CodeAnalysis
 
         internal IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
         {
-            if (_lazyInternalsVisibleToMap == null)
-                Interlocked.CompareExchange(ref _lazyInternalsVisibleToMap, BuildInternalsVisibleToMap(), null);
+            EnsureInternalsVisibleToMapInitialized();
 
             List<ImmutableArray<byte>> result;
 
@@ -171,10 +170,15 @@ namespace Microsoft.CodeAnalysis
 
         internal IEnumerable<string> GetInternalsVisibleToAssemblyNames()
         {
-            if (_lazyInternalsVisibleToMap == null)
-                Interlocked.CompareExchange(ref _lazyInternalsVisibleToMap, BuildInternalsVisibleToMap(), null);
+            EnsureInternalsVisibleToMapInitialized();
 
             return _lazyInternalsVisibleToMap.Keys;
+        }
+
+        private void EnsureInternalsVisibleToMapInitialized()
+        {
+            if (_lazyInternalsVisibleToMap == null)
+                Interlocked.CompareExchange(ref _lazyInternalsVisibleToMap, BuildInternalsVisibleToMap(), null);
         }
 
         internal bool DeclaresTheObjectClass

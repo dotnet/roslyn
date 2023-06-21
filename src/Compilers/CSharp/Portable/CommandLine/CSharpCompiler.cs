@@ -383,7 +383,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag newDiagnostics = DiagnosticBag.GetInstance();
             foreach (var diag in diagnostics)
             {
-                var location = diag.Location;
                 var symbol = diag switch
                 {
                     { Code: (int)ErrorCode.ERR_BadAccess, Arguments: [Symbol s] } => s,
@@ -402,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // '{0}' is defined in assembly '{1}'.
                 newDiagnostics.Add(new CSDiagnostic(
                     new CSDiagnosticInfo(ErrorCode.ERR_SymbolDefinedInAssembly, symbol, symbol.ContainingAssembly),
-                    location));
+                    diag.Location));
             }
 
             ReportDiagnostics(newDiagnostics.ToReadOnlyAndFree(), consoleOutput, errorLogger, compilation);

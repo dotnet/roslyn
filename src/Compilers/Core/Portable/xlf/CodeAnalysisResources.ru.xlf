@@ -180,6 +180,11 @@
         <target state="translated">Заданная операция имеет родительский элемент, отличный от NULL.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nothing">
+        <source>Nothing</source>
+        <target state="new">Nothing</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
         <target state="translated">Заданная операция имеет семантическую модель со значением NULL.</target>

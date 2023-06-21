@@ -180,6 +180,11 @@
         <target state="translated">L'operazione specificata contiene un elemento padre non Null.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nothing">
+        <source>Nothing</source>
+        <target state="new">Nothing</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
         <target state="translated">L'operazione specificata contiene un modello semantico Null.</target>

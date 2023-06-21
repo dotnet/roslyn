@@ -774,4 +774,7 @@
     <value>    Assembly name: '{0}'
     Public Keys:</value>
   </data>
+  <data name="Nothing" xml:space="preserve">
+    <value>Nothing</value>
+  </data>
 </root>
