@@ -6872,22 +6872,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (invoked)
                 {
-                    var boundMethodGroup = new BoundMethodGroup(
-                        node,
-                        typeArguments,
-                        boundLeft,
-                        rightName,
-                        lookupResult.Symbols.All(s => s.Kind == SymbolKind.Method) ? lookupResult.Symbols.SelectAsArray(s_toMethodSymbolFunc) : ImmutableArray<MethodSymbol>.Empty,
-                        lookupResult,
-                        flags: BoundMethodGroupFlags.SearchExtensionMethods,
-                        this);
-
-                    if (!boundMethodGroup.HasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
-                    {
-                        Error(diagnostics, ErrorCode.ERR_OmittedTypeArgument, node);
-                    }
-
-                    return boundMethodGroup;
+                    return MakeBoundMethodGroupAndCheckOmittedTypeArguments(boundLeft, rightName, typeArguments, lookupResult,
+                        flags: BoundMethodGroupFlags.SearchExtensionMethods, node, typeArgumentsSyntax, diagnostics);
                 }
 
                 return null;
@@ -6996,22 +6982,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundLeft = ReplaceTypeOrValueReceiver(boundLeft, useType: false, diagnostics);
                     }
 
-                    var boundMethodGroup = new BoundMethodGroup(
-                        node,
-                        typeArgumentsWithAnnotations,
-                        boundLeft,
-                        rightName,
-                        lookupResult.Symbols.All(s => s.Kind == SymbolKind.Method) ? lookupResult.Symbols.SelectAsArray(s_toMethodSymbolFunc) : ImmutableArray<MethodSymbol>.Empty,
-                        lookupResult,
-                        flags,
-                        this);
-
-                    if (!boundMethodGroup.HasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
-                    {
-                        Error(diagnostics, ErrorCode.ERR_OmittedTypeArgument, node);
-                    }
-
-                    return boundMethodGroup;
+                    return MakeBoundMethodGroupAndCheckOmittedTypeArguments(boundLeft, rightName, typeArgumentsWithAnnotations, lookupResult,
+                        flags, node, typeArgumentsSyntax, diagnostics);
                 }
 
                 this.BindMemberAccessReportError(node, right, rightName, boundLeft, lookupResult.Error, diagnostics);
@@ -7021,6 +6993,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 lookupResult.Free();
             }
+        }
+
+        private BoundMethodGroup MakeBoundMethodGroupAndCheckOmittedTypeArguments(BoundExpression boundLeft, string rightName,
+            ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, LookupResult lookupResult, BoundMethodGroupFlags flags, SyntaxNode node,
+            SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, BindingDiagnosticBag diagnostics)
+        {
+            var boundMethodGroup = new BoundMethodGroup(
+                node,
+                typeArgumentsWithAnnotations,
+                boundLeft,
+                rightName,
+                lookupResult.Symbols.All(s => s.Kind == SymbolKind.Method) ? lookupResult.Symbols.SelectAsArray(s_toMethodSymbolFunc) : ImmutableArray<MethodSymbol>.Empty,
+                lookupResult,
+                flags,
+                this);
+
+            if (!boundMethodGroup.HasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
+            {
+                Error(diagnostics, ErrorCode.ERR_OmittedTypeArgument, node);
+            }
+
+            return boundMethodGroup;
         }
 
         private void LookupInstanceMember(LookupResult lookupResult, TypeSymbol leftType, bool leftIsBaseReference, string rightName, int rightArity, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -7474,30 +7468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, lookupResult.Kind, isExtensionMethodGroup: false);
                 members.Free();
 
-                var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
-
-                binder.OverloadResolution.MethodInvocationOverloadResolution(
-                    methods: methodGroup.Methods,
-                    typeArguments: methodGroup.TypeArguments,
-                    receiver: methodGroup.Receiver,
-                    arguments: analyzedArguments,
-                    result: overloadResolutionResult,
-                    useSiteInfo: ref useSiteInfo,
-                    isMethodGroupConversion: isMethodGroupConversion,
-                    allowRefOmittedArguments: allowRefOmittedArguments,
-                    returnRefKind: returnRefKind,
-                    returnType: returnType);
-
-                // PROTOTYPE test use-site diagnostics
-                diagnostics.Add(expression, useSiteInfo);
-                var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
-
-                // Note: the MethodGroupResolution instance is responsible for freeing the method group,
-                //   the overload resolution result and its copy of arguments
-                extensionResult = new MethodGroupResolution(methodGroup, null, overloadResolutionResult,
-                    AnalyzedArguments.GetInstance(analyzedArguments), methodGroup.ResultKind, sealedDiagnostics);
-
+                extensionResult = resolveOverloads(binder, methodGroup, analyzedArguments, isMethodGroupConversion, returnType, returnRefKind, expression, diagnostics, ref useSiteInfo);
                 return true;
             }
 
@@ -7558,9 +7529,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CombineExtensionMethodArguments(left, analyzedArguments, actualArguments);
                 }
 
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+                result = resolveOverloads(binder, methodGroup, actualArguments, isMethodGroupConversion, returnType, returnRefKind, expression, diagnostics, ref useSiteInfo);
+                return true;
+            }
+
+            static MethodGroupResolution resolveOverloads(Binder binder, MethodGroup methodGroup, AnalyzedArguments actualArguments, bool isMethodGroupConversion, TypeSymbol returnType, RefKind returnRefKind, SyntaxNode expression, BindingDiagnosticBag diagnostics, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+
                 binder.OverloadResolution.MethodInvocationOverloadResolution(
                     methods: methodGroup.Methods,
                     typeArguments: methodGroup.TypeArguments,
@@ -7572,12 +7550,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     allowRefOmittedArguments: allowRefOmittedArguments,
                     returnRefKind: returnRefKind,
                     returnType: returnType);
+
+                // PROTOTYPE test use-site diagnostics
                 diagnostics.Add(expression, useSiteInfo);
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
 
-                // Note: the MethodGroupResolution instance is responsible for freeing its copy of actual arguments
-                result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, AnalyzedArguments.GetInstance(actualArguments), methodGroup.ResultKind, sealedDiagnostics);
-                return true;
+                // Note: the MethodGroupResolution instance is responsible for freeing the method group,
+                //   the overload resolution result and its copy of arguments
+                return new MethodGroupResolution(methodGroup, null, overloadResolutionResult, AnalyzedArguments.GetInstance(actualArguments), methodGroup.ResultKind, sealedDiagnostics);
             }
         }
 #nullable disable

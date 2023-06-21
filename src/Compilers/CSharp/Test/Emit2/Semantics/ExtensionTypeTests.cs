@@ -9488,9 +9488,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        CompileAndVerify(comp, expectedOutput: "Method");
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -9540,9 +9538,7 @@ implicit extension Base for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType");
+        CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -9605,9 +9601,7 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType");
+        CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -9706,9 +9700,7 @@ implicit extension Base for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        CompileAndVerify(comp, expectedOutput: "Method");
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -9736,9 +9728,7 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        CompileAndVerify(comp, expectedOutput: "Method");
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -9823,9 +9813,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        CompileAndVerify(comp, expectedOutput: "M");
+        CompileAndVerify(comp, expectedOutput: "M").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -10072,9 +10060,7 @@ class Container
         void verify(string src, string extensionName)
         {
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-
-            CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType");
+            CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType").VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -10283,9 +10269,7 @@ namespace N3
         void verify(string src, string extensionName)
         {
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-
-            CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType");
+            CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType").VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -10644,8 +10628,7 @@ implicit extension E2 for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)");
+        CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -10684,8 +10667,7 @@ namespace N1
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)");
+        CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -10724,8 +10706,7 @@ namespace N1
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)");
+        CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -10793,15 +10774,14 @@ namespace N2
     implicit extension E2 for object
     {
         public static void Method(string s)
-    {
-        System.Console.Write("E2.Method");
-    }
+        {
+            System.Console.Write("E2.Method");
+        }
     }
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "E1.Method E2.Method");
+        CompileAndVerify(comp, expectedOutput: "E1.Method E2.Method").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -10830,9 +10810,7 @@ namespace N2
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        CompileAndVerify(comp, expectedOutput: "Method");
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
     }
 
     [Fact]
@@ -11147,8 +11125,7 @@ implicit extension E for C<object>
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "M");
+        CompileAndVerify(comp, expectedOutput: "M").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11172,8 +11149,7 @@ implicit extension E for C<object>
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "M");
+        CompileAndVerify(comp, expectedOutput: "M").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11227,8 +11203,7 @@ implicit extension E for C<(int a, int b)>
 """;
         // PROTOTYPE consider warning for certain tuple name differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11257,8 +11232,7 @@ implicit extension E for C<(int a, int b)>
 """;
         // PROTOTYPE consider warning for certain tuple name differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11287,8 +11261,7 @@ implicit extension E for I<(int a, int b)>
 """;
         // PROTOTYPE consider warning for certain tuple name differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11320,8 +11293,7 @@ implicit extension E for C<object?>
 """;
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11358,8 +11330,7 @@ implicit extension E for C<object?>
 """;
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11396,8 +11367,7 @@ implicit extension E for I<object?>
 """;
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11429,8 +11399,7 @@ implicit extension E for C<object>
 """;
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11499,8 +11468,7 @@ implicit extension E for I<object>
 """;
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11536,8 +11504,7 @@ implicit extension E for C<
 """;
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11577,8 +11544,7 @@ implicit extension E for C<
 """;
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11675,8 +11641,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "M StaticType");
+        CompileAndVerify(comp, expectedOutput: "M StaticType").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11692,8 +11657,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "M");
+        CompileAndVerify(comp, expectedOutput: "M").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -14374,8 +14338,7 @@ implicit extension E for C
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "x");
+        CompileAndVerify(comp, expectedOutput: "x").VerifyDiagnostics();
     }
 
     [Fact]
@@ -15500,8 +15463,7 @@ implicit extension E2 for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -15586,8 +15548,7 @@ implicit extension E2 for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -15704,7 +15665,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -15866,7 +15827,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: "M(42)", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "M(42)", verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -16277,8 +16238,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-
-        CompileAndVerify(comp, expectedOutput: "E.M", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "E.M", verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -16658,6 +16618,49 @@ implicit extension E for C
             //         delegate*<string, string, void> ptr = &C.M;
             Diagnostic(ErrorCode.ERR_AmbigCall, "C.M").WithArguments("E.M(string, object)", "E.M(object, string)").WithLocation(5, 48)
             );
+    }
+
+    [Fact]
+    public void TODO2()
+    {
+        // TODO2 the behavior steeming from current rules is undesirable...
+        var src = """
+public implicit extension E1 for object
+{
+    public int Member => throw null;
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void Member(this object o) { }
+    }
+
+    class C
+    {
+        void M(object o)
+        {
+            var x = o.Member;
+            System.Action y = o.Member;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics(
+            // (18,31): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+            //             System.Action y = o.Member;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "o.Member").WithArguments("int", "System.Action").WithLocation(18, 31)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").First();
+        Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(1).Single();
+        Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [Fact]
