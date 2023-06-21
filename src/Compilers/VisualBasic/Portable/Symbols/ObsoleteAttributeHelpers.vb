@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Shared Sub InitializeObsoleteDataFromMetadata(ByRef data As ObsoleteAttributeData, token As EntityHandle, containingModule As PEModuleSymbol)
             If data Is ObsoleteAttributeData.Uninitialized Then
                 Dim obsoleteAttributeData As ObsoleteAttributeData = GetObsoleteDataFromMetadata(token, containingModule)
-                Interlocked.CompareExchange(data, obsoleteAttributeData, obsoleteAttributeData.Uninitialized)
+                Interlocked.CompareExchange(data, obsoleteAttributeData, ObsoleteAttributeData.Uninitialized)
             End If
         End Sub
 
@@ -121,7 +121,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Provide an explicit format for fully-qualified type names.
                 Return ErrorFactory.ErrorInfo(ERRID.WRN_Experimental, New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat))
             End If
-
 
             If data.Kind = ObsoleteAttributeKind.Experimental Then
                 Debug.Assert(data.Message Is Nothing)
