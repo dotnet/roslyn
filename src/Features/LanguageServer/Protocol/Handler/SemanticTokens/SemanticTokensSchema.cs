@@ -115,8 +115,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             TokenTypeToIndex = tokenTypeToIndex;
         }
 
-        public static SemanticTokensSchema GetSchema(ClientCapabilities capabilities)
-            => capabilities.HasVisualStudioLspCapability()
+        /// <summary>
+        /// Returns the tokens that Roslyn will possible use
+        /// </summary>
+        /// <param name="clientSupportsVisualStudioExtensions">Determines whether the client supports VS extensions, and should therefore include additional token names outside the "pure" LSP token names</param>
+        public static SemanticTokensSchema GetSchema(bool clientSupportsVisualStudioExtensions)
+            => clientSupportsVisualStudioExtensions
                 ? s_vsTokenSchema
                 : s_pureLspTokenSchema;
 

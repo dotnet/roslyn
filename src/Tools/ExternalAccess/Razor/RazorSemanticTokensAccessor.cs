@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
@@ -14,6 +13,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         [Obsolete("Use GetTokenTypes")]
         public static ImmutableArray<string> RoslynTokenTypes => SemanticTokensSchema.LegacyTokenSchemaForRazor.AllTokenTypes;
 
-        public static ImmutableArray<string> GetTokenTypes(ClientCapabilities capabilities) => SemanticTokensSchema.GetSchema(capabilities).AllTokenTypes;
+        public static ImmutableArray<string> GetTokenTypes(bool clientSupportsVisualStudioExtensions) => SemanticTokensSchema.GetSchema(clientSupportsVisualStudioExtensions).AllTokenTypes;
     }
 }
