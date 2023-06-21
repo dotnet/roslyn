@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis
         // NOTE: There is an additional value of this enum type - RefKindExtensions.StrictIn == RefKind.In + 1
         //       It is used internally during lowering. 
         //       Consider that when adding values or changing this enum in some other way.
+
+        /// <summary>
+        /// Indicates a "ref readonly" parameter.
+        /// </summary>
+        RefReadOnlyParameter = 5, // PROTOTYPE: Change to 4 to make public values sequential.
     }
 
     internal static class RefKindExtensions
@@ -51,6 +56,7 @@ namespace Microsoft.CodeAnalysis
                 case RefKind.Out: return "out";
                 case RefKind.Ref: return "ref";
                 case RefKind.In: return "in";
+                case RefKind.RefReadOnlyParameter: return "ref readonly";
                 default: throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
@@ -73,6 +79,7 @@ namespace Microsoft.CodeAnalysis
                 case RefKind.Out: return "out ";
                 case RefKind.Ref: return "ref ";
                 case RefKind.In: return "in ";
+                case RefKind.RefReadOnlyParameter: return "ref readonly ";
                 case RefKind.None: return string.Empty;
                 default: throw ExceptionUtilities.UnexpectedValue(kind);
             }

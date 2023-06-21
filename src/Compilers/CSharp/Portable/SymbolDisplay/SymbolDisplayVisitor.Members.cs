@@ -1143,6 +1143,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddKeyword(SyntaxKind.InKeyword);
                     AddSpace();
                     break;
+                case RefKind.RefReadOnlyParameter:
+                    AddKeyword(SyntaxKind.RefKeyword);
+                    AddSpace();
+                    AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                    AddSpace();
+                    break;
             }
         }
     }

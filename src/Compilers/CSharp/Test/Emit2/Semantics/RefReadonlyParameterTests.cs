@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
-public class RefReadonlyParameterTests : CSharpTestBase
+public partial class RefReadonlyParameterTests : CSharpTestBase
 {
     [Fact]
     public void Modifier()
@@ -24,7 +27,51 @@ public class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16));
 
         CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
-        CreateCompilation(source).VerifyDiagnostics();
+        var comp = CreateCompilation(source).VerifyDiagnostics();
+
+        var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+        VerifyRefReadonlyParameter(p);
+    }
+
+    [Fact]
+    public void Modifier_Invalid_01()
+    {
+        var source = """
+            class C
+            {
+                void M(ref params readonly int[] p) => throw null;
+            }
+            """;
+        var comp = CreateCompilation(source).VerifyDiagnostics(
+            // (3,16): error CS8328:  The parameter modifier 'params' cannot be used with 'ref'
+            //     void M(ref params readonly int[] p) => throw null;
+            Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(3, 16),
+            // (3,23): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            //     void M(ref params readonly int[] p) => throw null;
+            Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 23));
+
+        var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+        VerifyRefReadonlyParameter(p, refKind: false, metadataIn: false);
+        Assert.Equal(RefKind.Ref, p.RefKind);
+    }
+
+    [Fact]
+    public void Modifier_Invalid_02()
+    {
+        var source = """
+            class C
+            {
+                void M(in readonly int p) => throw null;
+            }
+            """;
+        var comp = CreateCompilation(source).VerifyDiagnostics(
+            // (3,15): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            //     void M(in readonly int p) => throw null;
+            Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 15));
+
+        var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+        VerifyRefReadonlyParameter(p, refKind: false);
+        Assert.Equal(RefKind.In, p.RefKind);
     }
 
     [Fact]

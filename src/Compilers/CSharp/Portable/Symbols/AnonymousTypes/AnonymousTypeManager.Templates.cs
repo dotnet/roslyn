@@ -323,7 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool isValidTypeArgument(bool useUpdatedEscapeRules, AnonymousTypeField field, ref bool needsIndexedName)
             {
-                needsIndexedName = needsIndexedName || field.IsParams || field.DefaultValue is not null;
+                // PROTOTYPE: Instead of using indexed name for delegates with `ref readonly` parameters, expand RefKindVector to use more bits?
+                needsIndexedName = needsIndexedName || field.IsParams || field.DefaultValue is not null || field.RefKind == RefKind.RefReadOnlyParameter;
                 return hasDefaultScope(useUpdatedEscapeRules, field) &&
                     field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&

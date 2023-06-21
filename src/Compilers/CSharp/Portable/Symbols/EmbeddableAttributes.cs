@@ -18,5 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         NativeIntegerAttribute = 0x40,
         ScopedRefAttribute = 0x80,
         RefSafetyRulesAttribute = 0x100,
+        RequiresLocationAttribute = 0x200,
     }
 }
