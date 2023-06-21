@@ -11878,7 +11878,11 @@ class Program
 ";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: @"123123124-1-2-3", verify: Verification.Passes).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123123124-1-2-3", verify: Verification.Passes).VerifyDiagnostics(
+                // (4,21): warning CS9124: Parameter 'int p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     public int F1 = p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("int p1").WithLocation(4, 21)
+                );
 
             verifier.VerifyIL("C1..ctor(int, int)",
 @"
@@ -15590,6 +15594,237 @@ class C(B b)
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_155_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    int F = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,13): warning CS9124: Parameter 'int p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     int F = p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("int p1").WithLocation(4, 13)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_156_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    int F = (int)p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,18): warning CS9124: Parameter 'int p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     int F = (int)p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("int p1").WithLocation(4, 18)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_157_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    long F = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_158_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    long F = (long)p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_159_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    static int F = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,20): error CS9105: Cannot use primary constructor parameter 'int p1' in this context.
+                //     static int F = p1;
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p1").WithArguments("int p1").WithLocation(4, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_160_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+ref struct C1([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int p1)
+{
+    ref int F = ref p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+
+            var expected = new[] {
+                // (8,13): error CS9109: Cannot use ref, out, or in primary constructor parameter 'p1' inside an instance member
+                //         _ = p1; 
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "p1").WithArguments("p1").WithLocation(8, 13)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_161_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+ref struct C1([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int p1)
+{
+    ref readonly int F = ref p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+
+            var expected = new[] {
+                // (8,13): error CS9109: Cannot use ref, out, or in primary constructor parameter 'p1' inside an instance member
+                //         _ = p1; 
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "p1").WithArguments("p1").WithLocation(8, 13)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_162_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    int F { get; } = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,22): warning CS9124: Parameter 'int p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     int F { get; } = p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("int p1").WithLocation(4, 22)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_163_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(System.Action p1)
+{
+    event System.Action F = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,29): warning CS9124: Parameter 'Action p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     event System.Action F = p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("System.Action p1").WithLocation(4, 29)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_164_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    int F = p1;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]

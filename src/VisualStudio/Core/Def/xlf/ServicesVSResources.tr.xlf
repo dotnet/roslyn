@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Collapse_regions_on_file_open">
         <source>Collapse #regions on file open</source>
-        <target state="translated">Dosya açılırken #bölgeleri daralt</target>
+        <target state="translated">Dosya #regions dosyayı daralt</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
@@ -1114,7 +1114,7 @@
       </trans-unit>
       <trans-unit id="Prefer_primary_constructors">
         <source>Prefer primary constructors</source>
-        <target state="new">Prefer primary constructors</target>
+        <target state="translated">Birincil oluşturucuları tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_range_operator">
@@ -1289,7 +1289,7 @@
       </trans-unit>
       <trans-unit id="Run_code_analysis_on_latest_dotnet_requires_restart">
         <source>Run code analysis on latest .NET (requires restart)</source>
-        <target state="new">Run code analysis on latest .NET (requires restart)</target>
+        <target state="translated">En son .NET'te kod analizi çalıştırın (yeniden başlatma gerektirir)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -2795,7 +2795,7 @@ Ek bilgiler: {1}</target>
       </trans-unit>
       <trans-unit id="Collapse_regions_when_collapsing_to_definitions">
         <source>Collapse #regions when collapsing to definitions</source>
-        <target state="translated">Tanımlara daraltırken #region öğelerini daralt</target>
+        <target state="translated">Tanımlara daraltırken #regions öğelerini daralt</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_null_propagation">

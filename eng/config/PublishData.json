@@ -19,6 +19,7 @@
       "Microsoft.CodeAnalysis.CSharp.Features": "arcade",
       "Microsoft.CodeAnalysis.CSharp.Scripting": "arcade",
       "Microsoft.CodeAnalysis.CSharp.Workspaces": "vssdk",
+      "Microsoft.CodeAnalysis.Test.Utilities": "vs-impl",
       "Microsoft.CodeAnalysis.VisualBasic": "vssdk",
       "Microsoft.CodeAnalysis.VisualBasic.CodeStyle": "arcade",
       "Microsoft.CodeAnalysis.VisualBasic.Features": "arcade",
@@ -43,6 +44,8 @@
       "Microsoft.CodeAnalysis.EditorFeatures.Wpf": "vssdk",
       "Microsoft.CodeAnalysis.EditorFeatures.Cocoa": "vssdk",
       "Microsoft.VisualStudio.IntegrationTest.Utilities": "vs-impl",
+      "Microsoft.VisualStudio.LanguageServices.DevKit": "npm",
+      "Microsoft.CodeAnalysis.LanguageServer": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.Protocol": "vs-impl",
       "Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol": "vs-impl",
       "Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol": "vs-impl",
@@ -186,6 +189,16 @@
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[Validation]"
+    },
+    "dev/andrha/telemetry": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Telemetry Validation]"
     }
   }
 }

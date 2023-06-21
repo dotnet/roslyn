@@ -8,15 +8,12 @@ namespace Microsoft.CodeAnalysis.Options;
 /// Some options store their values in a type that's not accessible publicly.
 /// The mapping provides translation between the two representations.
 /// </summary>
-internal abstract class OptionStorageMapping
+internal abstract class OptionStorageMapping(IOption2 internalOption)
 {
     /// <summary>
     /// The option that stores the value internally.
     /// </summary>
-    public IOption2 InternalOption { get; }
-
-    public OptionStorageMapping(IOption2 internalOption)
-        => InternalOption = internalOption;
+    public IOption2 InternalOption { get; } = internalOption;
 
     /// <summary>
     /// Converts inernal option value representation to public.

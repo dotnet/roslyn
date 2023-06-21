@@ -591,4 +591,12 @@
   <data name="init_only_property" xml:space="preserve">
     <value>init-only property</value>
   </data>
+  <data name="for_loop" xml:space="preserve">
+    <value>for loop</value>
+    <comment>{Locked="for"} "for" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="reversed_for_loop" xml:space="preserve">
+    <value>reversed for loop</value>
+    <comment>{Locked="for"} "for" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>
