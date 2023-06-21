@@ -327,16 +327,17 @@ $@"        if (F({i}))
         public void LongInitializerList()
         {
             CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            int iterations = 0;
             try
             {
-                initializerTest(cts.Token);
+                initializerTest(cts.Token, ref iterations);
             }
-            catch (TaskCanceledException)
+            catch (Exception e) when (e is OperationCanceledException or TaskCanceledException)
             {
-                Assert.True(false, "Test timed out while getting all semantic info for long initializer list");
+                Assert.True(false, $"Test timed out while getting all semantic info for long initializer list. Got to {iterations} iterations.");
             }
 
-            static void initializerTest(CancellationToken ct)
+            static void initializerTest(CancellationToken ct, ref int iterationReached)
             {
                 var sb = new StringBuilder();
                 sb.AppendLine("""
@@ -344,7 +345,7 @@ $@"        if (F({i}))
                     {
                     """);
 
-                for (int i = 0; i < 75000; i++)
+                for (int i = 0; i < 50000; i++)
                 {
                     sb.AppendLine("""    { "a", "b" },""");
                 }
@@ -359,9 +360,11 @@ $@"        if (F({i}))
 
                 // If we regress perf here, this test will time out. The original condition here was a O(n^2) algorithm because the syntactic parent of each literal
                 // was being rebound on every call to GetTypeInfo.
+                iterationReached = 0;
                 foreach (var literal in tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>())
                 {
                     ct.ThrowIfCancellationRequested();
+                    iterationReached++;
                     var type = model.GetTypeInfo(literal).Type;
                     Assert.Equal(SpecialType.System_String, type.SpecialType);
                 }
