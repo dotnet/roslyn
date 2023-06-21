@@ -16623,7 +16623,7 @@ implicit extension E for C
     [Fact]
     public void TODO2()
     {
-        // TODO2 the behavior steeming from current rules is undesirable...
+        // TODO2 the behavior stemming from current rules is undesirable...
         var src = """
 public implicit extension E1 for object
 {
