@@ -29,6 +29,9 @@
       <_Parameter1>PackageBuildDate</_Parameter1>
       <_Parameter2>$([System.DateTime]::UtcNow.ToString(o))</_Parameter2>
     </AssemblyAttribute>
+    <AssemblyAttribute Include="Metalama.Compiler.RoslynVersionAttribute">
+      <_Parameter1>$(RoslynVersion)</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
   <!-- </Metalama> -->
   <ItemGroup>
@@ -132,13 +135,122 @@
   <Import Project="..\..\..\Metalama\Metalama.Compiler.Shared\Metalama.Compiler.Shared.projitems" Label="Shared" />
   <Import Project="..\..\..\Metalama\Metalama.Compiler.CodeAnalysis\Metalama.Compiler.CodeAnalysis.projitems" Label="Shared" />
 
+  <!-- <Metalama> -->
+  <UsingTask
+    TaskName="MutexExec"
+    TaskFactory="RoslynCodeTaskFactory"
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
+    <ParameterGroup />
+    <Task>
+      <Reference Include="Microsoft.Build.Tasks.Core" />
+      <Code Type="Class" Language="cs">
+<![CDATA[
+// Somewhat based on https://stackoverflow.com/a/66890156/41071.
+using System;
+using System.Diagnostics;
+using System.Threading;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Tasks;
+
+/// <summary>Like the Exec task, but with a critical section.</summary>
+public class MutexExec : Exec
+{
+    [Required]
+    public string MutexName { get; set; }
+
+    public override bool Execute()
+    {
+        var timeout = TimeSpan.FromMinutes(5);
+        
+        if (!MutexHelper.WithGlobalLock(MutexName, timeout, out var mutexHandle))
+        {
+            this.Log.LogError("Failed to acquire {0} in {1}.", this.MutexName, timeout);
+            return false;
+        }
+        
+        using (mutexHandle)
+        {
+            return base.Execute();
+        }
+    }
+    
+  private static class MutexHelper
+  {
+      public static bool WithGlobalLock( string name, TimeSpan timeout, out IDisposable mutexHandle )
+      {
+          var mutex = CreateGlobalMutex( name );
+
+          bool acquired;
+
+          try
+          {
+              acquired = mutex.WaitOne( timeout );
+          }
+          catch ( AbandonedMutexException )
+          {
+              acquired = true;
+          }
+
+          if ( acquired )
+          {
+              mutexHandle = new MutexHandle( mutex );
+
+              return true;
+          }
+          else
+          {
+              mutexHandle = null;
+
+              return false;
+          }
+      }
+
+      private static Mutex CreateGlobalMutex( string fullName )
+      {
+          var mutexName = @$"Global\Metalama_{fullName}";
+          
+          return new Mutex( false, mutexName );
+      }
+
+      private sealed class MutexHandle : IDisposable
+      {
+          private readonly Mutex _mutex;
+
+          public MutexHandle( Mutex mutex )
+          {
+              this._mutex = mutex;
+          }
+
+          public void Dispose()
+          {
+              this._mutex.ReleaseMutex();
+              this._mutex.Dispose();
+          }
+      }
+  }    
+}
+]]>        
+      </Code>
+    </Task>
+  </UsingTask>
+  
+  <Target Name="MetalamaCreateNetSdkAnalyzersResource" BeforeTargets="BeforeResGen">
+    <MutexExec Command="dotnet run $(RoslynVersion)" WorkingDirectory="..\..\..\..\eng-Metalama\DownloadNetSdkAnalyzers" ConsoleToMsBuild="true" MutexName="DownloadNetSdkAnalyzers">
+      <Output TaskParameter="ConsoleOutput" PropertyName="NetSdkAnalyzersArchivePath" />
+    </MutexExec>
+    <ItemGroup>
+      <EmbeddedResource Include="$(NetSdkAnalyzersArchivePath)" Type="Non-Resx" WithCulture="false" />
+    </ItemGroup>
+  </Target>
+  
   <!-- based on https://stackoverflow.com/a/56018426/41071 -->
   <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);SetPackageContent</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);MetalamaSetPackageContent</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
-  <Target Name="SetPackageContent" DependsOnTargets="ResolveReferences">
+  <Target Name="MetalamaSetPackageContent" DependsOnTargets="ResolveReferences">
     <ItemGroup>
       <BuildOutputInPackage Include="$(ArtifactsBinDir)Metalama.Compiler.Interface.TypeForwards\$(Configuration)\netstandard2.0\Metalama.Compiler.Interface.dll" />
     </ItemGroup>
   </Target>
+  <!-- </Metalama> -->
 </Project>

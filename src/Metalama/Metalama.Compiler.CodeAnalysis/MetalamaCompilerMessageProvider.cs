@@ -25,7 +25,9 @@ namespace Metalama.Compiler
         ERR_HowToReportMetalamaBug = 613,
         ERR_ManyTransformersOfSameName = 614,
         ERR_InvalidLicenseForSdk = 615,
-        ERR_TransformerNotUnique = 616
+        ERR_TransformerNotUnique = 616,
+        WRN_AnalyzerAssembliesRedirected = 617,
+        WRN_AnalyzerAssemblyCantRedirect = 618
     }
 
     internal sealed class MetalamaCompilerMessageProvider : CommonMessageProvider
@@ -196,7 +198,7 @@ namespace Metalama.Compiler
         public override string GetErrorDisplayString(ISymbol symbol) => symbol.ToDisplayString();
 
         public override bool GetIsEnabledByDefault(int code) => true;
-        
+
         public override string GetHelpLink(int code) => string.Empty;
 
         public override LocalizableString GetMessageFormat(int code) => LoadMessage(code, null);
@@ -214,16 +216,18 @@ namespace Metalama.Compiler
             ERR_InvalidIntrinsicUse or
             ERR_InvalidLicenseOverall or
             ERR_InvalidLicenseForProducingTransformedOutput or
-            ERR_InvalidLicenseForSdk => DiagnosticSeverity.Error,
+            ERR_InvalidLicenseForSdk or
+            ERR_LicensingMessage or
+            ERR_ErrorInGeneratedCode or
+            ERR_HowToDiagnoseInvalidAspect or
+            ERR_HowToReportMetalamaBug or
+            ERR_ManyTransformersOfSameName or
+            ERR_TransformerNotUnique => DiagnosticSeverity.Error,
             WRN_NoTransformedOutputPathWhenDebuggingTransformed or
             WRN_TransformersNotOrdered or
-            WRN_LicensingMessage => DiagnosticSeverity.Warning,
-            ERR_LicensingMessage => DiagnosticSeverity.Error,
-            ERR_ErrorInGeneratedCode => DiagnosticSeverity.Error,
-            ERR_HowToDiagnoseInvalidAspect => DiagnosticSeverity.Error,
-            ERR_HowToReportMetalamaBug => DiagnosticSeverity.Error,
-            ERR_ManyTransformersOfSameName => DiagnosticSeverity.Error,
-            ERR_TransformerNotUnique => DiagnosticSeverity.Error,
+            WRN_LicensingMessage or
+            WRN_AnalyzerAssembliesRedirected or
+            WRN_AnalyzerAssemblyCantRedirect => DiagnosticSeverity.Warning,
 
             _ => throw new ArgumentOutOfRangeException(nameof(code))
         };
@@ -241,12 +245,14 @@ namespace Metalama.Compiler
                 ERR_LicensingMessage => "Licensing error.",
                 ERR_InvalidLicenseOverall => "Cannot start Metalama: invalid license.",
                 ERR_InvalidLicenseForProducingTransformedOutput => "Cannot generate the transformed code: this feature is not available in your license(s).",
-                ERR_InvalidLicenseForSdk => "Cannot transform code using custom transformer '{0}': Metalama SDK is not available in your license(s).",
+                ERR_InvalidLicenseForSdk => "Cannot transform code using custom transformer: Metalama SDK is not available in your license(s).",
                 ERR_ErrorInGeneratedCode => "An aspect or Metalama generated invalid code",
                 ERR_HowToDiagnoseInvalidAspect => "How to diagnose an aspect bug",
                 ERR_HowToReportMetalamaBug => "How to report a Metalama bug",
                 ERR_ManyTransformersOfSameName => "The project contains several transformers of the same name",
                 ERR_TransformerNotUnique => "There are several transformers of the same name",
+                WRN_AnalyzerAssembliesRedirected => "Some analyzer assemblies were downgraded because of Metalama/Roslyn version mismatch.",
+                WRN_AnalyzerAssemblyCantRedirect => "Analyzer assembly was disabled because of Metalama/Roslyn version mismatch.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 
@@ -277,6 +283,8 @@ namespace Metalama.Compiler
                 + "and report the relevant files or snippets.",
                 ERR_ManyTransformersOfSameName => "The project contains several transformers named '{0}': {1}.",
                 ERR_TransformerNotUnique => "There are several transformers named '{0}': {1}.",
+                WRN_AnalyzerAssembliesRedirected => "Analyzer assemblies for this project reference Roslyn version {0}, which is newer than what is supported by the current version of Metalama ({1}). Some analyzer assemblies were downgraded to the latest supported version.",
+                WRN_AnalyzerAssemblyCantRedirect => "Analyzer assembly '{0}' was disabled, because it references Roslyn version {1}, which is newer than what is supported by the current version of Metalama ({2}).",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 
