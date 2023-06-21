@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     {
         [Obsolete("Use the overload that takes a IRazorTestCapabilitiesProvider")]
         IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorCapabilitiesProvider capabilitiesProvider, HostServices hostServices);
-        
+
         IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorTestCapabilitiesProvider capabilitiesProvider, HostServices hostServices);
 
         DocumentInfo CreateDocumentInfo(

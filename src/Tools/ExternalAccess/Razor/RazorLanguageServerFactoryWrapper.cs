@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     {
                         throw new InvalidOperationException("Could not deserialize server capabilities as VSInternalServerCapabilities");
                     }
-                    
+
                     return serverCapabilities;
                 }
 
