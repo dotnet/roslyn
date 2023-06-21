@@ -2059,7 +2059,111 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"))
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a1 As Integer", "a1"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_IndexerParameter_Setter_WithExplicitValue()
+            Dim src1 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set(Value As Integer)
+            Dim f = Function() a1 + a2 + Value
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set(Value As Integer)
+            Dim f = Function() a1
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2 As Integer", "a2"),
+                Diagnostic(RudeEditKind.NotCapturingVariable, "Value As Integer", "Value"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_IndexerParameter_Setter_WithImplicitValue()
+            Dim src1 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set
+            Dim f = Function() a1 + a2 + Value
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set
+            Dim f = Function() a1
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2 As Integer", "a2"),
+                Diagnostic(RudeEditKind.NotCapturingVariable, "Set", "Value"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_IndexerParameter_Setter_WithImplicitToExplicitValue()
+            Dim src1 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set
+            Dim f = Function() a1 + a2 + Value
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set(Value As Integer)
+            Dim f = Function() a1
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2 As Integer", "a2"),
+                Diagnostic(RudeEditKind.NotCapturingVariable, "Set", "Value"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_IndexerParameter_Setter_WithExplicitToImplicitValue()
+            Dim src1 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set(Value As Integer)
+            Dim f = Function() a1 + a2 + Value
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set
+            Dim f = Function() a1
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2 As Integer", "a2"),
+                Diagnostic(RudeEditKind.NotCapturingVariable, "Set", "Value"))
         End Sub
 
         <Fact>
@@ -2082,7 +2186,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a2", "a2"))
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2 As Integer", "a2"))
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
@@ -2219,7 +2323,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value", "Value"))
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value As Integer", "Value"))
         End Sub
 
         <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
@@ -2258,7 +2362,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value", "Value"))
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value As Action", "Value"))
         End Sub
 
         <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
@@ -2297,7 +2401,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value", "Value"))
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value As Action", "Value"))
         End Sub
 
         <Fact>

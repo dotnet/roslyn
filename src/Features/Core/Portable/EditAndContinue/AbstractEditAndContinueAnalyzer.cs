@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract bool AreEquivalentLambdaBodies(SyntaxNode oldLambda, SyntaxNode oldLambdaBody, SyntaxNode newLambda, SyntaxNode newLambdaBody);
 
         protected abstract Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit);
-        protected abstract Match<SyntaxNode>? ComputeParameterMatch(SyntaxNode oldDeclaration, SyntaxNode newDeclaration);
+        protected abstract BidirectionalMap<SyntaxNode>? ComputeParameterMap(SyntaxNode oldDeclaration, SyntaxNode newDeclaration);
         protected abstract Match<SyntaxNode> ComputeBodyMatchImpl(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches);
         protected abstract Match<SyntaxNode> ComputeTopLevelDeclarationMatch(SyntaxNode oldDeclaration, SyntaxNode newDeclaration);
         protected abstract IEnumerable<SequenceEdit> GetSyntaxSequenceEdits(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes);
@@ -5332,7 +5332,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // { old capture index -> old closure scope or null for "this" }
             using var _3 = ArrayBuilder<SyntaxNode?>.GetInstance(oldCaptures.Length, fillWithValue: null, out var oldCapturesToClosureScopes);
 
-            var parameterMatch = ComputeParameterMatch(oldDeclaration, newDeclaration);
+            var parameterMap = ComputeParameterMap(oldDeclaration, newDeclaration);
 
             CalculateCapturedVariablesMaps(
                 oldCaptures,
@@ -5341,7 +5341,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 newMember,
                 newMemberBody,
                 map,
-                parameterMatch,
+                parameterMap,
                 reverseCapturesMap,
                 newCapturesToClosureScopes,
                 oldCapturesToClosureScopes,
@@ -5774,7 +5774,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ISymbol newMember,
             SyntaxNode newMemberBody,
             BidirectionalMap<SyntaxNode> bodyMap,
-            Match<SyntaxNode>? parameterMatch,
+            BidirectionalMap<SyntaxNode>? parameterMap,
             [Out] ArrayBuilder<int> reverseCapturesMap,                  // {new capture index -> old capture index}
             [Out] ArrayBuilder<SyntaxNode?> newCapturesToClosureScopes,  // {new capture index -> new closure scope}
             [Out] ArrayBuilder<SyntaxNode?> oldCapturesToClosureScopes,  // {old capture index -> old closure scope}
@@ -5839,7 +5839,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     var newParameterCapture = (IParameterSymbol)newCapture;
                     var newParameterKey = GetParameterKey(newParameterCapture, cancellationToken);
-                    if (!TryMapParameter(newParameterKey, parameterMatch?.ReverseMatches, bodyMap.Reverse, out var oldParameterKey) ||
+                    if (!TryMapParameter(newParameterKey, parameterMap?.Reverse, bodyMap.Reverse, out var oldParameterKey) ||
                         !oldParameterCaptures.TryGetValue(oldParameterKey, out oldCaptureIndex))
                     {
                         // parameter has not been captured prior the edit:
@@ -5970,7 +5970,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             ParameterKind.Explicit =>
                                 // Try to map the parameter from old to new syntax using either the member parameter map or the body map (for lambda parameters).
                                 // If the parameter doesn't exist in the new source show the error at the containing lambda or member location.
-                                parameterMatch?.TryGetNewNode(oldParameterSyntax!, out var newParameterSyntax) == true ? GetDiagnosticSpan(newParameterSyntax, EditKind.Update) :
+                                parameterMap?.Forward.TryGetValue(oldParameterSyntax!, out var newParameterSyntax) == true ? GetDiagnosticSpan(newParameterSyntax, EditKind.Update) :
                                 bodyMap.Forward.TryGetValue(oldParameterSyntax!, out newParameterSyntax) ? GetDiagnosticSpan(newParameterSyntax, EditKind.Update) :
                                 oldContainingLambdaSyntax != null && bodyMap.Forward.TryGetValue(oldContainingLambdaSyntax, out var newContainingLambdaSyntax) ? GetDiagnosticSpan(newContainingLambdaSyntax, EditKind.Update) :
                                 GetSymbolLocationSpan(newMember, cancellationToken),

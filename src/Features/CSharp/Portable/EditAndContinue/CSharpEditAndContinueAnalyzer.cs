@@ -564,9 +564,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         protected override Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)
             => SyntaxComparer.TopLevel.ComputeMatch(oldCompilationUnit, newCompilationUnit);
 
-        protected override Match<SyntaxNode>? ComputeParameterMatch(SyntaxNode oldDeclaration, SyntaxNode newDeclaration)
+        protected override BidirectionalMap<SyntaxNode>? ComputeParameterMap(SyntaxNode oldDeclaration, SyntaxNode newDeclaration)
             => GetDeclarationParameterList(oldDeclaration) is { } oldParameterList && GetDeclarationParameterList(newDeclaration) is { } newParameterList ?
-                SyntaxComparer.TopLevel.ComputeMatch(oldParameterList, newParameterList) : null;
+                BidirectionalMap<SyntaxNode>.FromMatch(SyntaxComparer.TopLevel.ComputeMatch(oldParameterList, newParameterList)) : null;
 
         private static SyntaxNode? GetDeclarationParameterList(SyntaxNode declaration)
             => declaration switch

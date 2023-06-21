@@ -4258,7 +4258,11 @@ class C
     {
         var f1 = new Func<int, int, int>((a1, a2) => 
         {
-            var f2 = new Func<int, int>(a3 => a1 + a2);
+            var f2 = new Func<int, int>(a3 => 
+            {
+                var f3 = new Func<int, int>(a4 => a1 + a2 + a3);
+                return 1;
+            });
             return a1;
         });
     }
@@ -4273,7 +4277,11 @@ class C
     {
         var f1 = new Func<int, int, int>((a1, a2) => 
         {
-            var f2 = new Func<int, int>(a3 => a2);
+            var f2 = new Func<int, int>(a3 => 
+            {
+                var f3 = new Func<int, int>(a4 => a2);
+                return 1;
+            });
             return a1;
         });
     }
@@ -4282,7 +4290,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"),
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a3", "a3"));
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
