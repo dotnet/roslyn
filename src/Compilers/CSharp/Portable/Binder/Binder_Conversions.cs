@@ -614,9 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundExpression>.GetInstance(node.Elements.Length);
             foreach (var element in node.Elements)
             {
-                var result = BindToNaturalType(element, diagnostics);
-                result.WasCompilerGenerated = true;
-                builder.Add(result);
+                builder.Add(BindToNaturalType(element, diagnostics, reportNoTargetType: !targetType.IsErrorType()));
             }
             return new BoundCollectionLiteralExpression(
                 syntax,

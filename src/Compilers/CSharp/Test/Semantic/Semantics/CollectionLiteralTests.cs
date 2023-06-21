@@ -350,10 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // (5,17): error CS9503: There is no target type for the collection literal.
                 //         var z = [[3]];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[[3]]").WithLocation(5, 17),
-                // (5,18): error CS9503: There is no target type for the collection literal.
-                //         var z = [[3]];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[3]").WithLocation(5, 18));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[[3]]").WithLocation(5, 17));
         }
 
         [Fact]
@@ -2327,6 +2324,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 S s;
                 s = [];
                 s = [1, 2];
+                s = [default];
+                s = [Unknown];
                 struct S { }
                 """;
             var comp = CreateCompilation(source);
@@ -2336,7 +2335,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(2, 5),
                 // (3,5): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 // s = [1, 2];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(3, 5));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(3, 5),
+                // (4,5): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                // s = [default];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[default]").WithArguments("S").WithLocation(4, 5),
+                // (5,6): error CS0103: The name 'Unknown' does not exist in the current context
+                // s = [Unknown];
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Unknown").WithArguments("Unknown").WithLocation(5, 6));
         }
 
         [Fact]
@@ -3739,10 +3744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(6, 21),
                 // (7,16): error CS9503: There is no target type for the collection literal.
                 //         a = [..[default]];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[default]").WithLocation(7, 16),
-                // (7,17): error CS8716: There is no target type for the default literal.
-                //         a = [..[default]];
-                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[default]").WithLocation(7, 16));
         }
 
         [Fact]

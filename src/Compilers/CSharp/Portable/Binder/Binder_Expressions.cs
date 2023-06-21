@@ -5733,7 +5733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (enumeratorInfo is null)
             {
                 return element.Update(
-                    BindToNaturalType(element.Expression, diagnostics),
+                    BindToNaturalType(element.Expression, BindingDiagnosticBag.Discarded, reportNoTargetType: false),
                     element.EnumeratorInfoOpt,
                     element.ElementPlaceholder,
                     element.AddElementPlaceholder,
