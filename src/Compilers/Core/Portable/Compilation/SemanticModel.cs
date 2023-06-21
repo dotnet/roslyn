@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract ISymbol? GetDeclaredSymbolCore(SyntaxNode declaration, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Gets the symbol associated with a declaration syntax node. Unlike <see cref="GetDeclaredSymbolForNode(SyntaxNode, CancellationToken)"/>,
+        /// Gets the symbols associated with a declaration syntax node. Unlike <see cref="GetDeclaredSymbolForNode(SyntaxNode, CancellationToken)"/>,
         /// this method returns all symbols declared by a given declaration syntax node. Specifically:
         /// <list type="number">
         /// <item>in the case of field declaration syntax nodes, which can declare multiple symbols, this method returns
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the symbol associated with a declaration syntax node. Unlike <see cref="GetDeclaredSymbolForNode(SyntaxNode, CancellationToken)"/>,
+        /// Gets the symbols associated with a declaration syntax node. Unlike <see cref="GetDeclaredSymbolForNode(SyntaxNode, CancellationToken)"/>,
         /// this method returns all symbols declared by a given declaration syntax node. Specifically:
         /// <list type="number">
         /// <item>in the case of field declaration syntax nodes, which can declare multiple symbols, this method returns
