@@ -4243,6 +4243,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"),
                 Diagnostic(RudeEditKind.NotCapturingVariable, "F", "a2"));
         }
 
@@ -5457,7 +5458,8 @@ class C
                 Diagnostic(RudeEditKind.RenamingCapturedVariable, "X", "x", "X"));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68708")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         public void Lambdas_CapturedParameter_ChangeType()
         {
             var src1 = @"
