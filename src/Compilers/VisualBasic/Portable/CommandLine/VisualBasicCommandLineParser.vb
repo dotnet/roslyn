@@ -1514,7 +1514,7 @@ lVbRuntimePlus:
                 .SkipAnalyzers = skipAnalyzers,
                 .EmbeddedFiles = embeddedFiles.AsImmutable(),
                 .GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,
-                .ReportIVTs = reportIVTs
+                .ReportInternalsVisibleToAttributes = reportIVTs
             }
         End Function
 

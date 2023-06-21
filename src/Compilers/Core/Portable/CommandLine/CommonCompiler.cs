@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis
                 ReportAnalyzerUtil.Report(consoleOutput, analyzerDriver, driverTimingInfo, Culture, compilation.Options.ConcurrentBuild);
             }
 
-            if (Arguments.ReportIVTs)
+            if (Arguments.ReportInternalsVisibleToAttributes)
             {
                 ReportIVTInfos(consoleOutput, errorLogger, compilation, diagnostics.ToReadOnly());
             }

@@ -1587,7 +1587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportAnalyzer = reportAnalyzer,
                 SkipAnalyzers = skipAnalyzers,
                 EmbeddedFiles = embeddedFiles.AsImmutable(),
-                ReportIVTs = reportIVTs,
+                ReportInternalsVisibleToAttributes = reportIVTs,
             };
         }
 
