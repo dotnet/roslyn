@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 var documentationCommentResponse = await GetDocumentationCommentResponseAsync(
                     request, document, service, docCommentOptions, cancellationToken).ConfigureAwait(false);
+
                 if (documentationCommentResponse != null)
                 {
                     return documentationCommentResponse;
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var result = autoInsertParams.Character == "\n"
                 ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, options, cancellationToken)
-                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, cancellationToken);
+                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, cancellationToken, addIndentation: false);
 
             if (result == null)
             {

@@ -158,13 +158,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Type parameters do not have members
-        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         // Type parameters do not have members
-        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }

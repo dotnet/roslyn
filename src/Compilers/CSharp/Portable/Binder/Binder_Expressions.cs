@@ -441,6 +441,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression result = initializerBinder.BindVariableOrAutoPropInitializerValue(initializerOpt, field.RefKind,
                                                            field.GetFieldType(initializerBinder.FieldsBeingBound).Type, diagnostics);
 
+            if (field is { IsStatic: false, RefKind: RefKind.None, ContainingSymbol: SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor } } &&
+                TryGetPrimaryConstructorParameterSubjectToDoubleStorageWarning(primaryConstructor, result) is (ParameterSymbol parameter, SyntaxNode syntax))
+            {
+                diagnostics.Add(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, syntax.Location, parameter);
+            }
+
             return new BoundFieldEqualsValue(initializerOpt, field, initializerBinder.GetDeclaredLocalsForScope(initializerOpt), result);
         }
 
@@ -4344,24 +4350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            BoundParameter boundParameter;
-
-                            switch (analyzedArguments.Argument(i))
-                            {
-                                case BoundParameter param:
-                                    boundParameter = param;
-                                    break;
-
-                                case BoundConversion { Conversion.IsIdentity: true, Operand: BoundParameter param }:
-                                    boundParameter = param;
-                                    break;
-
-                                default:
-                                    continue;
-                            }
-
-                            if (boundParameter.ParameterSymbol is { } parameter &&
-                                primaryConstructor.GetCapturedParameters().ContainsKey(parameter))
+                            if (TryGetPrimaryConstructorParameterSubjectToDoubleStorageWarning(primaryConstructor, analyzedArguments.Argument(i)) is (ParameterSymbol parameter, SyntaxNode syntax))
                             {
                                 if (expanded)
                                 {
@@ -4373,7 +4362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
                                 }
 
-                                diagnostics.Add(ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase, boundParameter.Syntax.Location, parameter);
+                                diagnostics.Add(ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase, syntax.Location, parameter);
                             }
                         }
                     }
@@ -4450,6 +4439,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        private static (ParameterSymbol, SyntaxNode) TryGetPrimaryConstructorParameterSubjectToDoubleStorageWarning(SynthesizedPrimaryConstructor primaryConstructor, BoundExpression boundExpression)
+        {
+            BoundParameter boundParameter;
+
+            switch (boundExpression)
+            {
+                case BoundParameter param:
+                    boundParameter = param;
+                    break;
+
+                case BoundConversion { Conversion.IsIdentity: true, Operand: BoundParameter param }:
+                    boundParameter = param;
+                    break;
+
+                default:
+                    return (null, null);
+            }
+
+            if (boundParameter.ParameterSymbol is { } parameter &&
+                primaryConstructor.GetCapturedParameters().ContainsKey(parameter))
+            {
+                return (parameter, boundParameter.Syntax);
+            }
+
+            return (null, null);
         }
 
         internal static bool IsUserDefinedRecordCopyConstructor(MethodSymbol constructor)
@@ -7397,7 +7413,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isMethodGroupConversion: isMethodGroupConversion,
                     allowRefOmittedArguments: allowRefOmittedArguments,
                     returnRefKind: returnRefKind,
-                    returnType: returnType);
+                    returnType: returnType,
+                    isExtensionMethodResolution: true);
                 diagnostics.Add(expression, useSiteInfo);
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
 
@@ -9387,6 +9404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnRefKind,
                     returnType,
                     isFunctionPointerResolution,
+                    isExtensionMethodResolution: false,
                     callingConvention);
 
                 // Note: the MethodGroupResolution instance is responsible for freeing its copy of analyzed arguments

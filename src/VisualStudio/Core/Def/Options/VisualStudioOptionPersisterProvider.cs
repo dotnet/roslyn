@@ -9,13 +9,11 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Settings;
-using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
-using SAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options
 {
@@ -23,7 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
     [Export(typeof(VisualStudioOptionPersisterProvider))]
     internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProvider
     {
-        private readonly IAsyncServiceProvider _serviceProvider;
+        private readonly IVsService<ILocalRegistry4> _localRegistryService;
+        private readonly IVsService<ISettingsManager> _settingsManagerService;
+        private readonly IVsService<IVsFeatureFlags> _featureFlagsService;
         private readonly ILegacyGlobalOptionService _legacyGlobalOptions;
 
         // maps config name to a read fallback:
@@ -34,22 +34,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioOptionPersisterProvider(
-            [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
+            IVsService<SLocalRegistry, ILocalRegistry4> localRegistryService,
+            IVsService<SVsSettingsPersistenceManager, ISettingsManager> settingsManagerService,
+            IVsService<SVsFeatureFlags, IVsFeatureFlags> featureFlagsService,
             [ImportMany] IEnumerable<Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> readFallbacks,
             IThreadingContext threadingContext,
             ILegacyGlobalOptionService legacyGlobalOptions)
         {
-            _serviceProvider = serviceProvider;
+            _localRegistryService = localRegistryService;
+            _settingsManagerService = settingsManagerService;
+            _featureFlagsService = featureFlagsService;
             _legacyGlobalOptions = legacyGlobalOptions;
             _readFallbacks = readFallbacks.ToImmutableDictionary(item => item.Metadata.ConfigName, item => item);
         }
 
         public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
-            => _lazyPersister ??=
-                new VisualStudioOptionPersister(
-                    new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, await TryGetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>().ConfigureAwait(true)),
-                    await LocalUserRegistryOptionPersister.CreateAsync(_serviceProvider).ConfigureAwait(false),
-                    new FeatureFlagPersister(await TryGetServiceAsync<SVsFeatureFlags, IVsFeatureFlags>().ConfigureAwait(false)));
+        {
+            return _lazyPersister ??= await CreatePersisterAsync(cancellationToken).ConfigureAwait(true);
+
+            async Task<VisualStudioOptionPersister> CreatePersisterAsync(CancellationToken cancellationToken)
+            {
+                // Obtain services before creating instances. This avoids state corruption in the event cancellation is
+                // requested (some of the constructors register event handlers that could leak if cancellation occurred
+                // in the middle of construction).
+                var settingsManager = await _settingsManagerService.GetValueAsync(cancellationToken).ConfigureAwait(true);
+                var localRegistry = await _localRegistryService.GetValueAsync(cancellationToken).ConfigureAwait(true);
+                var featureFlags = await _featureFlagsService.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
+
+                // Cancellation is not allowed after this point
+                cancellationToken = CancellationToken.None;
+
+                return new VisualStudioOptionPersister(
+                    new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, settingsManager),
+                    LocalUserRegistryOptionPersister.Create(localRegistry),
+                    new FeatureFlagPersister(featureFlags));
+            }
+        }
 
         private void RefreshOption(OptionKey2 optionKey, object? newValue)
         {
@@ -58,18 +78,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
                 // We may be updating the values of internally defined public options.
                 // Update solution snapshots of all workspaces to reflect the new values.
                 _legacyGlobalOptions.UpdateRegisteredWorkspaces();
-            }
-        }
-
-        private async ValueTask<I?> TryGetServiceAsync<T, I>() where I : class
-        {
-            try
-            {
-                return (I?)await _serviceProvider.GetServiceAsync(typeof(T)).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-                return null;
             }
         }
     }

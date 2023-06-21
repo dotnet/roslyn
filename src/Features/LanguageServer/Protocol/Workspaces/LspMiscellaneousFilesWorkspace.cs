@@ -55,12 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// </summary>
         public Document? AddMiscellaneousDocument(Uri uri, SourceText documentText, string languageId, ILspLogger logger)
         {
-            // If we have a file:///xyz URI, we'll store the actual file path string in the document file path.
-            // Otherwise we have a URI that doesn't point to an actual file.  In such a scenario, we'll store the full URI string (including schema).
-            // This will allow correct round-tripping of the URI for features that need it until we support URI as a first class document concept.
-            // Tracking issue - https://github.com/dotnet/roslyn/issues/68083
-            var documentFilePath = uri.IsFile ? uri.LocalPath : uri.OriginalString;
-
+            var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
             var languageInformation = GetLanguageInformation(documentFilePath, languageId);
             if (languageInformation == null)
             {
@@ -121,25 +116,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 "vb" => s_vbLanguageInformation,
                 _ => null,
             };
-        }
-
-        private sealed class SourceTextLoader : TextLoader
-        {
-            private readonly SourceText _sourceText;
-            private readonly string _fileUri;
-
-            public SourceTextLoader(SourceText sourceText, string fileUri)
-            {
-                _sourceText = sourceText;
-                _fileUri = fileUri;
-            }
-
-            internal override string? FilePath
-                => _fileUri;
-
-            // TODO (https://github.com/dotnet/roslyn/issues/63583): Use options.ChecksumAlgorithm 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-                => Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Create(), _fileUri));
         }
     }
 }

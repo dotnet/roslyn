@@ -4748,11 +4748,15 @@ delegate void D();
                         case "B":
                         case "E":
                         case "D":
+#pragma warning disable SYSLIB0050 // Type or member is obsolete
                             Assert.Equal(TypeAttributes.Serializable, row.Attributes & TypeAttributes.Serializable);
+#pragma warning restore SYSLIB0050 // Type or member is obsolete
                             break;
 
                         case "<Module>":
+#pragma warning disable SYSLIB0050 // Type or member is obsolete
                             Assert.Equal((TypeAttributes)0, row.Attributes & TypeAttributes.Serializable);
+#pragma warning restore SYSLIB0050 // Type or member is obsolete
                             break;
 
                         default:
@@ -4770,11 +4774,15 @@ delegate void D();
                         case "e":
                         case "x":
                         case "A":
+#pragma warning disable SYSLIB0050 // Type or member is obsolete
                             Assert.Equal(FieldAttributes.NotSerialized, flags & FieldAttributes.NotSerialized);
+#pragma warning restore SYSLIB0050 // Type or member is obsolete
                             break;
 
                         case "value__":
+#pragma warning disable SYSLIB0050 // Type or member is obsolete
                             Assert.Equal((FieldAttributes)0, flags & FieldAttributes.NotSerialized);
+#pragma warning restore SYSLIB0050 // Type or member is obsolete
                             break;
                     }
                 }

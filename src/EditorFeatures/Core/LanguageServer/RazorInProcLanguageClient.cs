@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             if (capabilities is VSInternalServerCapabilities vsServerCapabilities)
             {
                 vsServerCapabilities.SupportsDiagnosticRequests = true;
+                vsServerCapabilities.SpellCheckingProvider = true;
 
                 var regexExpression = string.Join("|", InlineCompletionsHandler.BuiltInSnippets);
                 var regex = new Regex(regexExpression, RegexOptions.Compiled | RegexOptions.Singleline, TimeSpan.FromSeconds(1));

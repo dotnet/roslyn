@@ -139,11 +139,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new(
                 data.Id,
                 data.Message ?? FeaturesResources.Unknown_error_occurred,
-                updateStatus == ModuleUpdateStatus.RestartRequired ?
-                    ManagedHotReloadDiagnosticSeverity.RestartRequired :
-                    (data.Severity == DiagnosticSeverity.Error) ?
-                        ManagedHotReloadDiagnosticSeverity.Error :
-                        ManagedHotReloadDiagnosticSeverity.Warning,
+                updateStatus == ModuleUpdateStatus.RestartRequired
+                    ? ManagedHotReloadDiagnosticSeverity.RestartRequired
+                    : (data.Severity == DiagnosticSeverity.Error)
+                        ? ManagedHotReloadDiagnosticSeverity.Error
+                        : ManagedHotReloadDiagnosticSeverity.Warning,
                 fileSpan.Path ?? "",
                 fileSpan.Span.ToSourceSpan());
         }

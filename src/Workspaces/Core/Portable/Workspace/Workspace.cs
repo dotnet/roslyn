@@ -254,6 +254,7 @@ namespace Microsoft.CodeAnalysis
 
                     return UnifyLinkedDocumentContents(oldSolution, newSolution);
                 },
+                mayRaiseEvents: true,
                 onBeforeUpdate: static (oldSolution, newSolution, data) =>
                 {
                     data.onBeforeUpdate?.Invoke(oldSolution, newSolution);
@@ -342,6 +343,10 @@ namespace Microsoft.CodeAnalysis
         /// <param name="transformation">Solution transformation. This may be run multiple times.  As such it should be
         /// a purely functional transformation on the solution instance passed to it.  It should not make stateful
         /// changes elsewhere.</param>
+        /// <param name="mayRaiseEvents"><see langword="true"/> if this operation may raise observable events;
+        /// otherwise, <see langword="false"/>. If <see langword="true"/>, the operation will call
+        /// <see cref="EnsureEventListeners"/> to ensure listeners are registered prior to callbacks that may raise
+        /// events.</param>
         /// <param name="onBeforeUpdate">Action to perform immediately prior to updating <see cref="CurrentSolution"/>.
         /// The action will be passed the old <see cref="CurrentSolution"/> that will be replaced and the exact solution
         /// it will be replaced with. The latter may be different than the solution returned by <paramref
@@ -355,6 +360,7 @@ namespace Microsoft.CodeAnalysis
         private protected (Solution oldSolution, Solution newSolution) SetCurrentSolution<TData>(
             TData data,
             Func<Solution, TData, Solution> transformation,
+            bool mayRaiseEvents = true,
             Action<Solution, Solution, TData>? onBeforeUpdate = null,
             Action<Solution, Solution, TData>? onAfterUpdate = null)
         {
@@ -363,6 +369,7 @@ namespace Microsoft.CodeAnalysis
                 useAsync: false,
                 data,
                 transformation,
+                mayRaiseEvents,
                 onBeforeUpdate,
                 onAfterUpdate,
                 CancellationToken.None);
@@ -371,11 +378,12 @@ namespace Microsoft.CodeAnalysis
 #pragma warning restore CA2012 // Use ValueTasks correctly
         }
 
-        /// <inheritdoc cref="SetCurrentSolution{TData}(TData, Func{Solution, TData, Solution}, Action{Solution, Solution, TData}?, Action{Solution, Solution, TData}?)"/>
+        /// <inheritdoc cref="SetCurrentSolution{TData}(TData, Func{Solution, TData, Solution}, bool, Action{Solution, Solution, TData}?, Action{Solution, Solution, TData}?)"/>
         private protected async ValueTask<(Solution oldSolution, Solution newSolution)> SetCurrentSolutionAsync<TData>(
             bool useAsync,
             TData data,
             Func<Solution, TData, Solution> transformation,
+            bool mayRaiseEvents,
             Action<Solution, Solution, TData>? onBeforeUpdate,
             Action<Solution, Solution, TData>? onAfterUpdate,
             CancellationToken cancellationToken)
@@ -384,9 +392,12 @@ namespace Microsoft.CodeAnalysis
 
             var oldSolution = Volatile.Read(ref _latestSolution);
 
-            // Ensure our event handlers are realized prior to taking this lock.  We don't want to deadlock trying
-            // to obtain them when calling one of our callbacks. See https://github.com/dotnet/roslyn/issues/64681
-            EnsureEventListeners();
+            if (mayRaiseEvents)
+            {
+                // Ensure our event handlers are realized prior to taking this lock.  We don't want to deadlock trying
+                // to obtain them when calling one of our callbacks. See https://github.com/dotnet/roslyn/issues/64681
+                EnsureEventListeners();
+            }
 
             while (true)
             {
@@ -499,6 +510,7 @@ namespace Microsoft.CodeAnalysis
             this.SetCurrentSolution(
                 data: /*unused*/ 0,
                 (oldSolution, _) => this.CreateSolution(oldSolution.Id),
+                mayRaiseEvents: reportChangeEvent,
                 onBeforeUpdate: (_, _, _) => this.ClearSolutionData(),
                 onAfterUpdate: (oldSolution, newSolution, _) =>
                 {

@@ -4909,6 +4909,87 @@ record C(int X)
         #region Nested Types
 
         [Fact]
+        public void NestedType_Replace_WithUpdateInNestedType_Partial_DifferentDocument()
+        {
+            var srcA1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { int N() => 1; }";
+            var srcB1 = "partial class C { class D { int M() => 1; } }";
+            var srcA2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { int N() => 2; }";
+            var srcB2 = "partial class C { class D { int M() => 2; } }";
+
+            var editsA = GetTopEdits(srcA1, srcA2);
+            var editsB = GetTopEdits(srcB1, srcB2);
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { editsA, editsB },
+                new[]
+                {
+                    DocumentResults(semanticEdits: new[]
+                    {
+                        SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
+                    }),
+                    DocumentResults(semanticEdits: new[]
+                    {
+                        SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.D.M"))
+                    })
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void NestedType_Replace_WithUpdateInNestedType_Partial_SameDocument()
+        {
+            var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { int N() => 1; } partial class C { class D { int M() => 1; } }";
+            var src2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { int N() => 2; } partial class C { class D { int M() => 2; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            EditAndContinueValidation.VerifySemantics(
+                edits,
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.D.M"))
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void NestedType_Replace_WithUpdateInNestedType()
+        {
+            var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { int N() => 1; class D { int M() => 1; } }";
+            var src2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { int N() => 2; class D { int M() => 2; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            EditAndContinueValidation.VerifySemantics(
+                edits,
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.D.M"))
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void NestedType_Update_WithUpdateInNestedType()
+        {
+            var src1 = @"[System.Obsolete(""A"")]class C { int N() => 1; class D { int M() => 1; } }";
+            var src2 = @"[System.Obsolete(""B"")]class C { int N() => 1; class D { int M() => 2; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            EditAndContinueValidation.VerifySemantics(
+                edits,
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.D.M"))
+                },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+        }
+
+        [Fact]
         public void NestedType_Move_Sideways()
         {
             var src1 = @"class N { class C {} } class M {            }";

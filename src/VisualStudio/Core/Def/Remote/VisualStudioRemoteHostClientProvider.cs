@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 using VSThreading = Microsoft.VisualStudio.Threading;
@@ -29,8 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider), WorkspaceKind.Host), Shared]
         internal sealed class Factory : IWorkspaceServiceFactory
         {
-            private readonly IAsyncServiceProvider _vsServiceProvider;
             private readonly VisualStudioWorkspace _vsWorkspace;
+            private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
             private readonly AsynchronousOperationListenerProvider _listenerProvider;
             private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
             private readonly IGlobalOptionService _globalOptions;
@@ -43,15 +42,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public Factory(
                 VisualStudioWorkspace vsWorkspace,
-                SVsServiceProvider vsServiceProvider,
+                IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer,
                 AsynchronousOperationListenerProvider listenerProvider,
                 IGlobalOptionService globalOptions,
                 IThreadingContext threadingContext,
                 [ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>> callbackDispatchers)
             {
-                _vsServiceProvider = (IAsyncServiceProvider)vsServiceProvider;
                 _globalOptions = globalOptions;
                 _vsWorkspace = vsWorkspace;
+                _brokeredServiceContainer = brokeredServiceContainer;
                 _listenerProvider = listenerProvider;
                 _threadingContext = threadingContext;
                 _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
@@ -78,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     // If we have a cached vs instance, then we can return that instance since we know they have the same host services.
                     // Otherwise, create and cache an instance based on vs workspace for future callers with same services.
                     if (_cachedVSInstance is null)
-                        _cachedVSInstance = new VisualStudioRemoteHostClientProvider(_vsWorkspace.Services.SolutionServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
+                        _cachedVSInstance = new VisualStudioRemoteHostClientProvider(_vsWorkspace.Services.SolutionServices, _globalOptions, _brokeredServiceContainer, _threadingContext, _listenerProvider, _callbackDispatchers);
 
                     return _cachedVSInstance;
                 }
@@ -88,23 +87,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public readonly SolutionServices Services;
         private readonly IGlobalOptionService _globalOptions;
         private readonly VSThreading.AsyncLazy<RemoteHostClient?> _lazyClient;
-        private readonly IAsyncServiceProvider _vsServiceProvider;
-        private readonly IThreadingContext _threadingContext;
+        private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
         private readonly AsynchronousOperationListenerProvider _listenerProvider;
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
         private VisualStudioRemoteHostClientProvider(
             SolutionServices services,
             IGlobalOptionService globalOptions,
-            IAsyncServiceProvider vsServiceProvider,
+            IVsService<IBrokeredServiceContainer> brokeredServiceContainer,
             IThreadingContext threadingContext,
             AsynchronousOperationListenerProvider listenerProvider,
             RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
             Services = services;
             _globalOptions = globalOptions;
-            _vsServiceProvider = vsServiceProvider;
-            _threadingContext = threadingContext;
+            _brokeredServiceContainer = brokeredServiceContainer;
             _listenerProvider = listenerProvider;
             _callbackDispatchers = callbackDispatchers;
 
@@ -117,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             try
             {
-                var brokeredServiceContainer = await _vsServiceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+                var brokeredServiceContainer = await _brokeredServiceContainer.GetValueAsync().ConfigureAwait(false);
                 var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
                 var configuration =

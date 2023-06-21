@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                 }
 
                 var documentId = DocumentId.CreateNewId(_project.Id, fullPath);
-                var textLoader = new WorkspaceFileTextLoader(_project._projectSystemProjectFactory.Workspace.Services.SolutionServices, fullPath, defaultEncoding: null);
+                var textLoader = _project._projectSystemProjectFactory.CreateFileTextLoader(fullPath);
                 var documentInfo = DocumentInfo.Create(
                     documentId,
                     name: FileNameUtilities.GetFileName(fullPath),
