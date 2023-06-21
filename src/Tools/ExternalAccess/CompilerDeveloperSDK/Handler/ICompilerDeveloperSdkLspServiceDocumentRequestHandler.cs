@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK;
+namespace Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk;
 
 internal interface ICompilerDeveloperSdkLspServiceDocumentRequestHandler<TRequest, TResponse> :
     ILspServiceDocumentRequestHandler<TRequest, TResponse>

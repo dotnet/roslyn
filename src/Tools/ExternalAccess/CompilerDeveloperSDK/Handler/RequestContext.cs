@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK;
+namespace Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk;
 
 internal readonly struct RequestContext(LspRequestContext context)
 {
@@ -14,4 +14,6 @@ internal readonly struct RequestContext(LspRequestContext context)
     internal Document? Document => context.Document;
     /// <inheritdoc cref="LspRequestContext.GetRequiredDocument()"/>
     internal Document GetRequiredDocument() => context.GetRequiredDocument();
+
+    internal T GetRequiredService<T>() where T : class, ICompilerDeveloperSdkLspService => context.GetRequiredService<T>();
 }

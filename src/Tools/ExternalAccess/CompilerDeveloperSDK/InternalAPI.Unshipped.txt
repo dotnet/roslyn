@@ -1,8 +1,12 @@
 #nullable enable
-Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.ICompilerDeveloperSdkLspServiceDocumentRequestHandler<TRequest, TResponse>
-Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.RequestContext.GetRequiredDocument() -> Microsoft.CodeAnalysis.Document!
-Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.RequestContext.Document.get -> Microsoft.CodeAnalysis.Document?
-Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.RequestContext.Solution.get -> Microsoft.CodeAnalysis.Solution?
-Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.RequestContext.Workspace.get -> Microsoft.CodeAnalysis.Workspace?
-Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.RequestContext
-Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.RequestContext
+Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.ExportCompilerDeveloperSdkLspServiceFactoryAttribute
+Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.ICompilerDeveloperSdkLspService
+Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.ICompilerDeveloperSdkLspServiceDocumentRequestHandler<TRequest, TResponse>
+Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.ICompilerDeveloperSdkLspServiceFactory
+Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.ICompilerDeveloperSdkLspServiceFactory.CreateILspService() -> Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.ICompilerDeveloperSdkLspService!
+Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.GetRequiredDocument() -> Microsoft.CodeAnalysis.Document!
+Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.Document.get -> Microsoft.CodeAnalysis.Document?
+Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.Solution.get -> Microsoft.CodeAnalysis.Solution?
+Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.Workspace.get -> Microsoft.CodeAnalysis.Workspace?
+Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext
+Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext
