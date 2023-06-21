@@ -10,10 +10,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -57,12 +59,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var completionOptions = GetCompletionOptions(document, capabilityHelper);
             var completionService = document.GetRequiredLanguageService<CompletionService>();
 
+            var isInitialRequest = request.Context?.TriggerKind is not LSP.CompletionTriggerKind.TriggerForIncompleteCompletions;
+
             // Let CompletionService decide if we should trigger completion, unless the request is for incomplete results, in which case we always trigger. 
-            if (request.Context?.TriggerKind is not LSP.CompletionTriggerKind.TriggerForIncompleteCompletions
+            if (isInitialRequest
                 && !completionService.ShouldTriggerCompletion(document.Project, document.Project.Services, documentText, position, completionTrigger, completionOptions, document.Project.Solution.Options, roles: null))
             {
                 return null;
             }
+            
+            const int TelemetryDelayThresholdMs = 500;
+            var metricName = isInitialRequest ? $"InitialRequest" : $"IncompleteRequest";
+            using var _1 = TelemetryLogging.LogBlockTimeAggregated(FunctionId.LSP_CompletionRequest_Summary, $"{metricName}");
+            using var _2 = TelemetryLogging.LogBlockTime(FunctionId.LSP_CompletionRequest_Delay, $"{metricName}", TelemetryDelayThresholdMs);
 
             var completionListResult = await GetFilteredCompletionListAsync(request, context, documentText, document, completionOptions, completionService, cancellationToken).ConfigureAwait(false);
             if (completionListResult == null)
