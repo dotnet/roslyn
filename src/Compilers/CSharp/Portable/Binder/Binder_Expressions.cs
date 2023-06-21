@@ -3213,6 +3213,58 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        private void CheckRefArguments<TMember>(
+            MemberResolutionResult<TMember> methodResult,
+            AnalyzedArguments analyzedArguments,
+            BindingDiagnosticBag diagnostics)
+            where TMember : Symbol
+        {
+            if (analyzedArguments.HasErrors)
+            {
+                return;
+            }
+
+            var result = methodResult.Result;
+            var parameters = methodResult.LeastOverriddenMember.GetParameters();
+
+            for (int arg = 0; arg < analyzedArguments.Arguments.Count; arg++)
+            {
+                if (arg >= parameters.Length)
+                {
+                    // We can run out of parameters before arguments. For example: `M(__arglist(x))`.
+                    break;
+                }
+
+                // Warn for `ref`/`in` or None/`ref readonly` mismatch.
+                var argRefKind = analyzedArguments.RefKind(arg);
+                if (argRefKind is RefKind.Ref or RefKind.None)
+                {
+                    var warnParameterKind = argRefKind == RefKind.Ref ? RefKind.In : RefKind.RefReadOnlyParameter;
+                    var parameter = GetCorrespondingParameter(ref result, parameters, arg);
+                    if (parameter.RefKind == warnParameterKind)
+                    {
+                        if (argRefKind == RefKind.None)
+                        {
+                            // Argument {0} should be passed with 'ref' or 'in' keyword
+                            diagnostics.Add(
+                                ErrorCode.WRN_ArgExpectedRefOrIn,
+                                analyzedArguments.Argument(arg).Syntax,
+                                arg + 1);
+                        }
+                        else
+                        {
+                            // Argument {0} should not be passed with the '{1}' keyword
+                            diagnostics.Add(
+                                ErrorCode.WRN_BadArgRef,
+                                analyzedArguments.Argument(arg).Syntax,
+                                arg + 1,
+                                argRefKind.ToArgumentDisplayString());
+                        }
+                    }
+                }
+            }
+        }
+
         private void CoerceArguments<TMember>(
             MemberResolutionResult<TMember> methodResult,
             ArrayBuilder<BoundExpression> arguments,
@@ -6137,6 +6189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (succeededIgnoringAccessibility)
             {
+                this.CheckRefArguments<MethodSymbol>(result.ValidResult, analyzedArguments, diagnostics);
                 this.CoerceArguments<MethodSymbol>(result.ValidResult, analyzedArguments.Arguments, diagnostics, receiver: null);
             }
 
@@ -8557,6 +8610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
 
+                this.CheckRefArguments<PropertySymbol>(resolutionResult, analyzedArguments, diagnostics);
                 this.CoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments.Arguments, diagnostics, receiver);
 
                 if (!gotError && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)

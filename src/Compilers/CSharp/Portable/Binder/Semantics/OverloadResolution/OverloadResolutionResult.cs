@@ -1215,9 +1215,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (refArg != refParameter && !(refArg == RefKind.None && refParameter == RefKind.In))
             {
-                if (refParameter == RefKind.None || refParameter == RefKind.In)
+                if (refParameter is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter)
                 {
-                    //  Argument {0} should not be passed with the {1} keyword
+                    //  Argument {0} may not be passed with the '{1}' keyword
                     diagnostics.Add(
                         ErrorCode.ERR_BadArgExtraRef,
                         sourceLocation,

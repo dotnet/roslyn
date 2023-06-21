@@ -6248,9 +6248,9 @@ public partial struct CustomHandler
     public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_RefIn(string expression)
     {
         InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("ref", "in", expression,
-            // (5,9): error CS1615: Argument 3 may not be passed with the 'ref' keyword
+            // (5,9): warning CS9501: Argument 3 should not be passed with the 'ref' keyword
             // C.M(ref i, $"");
-            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "ref").WithLocation(5, 9));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("3", "ref").WithLocation(5, 9));
     }
 
     [Theory]
@@ -13423,9 +13423,9 @@ partial struct CustomHandler
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) });
         comp.VerifyDiagnostics(
-            // (5,1): error CS1615: Argument 3 may not be passed with the 'ref' keyword
+            // (5,1): warning CS9501: Argument 3 should not be passed with the 'ref' keyword
             // s.M($"");
-            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("3", "ref").WithLocation(5, 1));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "s").WithArguments("3", "ref").WithLocation(5, 1));
     }
 
     [Fact]

@@ -1251,4 +1251,691 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //     public static void M(ref readonly scoped scoped) => throw null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 30));
     }
+
+    [Fact]
+    public void RefReadonlyParameter_ArgumentModifiers()
+    {
+        var source = """
+            class C
+            {
+                static void M(ref readonly int p) => System.Console.Write(p);
+                static void Main()
+                {
+                    int x = 5;
+                    M(x);
+                    M(ref x);
+                    M(in x);
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "555");
+        verifier.VerifyDiagnostics(
+            // (7,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         M(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 11));
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_OutArgument()
+    {
+        var source = """
+            class C
+            {
+                static void M(ref readonly int p) => System.Console.WriteLine(p);
+                static void Main()
+                {
+                    int x;
+                    M(out x);
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,15): error CS1615: Argument 1 may not be passed with the 'out' keyword
+            //         M(out x);
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(7, 15));
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68714")]
+    public void RefReadonlyParameter_Arglist()
+    {
+        var source = """
+            class C
+            {
+                static void M(ref readonly int p, __arglist) => System.Console.WriteLine(p);
+                static void Main()
+                {
+                    int x = 111;
+                    M(x, __arglist(x));
+                    M(ref x, __arglist(x));
+                    M(in x, __arglist(x));
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "111");
+        verifier.VerifyDiagnostics(
+            // (7,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         M(x, __arglist(x));
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 11));
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_Arglist_OutArgument()
+    {
+        var source = """
+            class C
+            {
+                static void M(ref readonly int p, __arglist) => System.Console.WriteLine(p);
+                static void Main()
+                {
+                    int x = 111;
+                    M(out x, __arglist(x));
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,15): error CS1615: Argument 1 may not be passed with the 'out' keyword
+            //         M(out x, __arglist(x));
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(7, 15));
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_CrossAssembly()
+    {
+        var source1 = """
+            public class C
+            {
+                public void M(ref readonly int p) => System.Console.Write(p);
+                void M2()
+                {
+                    int x = 5;
+                    M(x);
+                    M(ref x);
+                    M(in x);
+                }
+            }
+            """;
+        var comp1 = CreateCompilation(source1).VerifyDiagnostics(
+            // (7,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         M(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 11));
+
+        var source2 = """
+            class D
+            {
+                void M(C c)
+                {
+                    int x = 6;
+                    c.M(x);
+                    c.M(ref x);
+                    c.M(in x);
+                }
+            }
+            """;
+        CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (6,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         c.M(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(6, 13));
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_Ctor()
+    {
+        var source = """
+            class C
+            {
+                private C(ref readonly int p) => System.Console.Write(p);
+                static void Main()
+                {
+                    int x = 5;
+                    new C(x);
+                    new C(ref x);
+                    new C(in x);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "555").VerifyDiagnostics(
+            // (7,15): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         new C(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 15));
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_Ctor_OutArgument()
+    {
+        var source = """
+            class C
+            {
+                private C(ref readonly int p) => throw null;
+                static void Main()
+                {
+                    int x = 5;
+                    new C(out x);
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,19): error CS1615: Argument 1 may not be passed with the 'out' keyword
+            //         new C(out x);
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(7, 19));
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_Indexer()
+    {
+        var source = """
+            class C
+            {
+                int this[ref readonly int p]
+                {
+                    get
+                    {
+                        System.Console.Write(p);
+                        return p;
+                    }
+                }
+
+                static void Main()
+                {
+                    var c = new C();
+                    int x = 5;
+                    _ = c[x];
+                    _ = c[ref x];
+                    _ = c[in x];
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "555").VerifyDiagnostics(
+            // (16,15): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         _ = c[x];
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(16, 15));
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_Indexer_OutArgument()
+    {
+        var source = """
+            class C
+            {
+                int this[ref readonly int p] => throw null;
+                static void Main()
+                {
+                    var c = new C();
+                    int x = 5;
+                    _ = c[out x];
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,19): error CS1615: Argument 1 may not be passed with the 'out' keyword
+            //         _ = c[out x];
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(8, 19));
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_FunctionPointer()
+    {
+        var source = """
+            class C
+            {
+                static void M(ref readonly int p) => System.Console.Write(p);
+                static unsafe void Main()
+                {
+                    delegate*<ref readonly int, void> f = &M;
+                    int x = 5;
+                    f(x);
+                    f(ref x);
+                    f(in x);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "555", options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails).VerifyDiagnostics(
+            // (8,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         f(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(8, 11));
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_FunctionPointer_OutArgument()
+    {
+        var source = """
+            class C
+            {
+                static void M(ref readonly int p) => throw null;
+                static unsafe void Main()
+                {
+                    delegate*<ref readonly int, void> f = &M;
+                    int x = 5;
+                    f(out x);
+                }
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+            // (8,15): error CS1615: Argument 1 may not be passed with the 'out' keyword
+            //         f(out x);
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(8, 15));
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_NamedArguments()
+    {
+        var source = """
+            class C
+            {
+                static void M(in int a, ref readonly int b)
+                {
+                    System.Console.Write(a);
+                    System.Console.Write(b);
+                }
+                static void Main()
+                {
+                    int x = 5;
+                    int y = 6;
+                    M(b: x, a: y); // 1
+                    M(b: x, a: in y); // 2
+                    M(a: x, y); // 3
+                    M(a: x, in y); // 4
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "65655656").VerifyDiagnostics(
+            // (12,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         M(b: x, a: y); // 1
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(12, 14),
+            // (13,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         M(b: x, a: in y); // 2
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(13, 14),
+            // (14,17): warning CS9503: Argument 2 should be passed with 'ref' or 'in' keyword
+            //         M(a: x, y); // 3
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "y").WithArguments("2").WithLocation(14, 17));
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_RefArgument_OverloadResolution_01()
+    {
+        var source = """
+            class C
+            {
+                static string M1(string s, ref int i) => "string" + i;
+                static string M1(object o, in int i) => "object" + i;
+                static string M1(C c, ref readonly int i) => "c" + i;
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.WriteLine(M1(null, ref i));
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (9,34): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(string, ref int)' and 'C.M1(C, ref readonly int)'
+            //         System.Console.WriteLine(M1(null, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(string, ref int)", "C.M1(C, ref readonly int)").WithLocation(9, 34));
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_RefArgument_OverloadResolution_01_Ctor()
+    {
+        var source = """
+            class C
+            {
+                private C(string s, ref int i) => System.Console.WriteLine("string" + i);
+                private C(object o, in int i) => System.Console.WriteLine("object" + i);
+                private C(C c, ref readonly int i) => System.Console.WriteLine("c" + i);
+                static void Main()
+                {
+                    int i = 5;
+                    new C(null, ref i);
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (9,13): error CS0121: The call is ambiguous between the following methods or properties: 'C.C(string, ref int)' and 'C.C(C, ref readonly int)'
+            //         new C(null, ref i);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "C").WithArguments("C.C(string, ref int)", "C.C(C, ref readonly int)").WithLocation(9, 13));
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_RefArgument_OverloadResolution_02()
+    {
+        var source = """
+            class C
+            {
+                static string M1(string s, ref int i) => "string" + i;
+                static string M1(object o, in int i) => "object" + i;
+                static string M1(C c, ref readonly int i) => "c" + i;
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.WriteLine(M1(default(string), ref i));
+                    System.Console.WriteLine(M1(default(object), ref i));
+                    System.Console.WriteLine(M1(default(C), ref i));
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: """
+            string5
+            object5
+            c5
+            """).VerifyDiagnostics(
+            // (10,58): warning CS9502: Argument 2 should not be passed with the 'ref' keyword
+            //         System.Console.WriteLine(M1(default(object), ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2", "ref").WithLocation(10, 58));
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_RefArgument_OverloadResolution_02_Ctor()
+    {
+        var source = """
+            class C
+            {
+                private C(string s, ref int i) => System.Console.WriteLine("string" + i);
+                private C(object o, in int i) => System.Console.WriteLine("object" + i);
+                static void Main()
+                {
+                    int i = 5;
+                    new C(default(object), ref i);
+                }
+            }
+            """;
+        CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (8,15): error CS1503: Argument 1: cannot convert from 'object' to 'string'
+            //         new C(default(object), ref i);
+            Diagnostic(ErrorCode.ERR_BadArgType, "default(object)").WithArguments("1", "object", "string").WithLocation(8, 15));
+
+        var expectedDiagnostics = new[]
+        {
+            // (8,36): warning CS9501: Argument 2 should not be passed with the 'ref' keyword
+            //         new C(default(object), ref i);
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2", "ref").WithLocation(8, 36)
+        };
+
+        CompileAndVerify(source, expectedOutput: "object5", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source, expectedOutput: "object5").VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_RefArgument_OverloadResolution_03()
+    {
+        var source = """
+            class C
+            {
+                static string M1(object o, in int i) => "object" + i;
+                static string M1(C c, ref readonly int i) => "c" + i;
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.WriteLine(M1(null, ref i));
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "c5").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_RefArgument_OverloadResolution_03_Ctor()
+    {
+        var source = """
+            class C
+            {
+                private C(object o, in int i) => System.Console.WriteLine("object" + i);
+                private C(C c, ref readonly int i) => System.Console.WriteLine("c" + i);
+                static void Main()
+                {
+                    int i = 5;
+                    new C(null, ref i);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "c5").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RefReadonlyParameter_PlainArgument_OverloadResolution()
+    {
+        var source = """
+            class C
+            {
+                static string M1(ref readonly int i) => "ref readonly" + i;
+                static string M1(int i) => "plain" + i;
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(M1(i));
+                    System.Console.Write(M1(6));
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "plain5plain6").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Invocation_VirtualMethod()
+    {
+        var source = """
+            class C
+            {
+                protected virtual void M(ref readonly int p) => System.Console.WriteLine(p);
+                static void Main()
+                {
+                    int x = 111;
+                    new C().M(ref x);
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "111");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyMethodBody("C.Main", """
+            {
+              // Code size       16 (0x10)
+              .maxstack  2
+              .locals init (int V_0) //x
+              // sequence point: int x = 111;
+              IL_0000:  ldc.i4.s   111
+              IL_0002:  stloc.0
+              // sequence point: new C().M(ref x);
+              IL_0003:  newobj     "C..ctor()"
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  callvirt   "void C.M(ref readonly int)"
+              // sequence point: }
+              IL_000f:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Invocation_OverriddenMethod()
+    {
+        var source = """
+            class B
+            {
+                protected virtual void M(ref readonly int p) => System.Console.WriteLine("B" + p);
+            }
+            class C : B
+            {
+                protected override void M(ref readonly int p) => System.Console.WriteLine("C" + p);
+                static void Main()
+                {
+                    int x = 111;
+                    new C().M(ref x);
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "C111");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyMethodBody("C.Main", """
+            {
+              // Code size       16 (0x10)
+              .maxstack  2
+              .locals init (int V_0) //x
+              // sequence point: int x = 111;
+              IL_0000:  ldc.i4.s   111
+              IL_0002:  stloc.0
+              // sequence point: new C().M(ref x);
+              IL_0003:  newobj     "C..ctor()"
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  callvirt   "void B.M(ref readonly int)"
+              // sequence point: }
+              IL_000f:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Invocation_Constructor()
+    {
+        var source = """
+            class C
+            {
+                C(ref readonly int p) => System.Console.WriteLine(p);
+                static void Main()
+                {
+                    int x = 111;
+                    new C(ref x);
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "111");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyMethodBody("C.Main", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              .locals init (int V_0) //x
+              // sequence point: int x = 111;
+              IL_0000:  ldc.i4.s   111
+              IL_0002:  stloc.0
+              // sequence point: new C(ref x);
+              IL_0003:  ldloca.s   V_0
+              IL_0005:  newobj     "C..ctor(ref readonly int)"
+              IL_000a:  pop
+              // sequence point: }
+              IL_000b:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Invocation_Indexer()
+    {
+        var source = """
+            class C
+            {
+                int this[ref readonly int p]
+                {
+                    get
+                    {
+                        System.Console.WriteLine(p);
+                        return 0;
+                    }
+                }
+                static void Main()
+                {
+                    int x = 111;
+                    _ = new C()[ref x];
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "111");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyMethodBody("C.Main", """
+            {
+              // Code size       17 (0x11)
+              .maxstack  2
+              .locals init (int V_0) //x
+              // sequence point: int x = 111;
+              IL_0000:  ldc.i4.s   111
+              IL_0002:  stloc.0
+              // sequence point: _ = new C()[ref x];
+              IL_0003:  newobj     "C..ctor()"
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  call       "int C.this[ref readonly int].get"
+              IL_000f:  pop
+              // sequence point: }
+              IL_0010:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Invocation_FunctionPointer()
+    {
+        var source = """
+            class C
+            {
+                static void M(ref readonly int p) => System.Console.WriteLine(p);
+                static unsafe void Main()
+                {
+                    delegate*<ref readonly int, void> f = &M;
+                    int x = 111;
+                    f(ref x);
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "111", options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyMethodBody("C.Main", """
+            {
+              // Code size       19 (0x13)
+              .maxstack  2
+              .locals init (int V_0, //x
+                            delegate*<ref readonly int, void> V_1)
+              // sequence point: delegate*<ref readonly int, void> f = &M;
+              IL_0000:  ldftn      "void C.M(ref readonly int)"
+              // sequence point: int x = 111;
+              IL_0006:  ldc.i4.s   111
+              IL_0008:  stloc.0
+              // sequence point: f(ref x);
+              IL_0009:  stloc.1
+              IL_000a:  ldloca.s   V_0
+              IL_000c:  ldloc.1
+              IL_000d:  calli      "delegate*<ref readonly int, void>"
+              // sequence point: }
+              IL_0012:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Invocation_Delegate()
+    {
+        var source = """
+            delegate void D(ref readonly int p);
+            class C
+            {
+                static void M(ref readonly int p) => System.Console.WriteLine(p);
+                static void Main()
+                {
+                    D d = M;
+                    int x = 111;
+                    d(ref x);
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "111");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyMethodBody("C.Main", """
+            {
+              // Code size       38 (0x26)
+              .maxstack  2
+              .locals init (int V_0) //x
+              // sequence point: D d = M;
+              IL_0000:  ldsfld     "D C.<>O.<0>__M"
+              IL_0005:  dup
+              IL_0006:  brtrue.s   IL_001b
+              IL_0008:  pop
+              IL_0009:  ldnull
+              IL_000a:  ldftn      "void C.M(ref readonly int)"
+              IL_0010:  newobj     "D..ctor(object, System.IntPtr)"
+              IL_0015:  dup
+              IL_0016:  stsfld     "D C.<>O.<0>__M"
+              // sequence point: int x = 111;
+              IL_001b:  ldc.i4.s   111
+              IL_001d:  stloc.0
+              // sequence point: d(ref x);
+              IL_001e:  ldloca.s   V_0
+              IL_0020:  callvirt   "void D.Invoke(ref readonly int)"
+              // sequence point: }
+              IL_0025:  ret
+            }
+            """);
+    }
 }

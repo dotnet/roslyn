@@ -2881,6 +2881,18 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadArgRef" xml:space="preserve">
     <value>Argument {0} must be passed with the '{1}' keyword</value>
   </data>
+  <data name="WRN_BadArgRef" xml:space="preserve">
+    <value>Argument {0} should not be passed with the '{1}' keyword</value>
+  </data>
+  <data name="WRN_BadArgRef_Title" xml:space="preserve">
+    <value>Argument should not be passed with the keyword</value>
+  </data>
+  <data name="WRN_ArgExpectedRefOrIn" xml:space="preserve">
+    <value>Argument {0} should be passed with 'ref' or 'in' keyword</value>
+  </data>
+  <data name="WRN_ArgExpectedRefOrIn_Title" xml:space="preserve">
+    <value>Argument should be passed with 'ref' or 'in' keyword</value>
+  </data>
   <data name="ERR_YieldInAnonMeth" xml:space="preserve">
     <value>The yield statement cannot be used inside an anonymous method or lambda expression</value>
   </data>
