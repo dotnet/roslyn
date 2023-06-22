@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableTitle = CreateLocalizableResourceString(nameof(DoNotUseTypesFromAssemblyRuleTitle));
         private static readonly LocalizableString s_localizableDescription = CreateLocalizableResourceString(nameof(DoNotUseTypesFromAssemblyRuleDescription), nameof(AnalysisContext), DiagnosticWellKnownNames.RegisterCompilationStartActionName);
         private const string CodeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
+        private const string HelpLinkUri = "https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1022.md";
         private static readonly ImmutableArray<string> s_WorkspaceAssemblyNames = ImmutableArray.Create(
             "Microsoft.CodeAnalysis.Workspaces",
             "Microsoft.CodeAnalysis.CSharp.Workspaces",
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescription,
+            helpLinkUri: HelpLinkUri,
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         public static readonly DiagnosticDescriptor DoNotUseTypesFromAssemblyIndirectRule = new(
@@ -49,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescription,
+            helpLinkUri: HelpLinkUri,
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         protected abstract bool IsNamedTypeDeclarationBlock(SyntaxNode syntax);

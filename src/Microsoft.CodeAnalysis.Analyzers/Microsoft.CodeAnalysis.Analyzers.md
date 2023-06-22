@@ -268,7 +268,7 @@ Invalid entry in analyzer category and diagnostic ID range specification file.
 |CodeFix|False|
 ---
 
-## RS1022: Do not use types from Workspaces assembly in an analyzer
+## [RS1022](https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1022.md): Do not use types from Workspaces assembly in an analyzer
 
 Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.
 
@@ -460,7 +460,7 @@ A project containing analyzers or source generators should specify the property 
 |CodeFix|False|
 ---
 
-## RS1038: Compiler extensions should be implemented in assemblies with compiler-provided references
+## [RS1038](https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1038.md): Compiler extensions should be implemented in assemblies with compiler-provided references
 
 Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.
 

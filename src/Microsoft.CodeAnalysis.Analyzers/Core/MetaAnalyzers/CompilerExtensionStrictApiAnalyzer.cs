@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     {
         private static readonly LocalizableString s_localizableTitle = CreateLocalizableResourceString(nameof(DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleTitle));
         private static readonly LocalizableString s_localizableDescription = CreateLocalizableResourceString(nameof(DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleDescription));
+        private const string HelpLinkUri = "https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1038.md";
 
         public static readonly DiagnosticDescriptor DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceStrictRule = new(
             DiagnosticIds.DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleId,
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescription,
+            helpLinkUri: HelpLinkUri,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public static readonly DiagnosticDescriptor DoNotDeclareCSharpCompilerFeatureInAssemblyWithVisualBasicReferenceStrictRule = new(
@@ -34,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescription,
+            helpLinkUri: HelpLinkUri,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public static readonly DiagnosticDescriptor DoNotDeclareVisualBasicCompilerFeatureInAssemblyWithCSharpReferenceStrictRule = new(
@@ -44,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescription,
+            helpLinkUri: HelpLinkUri,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
