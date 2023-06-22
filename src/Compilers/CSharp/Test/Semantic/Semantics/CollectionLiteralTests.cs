@@ -537,34 +537,117 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = """
                 class Program
                 {
-                    static void Main(string[] args)
+                    static void F1(int i)
                     {
                         (string, int)[] x1 = [(null, default)];
-                        string[] y1 = [args.Length switch { 0 => null, _ => default }];
-                        string[] z1 = [args.Length == 0 ? null : default];
-                        var x2 = [(null, default)];
-                        var y2 = [args.Length switch { 0 => null, _ => default }];
-                        var z2 = [args.Length == 0 ? null : default];
+                        string[] y1 = [i switch {  _ => default }];
+                        string[] z1 = [i == 0 ? null : default];
                     }
+                    static void F2(int i)
+                    /*<bind>*/
+                    {
+                        var x2 = [(null, default)];
+                        var y2 = [i switch { _ => default }];
+                        var z2 = [i == 0 ? null : default];
+                    }
+                    /*</bind>*/
                 }
                 """;
+
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (8,18): error CS9503: There is no target type for the collection literal.
+                // (12,18): error CS9503: There is no target type for the collection literal.
                 //         var x2 = [(null, default)];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[(null, default)]").WithLocation(8, 18),
-                // (9,18): error CS9503: There is no target type for the collection literal.
-                //         var y2 = [args.Length switch { 0 => null, _ => default }];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[args.Length switch { 0 => null, _ => default }]").WithLocation(9, 18),
-                // (9,31): error CS8506: No best type was found for the switch expression.
-                //         var y2 = [args.Length switch { 0 => null, _ => default }];
-                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(9, 31),
-                // (10,18): error CS9503: There is no target type for the collection literal.
-                //         var z2 = [args.Length == 0 ? null : default];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[args.Length == 0 ? null : default]").WithLocation(10, 18),
-                // (10,19): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between '<null>' and 'default'
-                //         var z2 = [args.Length == 0 ? null : default];
-                Diagnostic(ErrorCode.ERR_InvalidQM, "args.Length == 0 ? null : default").WithArguments("<null>", "default").WithLocation(10, 19));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[(null, default)]").WithLocation(12, 18),
+                // (13,18): error CS9503: There is no target type for the collection literal.
+                //         var y2 = [i switch { _ => default }];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[i switch { _ => default }]").WithLocation(13, 18),
+                // (13,21): error CS8506: No best type was found for the switch expression.
+                //         var y2 = [i switch { _ => default }];
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(13, 21),
+                // (14,18): error CS9503: There is no target type for the collection literal.
+                //         var z2 = [i == 0 ? null : default];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[i == 0 ? null : default]").WithLocation(14, 18),
+                // (14,19): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between '<null>' and 'default'
+                //         var z2 = [i == 0 ? null : default];
+                Diagnostic(ErrorCode.ERR_InvalidQM, "i == 0 ? null : default").WithArguments("<null>", "default").WithLocation(14, 19));
+
+            VerifyOperationTreeForTest<BlockSyntax>(comp,
+@"IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+  Locals: Local_1: ? x2
+    Local_2: ? y2
+    Local_3: ? z2
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var x2 = [( ...  default)];')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var x2 = [( ... , default)]')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: ? x2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x2 = [(null, default)]')
+            Initializer:
+              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [(null, default)]')
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[(null, default)]')
+                  Children(1):
+                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ?, IsInvalid, IsImplicit) (Syntax: '[(null, default)]')
+                        Initializers(1):
+                            ITupleOperation (OperationKind.Tuple, Type: null, IsInvalid) (Syntax: '(null, default)')
+                              NaturalType: null
+                              Elements(2):
+                                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+                                  IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
+      Initializer:
+        null
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var y2 = [i ... default }];')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var y2 = [i ...  default }]')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: ? y2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'y2 = [i swi ...  default }]')
+            Initializer:
+              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [i switch ...  default }]')
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[i switch { ...  default }]')
+                  Children(1):
+                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ?, IsInvalid, IsImplicit) (Syntax: '[i switch { ...  default }]')
+                        Initializers(1):
+                            ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'i switch {  ... > default }')
+                              Value:
+                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
+                              Arms(1):
+                                  ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => default')
+                                    Pattern:
+                                      IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                                    Value:
+                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'default')
+                                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        Operand:
+                                          IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
+      Initializer:
+        null
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var z2 = [i ... : default];')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var z2 = [i ...  : default]')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: ? z2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'z2 = [i ==  ...  : default]')
+            Initializer:
+              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [i == 0 ? ...  : default]')
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[i == 0 ? n ...  : default]')
+                  Children(1):
+                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ?, IsInvalid, IsImplicit) (Syntax: '[i == 0 ? n ...  : default]')
+                        Initializers(1):
+                            IConditionalOperation (OperationKind.Conditional, Type: ?, IsInvalid) (Syntax: 'i == 0 ? null : default')
+                              Condition:
+                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'i == 0')
+                                  Left:
+                                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
+                                  Right:
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+                              WhenTrue:
+                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                  Operand:
+                                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+                              WhenFalse:
+                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'default')
+                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  Operand:
+                                    IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
+      Initializer:
+        null
+");
         }
 
         [Fact]
