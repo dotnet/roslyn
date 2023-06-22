@@ -35,6 +35,7 @@
   <ValueType Name="ErrorCode"/>
   <ValueType Name="ImmutableBindingDiagnostic"/>
   <ValueType Name="InterpolatedStringHandlerData"/>
+  <ValueType Name="CollectionLiteralTypeKind"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -1881,8 +1882,9 @@
   <Node Name="BoundCollectionLiteralExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="CollectionTypeKind" Type="CollectionLiteralTypeKind"/>
     <!-- An expression placeholder value representing the initialized collection. -->
-    <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder" Null="disallow" SkipInVisitor="true"/>
+    <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
     <!-- Constructor call to create the empty collection type. -->
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
     <!-- Collection literal elements. -->

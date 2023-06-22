@@ -388,6 +388,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = RebindSimpleBinaryOperatorAsConverted(unconvertedBinaryOperator, diagnostics);
                     }
                     break;
+                case BoundUnconvertedCollectionLiteralExpression expr:
+                    {
+                        if (reportNoTargetType && !expr.HasAnyErrors)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_CollectionLiteralNoTargetType, expr.Syntax.GetLocation());
+                        }
+                        result = BindCollectionLiteralForErrorRecovery(expr, CreateErrorType(), diagnostics);
+                    }
+                    break;
                 default:
                     result = expression;
                     break;
@@ -5723,7 +5732,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var enumeratorInfo = element.EnumeratorInfoOpt;
             if (enumeratorInfo is null)
             {
-                return element;
+                return element.Update(
+                    BindToNaturalType(element.Expression, BindingDiagnosticBag.Discarded, reportNoTargetType: false),
+                    element.EnumeratorInfoOpt,
+                    element.ElementPlaceholder,
+                    element.AddElementPlaceholder,
+                    element.AddMethodInvocation,
+                    element.Type);
             }
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
