@@ -435,6 +435,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
 
                     Case "reportivts-"
+                        If value IsNot Nothing Then
+                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "reportivts")
+                            Continue For
+                        End If
+
                         reportIvts = False
                         Continue For
 
