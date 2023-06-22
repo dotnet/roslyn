@@ -11782,9 +11782,20 @@ done:;
 
             using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
+            // A lambda could be starting with attributes, attempt to skip past them and check after that point.
             if (CurrentToken.Kind == SyntaxKind.OpenBracketToken)
             {
-                ParseAttributeDeclarations(inExpressionContext: true);
+                // Subtle case to deal with.  Consider:
+                //
+                // [X, () => {}       vs:
+                // [X] () => {}
+                //
+                // The former is a collection expression, the latter an attributed-lambda.  However, we will likely
+                // successfully parse out `[X,` as an incomplete attribute, and thus think the former is the latter. So,
+                // to ensure proper parsing of the collection expressions, bail out if the attribute is not complete.
+                var attributeDeclarations = ParseAttributeDeclarations(inExpressionContext: true);
+                if (attributeDeclarations is [.., { CloseBracketToken.IsMissing: true }])
+                    return false;
             }
 
             bool seenStatic;
