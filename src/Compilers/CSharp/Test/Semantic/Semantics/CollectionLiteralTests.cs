@@ -921,8 +921,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, @"new[] { [[""""]], [new object[0]] }").WithLocation(6, 17));
         }
 
-        // PROTOTYPE: Does BestTypeInferrer.InferBestTypeForConditionalOperator()
-        // need to updated to handle collection literals?
         [Fact]
         public void BestCommonType_05()
         {
@@ -931,22 +929,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main(string[] args)
                     {
-                        bool b = args.Length > 0;
-                        var x = b ? new int[0] : [1, 2, 3];
+                        var x = args.Length > 0 ? new int[0] : [1, 2, 3];
                         x.Report(includeType: true);
-                        var y = b ? [new int[0]] : [[1, 2, 3]];
+                        var y = args.Length == 0 ? [[4, 5]] : new[] { new byte[0] };
                         y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Int32[][1, 2, 3], System.Byte[][][[4, 5]], ");
+        }
+
+        [Fact]
+        public void BestCommonType_06()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        bool b = args.Length > 0;
+                        var y = b ? [new int[0]] : [[1, 2, 3]];
                     }
                 }
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,11): error CS1061: 'int[]' does not contain a definition for 'Report' and no accessible extension method 'Report' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
-                //         x.Report(includeType: true);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Report").WithArguments("int[]", "Report").WithLocation(7, 11),
-                // (8,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection literals' and 'collection literals'
+                // (6,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection literals' and 'collection literals'
                 //         var y = b ? [new int[0]] : [[1, 2, 3]];
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [new int[0]] : [[1, 2, 3]]").WithArguments("collection literals", "collection literals").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [new int[0]] : [[1, 2, 3]]").WithArguments("collection literals", "collection literals").WithLocation(6, 17));
         }
 
         [Fact]
@@ -1353,20 +1363,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         var x = F1([(long)1], [(int?)2]);
-                        x.Report(true);
                         var y = F2([[(int?)3]], [[(long)4]]);
-                        y.Report(true);
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(7,17): error CS0411: The type arguments for method 'Program.F1<T>(T[], T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // (7,17): error CS0411: The type arguments for method 'Program.F1<T>(T[], T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         var x = F1([(long)1], [(int?)2]);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(T[], T[])").WithLocation(7, 17),
-                // 0.cs(9,17): error CS0411: The type arguments for method 'Program.F2<T>(T[][], T[][])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // (8,17): error CS0411: The type arguments for method 'Program.F2<T>(T[][], T[][])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         var y = F2([[(int?)3]], [[(long)4]]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T[][], T[][])").WithLocation(9, 17));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T[][], T[][])").WithLocation(8, 17));
         }
 
         [Fact]
