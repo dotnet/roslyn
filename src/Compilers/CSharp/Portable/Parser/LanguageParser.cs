@@ -7424,6 +7424,9 @@ done:;
 
         private SyntaxList<AttributeListSyntax> ParseStatementAttributeDeclarations()
         {
+            if (this.CurrentToken.Kind != SyntaxKind.OpenBracketToken)
+                return default;
+
             var resetPoint = GetResetPoint();
             var attributeDeclarations = ParseAttributeDeclarations(inExpressionContext: true);
 
