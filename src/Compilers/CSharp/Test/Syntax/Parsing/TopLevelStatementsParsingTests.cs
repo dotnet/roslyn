@@ -131,8 +131,10 @@ class C
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "[a]fod;").WithLocation(15, 1),
                 // (16,3): error CS1003: Syntax error, ']' expected
                 // [b
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(16, 3)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(16, 3),
+                // (16,3): error CS1002: ; expected
+                // [b
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(16, 3));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2411,27 +2413,15 @@ e
                 // (1,15): error CS1514: { expected
                 // [_<_[delegate using'
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "using").WithLocation(1, 15),
-                // (1,15): error CS1003: Syntax error, ',' expected
-                // [_<_[delegate using'
-                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments(",").WithLocation(1, 15),
-                // (1,15): error CS0443: Syntax error; value expected
-                // [_<_[delegate using'
-                Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(1, 15),
                 // (1,15): error CS1003: Syntax error, ']' expected
                 // [_<_[delegate using'
                 Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments("]").WithLocation(1, 15),
-                // (1,15): error CS1003: Syntax error, '>' expected
-                // [_<_[delegate using'
-                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments(">").WithLocation(1, 15),
                 // (1,15): error CS1003: Syntax error, ']' expected
                 // [_<_[delegate using'
                 Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments("]").WithLocation(1, 15),
-                // (1,20): error CS1031: Type expected
+                // (1,15): error CS1002: ; expected
                 // [_<_[delegate using'
-                Diagnostic(ErrorCode.ERR_TypeExpected, "'").WithLocation(1, 20),
-                // (1,20): error CS1001: Identifier expected
-                // [_<_[delegate using'
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "'").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "using").WithLocation(1, 15),
                 // (1,20): error CS1002: ; expected
                 // [_<_[delegate using'
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "'").WithLocation(1, 20),
@@ -2443,8 +2433,7 @@ e
                 Diagnostic(ErrorCode.ERR_EmptyCharConst, "").WithLocation(1, 20),
                 // (1,21): error CS1002: ; expected
                 // [_<_[delegate using'
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 21)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 21));
 
             N(SyntaxKind.CompilationUnit);
             {
