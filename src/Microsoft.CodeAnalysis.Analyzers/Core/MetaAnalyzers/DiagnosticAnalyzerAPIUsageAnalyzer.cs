@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             CreateLocalizableResourceString(nameof(DoNotUseTypesFromAssemblyRuleDirectMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
+            isEnabledByDefault: false,
             description: s_localizableDescription,
             helpLinkUri: HelpLinkUri,
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             CreateLocalizableResourceString(nameof(DoNotUseTypesFromAssemblyRuleIndirectMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
+            isEnabledByDefault: false,
             description: s_localizableDescription,
             helpLinkUri: HelpLinkUri,
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
