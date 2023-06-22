@@ -7420,7 +7420,26 @@ done:;
         }
 
         private StatementSyntax ParsePossiblyAttributedStatement()
-            => ParseStatementCore(ParseAttributeDeclarations(inExpressionContext: true), isGlobal: false);
+        {
+            var resetPoint = GetResetPoint();
+            var attributeDeclarations = ParseAttributeDeclarations(inExpressionContext: true);
+
+            // Rare case, `[...].Goo()`.  i.e. a collection literal being operated as the entire statement.
+            if (attributeDeclarations is [.., { CloseBracketToken.IsMissing: true }] ||
+                attributeDeclarations.Count > 0 && this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken)
+            {
+                this.Reset(ref resetPoint);
+                var statement = ParseExpressionStatement(attributes: default);
+                Release(ref resetPoint);
+                return statement;
+            }
+            else
+            {
+                var statement = ParseStatementCore(attributeDeclarations, isGlobal: false);
+                Release(ref resetPoint);
+                return statement;
+            }
+        }
 
         /// <param name="isGlobal">If we're being called while parsing a C# top-level statements (Script or Simple Program).
         /// At the top level in Script, we allow most statements *except* for local-decls/local-funcs.
