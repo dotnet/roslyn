@@ -327,4 +327,48 @@ Assembly reference: 'N1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
     Nothing
 """, sw.ToString().Trim());
     }
+
+    [Theory]
+    [InlineData("/reportivts")]
+    [InlineData("/reportivts+")]
+    public void TurnOnLast(string onFlag)
+    {
+        var compiler = CreateCSharpCompiler(new[] {
+            "/nologo",
+            "/reportivts-",
+            onFlag,
+        });
+
+        Assert.True(compiler.Arguments.ReportInternalsVisibleToAttributes);
+    }
+
+    [Theory]
+    [InlineData("/reportivts")]
+    [InlineData("/reportivts+")]
+    public void TurnOffLast(string onFlag)
+    {
+        var compiler = CreateCSharpCompiler(new[] {
+            "/nologo",
+            onFlag,
+            "/reportivts-",
+        });
+
+        Assert.False(compiler.Arguments.ReportInternalsVisibleToAttributes);
+    }
+
+    [Fact]
+    public void BadReportIvtsValue()
+    {
+        var compiler = CreateCSharpCompiler(new[] {
+            "/nologo",
+            "/reportivts:bad",
+        });
+
+        Assert.False(compiler.Arguments.ReportInternalsVisibleToAttributes);
+        compiler.Arguments.Errors.Verify(
+            Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/reportivts:bad").WithLocation(1, 1),
+            Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+            Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1)
+        );
+    }
 }

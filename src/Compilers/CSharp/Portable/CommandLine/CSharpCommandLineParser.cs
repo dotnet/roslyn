@@ -1358,6 +1358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "reportivts":
                         case "reportivts+":
+                            if (valueMemory is not null) break;
                             reportIVTs = true;
                             continue;
 
