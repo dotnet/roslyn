@@ -4,13 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Threading;
-using System.Linq;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {

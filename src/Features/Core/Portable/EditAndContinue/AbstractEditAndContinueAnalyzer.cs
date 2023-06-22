@@ -5454,7 +5454,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                    newSymbol?.Kind == SymbolKind.NamedType && newSymbol.DeclaringSyntaxReferences.Length > 1 && newSymbol.DeclaringSyntaxReferences.Any(IsNotInDocument, newSyntaxTree);
         }
 
-#endregion
+        #endregion
 
         #region Lambdas and Closures
 
@@ -6505,7 +6505,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #endregion
 
-#endregion
+        #endregion
 
         #region Helpers
 
@@ -6645,7 +6645,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// True if a syntactic delete edit of an old symbol has a matching syntactic insert edit.
         /// 
-        /// The ld symbol has to be explicitly declared, otherwise it couldn't have been deleted via syntactic delete edit.
+        /// The old symbol has to be explicitly declared, otherwise it couldn't have been deleted via syntactic delete edit.
         /// </summary>
         private bool HasInsertMatchingDelete(ISymbol newSymbol, Compilation oldCompilation, CancellationToken cancellationToken)
         {
