@@ -4,8 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Reflection.Metadata
-Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Differencing
