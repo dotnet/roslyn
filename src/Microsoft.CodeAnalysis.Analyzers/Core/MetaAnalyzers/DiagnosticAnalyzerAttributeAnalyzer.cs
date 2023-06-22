@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 argument.Type != null &&
                 argument.Type.SpecialType == SpecialType.System_String)
             {
-                string supportedLanguage = (string)argument.Value;
+                var supportedLanguage = (string?)argument.Value;
                 if (supportedLanguage == LanguageNames.CSharp)
                 {
                     supportsCSharp = true;

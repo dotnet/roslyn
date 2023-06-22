@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
@@ -146,6 +147,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             foreach (var attribute in extension.GetAttributes())
             {
+                // Only examine extension registrations in source
+                Debug.Assert(attribute.ApplicationSyntaxReference is not null,
+                    $"Expected attributes returned by {nameof(ISymbol.GetAttributes)} (as opposed to {nameof(ITypeSymbolExtensions.GetApplicableAttributes)}) to have a non-null application.");
+                if (attribute.ApplicationSyntaxReference is null)
+                    continue;
+
                 if (!attribute.AttributeClass.Inherits(registrationAttributeType))
                     continue;
 
@@ -173,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             if (argument is { Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String })
             {
-                string supportedLanguage = (string)argument.Value;
+                var supportedLanguage = (string?)argument.Value;
                 if (supportedLanguage == LanguageNames.CSharp)
                 {
                     supportsCSharp = true;
