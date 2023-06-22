@@ -1738,6 +1738,116 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TypeInference_33()
+        {
+            string source = """
+                delegate byte D();
+                class Program
+                {
+                    static T[] F<T>(T[] x) => x;
+                    static void Main()
+                    {
+                        var x = F([null, () => 1]);
+                        x.Report(includeType: true);
+                        var y = F([() => 2, (D)(() => 3)]);
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Func<System.Int32>[][null, System.Func`1[System.Int32]], D[][D, D], ");
+        }
+
+        [Fact]
+        public void TypeInference_34()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static List<Func<T>> F1<T>(List<Func<T>> x) => x;
+                    static string F2() => null;
+                    static void Main()
+                    {
+                        var x = F1([F2]);
+                        var y = F1([null, () => 1]);
+                        var z = F1([() => default, F2]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Should inference succeed?
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS0411: The type arguments for method 'Program.F1<T>(List<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x = F1([F2]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Collections.Generic.List<System.Func<T>>)").WithLocation(9, 17),
+                // (10,17): error CS0411: The type arguments for method 'Program.F1<T>(List<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var y = F1([null, () => 1]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Collections.Generic.List<System.Func<T>>)").WithLocation(10, 17),
+                // (11,17): error CS0411: The type arguments for method 'Program.F1<T>(List<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var z = F1([() => default, F2]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Collections.Generic.List<System.Func<T>>)").WithLocation(11, 17));
+        }
+
+        [Fact]
+        public void TypeInference_35()
+        {
+            string source = """
+                class Program
+                {
+                    static (T, U)[] F<T, U>((T, U)[] x) => x;
+                    static void Main()
+                    {
+                        var x = F([(1, "2")]);
+                        x.Report(includeType: true);
+                        var y = F([default, (3, (byte)4)]);
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: "System.ValueTuple<System.Int32, System.String>[][(1, 2)], System.ValueTuple<System.Int32, System.Byte>[][(0, 0), (3, 4)], ");
+        }
+
+        [Fact]
+        public void TypeInference_36()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void F(Action[] a) { }
+                    static void Main()
+                    {
+                        F([Main, () => { }]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Unexpected syntax errors.
+            comp.VerifyEmitDiagnostics(
+                // (7,12): error CS0246: The type or namespace name 'MainAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         F([Main, () => { }]);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Main").WithArguments("MainAttribute").WithLocation(7, 12),
+                // (7,12): error CS0246: The type or namespace name 'Main' could not be found (are you missing a using directive or an assembly reference?)
+                //         F([Main, () => { }]);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Main").WithArguments("Main").WithLocation(7, 12),
+                // (7,18): error CS1003: Syntax error, ']' expected
+                //         F([Main, () => { }]);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("]").WithLocation(7, 18),
+                // (7,27): error CS1026: ) expected
+                //         F([Main, () => { }]);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "]").WithLocation(7, 27),
+                // (7,28): error CS1002: ; expected
+                //         F([Main, () => { }]);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(7, 28),
+                // (7,28): error CS1513: } expected
+                //         F([Main, () => { }]);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(7, 28));
+        }
+
+        [Fact]
         public void MemberAccess_01()
         {
             string source = """
