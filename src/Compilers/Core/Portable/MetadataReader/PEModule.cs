@@ -1189,16 +1189,20 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            string? diagnosticId;
             if (attributeInfo.SignatureIndex != 0)
             {
                 throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
             }
 
             // ExperimentalAttribute(string)
-            if (sig.RemainingBytes <= 0 || !CrackStringInAttributeValue(out diagnosticId, ref sig))
+            if (sig.RemainingBytes <= 0 || !CrackStringInAttributeValue(out string? diagnosticId, ref sig))
             {
                 return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(diagnosticId))
+            {
+                diagnosticId = null;
             }
 
             string? urlFormat = crackUrlFormat(decoder, ref sig);

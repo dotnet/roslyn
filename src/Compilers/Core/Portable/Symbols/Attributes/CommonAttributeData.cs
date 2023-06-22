@@ -269,6 +269,11 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(this.CommonConstructorArguments.Length == 1);
                 string? diagnosticId = this.CommonConstructorArguments[0].ValueInternal as string;
 
+                if (string.IsNullOrWhiteSpace(diagnosticId))
+                {
+                    diagnosticId = null;
+                }
+
                 string? urlFormat = null;
                 foreach (var (name, value) in this.CommonNamedArguments)
                 {

@@ -448,13 +448,40 @@ class C
             );
     }
 
+    [Theory, CombinatorialData]
+    public void WhitespaceDiagnosticId(bool inSource,
+        [CombinatorialValues("\"\"", "\" \"", "\"\\n\"")] string whitespace)
+    {
+        var libSrc = $$"""
+[System.Diagnostics.CodeAnalysis.Experimental({{whitespace}})]
+public class C
+{
+    public static void M() { }
+}
+""";
+
+        var src = """
+C.M();
+""";
+
+        var comp = inSource
+            ? CreateCompilation(new CSharpTestSource[] { (src, "0.cs"), libSrc, experimentalAttributeSrc })
+            : CreateCompilation((src, "0.cs"), references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(1,1): warning CS8305: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // C.M();
+            Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1)
+            );
+    }
+
     [Fact]
-    public void EmptyDiagnosticId()
+    public void SpacedDiagnosticId()
     {
         var src = """
 C.M();
 
-[System.Diagnostics.CodeAnalysis.Experimental(null)]
+[System.Diagnostics.CodeAnalysis.Experimental("Diag 01")]
 class C
 {
     public static void M() { }
@@ -462,9 +489,9 @@ class C
 """;
         var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning CS8305: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): warning Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic("Diag 01", "C").WithArguments("C").WithLocation(1, 1)
             );
     }
 
@@ -819,6 +846,9 @@ C.M();
             // C.M();
             Diagnostic("DiagID", "C").WithArguments("C").WithLocation(1, 1)
             );
+
+        var diag = comp.GetDiagnostics().Single();
+        Assert.Equal(DefaultHelpLinkUri, diag.Descriptor.HelpLinkUri);
     }
 
     [Theory, CombinatorialData]
