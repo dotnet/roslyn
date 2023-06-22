@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (argument.Kind == BoundKind.UnconvertedCollectionLiteralExpression)
             {
-                MakeCollectionLiteralTypeInferences(binder, (BoundUnconvertedCollectionLiteralExpression)argument, target, ref useSiteInfo);
+                MakeCollectionLiteralTypeInferences(binder, (BoundUnconvertedCollectionLiteralExpression)argument, target, kind, ref useSiteInfo);
             }
             else if (argument.Kind != BoundKind.TupleLiteral ||
                 !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, kind, ref useSiteInfo))
@@ -636,6 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             BoundUnconvertedCollectionLiteralExpression argument,
             TypeWithAnnotations target,
+            ExactOrBoundsKind kind,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (target.Type is null)
@@ -648,40 +649,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!tryGetCollectionIterationType(binder, (ExpressionSyntax)argument.Syntax, target.Type, out TypeWithAnnotations targetElementType))
+            if (!TryGetCollectionIterationType(binder, (ExpressionSyntax)argument.Syntax, target.Type, out TypeWithAnnotations targetElementType))
             {
                 return;
             }
 
             foreach (var element in argument.Elements)
             {
-                if (element.Kind == BoundKind.UnconvertedCollectionLiteralExpression)
-                {
-                    MakeCollectionLiteralTypeInferences(binder, (BoundUnconvertedCollectionLiteralExpression)element, targetElementType, ref useSiteInfo);
-                }
-                else
-                {
-                    var elementType = _extensions.GetTypeWithAnnotations(element);
-                    if (IsReallyAType(elementType.Type))
-                    {
-                        LowerBoundInference(elementType, targetElementType, ref useSiteInfo);
-                    }
-                }
+                MakeExplicitParameterTypeInferences(binder, element, targetElementType, kind, ref useSiteInfo);
             }
+        }
 
-            static bool tryGetCollectionIterationType(Binder binder, ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
-            {
-                var builder = new ForEachEnumeratorInfo.Builder();
-                BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
-                return binder.GetEnumeratorInfoAndInferCollectionElementType(
-                    syntax,
-                    syntax,
-                    ref builder,
-                    ref collectionExpr,
-                    isAsync: false,
-                    BindingDiagnosticBag.Discarded,
-                    out iterationType);
-            }
+        private static bool TryGetCollectionIterationType(Binder binder, ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
+        {
+            var builder = new ForEachEnumeratorInfo.Builder();
+            BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
+            return binder.GetEnumeratorInfoAndInferCollectionElementType(
+                syntax,
+                syntax,
+                ref builder,
+                ref collectionExpr,
+                isAsync: false,
+                BindingDiagnosticBag.Discarded,
+                out iterationType);
         }
 #nullable disable
 
@@ -847,6 +837,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MakeOutputTypeInferences(binder, (BoundTupleLiteral)argument, formalType, ref useSiteInfo);
             }
+            else if (argument.Kind == BoundKind.UnconvertedCollectionLiteralExpression)
+            {
+                MakeOutputTypeInferences(binder, (BoundUnconvertedCollectionLiteralExpression)argument, formalType, ref useSiteInfo);
+            }
             else
             {
                 if (HasUnfixedParamInOutputType(argument, formalType.Type) && !HasUnfixedParamInInputType(argument, formalType.Type))
@@ -857,6 +851,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //UNDONE: }
                     OutputTypeInference(binder, argument, formalType, ref useSiteInfo);
                 }
+            }
+        }
+
+        private void MakeOutputTypeInferences(Binder binder, BoundUnconvertedCollectionLiteralExpression argument, TypeWithAnnotations formalType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (argument.Elements.Length == 0)
+            {
+                return;
+            }
+
+            if (!TryGetCollectionIterationType(binder, (ExpressionSyntax)argument.Syntax, formalType.Type, out TypeWithAnnotations targetElementType))
+            {
+                return;
+            }
+
+            foreach (var element in argument.Elements)
+            {
+                MakeOutputTypeInferences(binder, element, targetElementType, ref useSiteInfo);
             }
         }
 

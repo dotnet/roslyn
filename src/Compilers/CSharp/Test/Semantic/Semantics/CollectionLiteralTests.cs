@@ -1889,27 +1889,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         var x = F1([F2]);
+                        x.Report();
                         var y = F1([null, () => 1]);
+                        y.Report();
                         var z = F1([F2, () => default]);
+                        z.Report();
                     }
                 }
                 """;
-            var comp = CreateCompilation(source);
-            // PROTOTYPE: Should inference succeed?
-            comp.VerifyEmitDiagnostics(
-                // (9,17): error CS0411: The type arguments for method 'Program.F1<T>(List<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         var x = F1([F2]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Collections.Generic.List<System.Func<T>>)").WithLocation(9, 17),
-                // (10,17): error CS0411: The type arguments for method 'Program.F1<T>(List<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         var y = F1([null, () => 1]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Collections.Generic.List<System.Func<T>>)").WithLocation(10, 17),
-                // (11,17): error CS0411: The type arguments for method 'Program.F1<T>(List<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         var z = F1([F2, () => default]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Collections.Generic.List<System.Func<T>>)").WithLocation(11, 17));
+            CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: "[System.Func`1[System.String]], [null, System.Func`1[System.Int32]], [System.Func`1[System.String], System.Func`1[System.String]], ");
         }
 
         [Fact]
         public void TypeInference_35()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static List<Action<T>> F1<T>(List<Action<T>> x) => x;
+                    static void F2(string s) { }
+                    static void Main()
+                    {
+                        var x = F1([F2, (string s) => { }]);
+                        x.Report();
+                        var y = F1([null, (int a) => { }]);
+                        y.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: "[System.Action`1[System.String], System.Action`1[System.String]], [null, System.Action`1[System.Int32]], ");
+        }
+
+        [Fact]
+        public void TypeInference_36()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static List<Func<T>> F1<T>(List<Func<T>> x) => x;
+                    static string F2() => null;
+                    static void Main()
+                    {
+                        var x = F1([() => default]);
+                        var y = F1([() => 2, F2]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS0411: The type arguments for method 'Program.F1<T>(List<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x = F1([() => default]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Collections.Generic.List<System.Func<T>>)").WithLocation(9, 17),
+                // (10,17): error CS0411: The type arguments for method 'Program.F1<T>(List<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var y = F1([null, () => 1]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Collections.Generic.List<System.Func<T>>)").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void TypeInference_37()
         {
             string source = """
                 class Program
