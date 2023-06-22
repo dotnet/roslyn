@@ -195,6 +195,8 @@ Assembly reference: 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKey=00000
 Assembly reference: 'N1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
   Grants IVT to current assembly: False
   Grants IVTs to:
+    Nothing
+
 Assembly reference: 'System, Version=4.0.0.0, Culture=neutral, PublicKey=00000000000000000400000000000000'
   Grants IVT to current assembly: False
   Grants IVTs to:
@@ -543,5 +545,52 @@ Assembly reference: 'System, Version=4.0.0.0, Culture=neutral, PublicKey=0000000
       002400000480000094000000060200000024000052534131000400000100010007d1fa57c4aed9f0a32e84aa0faefd0de9e8fd6aec8f87fb03766c834c99921eb23be79ad9d5dcc1dd9ad236132102900b723cf980957fc4e177108fc607774f29e8320e92ea05ece4e821c0a5efe8f1645c4c0c93c1ab99285d622caa652c1dfad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc093344d5ad293", sw.ToString())
         End Sub
 
+        <Theory>
+        <InlineData("/reportivts")>
+        <InlineData("/reportivts+")>
+        Public Sub TurnOnLast(onFlag As String)
+            Dim compiler = New MockVisualBasicCompiler(
+                Nothing,
+                DirectCast(Nothing, String),
+                {
+                "/nologo",
+                "/reportivts-",
+                onFlag
+                })
+
+            Assert.True(compiler.Arguments.ReportInternalsVisibleToAttributes)
+        End Sub
+
+        <Theory>
+        <InlineData("/reportivts")>
+        <InlineData("/reportivts+")>
+        Public Sub TurnOffLast(onFlag As String)
+            Dim compiler = New MockVisualBasicCompiler(
+                Nothing,
+                DirectCast(Nothing, String),
+                {
+                "/nologo",
+                onFlag,
+                "/reportivts-"
+                })
+
+            Assert.False(compiler.Arguments.ReportInternalsVisibleToAttributes)
+        End Sub
+
+        <Fact>
+        Public Sub BadReportIvtsValue()
+            Dim compiler = New MockVisualBasicCompiler(
+                Nothing,
+                DirectCast(Nothing, String),
+                {
+                "/nologo",
+                "/reportivts:bad"
+                })
+
+            Assert.False(compiler.Arguments.ReportInternalsVisibleToAttributes)
+            compiler.Arguments.Errors.Verify(
+                Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("reportivts").WithLocation(1, 1),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+        End Sub
     End Class
 End Namespace
