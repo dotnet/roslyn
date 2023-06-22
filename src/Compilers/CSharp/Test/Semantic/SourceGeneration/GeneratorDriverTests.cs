@@ -3583,7 +3583,7 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments("PipelineCallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1));
+                Diagnostic("CS8785").WithArguments(nameof(PipelineCallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
@@ -3618,7 +3618,7 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments("PipelineCallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1));
+                Diagnostic("CS8785").WithArguments(nameof(PipelineCallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
@@ -3648,7 +3648,7 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments("CallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1));
+                Diagnostic("CS8785").WithArguments(nameof(CallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
@@ -3680,7 +3680,7 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments("CallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1));
+                Diagnostic("CS8785").WithArguments(nameof(CallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
@@ -3713,7 +3713,7 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments("PipelineCallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1));
+                Diagnostic("CS8785").WithArguments(nameof(PipelineCallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
@@ -3747,7 +3747,7 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments("PipelineCallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1));
+                Diagnostic("CS8785").WithArguments(nameof(PipelineCallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
@@ -3777,7 +3777,7 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments("CallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1));
+                Diagnostic("CS8785").WithArguments(nameof(CallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
@@ -3808,7 +3808,7 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments("CallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1));
+                Diagnostic("CS8785").WithArguments(nameof(CallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
@@ -3841,7 +3841,7 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments("PipelineCallbackGenerator", "ArgumentException", "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier. (Parameter 'diagnostic')").WithLocation(1, 1));
+                Diagnostic("CS8785").WithArguments(nameof(PipelineCallbackGenerator), nameof(ArgumentException), "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier. (Parameter 'diagnostic')").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
@@ -3871,7 +3871,7 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments("CallbackGenerator", "ArgumentException", "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier. (Parameter 'diagnostic')").WithLocation(1, 1));
+                Diagnostic("CS8785").WithArguments(nameof(CallbackGenerator), nameof(ArgumentException), "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier. (Parameter 'diagnostic')").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
