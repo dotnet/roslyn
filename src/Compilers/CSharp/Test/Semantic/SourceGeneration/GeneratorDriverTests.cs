@@ -485,7 +485,7 @@ class C { }
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Generator_HintName_MustBe_Unique_Across_Outputs()
         {
             var source = @"
@@ -521,7 +521,7 @@ class C { }
             driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
             outputCompilation.VerifyDiagnostics();
             generatorDiagnostics.Verify(
-                Diagnostic("CS8785").WithArguments("PipelineCallbackGenerator", "ArgumentException", "The hintName 'test.cs' of the added source file must be unique within a generator. (Parameter 'hintName')").WithLocation(1, 1)
+                ArgumentExceptionDiagnostic(nameof(PipelineCallbackGenerator), "The hintName 'test.cs' of the added source file must be unique within a generator.", "hintName").WithLocation(1, 1)
                 );
             Assert.Equal(1, outputCompilation.SyntaxTrees.Count());
         }
@@ -758,7 +758,7 @@ class C
             Assert.Same(oldDriver, driver);
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Adding_A_Source_Text_Without_Encoding_Fails_Generation()
         {
             var source = @"
@@ -776,7 +776,7 @@ class C { }
 
             Assert.Single(outputDiagnostics);
             outputDiagnostics.Verify(
-                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "ArgumentException", "The SourceText with hintName 'a.cs' must have an explicit encoding set. (Parameter 'source')").WithLocation(1, 1)
+                ArgumentExceptionDiagnostic(nameof(CallbackGenerator), "The SourceText with hintName 'a.cs' must have an explicit encoding set.", "source").WithLocation(1, 1)
                 );
         }
 
@@ -3554,7 +3554,7 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_DetachedSyntaxTree_Incremental()
         {
@@ -3583,11 +3583,11 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments(nameof(PipelineCallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1));
+                ArgumentExceptionDiagnostic(nameof(PipelineCallbackGenerator), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_DetachedSyntaxTree_Incremental_AdditionalLocations()
         {
@@ -3618,11 +3618,11 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments(nameof(PipelineCallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1));
+                ArgumentExceptionDiagnostic(nameof(PipelineCallbackGenerator), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_DetachedSyntaxTree_Execute()
         {
@@ -3648,11 +3648,11 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments(nameof(CallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1));
+                ArgumentExceptionDiagnostic(nameof(CallbackGenerator), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_DetachedSyntaxTree_Execute_AdditionalLocations()
         {
@@ -3680,11 +3680,11 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments(nameof(CallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1));
+                ArgumentExceptionDiagnostic(nameof(CallbackGenerator), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpanOutsideRange_Incremental()
         {
@@ -3713,11 +3713,11 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments(nameof(PipelineCallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1));
+                ArgumentExceptionDiagnostic(nameof(PipelineCallbackGenerator), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpanOutsideRange_Incremental_AdditionalLocations()
         {
@@ -3747,11 +3747,11 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments(nameof(PipelineCallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1));
+                ArgumentExceptionDiagnostic(nameof(PipelineCallbackGenerator), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpanOutsideRange_Execute()
         {
@@ -3777,11 +3777,11 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments(nameof(CallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1));
+                ArgumentExceptionDiagnostic(nameof(CallbackGenerator), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpanOutsideRange_Execute_AdditionalLocations()
         {
@@ -3808,11 +3808,11 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments(nameof(CallbackGenerator), nameof(ArgumentException), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1));
+                ArgumentExceptionDiagnostic(nameof(CallbackGenerator), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpaceInIdentifier_Incremental()
         {
@@ -3841,11 +3841,11 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments(nameof(PipelineCallbackGenerator), nameof(ArgumentException), "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier. (Parameter 'diagnostic')").WithLocation(1, 1));
+                ArgumentExceptionDiagnostic(nameof(PipelineCallbackGenerator), "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier.", "diagnostic").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpaceInIdentifier_Execute()
         {
@@ -3871,7 +3871,7 @@ class D {  (int, bool) _field; }";
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("CS8785").WithArguments(nameof(CallbackGenerator), nameof(ArgumentException), "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier. (Parameter 'diagnostic')").WithLocation(1, 1));
+                ArgumentExceptionDiagnostic(nameof(CallbackGenerator), "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier.", "diagnostic").WithLocation(1, 1));
             compilation.VerifyDiagnostics();
         }
 
@@ -4066,6 +4066,17 @@ class C { }
                 var tree = compilation.GetMember(className).DeclaringSyntaxReferences.Single().SyntaxTree;
                 compilation = compilation.ReplaceSyntaxTree(tree, CSharpSyntaxTree.ParseText(source, parseOptions));
             }
+        }
+
+        private static DiagnosticDescription ArgumentExceptionDiagnostic(string generatorName, string message, string parameterName)
+        {
+            return Diagnostic("CS8785").WithArguments(generatorName, nameof(ArgumentException),
+#if NETCOREAPP
+                $"{message} (Parameter '{parameterName}')"
+#else
+                $"{message}{Environment.NewLine}Parameter name: {parameterName}"
+#endif
+                );
         }
     }
 }
