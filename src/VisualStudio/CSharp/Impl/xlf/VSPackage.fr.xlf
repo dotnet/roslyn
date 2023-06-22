@@ -114,7 +114,7 @@ Mettre en évidence les références au symbole sous le curseur ;
 Mettre en évidence les mots-clés associés sous le curseur ; 
 Contournement ;
 Entrer dans le mode contour lorsque les fichiers sont ouverts ;
-Réduire les #régions à l'ouverture du fichier ;
+Réduire les #regions à l'ouverture du fichier ;
  Réduire les utilisations à l'ouverture du fichier ;
  Réduire les implémentations de métadonnées à l'ouverture du fichier ;
 Afficher les séparateurs de lignes de procédure ;

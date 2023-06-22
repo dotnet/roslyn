@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<root>
+<>
   <!-- 
     Microsoft ResX Schema 
     
@@ -7615,5 +7615,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_SymbolDefinedInAssembly" xml:space="preserve">
     <value>'{0}' is defined in assembly '{1}'.</value>
+  </data>
+  <data name="WRN_CapturedPrimaryConstructorParameterInFieldInitializer" xml:space="preserve">
+    <value>Parameter '{0}' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</value>
+  </data>
+  <data name="WRN_CapturedPrimaryConstructorParameterInFieldInitializer_Title" xml:space="preserve">
+    <value>Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</value>
   </data>
 </root>

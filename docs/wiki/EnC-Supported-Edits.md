@@ -2,6 +2,8 @@
 Hot Reload lets you modify/add to your source code while the application is running, either with debugger attached to the process (F5) or not attached (Ctrl+F5).
 Edit & Continue lets you modify/add to your source code in break-mode while debugging without having to restart your debugging session.
 
+This document captures the current state. Potential future improvements in this area are tracked by https://github.com/dotnet/roslyn/issues/49001.
+
 **Definitions**
 * [Variable Capturing](http://blogs.msdn.com/b/matt/archive/2008/03/01/understanding-variable-capturing-in-c.aspx) is the mechanism in which the lambda/delegate which is defined inline is able to hold on to any variables within its lexical scope
 * **Scope** is the region of program text within which it is possible to refer to the entity declared by the name without qualification of the name
@@ -48,9 +50,3 @@ Edit & Continue lets you modify/add to your source code in break-mode while debu
 | Edit a member referencing an embedded interop type | - |
 | Edit a member with On Error or Resume statements | Specific to Visual Basic |
 | Edit a member containing an Aggregate, Group By, Simple Join, or Group Join LINQ query clause | Specific to Visual Basic |
-
-### App Model EnC Support
-
-| Support EnC | Do Not Support EnC | 
-| ------------------ |------------------------------| 
-| <ul><li>Apps that support the 4.6 desktop version of the CLR for both x86 and x64 (e.g., Console, WPF, Windows 8.1 apps)</li><li>UWP in Windows 10</li><ul> | <ul><li>ASP.NET 5 apps</li><li>Silverlight 5</li><li>Windows Phone 8.1</li><li>Windows Phone 10</li><li>Windows Phone emulator scenarios</li><li>Windows Store 8.1</li></ul>|

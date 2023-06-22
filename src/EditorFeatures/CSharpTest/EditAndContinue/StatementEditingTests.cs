@@ -2098,18 +2098,6 @@ foreach (var (a, b) in e1) { }
         }
 
         [Fact]
-        public void Lambdas_Update_ParameterRefness_NoBodyChange()
-        {
-            var src1 = @"F((ref int a) => a = 1);";
-            var src2 = @"F((out int a) => a = 1);";
-
-            var edits = GetMethodEdits(src1, src2);
-
-            edits.VerifyEdits(
-                "Update [ref int a]@5 -> [out int a]@5");
-        }
-
-        [Fact]
         public void Lambdas_Insert_First_Static()
         {
             var src1 = @"
@@ -3045,38 +3033,15 @@ class C
         }
 
         [Fact]
-        public void Lambdas_Update_CeaseCapture_This()
+        public void Lambdas_Update_ParameterRefness_NoBodyChange()
         {
-            var src1 = @"
-using System;
+            var src1 = @"F((ref int a) => a = 1);";
+            var src2 = @"F((out int a) => a = 1);";
 
-class C
-{
-    int x = 1;
+            var edits = GetMethodEdits(src1, src2);
 
-    void F()
-    {
-        var f = new Func<int, int>(a => a + x);
-    }
-}
-";
-            var src2 = @"
-using System;
-
-class C
-{
-    int x;
-   
-    void F()
-    {
-        var f = new Func<int, int>(a => a);
-    }
-}
-";
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "this"));
+            edits.VerifyEdits(
+                "Update [ref int a]@5 -> [out int a]@5");
         }
 
         [Fact]
@@ -3557,7 +3522,7 @@ class C
         }
 
         [Fact]
-        public void Lambdas_Signature_MatchingErrorType()
+        public void Lambdas_Update_Signature_MatchingErrorType()
         {
             var src1 = @"
 using System;
@@ -3596,7 +3561,7 @@ class C
         }
 
         [Fact]
-        public void Lambdas_Signature_NonMatchingErrorType()
+        public void Lambdas_Update_Signature_NonMatchingErrorType()
         {
             var src1 = @"
 using System;
@@ -3972,6 +3937,41 @@ class C
         }
 
         [Fact]
+        public void Lambdas_Update_CeaseCapture_This()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int x = 1;
+
+    void F()
+    {
+        var f = new Func<int, int>(a => a + x);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int x;
+   
+    void F()
+    {
+        var f = new Func<int, int>(a => a);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "this"));
+        }
+
+        [Fact]
         public void Lambdas_Update_CeaseCapture_Closure1()
         {
             var src1 = @"
@@ -4035,11 +4035,36 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int a1", "a1"));
         }
 
         [Fact]
         public void Lambdas_Update_CeaseCapture_IndexerParameter2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] { get => new(a3 => a1 + a2); }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] { get { return new Func<int, int>(a3 => a2); } }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int a1", "a1"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CeaseCapture_IndexerParameter_ParameterDelete()
         {
             var src1 = @"
 using System;
@@ -4054,13 +4079,13 @@ using System;
 
 class C
 {
-    Func<int, int> this[int a1, int a2] { get { return new Func<int, int>(a3 => a2); } }
+    Func<int, int> this[int a2] { get { return new Func<int, int>(a3 => a2); } }
 }
 ";
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "get", "a1"));
         }
 
         [Fact]
@@ -4091,7 +4116,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a2", "a2"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int a2", "a2"));
         }
 
         [Fact]
@@ -4116,7 +4141,110 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a2", "a2"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int a2", "a2"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CeaseCapture_MethodParameter_ParameterDelete()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> F(int a1) => new Func<int, int>(a3 => a1);
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "a2"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CeaseCapture_MethodParameter_ParameterTypeChange()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> F(byte a1) => new Func<int, int>(a3 => a1);
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingCapturedVariableType, "a1", "a1", "int"),
+                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "a2"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CeaseCapture_MethodParameter_LocalToParameter()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> F(int a1) { int a2 = 1; return new Func<int, int>(a3 => a1 + a2); }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> F(int a1, int a2) { return new Func<int, int>(a3 => a1 + a2); }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"),
+                Diagnostic(RudeEditKind.DeletingCapturedVariable, "{", "a2"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CeaseCapture_MethodParameter_ParameterToLocal()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> F(int a1, int a2) { return new Func<int, int>(a3 => a1 + a2); }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> F(int a1) { int a2 = 1; return new Func<int, int>(a3 => a1 + a2); }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"),
+                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "a2"));
         }
 
         [Fact]
@@ -4131,7 +4259,11 @@ class C
     {
         var f1 = new Func<int, int, int>((a1, a2) => 
         {
-            var f2 = new Func<int, int>(a3 => a1 + a2);
+            var f2 = new Func<int, int>(a3 => 
+            {
+                var f3 = new Func<int, int>(a4 => a1 + a2 + a3);
+                return 1;
+            });
             return a1;
         });
     }
@@ -4146,7 +4278,11 @@ class C
     {
         var f1 = new Func<int, int, int>((a1, a2) => 
         {
-            var f2 = new Func<int, int>(a3 => a2);
+            var f2 = new Func<int, int>(a3 => 
+            {
+                var f3 = new Func<int, int>(a4 => a2);
+                return 1;
+            });
             return a1;
         });
     }
@@ -4155,7 +4291,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"),
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a3", "a3"));
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
@@ -4382,6 +4519,31 @@ class C
         }
 
         [Fact]
+        public void Lambdas_Update_Capturing_IndexerGetterParameter_ParameterInsert()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1] => new(a3 => a1);
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] => new(a3 => a1 + a2);
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"));
+        }
+
+        [Fact]
         public void Lambdas_Update_Capturing_IndexerSetterParameter1()
         {
             var src1 = @"
@@ -4553,6 +4715,66 @@ using System;
 class C
 {
     Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Capturing_MethodParameter_ParameterInsert()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> F(int a1) => new Func<int, int>(a3 => a1);
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Capturing_MethodParameter_ParameterInsert_Partial()
+        {
+            var src1 = @"
+using System;
+
+partial class C
+{
+    public partial Func<int, int> F(int a1);
+}
+
+partial class C
+{
+    public partial Func<int, int> F(int a1) => new Func<int, int>(a3 => a1);
+}
+";
+            var src2 = @"
+using System;
+
+partial class C
+{
+    public partial Func<int, int> F(int a1, int a2);
+}
+
+partial class C
+{
+    public partial Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
 }
 ";
             var edits = GetTopEdits(src1, src2);
@@ -5143,15 +5365,14 @@ class C
         }
 
         [Fact]
-        public void Lambdas_RenameCapturedLocal()
+        public void Lambdas_CapturedLocal_Rename()
         {
             var src1 = @"
 using System;
-using System.Diagnostics;
 
-class Program
+class C
 {
-    static void Main()
+    static void F()
     {
         int x = 1;
         Func<int> f = () => x;
@@ -5159,11 +5380,10 @@ class Program
 }";
             var src2 = @"
 using System;
-using System.Diagnostics;
 
-class Program
+class C
 {
-    static void Main()
+    static void F()
     {
         int X = 1;
         Func<int> f = () => X;
@@ -5177,7 +5397,100 @@ class Program
         }
 
         [Fact]
-        public void Lambdas_RenameCapturedParameter()
+        public void Lambdas_CapturedLocal_ChangeType()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static void F()
+    {
+        int x = 1;
+        Func<int> f = () => x;
+    }
+}";
+            var src2 = @"
+using System;
+
+class C
+{
+    static void F()
+    {
+        byte x = 1;
+        Func<int> f = () => x;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingCapturedVariableType, "x", "x", "int"));
+        }
+
+        [Fact]
+        public void Lambdas_CapturedParameter_Rename()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static void F(int x)
+    {
+        Func<int> f = () => x;
+    }
+}";
+            var src2 = @"
+using System;
+
+class C
+{
+    static void F(int X)
+    {
+        Func<int> f = () => X;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.RenamingCapturedVariable, "X", "x", "X"));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68708")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        public void Lambdas_CapturedParameter_ChangeType()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static void F(int x)
+    {
+        Func<int> f = () => x;
+    }
+}";
+            var src2 = @"
+using System;
+
+class C
+{
+    static void F(byte x)
+    {
+        Func<int> f = () => x;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingCapturedVariableType, "x", "x", "int"));
+        }
+
+        [Fact]
+        public void Lambdas_ReorderCapturedParameters()
         {
             var src1 = @"
 using System;
@@ -5185,9 +5498,9 @@ using System.Diagnostics;
 
 class Program
 {
-    static void Main(int x)
+    static void Main(int x, int y)
     {
-        Func<int> f = () => x;
+        Func<int> f = () => x + y;
     }
 }";
             var src2 = @"
@@ -5196,9 +5509,9 @@ using System.Diagnostics;
 
 class Program
 {
-    static void Main(int X)
+    static void Main(int y, int x)
     {
-        Func<int> f = () => X;
+        Func<int> f = () => x + y;
     }
 }";
 
@@ -6688,7 +7001,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int a1", "a1"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -6719,7 +7032,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a2", "a2"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int a2", "a2"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -6758,7 +7071,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int f1(int a1, int a2)\r\n        {\r\n            int f2(int a3) => a2;\r\n            return a1;\r\n        };\r\n  ", "a1"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int a1", "a1"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -7506,37 +7819,32 @@ class Program
         public void LocalFunctions_RenameCapturedParameter()
         {
             var src1 = @"
-        using System;
-        using System.Diagnostics;
+using System;
+using System.Diagnostics;
 
-        class Program
-        {
-            static void Main(int x)
-            {
-                int f() => x;
-            }
-        }";
+class Program
+{
+    static void Main(int x)
+    {
+        int f() => x;
+    }
+}";
             var src2 = @"
-        using System;
-        using System.Diagnostics;
+using System;
+using System.Diagnostics;
 
-        class Program
-        {
-            static void Main(int X)
-            {
-                int f() => X;
-            }
-        }";
+class Program
+{
+    static void Main(int X)
+    {
+        int f() => X;
+    }
+}";
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[]
-                {
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.Main"), preserveLocalVariables: true)
-                },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.RenamingCapturedVariable, "X", "x", "X"));
         }
 
         [Fact]
@@ -11814,27 +12122,71 @@ int G1(int[] p) { return p[2]; }
         #region Top Level Statements
 
         [Fact]
-        public void TopLevelStatement_CaptureArgs()
+        public void TopLevelStatement_Capture_Args()
         {
             var src1 = @"
 using System;
 
-var x = new Func<string>(() => ""Hello"");
-
-Console.WriteLine(x());
+var x = new Func<string[]>(() => null);
 ";
             var src2 = @"
 using System;
 
-var x = new Func<string>(() => ""Hello"" + args[0]);
-
-Console.WriteLine(x());
+var x = new Func<string[]>(() => args);
 ";
             var edits = GetTopEdits(src1, src2);
 
             // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "using System;\r\n\r\nvar x = new Func<string>(() => \"Hello\" + args[0]);\r\n\r\nConsole.WriteLine(x());\r\n", "args"));
+                Diagnostic(RudeEditKind.CapturingVariable, "var x = new Func<string[]>(() => args);", "args"));
+        }
+
+        [Fact]
+        public void TopLevelStatement_CeaseCapture_Args()
+        {
+            var src1 = @"
+using System;
+
+var x = new Func<string[]>(() => args);
+";
+            var src2 = @"
+using System;
+
+var x = new Func<string[]>(() => null);
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "var x = new Func<string[]>(() => null);", "args"));
+        }
+
+        [Fact]
+        public void TopLevelStatement_CeaseCapture_Args_Closure()
+        {
+            var src1 = @"
+using System;
+
+var f1 = new Func<int, int>(a1 => 
+{
+    var f2 = new Func<int, int>(a2 => args.Length + a2);
+    return a1;
+});
+";
+            var src2 = @"
+using System;
+
+var f1 = new Func<int, int>(a1 => 
+{
+    var f2 = new Func<int, int>(a2 => a2);
+    return a1 + args.Length;
+});
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // y is no longer captured in f2
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a2", "args", CSharpFeaturesResources.lambda));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]

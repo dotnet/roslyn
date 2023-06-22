@@ -535,6 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_InterceptorSignatureMismatch:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
                     return 1;
                 default:
                     return 0;
@@ -2343,6 +2344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny:
                 case ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly:
                 case ErrorCode.ERR_BadUsingStaticType:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

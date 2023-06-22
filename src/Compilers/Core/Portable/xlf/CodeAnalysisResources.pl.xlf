@@ -66,7 +66,7 @@
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
-        <target state="new">'end' must not be less than 'start'. start='{0}' end='{1}'.</target>
+        <target state="translated">Wartość „end” nie może być mniejsza niż wartość „start”. start=„{0}” end=„{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
@@ -157,7 +157,7 @@
       </trans-unit>
       <trans-unit id="LineCannotBeGreaterThanEnd">
         <source>The requested line number {0} must be less than the number of lines {1}.</source>
-        <target state="new">The requested line number {0} must be less than the number of lines {1}.</target>
+        <target state="translated">Żądany numer wiersza {0} musi być mniejszy niż liczba wierszy {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodSymbolExpected">
@@ -727,13 +727,13 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="needs-review-translation">Błąd analizatora</target>
+        <target state="translated">Błąd analizatora</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="needs-review-translation">Analizator „{0}” zgłosił wyjątek typu „{1}” z komunikatem „{2}”.
+        <target state="translated">Analizator „{0}” zgłosił wyjątek typu „{1}” z komunikatem „{2}”.
 {3}</target>
         <note>{0}: Analyzer name
 {1}: Type name

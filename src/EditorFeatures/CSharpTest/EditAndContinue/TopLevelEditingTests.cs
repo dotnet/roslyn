@@ -7369,7 +7369,7 @@ class C
                 "Update [int M(int a) => new Func<int>(() => a + 1)();]@35 -> [int M(int a) => new Func<int>(() => 2)();]@35");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int a", "a"));
         }
 
         [Fact]
@@ -15796,7 +15796,7 @@ class C
                 "Update [=> new Func<int>(() => a + 1)() + 10]@51 -> [=> new Func<int>(() => 2)() + 11]@51");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int a", "a"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
@@ -15825,7 +15825,7 @@ class C
                 "Update [=> new Func<int>(() => a + 1)()]@51 -> [=> new Func<int>(() => 2)()]@51");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int a", "a"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
@@ -15854,7 +15854,7 @@ class C
                 "Update [=> new Func<int>(() => { return a + 1; })()]@51 -> [=> new Func<int>(() => { return 2; })()]@51");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int a", "a"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
@@ -15883,7 +15883,7 @@ class C
                 "Update [=> new Func<int>(delegate { return a + 1; })()]@51 -> [=> new Func<int>(delegate { return 2; })()]@51");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int a", "a"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -16596,7 +16596,7 @@ partial class C
                 new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
                 new[]
                 {
-                    DocumentResults(diagnostics: new[] { Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a") }),
+                    DocumentResults(diagnostics: new[] { Diagnostic(RudeEditKind.NotCapturingVariable, "int a", "a") }),
                     DocumentResults(),
                 });
         }

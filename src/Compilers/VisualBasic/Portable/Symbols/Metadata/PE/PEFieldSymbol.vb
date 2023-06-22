@@ -206,7 +206,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides ReadOnly Property IsNotSerialized As Boolean
             Get
+#Disable Warning SYSLIB0050 ' 'TypeAttributes.Serializable' is obsolete
                 Return (_flags And FieldAttributes.NotSerialized) <> 0
+#Enable Warning SYSLIB0050
             End Get
         End Property
 
