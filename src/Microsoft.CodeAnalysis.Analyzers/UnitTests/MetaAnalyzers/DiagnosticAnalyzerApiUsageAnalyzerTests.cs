@@ -16,10 +16,56 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
     public class DiagnosticAnalyzerApiUsageAnalyzerTests
     {
+        private static async Task VerifyCSharpAnalyzerAsync(string source, params DiagnosticResult[] expected)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig",
+                        """
+                        is_global = true
+
+                        roslyn_correctness.assembly_reference_validation = relaxed
+                        """),
+                    }
+                }
+            };
+
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
+        }
+
+        private static async Task VerifyVisualBasicAnalyzerAsync(string source, params DiagnosticResult[] expected)
+        {
+            var test = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig",
+                        """
+                        is_global = true
+
+                        roslyn_correctness.assembly_reference_validation = relaxed
+                        """),
+                    }
+                }
+            };
+
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
+        }
+
         [Fact]
         public async Task NoDiagnosticCasesAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -60,7 +106,7 @@ class MyFixer2 : I<CodeFixProvider>
     Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider field;
 }");
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyVisualBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -111,10 +157,17 @@ End Class
 ");
         }
 
-        [Fact]
-        public async Task DirectlyAccessedType_InDeclaration_DiagnosticAsync()
+        [Theory]
+        [CombinatorialData]
+        public async Task DirectlyAccessedType_InDeclaration_DiagnosticAsync(bool relaxedValidation)
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            var csTest = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -132,10 +185,33 @@ class {|#0:MyAnalyzer|} : DiagnosticAnalyzer, I<Microsoft.CodeAnalysis.CodeFixes
     {
     }
 }",
-            // Test0.cs(11,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider'.
-            GetCSharpExpectedDiagnostic(0, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider"));
+                    },
+                }
+            };
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            if (relaxedValidation)
+            {
+                csTest.TestState.AnalyzerConfigFiles.Add(
+                    ("/.globalconfig",
+                    """
+                    is_global = true
+
+                    roslyn_correctness.assembly_reference_validation = relaxed
+                    """));
+                csTest.ExpectedDiagnostics.Add(
+                    // Test0.cs(11,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider'.
+                    GetCSharpExpectedDiagnostic(0, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider"));
+            }
+
+            await csTest.RunAsync();
+
+            var vbTest = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -160,14 +236,31 @@ Class {|#0:MyAnalyzer|}
     End Sub
 End Class
 ",
-            // Test0.vb(12,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider'.
-            GetBasicExpectedDiagnostic(0, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider"));
+                    },
+                }
+            };
+
+            if (relaxedValidation)
+            {
+                vbTest.TestState.AnalyzerConfigFiles.Add(
+                    ("/.globalconfig",
+                    """
+                    is_global = true
+
+                    roslyn_correctness.assembly_reference_validation = relaxed
+                    """));
+                vbTest.ExpectedDiagnostics.Add(
+                    // Test0.vb(12,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider'.
+                    GetBasicExpectedDiagnostic(0, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider"));
+            }
+
+            await vbTest.RunAsync();
         }
 
         [Fact]
         public async Task DirectlyAccessedType_InMemberDeclaration_DiagnosticAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -193,7 +286,7 @@ class {|#0:MyAnalyzer|} : DiagnosticAnalyzer
             // Test0.cs(10,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.CodeFixes.FixAllProvider'.
             GetCSharpExpectedDiagnostic(0, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.CodeFixes.FixAllProvider"));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyVisualBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -228,7 +321,7 @@ End Class
         [Fact]
         public async Task DirectlyAccessedType_InMemberBody_DiagnosticAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -253,7 +346,7 @@ class {|#0:MyAnalyzer|} : DiagnosticAnalyzer
             // Test0.cs(10,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider'.
             GetCSharpExpectedDiagnostic(0, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider"));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyVisualBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -287,7 +380,7 @@ End Class
         [Fact]
         public async Task DirectlyAccessedType_StaticMember_DiagnosticAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -313,7 +406,7 @@ class {|#0:MyAnalyzer|} : DiagnosticAnalyzer
             // Test0.cs(11,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeActions.WarningAnnotation'.
             GetCSharpExpectedDiagnostic(0, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeActions.WarningAnnotation"));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyVisualBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -347,7 +440,7 @@ End Class
         [Fact]
         public async Task DirectlyAccessedType_StaticMember_02_DiagnosticAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -373,7 +466,7 @@ class {|#0:MyAnalyzer|} : DiagnosticAnalyzer
             // Test0.cs(11,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeFixes.FixAllProvider, Microsoft.CodeAnalysis.CodeFixes.WellKnownFixAllProviders'.
             GetCSharpExpectedDiagnostic(0, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeFixes.FixAllProvider, Microsoft.CodeAnalysis.CodeFixes.WellKnownFixAllProviders"));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyVisualBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -407,7 +500,7 @@ End Class
         [Fact]
         public async Task DirectlyAccessedType_CastAndTypeCheck_DiagnosticAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -433,7 +526,7 @@ class {|#0:MyAnalyzer|} : DiagnosticAnalyzer
             // Test0.cs(10,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct accesses to type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllProvider'.
             GetCSharpExpectedDiagnostic(0, "MyAnalyzer", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllProvider"));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyVisualBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -467,7 +560,7 @@ End Class
         [Fact]
         public async Task IndirectlyAccessedType_StaticMember_DiagnosticAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -509,7 +602,7 @@ class Fixer : CodeFixProvider
         [Fact]
         public async Task IndirectlyAccessedType_ExtensionMethod_DiagnosticAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -544,7 +637,7 @@ public static class FixerExtensions
             // Test0.cs(11,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct and/or indirect accesses to type(s) 'FixerExtensions', which access type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider'.
             GetCSharpExpectedDiagnostic(0, "MyAnalyzer", "FixerExtensions", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider"));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyVisualBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -586,7 +679,7 @@ End Module
         [Fact]
         public async Task IndirectlyAccessedType_InvokedFromAnalyzer_DiagnosticAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -620,7 +713,7 @@ class Class2
             // Test0.cs(10,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct and/or indirect accesses to type(s) 'Class2', which access type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider'.
             GetCSharpExpectedDiagnostic(0, "MyAnalyzer", "Class2", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider"));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyVisualBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -663,7 +756,7 @@ End Class
             // We report diagnostic if there is a transitive access to a type referencing something from Workspaces.
             // This is regardless of whether the transitive access is actually reachable from a possible code path or not.
 
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -710,7 +803,7 @@ class Class3
             // Test0.cs(10,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct and/or indirect accesses to type(s) 'Class2, Class3', which access type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllProvider'.
             GetCSharpExpectedDiagnostic(0, "MyAnalyzer", "Class2, Class3", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllProvider"));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyVisualBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -758,7 +851,7 @@ End Class
         [Fact]
         public async Task IndirectlyAccessedType_Transitive_DiagnosticAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -798,7 +891,7 @@ class Class3
             // Test0.cs(10,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct and/or indirect accesses to type(s) 'Class3', which access type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider'.
             GetCSharpExpectedDiagnostic(0, "MyAnalyzer", "Class3", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider"));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyVisualBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -841,7 +934,7 @@ End Class
         [Fact]
         public async Task TypeDependencyGraphWithCycles_DiagnosticAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -886,7 +979,7 @@ class Class3
             // Test0.cs(10,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct and/or indirect accesses to type(s) 'Class2, Class3', which access type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllProvider'.
             GetCSharpExpectedDiagnostic(0, "MyAnalyzer", "Class2, Class3", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllProvider"));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyVisualBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable

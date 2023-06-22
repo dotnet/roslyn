@@ -806,7 +806,7 @@
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1022.md",
           "properties": {
             "category": "MicrosoftCodeAnalysisCorrectness",
-            "isEnabledByDefault": false,
+            "isEnabledByDefault": true,
             "typeName": "CSharpDiagnosticAnalyzerApiUsageAnalyzer",
             "languages": [
               "C#"
@@ -1005,7 +1005,7 @@
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1022.md",
           "properties": {
             "category": "MicrosoftCodeAnalysisCorrectness",
-            "isEnabledByDefault": false,
+            "isEnabledByDefault": true,
             "typeName": "BasicDiagnosticAnalyzerApiUsageAnalyzer",
             "languages": [
               "Visual Basic"

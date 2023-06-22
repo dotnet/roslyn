@@ -73,18 +73,31 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 
         [Theory]
         [CombinatorialData]
-        public async Task CSharpFeatureDefinedWithWorkspaceReference(CompilerFeature feature, SupportedLanguage supportedLanguage)
+        public async Task CSharpFeatureDefinedWithWorkspaceReference(CompilerFeature feature, SupportedLanguage supportedLanguage, bool relaxedValidation)
         {
-            await new VerifyCS.Test
+            var test = new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20.AddPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.CodeAnalysis.Workspaces.Common", CompilerReferenceVersion))),
                 TestCode = DefineFeature(ImplementationLanguage.CSharp, feature, supportedLanguage),
-                ExpectedDiagnostics =
-                {
-                    VerifyCS.Diagnostic(CompilerExtensionStrictApiAnalyzer.DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceStrictRule).WithLocation(0),
-                },
-            }.RunAsync();
+            };
+
+            if (relaxedValidation)
+            {
+                test.TestState.AnalyzerConfigFiles.Add(
+                    ("/.globalconfig",
+                    """
+                    is_global = true
+
+                    roslyn_correctness.assembly_reference_validation = relaxed
+                    """));
+            }
+            else
+            {
+                test.TestState.ExpectedDiagnostics.Add(VerifyCS.Diagnostic(CompilerExtensionStrictApiAnalyzer.DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceStrictRule).WithLocation(0));
+            }
+
+            await test.RunAsync();
         }
 
         [Theory]
@@ -144,18 +157,31 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 
         [Theory]
         [CombinatorialData]
-        public async Task VisualBasicFeatureDefinedWithWorkspaceReference(CompilerFeature feature, SupportedLanguage supportedLanguage)
+        public async Task VisualBasicFeatureDefinedWithWorkspaceReference(CompilerFeature feature, SupportedLanguage supportedLanguage, bool relaxedValidation)
         {
-            await new VerifyVB.Test
+            var test = new VerifyVB.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20.AddPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.CodeAnalysis.Workspaces.Common", CompilerReferenceVersion))),
                 TestCode = DefineFeature(ImplementationLanguage.VisualBasic, feature, supportedLanguage),
-                ExpectedDiagnostics =
-                {
-                    VerifyVB.Diagnostic(CompilerExtensionStrictApiAnalyzer.DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceStrictRule).WithLocation(0),
-                },
-            }.RunAsync();
+            };
+
+            if (relaxedValidation)
+            {
+                test.TestState.AnalyzerConfigFiles.Add(
+                    ("/.globalconfig",
+                    """
+                    is_global = true
+
+                    roslyn_correctness.assembly_reference_validation = relaxed
+                    """));
+            }
+            else
+            {
+                test.TestState.ExpectedDiagnostics.Add(VerifyVB.Diagnostic(CompilerExtensionStrictApiAnalyzer.DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceStrictRule).WithLocation(0));
+            }
+
+            await test.RunAsync();
         }
 
         [Theory]

@@ -275,7 +275,7 @@ Diagnostic analyzer types should not use types from Workspaces assemblies. Works
 |Item|Value|
 |-|-|
 |Category|MicrosoftCodeAnalysisCorrectness|
-|Enabled|False|
+|Enabled|True|
 |Severity|Warning|
 |CodeFix|False|
 ---

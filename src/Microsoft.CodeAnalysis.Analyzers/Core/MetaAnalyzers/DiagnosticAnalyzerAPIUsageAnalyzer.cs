@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             CreateLocalizableResourceString(nameof(DoNotUseTypesFromAssemblyRuleDirectMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            isEnabledByDefault: true,
             description: s_localizableDescription,
             helpLinkUri: HelpLinkUri,
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             CreateLocalizableResourceString(nameof(DoNotUseTypesFromAssemblyRuleIndirectMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            isEnabledByDefault: true,
             description: s_localizableDescription,
             helpLinkUri: HelpLinkUri,
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
@@ -64,6 +65,16 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             context.RegisterCompilationStartAction(compilationStartContext =>
             {
+                // This analyzer is disabled by default via a configuration option that also applies to RS1038. It only
+                // needs to proceed if .globalconfig contains the following line to enable it:
+                //
+                // roslyn_correctness.assembly_reference_validation = relaxed
+                if (CompilerExtensionStrictApiAnalyzer.IsStrictAnalysisEnabled(compilationStartContext.Options))
+                {
+                    // RS1038 is being applied instead of RS1022
+                    return;
+                }
+
                 if (compilationStartContext.Compilation.GetOrCreateTypeByMetadataName(CodeActionMetadataName) == null)
                 {
                     // No reference to core Workspaces assembly.

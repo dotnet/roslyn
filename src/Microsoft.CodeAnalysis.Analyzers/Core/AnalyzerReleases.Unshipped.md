@@ -5,9 +5,3 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS1038 | MicrosoftCodeAnalysisCorrectness | Warning | CompilerExtensionStrictApiAnalyzer
-
-### Changed Rules
-
-Rule ID | New Category | New Severity | Old Category | Old Severity | Notes
---------|--------------|--------------|--------------|--------------|-------
-RS1022 | MicrosoftCodeAnalysisCorrectness | Disabled | MicrosoftCodeAnalysisCorrectness | Warning | DiagnosticAnalyzerApiUsageAnalyzer

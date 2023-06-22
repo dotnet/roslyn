@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -14,6 +15,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal sealed class CompilerExtensionStrictApiAnalyzer : DiagnosticAnalyzer
     {
+        private const string AssemblyReferenceValidationConfigurationKey = "roslyn_correctness.assembly_reference_validation";
+        private const string AssemblyReferenceValidationConfigurationRelaxedValue = "relaxed";
+
         private static readonly LocalizableString s_localizableTitle = CreateLocalizableResourceString(nameof(DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleTitle));
         private static readonly LocalizableString s_localizableDescription = CreateLocalizableResourceString(nameof(DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleDescription));
         private const string HelpLinkUri = "https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1038.md";
@@ -56,6 +60,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DoNotDeclareCSharpCompilerFeatureInAssemblyWithVisualBasicReferenceStrictRule,
             DoNotDeclareVisualBasicCompilerFeatureInAssemblyWithCSharpReferenceStrictRule);
 
+        internal static bool IsStrictAnalysisEnabled(AnalyzerOptions options)
+        {
+            return !options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(AssemblyReferenceValidationConfigurationKey, out var value)
+                || !value.Trim().Equals(AssemblyReferenceValidationConfigurationRelaxedValue, StringComparison.Ordinal);
+        }
+
         public override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
@@ -63,6 +73,16 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             context.RegisterCompilationStartAction(context =>
             {
+                // This analyzer is enabled by default via a configuration option that also applies to RS1022. It needs
+                // to proceed unless .globalconfig contains the following line to enable it:
+                //
+                // roslyn_correctness.assembly_reference_validation = relaxed
+                if (!IsStrictAnalysisEnabled(context.Options))
+                {
+                    // RS1022 is being applied instead of RS1038
+                    return;
+                }
+
                 var typeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
                 var diagnosticAnalyzer = typeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzer);
                 if (diagnosticAnalyzer is null)
