@@ -5171,11 +5171,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected static SynthesizedPrimaryConstructor TryGetSynthesizedPrimaryConstructor(TypeDeclarationSyntax node, NamedTypeSymbol type)
         {
-            if (type is SourceMemberContainerTypeSymbol { PrimaryConstructor: { } symbol }
-                && symbol.SyntaxRef.SyntaxTree == node.SyntaxTree
-                && symbol.GetSyntax() == node)
+            if (type is SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor }
+                && primaryConstructor.SyntaxRef.SyntaxTree == node.SyntaxTree
+                && primaryConstructor.GetSyntax() == node)
             {
-                return symbol;
+                return primaryConstructor;
             }
 
             return null;
