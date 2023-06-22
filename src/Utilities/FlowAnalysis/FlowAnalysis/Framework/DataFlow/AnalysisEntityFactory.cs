@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 using var builder = ArrayBuilder<AnalysisEntity>.GetInstance(tupleType.TupleElements.Length);
                 foreach (var field in tupleType.TupleElements)
                 {
-                    var tupleFieldName = field.CorrespondingTupleField.Name;
+                    var tupleFieldName = field.CorrespondingTupleField!.Name;
                     var mappedValueTupleField = underlyingValueTupleType.GetMembers(tupleFieldName).OfType<IFieldSymbol>().FirstOrDefault();
                     if (mappedValueTupleField == null)
                     {
