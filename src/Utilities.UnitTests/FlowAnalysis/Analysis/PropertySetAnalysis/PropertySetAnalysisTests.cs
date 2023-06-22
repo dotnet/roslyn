@@ -1305,7 +1305,7 @@ class TestClass
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebExtensions)
 #endif
                 .WithProjectCompilationOptions(projectId, options)
-                .WithProjectParseOptions(projectId, null)
+                .WithProjectParseOptions(projectId, new CSharpParseOptions())
                 .GetProject(projectId);
 
             // Enable Flow-Analysis feature on the project
