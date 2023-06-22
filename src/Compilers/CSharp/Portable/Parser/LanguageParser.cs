@@ -7420,6 +7420,9 @@ done:;
         }
 
         private StatementSyntax ParsePossiblyAttributedStatement()
+            => ParseStatementCore(ParseStatementAttributeDeclarations(), isGlobal: false);
+
+        private SyntaxList<AttributeListSyntax> ParseStatementAttributeDeclarations()
         {
             var resetPoint = GetResetPoint();
             var attributeDeclarations = ParseAttributeDeclarations(inExpressionContext: true);
@@ -7433,16 +7436,11 @@ done:;
                 attributeDeclarations.Count > 0 && this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken)
             {
                 this.Reset(ref resetPoint);
-                var statement = ParseStatementCore(attributes: default, isGlobal: false);
-                Release(ref resetPoint);
-                return statement;
+                attributeDeclarations = default;
             }
-            else
-            {
-                var statement = ParseStatementCore(attributeDeclarations, isGlobal: false);
-                Release(ref resetPoint);
-                return statement;
-            }
+
+            Release(ref resetPoint);
+            return attributeDeclarations;
         }
 
         /// <param name="isGlobal">If we're being called while parsing a C# top-level statements (Script or Simple Program).
