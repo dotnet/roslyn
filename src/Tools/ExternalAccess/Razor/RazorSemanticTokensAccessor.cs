@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public static ImmutableArray<string> RoslynTokenTypes => SemanticTokensSchema.LegacyTokenSchemaForRazor.AllTokenTypes;
 
         [Obsolete("Use GetTokenTypes(bool)")]
-        public static ImmutableArray<string> GetTokenTypes(ClientCapabilities capabilities) => SemanticTokensSchema.GetSchema(capabilities).AllTokenTypes;
+        public static ImmutableArray<string> GetTokenTypes(ClientCapabilities capabilities) => SemanticTokensSchema.GetSchema(capabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true }).AllTokenTypes;
 
         public static ImmutableArray<string> GetTokenTypes(bool clientSupportsVisualStudioExtensions) => SemanticTokensSchema.GetSchema(clientSupportsVisualStudioExtensions).AllTokenTypes;
     }
