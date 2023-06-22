@@ -3915,7 +3915,11 @@ End Class
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
                 {
-                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                        }),
                     DocumentResults(
                         semanticEdits:=
                         {
@@ -4198,7 +4202,10 @@ End Class"
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
                 {
-                    DocumentResults(),
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                    }),
                     DocumentResults(semanticEdits:=
                     {
                         SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
@@ -6620,7 +6627,7 @@ End Class
 Partial Class C
     ReadOnly Property B As Integer = F(<N:0.1>Function(a) a + 1</N:0.1>)
 
-    Sub New()      ' new ctor
+    Sub New(x As Integer)      ' new ctor
         F(Function(c) c + 1)
     End Sub
 End Class
@@ -6630,7 +6637,7 @@ End Class
             Dim syntaxMap = GetSyntaxMap(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                {Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "Sub New()")})
+                {Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "Sub New(x As Integer)")})
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")>
@@ -7965,7 +7972,8 @@ End Class
                 ActiveStatementsDescription.Empty,
                 {
                     SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.B")),
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single())
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single()),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
@@ -8433,7 +8441,8 @@ End Class
                 {
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
-                    DocumentResults()
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)})
                 })
         End Sub
 
@@ -9512,7 +9521,8 @@ End Class
                 semanticEdits:=
                 {
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_a"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_a"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_a"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)
                 })
         End Sub
 
@@ -10966,7 +10976,7 @@ End Class
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
 
             edits.VerifySemanticDiagnostics(
-                {Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Public Sub M()", DeletedSymbolDisplay(FeaturesResources.parameter, "a As Integer"))},
+                {Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Public Sub M()", GetResource("parameter", "a", "method", "M(a As Integer)"))},
                 capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
@@ -10990,7 +11000,7 @@ End Class
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
 
             edits.VerifySemanticDiagnostics(
-                {Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Public Sub M(b As Integer)", DeletedSymbolDisplay(FeaturesResources.parameter, "a As Integer"))},
+                {Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Public Sub M(b As Integer)", GetResource("parameter", "a", "method", "M(a As Integer, b As Integer)"))},
                 capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 

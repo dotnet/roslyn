@@ -105,6 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 throw new Exception($"Exception during generation #{_generations.Count}. See inner stack trace for details.", ex);
             }
 
+            Assert.Empty(diff.EmitResult.Diagnostics);
+
             // EncVariableSlotAllocator attempted to map from current source to the previous one,
             // but the mapping failed for these nodes. Mark the nodes in sources with node markers <N:x>...</N:x>.
             Assert.Empty(unmappedNodes);
@@ -155,13 +157,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             return ImmutableArray.CreateRange(edits.Select(e =>
             {
-                var oldSymbol = e.SymbolProvider(oldCompilation);
+                var oldSymbol = e.Kind is SemanticEditKind.Update or SemanticEditKind.Delete ? e.SymbolProvider(oldCompilation) : null;
+                
+                // for delete the new symbol is the new containing type
                 var newSymbol = e.NewSymbolProvider(newCompilation);
 
                 Func<SyntaxNode, SyntaxNode?>? syntaxMap;
                 if (e.PreserveLocalVariables)
                 {
                     Assert.Equal(SemanticEditKind.Update, e.Kind);
+                    Debug.Assert(oldSymbol != null);
+                    Debug.Assert(newSymbol != null);
+
                     syntaxMap = syntaxMapFromMarkers ?? EditAndContinueTestBase.GetEquivalentNodesMap(
                         ((Public.MethodSymbol)newSymbol).GetSymbol<MethodSymbol>(), ((Public.MethodSymbol)oldSymbol).GetSymbol<MethodSymbol>());
                 }
