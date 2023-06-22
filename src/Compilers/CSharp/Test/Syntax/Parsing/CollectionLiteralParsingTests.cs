@@ -879,33 +879,36 @@ public class CollectionLiteralParsingTests : ParsingTests
             {
                 N(SyntaxKind.ExpressionStatement);
                 {
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
                     N(SyntaxKind.InvocationExpression);
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.ElementAccessExpression);
                             {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.ExpressionElement);
+                                N(SyntaxKind.CollectionCreationExpression);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.ExpressionElement);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "B");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
                                     }
+                                    N(SyntaxKind.CloseBracketToken);
                                 }
-                                N(SyntaxKind.CloseBracketToken);
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "B");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
                             }
                             N(SyntaxKind.DotToken);
                             N(SyntaxKind.IdentifierName);
@@ -931,16 +934,7 @@ public class CollectionLiteralParsingTests : ParsingTests
     public void AttemptToImmediatelyIndexInTopLevelStatement()
     {
         UsingTree(
-            """["A", "B"][0].C();""",
-            // (1,2): error CS1001: Identifier expected
-            // ["A", "B"][0].C();
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, @"""A""").WithLocation(1, 2),
-            // (1,2): error CS1003: Syntax error, ',' expected
-            // ["A", "B"][0].C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, @"""A""").WithArguments(",").WithLocation(1, 2),
-            // (1,7): error CS1001: Identifier expected
-            // ["A", "B"][0].C();
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, @"""B""").WithLocation(1, 7));
+            """["A", "B"][0].C();""");
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -948,34 +942,44 @@ public class CollectionLiteralParsingTests : ParsingTests
             {
                 N(SyntaxKind.ExpressionStatement);
                 {
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        M(SyntaxKind.Attribute);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.CloseBracketToken);
-                    }
                     N(SyntaxKind.InvocationExpression);
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.ElementAccessExpression);
                             {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.ExpressionElement);
+                                N(SyntaxKind.CollectionCreationExpression);
                                 {
-                                    N(SyntaxKind.NumericLiteralExpression);
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.ExpressionElement);
                                     {
-                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                        N(SyntaxKind.StringLiteralExpression);
+                                        {
+                                            N(SyntaxKind.StringLiteralToken, "\"A\"");
+                                        }
                                     }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.ExpressionElement);
+                                    {
+                                        N(SyntaxKind.StringLiteralExpression);
+                                        {
+                                            N(SyntaxKind.StringLiteralToken, "\"B\"");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
                                 }
-                                N(SyntaxKind.CloseBracketToken);
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
                             }
                             N(SyntaxKind.DotToken);
                             N(SyntaxKind.IdentifierName);
@@ -7533,6 +7537,60 @@ class C
             [1][0].GetHashCode();
             """);
 
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.ElementAccessExpression);
+                            {
+                                N(SyntaxKind.CollectionCreationExpression);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.ExpressionElement);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "GetHashCode");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
         EOF();
     }
 
@@ -7638,6 +7696,60 @@ class C
             [1][Main].GetHashCode();
             """);
 
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.ElementAccessExpression);
+                            {
+                                N(SyntaxKind.CollectionCreationExpression);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.ExpressionElement);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Main");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "GetHashCode");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
         EOF();
     }
 
@@ -7743,6 +7855,60 @@ class C
             [Main][1].GetHashCode();
             """);
 
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.ElementAccessExpression);
+                            {
+                                N(SyntaxKind.CollectionCreationExpression);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.ExpressionElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Main");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "GetHashCode");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
         EOF();
     }
 
@@ -7785,33 +7951,36 @@ class C
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.ExpressionStatement);
                         {
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Main");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.SimpleMemberAccessExpression);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.ElementAccessExpression);
                                     {
-                                        N(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.ExpressionElement);
+                                        N(SyntaxKind.CollectionCreationExpression);
                                         {
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.ExpressionElement);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "Main");
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Main");
+                                                }
                                             }
+                                            N(SyntaxKind.CloseBracketToken);
                                         }
-                                        N(SyntaxKind.CloseBracketToken);
+                                        N(SyntaxKind.BracketedArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Main");
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
                                     }
                                     N(SyntaxKind.DotToken);
                                     N(SyntaxKind.IdentifierName);
@@ -7845,6 +8014,60 @@ class C
             [Main][Main].GetHashCode();
             """);
 
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.ElementAccessExpression);
+                            {
+                                N(SyntaxKind.CollectionCreationExpression);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.ExpressionElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Main");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Main");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "GetHashCode");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
         EOF();
     }
 }

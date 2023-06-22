@@ -2207,8 +2207,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var saveTermState = _termState;
 
-            var attributes = this.ParseAttributeDeclarations(inExpressionContext: true);
-            bool haveAttributes = (attributes.Count > 0);
+            var attributes = this.ParseStatementAttributeDeclarations();
+            bool haveAttributes = attributes.Count > 0;
 
             var afterAttributesPoint = this.GetResetPoint();
 
@@ -7436,7 +7436,7 @@ done:;
             //  1. It's complete (i.e. it ends with `]`) *And*
             //  2. It's not followed by a token that indicates the `[...]` is being used as a value.
             if (attributeDeclarations is [.., { CloseBracketToken.IsMissing: true }] ||
-                attributeDeclarations.Count > 0 && this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken)
+                attributeDeclarations.Count > 0 && this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken or SyntaxKind.OpenBracketToken)
             {
                 this.Reset(ref resetPoint);
                 attributeDeclarations = default;
