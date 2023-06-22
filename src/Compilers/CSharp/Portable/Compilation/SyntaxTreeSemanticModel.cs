@@ -1247,18 +1247,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override SynthesizedPrimaryConstructor TryGetSynthesizedPrimaryConstructor(TypeDeclarationSyntax node)
-        {
-            NamedTypeSymbol type = GetDeclaredType(node);
-            var symbol = (type as SourceMemberContainerTypeSymbol)?.PrimaryConstructor;
-
-            if (symbol?.SyntaxRef.SyntaxTree != node.SyntaxTree || symbol.GetSyntax() != node)
-            {
-                return null;
-            }
-
-            return symbol;
-        }
+        private SynthesizedPrimaryConstructor TryGetSynthesizedPrimaryConstructor(TypeDeclarationSyntax node)
+            => TryGetSynthesizedPrimaryConstructor(node, GetDeclaredType(node));
 
         private FieldSymbol GetDeclaredFieldSymbol(VariableDeclaratorSyntax variableDecl)
         {

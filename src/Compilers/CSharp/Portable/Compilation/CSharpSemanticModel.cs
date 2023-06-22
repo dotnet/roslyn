@@ -5156,7 +5156,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (declaration is TypeDeclarationSyntax typeDeclaration)
             {
                 var namedType = GetDeclaredSymbol(typeDeclaration, cancellationToken);
-                var primaryConstructor = TryGetSynthesizedPrimaryConstructor(typeDeclaration);
+                var primaryConstructor = TryGetSynthesizedPrimaryConstructor(
+                    typeDeclaration, namedType.GetSymbol<NamedTypeSymbol>());
 
                 return primaryConstructor is null
                     ? ImmutableArray.Create<ISymbol>(namedType)
@@ -5169,8 +5170,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : ImmutableArray<ISymbol>.Empty;
         }
 
-        protected virtual SynthesizedPrimaryConstructor TryGetSynthesizedPrimaryConstructor(TypeDeclarationSyntax node)
-            => null;
+        protected static SynthesizedPrimaryConstructor TryGetSynthesizedPrimaryConstructor(TypeDeclarationSyntax node, NamedTypeSymbol type)
+        {
+            if (type is SourceMemberContainerTypeSymbol { PrimaryConstructor: { } symbol }
+                && symbol.SyntaxRef.SyntaxTree == node.SyntaxTree
+                && symbol.GetSyntax() == node)
+            {
+                return symbol;
+            }
+
+            return null;
+        }
 
         internal override void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken)
         {

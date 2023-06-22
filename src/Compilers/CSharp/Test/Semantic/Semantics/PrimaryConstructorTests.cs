@@ -16432,5 +16432,55 @@ public partial struct S
             Assert.Equal(namedType1, namedType2);
             Assert.Equal(primaryConstructor1, primaryConstructor2);
         }
+
+        [Fact]
+        public void SemanticModel_GetDeclaredSymbols5()
+        {
+            var src1 = """
+                using System;
+
+                partial class Point(int i)
+                {
+                    public int I { get; } = i;
+                }
+                
+                [method: Obsolete("")]
+                partial class Point(int i)
+                {
+                }
+                """;
+            var comp = CreateCompilation(src1, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1),
+                // (8,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: Obsolete("")]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(8, 2),
+                // (9,20): error CS8863: Only a single partial type declaration may have a parameter list
+                // partial class Point(int i)
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int i)").WithLocation(9, 20));
+
+            var tree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+            var typeDeclaration1 = root.ChildNodes().OfType<TypeDeclarationSyntax>().First();
+
+            var symbols1 = semanticModel.GetDeclaredSymbolsForNode(typeDeclaration1);
+            Assert.Equal(2, symbols1.Length);
+
+            var namedType1 = symbols1.OfType<INamedTypeSymbol>().Single();
+            var primaryConstructor1 = symbols1.OfType<IMethodSymbol>().Single();
+
+            Assert.Same(primaryConstructor1, namedType1.GetSymbol<SourceMemberContainerTypeSymbol>().PrimaryConstructor.GetPublicSymbol());
+            Assert.Equal(0, primaryConstructor1.GetAttributes().Length);
+
+            var typeDeclaration2 = root.ChildNodes().OfType<TypeDeclarationSyntax>().Last();
+            var symbols2 = semanticModel.GetDeclaredSymbolsForNode(typeDeclaration2);
+            Assert.Equal(1, symbols2.Length);
+
+            var namedType2 = symbols2.OfType<INamedTypeSymbol>().Single();
+            Assert.Equal(namedType1, namedType2);
+        }
     }
 }
