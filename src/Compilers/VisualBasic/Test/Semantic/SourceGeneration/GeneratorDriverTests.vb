@@ -296,7 +296,7 @@ End Class",
                                           Diagnostic("GEN001", "ano").WithLocation(5, 6))
         End Sub
 
-        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_DetachedSyntaxTree_Incremental()
             Dim parseOptions = TestOptions.Regular
@@ -306,7 +306,7 @@ End Class",
                 Sub(ctx)
                     ctx.RegisterSourceOutput(ctx.CompilationProvider,
                         Sub(ctx2, comp)
-                            Dim syntaxTree = VisualBasicSyntaxTree.ParseText(comp.SyntaxTrees.Single().GetText(), parseOptions)
+                            Dim syntaxTree = VisualBasicSyntaxTree.ParseText(comp.SyntaxTrees.Single().GetText(), parseOptions, path:="/detached")
                             ctx2.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
                                 "TEST0001",
                                 "Test",
@@ -323,11 +323,11 @@ End Class",
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, Diagnostics)
             diagnostics.Verify(
-                Diagnostic("BC42502").WithArguments("PipelineCallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location in file '', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1))
+                ArgumentExceptionDiagnostic("PipelineCallbackGenerator", "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1))
             compilation.VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_DetachedSyntaxTree_Incremental_AdditionalLocations()
             Dim parseOptions = TestOptions.Regular
@@ -338,7 +338,7 @@ End Class",
                     ctx.RegisterSourceOutput(ctx.CompilationProvider,
                         Sub(ctx2, comp)
                             Dim validSyntaxTree = comp.SyntaxTrees.Single()
-                            Dim invalidSyntaxTree = VisualBasicSyntaxTree.ParseText(validSyntaxTree.GetText(), parseOptions)
+                            Dim invalidSyntaxTree = VisualBasicSyntaxTree.ParseText(validSyntaxTree.GetText(), parseOptions, path:="/detached")
                             ctx2.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
                                 "TEST0001",
                                 "Test",
@@ -356,11 +356,11 @@ End Class",
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
             diagnostics.Verify(
-                Diagnostic("BC42502").WithArguments("PipelineCallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location in file '', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1))
+                ArgumentExceptionDiagnostic("PipelineCallbackGenerator", "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1))
             compilation.VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_DetachedSyntaxTree_Execute()
             Dim parseOptions = TestOptions.Regular
@@ -370,7 +370,7 @@ End Class",
                 Sub(ctx)
                 End Sub,
                 Sub(ctx)
-                    Dim syntaxTree = VisualBasicSyntaxTree.ParseText(ctx.Compilation.SyntaxTrees.Single().GetText(), parseOptions)
+                    Dim syntaxTree = VisualBasicSyntaxTree.ParseText(ctx.Compilation.SyntaxTrees.Single().GetText(), parseOptions, path:="/detached")
                     ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
                         "TEST0001",
                         "Test",
@@ -386,11 +386,11 @@ End Class",
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
             diagnostics.Verify(
-                Diagnostic("BC42502").WithArguments("CallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location in file '', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1))
+                ArgumentExceptionDiagnostic("CallbackGenerator", "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1))
             compilation.VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_DetachedSyntaxTree_Execute_AdditionalLocations()
             Dim parseOptions = TestOptions.Regular
@@ -401,7 +401,7 @@ End Class",
                 End Sub,
                 Sub(ctx)
                     Dim validSyntaxTree = ctx.Compilation.SyntaxTrees.Single()
-                    Dim invalidSyntaxTree = VisualBasicSyntaxTree.ParseText(validSyntaxTree.GetText(), parseOptions)
+                    Dim invalidSyntaxTree = VisualBasicSyntaxTree.ParseText(validSyntaxTree.GetText(), parseOptions, path:="/detached")
                     ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
                         "TEST0001",
                         "Test",
@@ -418,15 +418,15 @@ End Class",
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
             diagnostics.Verify(
-                Diagnostic("BC42502").WithArguments("CallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location in file '', which is not part of the compilation being analyzed. (Parameter 'diagnostic')").WithLocation(1, 1))
+                ArgumentExceptionDiagnostic("CallbackGenerator", "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1))
             compilation.VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_SpanOutsideRange_Incremental()
             Dim parseOptions = TestOptions.Regular
-            Dim compilation As Compilation = GetCompilation(parseOptions)
+            Dim compilation As Compilation = GetCompilation(parseOptions, sourcePath:="/original")
 
             Dim generator = New PipelineCallbackGenerator(
                 Sub(ctx)
@@ -449,15 +449,15 @@ End Class",
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
             diagnostics.Verify(
-                Diagnostic("BC42502").WithArguments("PipelineCallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1))
+                ArgumentExceptionDiagnostic("PipelineCallbackGenerator", "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1))
             compilation.VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_SpanOutsideRange_Incremental_AdditionalLocations()
             Dim parseOptions = TestOptions.Regular
-            Dim compilation As Compilation = GetCompilation(parseOptions)
+            Dim compilation As Compilation = GetCompilation(parseOptions, sourcePath:="/original")
 
             Dim generator = New PipelineCallbackGenerator(
                 Sub(ctx)
@@ -481,15 +481,15 @@ End Class",
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
             diagnostics.Verify(
-                Diagnostic("BC42502").WithArguments("PipelineCallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1))
+                ArgumentExceptionDiagnostic("PipelineCallbackGenerator", "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1))
             compilation.VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_SpanOutsideRange_Execute()
             Dim parseOptions = TestOptions.Regular
-            Dim compilation As Compilation = GetCompilation(parseOptions)
+            Dim compilation As Compilation = GetCompilation(parseOptions, sourcePath:="/original")
 
             Dim generator As ISourceGenerator = New CallbackGenerator(
                 Sub(ctx)
@@ -511,15 +511,15 @@ End Class",
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
             diagnostics.Verify(
-                Diagnostic("BC42502").WithArguments("CallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1))
+                ArgumentExceptionDiagnostic("CallbackGenerator", "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1))
             compilation.VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_SpanOutsideRange_Execute_AdditionalLocations()
             Dim parseOptions = TestOptions.Regular
-            Dim compilation As Compilation = GetCompilation(parseOptions)
+            Dim compilation As Compilation = GetCompilation(parseOptions, sourcePath:="/original")
 
             Dim generator As ISourceGenerator = New CallbackGenerator(
                 Sub(ctx)
@@ -542,11 +542,11 @@ End Class",
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
             diagnostics.Verify(
-                Diagnostic("BC42502").WithArguments("CallbackGenerator", "ArgumentException", "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '', which is outside of the given file. (Parameter 'diagnostic')").WithLocation(1, 1))
+                ArgumentExceptionDiagnostic("CallbackGenerator", "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1))
             compilation.VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_SpaceInIdentifier_Incremental()
             Dim parseOptions = TestOptions.Regular
@@ -573,11 +573,11 @@ End Class",
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
             diagnostics.Verify(
-                Diagnostic("BC42502").WithArguments("PipelineCallbackGenerator", "ArgumentException", "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier. (Parameter 'diagnostic')").WithLocation(1, 1))
+                ArgumentExceptionDiagnostic("PipelineCallbackGenerator", "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier.", "diagnostic").WithLocation(1, 1))
             compilation.VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(MonoOrCoreClrOnly), Reason:="Desktop CLR displays argument exceptions differently")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")>
         Public Sub Diagnostic_SpaceInIdentifier_Execute()
             Dim parseOptions = TestOptions.Regular
@@ -603,7 +603,7 @@ End Class",
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
             diagnostics.Verify(
-                Diagnostic("BC42502").WithArguments("CallbackGenerator", "ArgumentException", "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier. (Parameter 'diagnostic')").WithLocation(1, 1))
+                ArgumentExceptionDiagnostic("CallbackGenerator", "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier.", "diagnostic").WithLocation(1, 1))
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -645,7 +645,7 @@ End Class",
             Assert.False(testGenerator._sourceExecuted)
         End Sub
 
-        Shared Function GetCompilation(parseOptions As VisualBasicParseOptions, Optional source As String = "") As Compilation
+        Shared Function GetCompilation(parseOptions As VisualBasicParseOptions, Optional source As String = "", Optional sourcePath As String = "") As Compilation
             If (String.IsNullOrWhiteSpace(source)) Then
                 source = "
 Public Class C
@@ -653,7 +653,7 @@ End Class
 "
             End If
 
-            Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+            Dim compilation As Compilation = CreateCompilation(BasicTestSource.Parse(source, sourcePath, parseOptions), options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
             Assert.Single(compilation.SyntaxTrees)
 
@@ -735,6 +735,15 @@ End Class
             outputCompilation.VerifyDiagnostics()
             diagnostics.Verify(expected)
         End Sub
+
+        Shared Function ArgumentExceptionDiagnostic(generatorName As String, message As String, parameterName As String) As DiagnosticDescription
+#If NETCOREAPP Then
+            Dim fullMessage = $"{message} (Parameter '{parameterName}')"
+#Else
+            Dim fullMessage = $"{message}{Environment.NewLine}Parameter name: {parameterName}"
+#End If
+            Return Diagnostic("BC42502").WithArguments(generatorName, NameOf(ArgumentException), fullMessage)
+        End Function
     End Class
 
     <Generator(LanguageNames.VisualBasic)>
