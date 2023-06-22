@@ -595,6 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                 case ErrorCode.ERR_InterceptorCannotInterceptNameof:
+                case ErrorCode.ERR_SymbolDefinedInAssembly:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;

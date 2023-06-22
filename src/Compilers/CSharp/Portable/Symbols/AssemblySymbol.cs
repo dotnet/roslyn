@@ -514,7 +514,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract ImmutableArray<AssemblySymbol> GetLinkedReferencedAssemblies();
         internal abstract void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies);
 
+        IEnumerable<ImmutableArray<byte>> IAssemblySymbolInternal.GetInternalsVisibleToPublicKeys(string simpleName)
+            => GetInternalsVisibleToPublicKeys(simpleName);
+
         internal abstract IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName);
+
+        IEnumerable<string> IAssemblySymbolInternal.GetInternalsVisibleToAssemblyNames()
+            => GetInternalsVisibleToAssemblyNames();
+
+        internal abstract IEnumerable<string> GetInternalsVisibleToAssemblyNames();
+
+        bool IAssemblySymbolInternal.AreInternalsVisibleToThisAssembly(IAssemblySymbolInternal otherAssembly)
+            => AreInternalsVisibleToThisAssembly((AssemblySymbol)otherAssembly);
+
         internal abstract bool AreInternalsVisibleToThisAssembly(AssemblySymbol other);
 
         /// <summary>

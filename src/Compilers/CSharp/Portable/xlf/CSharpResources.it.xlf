@@ -1782,6 +1782,11 @@
         <target state="translated">L'espressione che gestisce lo switch deve essere racchiusa tra parentesi.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="new">'{0}' is defined in assembly '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TooManyCloseBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
         <target state="translated">Il valore letterale stringa non elaborata interpolato non inizia con un numero di caratteri '$' sufficiente per consentire il contenuto di questo numero di parentesi graffe di chiusura consecutive.</target>
@@ -2963,8 +2968,11 @@
 -modulename:&lt;string&gt;          Specify the name of the source module
 -generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
                               specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Opzioni del compilatore Visual C#
 
                        - FILE DI OUTPUT -

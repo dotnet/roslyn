@@ -2119,6 +2119,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (result != null) ? result.Keys : SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
         }
 
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            EnsureAttributesAreBound();
+
+            if (_lazyInternalsVisibleToMap == null)
+                return SpecializedCollections.EmptyEnumerable<string>();
+
+            return _lazyInternalsVisibleToMap.Keys;
+        }
+
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol potentialGiverOfAccess)
         {
             // Ensure that optimistic IVT access is only granted to requests that originated on the thread
