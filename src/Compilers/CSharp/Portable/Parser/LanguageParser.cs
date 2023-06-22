@@ -7430,10 +7430,10 @@ done:;
             var resetPoint = GetResetPoint();
             var attributeDeclarations = ParseAttributeDeclarations(inExpressionContext: true);
 
-            // Rare case, `[...].Goo()`.  i.e. a collection literal being operated as the entire statement.
+            // Rare case, `[...].M()`.  i.e. a collection literal invocation expression as the entire statement.
             //
-            // So, in order to disambiguate these cases, we only accept `[...]` as an attribute as long as:
-            //  1. It's complete (i.e. it ends with `]`) *And*
+            // To disambiguate these cases, we only accept `[...]` as an attribute if:
+            //  1. It's complete (i.e. it ends with `]`) *and*
             //  2. It's not followed by a token that indicates the `[...]` is being used as a value.
             if (attributeDeclarations is [.., { CloseBracketToken.IsMissing: true }] ||
                 attributeDeclarations.Count > 0 && this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken or SyntaxKind.OpenBracketToken)
