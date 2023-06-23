@@ -7118,7 +7118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Aren't we doing roughly the same calculations in GetCorrespondingParameter?
             OverloadResolution.GetEffectiveParameterTypes(
                 definition,
-                arguments,
+                arguments.Length,
                 argsToParamsOpt,
                 refKinds,
                 isMethodGroupConversion: false,

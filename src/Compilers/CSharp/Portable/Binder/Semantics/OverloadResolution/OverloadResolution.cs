@@ -751,7 +751,7 @@ outerDefault:
 
             var effectiveParameters = GetEffectiveParametersInNormalForm(
                 constructor,
-                arguments.Arguments,
+                arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
                 isMethodGroupConversion: false,
@@ -789,7 +789,7 @@ outerDefault:
 
             var effectiveParameters = GetEffectiveParametersInExpandedForm(
                 constructor,
-                arguments.Arguments,
+                arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
                 isMethodGroupConversion: false,
@@ -3072,7 +3072,7 @@ outerDefault:
 
         internal static void GetEffectiveParameterTypes(
             MethodSymbol method,
-            IReadOnlyList<BoundExpression> arguments,
+            int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
             bool isMethodGroupConversion,
@@ -3084,8 +3084,8 @@ outerDefault:
         {
             bool hasAnyRefOmittedArgument;
             EffectiveParameters effectiveParameters = expanded ?
-                GetEffectiveParametersInExpandedForm(method, arguments, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, binder, out hasAnyRefOmittedArgument) :
-                GetEffectiveParametersInNormalForm(method, arguments, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, binder, out hasAnyRefOmittedArgument);
+                GetEffectiveParametersInExpandedForm(method, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, binder, out hasAnyRefOmittedArgument) :
+                GetEffectiveParametersInNormalForm(method, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, binder, out hasAnyRefOmittedArgument);
             parameterTypes = effectiveParameters.ParameterTypes;
             parameterRefKinds = effectiveParameters.ParameterRefKinds;
         }
@@ -3104,7 +3104,7 @@ outerDefault:
 
         private EffectiveParameters GetEffectiveParametersInNormalForm<TMember>(
             TMember member,
-            IReadOnlyList<BoundExpression> arguments,
+            int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
             bool isMethodGroupConversion,
@@ -3112,12 +3112,12 @@ outerDefault:
             where TMember : Symbol
         {
             bool discarded;
-            return GetEffectiveParametersInNormalForm(member, arguments, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, _binder, hasAnyRefOmittedArgument: out discarded);
+            return GetEffectiveParametersInNormalForm(member, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, _binder, hasAnyRefOmittedArgument: out discarded);
         }
 
         private static EffectiveParameters GetEffectiveParametersInNormalForm<TMember>(
             TMember member,
-            IReadOnlyList<BoundExpression> arguments,
+            int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
             bool isMethodGroupConversion,
@@ -3133,7 +3133,7 @@ outerDefault:
             // We simulate an extra parameter for vararg methods
             int parameterCount = member.GetParameterCount() + (member.GetIsVararg() ? 1 : 0);
 
-            if (arguments.Count == parameterCount && argToParamMap.IsDefaultOrEmpty)
+            if (argumentCount == parameterCount && argToParamMap.IsDefaultOrEmpty)
             {
                 ImmutableArray<RefKind> parameterRefKinds = member.GetParameterRefKinds();
                 if (parameterRefKinds.IsDefaultOrEmpty)
@@ -3146,7 +3146,7 @@ outerDefault:
             ArrayBuilder<RefKind> refs = null;
             bool hasAnyRefArg = argumentRefKinds.Any();
 
-            for (int arg = 0; arg < arguments.Count; ++arg)
+            for (int arg = 0; arg < argumentCount; ++arg)
             {
                 int parm = argToParamMap.IsDefault ? arg : argToParamMap[arg];
                 // If this is the __arglist parameter, or an extra argument in error situations, just skip it.
@@ -3158,7 +3158,7 @@ outerDefault:
                 types.Add(parameter.TypeWithAnnotations);
 
                 RefKind argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
-                RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, arguments[arg], argRefKind, isMethodGroupConversion, allowRefOmittedArguments, binder, ref hasAnyRefOmittedArgument);
+                RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, isMethodGroupConversion, allowRefOmittedArguments, binder, ref hasAnyRefOmittedArgument);
 
                 if (refs == null)
                 {
@@ -3180,7 +3180,6 @@ outerDefault:
 
         private static RefKind GetEffectiveParameterRefKind(
             ParameterSymbol parameter,
-            BoundExpression argument,
             RefKind argRefKind,
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
@@ -3203,7 +3202,7 @@ outerDefault:
                         return RefKind.None;
                     }
 
-                    if (argRefKind == RefKind.Ref && ((CSharpParseOptions)argument.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters))
+                    if (argRefKind == RefKind.Ref && binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters))
                     {
                         return RefKind.Ref;
                     }
@@ -3228,19 +3227,19 @@ outerDefault:
 
         private EffectiveParameters GetEffectiveParametersInExpandedForm<TMember>(
             TMember member,
-            IReadOnlyList<BoundExpression> arguments,
+            int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments) where TMember : Symbol
         {
             bool discarded;
-            return GetEffectiveParametersInExpandedForm(member, arguments, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, _binder, hasAnyRefOmittedArgument: out discarded);
+            return GetEffectiveParametersInExpandedForm(member, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, _binder, hasAnyRefOmittedArgument: out discarded);
         }
 
         private static EffectiveParameters GetEffectiveParametersInExpandedForm<TMember>(
             TMember member,
-            IReadOnlyList<BoundExpression> arguments,
+            int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
             bool isMethodGroupConversion,
@@ -3257,7 +3256,7 @@ outerDefault:
             bool hasAnyRefArg = argumentRefKinds.Any();
             hasAnyRefOmittedArgument = false;
 
-            for (int arg = 0; arg < arguments.Count; ++arg)
+            for (int arg = 0; arg < argumentCount; ++arg)
             {
                 var parm = argToParamMap.IsDefault ? arg : argToParamMap[arg];
                 var parameter = parameters[parm];
@@ -3266,7 +3265,7 @@ outerDefault:
                 types.Add(parm == parameters.Length - 1 ? ((ArrayTypeSymbol)type.Type).ElementTypeWithAnnotations : type);
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
-                var paramRefKind = GetEffectiveParameterRefKind(parameter, arguments[arg], argRefKind, isMethodGroupConversion, allowRefOmittedArguments, binder, ref hasAnyRefOmittedArgument);
+                var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, isMethodGroupConversion, allowRefOmittedArguments, binder, ref hasAnyRefOmittedArgument);
 
                 refs.Add(paramRefKind);
                 if (paramRefKind != RefKind.None)
@@ -3324,7 +3323,7 @@ outerDefault:
             // To determine parameter types we use the originalMember.
             EffectiveParameters originalEffectiveParameters = GetEffectiveParametersInNormalForm(
                 GetConstructedFrom(leastOverriddenMember),
-                arguments.Arguments,
+                arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
                 isMethodGroupConversion,
@@ -3337,7 +3336,7 @@ outerDefault:
             // To determine parameter types we use the originalMember.
             EffectiveParameters constructedEffectiveParameters = GetEffectiveParametersInNormalForm(
                 leastOverriddenMember,
-                arguments.Arguments,
+                arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
                 isMethodGroupConversion,
@@ -3394,7 +3393,7 @@ outerDefault:
             // To determine parameter types we use the least derived member.
             EffectiveParameters originalEffectiveParameters = GetEffectiveParametersInExpandedForm(
                 GetConstructedFrom(leastOverriddenMember),
-                arguments.Arguments,
+                arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
                 isMethodGroupConversion: false,
@@ -3407,7 +3406,7 @@ outerDefault:
             // To determine parameter types we use the least derived member.
             EffectiveParameters constructedEffectiveParameters = GetEffectiveParametersInExpandedForm(
                 leastOverriddenMember,
-                arguments.Arguments,
+                arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
                 isMethodGroupConversion: false,
