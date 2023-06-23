@@ -14835,7 +14835,7 @@ namespace N
 {
     record R(int X)
     {
-        protected virtual bool PrintMembers(System.Text.StringBuilder builder)
+        protected virtual bool PrintMembers(System.Text.StringBuilder sb) // note the different parameter name
         {
             return true;
         }
