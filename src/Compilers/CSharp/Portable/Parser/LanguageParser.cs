@@ -7454,30 +7454,24 @@ done:;
             bool tryParseCollectionCreationExpression()
             {
                 // check first for `[x].M()`
-                var collectionExpression = ParseCollectionCreationExpression();
-                if (isLegalCollectionExpressionEndToken(collectionExpression))
+                var expression = (ExpressionSyntax)ParseCollectionCreationExpression();
+                if (isDefinitelyCollectionExpression())
                     return true;
 
                 // continue consuming element access expressions for `[x][y]...` this could be a collection expression
                 // being indexed into, or could be a sequence of attributes.
-                var expression = (ExpressionSyntax)collectionExpression;
                 while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
                 {
-                    var elementAccessExpression = _syntaxFactory.ElementAccessExpression(expression, ParseBracketedArgumentList());
-                    if (isLegalCollectionExpressionEndToken(elementAccessExpression))
+                    expression = _syntaxFactory.ElementAccessExpression(expression, ParseBracketedArgumentList());
+                    if (isDefinitelyCollectionExpression())
                         return true;
-
-                    expression = elementAccessExpression;
                 }
 
                 return false;
             }
 
-            bool isLegalCollectionExpressionEndToken(ExpressionSyntax expression)
-            {
-                return !expression.GetLastToken().IsMissing &&
-                    this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken or SyntaxKind.ExclamationToken;
-            }
+            bool isDefinitelyCollectionExpression()
+                => this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken or SyntaxKind.ExclamationToken;
         }
 
         /// <param name="isGlobal">If we're being called while parsing a C# top-level statements (Script or Simple Program).
