@@ -1951,7 +1951,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Unexpected parse errors.
             comp.VerifyEmitDiagnostics(
                 // (5,9): error CS9503: There is no target type for the collection literal.
                 //         [].GetHashCode();
@@ -1959,27 +1958,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,9): error CS9503: There is no target type for the collection literal.
                 //         []?.GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(6, 9),
-                // (7,9): error CS7014: Attributes are not valid in this context.
+                // (7,9): error CS9503: There is no target type for the collection literal.
                 //         [][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[]").WithLocation(7, 9),
-                // (7,10): error CS1001: Identifier expected
-                //         [][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(7, 10),
-                // (7,12): error CS1001: Identifier expected
-                //         [][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "0").WithLocation(7, 12),
-                // (7,12): error CS1003: Syntax error, ']' expected
-                //         [][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments("]").WithLocation(7, 12),
-                // (7,13): error CS1002: ; expected
-                //         [][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(7, 13),
-                // (7,13): error CS1513: } expected
-                //         [][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "]").WithLocation(7, 13),
-                // (7,15): error CS0120: An object reference is required for the non-static field, method, or property 'object.GetHashCode()'
-                //         [][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "GetHashCode").WithArguments("object.GetHashCode()").WithLocation(7, 15));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(7, 9));
         }
 
         [Fact]
@@ -1997,77 +1978,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Unexpected parse errors.
             comp.VerifyEmitDiagnostics(
-                // (5,9): error CS7014: Attributes are not valid in this context.
+                // (5,9): error CS9503: There is no target type for the collection literal.
                 //         [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[").WithLocation(5, 9),
-                // (5,10): error CS1001: Identifier expected
-                //         [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "1").WithLocation(5, 10),
-                // (5,10): error CS1003: Syntax error, ']' expected
-                //         [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments("]").WithLocation(5, 10),
-                // (5,11): error CS1002: ; expected
-                //         [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(5, 11),
-                // (5,11): error CS1513: } expected
-                //         [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "]").WithLocation(5, 11),
-                // (5,13): error CS0120: An object reference is required for the non-static field, method, or property 'object.GetHashCode()'
-                //         [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "GetHashCode").WithArguments("object.GetHashCode()").WithLocation(5, 13),
-                // (6,9): error CS7014: Attributes are not valid in this context.
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[1]").WithLocation(5, 9),
+                // (6,9): error CS9503: There is no target type for the collection literal.
                 //         [2]?.GetHashCode();
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[").WithLocation(6, 9),
-                // (6,10): error CS1001: Identifier expected
-                //         [2]?.GetHashCode();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "2").WithLocation(6, 10),
-                // (6,10): error CS1003: Syntax error, ']' expected
-                //         [2]?.GetHashCode();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments("]").WithLocation(6, 10),
-                // (6,11): error CS1002: ; expected
-                //         [2]?.GetHashCode();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(6, 11),
-                // (6,11): error CS1513: } expected
-                //         [2]?.GetHashCode();
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "]").WithLocation(6, 11),
-                // (6,14): error CS0120: An object reference is required for the non-static field, method, or property 'object.GetHashCode()'
-                //         [2]?.GetHashCode();
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "GetHashCode").WithArguments("object.GetHashCode()").WithLocation(6, 14),
-                // (7,9): error CS7014: Attributes are not valid in this context.
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[2]").WithLocation(6, 9),
+                // (7,9): error CS9503: There is no target type for the collection literal.
                 //         [3][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[").WithLocation(7, 9),
-                // (7,10): error CS1001: Identifier expected
-                //         [3][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "3").WithLocation(7, 10),
-                // (7,10): error CS1003: Syntax error, ']' expected
-                //         [3][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "3").WithArguments("]").WithLocation(7, 10),
-                // (7,11): error CS1002: ; expected
-                //         [3][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(7, 11),
-                // (7,11): error CS1513: } expected
-                //         [3][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "]").WithLocation(7, 11),
-                // (7,12): error CS7014: Attributes are not valid in this context.
-                //         [3][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[").WithLocation(7, 12),
-                // (7,13): error CS1001: Identifier expected
-                //         [3][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "0").WithLocation(7, 13),
-                // (7,13): error CS1003: Syntax error, ']' expected
-                //         [3][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments("]").WithLocation(7, 13),
-                // (7,14): error CS1002: ; expected
-                //         [3][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(7, 14),
-                // (7,14): error CS1513: } expected
-                //         [3][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "]").WithLocation(7, 14),
-                // (7,16): error CS0120: An object reference is required for the non-static field, method, or property 'object.GetHashCode()'
-                //         [3][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "GetHashCode").WithArguments("object.GetHashCode()").WithLocation(7, 16));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[3]").WithLocation(7, 9));
         }
 
         [Fact]
