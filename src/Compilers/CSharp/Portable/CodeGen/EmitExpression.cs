@@ -958,8 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     argRefKind = argRefKindsOpt[i];
 
                     Debug.Assert(argRefKind == parameters[i].RefKind ||
-                            (argRefKind == RefKindExtensions.StrictIn && parameters[i].RefKind == RefKind.In) ||
-                            (parameters[i].RefKind == RefKind.RefReadOnlyParameter),
+                            argRefKind == RefKindExtensions.StrictIn && parameters[i].RefKind == RefKind.In,
                             "in Emit the argument RefKind must be compatible with the corresponding parameter");
                 }
                 else
