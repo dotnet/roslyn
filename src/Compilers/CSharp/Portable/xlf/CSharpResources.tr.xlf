@@ -397,6 +397,11 @@
         <target state="translated">'{0}, '{1}' arabirim üyesini uygulamıyor. '{2}', '{1}' üyesini uygulayamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
+        <source>Could not find an accessible '{0}' method with the expected signature.</source>
+        <target state="new">Could not find an accessible '{0}' method with the expected signature.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionLiteralNoTargetType">
         <source>There is no target type for the collection literal.</source>
         <target state="new">There is no target type for the collection literal.</target>

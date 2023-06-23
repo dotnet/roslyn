@@ -542,6 +542,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case CollectionLiteralTypeKind.Span:
                 case CollectionLiteralTypeKind.ReadOnlySpan:
                     return BindArrayOrSpanCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, collectionTypeKind, elementType!, diagnostics);
+                case CollectionLiteralTypeKind.CollectionBuilder:
+                    return BindCollectionBuilderCollectionLiteral(node, (NamedTypeSymbol)targetType, wasCompilerGenerated: wasCompilerGenerated, diagnostics);
                 case CollectionLiteralTypeKind.ListInterface:
                     return BindListInterfaceCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, elementType!, diagnostics);
                 case CollectionLiteralTypeKind.None:
@@ -583,49 +585,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, syntax).Construct(elementType),
                     wasCompilerGenerated: wasCompilerGenerated,
                     diagnostics);
-                return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.Elements, targetType);
+                return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.CollectionBuilderMethod, result.Elements, targetType);
             }
 
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
             var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
             foreach (var element in elements)
             {
-                builder.Add(convertArrayElement(element, elementType, diagnostics));
+                builder.Add(ConvertCollectionLiteralArrayElement(element, elementType, diagnostics));
             }
             return new BoundCollectionLiteralExpression(
                 syntax,
                 collectionTypeKind,
                 implicitReceiver,
                 collectionCreation: null,
+                collectionBuilderMethod: null,
                 builder.ToImmutableAndFree(),
                 targetType)
             { WasCompilerGenerated = wasCompilerGenerated };
+        }
 
-            BoundExpression convertArrayElement(BoundExpression element, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
+        private BoundExpression ConvertCollectionLiteralArrayElement(BoundExpression element, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
+        {
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var conversion = Conversions.ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo);
+            diagnostics.Add(element.Syntax, useSiteInfo);
+            bool hasErrors = !conversion.IsValid;
+            if (hasErrors)
             {
-                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var conversion = Conversions.ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo);
-                diagnostics.Add(element.Syntax, useSiteInfo);
-                bool hasErrors = !conversion.IsValid;
-                if (hasErrors)
-                {
-                    GenerateImplicitConversionError(diagnostics, element.Syntax, conversion, element, elementType);
-                    // Suppress any additional diagnostics
-                    diagnostics = BindingDiagnosticBag.Discarded;
-                }
-                var result = CreateConversion(
-                    element.Syntax,
-                    element,
-                    conversion,
-                    isCast: false,
-                    conversionGroupOpt: null,
-                    wasCompilerGenerated: true,
-                    destination: elementType,
-                    diagnostics,
-                    hasErrors: hasErrors);
-                result.WasCompilerGenerated = true;
-                return result;
+                GenerateImplicitConversionError(diagnostics, element.Syntax, conversion, element, elementType);
+                // Suppress any additional diagnostics
+                diagnostics = BindingDiagnosticBag.Discarded;
             }
+            var result = CreateConversion(
+                element.Syntax,
+                element,
+                conversion,
+                isCast: false,
+                conversionGroupOpt: null,
+                wasCompilerGenerated: true,
+                destination: elementType,
+                diagnostics,
+                hasErrors: hasErrors);
+            result.WasCompilerGenerated = true;
+            return result;
         }
 
         private BoundCollectionLiteralExpression BindCollectionInitializerCollectionLiteral(
@@ -688,6 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind,
                 implicitReceiver,
                 collectionCreation,
+                collectionBuilderMethod: null,
                 builder.ToImmutableAndFree(),
                 targetType,
                 hasErrors)
@@ -708,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, node.Syntax).Construct(elementType),
                 wasCompilerGenerated: wasCompilerGenerated,
                 diagnostics);
-            return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.Elements, targetType);
+            return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.CollectionBuilderMethod, result.Elements, targetType);
         }
 
         private BoundCollectionLiteralExpression BindCollectionLiteralForErrorRecovery(
@@ -727,9 +731,131 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind: CollectionLiteralTypeKind.None,
                 placeholder: null,
                 collectionCreation: null,
+                collectionBuilderMethod: null,
                 elements: builder.ToImmutableAndFree(),
                 targetType,
                 hasErrors: true);
+        }
+
+        private BoundCollectionLiteralExpression BindCollectionBuilderCollectionLiteral(
+            BoundUnconvertedCollectionLiteralExpression node,
+            NamedTypeSymbol targetType,
+            bool wasCompilerGenerated,
+            BindingDiagnosticBag diagnostics)
+        {
+            var syntax = node.Syntax;
+
+            targetType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
+            var constructMethod = GetCollectionBuilderMethod(syntax, targetType, builderType, methodName, diagnostics);
+            if (constructMethod is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "");
+                return BindCollectionLiteralForErrorRecovery(node, targetType, diagnostics);
+            }
+
+            var spanType = (NamedTypeSymbol)constructMethod.Parameters[0].Type;
+            Debug.Assert(spanType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
+
+            var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+
+            var elements = node.Elements;
+            if (elements.Any(e => e is BoundCollectionLiteralSpreadElement))
+            {
+                // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
+                // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
+                // PROTOTYPE: Should use CollectionsMarshal.AsSpan<T>(List<T>) instead, to avoid creating an intermediate array in addition to the list.
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
+                var result = BindCollectionInitializerCollectionLiteral(
+                    node,
+                    CollectionLiteralTypeKind.CollectionBuilder,
+                    GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, syntax).Construct(elementType),
+                    wasCompilerGenerated: wasCompilerGenerated,
+                    diagnostics);
+                return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, constructMethod, result.Elements, targetType);
+            }
+
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, spanType) { WasCompilerGenerated = true };
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
+            foreach (var element in elements)
+            {
+                builder.Add(ConvertCollectionLiteralArrayElement(element, elementType, diagnostics));
+            }
+            return new BoundCollectionLiteralExpression(
+                syntax,
+                CollectionLiteralTypeKind.CollectionBuilder,
+                implicitReceiver,
+                collectionCreation: null,
+                collectionBuilderMethod: constructMethod,
+                builder.ToImmutableAndFree(),
+                targetType)
+            { WasCompilerGenerated = wasCompilerGenerated };
+        }
+
+        private MethodSymbol? GetCollectionBuilderMethod(
+            SyntaxNode syntax,
+            NamedTypeSymbol targetType,
+            TypeSymbol? builderType,
+            string? methodName,
+            BindingDiagnosticBag diagnostics)
+        {
+            if (builderType is null
+                || builderType is NamedTypeSymbol { IsGenericType: true }
+                || string.IsNullOrEmpty(methodName))
+            {
+                return null;
+            }
+
+            var allTypeArguments = getAllTypeArguments(targetType);
+            MethodSymbol? method = null;
+
+            foreach (var candidate in builderType.GetMembers(methodName))
+            {
+                if (candidate is MethodSymbol m &&
+                    hasExpectedSignature(Compilation, allTypeArguments, m) &&
+                    IsAccessible(m, syntax, diagnostics)) // PROTOTYPE: Are we reporting errors from IsAccessible()?
+                {
+                    if (allTypeArguments.Length > 0)
+                    {
+                        m = m.Construct(allTypeArguments);
+                    }
+                    if (targetType.Equals(m.ReturnType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        if (method == null)
+                        {
+                            method = m;
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                }
+            }
+
+            return method;
+
+            static ImmutableArray<TypeWithAnnotations> getAllTypeArguments(NamedTypeSymbol targetType)
+            {
+                var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                // PROTOTYPE: Use GetAllTypeArguments() rather than GetAllTypeArgumentsNoUseSiteDiagnostics()
+                // and verify use-site diagnostics.
+                targetType.GetAllTypeArgumentsNoUseSiteDiagnostics(builder);
+                return builder.ToImmutableAndFree();
+            }
+
+            static bool hasExpectedSignature(CSharpCompilation compilation, ImmutableArray<TypeWithAnnotations> allTypeArguments, MethodSymbol method)
+            {
+                return method.IsStatic
+                    && method.Arity == allTypeArguments.Length
+                    && method.Parameters is [var parameter]
+                    && isReadOnlySpanType(compilation, parameter.Type);
+            }
+
+            static bool isReadOnlySpanType(CSharpCompilation compilation, TypeSymbol type)
+            {
+                return type is NamedTypeSymbol { Arity: 1 } namedType
+                    && namedType.OriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions);
+            }
         }
 
         /// <summary>

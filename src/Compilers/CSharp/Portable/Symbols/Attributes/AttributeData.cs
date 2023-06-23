@@ -661,6 +661,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return guidString!;
         }
 
+        internal CollectionBuilderAttributeData DecodeCollectionBuilderAttribute()
+        {
+            var builderType = (TypeSymbol?)CommonConstructorArguments[0].ValueInternal;
+            var methodName = (string?)CommonConstructorArguments[1].ValueInternal;
+            return new CollectionBuilderAttributeData(builderType, methodName);
+        }
+
         private protected sealed override bool IsStringProperty(string memberName)
         {
             if (AttributeClass is object)

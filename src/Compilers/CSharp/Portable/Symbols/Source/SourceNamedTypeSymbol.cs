@@ -1065,9 +1065,10 @@ next:;
             }
         }
 
+#nullable enable
         protected sealed override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            Debug.Assert(arguments.AttributeSyntaxOpt is { });
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
             var attribute = arguments.Attribute;
@@ -1154,6 +1155,10 @@ next:;
             {
                 CSharpAttributeData.DecodeSkipLocalsInitAttribute<TypeWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.CollectionBuilderAttribute))
+            {
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().CollectionBuilder = attribute.DecodeCollectionBuilderAttribute();
+            }
             else if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown && attribute.IsTargetAttribute(this, AttributeDescription.TypeIdentifierAttribute))
             {
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.True;
@@ -1181,6 +1186,7 @@ next:;
                 }
             }
         }
+#nullable disable
 
         internal override bool IsExplicitDefinitionOfNoPiaLocalType
         {
@@ -1310,6 +1316,23 @@ next:;
                 return data != null ? data.ComImportCoClass : null;
             }
         }
+
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            var attributeData = GetDecodedWellKnownAttributeData()?.CollectionBuilder;
+            if (attributeData == null)
+            {
+                builderType = null;
+                methodName = null;
+                return false;
+            }
+
+            builderType = attributeData.BuilderType;
+            methodName = attributeData.MethodName;
+            return true;
+        }
+#nullable disable
 
         private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, BindingDiagnosticBag diagnostics)
         {

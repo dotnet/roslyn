@@ -1888,6 +1888,8 @@
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
     <!-- Constructor call to create the empty collection type. -->
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
+    <!-- Construct method for collection types with [CollectionBuilder]. -->
+    <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
     <!-- Collection literal elements. -->
     <Field Name="Elements" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>

@@ -397,6 +397,11 @@
         <target state="translated">Element „{0}” nie implementuje składowej interfejsu „{1}”. Element „{2}” nie może implementować elementu „{1}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
+        <source>Could not find an accessible '{0}' method with the expected signature.</source>
+        <target state="new">Could not find an accessible '{0}' method with the expected signature.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionLiteralNoTargetType">
         <source>There is no target type for the collection literal.</source>
         <target state="new">There is no target type for the collection literal.</target>

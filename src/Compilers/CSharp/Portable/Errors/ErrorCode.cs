@@ -2239,6 +2239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InterceptorArityNotCompatible = 9177,
         ERR_InterceptorCannotBeGeneric = 9178,
+        ERR_CollectionBuilderAttributeMethodNotFound = 9179,
 
         #endregion
 

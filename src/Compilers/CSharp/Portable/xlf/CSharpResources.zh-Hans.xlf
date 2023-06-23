@@ -397,6 +397,11 @@
         <target state="translated">“{0}”不实现接口成员“{1}”。“{2}”无法实现“{1}”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
+        <source>Could not find an accessible '{0}' method with the expected signature.</source>
+        <target state="new">Could not find an accessible '{0}' method with the expected signature.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionLiteralNoTargetType">
         <source>There is no target type for the collection literal.</source>
         <target state="new">There is no target type for the collection literal.</target>

@@ -15,6 +15,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class CollectionLiteralTests : CSharpTestBase
     {
+        private const string s_constructibleCollectionAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class CollectionBuilderAttribute : Attribute
+                {
+                    public CollectionBuilderAttribute(Type builderType, string methodName) { }
+                }
+            }
+            """;
+
         private const string s_collectionExtensions = """
             using System;
             using System.Collections;
@@ -65,7 +75,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         typeName = typeName.Substring(0, index);
                     }
-                    typeName = Concat(type.Namespace, typeName);
+                    // PROTOTYPE: Fix handling of nested generic types.
+                    //if (type.DeclaringType is { } declaringType)
+                    //{
+                    //    typeName = Concat(GetTypeName(declaringType), typeName);
+                    //}
+                    //else
+                    {
+                        typeName = Concat(type.Namespace, typeName);
+                    }
                     if (!type.IsGenericType)
                     {
                         return typeName;
@@ -5642,6 +5660,1460 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(expectedType, typeInfo.Type?.ToTestDisplayString());
             Assert.Equal(expectedConvertedType, typeInfo.ConvertedType?.ToTestDisplayString());
             Assert.Equal(expectedConversionKind, conversion.Kind);
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_01(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T> : IEnumerable
+                {
+                    private readonly T[] _array;
+                    public MyCollection(T[] array) { _array = array; }
+                    public int Length => _array.Length;
+                    public T this[int index] => _array[index];
+                    IEnumerator IEnumerable.GetEnumerator() => _array.GetEnumerator();
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(items.ToArray());
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c = F1();
+                        c.Report();
+                    }
+                    static MyCollection<int> F1()
+                    {
+                        return [1, 2, 3];
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { sourceB1, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "[1, 2, 3], ");
+            verifier.VerifyIL("Program.F1",
+                """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
+                  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_000a:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+                  IL_000f:  ret
+                }
+                """);
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> c = F2([1, 2]);
+                        c.Report();
+                    }
+                    static MyCollection<object> F2(MyCollection<object> c)
+                    {
+                        return [..c, 3];
+                    }
+                }
+                """;
+
+            verifier = CompileAndVerify(new[] { sourceB2, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "[1, 2, 3], ");
+            verifier.VerifyIL("Program.F2",
+                """
+                {
+                  // Code size       92 (0x5c)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<object> V_0,
+                                System.Collections.IEnumerator V_1,
+                                object V_2,
+                                System.IDisposable V_3)
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarga.s   V_0
+                  IL_0008:  constrained. "MyCollection<object>"
+                  IL_000e:  callvirt   "System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()"
+                  IL_0013:  stloc.1
+                  .try
+                  {
+                    IL_0014:  br.s       IL_0024
+                    IL_0016:  ldloc.1
+                    IL_0017:  callvirt   "object System.Collections.IEnumerator.Current.get"
+                    IL_001c:  stloc.2
+                    IL_001d:  ldloc.0
+                    IL_001e:  ldloc.2
+                    IL_001f:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                    IL_0024:  ldloc.1
+                    IL_0025:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_002a:  brtrue.s   IL_0016
+                    IL_002c:  leave.s    IL_003f
+                  }
+                  finally
+                  {
+                    IL_002e:  ldloc.1
+                    IL_002f:  isinst     "System.IDisposable"
+                    IL_0034:  stloc.3
+                    IL_0035:  ldloc.3
+                    IL_0036:  brfalse.s  IL_003e
+                    IL_0038:  ldloc.3
+                    IL_0039:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_003e:  endfinally
+                  }
+                  IL_003f:  ldloc.0
+                  IL_0040:  ldc.i4.3
+                  IL_0041:  box        "int"
+                  IL_0046:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_004b:  ldloc.0
+                  IL_004c:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
+                  IL_0051:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
+                  IL_0056:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                  IL_005b:  ret
+                }
+                """);
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_02(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public sealed class MyCollection : IEnumerable<int>
+                {
+                    private readonly List<int> _array;
+                    public MyCollection(List<int> array) { _array = array; }
+                    public IEnumerator<int> GetEnumerator() => _array.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                public sealed class MyCollectionBuilder
+                {
+                    public static MyCollection Create(ReadOnlySpan<int> items) =>
+                        new MyCollection(new List<int>(items.ToArray()));
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [];
+                        x.Report();
+                        MyCollection y = [1, 2, 3];
+                        y.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "[], [1, 2, 3], ");
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_03(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public interface IMyCollection<T> : IEnumerable<T>
+                {
+                }
+                public sealed class MyCollectionBuilder
+                {
+                    public static IMyCollection<T> Create<T>(ReadOnlySpan<T> items) =>
+                        new MyCollection<T>(new List<T>(items.ToArray()));
+                    private sealed class MyCollection<T> : IMyCollection<T>
+                    {
+                        private readonly List<T> _array;
+                        public MyCollection(List<T> array) { _array = array; }
+                        public IEnumerator<T> GetEnumerator() => _array.GetEnumerator();
+                        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        IMyCollection<string> x = [];
+                        x.Report(includeType: true);
+                        IMyCollection<int> y = [1, 2, 3];
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollection<System.String>) [], (MyCollection<System.Int32>) [1, 2, 3], ");
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_04(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                public class Container
+                {
+                    [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                    public sealed class MyCollection<T> : IEnumerable<T>
+                    {
+                        private readonly List<T> _array;
+                        public MyCollection(List<T> array) { _array = array; }
+                        public IEnumerator<T> GetEnumerator() => _array.GetEnumerator();
+                        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    }
+                    public sealed class MyCollectionBuilder
+                    {
+                        public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                            => new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Container.MyCollection<string> x = [];
+                        x.Report(includeType: true);
+                        Container.MyCollection<int> y = [1, 2, 3];
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollection<System.String>) [], (MyCollection<System.Int32>) [1, 2, 3], ");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void CollectionBuilder_MissingType()
+        {
+            string sourceA = """
+                public class MyCollectionBuilder
+                {
+                }
+                """;
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net70);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T>
+                {
+                }
+                """;
+            comp = CreateCompilation(new[] { sourceB, s_constructibleCollectionAttributeDefinition }, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            var refB = comp.EmitToImageReference();
+
+            string sourceC = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceC, references: new[] { refB }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
+                // (7,34): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_MissingMethod(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T>
+                {
+                }
+                public class MyCollectionBuilder
+                {
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
+                // (7,34): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_NullType(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(null, "Create")]
+                public struct MyCollection<T>
+                {
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
+                // (7,34): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_InvalidType_01(
+            [CombinatorialValues("int[]", "int*")] string typeName,
+            bool useCompilationReference)
+        {
+            string sourceA = $$"""
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof({{typeName}}), "ToString")]
+                public struct MyCollection<T>
+                {
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9179: Could not find an accessible 'ToString' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("ToString").WithLocation(6, 31),
+                // (7,34): error CS9179: Could not find an accessible 'ToString' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("ToString").WithLocation(7, 34));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void CollectionBuilder_InvalidType_02()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                struct Container<T>
+                {
+                    [CollectionBuilder(typeof(T), "ToString")]
+                    public struct MyCollection
+                    {
+                    }
+                }
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        Container<int>.MyCollection x = [];
+                        Container<string>.MyCollection y = [null];
+                        Container<object>.MyCollection z = new();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(4,24): error CS0416: 'T': an attribute argument cannot use type parameters
+                //     [CollectionBuilder(typeof(T), "ToString")]
+                Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(T)").WithArguments("T").WithLocation(4, 24),
+                // 0.cs(14,41): error CS9174: Cannot initialize type 'Container<int>.MyCollection' with a collection literal because the type is not constructible.
+                //         Container<int>.MyCollection x = [];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("Container<int>.MyCollection").WithLocation(14, 41),
+                // 0.cs(15,44): error CS9174: Cannot initialize type 'Container<string>.MyCollection' with a collection literal because the type is not constructible.
+                //         Container<string>.MyCollection y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[null]").WithArguments("Container<string>.MyCollection").WithLocation(15, 44));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_InvalidMethodName_01(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), null)]
+                public struct MyCollection<T>
+                {
+                }
+                public class MyCollectionBuilder
+                {
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9179: Could not find an accessible '' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("").WithLocation(6, 31),
+                // (7,34): error CS9179: Could not find an accessible '' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("").WithLocation(7, 34));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_InvalidMethodName_02(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "")]
+                public struct MyCollection<T>
+                {
+                }
+                public class MyCollectionBuilder
+                {
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9179: Could not find an accessible '' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("").WithLocation(6, 31),
+                // (7,34): error CS9179: Could not find an accessible '' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("").WithLocation(7, 34));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_InstanceMethod(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T>
+                {
+                }
+                public class MyCollectionBuilder
+                {
+                        public MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
+                // (7,34): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_ElementType(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                public sealed class E<T>
+                {
+                    private readonly T _t;
+                    public E(T t) { _t = t; }
+                    public override string ToString() => $"E({_t})";
+                }
+                [CollectionBuilder(typeof(Builder), "Create")]
+                public sealed class C<T> : IEnumerable<E<T>>
+                {
+                    private readonly List<E<T>> _array;
+                    public C(List<E<T>> array) { _array = array; }
+                    public IEnumerator<E<T>> GetEnumerator() => _array.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                public sealed class Builder
+                {
+                    public static C<T> Create<T>(ReadOnlySpan<E<T>> items)
+                        => new C<T>(new List<E<T>>(items.ToArray()));
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        C<string> x = [null];
+                        x.Report(includeType: true);
+                        C<int> y = [new E<int>(1), default];
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(C<System.String>) [null], (C<System.Int32>) [E(1), null], ");
+        }
+
+        // PROTOTYPE: Test ignorable differences between expected and actual parameter types and return types: nullability, tuple element names, etc.
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_GenericType_01(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder<>), "Create")]
+                public struct MyCollection<T>
+                {
+                }
+                public sealed class MyCollectionBuilder<T>
+                {
+                    public static MyCollection<T> Create(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
+                // (7,34): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_GenericType_02(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder<int>), "Create")]
+                public struct MyCollection<T>
+                {
+                }
+                public sealed class MyCollectionBuilder<T>
+                {
+                    public static MyCollection<U> Create<U>(ReadOnlySpan<U> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
+                // (7,34): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void CollectionBuilder_GenericType_03()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                public class Container<T>
+                {
+                    [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                    public struct MyCollection : IEnumerable<T>
+                    {
+                        private readonly List<T> _array;
+                        public MyCollection(List<T> array) { _array = array; }
+                        public IEnumerator<T> GetEnumerator() => _array.GetEnumerator();
+                        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    }
+                    public sealed class MyCollectionBuilder
+                    {
+                        public static MyCollection Create(ReadOnlySpan<T> items)
+                            => new MyCollection(new List<T>(items.ToArray()));
+                    }
+                }
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        Container<string>.MyCollection x = [];
+                        Container<int>.MyCollection y = [default];
+                        Container<object>.MyCollection z = new();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(7,24): error CS0416: 'Container<T>.MyCollectionBuilder': an attribute argument cannot use type parameters
+                //     [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(MyCollectionBuilder)").WithArguments("Container<T>.MyCollectionBuilder").WithLocation(7, 24),
+                // 0.cs(27,42): error CS1061: 'Container<int>.MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'Container<int>.MyCollection' could be found (are you missing a using directive or an assembly reference?)
+                //         Container<int>.MyCollection y = [default];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "default").WithArguments("Container<int>.MyCollection", "Add").WithLocation(27, 42));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_GenericType_04(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                public class Container<T>
+                {
+                    [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                    public struct MyCollection : IEnumerable<T>
+                    {
+                        private readonly List<T> _array;
+                        public MyCollection(List<T> array) { _array = array; }
+                        public IEnumerator<T> GetEnumerator() => _array.GetEnumerator();
+                        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    }
+                }
+                public sealed class MyCollectionBuilder
+                {
+                    public static Container<T>.MyCollection Create<T>(ReadOnlySpan<T> items)
+                        => new Container<T>.MyCollection(new List<T>(items.ToArray()));
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Container<string>.MyCollection x = [];
+                        x.Report(includeType: true);
+                        Container<int>.MyCollection y = [1, 2, 3];
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollection<System.String>) [], (MyCollection<System.Int32>) [1, 2, 3], ");
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_GenericType_05(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                public class Container<T>
+                {
+                    [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                    public struct MyCollection : IEnumerable<int>
+                    {
+                        private readonly List<int> _array;
+                        public MyCollection(List<int> array) { _array = array; }
+                        public IEnumerator<int> GetEnumerator() => _array.GetEnumerator();
+                        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    }
+                }
+                public sealed class MyCollectionBuilder
+                {
+                    public static Container<T>.MyCollection Create<T>(ReadOnlySpan<int> items)
+                        => new Container<T>.MyCollection(new List<int>(items.ToArray()));
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Container<int>.MyCollection x = [];
+                        x.Report(includeType: true);
+                        Container<string>.MyCollection y = [1, 2, 3];
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollection<System.Int32>) [], (MyCollection<System.String>) [1, 2, 3], ");
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_GenericType_06(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                public class Container<T>
+                {
+                    [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                    public struct MyCollection<U> : IEnumerable<U>
+                    {
+                        private readonly List<U> _array;
+                        public MyCollection(List<U> array) { _array = array; }
+                        public IEnumerator<U> GetEnumerator() => _array.GetEnumerator();
+                        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    }
+                }
+                public sealed class MyCollectionBuilder
+                {
+                    public static Container<T>.MyCollection<U> Create<T, U>(ReadOnlySpan<U> items)
+                        => new Container<T>.MyCollection<U>(new List<U>(items.ToArray()));
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Container<int>.MyCollection<string> x = [];
+                        x.Report(includeType: true);
+                        Container<string>.MyCollection<int> y = [1, 2, 3];
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollection<System.Int32, System.String>) [], (MyCollection<System.String, System.Int32>) [1, 2, 3], ");
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_GenericType_ElementTypeFirstOfTwo(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T, U> : IEnumerable<T>
+                {
+                    private readonly List<T> _array;
+                    public MyCollection(List<T> array) { _array = array; }
+                    public IEnumerator<T> GetEnumerator() => _array.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                public sealed class MyCollectionBuilder
+                {
+                    public static MyCollection<T, U> Create<T, U>(ReadOnlySpan<T> items)
+                        => new MyCollection<T, U>(new List<T>(items.ToArray()));
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string, int> x = [];
+                        x.Report(includeType: true);
+                        MyCollection<int, string> y = [1, 2, 3];
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollection<System.String, System.Int32>) [], (MyCollection<System.Int32, System.String>) [1, 2, 3], ");
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_GenericType_ElementTypeSecondOfTwo(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T, U> : IEnumerable<U>
+                {
+                    private readonly List<U> _array;
+                    public MyCollection(List<U> array) { _array = array; }
+                    public IEnumerator<U> GetEnumerator() => _array.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                public sealed class MyCollectionBuilder
+                {
+                    public static MyCollection<T, U> Create<T, U>(ReadOnlySpan<U> items)
+                        => new MyCollection<T, U>(new List<U>(items.ToArray()));
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int, string> x = [];
+                        x.Report(includeType: true);
+                        MyCollection<string, int> y = [1, 2, 3];
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollection<System.Int32, System.String>) [], (MyCollection<System.String, System.Int32>) [1, 2, 3], ");
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_InaccessibleType_01(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T>
+                {
+                }
+                internal class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
+                // (7,34): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_InaccessibleType_02(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public class MyCollection : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    protected class MyCollectionBuilder
+                    {
+                        public static MyCollection Create(ReadOnlySpan<int> items) => default;
+                    }
+                    static readonly MyCollection _instance = [1, 2, 3];
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [];
+                        MyCollection y = [1, 2, 3];
+                        MyCollection z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,26): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 26),
+                // (7,26): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(7, 26));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_InaccessibleMethod(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T>
+                {
+                    static readonly MyCollection<int> _instance = [1, 2, 3];
+                }
+                public class MyCollectionBuilder
+                {
+                    internal static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
+                // (7,34): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_Overloads_01(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T> : IEnumerable
+                {
+                    private readonly T[] _array;
+                    public MyCollection(T[] array) { _array = array; }
+                    IEnumerator IEnumerable.GetEnumerator() => _array.GetEnumerator();
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>()
+                    {
+                        throw null;
+                    }
+                    public static MyCollection<T> Create<T>(Span<T> items)
+                    {
+                        throw null;
+                    }
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(items.ToArray());
+                    }
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, int index = 0)
+                    {
+                        throw null;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x = [];
+                        x.Report();
+                        MyCollection<int> y = [1, 2, 3];
+                        y.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "[], [1, 2, 3], ");
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_Overloads_02(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T> : IEnumerable
+                {
+                    private readonly T[] _array;
+                    public MyCollection(T[] array) { _array = array; }
+                    IEnumerator IEnumerable.GetEnumerator() => _array.GetEnumerator();
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(items.ToArray());
+                    }
+                    public static MyCollection<int> Create(ReadOnlySpan<int> items)
+                    {
+                        throw null;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x = [];
+                        x.Report();
+                        MyCollection<int> y = [1, 2, 3];
+                        y.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "[], [1, 2, 3], ");
+        }
+
+        // PROTOTYPE: Test overloaded instance and static methods. May require creating from IL.
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_UnexpectedSignature_01(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T>
+                {
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<int> Create(ReadOnlySpan<int> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x = [];
+                        MyCollection<int> y = [1, 2, 3];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (5,34): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 34),
+                // (6,31): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 31));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_UnexpectedSignature_02(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T>
+                {
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<int> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x = [];
+                        MyCollection<int> y = [1, 2, 3];
+                        MyCollection<string> z = ["4"];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            // PROTOTYPE: x = [] and y = [1, 2, 3] should not bind successfully.
+            comp.VerifyEmitDiagnostics(
+                // (7,35): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         MyCollection<string> z = ["4"];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""4""").WithArguments("string", "int").WithLocation(7, 35));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_UnexpectedSignature_03(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T>
+                {
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<int> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x = [];
+                        MyCollection<int> y = [1, 2, 3];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            // PROTOTYPE: y = [1, 2, 3] should not bind successfully.
+            comp.VerifyEmitDiagnostics(
+                // (5,34): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 34));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_UnexpectedSignature_04(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T>
+                {
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, int index = 0) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x = [];
+                        MyCollection<int> y = [1, 2, 3];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (5,34): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 34),
+                // (6,31): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 31));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_UnexpectedSignature_05(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T>
+                {
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T, U>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x = [];
+                        MyCollection<int> y = [1, 2, 3];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (5,34): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 34),
+                // (6,31): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 31));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_UnexpectedSignature_06(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection
+                {
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [];
+                        MyCollection y = [1, 2, 3];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (5,26): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 26),
+                // (6,26): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 26));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_UnexpectedSignature_07(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection
+                {
+                }
+                public class MyCollectionBuilder
+                {
+                    public static void Create(ReadOnlySpan<int> items) { }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [];
+                        MyCollection y = [1, 2, 3];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (5,26): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 26),
+                // (6,26): error CS9179: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 26));
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
