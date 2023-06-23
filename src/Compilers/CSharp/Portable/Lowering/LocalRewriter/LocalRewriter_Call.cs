@@ -917,12 +917,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return actualArguments.AsImmutableOrNull();
         }
 
+        // PROTOTYPE: Do we need strict RefReadonlyParameter?
         /// <summary>
         /// Patch refKinds for arguments that match 'in', 'ref', or 'ref readonly' parameters to have effective RefKind.
         /// For the purpose of further analysis we will mark the arguments as -
-        /// - In                    if was originally passed as None or Ref
-        /// - StrictIn              if was originally passed as In
-        /// - RefReadOnlyParameter  if was originally passed as None, In, or Ref
+        /// - In                    if was originally passed as None and matches an 'in' parameter
+        /// - StrictIn              if was originally passed as In or Ref and matches an 'in' parameter
+        /// - RefReadOnlyParameter  if was originally passed as None, In, or Ref and matches a 'ref readonly' parameter
         /// - Ref                   if the argument is an interpolated string literal subject to an interpolated string handler conversion. No other types
         ///                         are patched here.
         /// Here and in the layers after the lowering we only care about None/notNone differences for the arguments
@@ -1161,9 +1162,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Patch refKinds for arguments that match 'in' or 'ref readonly' parameters to have effective RefKind
                 // For the purpose of further analysis we will mark the arguments as -
-                // - In                    if was originally passed as None
-                // - StrictIn              if was originally passed as In or Ref
-                // - RefReadOnlyParameter  if was originally passed as None, In, or Ref
+                // - In                    if was originally passed as None and matches an 'in' parameter
+                // - StrictIn              if was originally passed as In or Ref and matches an 'in' parameter
+                // - RefReadOnlyParameter  if was originally passed as None, In, or Ref and matches a 'ref readonly' parameter
                 // Here and in the layers after the lowering we only care about None/notNone differences for the arguments
                 // Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
                 if (paramRefKind == RefKind.In)
