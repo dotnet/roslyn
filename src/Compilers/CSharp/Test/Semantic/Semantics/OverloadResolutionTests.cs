@@ -9484,7 +9484,79 @@ public static class Program
             };
 
             CompileAndVerify(code, expectedOutput: "5", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-            CompileAndVerify(code, expectedOutput: "5").VerifyDiagnostics(expectedDiagnostics);
+            var verifier = CompileAndVerify(code, expectedOutput: "5").VerifyDiagnostics(expectedDiagnostics);
+
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       10 (0xa)
+                  .maxstack  1
+                  .locals init (int V_0) //x
+                  IL_0000:  ldc.i4.5
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  call       "void Program.Method(in int)"
+                  IL_0009:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_ReadonlyRef()
+        {
+            var code = """
+                public static class Program
+                {
+                    public static void Method(in int p)
+                    {
+                        System.Console.WriteLine(p);
+                    }
+                    static readonly int x = 5;
+                    public static void Main()
+                    {
+                        Method(ref x);
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,20): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
+                //         Method(ref x);
+                Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "x").WithLocation(10, 20)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_RValue()
+        {
+            var code = """
+                public static class Program
+                {
+                    public static void Method(in int p)
+                    {
+                        System.Console.WriteLine(p);
+                    }
+                    public static void Main()
+                    {
+                        Method(ref 5);
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,20): error CS1510: A ref or out value must be an assignable variable
+                //         Method(ref 5);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "5").WithLocation(9, 20)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
