@@ -7962,7 +7962,7 @@ public partial struct CustomHandler
             }
         }
 
-        private void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(string mRef, string customHandlerRef, string expression, params DiagnosticDescription[] expectedDiagnostics)
+        private void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(CSharpParseOptions parseOptions, string mRef, string customHandlerRef, string expression, params DiagnosticDescription[] expectedDiagnostics)
         {
             var code = @"
 using System.Runtime.CompilerServices;
@@ -7982,7 +7982,7 @@ public partial struct CustomHandler
 ";
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: parseOptions);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
@@ -7996,7 +7996,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_RefNone(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("ref", "", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "ref", "", expression,
                 // (5,9): error CS1615: Argument 3 may not be passed with the 'ref' keyword
                 // C.M(ref i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "ref").WithLocation(5, 9));
@@ -8007,7 +8007,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_RefOut(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("ref", "out", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "ref", "out", expression,
                 // (5,9): error CS1620: Argument 3 must be passed with the 'out' keyword
                 // C.M(ref i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "out").WithLocation(5, 9));
@@ -8018,10 +8018,84 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_RefIn(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("ref", "in", expression,
-                // (5,9): warning CS9501: Argument 3 should not be passed with the 'ref' keyword
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(TestOptions.Regular11, "ref", "in", expression,
+                // 0.cs(5,9): error CS1615: Argument 3 may not be passed with the 'ref' keyword
                 // C.M(ref i, $"");
-                Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("3", "ref").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "ref").WithLocation(5, 9));
+        }
+
+        [Theory, CombinatorialData]
+        public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_RefIn_CSharp12(
+            [CombinatorialValues(@"$""text""", @"$""text"" + $""""")] string expression)
+        {
+            var code = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                int x = 10;
+                C.M(ref x, {{expression}});
+
+                public class C
+                {
+                    public static void M(ref int i, [InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c) => Console.WriteLine(c.ToString());
+                }
+
+                public partial struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, in int i) : this(literalLength, formattedCount) 
+                    {
+                        _builder.AppendLine("i:" + i.ToString());
+                    }
+                }
+                """;
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
+            var verifier = CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput: """
+                i:10
+                literal:text
+                """);
+
+            verifier.VerifyDiagnostics(
+                // 0.cs(5,9): warning CS9502: Argument 3 should not be passed with the 'ref' keyword
+                // C.M(ref x, $"text");
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("3", "ref").WithLocation(5, 9));
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  4
+                  .locals init (int V_0, //x
+                                int& V_1,
+                                CustomHandler V_2)
+                  IL_0000:  ldc.i4.s   10
+                  IL_0002:  stloc.0
+                  IL_0003:  ldloca.s   V_0
+                  IL_0005:  stloc.1
+                  IL_0006:  ldloc.1
+                  IL_0007:  ldc.i4.4
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  ldloc.1
+                  IL_000a:  newobj     "CustomHandler..ctor(int, int, in int)"
+                  IL_000f:  stloc.2
+                  IL_0010:  ldloca.s   V_2
+                  IL_0012:  ldstr      "text"
+                  IL_0017:  call       "bool CustomHandler.AppendLiteral(string)"
+                  IL_001c:  pop
+                  IL_001d:  ldloc.2
+                  IL_001e:  call       "void C.M(ref int, CustomHandler)"
+                  IL_0023:  ret
+                }
+                """);
+
+            static void validate(ModuleSymbol module)
+            {
+                var cParam = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
+                AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                               cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+                Assert.Equal(0, cParam.InterpolatedStringHandlerArgumentIndexes.Single());
+                Assert.False(cParam.HasInterpolatedStringHandlerArgumentError);
+            }
         }
 
         [Theory]
@@ -8029,7 +8103,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_InNone(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("in", "", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "in", "", expression,
                 // (5,8): error CS1615: Argument 3 may not be passed with the 'in' keyword
                 // C.M(in i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "in").WithLocation(5, 8));
@@ -8040,7 +8114,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_InOut(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("in", "out", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "in", "out", expression,
                 // (5,8): error CS1620: Argument 3 must be passed with the 'out' keyword
                 // C.M(in i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "out").WithLocation(5, 8));
@@ -8051,7 +8125,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_InRef(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("in", "ref", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "in", "ref", expression,
                 // (5,8): error CS1620: Argument 3 must be passed with the 'ref' keyword
                 // C.M(in i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "ref").WithLocation(5, 8));
@@ -8062,7 +8136,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_OutNone(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("out", "", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "out", "", expression,
                 // (5,9): error CS1615: Argument 3 may not be passed with the 'out' keyword
                 // C.M(out i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "out").WithLocation(5, 9));
@@ -8073,7 +8147,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_OutRef(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("out", "ref", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "out", "ref", expression,
                 // (5,9): error CS1620: Argument 3 must be passed with the 'ref' keyword
                 // C.M(out i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "ref").WithLocation(5, 9));
@@ -8084,7 +8158,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_NoneRef(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("", "ref", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "", "ref", expression,
                 // (5,6): error CS1620: Argument 3 must be passed with the 'ref' keyword
                 // C.M( i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "ref").WithLocation(5, 6));
@@ -8095,7 +8169,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_NoneOut(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("", "out", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "", "out", expression,
                 // (5,6): error CS1620: Argument 3 must be passed with the 'out' keyword
                 // C.M( i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "out").WithLocation(5, 6));
@@ -17452,7 +17526,7 @@ partial struct CustomHandler
 using System.Runtime.CompilerServices;
 
 var s = new S1();
-s.M($"""");
+s.M($""text"");
 
 public struct S1
 {
@@ -17462,21 +17536,54 @@ public struct S1
 
 public static class S1Ext
 {
-    public static void M(ref this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => throw null;
+    public static void M(ref this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => System.Console.WriteLine(c.ToString());
 }
 
 partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, in S1 s) => throw null;
+    public CustomHandler(int literalLength, int formattedCount, in S1 s) : this(literalLength, formattedCount) { }
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) });
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (5,1): warning CS9501: Argument 3 should not be passed with the 'ref' keyword
+                // 0.cs(5,1): error CS1615: Argument 3 may not be passed with the 'ref' keyword
                 // s.M($"");
-                Diagnostic(ErrorCode.WRN_BadArgRef, "s").WithArguments("3", "ref").WithLocation(5, 1)
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("3", "ref").WithLocation(5, 1)
             );
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler },
+                expectedOutput: "literal:text");
+            verifier.VerifyDiagnostics(
+                // 0.cs(5,1): warning CS9502: Argument 3 should not be passed with the 'ref' keyword
+                // s.M($"text");
+                Diagnostic(ErrorCode.WRN_BadArgRef, "s").WithArguments("3", "ref").WithLocation(5, 1));
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  4
+                  .locals init (S1 V_0, //s
+                                S1& V_1,
+                                CustomHandler V_2)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  call       "S1..ctor()"
+                  IL_0007:  ldloca.s   V_0
+                  IL_0009:  stloc.1
+                  IL_000a:  ldloc.1
+                  IL_000b:  ldc.i4.4
+                  IL_000c:  ldc.i4.0
+                  IL_000d:  ldloc.1
+                  IL_000e:  newobj     "CustomHandler..ctor(int, int, in S1)"
+                  IL_0013:  stloc.2
+                  IL_0014:  ldloca.s   V_2
+                  IL_0016:  ldstr      "text"
+                  IL_001b:  call       "void CustomHandler.AppendLiteral(string)"
+                  IL_0020:  ldloc.2
+                  IL_0021:  call       "void S1Ext.M(ref S1, CustomHandler)"
+                  IL_0026:  ret
+                }
+                """);
         }
 
         [Fact]
