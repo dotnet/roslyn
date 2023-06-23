@@ -7437,8 +7437,8 @@ done:;
             this.Reset(ref resetPoint);
 
             // If this was a collection expression, not an attribute declaration, return no attributes so that the
-            // caller will parse this out as a collection expression. Otherwise parse out the actual attribute
-            // declarations.
+            // caller will parse this out as a collection expression. Otherwise re-parse the code as the actual
+            // attribute declarations.
             var attributes = isCollectionExpression ? default : ParseAttributeDeclarations(inExpressionContext: true);
 
             this.Release(ref resetPoint);
