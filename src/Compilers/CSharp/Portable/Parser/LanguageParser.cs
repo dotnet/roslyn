@@ -7430,41 +7430,27 @@ done:;
             // See if we should treat this as a collection expression.  At the top-level or statement-level, this should
             // only be considered a collection if followed by a `.`, `?` or `!` (indicating it's a value, not an
             // attribute).
-
             var resetPoint = GetResetPoint();
 
-            var isCollectionExpression = treatBracketAsCollectionExpression();
-            this.Reset(ref resetPoint);
+            // Grab the first part as a collection expression.
+            var expression = (ExpressionSyntax)ParseCollectionCreationExpression();
+
+            // continue consuming element access expressions for `[x][y]...`.  We have to determine if this is a
+            // collection expression being indexed into, or if its a sequence of attributes.
+            while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+                expression = _syntaxFactory.ElementAccessExpression(expression, ParseBracketedArgumentList());
+
+            // Check the next token to see if it indicates the `[...]` sequence we have is a term or not. 
+            var isCollectionExpression = this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken or SyntaxKind.ExclamationToken;
 
             // If this was a collection expression, not an attribute declaration, return no attributes so that the
             // caller will parse this out as a collection expression. Otherwise re-parse the code as the actual
             // attribute declarations.
+            this.Reset(ref resetPoint);
             var attributes = isCollectionExpression ? default : ParseAttributeDeclarations(inExpressionContext: true);
-
             this.Release(ref resetPoint);
+
             return attributes;
-
-            bool treatBracketAsCollectionExpression()
-            {
-                // check first for `[x].M()`
-                var expression = (ExpressionSyntax)ParseCollectionCreationExpression();
-                if (isDefinitelyCollectionExpression())
-                    return true;
-
-                // continue consuming element access expressions for `[x][y]...` this could be a collection expression
-                // being indexed into, or could be a sequence of attributes.
-                while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
-                {
-                    expression = _syntaxFactory.ElementAccessExpression(expression, ParseBracketedArgumentList());
-                    if (isDefinitelyCollectionExpression())
-                        return true;
-                }
-
-                return false;
-            }
-
-            bool isDefinitelyCollectionExpression()
-                => this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken or SyntaxKind.ExclamationToken;
         }
 
         /// <param name="isGlobal">If we're being called while parsing a C# top-level statements (Script or Simple Program).
