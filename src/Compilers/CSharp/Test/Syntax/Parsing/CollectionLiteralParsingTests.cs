@@ -10132,4 +10132,794 @@ class C
         }
         EOF();
     }
+
+    [Fact]
+    public void MemberAccess20()
+    {
+        UsingTree("""
+            class Program
+            {
+                static void Main()
+                {
+                    [[A]].GetHashCode();
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "Program");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Main");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                {
+                                    N(SyntaxKind.CollectionCreationExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.CollectionCreationExpression);
+                                            {
+                                                N(SyntaxKind.OpenBracketToken);
+                                                N(SyntaxKind.ExpressionElement);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "A");
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseBracketToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "GetHashCode");
+                                    }
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess20A()
+    {
+        UsingTree("""
+            [[A]].GetHashCode();
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.CollectionCreationExpression);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.ExpressionElement);
+                                {
+                                    N(SyntaxKind.CollectionCreationExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "A");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "GetHashCode");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess21()
+    {
+        UsingTree("""
+            class Program
+            {
+                static void Main()
+                {
+                    [A([B])].GetHashCode();
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "Program");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Main");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                {
+                                    N(SyntaxKind.CollectionCreationExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.InvocationExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "A");
+                                                }
+                                                N(SyntaxKind.ArgumentList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.Argument);
+                                                    {
+                                                        N(SyntaxKind.CollectionCreationExpression);
+                                                        {
+                                                            N(SyntaxKind.OpenBracketToken);
+                                                            N(SyntaxKind.ExpressionElement);
+                                                            {
+                                                                N(SyntaxKind.IdentifierName);
+                                                                {
+                                                                    N(SyntaxKind.IdentifierToken, "B");
+                                                                }
+                                                            }
+                                                            N(SyntaxKind.CloseBracketToken);
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "GetHashCode");
+                                    }
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess21A()
+    {
+        UsingTree("""
+            [A([B])].GetHashCode();
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.CollectionCreationExpression);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.ExpressionElement);
+                                {
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.CollectionCreationExpression);
+                                                {
+                                                    N(SyntaxKind.OpenBracketToken);
+                                                    N(SyntaxKind.ExpressionElement);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "B");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CloseBracketToken);
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "GetHashCode");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess22()
+    {
+        UsingTree("""
+            class Program
+            {
+                static void Main()
+                {
+                    [A([B])] GetHashCode();
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "Program");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Main");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.CollectionCreationExpression);
+                                            {
+                                                N(SyntaxKind.OpenBracketToken);
+                                                N(SyntaxKind.ExpressionElement);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "B");
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseBracketToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "GetHashCode");
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess22A()
+    {
+        UsingTree("""
+            [A([B])] GetHashCode();
+            """,
+            // (1,21): error CS1001: Identifier expected
+            // [A([B])] GetHashCode();
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 21));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.CollectionCreationExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "B");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "GetHashCode");
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void AttributeOnTopLevelFunction1()
+    {
+        UsingTree("""
+            [A([B])] void Goo() { }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.CollectionCreationExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "B");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void AttributeOnTopLevelFunction2()
+    {
+        UsingTree("""
+            [A([B])] A Goo() { }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.CollectionCreationExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "B");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "A");
+                    }
+                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void AttributeOnTopLevelFunction3()
+    {
+        UsingTree("""
+            [A([B])] (A, B) Goo() { }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.CollectionCreationExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "B");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.TupleType);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void AttributeOnTopLevelFunction4()
+    {
+        UsingTree("""
+            [A([B])] (A, B) Goo<A,B>() { }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.CollectionCreationExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "B");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.TupleType);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "B");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
 }
