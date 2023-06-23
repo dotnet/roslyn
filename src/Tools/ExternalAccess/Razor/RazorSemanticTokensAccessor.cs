@@ -18,5 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public static ImmutableArray<string> GetTokenTypes(ClientCapabilities capabilities) => SemanticTokensSchema.GetSchema(capabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true }).AllTokenTypes;
 
         public static ImmutableArray<string> GetTokenTypes(bool clientSupportsVisualStudioExtensions) => SemanticTokensSchema.GetSchema(clientSupportsVisualStudioExtensions).AllTokenTypes;
+
+        public static string[] GetTokenModifiers() => SemanticTokensSchema.TokenModifiers;
     }
 }
