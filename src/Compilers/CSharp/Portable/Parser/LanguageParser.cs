@@ -7433,7 +7433,7 @@ done:;
             var resetPoint = GetResetPoint();
 
             // Grab the first part as a collection expression.
-            ParseCollectionCreationExpression();
+            ParseCollectionExpression();
 
             // Continue consuming element access expressions for `[x][y]...`.  We have to determine if this is a
             // collection expression being indexed into, or if it's a sequence of attributes.
@@ -10254,7 +10254,7 @@ done:;
                 case SyntaxKind.ArrayCreationExpression:
                 case SyntaxKind.BaseExpression:
                 case SyntaxKind.CharacterLiteralExpression:
-                case SyntaxKind.CollectionCreationExpression:
+                case SyntaxKind.CollectionExpression:
                 case SyntaxKind.ConditionalAccessExpression:
                 case SyntaxKind.DeclarationExpression:
                 case SyntaxKind.DefaultExpression:
@@ -10792,7 +10792,7 @@ done:;
                 case SyntaxKind.OpenBracketToken:
                     return this.IsPossibleLambdaExpression(precedence)
                         ? this.ParseLambdaExpression()
-                        : this.ParseCollectionCreationExpression();
+                        : this.ParseCollectionExpression();
                 case SyntaxKind.ThisKeyword:
                     return _syntaxFactory.ThisExpression(this.EatToken());
                 case SyntaxKind.BaseKeyword:
@@ -11060,7 +11060,7 @@ done:;
                 using var _ = GetDisposableResetPoint(resetOnDispose: true);
 
                 this.EatToken();
-                var collectionExpression = this.ParseCollectionCreationExpression();
+                var collectionExpression = this.ParseCollectionExpression();
 
                 // PROTOTYPE: Def back compat concern here.  What if the user has `x ? y?[0] : z` this would be legal,
                 // but will now change to `y?[0] : z` being a ternary.  Have to decide if this is acceptable break.
@@ -12002,7 +12002,7 @@ done:;
             }
         }
 
-        private CollectionCreationExpressionSyntax ParseCollectionCreationExpression()
+        private CollectionExpressionSyntax ParseCollectionExpression()
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenBracketToken);
             var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
@@ -12016,7 +12016,7 @@ done:;
                 requireOneElement: false,
                 allowSemicolonAsSeparator: false);
 
-            return _syntaxFactory.CollectionCreationExpression(
+            return _syntaxFactory.CollectionExpression(
                 openBracket,
                 list,
                 this.EatToken(SyntaxKind.CloseBracketToken));

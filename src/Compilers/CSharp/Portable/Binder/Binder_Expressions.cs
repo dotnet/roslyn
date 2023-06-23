@@ -765,8 +765,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // may be used by SemanticModel for error cases.
                     return BadExpression(node);
 
-                case SyntaxKind.CollectionCreationExpression:
-                    return BindCollectionLiteralExpression((CollectionCreationExpressionSyntax)node, diagnostics);
+                case SyntaxKind.CollectionExpression:
+                    return BindCollectionLiteralExpression((CollectionExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.NullableType:
                     // Not reachable during method body binding, but
@@ -4560,7 +4560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private BoundExpression BindCollectionLiteralExpression(CollectionCreationExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
+        private BoundExpression BindCollectionLiteralExpression(CollectionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureCollectionLiterals.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 

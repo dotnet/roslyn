@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax GenerateImplicitStackAllocArrayCreationExpression()
             => InternalSyntaxFactory.ImplicitStackAllocArrayCreationExpression(InternalSyntaxFactory.Token(SyntaxKind.StackAllocKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken), GenerateInitializerExpression());
 
-        private static Syntax.InternalSyntax.CollectionCreationExpressionSyntax GenerateCollectionCreationExpression()
-            => InternalSyntaxFactory.CollectionCreationExpression(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.CollectionElementSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+        private static Syntax.InternalSyntax.CollectionExpressionSyntax GenerateCollectionExpression()
+            => InternalSyntaxFactory.CollectionExpression(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.CollectionElementSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static Syntax.InternalSyntax.ExpressionElementSyntax GenerateExpressionElement()
             => InternalSyntaxFactory.ExpressionElement(GenerateIdentifierName());
@@ -1534,9 +1534,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCollectionCreationExpressionFactoryAndProperties()
+        public void TestCollectionExpressionFactoryAndProperties()
         {
-            var node = GenerateCollectionCreationExpression();
+            var node = GenerateCollectionExpression();
 
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind);
             Assert.Equal(default, node.Elements);
@@ -5593,9 +5593,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCollectionCreationExpressionTokenDeleteRewriter()
+        public void TestCollectionExpressionTokenDeleteRewriter()
         {
-            var oldNode = GenerateCollectionCreationExpression();
+            var oldNode = GenerateCollectionExpression();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -5609,9 +5609,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCollectionCreationExpressionIdentityRewriter()
+        public void TestCollectionExpressionIdentityRewriter()
         {
-            var oldNode = GenerateCollectionCreationExpression();
+            var oldNode = GenerateCollectionExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -10348,8 +10348,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static ImplicitStackAllocArrayCreationExpressionSyntax GenerateImplicitStackAllocArrayCreationExpression()
             => SyntaxFactory.ImplicitStackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), SyntaxFactory.Token(SyntaxKind.OpenBracketToken), SyntaxFactory.Token(SyntaxKind.CloseBracketToken), GenerateInitializerExpression());
 
-        private static CollectionCreationExpressionSyntax GenerateCollectionCreationExpression()
-            => SyntaxFactory.CollectionCreationExpression(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), new SeparatedSyntaxList<CollectionElementSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+        private static CollectionExpressionSyntax GenerateCollectionExpression()
+            => SyntaxFactory.CollectionExpression(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), new SeparatedSyntaxList<CollectionElementSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static ExpressionElementSyntax GenerateExpressionElement()
             => SyntaxFactory.ExpressionElement(GenerateIdentifierName());
@@ -11671,9 +11671,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCollectionCreationExpressionFactoryAndProperties()
+        public void TestCollectionExpressionFactoryAndProperties()
         {
-            var node = GenerateCollectionCreationExpression();
+            var node = GenerateCollectionExpression();
 
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind());
             Assert.Equal(default, node.Elements);
@@ -15730,9 +15730,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCollectionCreationExpressionTokenDeleteRewriter()
+        public void TestCollectionExpressionTokenDeleteRewriter()
         {
-            var oldNode = GenerateCollectionCreationExpression();
+            var oldNode = GenerateCollectionExpression();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -15746,9 +15746,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCollectionCreationExpressionIdentityRewriter()
+        public void TestCollectionExpressionIdentityRewriter()
         {
-            var oldNode = GenerateCollectionCreationExpression();
+            var oldNode = GenerateCollectionExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
             Assert.Equal(3, collections.Length);
             VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: "System.Object", ConversionKind.NoConversion);
             VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "dynamic", ConversionKind.NoConversion);
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
             Assert.Equal(3, collections.Length);
             VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: "System.Object", ConversionKind.NoConversion);
             VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "dynamic", ConversionKind.NoConversion);
@@ -5479,7 +5479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionCreationExpressionSyntax>().ToArray();
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
             Assert.Equal(12, collections.Length);
             VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: "System.Int32[]", ConversionKind.CollectionLiteral);
             VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "System.Collections.Generic.List<System.Object>", ConversionKind.CollectionLiteral);
@@ -5671,7 +5671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
-            VerifyOperationTreeForTest<CollectionCreationExpressionSyntax>(comp,
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
 @"IArrayCreationOperation (OperationKind.ArrayCreation, Type: T[]) (Syntax: '[a, b]')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[a, b]')
@@ -5727,7 +5727,7 @@ Block[B2] - Exit
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
 
-            VerifyOperationTreeForTest<CollectionCreationExpressionSyntax>(comp,
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
 @"IObjectCreationOperation (Constructor: System.Span<T>..ctor(T[]? array)) (OperationKind.ObjectCreation, Type: System.Span<T>) (Syntax: '[a, b]')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[a, b]')
@@ -5808,7 +5808,7 @@ Block[B2] - Exit
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
-            VerifyOperationTreeForTest<CollectionCreationExpressionSyntax>(comp,
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
 @"IObjectCreationOperation (Constructor: S<T>..ctor()) (OperationKind.ObjectCreation, Type: S<T>) (Syntax: '[a, b]')
   Arguments(0)
   Initializer:
@@ -5909,7 +5909,7 @@ Block[B2] - Exit
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
-            VerifyOperationTreeForTest<CollectionCreationExpressionSyntax>(comp,
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
 @"ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: '[a, b]')
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T, IsImplicit) (Syntax: '[a, b]')
@@ -5998,7 +5998,7 @@ Block[B2] - Exit
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
-            VerifyOperationTreeForTest<CollectionCreationExpressionSyntax>(comp,
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
 @"IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '[[Get(1)]]')
     Arguments(0)
     Initializer:
@@ -6138,7 +6138,7 @@ Block[B4] - Exit
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
-            VerifyOperationTreeForTest<CollectionCreationExpressionSyntax>(comp,
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 IInvalidOperation (OperationKind.Invalid, Type: System.Int32[]) (Syntax: '[..a]')
                   Children(0)
@@ -6184,7 +6184,7 @@ Block[B4] - Exit
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
-            VerifyOperationTreeForTest<CollectionCreationExpressionSyntax>(comp,
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[..a]')
                   Arguments(0)

@@ -19,7 +19,7 @@ public class CollectionLiteralParsingTests : ParsingTests
     {
         UsingExpression("[A, B]", TestOptions.Regular.WithLanguageVersion(languageVersion));
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.ExpressionElement);
@@ -64,7 +64,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                         {
                             N(SyntaxKind.SimpleMemberAccessExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.ExpressionElement);
@@ -120,7 +120,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.ExpressionElement);
@@ -175,7 +175,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.DictionaryElement);
@@ -238,7 +238,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.DictionaryElement);
@@ -356,7 +356,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.DictionaryElement);
@@ -477,7 +477,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.DictionaryElement);
@@ -579,7 +579,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.DictionaryElement);
@@ -644,7 +644,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                         N(SyntaxKind.EqualsToken);
                         N(SyntaxKind.ConditionalAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.ExpressionElement);
@@ -704,7 +704,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                 {
                     N(SyntaxKind.ConditionalAccessExpression);
                     {
-                        N(SyntaxKind.CollectionCreationExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.ExpressionElement);
@@ -772,7 +772,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                         {
                             N(SyntaxKind.PointerMemberAccessExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.ExpressionElement);
@@ -828,7 +828,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                     {
                         N(SyntaxKind.PointerMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.ExpressionElement);
@@ -885,7 +885,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                         {
                             N(SyntaxKind.ElementAccessExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.ExpressionElement);
@@ -948,7 +948,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                         {
                             N(SyntaxKind.ElementAccessExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.ExpressionElement);
@@ -1061,7 +1061,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                         N(SyntaxKind.EqualsToken);
                         N(SyntaxKind.IsPatternExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.ExpressionElement);
@@ -1132,7 +1132,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                         N(SyntaxKind.EqualsToken);
                         N(SyntaxKind.WithExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.ExpressionElement);
@@ -1188,7 +1188,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                         N(SyntaxKind.EqualsToken);
                         N(SyntaxKind.SwitchExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.ExpressionElement);
@@ -1478,7 +1478,7 @@ class C
                         N(SyntaxKind.EqualsToken);
                         N(SyntaxKind.AddExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.ExpressionElement);
@@ -1499,7 +1499,7 @@ class C
                                 N(SyntaxKind.CloseBracketToken);
                             }
                             N(SyntaxKind.PlusToken);
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.ExpressionElement);
@@ -1547,7 +1547,7 @@ class C
                             N(SyntaxKind.IdentifierToken, "_");
                         }
                         N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.CollectionCreationExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.CloseBracketToken);
@@ -1579,12 +1579,12 @@ class C
                             N(SyntaxKind.IdentifierToken, "_");
                         }
                         N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.CollectionCreationExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.ExpressionElement);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.CloseBracketToken);
@@ -1619,18 +1619,18 @@ class C
                             N(SyntaxKind.IdentifierToken, "_");
                         }
                         N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.CollectionCreationExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.DictionaryElement);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.CloseBracketToken);
                                 }
                                 N(SyntaxKind.ColonToken);
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.CloseBracketToken);
@@ -1669,7 +1669,7 @@ class C
                             N(SyntaxKind.IdentifierToken, "_");
                         }
                         N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.CollectionCreationExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.DictionaryElement);
@@ -1717,7 +1717,7 @@ class C
                             N(SyntaxKind.IdentifierToken, "_");
                         }
                         N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.CollectionCreationExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.DictionaryElement);
@@ -1768,7 +1768,7 @@ class C
                             N(SyntaxKind.IdentifierToken, "_");
                         }
                         N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.CollectionCreationExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.DictionaryElement);
@@ -1812,7 +1812,7 @@ class C
                             N(SyntaxKind.IdentifierToken, "_");
                         }
                         N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.CollectionCreationExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.DictionaryElement);
@@ -1859,7 +1859,7 @@ class C
     {
         UsingExpression("[a ? b : c : d]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.DictionaryElement);
@@ -1897,7 +1897,7 @@ class C
     {
         UsingExpression("[a : b ? c : d]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.DictionaryElement);
@@ -1935,7 +1935,7 @@ class C
     {
         UsingExpression("[a ? b : c : d ? e : f]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.DictionaryElement);
@@ -1986,7 +1986,7 @@ class C
     {
         UsingExpression("[a ?? b : c]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.DictionaryElement);
@@ -2019,7 +2019,7 @@ class C
     {
         UsingExpression("[a : b ?? c]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.DictionaryElement);
@@ -2052,7 +2052,7 @@ class C
     {
         UsingExpression("[a ?? b : c ?? d]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.DictionaryElement);
@@ -2093,7 +2093,7 @@ class C
     {
         UsingExpression("[from x in y select x : c]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.DictionaryElement);
@@ -2138,7 +2138,7 @@ class C
     {
         UsingExpression("[a : from x in y select x]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.DictionaryElement);
@@ -2183,7 +2183,7 @@ class C
     {
         UsingExpression("[from a in b select a : from x in y select x]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.DictionaryElement);
@@ -2248,7 +2248,7 @@ class C
     {
         UsingExpression("[a ? [b] : c]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.ExpressionElement);
@@ -2260,7 +2260,7 @@ class C
                         N(SyntaxKind.IdentifierToken, "a");
                     }
                     N(SyntaxKind.QuestionToken);
-                    N(SyntaxKind.CollectionCreationExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
                         N(SyntaxKind.OpenBracketToken);
                         N(SyntaxKind.ExpressionElement);
@@ -2291,7 +2291,7 @@ class C
 
         N(SyntaxKind.ConditionalExpression);
         {
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -2304,7 +2304,7 @@ class C
                 N(SyntaxKind.CloseBracketToken);
             }
             N(SyntaxKind.QuestionToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -2332,7 +2332,7 @@ class C
 
         N(SyntaxKind.ConditionalAccessExpression);
         {
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -2377,7 +2377,7 @@ class C
     {
         UsingExpression("[(a ? [b]) : c]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.DictionaryElement);
@@ -2492,7 +2492,7 @@ class C
                 }
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -2554,7 +2554,7 @@ class C
                 }
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -2616,7 +2616,7 @@ class C
                 }
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -2786,7 +2786,7 @@ class C
                 N(SyntaxKind.QuestionToken);
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -2843,7 +2843,7 @@ class C
                 }
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -2916,7 +2916,7 @@ class C
                 }
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -3025,7 +3025,7 @@ class C
                 N(SyntaxKind.CloseParenToken);
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -3139,7 +3139,7 @@ class C
                 N(SyntaxKind.QuestionToken);
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -3200,7 +3200,7 @@ class C
                 }
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -3249,7 +3249,7 @@ class C
             N(SyntaxKind.ParenthesizedExpression);
             {
                 N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.CollectionCreationExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
                     N(SyntaxKind.OpenBracketToken);
                     N(SyntaxKind.ExpressionElement);
@@ -3304,7 +3304,7 @@ class C
                 }
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -3678,7 +3678,7 @@ class C
                 }
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -3748,7 +3748,7 @@ class C
                 }
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -3805,7 +3805,7 @@ class C
                 }
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -3834,7 +3834,7 @@ class C
                 N(SyntaxKind.IdentifierToken, "A");
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.CloseBracketToken);
@@ -3995,7 +3995,7 @@ class C
                 }
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.CloseBracketToken);
@@ -4033,7 +4033,7 @@ class C
                 N(SyntaxKind.CloseParenToken);
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.CloseBracketToken);
@@ -4129,7 +4129,7 @@ class C
                 }
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.CloseBracketToken);
@@ -4165,7 +4165,7 @@ class C
                 }
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.CloseBracketToken);
@@ -4205,12 +4205,12 @@ class C
                 }
             }
             N(SyntaxKind.CloseParenToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
                 {
-                    N(SyntaxKind.CollectionCreationExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
                         N(SyntaxKind.OpenBracketToken);
                         N(SyntaxKind.ExpressionElement);
@@ -4234,7 +4234,7 @@ class C
     {
         UsingExpression("[.. from x in y select x]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -4277,7 +4277,7 @@ class C
 
         N(SyntaxKind.InvocationExpression);
         {
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -4316,7 +4316,7 @@ class C
             N(SyntaxKind.PlusPlusToken);
             N(SyntaxKind.InvocationExpression);
             {
-                N(SyntaxKind.CollectionCreationExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
                     N(SyntaxKind.OpenBracketToken);
                     N(SyntaxKind.ExpressionElement);
@@ -4395,7 +4395,7 @@ class C
     {
         UsingExpression("[A,]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.ExpressionElement);
@@ -4416,7 +4416,7 @@ class C
     {
         UsingExpression("[A,B,]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.ExpressionElement);
@@ -4448,7 +4448,7 @@ class C
             // [A,B,,]
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 6));
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.ExpressionElement);
@@ -4491,7 +4491,7 @@ class C
             // [A,B,,,]
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 7));
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.ExpressionElement);
@@ -4539,7 +4539,7 @@ class C
         N(SyntaxKind.UnaryMinusExpression);
         {
             N(SyntaxKind.MinusToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -4562,7 +4562,7 @@ class C
 
         N(SyntaxKind.CoalesceExpression);
         {
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -4575,7 +4575,7 @@ class C
                 N(SyntaxKind.CloseBracketToken);
             }
             N(SyntaxKind.QuestionQuestionToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -4596,7 +4596,7 @@ class C
     {
         UsingExpression("[..x ?? y]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -4627,7 +4627,7 @@ class C
 
         N(SyntaxKind.SuppressNullableWarningExpression);
         {
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -4652,7 +4652,7 @@ class C
         N(SyntaxKind.PreIncrementExpression);
         {
             N(SyntaxKind.PlusPlusToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -4675,7 +4675,7 @@ class C
 
         N(SyntaxKind.PostIncrementExpression);
         {
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -4733,7 +4733,7 @@ class C
                     N(SyntaxKind.AwaitExpression);
                     {
                         N(SyntaxKind.AwaitKeyword);
-                        N(SyntaxKind.CollectionCreationExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.ExpressionElement);
@@ -4794,7 +4794,7 @@ class C
                             N(SyntaxKind.AwaitExpression);
                             {
                                 N(SyntaxKind.AwaitKeyword);
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.ExpressionElement);
@@ -4891,7 +4891,7 @@ class C
     {
         UsingExpression("[..e]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -4912,7 +4912,7 @@ class C
     {
         UsingExpression("[.. ..]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -4933,7 +4933,7 @@ class C
     {
         UsingExpression("[.. ..e]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -4958,7 +4958,7 @@ class C
     {
         UsingExpression("[.. e..]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -4983,7 +4983,7 @@ class C
     {
         UsingExpression("[.. e1..e2]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -5012,7 +5012,7 @@ class C
     {
         UsingExpression("[..throw e]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -5037,7 +5037,7 @@ class C
     {
         UsingExpression("[..x.y]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -5066,7 +5066,7 @@ class C
     {
         UsingExpression("[..x = y]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -5095,7 +5095,7 @@ class C
     {
         UsingExpression("[..x => y]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -5124,7 +5124,7 @@ class C
     {
         UsingExpression("[..x ? y : z]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -5158,7 +5158,7 @@ class C
     {
         UsingExpression("[..e..]");
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -5400,7 +5400,7 @@ class C
             // [,]
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 2));
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             M(SyntaxKind.ExpressionElement);
@@ -5424,7 +5424,7 @@ class C
             // [,A]
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 2));
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             M(SyntaxKind.ExpressionElement);
@@ -5458,7 +5458,7 @@ class C
             // [,,]
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 3));
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             M(SyntaxKind.ExpressionElement);
@@ -5490,7 +5490,7 @@ class C
             // [..]
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 4));
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -5517,7 +5517,7 @@ class C
             // [...e]
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments(".").WithLocation(1, 4));
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -5549,7 +5549,7 @@ class C
             // [....]
             Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 2));
 
-        N(SyntaxKind.CollectionCreationExpression);
+        N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
             N(SyntaxKind.SpreadElement);
@@ -5837,7 +5837,7 @@ class C
                 }
             }
             N(SyntaxKind.QuestionToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.CloseBracketToken);
@@ -5862,7 +5862,7 @@ class C
             N(SyntaxKind.Interpolation);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.CollectionCreationExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
                     N(SyntaxKind.OpenBracketToken);
                     N(SyntaxKind.DictionaryElement);
@@ -5903,7 +5903,7 @@ class C
             N(SyntaxKind.Interpolation);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.CollectionCreationExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
                     N(SyntaxKind.OpenBracketToken);
                     N(SyntaxKind.DictionaryElement);
@@ -5935,7 +5935,7 @@ class C
         N(SyntaxKind.AddressOfExpression);
         {
             N(SyntaxKind.AmpersandToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -5959,7 +5959,7 @@ class C
         N(SyntaxKind.AddressOfExpression);
         {
             N(SyntaxKind.AmpersandToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -5993,7 +5993,7 @@ class C
             N(SyntaxKind.AmpersandToken);
             N(SyntaxKind.ElementAccessExpression);
             {
-                N(SyntaxKind.CollectionCreationExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
                     N(SyntaxKind.OpenBracketToken);
                     N(SyntaxKind.ExpressionElement);
@@ -6038,7 +6038,7 @@ class C
         N(SyntaxKind.AddressOfExpression);
         {
             N(SyntaxKind.AmpersandToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.DictionaryElement);
@@ -6067,7 +6067,7 @@ class C
         N(SyntaxKind.PointerIndirectionExpression);
         {
             N(SyntaxKind.AsteriskToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.CloseBracketToken);
@@ -6084,7 +6084,7 @@ class C
         N(SyntaxKind.PointerIndirectionExpression);
         {
             N(SyntaxKind.AsteriskToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -6108,7 +6108,7 @@ class C
         N(SyntaxKind.PointerIndirectionExpression);
         {
             N(SyntaxKind.AsteriskToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -6142,7 +6142,7 @@ class C
             N(SyntaxKind.AsteriskToken);
             N(SyntaxKind.ElementAccessExpression);
             {
-                N(SyntaxKind.CollectionCreationExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
                     N(SyntaxKind.OpenBracketToken);
                     N(SyntaxKind.ExpressionElement);
@@ -6187,7 +6187,7 @@ class C
         N(SyntaxKind.PointerIndirectionExpression);
         {
             N(SyntaxKind.AsteriskToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.DictionaryElement);
@@ -6294,7 +6294,7 @@ class C
             N(SyntaxKind.ArrayInitializerExpression);
             {
                 M(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.CollectionCreationExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
                     N(SyntaxKind.OpenBracketToken);
                     N(SyntaxKind.ExpressionElement);
@@ -6324,7 +6324,7 @@ class C
                 N(SyntaxKind.IdentifierToken, "_");
             }
             N(SyntaxKind.EqualsToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -6370,7 +6370,7 @@ class C
                 N(SyntaxKind.IdentifierToken, "_");
             }
             N(SyntaxKind.EqualsToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -6426,7 +6426,7 @@ class C
                 N(SyntaxKind.IdentifierToken, "_");
             }
             N(SyntaxKind.EqualsToken);
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -6559,7 +6559,7 @@ class C
                                     N(SyntaxKind.OpenParenToken);
                                     N(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.ExpressionElement);
@@ -6704,7 +6704,7 @@ class C
                                     N(SyntaxKind.OpenParenToken);
                                     N(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.ExpressionElement);
@@ -6857,7 +6857,7 @@ class C
                                     N(SyntaxKind.OpenParenToken);
                                     N(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.ExpressionElement);
@@ -7013,7 +7013,7 @@ class C
                                     N(SyntaxKind.OpenParenToken);
                                     N(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.ExpressionElement);
@@ -7157,7 +7157,7 @@ class C
                                     N(SyntaxKind.OpenParenToken);
                                     N(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.ExpressionElement);
@@ -7312,7 +7312,7 @@ class C
                                     N(SyntaxKind.OpenParenToken);
                                     N(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.ExpressionElement);
@@ -7404,7 +7404,7 @@ class C
                             {
                                 N(SyntaxKind.SimpleMemberAccessExpression);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
                                         N(SyntaxKind.ExpressionElement);
@@ -7482,7 +7482,7 @@ class C
                             {
                                 N(SyntaxKind.SimpleMemberAccessExpression);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
                                         N(SyntaxKind.ExpressionElement);
@@ -7558,7 +7558,7 @@ class C
                         {
                             N(SyntaxKind.ConditionalAccessExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.ExpressionElement);
@@ -7640,7 +7640,7 @@ class C
                         {
                             N(SyntaxKind.ConditionalAccessExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.ExpressionElement);
@@ -7699,7 +7699,7 @@ class C
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.ExpressionElement);
@@ -7748,7 +7748,7 @@ class C
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.ExpressionElement);
@@ -7795,7 +7795,7 @@ class C
                 {
                     N(SyntaxKind.ConditionalAccessExpression);
                     {
-                        N(SyntaxKind.CollectionCreationExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.ExpressionElement);
@@ -7848,7 +7848,7 @@ class C
                 {
                     N(SyntaxKind.ConditionalAccessExpression);
                     {
-                        N(SyntaxKind.CollectionCreationExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.ExpressionElement);
@@ -7931,7 +7931,7 @@ class C
                                 {
                                     N(SyntaxKind.ElementAccessExpression);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.ExpressionElement);
@@ -8000,7 +8000,7 @@ class C
                         {
                             N(SyntaxKind.ElementAccessExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.ExpressionElement);
@@ -8090,7 +8090,7 @@ class C
                                 {
                                     N(SyntaxKind.ElementAccessExpression);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.ExpressionElement);
@@ -8159,7 +8159,7 @@ class C
                         {
                             N(SyntaxKind.ElementAccessExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.ExpressionElement);
@@ -8249,7 +8249,7 @@ class C
                                 {
                                     N(SyntaxKind.ElementAccessExpression);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.ExpressionElement);
@@ -8318,7 +8318,7 @@ class C
                         {
                             N(SyntaxKind.ElementAccessExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.ExpressionElement);
@@ -8408,7 +8408,7 @@ class C
                                 {
                                     N(SyntaxKind.ElementAccessExpression);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.ExpressionElement);
@@ -8477,7 +8477,7 @@ class C
                         {
                             N(SyntaxKind.ElementAccessExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.ExpressionElement);
@@ -8564,7 +8564,7 @@ class C
                             {
                                 N(SyntaxKind.SimpleMemberAccessExpression);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
                                         N(SyntaxKind.CloseBracketToken);
@@ -8610,7 +8610,7 @@ class C
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.CloseBracketToken);
@@ -8675,7 +8675,7 @@ class C
                         {
                             N(SyntaxKind.ConditionalAccessExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.CloseBracketToken);
@@ -8725,7 +8725,7 @@ class C
                 {
                     N(SyntaxKind.ConditionalAccessExpression);
                     {
-                        N(SyntaxKind.CollectionCreationExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.CloseBracketToken);
@@ -8800,7 +8800,7 @@ class C
                                 {
                                     N(SyntaxKind.ElementAccessExpression);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.CloseBracketToken);
@@ -8861,7 +8861,7 @@ class C
                         {
                             N(SyntaxKind.ElementAccessExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.CloseBracketToken);
@@ -8943,7 +8943,7 @@ class C
                                 {
                                     N(SyntaxKind.SuppressNullableWarningExpression);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.CloseBracketToken);
@@ -8993,7 +8993,7 @@ class C
                         {
                             N(SyntaxKind.SuppressNullableWarningExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.CloseBracketToken);
@@ -9064,7 +9064,7 @@ class C
                                 {
                                     N(SyntaxKind.SuppressNullableWarningExpression);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.ExpressionElement);
@@ -9121,7 +9121,7 @@ class C
                         {
                             N(SyntaxKind.SuppressNullableWarningExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.ExpressionElement);
@@ -9199,7 +9199,7 @@ class C
                                 {
                                     N(SyntaxKind.SuppressNullableWarningExpression);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.DictionaryElement);
@@ -9261,7 +9261,7 @@ class C
                         {
                             N(SyntaxKind.SuppressNullableWarningExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.DictionaryElement);
@@ -9344,7 +9344,7 @@ class C
                                 {
                                     N(SyntaxKind.SuppressNullableWarningExpression);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.ExpressionElement);
@@ -9409,7 +9409,7 @@ class C
                         {
                             N(SyntaxKind.SuppressNullableWarningExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.ExpressionElement);
@@ -9497,7 +9497,7 @@ class C
                                     {
                                         N(SyntaxKind.ElementAccessExpression);
                                         {
-                                            N(SyntaxKind.CollectionCreationExpression);
+                                            N(SyntaxKind.CollectionExpression);
                                             {
                                                 N(SyntaxKind.OpenBracketToken);
                                                 N(SyntaxKind.ExpressionElement);
@@ -9577,7 +9577,7 @@ class C
                             {
                                 N(SyntaxKind.ElementAccessExpression);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
                                         N(SyntaxKind.ExpressionElement);
@@ -9678,7 +9678,7 @@ class C
                                     {
                                         N(SyntaxKind.ElementAccessExpression);
                                         {
-                                            N(SyntaxKind.CollectionCreationExpression);
+                                            N(SyntaxKind.CollectionExpression);
                                             {
                                                 N(SyntaxKind.OpenBracketToken);
                                                 N(SyntaxKind.CloseBracketToken);
@@ -9743,7 +9743,7 @@ class C
                             {
                                 N(SyntaxKind.ElementAccessExpression);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
                                         N(SyntaxKind.CloseBracketToken);
@@ -9827,7 +9827,7 @@ class C
                                 {
                                     N(SyntaxKind.ElementAccessExpression);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.DictionaryElement);
@@ -9908,7 +9908,7 @@ class C
                         {
                             N(SyntaxKind.ElementAccessExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.DictionaryElement);
@@ -10010,7 +10010,7 @@ class C
                                 {
                                     N(SyntaxKind.ElementAccessExpression);
                                     {
-                                        N(SyntaxKind.CollectionCreationExpression);
+                                        N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
                                             N(SyntaxKind.SpreadElement);
@@ -10083,7 +10083,7 @@ class C
                         {
                             N(SyntaxKind.ElementAccessExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.SpreadElement);
@@ -10175,12 +10175,12 @@ class C
                             {
                                 N(SyntaxKind.SimpleMemberAccessExpression);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
                                         N(SyntaxKind.ExpressionElement);
                                         {
-                                            N(SyntaxKind.CollectionCreationExpression);
+                                            N(SyntaxKind.CollectionExpression);
                                             {
                                                 N(SyntaxKind.OpenBracketToken);
                                                 N(SyntaxKind.ExpressionElement);
@@ -10236,12 +10236,12 @@ class C
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.ExpressionElement);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
                                         N(SyntaxKind.ExpressionElement);
@@ -10318,7 +10318,7 @@ class C
                             {
                                 N(SyntaxKind.SimpleMemberAccessExpression);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
                                         N(SyntaxKind.ExpressionElement);
@@ -10334,7 +10334,7 @@ class C
                                                     N(SyntaxKind.OpenParenToken);
                                                     N(SyntaxKind.Argument);
                                                     {
-                                                        N(SyntaxKind.CollectionCreationExpression);
+                                                        N(SyntaxKind.CollectionExpression);
                                                         {
                                                             N(SyntaxKind.OpenBracketToken);
                                                             N(SyntaxKind.ExpressionElement);
@@ -10394,7 +10394,7 @@ class C
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.ExpressionElement);
@@ -10410,7 +10410,7 @@ class C
                                             N(SyntaxKind.OpenParenToken);
                                             N(SyntaxKind.Argument);
                                             {
-                                                N(SyntaxKind.CollectionCreationExpression);
+                                                N(SyntaxKind.CollectionExpression);
                                                 {
                                                     N(SyntaxKind.OpenBracketToken);
                                                     N(SyntaxKind.ExpressionElement);
@@ -10501,7 +10501,7 @@ class C
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.AttributeArgument);
                                         {
-                                            N(SyntaxKind.CollectionCreationExpression);
+                                            N(SyntaxKind.CollectionExpression);
                                             {
                                                 N(SyntaxKind.OpenBracketToken);
                                                 N(SyntaxKind.ExpressionElement);
@@ -10573,7 +10573,7 @@ class C
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.AttributeArgument);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
                                         N(SyntaxKind.ExpressionElement);
@@ -10636,7 +10636,7 @@ class C
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.AttributeArgument);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
                                         N(SyntaxKind.ExpressionElement);
@@ -10703,7 +10703,7 @@ class C
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.AttributeArgument);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
                                         N(SyntaxKind.ExpressionElement);
@@ -10770,7 +10770,7 @@ class C
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.AttributeArgument);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
                                         N(SyntaxKind.ExpressionElement);
@@ -10853,7 +10853,7 @@ class C
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.AttributeArgument);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
                                         N(SyntaxKind.ExpressionElement);
@@ -10950,7 +10950,7 @@ class C
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.AttributeArgument);
                                 {
-                                    N(SyntaxKind.CollectionCreationExpression);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
                                         N(SyntaxKind.ExpressionElement);
@@ -11025,7 +11025,7 @@ class C
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.AttributeArgument);
                                         {
-                                            N(SyntaxKind.CollectionCreationExpression);
+                                            N(SyntaxKind.CollectionExpression);
                                             {
                                                 N(SyntaxKind.OpenBracketToken);
                                                 N(SyntaxKind.ExpressionElement);

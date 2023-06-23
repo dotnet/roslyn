@@ -532,7 +532,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[0]')
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[0]").WithLocation(6, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<CollectionCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<CollectionExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

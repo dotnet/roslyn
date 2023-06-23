@@ -2725,7 +2725,7 @@ public class MyAttribute : System.Attribute
                                         N(SyntaxKind.EqualsValueClause);
                                         {
                                             N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.CollectionCreationExpression);
+                                            N(SyntaxKind.CollectionExpression);
                                             {
                                                 N(SyntaxKind.OpenBracketToken);
                                                 N(SyntaxKind.ExpressionElement);
