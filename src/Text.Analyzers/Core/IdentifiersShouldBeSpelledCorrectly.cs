@@ -270,7 +270,7 @@ namespace Text.Analyzers
                 var isXml = additionalText.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase);
                 var provider = isXml ? s_xmlDictionaryProvider : s_dicDictionaryProvider;
 
-                var (dictionary, exception) = context.TryGetValue(additionalText.GetText(cancellationToken)!, provider, out var result)
+                var (dictionary, exception) = context.TryGetValue(additionalText.GetTextOrEmpty(cancellationToken), provider, out var result)
                     ? result
                     : default;
 
