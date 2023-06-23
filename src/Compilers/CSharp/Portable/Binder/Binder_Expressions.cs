@@ -3213,64 +3213,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private void CheckRefArguments<TMember>(
+        private void CheckAndCoerceArguments<TMember>(
             MemberResolutionResult<TMember> methodResult,
             AnalyzedArguments analyzedArguments,
-            BindingDiagnosticBag diagnostics)
-            where TMember : Symbol
-        {
-            if (analyzedArguments.HasErrors)
-            {
-                return;
-            }
-
-            var result = methodResult.Result;
-            var parameters = methodResult.LeastOverriddenMember.GetParameters();
-
-            for (int arg = 0; arg < analyzedArguments.Arguments.Count; arg++)
-            {
-                var argument = analyzedArguments.Argument(arg);
-
-                // Skip __arglist arguments.
-                if (argument is BoundArgListOperator)
-                {
-                    continue;
-                }
-
-                // Warn for `ref`/`in` or None/`ref readonly` mismatch.
-                var argRefKind = analyzedArguments.RefKind(arg);
-                if (argRefKind == RefKind.Ref)
-                {
-                    if (GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.In)
-                    {
-                        // Argument {0} should not be passed with the '{1}' keyword
-                        diagnostics.Add(
-                            ErrorCode.WRN_BadArgRef,
-                            argument.Syntax,
-                            arg + 1,
-                            argRefKind.ToArgumentDisplayString());
-                    }
-                }
-                else if (argRefKind == RefKind.None &&
-                    GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.RefReadOnlyParameter)
-                {
-                    // Argument {0} should be passed with 'ref' or 'in' keyword
-                    diagnostics.Add(
-                        ErrorCode.WRN_ArgExpectedRefOrIn,
-                        argument.Syntax,
-                        arg + 1);
-                }
-            }
-        }
-
-        private void CoerceArguments<TMember>(
-            MemberResolutionResult<TMember> methodResult,
-            ArrayBuilder<BoundExpression> arguments,
             BindingDiagnosticBag diagnostics,
             BoundExpression? receiver)
             where TMember : Symbol
         {
             var result = methodResult.Result;
+            var arguments = analyzedArguments.Arguments;
 
             // Parameter types should be taken from the least overridden member:
             var parameters = methodResult.LeastOverriddenMember.GetParameters();
@@ -3279,6 +3230,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var kind = result.ConversionForArg(arg);
                 BoundExpression argument = arguments[arg];
+
+                if (argument is not BoundArgListOperator && !argument.HasAnyErrors)
+                {
+                    // Warn for `ref`/`in` or None/`ref readonly` mismatch.
+                    var argRefKind = analyzedArguments.RefKind(arg);
+                    if (argRefKind == RefKind.Ref)
+                    {
+                        if (GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.In)
+                        {
+                            // Argument {0} should not be passed with the '{1}' keyword
+                            diagnostics.Add(
+                                ErrorCode.WRN_BadArgRef,
+                                argument.Syntax,
+                                arg + 1,
+                                argRefKind.ToArgumentDisplayString());
+                        }
+                    }
+                    else if (argRefKind == RefKind.None &&
+                        GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.RefReadOnlyParameter)
+                    {
+                        // Argument {0} should be passed with 'ref' or 'in' keyword
+                        diagnostics.Add(
+                            ErrorCode.WRN_ArgExpectedRefOrIn,
+                            argument.Syntax,
+                            arg + 1);
+                    }
+                }
 
                 if (kind.IsInterpolatedStringHandler)
                 {
@@ -6187,8 +6165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (succeededIgnoringAccessibility)
             {
-                this.CheckRefArguments<MethodSymbol>(result.ValidResult, analyzedArguments, diagnostics);
-                this.CoerceArguments<MethodSymbol>(result.ValidResult, analyzedArguments.Arguments, diagnostics, receiver: null);
+                this.CheckAndCoerceArguments<MethodSymbol>(result.ValidResult, analyzedArguments, diagnostics, receiver: null);
             }
 
             // Fill in the out parameter with the result, if there was one; it might be inaccessible.
@@ -8608,8 +8585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
 
-                this.CheckRefArguments<PropertySymbol>(resolutionResult, analyzedArguments, diagnostics);
-                this.CoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments.Arguments, diagnostics, receiver);
+                this.CheckAndCoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments, diagnostics, receiver);
 
                 if (!gotError && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
                 {

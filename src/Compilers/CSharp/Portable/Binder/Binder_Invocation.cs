@@ -1072,8 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
 
-            this.CheckRefArguments(methodResult, analyzedArguments, diagnostics);
-            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver);
+            this.CheckAndCoerceArguments(methodResult, analyzedArguments, diagnostics, receiver);
 
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
             var argsToParams = methodResult.Result.ArgsToParamsOpt;
@@ -2103,8 +2102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             methodsBuilder.Free();
 
             MemberResolutionResult<FunctionPointerMethodSymbol> methodResult = overloadResolutionResult.ValidResult;
-            CheckRefArguments(methodResult, analyzedArguments, diagnostics);
-            CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver: null);
+            CheckAndCoerceArguments(methodResult, analyzedArguments, diagnostics, receiver: null);
 
             var args = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
