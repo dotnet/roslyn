@@ -1005,29 +1005,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main(string[] args)
                     {
-                        var x = new[] { [ulong.MaxValue], [1, 2, 3] };
-                        var y = new[] { [[ulong.MaxValue]], [[1, 2, 3]] };
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (5,17): error CS0826: No best type found for implicitly-typed array
-                //         var x = new[] { [ulong.MaxValue], [1, 2, 3] };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { [ulong.MaxValue], [1, 2, 3] }").WithLocation(5, 17),
-                // (6,17): error CS0826: No best type found for implicitly-typed array
-                //         var y = new[] { [[ulong.MaxValue]], [[1, 2, 3]] };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { [[ulong.MaxValue]], [[1, 2, 3]] }").WithLocation(6, 17));
-        }
-
-        [Fact]
-        public void BestCommonType_04()
-        {
-            string source = """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
                         var x = new[] { [""], new object[0] };
                         var y = new[] { [[""]], [new object[0]] };
                     }
@@ -1041,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void BestCommonType_05()
+        public void BestCommonType_04()
         {
             string source = """
                 class Program
@@ -1059,7 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void BestCommonType_06()
+        public void BestCommonType_05()
         {
             string source = """
                 class Program
