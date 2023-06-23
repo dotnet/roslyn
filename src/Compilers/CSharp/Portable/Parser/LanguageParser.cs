@@ -7427,29 +7427,22 @@ done:;
             if (this.CurrentToken.Kind != SyntaxKind.OpenBracketToken)
                 return default;
 
-            // See if we should treat this as a collection expression.  At the top-level (or statement) level, this
-            // should only be considered a collection if followed by a `.`, `?` or `!` (indicating it's a value, not an
+            // See if we should treat this as a collection expression.  At the top-level or statement-level, this should
+            // only be considered a collection if followed by a `.`, `?` or `!` (indicating it's a value, not an
             // attribute).
 
             var resetPoint = GetResetPoint();
 
-            if (treatBracketAsCollectionExpression())
-            {
-                // This was a collection expression, not an attribute declaration.  Reset to the beginning, but return
-                // no attributes so that the caller will parse this out as a collection expression.
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-                return default;
-            }
-            else
-            {
-                // Not a collection expression.  Reset to the beginning and parse out the actual attribute declarations.
+            var isCollectionExpression = treatBracketAsCollectionExpression();
+            this.Reset(ref resetPoint);
 
-                this.Reset(ref resetPoint);
-                var attributes = ParseAttributeDeclarations(inExpressionContext: true);
-                this.Release(ref resetPoint);
-                return attributes;
-            }
+            // If this was a collection expression, not an attribute declaration, return no attributes so that the
+            // caller will parse this out as a collection expression. Otherwise parse out the actual attribute
+            // declarations.
+            var attributes = isCollectionExpression ? default : ParseAttributeDeclarations(inExpressionContext: true);
+
+            this.Release(ref resetPoint);
+            return attributes;
 
             bool treatBracketAsCollectionExpression()
             {
