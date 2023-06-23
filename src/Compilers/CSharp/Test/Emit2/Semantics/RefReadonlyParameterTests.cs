@@ -1723,19 +1723,16 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "111");
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodBody("C.Main", """
+        verifier.VerifyIL("C.Main", """
             {
               // Code size       16 (0x10)
               .maxstack  2
               .locals init (int V_0) //x
-              // sequence point: int x = 111;
               IL_0000:  ldc.i4.s   111
               IL_0002:  stloc.0
-              // sequence point: new C().M(ref x);
               IL_0003:  newobj     "C..ctor()"
               IL_0008:  ldloca.s   V_0
               IL_000a:  callvirt   "void C.M(ref readonly int)"
-              // sequence point: }
               IL_000f:  ret
             }
             """);
@@ -1761,19 +1758,16 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "C111");
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodBody("C.Main", """
+        verifier.VerifyIL("C.Main", """
             {
               // Code size       16 (0x10)
               .maxstack  2
               .locals init (int V_0) //x
-              // sequence point: int x = 111;
               IL_0000:  ldc.i4.s   111
               IL_0002:  stloc.0
-              // sequence point: new C().M(ref x);
               IL_0003:  newobj     "C..ctor()"
               IL_0008:  ldloca.s   V_0
               IL_000a:  callvirt   "void B.M(ref readonly int)"
-              // sequence point: }
               IL_000f:  ret
             }
             """);
@@ -1795,19 +1789,16 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "111");
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodBody("C.Main", """
+        verifier.VerifyIL("C.Main", """
             {
               // Code size       12 (0xc)
               .maxstack  1
               .locals init (int V_0) //x
-              // sequence point: int x = 111;
               IL_0000:  ldc.i4.s   111
               IL_0002:  stloc.0
-              // sequence point: new C(ref x);
               IL_0003:  ldloca.s   V_0
               IL_0005:  newobj     "C..ctor(ref readonly int)"
               IL_000a:  pop
-              // sequence point: }
               IL_000b:  ret
             }
             """);
@@ -1836,20 +1827,17 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "111");
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodBody("C.Main", """
+        verifier.VerifyIL("C.Main", """
             {
               // Code size       17 (0x11)
               .maxstack  2
               .locals init (int V_0) //x
-              // sequence point: int x = 111;
               IL_0000:  ldc.i4.s   111
               IL_0002:  stloc.0
-              // sequence point: _ = new C()[ref x];
               IL_0003:  newobj     "C..ctor()"
               IL_0008:  ldloca.s   V_0
               IL_000a:  call       "int C.this[ref readonly int].get"
               IL_000f:  pop
-              // sequence point: }
               IL_0010:  ret
             }
             """);
@@ -1872,23 +1860,19 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "111", options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodBody("C.Main", """
+        verifier.VerifyIL("C.Main", """
             {
               // Code size       19 (0x13)
               .maxstack  2
               .locals init (int V_0, //x
                             delegate*<ref readonly int, void> V_1)
-              // sequence point: delegate*<ref readonly int, void> f = &M;
               IL_0000:  ldftn      "void C.M(ref readonly int)"
-              // sequence point: int x = 111;
               IL_0006:  ldc.i4.s   111
               IL_0008:  stloc.0
-              // sequence point: f(ref x);
               IL_0009:  stloc.1
               IL_000a:  ldloca.s   V_0
               IL_000c:  ldloc.1
               IL_000d:  calli      "delegate*<ref readonly int, void>"
-              // sequence point: }
               IL_0012:  ret
             }
             """);
@@ -1912,12 +1896,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "111");
         verifier.VerifyDiagnostics();
-        verifier.VerifyMethodBody("C.Main", """
+        verifier.VerifyIL("C.Main", """
             {
               // Code size       38 (0x26)
               .maxstack  2
               .locals init (int V_0) //x
-              // sequence point: D d = M;
               IL_0000:  ldsfld     "D C.<>O.<0>__M"
               IL_0005:  dup
               IL_0006:  brtrue.s   IL_001b
@@ -1927,13 +1910,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
               IL_0010:  newobj     "D..ctor(object, System.IntPtr)"
               IL_0015:  dup
               IL_0016:  stsfld     "D C.<>O.<0>__M"
-              // sequence point: int x = 111;
               IL_001b:  ldc.i4.s   111
               IL_001d:  stloc.0
-              // sequence point: d(ref x);
               IL_001e:  ldloca.s   V_0
               IL_0020:  callvirt   "void D.Invoke(ref readonly int)"
-              // sequence point: }
               IL_0025:  ret
             }
             """);
