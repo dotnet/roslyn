@@ -8380,13 +8380,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal sealed partial class CollectionCreationExpressionSyntax : ExpressionSyntax
+    internal sealed partial class CollectionExpressionSyntax : ExpressionSyntax
     {
         internal readonly SyntaxToken openBracketToken;
         internal readonly GreenNode? elements;
         internal readonly SyntaxToken closeBracketToken;
 
-        internal CollectionCreationExpressionSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode? elements, SyntaxToken closeBracketToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal CollectionExpressionSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode? elements, SyntaxToken closeBracketToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 3;
@@ -8401,7 +8401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.closeBracketToken = closeBracketToken;
         }
 
-        internal CollectionCreationExpressionSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode? elements, SyntaxToken closeBracketToken, SyntaxFactoryContext context)
+        internal CollectionExpressionSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode? elements, SyntaxToken closeBracketToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
@@ -8417,7 +8417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.closeBracketToken = closeBracketToken;
         }
 
-        internal CollectionCreationExpressionSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode? elements, SyntaxToken closeBracketToken)
+        internal CollectionExpressionSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode? elements, SyntaxToken closeBracketToken)
           : base(kind)
         {
             this.SlotCount = 3;
@@ -8446,16 +8446,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _ => null,
             };
 
-        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CollectionCreationExpressionSyntax(this, parent, position);
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CollectionExpressionSyntax(this, parent, position);
 
-        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCollectionCreationExpression(this);
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCollectionCreationExpression(this);
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCollectionExpression(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCollectionExpression(this);
 
-        public CollectionCreationExpressionSyntax Update(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CollectionElementSyntax> elements, SyntaxToken closeBracketToken)
+        public CollectionExpressionSyntax Update(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CollectionElementSyntax> elements, SyntaxToken closeBracketToken)
         {
             if (openBracketToken != this.OpenBracketToken || elements != this.Elements || closeBracketToken != this.CloseBracketToken)
             {
-                var newNode = SyntaxFactory.CollectionCreationExpression(openBracketToken, elements, closeBracketToken);
+                var newNode = SyntaxFactory.CollectionExpression(openBracketToken, elements, closeBracketToken);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -8469,12 +8469,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new CollectionCreationExpressionSyntax(this.Kind, this.openBracketToken, this.elements, this.closeBracketToken, diagnostics, GetAnnotations());
+            => new CollectionExpressionSyntax(this.Kind, this.openBracketToken, this.elements, this.closeBracketToken, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new CollectionCreationExpressionSyntax(this.Kind, this.openBracketToken, this.elements, this.closeBracketToken, GetDiagnostics(), annotations);
+            => new CollectionExpressionSyntax(this.Kind, this.openBracketToken, this.elements, this.closeBracketToken, GetDiagnostics(), annotations);
 
-        internal CollectionCreationExpressionSyntax(ObjectReader reader)
+        internal CollectionExpressionSyntax(ObjectReader reader)
           : base(reader)
         {
             this.SlotCount = 3;
@@ -8500,9 +8500,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             writer.WriteValue(this.closeBracketToken);
         }
 
-        static CollectionCreationExpressionSyntax()
+        static CollectionExpressionSyntax()
         {
-            ObjectBinder.RegisterTypeReader(typeof(CollectionCreationExpressionSyntax), r => new CollectionCreationExpressionSyntax(r));
+            ObjectBinder.RegisterTypeReader(typeof(CollectionExpressionSyntax), r => new CollectionExpressionSyntax(r));
         }
     }
 
@@ -35053,7 +35053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
-        public virtual TResult VisitCollectionCreationExpression(CollectionCreationExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitCollectionExpression(CollectionExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitExpressionElement(ExpressionElementSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitDictionaryElement(DictionaryElementSyntax node) => this.DefaultVisit(node);
@@ -35299,7 +35299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
-        public virtual void VisitCollectionCreationExpression(CollectionCreationExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitCollectionExpression(CollectionExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitExpressionElement(ExpressionElementSyntax node) => this.DefaultVisit(node);
         public virtual void VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
         public virtual void VisitDictionaryElement(DictionaryElementSyntax node) => this.DefaultVisit(node);
@@ -35679,7 +35679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override CSharpSyntaxNode VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
             => node.Update((SyntaxToken)Visit(node.StackAllocKeyword), (SyntaxToken)Visit(node.OpenBracketToken), (SyntaxToken)Visit(node.CloseBracketToken), (InitializerExpressionSyntax)Visit(node.Initializer));
 
-        public override CSharpSyntaxNode VisitCollectionCreationExpression(CollectionCreationExpressionSyntax node)
+        public override CSharpSyntaxNode VisitCollectionExpression(CollectionExpressionSyntax node)
             => node.Update((SyntaxToken)Visit(node.OpenBracketToken), VisitList(node.Elements), (SyntaxToken)Visit(node.CloseBracketToken));
 
         public override CSharpSyntaxNode VisitExpressionElement(ExpressionElementSyntax node)
@@ -37733,7 +37733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new ImplicitStackAllocArrayCreationExpressionSyntax(SyntaxKind.ImplicitStackAllocArrayCreationExpression, stackAllocKeyword, openBracketToken, closeBracketToken, initializer, this.context);
         }
 
-        public CollectionCreationExpressionSyntax CollectionCreationExpression(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CollectionElementSyntax> elements, SyntaxToken closeBracketToken)
+        public CollectionExpressionSyntax CollectionExpression(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CollectionElementSyntax> elements, SyntaxToken closeBracketToken)
         {
 #if DEBUG
             if (openBracketToken == null) throw new ArgumentNullException(nameof(openBracketToken));
@@ -37743,10 +37743,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
             int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.CollectionCreationExpression, openBracketToken, elements.Node, closeBracketToken, this.context, out hash);
-            if (cached != null) return (CollectionCreationExpressionSyntax)cached;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.CollectionExpression, openBracketToken, elements.Node, closeBracketToken, this.context, out hash);
+            if (cached != null) return (CollectionExpressionSyntax)cached;
 
-            var result = new CollectionCreationExpressionSyntax(SyntaxKind.CollectionCreationExpression, openBracketToken, elements.Node, closeBracketToken, this.context);
+            var result = new CollectionExpressionSyntax(SyntaxKind.CollectionExpression, openBracketToken, elements.Node, closeBracketToken, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -42962,7 +42962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new ImplicitStackAllocArrayCreationExpressionSyntax(SyntaxKind.ImplicitStackAllocArrayCreationExpression, stackAllocKeyword, openBracketToken, closeBracketToken, initializer);
         }
 
-        public static CollectionCreationExpressionSyntax CollectionCreationExpression(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CollectionElementSyntax> elements, SyntaxToken closeBracketToken)
+        public static CollectionExpressionSyntax CollectionExpression(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CollectionElementSyntax> elements, SyntaxToken closeBracketToken)
         {
 #if DEBUG
             if (openBracketToken == null) throw new ArgumentNullException(nameof(openBracketToken));
@@ -42972,10 +42972,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
             int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CollectionCreationExpression, openBracketToken, elements.Node, closeBracketToken, out hash);
-            if (cached != null) return (CollectionCreationExpressionSyntax)cached;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CollectionExpression, openBracketToken, elements.Node, closeBracketToken, out hash);
+            if (cached != null) return (CollectionExpressionSyntax)cached;
 
-            var result = new CollectionCreationExpressionSyntax(SyntaxKind.CollectionCreationExpression, openBracketToken, elements.Node, closeBracketToken);
+            var result = new CollectionExpressionSyntax(SyntaxKind.CollectionExpression, openBracketToken, elements.Node, closeBracketToken);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);

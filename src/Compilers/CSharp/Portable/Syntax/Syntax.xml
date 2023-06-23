@@ -1798,8 +1798,8 @@
       <summary>Creates an ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="CollectionCreationExpressionSyntax" Base="ExpressionSyntax">
-    <Kind Name="CollectionCreationExpression"/>
+  <Node Name="CollectionExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="CollectionExpression"/>
     <Field Name="OpenBracketToken" Type="SyntaxToken">
       <Kind Name="OpenBracketToken"/>
     </Field>
