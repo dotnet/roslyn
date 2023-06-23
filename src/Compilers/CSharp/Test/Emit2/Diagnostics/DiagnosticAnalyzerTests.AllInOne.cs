@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             missingSyntaxKinds.Add(SyntaxKind.CollectionCreationExpression);
             missingSyntaxKinds.Add(SyntaxKind.ExpressionElement);
             missingSyntaxKinds.Add(SyntaxKind.SpreadElement);
-            missingSyntaxKinds.Add(SyntaxKind.DictionaryElement);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());

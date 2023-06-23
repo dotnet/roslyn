@@ -392,11 +392,6 @@
         <target state="translated">Der Schnittstellenmember "{1}" wird von "{0}" nicht implementiert. "{1}" kann von "{2}" nicht implementiert werden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CollectionLiteralElementNotImplemented">
-        <source>Support for collection literal dictionary and spread elements has not been implemented.</source>
-        <target state="new">Support for collection literal dictionary and spread elements has not been implemented.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CollectionLiteralNoTargetType">
         <source>There is no target type for the collection literal.</source>
         <target state="new">There is no target type for the collection literal.</target>

@@ -1824,14 +1824,6 @@
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax" />
   </Node>
-  <Node Name="DictionaryElementSyntax" Base="CollectionElementSyntax">
-    <Kind Name="DictionaryElement"/>
-    <Field Name="KeyExpression" Type="ExpressionSyntax" />
-    <Field Name="ColonToken" Type="SyntaxToken">
-      <Kind Name="ColonToken"/>
-    </Field>
-    <Field Name="ValueExpression" Type="ExpressionSyntax" />
-  </Node>
   <AbstractNode Name="QueryClauseSyntax" Base="CSharpSyntaxNode">
   </AbstractNode>
   <AbstractNode Name="SelectOrGroupClauseSyntax" Base="CSharpSyntaxNode">
