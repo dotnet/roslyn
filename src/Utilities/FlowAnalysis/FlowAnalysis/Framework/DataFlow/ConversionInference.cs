@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public bool IsBoxing { get; set; }
         public bool IsUnboxing { get; set; }
 
-        public override bool Equals(object obj)
+        public override readonly bool Equals(object obj)
             => obj is ConversionInference other && Equals(other);
 
-        public bool Equals(ConversionInference other)
+        public readonly bool Equals(ConversionInference other)
         {
             return IsTryCast == other.IsTryCast &&
                 AlwaysSucceed == other.AlwaysSucceed &&
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 IsUnboxing == other.IsUnboxing;
         }
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
             => RoslynHashCode.Combine(IsTryCast, AlwaysSucceed, AlwaysFail, IsBoxing, IsUnboxing);
 
         public static bool operator ==(ConversionInference left, ConversionInference right)

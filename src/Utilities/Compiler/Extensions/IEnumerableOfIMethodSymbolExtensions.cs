@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using System.Collections.Immutable;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -44,7 +44,7 @@ namespace Analyzer.Utilities.Extensions
         {
             return methods.Where(candidateMethod =>
             {
-                if (!candidateMethod.Parameters.HasExactly(selectedOverload.Parameters.Count() + 1))
+                if (!System.Collections.Immutable.ImmutableArrayExtensions.HasExactly(candidateMethod.Parameters, selectedOverload.Parameters.Count() + 1))
                 {
                     return false;
                 }

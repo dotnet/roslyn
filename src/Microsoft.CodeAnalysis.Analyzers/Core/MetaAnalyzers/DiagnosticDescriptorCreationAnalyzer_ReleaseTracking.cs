@@ -176,8 +176,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             var diagnostics = new List<Diagnostic>();
             using var reportedInvalidLines = PooledHashSet<TextLine>.GetInstance();
-            shippedData = ReadReleaseTrackingData(shippedText.Path, shippedText.GetText(cancellationToken), OnDuplicateEntryInRelease, OnInvalidEntry, isShippedFile: true);
-            unshippedData = ReadReleaseTrackingData(unshippedText.Path, unshippedText.GetText(cancellationToken), OnDuplicateEntryInRelease, OnInvalidEntry, isShippedFile: false);
+            shippedData = ReadReleaseTrackingData(shippedText.Path, shippedText.GetTextOrEmpty(cancellationToken), OnDuplicateEntryInRelease, OnInvalidEntry, isShippedFile: true);
+            unshippedData = ReadReleaseTrackingData(unshippedText.Path, unshippedText.GetTextOrEmpty(cancellationToken), OnDuplicateEntryInRelease, OnInvalidEntry, isShippedFile: false);
 
             invalidFileDiagnostics = diagnostics;
             return invalidFileDiagnostics.Count == 0;

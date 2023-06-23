@@ -647,7 +647,7 @@ namespace Analyzer.Utilities
                     }
                 }
 
-                public K Current => _current!.Key;
+                public readonly K Current => _current!.Key;
 
                 public bool MoveNext()
                 {
@@ -765,7 +765,7 @@ namespace Analyzer.Utilities
                     }
                 }
 
-                public V Current => _current!.Value;
+                public readonly V Current => _current!.Value;
 
                 public bool MoveNext()
                 {
@@ -871,7 +871,7 @@ namespace Analyzer.Utilities
                 }
             }
 
-            public KeyValuePair<K, V> Current => new(_current!.Key, _current!.Value);
+            public readonly KeyValuePair<K, V> Current => new(_current!.Key, _current!.Value);
 
             public bool MoveNext()
             {

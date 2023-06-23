@@ -55,6 +55,8 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisDiagnosticsSyntaxTreeAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext";
         public const string MicrosoftCodeAnalysisGeneratorAttribute = "Microsoft.CodeAnalysis.GeneratorAttribute";
         public const string MicrosoftCodeAnalysisHostMefMefConstruction = "Microsoft.CodeAnalysis.Host.Mef.MefConstruction";
+        public const string MicrosoftCodeAnalysisIIncrementalGenerator = "Microsoft.CodeAnalysis.IIncrementalGenerator";
+        public const string MicrosoftCodeAnalysisISourceGenerator = "Microsoft.CodeAnalysis.ISourceGenerator";
         public const string MicrosoftCodeAnalysisLocalizableResourceString = "Microsoft.CodeAnalysis.LocalizableResourceString";
         public const string MicrosoftCodeAnalysisLocalizableString = "Microsoft.CodeAnalysis.LocalizableString";
         public const string MicrosoftCodeAnalysisSharedCollectionsTemporaryArrayExtensions = "Microsoft.CodeAnalysis.Shared.Collections.TemporaryArrayExtensions";
@@ -391,6 +393,7 @@ namespace Analyzer.Utilities
         public const string SystemSpan1 = "System.Span`1";
         public const string SystemStackOverflowException = "System.StackOverflowException";
         public const string SystemString = "System.String";
+        public const string SystemStringComparer = "System.StringComparer";
         public const string SystemStringComparison = "System.StringComparison";
         public const string SystemSystemException = "System.SystemException";
         public const string SystemTextEncoding = "System.Text.Encoding";
