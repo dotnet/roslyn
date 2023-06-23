@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 public override string Title { get; }
                 public override string EquivalenceKey { get; }
 
-                protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                protected override async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
                 {
                     // Group fixes by additional documents.
                     var fixInfoMap = new Dictionary<TextDocument, List<FixInfo>>();

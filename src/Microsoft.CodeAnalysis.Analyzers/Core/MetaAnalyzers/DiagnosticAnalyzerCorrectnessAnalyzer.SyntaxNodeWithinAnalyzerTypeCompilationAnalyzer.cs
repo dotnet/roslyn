@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 {
                     if (syntax != null)
                     {
-                        TClassDeclarationSyntax classDecl = syntax.FirstAncestorOrSelf<TClassDeclarationSyntax>(ascendOutOfTrivia: false);
+                        TClassDeclarationSyntax? classDecl = syntax.FirstAncestorOrSelf<TClassDeclarationSyntax>(ascendOutOfTrivia: false);
                         if (classDecl != null)
                         {
                             yield return classDecl;

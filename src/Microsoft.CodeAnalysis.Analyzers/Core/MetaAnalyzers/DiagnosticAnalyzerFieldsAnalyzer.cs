@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 foreach (TTypeSyntax typeNode in typeNodes)
                 {
-                    ITypeSymbol type = semanticModel.GetTypeInfo(typeNode, symbolContext.CancellationToken).Type;
+                    ITypeSymbol? type = semanticModel.GetTypeInfo(typeNode, symbolContext.CancellationToken).Type;
                     if (type != null)
                     {
                         foreach (ITypeSymbol innerType in type.GetBaseTypesAndThis())
