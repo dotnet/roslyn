@@ -7435,8 +7435,8 @@ done:;
             // Grab the first part as a collection expression.
             ParseCollectionCreationExpression();
 
-            // continue consuming element access expressions for `[x][y]...`.  We have to determine if this is a
-            // collection expression being indexed into, or if its a sequence of attributes.
+            // Continue consuming element access expressions for `[x][y]...`.  We have to determine if this is a
+            // collection expression being indexed into, or if it's a sequence of attributes.
             while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
                 ParseBracketedArgumentList();
 
