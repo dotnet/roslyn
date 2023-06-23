@@ -3229,10 +3229,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int arg = 0; arg < analyzedArguments.Arguments.Count; arg++)
             {
-                if (arg >= parameters.Length)
+                var argument = analyzedArguments.Argument(arg);
+
+                // Skip __arglist arguments.
+                if (argument is BoundArgListOperator)
                 {
-                    // We can run out of parameters before arguments. For example: `M(__arglist(x))`.
-                    break;
+                    continue;
                 }
 
                 // Warn for `ref`/`in` or None/`ref readonly` mismatch.
@@ -3244,7 +3246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Argument {0} should not be passed with the '{1}' keyword
                         diagnostics.Add(
                             ErrorCode.WRN_BadArgRef,
-                            analyzedArguments.Argument(arg).Syntax,
+                            argument.Syntax,
                             arg + 1,
                             argRefKind.ToArgumentDisplayString());
                     }
@@ -3255,7 +3257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Argument {0} should be passed with 'ref' or 'in' keyword
                     diagnostics.Add(
                         ErrorCode.WRN_ArgExpectedRefOrIn,
-                        analyzedArguments.Argument(arg).Syntax,
+                        argument.Syntax,
                         arg + 1);
                 }
             }
