@@ -3208,9 +3208,7 @@ outerDefault:
                         return RefKind.Ref;
                     }
                 }
-
-                // PROTOTYPE: Should this relaxation be also applied when `isMethodGroupConversion == true`?
-                if (paramRefKind == RefKind.RefReadOnlyParameter && argRefKind is RefKind.None or RefKind.Ref or RefKind.In)
+                else if (paramRefKind == RefKind.RefReadOnlyParameter && argRefKind is RefKind.None or RefKind.Ref or RefKind.In)
                 {
                     return argRefKind;
                 }
