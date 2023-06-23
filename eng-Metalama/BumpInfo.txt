@@ -1,1 +1,1 @@
-{"Dependencies":{"Metalama.Backstage":"2023.1.4"}}
+{"Dependencies":{"Metalama.Backstage":"2023.1.5"}}
