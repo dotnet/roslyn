@@ -7432,22 +7432,52 @@ done:;
             // attribute).
 
             var resetPoint = GetResetPoint();
-            while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+
+            if (tryParseCollectionCreationExpression())
             {
-                var collectionExpression = ParseCollectionCreationExpression();
-                if (collectionExpression.CloseBracketToken != null &&
-                    this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken or SyntaxKind.ExclamationToken)
-                {
-                    this.Reset(ref resetPoint);
-                    this.Release(ref resetPoint);
-                    return default;
-                }
+                // This was a collection expression, not an attribute declaration.  Reset to the beginning, but return
+                // no attributes so that the caller will parse this out as a collection expression.
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+                return default;
+            }
+            else
+            {
+                // Not a collection expression.  Reset to the beginning and parse out the actual attribute declarations.
+
+                this.Reset(ref resetPoint);
+                var attributes = ParseAttributeDeclarations(inExpressionContext: true);
+                this.Release(ref resetPoint);
+                return attributes;
             }
 
-            this.Reset(ref resetPoint);
-            var attributes = ParseAttributeDeclarations(inExpressionContext: true);
-            this.Release(ref resetPoint);
-            return attributes;
+            bool tryParseCollectionCreationExpression()
+            {
+                // check first for `[x].M()`
+                var collectionExpression = ParseCollectionCreationExpression();
+                if (isLegalCollectionExpressionEndToken(collectionExpression))
+                    return true;
+
+                // continue consuming element access expressions for `[x][y]...` this could be a collection expression
+                // being indexed into, or could be a sequence of attributes.
+                var expression = (ExpressionSyntax)collectionExpression;
+                while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+                {
+                    var elementAccessExpression = _syntaxFactory.ElementAccessExpression(expression, ParseBracketedArgumentList());
+                    if (isLegalCollectionExpressionEndToken(elementAccessExpression))
+                        return true;
+
+                    expression = elementAccessExpression;
+                }
+
+                return false;
+            }
+
+            bool isLegalCollectionExpressionEndToken(ExpressionSyntax expression)
+            {
+                return !expression.GetLastToken().IsMissing &&
+                    this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken or SyntaxKind.ExclamationToken;
+            }
         }
 
         /// <param name="isGlobal">If we're being called while parsing a C# top-level statements (Script or Simple Program).
