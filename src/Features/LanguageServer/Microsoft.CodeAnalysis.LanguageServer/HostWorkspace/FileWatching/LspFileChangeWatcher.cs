@@ -76,7 +76,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                 {
                     GlobPattern = new RelativePattern
                     {
-                        BaseUri = d.Path,
+                        BaseUri = new Uri(d.Path, UriKind.Absolute),
                         Pattern = d.ExtensionFilter is not null ? "**/*" + d.ExtensionFilter : "**/*"
                     }
                 }).ToArray();
@@ -139,7 +139,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                 // TODO: figure out how I just can do an absolute path watch
                 GlobPattern = new RelativePattern
                 {
-                    BaseUri = Path.GetDirectoryName(filePath)!,
+                    BaseUri = new Uri(Path.GetDirectoryName(filePath)!, UriKind.Absolute),
                     Pattern = Path.GetFileName(filePath)
                 }
             };
