@@ -304,6 +304,7 @@ class X
                         case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                         case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                         case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                        case ErrorCode.WRN_BadArgRef:
                         case ErrorCode.WRN_ArgExpectedRefOrIn:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
@@ -442,7 +443,6 @@ class X
                             Assert.Equal(7, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_AddressOfInAsync:
-                        case ErrorCode.WRN_BadArgRef:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 8 and C# 12.
                             Assert.Equal(8, ErrorFacts.GetWarningLevel(errorCode));
                             break;

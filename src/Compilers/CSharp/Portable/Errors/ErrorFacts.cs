@@ -207,7 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (code)
             {
                 case ErrorCode.WRN_AddressOfInAsync:
-                case ErrorCode.WRN_BadArgRef: // PROTOTYPE: Document in the markdown file.
                     // Warning level 8 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 8 (C# 12) and that can be reported for pre-existing code.
                     return 8;
@@ -531,6 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                case ErrorCode.WRN_BadArgRef:
                 case ErrorCode.WRN_ArgExpectedRefOrIn:
                     return 1;
                 default:
