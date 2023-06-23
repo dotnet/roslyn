@@ -7433,12 +7433,12 @@ done:;
             var resetPoint = GetResetPoint();
 
             // Grab the first part as a collection expression.
-            var expression = (ExpressionSyntax)ParseCollectionCreationExpression();
+            ParseCollectionCreationExpression();
 
             // continue consuming element access expressions for `[x][y]...`.  We have to determine if this is a
             // collection expression being indexed into, or if its a sequence of attributes.
             while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
-                expression = _syntaxFactory.ElementAccessExpression(expression, ParseBracketedArgumentList());
+                ParseBracketedArgumentList();
 
             // Check the next token to see if it indicates the `[...]` sequence we have is a term or not. 
             var isCollectionExpression = this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken or SyntaxKind.ExclamationToken;
