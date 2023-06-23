@@ -445,17 +445,11 @@ class C
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(SyntaxKind.GlobalStatement, file.Members[0].Kind());
-            file.GetDiagnostics().Verify(
-                // (1,3): error CS1056: Unexpected character '$'
-                // [ $
-                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 3),
-                // (1,4): error CS1003: Syntax error, ']' expected
-                // [ $
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 4),
-                // (1,4): error CS1002: ; expected
-                // [ $
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 4));
+            Assert.Equal(SyntaxKind.IncompleteMember, file.Members[0].Kind());
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[2].Code);
         }
 
         [Fact]
@@ -467,17 +461,10 @@ class C
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(SyntaxKind.GlobalStatement, file.Members[0].Kind());
-            file.GetDiagnostics().Verify(
-                // (1,4): error CS1056: Unexpected character '$'
-                // [a $
-                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 4),
-                // (1,5): error CS1003: Syntax error, ']' expected
-                // [a $
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 5),
-                // (1,5): error CS1002: ; expected
-                // [a $
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 5));
+            Assert.Equal(SyntaxKind.IncompleteMember, file.Members[0].Kind());
+            Assert.Equal(2, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
         }
 
         [Fact]
@@ -488,16 +475,11 @@ class C
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(2, file.Members.Count);
-            Assert.Equal(SyntaxKind.GlobalStatement, file.Members[0].Kind());
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[1].Kind());
-            file.GetDiagnostics().Verify(
-                // (1,3): error CS1003: Syntax error, ']' expected
-                // [ class c { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "class").WithArguments("]").WithLocation(1, 3),
-                // (1,3): error CS1002: ; expected
-                // [ class c { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 3));
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            Assert.Equal(2, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
         }
 
         [Fact]
@@ -508,16 +490,10 @@ class C
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(2, file.Members.Count);
-            Assert.Equal(SyntaxKind.GlobalStatement, file.Members[0].Kind());
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[1].Kind());
-            file.GetDiagnostics().Verify(
-                // (1,4): error CS1003: Syntax error, ']' expected
-                // [a class c { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "class").WithArguments("]").WithLocation(1, 4),
-                // (1,4): error CS1002: ; expected
-                // [a class c { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 4));
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
         }
 
         [Fact]
@@ -528,19 +504,11 @@ class C
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(2, file.Members.Count);
-            Assert.Equal(SyntaxKind.GlobalStatement, file.Members[0].Kind());
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[1].Kind());
-            file.GetDiagnostics().Verify(
-                // (1,5): error CS1026: ) expected
-                // [a( class c { }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "class").WithLocation(1, 5),
-                // (1,5): error CS1003: Syntax error, ']' expected
-                // [a( class c { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "class").WithArguments("]").WithLocation(1, 5),
-                // (1,5): error CS1002: ; expected
-                // [a( class c { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 5));
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            Assert.Equal(2, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
         }
 
         [Fact]
@@ -551,19 +519,11 @@ class C
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(2, file.Members.Count);
-            Assert.Equal(SyntaxKind.GlobalStatement, file.Members[0].Kind());
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[1].Kind());
-            file.GetDiagnostics().Verify(
-                // (1,6): error CS1026: ) expected
-                // [a(b class c { }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "class").WithLocation(1, 6),
-                // (1,6): error CS1003: Syntax error, ']' expected
-                // [a(b class c { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "class").WithArguments("]").WithLocation(1, 6),
-                // (1,6): error CS1002: ; expected
-                // [a(b class c { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 6));
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            Assert.Equal(2, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
         }
 
         [Fact]
@@ -574,22 +534,12 @@ class C
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(2, file.Members.Count);
-            Assert.Equal(SyntaxKind.GlobalStatement, file.Members[0].Kind());
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[1].Kind());
-            file.GetDiagnostics().Verify(
-                // (1,7): error CS1525: Invalid expression term 'class'
-                // [a(b, class c { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "class").WithArguments("class").WithLocation(1, 7),
-                // (1,7): error CS1026: ) expected
-                // [a(b, class c { }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "class").WithLocation(1, 7),
-                // (1,7): error CS1003: Syntax error, ']' expected
-                // [a(b, class c { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "class").WithArguments("]").WithLocation(1, 7),
-                // (1,7): error CS1002: ; expected
-                // [a(b, class c { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 7));
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[2].Code);
         }
 
         [Fact]
@@ -600,25 +550,13 @@ class C
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(2, file.Members.Count);
-            Assert.Equal(SyntaxKind.GlobalStatement, file.Members[0].Kind());
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[1].Kind());
-            file.GetDiagnostics().Verify(
-                // (1,4): error CS0839: Argument missing
-                // [a(, class c { }
-                Diagnostic(ErrorCode.ERR_MissingArgument, ",").WithLocation(1, 4),
-                // (1,6): error CS1525: Invalid expression term 'class'
-                // [a(, class c { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "class").WithArguments("class").WithLocation(1, 6),
-                // (1,6): error CS1026: ) expected
-                // [a(, class c { }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "class").WithLocation(1, 6),
-                // (1,6): error CS1003: Syntax error, ']' expected
-                // [a(, class c { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "class").WithArguments("]").WithLocation(1, 6),
-                // (1,6): error CS1002: ; expected
-                // [a(, class c { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 6));
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            Assert.Equal(4, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[3].Code);
         }
 
         [Fact]
@@ -629,28 +567,14 @@ class C
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(2, file.Members.Count);
-            Assert.Equal(SyntaxKind.GlobalStatement, file.Members[0].Kind());
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[1].Kind());
-            file.GetDiagnostics().Verify(
-                // (1,4): error CS0839: Argument missing
-                // [a(,, class c { }
-                Diagnostic(ErrorCode.ERR_MissingArgument, ",").WithLocation(1, 4),
-                // (1,5): error CS0839: Argument missing
-                // [a(,, class c { }
-                Diagnostic(ErrorCode.ERR_MissingArgument, ",").WithLocation(1, 5),
-                // (1,7): error CS1525: Invalid expression term 'class'
-                // [a(,, class c { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "class").WithArguments("class").WithLocation(1, 7),
-                // (1,7): error CS1026: ) expected
-                // [a(,, class c { }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "class").WithLocation(1, 7),
-                // (1,7): error CS1003: Syntax error, ']' expected
-                // [a(,, class c { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "class").WithArguments("]").WithLocation(1, 7),
-                // (1,7): error CS1002: ; expected
-                // [a(,, class c { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 7));
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            Assert.Equal(5, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[3].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[4].Code);
         }
 
         [Fact]
@@ -661,22 +585,12 @@ class C
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(2, file.Members.Count);
-            Assert.Equal(SyntaxKind.GlobalStatement, file.Members[0].Kind());
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[1].Kind());
-            file.GetDiagnostics().Verify(
-                // (1,4): error CS0839: Argument missing
-                // [a(, b class c { }
-                Diagnostic(ErrorCode.ERR_MissingArgument, ",").WithLocation(1, 4),
-                // (1,8): error CS1026: ) expected
-                // [a(, b class c { }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "class").WithLocation(1, 8),
-                // (1,8): error CS1003: Syntax error, ']' expected
-                // [a(, b class c { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "class").WithArguments("]").WithLocation(1, 8),
-                // (1,8): error CS1002: ; expected
-                // [a(, b class c { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 8));
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[2].Code);
         }
 
         [Fact]

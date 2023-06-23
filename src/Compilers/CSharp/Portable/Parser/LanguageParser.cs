@@ -2207,7 +2207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var saveTermState = _termState;
 
-            var attributes = this.ParseStatementAttributeDeclarations();
+            var attributes = this.ParseStatementAttributeDeclarations(isGlobal: true);
             bool haveAttributes = attributes.Count > 0;
 
             var afterAttributesPoint = this.GetResetPoint();
@@ -7420,30 +7420,49 @@ done:;
         }
 
         private StatementSyntax ParsePossiblyAttributedStatement()
-            => ParseStatementCore(ParseStatementAttributeDeclarations(), isGlobal: false);
+            => ParseStatementCore(ParseStatementAttributeDeclarations(isGlobal: false), isGlobal: false);
 
-        private SyntaxList<AttributeListSyntax> ParseStatementAttributeDeclarations()
+        private SyntaxList<AttributeListSyntax> ParseStatementAttributeDeclarations(bool isGlobal)
         {
             if (this.CurrentToken.Kind != SyntaxKind.OpenBracketToken)
                 return default;
 
-            var resetPoint = GetResetPoint();
-            var attributeDeclarations = ParseAttributeDeclarations(inExpressionContext: true);
+            // At the global level, we first try this out as a collection expression.  But we only accept it as that if
+            // followed by an appropriate expression-following token.  Otherwise we'll continue to treat this as an
+            // attribute.
 
-            // Rare case, `[...].M()`.  i.e. a collection literal invocation expression as the entire statement.
-            //
-            // To disambiguate these cases, we only accept `[...]` as an attribute if:
-            //  1. It's complete (i.e. it ends with `]`) *and*
-            //  2. It's not followed by a token that indicates the `[...]` is being used as a value.
-            if (attributeDeclarations is [.., { CloseBracketToken.IsMissing: true }] ||
-                attributeDeclarations.Count > 0 && this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken or SyntaxKind.OpenBracketToken)
+            var resetPoint = GetResetPoint();
+            while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
             {
-                this.Reset(ref resetPoint);
-                attributeDeclarations = default;
+                var collectionExpression = ParseCollectionCreationExpression();
+                if (collectionExpression.CloseBracketToken != null &&
+                    this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken or SyntaxKind.ExclamationToken)
+                {
+                    this.Reset(ref resetPoint);
+                    this.Release(ref resetPoint);
+                    return default;
+                }
             }
 
-            Release(ref resetPoint);
-            return attributeDeclarations;
+            this.Reset(ref resetPoint);
+            var attributes = ParseAttributeDeclarations(inExpressionContext: true);
+            this.Release(ref resetPoint);
+            return attributes;
+
+            //// Rare case, `[...].M()`.  i.e. a collection literal invocation expression as the entire statement.
+            ////
+            //// To disambiguate these cases, we only accept `[...]` as an attribute if:
+            ////  1. It's complete (i.e. it ends with `]`) *and*
+            ////  2. It's not followed by a token that indicates the `[...]` is being used as a value.
+            //if (attributeDeclarations is [.., { CloseBracketToken.IsMissing: true }] ||
+            //    attributeDeclarations.Count > 0 && this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken or SyntaxKind.OpenBracketToken)
+            //{
+            //    this.Reset(ref resetPoint);
+            //    attributeDeclarations = default;
+            //}
+
+            //Release(ref resetPoint);
+            //return attributeDeclarations;
         }
 
         /// <param name="isGlobal">If we're being called while parsing a C# top-level statements (Script or Simple Program).
