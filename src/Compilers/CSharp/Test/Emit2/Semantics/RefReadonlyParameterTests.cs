@@ -2201,6 +2201,34 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void RefReadonlyParameter_WrongType()
+    {
+        var source = """
+            class C
+            {
+                static void M(ref readonly int i) => throw null;
+                static void Main()
+                {
+                    string x = null;
+                    M(x);
+                    M(ref x);
+                    M(in x);
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,11): error CS1503: Argument 1: cannot convert from 'string' to 'ref readonly int'
+            //         M(x);
+            Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "string", "ref readonly int").WithLocation(7, 11),
+            // (8,15): error CS1503: Argument 1: cannot convert from 'ref string' to 'ref readonly int'
+            //         M(ref x);
+            Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "ref string", "ref readonly int").WithLocation(8, 15),
+            // (9,14): error CS1503: Argument 1: cannot convert from 'in string' to 'ref readonly int'
+            //         M(in x);
+            Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in string", "ref readonly int").WithLocation(9, 14));
+    }
+
+    [Fact]
     public void Invocation_VirtualMethod()
     {
         var source = """

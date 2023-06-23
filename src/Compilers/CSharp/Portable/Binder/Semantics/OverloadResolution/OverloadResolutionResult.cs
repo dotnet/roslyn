@@ -1213,7 +1213,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new FormattedSymbol(UnwrapIfParamsArray(parameter, isLastParameter), SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat));
                 }
             }
-            else if (refArg != refParameter && !(refArg == RefKind.None && refParameter == RefKind.In))
+            else if (refArg != refParameter &&
+                !(refArg == RefKind.None && refParameter == RefKind.In) &&
+                !(refParameter == RefKind.RefReadOnlyParameter && refArg is RefKind.None or RefKind.Ref or RefKind.In))
             {
                 if (refParameter is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter)
                 {
