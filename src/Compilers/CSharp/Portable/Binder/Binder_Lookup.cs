@@ -331,9 +331,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                     basesBeingResolved, options, originalBinder: this, ref useSiteInfo);
 
                 if (result.IsMultiViable)
-                {
                     break;
+
+                if (!result.IsClear)
+                {
+                    result.Clear();
                 }
+
+                // PROTOTYPE test use-site diagnostics
+                lookupEligibleExtensionMethodsInSingleBinder(scope, result, type, name, arity, options, ref useSiteInfo);
+
+                if (result.IsMultiViable)
+                    break;
+            }
+
+            return;
+
+            void lookupEligibleExtensionMethodsInSingleBinder(ExtensionScope scope, LookupResult result, TypeSymbol type,
+                string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                var conversions = Conversions;
+                var methods = ArrayBuilder<MethodSymbol>.GetInstance();
+                scope.Binder.GetCandidateExtensionMethods(methods, name, arity, options, this);
+
+                foreach (var method in methods)
+                {
+                    SingleLookupResult resultOfThisMember = this.CheckViability(method, arity,
+                        options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
+
+                    var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, type, ref useSiteInfo);
+                    if (conversion.Exists)
+                    {
+                        result.MergeEqual(resultOfThisMember);
+                    }
+                }
+
+                methods.Free();
             }
         }
 #nullable disable

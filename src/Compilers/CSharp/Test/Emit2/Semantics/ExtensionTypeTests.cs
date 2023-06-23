@@ -16621,9 +16621,9 @@ implicit extension E for C
     }
 
     [Fact]
-    public void TODO2()
+    public void ExtensionMethodsInNonInvocationLookup()
     {
-        // TODO2 the behavior stemming from current rules is undesirable...
+        // Extension member lookup includes extension methods
         var src = """
 public implicit extension E1 for object
 {
@@ -16634,24 +16634,77 @@ namespace N
 {
     public static class E2
     {
-        public static void Member(this object o) { }
+        public static void Member(this object o)
+        {
+            System.Console.Write("ran ");
+        }
     }
 
     class C
     {
-        void M(object o)
+        public static void Main()
         {
+            var o = new object();
+
             var x = o.Member;
+            x();
+
             System.Action y = o.Member;
+            y();
+
+            o.Member();
         }
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugDll);
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "ran ran ran");
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").First();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(1).First();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+
+        var memberAccess3 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(2).Single();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_AfterExtensionType()
+    {
+        // Extension method in same namespace comes after extension type members
+        var src = """
+public implicit extension E1 for object
+{
+    public int Member => throw null;
+}
+
+public static class E2
+{
+    public static void Member(this object o) { }
+}
+
+class C
+{
+    public static void Main()
+    {
+        var o = new object();
+        var x = o.Member;
+        System.Action y = o.Member; // 1
+        o.Member();
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
-            // (18,31): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
-            //             System.Action y = o.Member;
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "o.Member").WithArguments("int", "System.Action").WithLocation(18, 31)
+            // (17,27): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+            //         System.Action y = o.Member; // 1
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "o.Member").WithArguments("int", "System.Action").WithLocation(17, 27)
             );
 
         var tree = comp.SyntaxTrees.First();
@@ -16659,8 +16712,376 @@ namespace N
         var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").First();
         Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
 
-        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(1).Single();
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(1).First();
         Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+
+        var memberAccess3 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(2).Single();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_AfterExtensionType_Import()
+    {
+        // Extension method in same import comes after extension type members
+        var src = """
+using N;
+
+var o = new object();
+var x = o.Member;
+System.Action y = o.Member; // 1
+o.Member();
+
+namespace N
+{
+    public implicit extension E1 for object
+    {
+        public int Member => throw null;
+    }
+
+    public static class E2
+    {
+        public static void Member(this object o) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (5,19): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+            // System.Action y = o.Member; // 1
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "o.Member").WithArguments("int", "System.Action").WithLocation(5, 19)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").First();
+        Assert.Equal("System.Int32 N.E1.Member { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(1).First();
+        Assert.Equal("System.Int32 N.E1.Member { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+
+        var memberAccess3 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(2).Single();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_ComesBeforeExtensionTypeInNextScope()
+    {
+        // Imported extension methods come before extension type members in outer scope
+        var src = """
+public implicit extension E1 for object
+{
+    public int Member => throw null;
+}
+
+namespace N1
+{
+    using N2;
+
+    class C
+    {
+        public static void Main()
+        {
+            var o = new object();
+            var x = o.Member;
+            x();
+
+            System.Action y = o.Member;
+            y();
+
+            o.Member();
+        }
+    }
+}
+
+namespace N2
+{
+    public static class E2
+    {
+        public static void Member(this object o)
+        {
+            System.Console.Write("ran ");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        // Existing ILVerification failure tracked by https://github.com/dotnet/roslyn/issues/68749
+        var verifier = CompileAndVerify(comp, expectedOutput: "ran ran ran", verify: Verification.Fails);
+
+        verifier.VerifyIL("N1.C.Main", """
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (object V_0, //o
+                System.Action V_1, //x
+                System.Action V_2) //y
+  IL_0000:  nop
+  IL_0001:  newobj     "object..ctor()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldftn      "void N2.E2.Member(object)"
+  IL_000e:  newobj     "System.Action..ctor(object, nint)"
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  callvirt   "void System.Action.Invoke()"
+  IL_001a:  nop
+  IL_001b:  ldloc.0
+  IL_001c:  ldftn      "void N2.E2.Member(object)"
+  IL_0022:  newobj     "System.Action..ctor(object, nint)"
+  IL_0027:  stloc.2
+  IL_0028:  ldloc.2
+  IL_0029:  callvirt   "void System.Action.Invoke()"
+  IL_002e:  nop
+  IL_002f:  ldloc.0
+  IL_0030:  call       "void N2.E2.Member(object)"
+  IL_0035:  nop
+  IL_0036:  ret
+}
+""");
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").First();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(1).First();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+
+        var memberAccess3 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(2).Single();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_Inaccessible()
+    {
+        // An inaccessible extension method does not come before an extension type member in outer scope
+        var src = """
+public implicit extension E1 for object
+{
+    public int Member { get { System.Console.Write("ran "); return 0; } }
+}
+
+namespace N
+{
+    public static class E2
+    {
+        private static void Member(this object o) => throw null;
+    }
+
+    class C
+    {
+        public static void Main()
+        {
+            var o = new object();
+            int x = o.Member;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //        var verifier = CompileAndVerify(comp, expectedOutput: "ran");
+
+        //        verifier.VerifyIL("N.C.Main", """
+        //{
+        //  // Code size       15 (0xf)
+        //  .maxstack  1
+        //  .locals init (object V_0, //o
+        //                int V_1) //x
+        //  IL_0000:  nop
+        //  IL_0001:  newobj     "object..ctor()"
+        //  IL_0006:  stloc.0
+        //  IL_0007:  ldloc.0
+        //  IL_0008:  callvirt   "int E1.Member.get"
+        //  IL_000d:  stloc.1
+        //  IL_000e:  ret
+        //}
+        //""");
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Single();
+        Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_Ineligible()
+    {
+        // An ineligible extension method does not come before an extension type member in outer scope
+        var src = """
+public implicit extension E1 for object
+{
+    public int Member { get { System.Console.Write("ran "); return 0; } }
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void Member(this string o) => throw null;
+    }
+
+    class C
+    {
+        public static void Main()
+        {
+            var o = new object();
+            int x = o.Member;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "ran");
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Single();
+        Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_FieldBlocksInstanceMethod()
+    {
+        // A non-invocable field blocks an instance method from base type in non-invocation scenario
+        var src = """
+C c = null;
+System.Action a = c.M; // 1
+c.M();
+
+public class Base
+{
+    public void M() { }
+}
+
+public class C : Base
+{
+    public new int M;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,19): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+            // System.Action a = c.M; // 1
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.M").WithArguments("int", "System.Action").WithLocation(2, 19)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").First();
+        Assert.Equal("System.Int32 C.M", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").Skip(1).Single();
+        Assert.Equal("void Base.M()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_FieldBlocksExtensionMethod()
+    {
+        // A non-invocable field blocks an extension method in non-invocation scenario
+        var src = """
+C c = null;
+System.Action a = c.M; // 1
+c.M();
+
+public static class E
+{
+    public static void M(this C c) { }
+}
+
+public class C
+{
+    public int M;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,19): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+            // System.Action a = c.M; // 1
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.M").WithArguments("int", "System.Action").WithLocation(2, 19)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").First();
+        Assert.Equal("System.Int32 C.M", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").Skip(1).Single();
+        Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_PropertyBlocksExtensionMethod()
+    {
+        // A non-invocable property blocks an extension method in non-invocation scenario
+        var src = """
+C c = null;
+System.Action a = c.M; // 1
+c.M();
+
+public static class E
+{
+    public static void M(this C c) { }
+}
+
+public class C
+{
+    public int M => 0;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,19): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+            // System.Action a = c.M; // 1
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.M").WithArguments("int", "System.Action").WithLocation(2, 19)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").First();
+        Assert.Equal("System.Int32 C.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").Skip(1).Single();
+        Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_PropertyBlocksExtensionTypeMethod()
+    {
+        // A non-invocable property blocks an extension type method in non-invocation scenario
+        var src = """
+C c = null;
+System.Action a = c.M; // 1
+c.M();
+
+implicit extension E for C
+{
+    public void M() { }
+}
+
+public class C
+{
+    public int M => 0;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,19): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+            // System.Action a = c.M; // 1
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.M").WithArguments("int", "System.Action").WithLocation(2, 19)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").First();
+        Assert.Equal("System.Int32 C.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").Skip(1).Single();
+        Assert.Equal("void E.M()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [Fact]
