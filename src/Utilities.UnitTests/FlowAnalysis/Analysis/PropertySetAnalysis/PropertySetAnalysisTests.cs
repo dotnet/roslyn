@@ -1285,6 +1285,7 @@ class TestClass
             ProjectId projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
             var defaultReferences = ReferenceAssemblies.NetFramework.Net48.Default;
+            defaultReferences = defaultReferences.AddPackages(ImmutableArray.Create(new PackageIdentity("System.DirectoryServices", "6.0.1")));
             var references = Task.Run(() => defaultReferences.ResolveAsync(LanguageNames.CSharp, CancellationToken.None)).GetAwaiter().GetResult();
 
 #pragma warning disable CA2000 // Dispose objects before losing scope - Current solution/project takes the dispose ownership of the created AdhocWorkspace
@@ -1297,9 +1298,6 @@ class TestClass
 #if !NETCOREAPP
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeSerialization)
-#endif
-                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDirectoryServices)
-#if !NETCOREAPP
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXaml)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.PresentationFramework)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebExtensions)
