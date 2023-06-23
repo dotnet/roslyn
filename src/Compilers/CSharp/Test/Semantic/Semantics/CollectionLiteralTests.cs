@@ -1111,18 +1111,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = """
                 class Program
                 {
-                    static T[] AsArray<T>(T[] args)
-                    {
-                        return args;
-                    }
+                    static T[] AsArray1<T>(T[] args) => args;
+                    static T[] AsArray2<T>(params T[] args) => args;
                     static void Main()
                     {
-                        var a = AsArray([1, 2, 3]);
+                        var a = AsArray1([1, 2, 3]);
                         a.Report();
+                        var b = AsArray2(["4", null]);
+                        b.Report();
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3], ");
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3], [4, null], ");
         }
 
         [Fact]
@@ -1153,32 +1153,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TypeInference_05()
-        {
-            string source = """
-                class Program
-                {
-                    static T[] AsArray<T>(params T[] args)
-                    {
-                        return args;
-                    }
-                    static void Main()
-                    {
-                        var a = AsArray([1, 2, 3]);
-                        a.Report();
-                    }
-                }
-                """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3], ");
-        }
-
-        [Fact]
         public void TypeInference_06()
         {
             string source = """
                 class Program
                 {
-                    static T[] AsArray<T>(params T[] args)
+                    static T[] AsArray<T>(T[] args)
                     {
                         return args;
                     }
