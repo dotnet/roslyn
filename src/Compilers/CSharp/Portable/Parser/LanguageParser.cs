@@ -7433,7 +7433,7 @@ done:;
 
             var resetPoint = GetResetPoint();
 
-            if (tryParseCollectionCreationExpression())
+            if (treatBracketAsCollectionExpression())
             {
                 // This was a collection expression, not an attribute declaration.  Reset to the beginning, but return
                 // no attributes so that the caller will parse this out as a collection expression.
@@ -7451,7 +7451,7 @@ done:;
                 return attributes;
             }
 
-            bool tryParseCollectionCreationExpression()
+            bool treatBracketAsCollectionExpression()
             {
                 // check first for `[x].M()`
                 var expression = (ExpressionSyntax)ParseCollectionCreationExpression();
