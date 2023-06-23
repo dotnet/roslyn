@@ -8898,4 +8898,160 @@ class C
         }
         EOF();
     }
+
+    [Fact]
+    public void MemberAccess12()
+    {
+        UsingTree("""
+            class Program
+            {
+                static void Main()
+                {
+                    []!.GetHashCode();
+                }
+            }
+            """);
+
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess12A()
+    {
+        UsingTree("""
+            []!.GetHashCode();
+            """);
+
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess13()
+    {
+        UsingTree("""
+            class Program
+            {
+                static void Main()
+                {
+                    [A]!.GetHashCode();
+                }
+            }
+            """);
+
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess13A()
+    {
+        UsingTree("""
+            [A]!.GetHashCode();
+            """);
+
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess14()
+    {
+        UsingTree("""
+            class Program
+            {
+                static void Main()
+                {
+                    [A:B]!.GetHashCode();
+                }
+            }
+            """);
+
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess14A()
+    {
+        UsingTree("""
+            [A:B]!.GetHashCode();
+            """);
+
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess15()
+    {
+        UsingTree("""
+            class Program
+            {
+                static void Main()
+                {
+                    [A()]!.GetHashCode();
+                }
+            }
+            """);
+
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess15A()
+    {
+        UsingTree("""
+            [A()]!.GetHashCode();
+            """);
+
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess16()
+    {
+        UsingTree("""
+            class Program
+            {
+                static void Main()
+                {
+                    [A()][0]!.GetHashCode();
+                }
+            }
+            """);
+
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess16A()
+    {
+        UsingTree("""
+            [A()][0]!.GetHashCode();
+            """);
+
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess17()
+    {
+        UsingTree("""
+            class Program
+            {
+                static void Main()
+                {
+                    [][0]!.GetHashCode();
+                }
+            }
+            """);
+
+        EOF();
+    }
+
+    [Fact]
+    public void MemberAccess17A()
+    {
+        UsingTree("""
+            [][0]!.GetHashCode();
+            """);
+
+        EOF();
+    }
 }
