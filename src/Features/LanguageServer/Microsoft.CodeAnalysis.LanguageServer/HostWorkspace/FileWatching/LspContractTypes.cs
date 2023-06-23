@@ -27,7 +27,7 @@ internal class FileSystemWatcher
 [DataContract]
 internal class RelativePattern
 {
-    [DataMember(Name = "uri")]
+    [DataMember(Name = "baseUri")]
     [JsonConverter(typeof(DocumentUriConverter))]
     public required Uri BaseUri { get; set; }
 
