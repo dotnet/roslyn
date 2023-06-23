@@ -2882,10 +2882,10 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Argument {0} must be passed with the '{1}' keyword</value>
   </data>
   <data name="WRN_BadArgRef" xml:space="preserve">
-    <value>Argument {0} should not be passed with the '{1}' keyword</value>
+    <value>The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</value>
   </data>
   <data name="WRN_BadArgRef_Title" xml:space="preserve">
-    <value>Argument should not be passed with the keyword</value>
+    <value>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</value>
   </data>
   <data name="WRN_ArgExpectedRefOrIn" xml:space="preserve">
     <value>Argument {0} should be passed with 'ref' or 'in' keyword</value>

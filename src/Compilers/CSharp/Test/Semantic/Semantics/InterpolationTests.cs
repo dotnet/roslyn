@@ -8057,9 +8057,9 @@ public partial struct CustomHandler
                 """);
 
             verifier.VerifyDiagnostics(
-                // 0.cs(5,9): warning CS9502: Argument 3 should not be passed with the 'ref' keyword
+                // 0.cs(5,9): warning CS9502: The 'ref' modifier for argument 3 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                 // C.M(ref x, $"text");
-                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("3", "ref").WithLocation(5, 9));
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("3").WithLocation(5, 9));
 
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
@@ -17556,9 +17556,9 @@ partial struct CustomHandler
             var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler },
                 expectedOutput: "literal:text");
             verifier.VerifyDiagnostics(
-                // 0.cs(5,1): warning CS9502: Argument 3 should not be passed with the 'ref' keyword
+                // 0.cs(5,1): warning CS9502: The 'ref' modifier for argument 3 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                 // s.M($"text");
-                Diagnostic(ErrorCode.WRN_BadArgRef, "s").WithArguments("3", "ref").WithLocation(5, 1));
+                Diagnostic(ErrorCode.WRN_BadArgRef, "s").WithArguments("3").WithLocation(5, 1));
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
                   // Code size       39 (0x27)

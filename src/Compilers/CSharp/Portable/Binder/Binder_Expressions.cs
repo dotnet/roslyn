@@ -3240,12 +3240,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.In)
                         {
-                            // Argument {0} should not be passed with the '{1}' keyword
+                            // The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                             diagnostics.Add(
                                 ErrorCode.WRN_BadArgRef,
                                 argument.Syntax,
-                                arg + 1,
-                                argRefKind.ToArgumentDisplayString());
+                                arg + 1);
                         }
                     }
                     else if (argRefKind == RefKind.None &&

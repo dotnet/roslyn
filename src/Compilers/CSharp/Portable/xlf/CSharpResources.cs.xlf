@@ -2093,13 +2093,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
-        <source>Argument {0} should not be passed with the '{1}' keyword</source>
-        <target state="new">Argument {0} should not be passed with the '{1}' keyword</target>
+        <source>The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
+        <target state="new">The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef_Title">
-        <source>Argument should not be passed with the keyword</source>
-        <target state="new">Argument should not be passed with the keyword</target>
+        <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
+        <target state="new">The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing">

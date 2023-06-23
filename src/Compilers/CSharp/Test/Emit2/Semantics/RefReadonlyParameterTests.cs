@@ -1606,9 +1606,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "5");
         verifier.VerifyDiagnostics(
-            // (5,16): warning CS9502: Argument 1 should not be passed with the 'ref' keyword
+            // (5,16): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
             //         M2(ref p);
-            Diagnostic(ErrorCode.WRN_BadArgRef, "p").WithArguments("1", "ref").WithLocation(5, 16));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "p").WithArguments("1").WithLocation(5, 16));
         verifier.VerifyIL("C.M1", """
             {
               // Code size        7 (0x7)
@@ -2109,9 +2109,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             object5
             c5
             """).VerifyDiagnostics(
-            // (10,58): warning CS9502: Argument 2 should not be passed with the 'ref' keyword
+            // (10,58): warning CS9502: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
             //         System.Console.WriteLine(M1(default(object), ref i));
-            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2", "ref").WithLocation(10, 58));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(10, 58));
     }
 
     [Fact]
@@ -2136,9 +2136,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (8,36): warning CS9501: Argument 2 should not be passed with the 'ref' keyword
+            // (8,36): warning CS9501: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
             //         new C(default(object), ref i);
-            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2", "ref").WithLocation(8, 36)
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(8, 36)
         };
 
         CompileAndVerify(source, expectedOutput: "object5", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
