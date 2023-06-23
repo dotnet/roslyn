@@ -1389,23 +1389,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = """
                 class Program
                 {
+                    static T F0<T>(T[] x, T y) => y;
                     static T[] F1<T>(T[] x, T[] y) => y;
                     static T[] F2<T>(T[][] x, T[][] y) => y[0];
                     static void Main()
                     {
-                        var x = F1(new byte[0], [1, 2]);
-                        var y = F2(new[] { new byte[0] }, [[3, 4]]);
+                        var x = F0(new byte[0], 1);
+                        var y = F1(new byte[0], [1, 2]);
+                        var z = F2(new[] { new byte[0] }, [[3, 4]]);
                     }
                 }
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,17): error CS0411: The type arguments for method 'Program.F1<T>(T[], T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         var x = F1(new byte[0], [1, 2]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(T[], T[])").WithLocation(7, 17),
-                // (8,17): error CS0411: The type arguments for method 'Program.F2<T>(T[][], T[][])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         var y = F2(new[] { new byte[0] }, [[3, 4]]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T[][], T[][])").WithLocation(8, 17));
+                // (8,17): error CS0411: The type arguments for method 'Program.F0<T>(T[], T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x = F0(new byte[0], 1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T[], T)").WithLocation(8, 17),
+                // (9,17): error CS0411: The type arguments for method 'Program.F1<T>(T[], T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var y = F1(new byte[0], [1, 2]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(T[], T[])").WithLocation(9, 17),
+                // (10,17): error CS0411: The type arguments for method 'Program.F2<T>(T[][], T[][])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var z = F2(new[] { new byte[0] }, [[3, 4]]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T[][], T[][])").WithLocation(10, 17));
         }
 
         [Fact]
