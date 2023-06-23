@@ -229,5 +229,10 @@ namespace Analyzer.Utilities
         /// String option to configure names of additional "None" enum case (separated by '|') for CA1008.
         /// </summary>
         public const string AdditionalEnumNoneNames = "additional_enum_none_names";
+
+        /// <summary>
+        /// Boolean option whether to perform the analysis even if the assembly exposes its internals.
+        /// </summary>
+        public const string IgnoreInternalsVisibleTo = "ignore_internalsvisibleto";
     }
 }

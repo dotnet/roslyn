@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #nullable enable
-#pragma warning disable CA1305
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -395,18 +393,56 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                 // Test0.cs(2,14): error RS0016: Symbol 'C' is not part of the declared API.
                 GetCSharpResultAt(2, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C"),
-                // Test0.cs(2,14): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
-                GetCSharpResultAt(2, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, string.Format(PublicApiAnalyzerResources.ImplicitConstructorErrorMessageName, "C")),
-                // Test0.cs(4,16): error RS0016: Symbol 'Field' is not part of the declared API.
-                GetCSharpResultAt(4, 10 + EnabledModifierCSharp.Length, DeclareNewApiRule, "Field"),
-                // Test0.cs(5,27): error RS0016: Symbol 'Property.get' is not part of the declared API.
-                GetCSharpResultAt(5, 21 + EnabledModifierCSharp.Length, DeclareNewApiRule, "Property.get"),
-                // Test0.cs(5,32): error RS0016: Symbol 'Property.set' is not part of the declared API.
-                GetCSharpResultAt(5, 26 + EnabledModifierCSharp.Length, DeclareNewApiRule, "Property.set"),
-                // Test0.cs(6,17): error RS0016: Symbol 'Method' is not part of the declared API.
-                GetCSharpResultAt(6, 11 + EnabledModifierCSharp.Length, DeclareNewApiRule, "Method"),
-                // Test0.cs(7,43): error RS0016: Symbol 'ArrowExpressionProperty.get' is not part of the declared API.
-                GetCSharpResultAt(7, 37 + EnabledModifierCSharp.Length, DeclareNewApiRule, "ArrowExpressionProperty.get"));
+                // Test0.cs(2,14): warning RS0016: Symbol 'C.C() -> void' is not part of the declared API.
+                GetCSharpResultAt(2, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C.C() -> void"),
+                // Test0.cs(4,16): error RS0016: Symbol 'C.Field -> int' is not part of the declared API.
+                GetCSharpResultAt(4, 10 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C.Field -> int"),
+                // Test0.cs(5,27): error RS0016: Symbol 'C.Property.get -> int' is not part of the declared API.
+                GetCSharpResultAt(5, 21 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C.Property.get -> int"),
+                // Test0.cs(5,32): error RS0016: Symbol 'C.Property.set -> void' is not part of the declared API.
+                GetCSharpResultAt(5, 26 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C.Property.set -> void"),
+                // Test0.cs(6,17): error RS0016: Symbol 'C.Method() -> void' is not part of the declared API.
+                GetCSharpResultAt(6, 11 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C.Method() -> void"),
+                // Test0.cs(7,43): error RS0016: Symbol 'C.ArrowExpressionProperty.get -> int' is not part of the declared API.
+                GetCSharpResultAt(7, 37 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C.ArrowExpressionProperty.get -> int"));
+        }
+
+        [Theory]
+        [InlineData("string ", "string!")]
+        [InlineData("string?", "string?")]
+        [InlineData("int    ", "int")]
+        [InlineData("int?   ", "int?")]
+        public async Task SimpleMissingMember_CSharp_NullableTypes(string csharp, string message)
+        {
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifierCSharp}} class C
+                {
+                    {{EnabledModifierCSharp}} {{csharp}} Field;
+                    {{EnabledModifierCSharp}} {{csharp}} Property { get; set; }
+                    {{EnabledModifierCSharp}} void Method({{csharp}} p) { } 
+                    {{EnabledModifierCSharp}} {{csharp}} ArrowExpressionProperty => default;
+                }
+                """;
+
+            var shippedText = "#nullable enable";
+            var unshippedText = "#nullable enable";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                // Test0.cs(2,14): error RS0016: Symbol 'C' is not part of the declared API.
+                GetCSharpResultAt(2, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C"),
+                // Test0.cs(2,14): warning RS0016: Symbol 'C.C() -> void' is not part of the declared API.
+                GetCSharpResultAt(2, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C.C() -> void"),
+                // Test0.cs(4,16): error RS0016: Symbol 'C.Field -> int' is not part of the declared API.
+                GetCSharpResultAt(4, 14 + EnabledModifierCSharp.Length, DeclareNewApiRule, $"C.Field -> {message}"),
+                // Test0.cs(5,27): error RS0016: Symbol 'C.Property.get -> int' is not part of the declared API.
+                GetCSharpResultAt(5, 25 + EnabledModifierCSharp.Length, DeclareNewApiRule, $"C.Property.get -> {message}"),
+                // Test0.cs(5,32): error RS0016: Symbol 'C.Property.set -> void' is not part of the declared API.
+                GetCSharpResultAt(5, 30 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C.Property.set -> void"),
+                // Test0.cs(6,17): error RS0016: Symbol 'C.Method() -> void' is not part of the declared API.
+                GetCSharpResultAt(6, 11 + EnabledModifierCSharp.Length, DeclareNewApiRule, $"C.Method({message} p) -> void"),
+                // Test0.cs(7,43): error RS0016: Symbol 'C.ArrowExpressionProperty.get -> int' is not part of the declared API.
+                GetCSharpResultAt(7, 41 + EnabledModifierCSharp.Length, DeclareNewApiRule, $"C.ArrowExpressionProperty.get -> {message}"));
         }
 
         [Fact, WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
@@ -443,22 +479,22 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await VerifyBasicAsync(source, shippedText, unshippedText,
                 // Test0.vb(4,14): warning RS0016: Symbol 'C' is not part of the declared API.
                 GetBasicResultAt(4, 14, DeclareNewApiRule, "C"),
-                // Test0.cs(2,14): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
-                GetBasicResultAt(4, 14, DeclareNewApiRule, string.Format(PublicApiAnalyzerResources.ImplicitConstructorErrorMessageName, "C")),
-                // Test0.vb(5,12): warning RS0016: Symbol 'Field' is not part of the declared API.
-                GetBasicResultAt(5, 12, DeclareNewApiRule, "Field"),
-                // Test0.vb(8,9): warning RS0016: Symbol 'Property' is not part of the declared API.
-                GetBasicResultAt(8, 9, DeclareNewApiRule, "Property"),
-                // Test0.vb(11,9): warning RS0016: Symbol 'Property' is not part of the declared API.
-                GetBasicResultAt(11, 9, DeclareNewApiRule, "Property"),
-                // Test0.vb(17,16): warning RS0016: Symbol 'Method' is not part of the declared API.
-                GetBasicResultAt(17, 16, DeclareNewApiRule, "Method"),
-                // Test0.vb(20,30): warning RS0016: Symbol 'implicit get-accessor for ReadOnlyAutoProperty' is not part of the declared API.
-                GetBasicResultAt(20, 30, DeclareNewApiRule, string.Format(PublicApiAnalyzerResources.ImplicitGetAccessor, "ReadOnlyAutoProperty")),
-                // Test0.vb(21,21): warning RS0016: Symbol 'implicit get-accessor for NormalAutoProperty' is not part of the declared API.
-                GetBasicResultAt(21, 21, DeclareNewApiRule, string.Format(PublicApiAnalyzerResources.ImplicitGetAccessor, "NormalAutoProperty")),
-                // Test0.vb(21,21): warning RS0016: Symbol 'implicit set-accessor for NormalAutoProperty' is not part of the declared API.
-                GetBasicResultAt(21, 21, DeclareNewApiRule, string.Format(PublicApiAnalyzerResources.ImplicitSetAccessor, "NormalAutoProperty")));
+                // Test0.cs(2,14): warning RS0016: Symbol 'C.New() -> Void' is not part of the declared API.
+                GetBasicResultAt(4, 14, DeclareNewApiRule, "C.New() -> Void"),
+                // Test0.vb(5,12): warning RS0016: Symbol 'C.Field -> Integer' is not part of the declared API.
+                GetBasicResultAt(5, 12, DeclareNewApiRule, "C.Field -> Integer"),
+                // Test0.vb(8,9): warning RS0016: Symbol 'C.Property() -> Integer' is not part of the declared API.
+                GetBasicResultAt(8, 9, DeclareNewApiRule, "C.Property() -> Integer"),
+                // Test0.vb(11,9): warning RS0016: Symbol 'C.Property(Value As Integer) -> Void' is not part of the declared API.
+                GetBasicResultAt(11, 9, DeclareNewApiRule, "C.Property(Value As Integer) -> Void"),
+                // Test0.vb(17,16): warning RS0016: Symbol 'C.Method() -> Void' is not part of the declared API.
+                GetBasicResultAt(17, 16, DeclareNewApiRule, "C.Method() -> Void"),
+                // Test0.vb(20,30): warning RS0016: Symbol 'C.ReadOnlyAutoProperty() -> Integer' is not part of the declared API.
+                GetBasicResultAt(20, 30, DeclareNewApiRule, "C.ReadOnlyAutoProperty() -> Integer"),
+                // Test0.vb(21,21): warning RS0016: Symbol 'C.NormalAutoProperty() -> Integer' is not part of the declared API.
+                GetBasicResultAt(21, 21, DeclareNewApiRule, "C.NormalAutoProperty() -> Integer"),
+                // Test0.vb(21,21): warning RS0016: Symbol 'C.NormalAutoProperty(AutoPropertyValue As Integer) -> Void' is not part of the declared API.
+                GetBasicResultAt(21, 21, DeclareNewApiRule, "C.NormalAutoProperty(AutoPropertyValue As Integer) -> Void"));
         }
 
         [Fact(), WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
@@ -581,10 +617,9 @@ C.C() -> void";
 C";
             var unshippedText = @"";
 
-            var arg = string.Format(CultureInfo.CurrentCulture, PublicApiAnalyzerResources.ImplicitConstructorErrorMessageName, "C");
             await VerifyCSharpAsync(source, shippedText, unshippedText,
-                // Test0.cs(2,14): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
-                GetCSharpResultAt(2, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, arg));
+                // Test0.cs(2,14): warning RS0016: Symbol 'C.C() -> void' is not part of the declared API.
+                GetCSharpResultAt(2, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C.C() -> void"));
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
@@ -760,13 +795,10 @@ C.Property.set -> void
             }
             else
             {
-                // /0/Test0.cs(6,17): warning RS0016: Symbol 'Method' is not part of the declared API
-                var secondDiagnostic = new[] { GetCSharpResultAt(6, 11 + EnabledModifierCSharp.Length, DeclareNewApiRule, "Method") };
+                // /0/Test0.cs(6,17): warning RS0016: Symbol 'C.Method() -> void' is not part of the declared API
+                var secondDiagnostic = new[] { GetCSharpResultAt(6, 11 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C.Method() -> void") };
 
-                // Ordering depends on file name
-                diagnostics = (IsInternalTest ? secondDiagnostic.Concat(diagnostics) : diagnostics.Concat(secondDiagnostic)).ToArray();
-
-                await VerifyCSharpAsync(source, shippedText, unshippedText, diagnostics);
+                await VerifyCSharpAsync(source, shippedText, unshippedText, diagnostics.Concat(secondDiagnostic).ToArray());
             }
         }
 
@@ -1147,15 +1179,22 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
             string shippedText = "";
             string unshippedText = "";
 
+#if NETCOREAPP
+            var containingAssembly = "System.Runtime";
+#else
+            var containingAssembly = "mscorlib";
+#endif
+
             await VerifyCSharpAsync(source, shippedText, unshippedText,
+                // /0/Test0.cs(2,12): warning RS0016: Symbol 'System.Collections.Generic.IEnumerable<T> (forwarded, contained in System.Runtime)' is not part of the declared API
+                GetCSharpResultAt(2, 12, DeclareNewApiRule, $"System.Collections.Generic.IEnumerable<T> (forwarded, contained in {containingAssembly})"),
+                // /0/Test0.cs(2,12): warning RS0016: Symbol 'System.Collections.Generic.IEnumerable<T>.GetEnumerator() -> System.Collections.Generic.IEnumerator<T> (forwarded, contained in System.Runtime)' is not part of the declared API
+                GetCSharpResultAt(2, 12, DeclareNewApiRule, $"System.Collections.Generic.IEnumerable<T>.GetEnumerator() -> System.Collections.Generic.IEnumerator<T> (forwarded, contained in {containingAssembly})")
 #if NETCOREAPP
                 // /0/Test0.cs(2,12): warning RS0037: PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.
-                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.ShouldAnnotatePublicApiFilesRule),
+                , GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.ShouldAnnotatePublicApiFilesRule)
 #endif
-                // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
-                GetCSharpResultAt(2, 12, DeclareNewApiRule, "GetEnumerator"),
-                // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
-                GetCSharpResultAt(2, 12, DeclareNewApiRule, "IEnumerable<T>"));
+                );
         }
 
         [Fact, WorkItem(1192, "https://github.com/dotnet/roslyn-analyzers/issues/1192")]
@@ -1173,15 +1212,22 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
             string shippedText = "";
             string unshippedText = "";
 
+#if NETCOREAPP
+            var containingAssembly = "System.Runtime";
+#else
+            var containingAssembly = "mscorlib";
+#endif
+
             await VerifyCSharpAsync(source, shippedText, unshippedText,
+                // /0/Test0.cs(2,12): warning RS0016: Symbol 'System.Collections.Generic.IEnumerable<string> (forwarded, contained in System.Runtime)' is not part of the declared API
+                GetCSharpResultAt(2, 12, DeclareNewApiRule, $"System.Collections.Generic.IEnumerable<string> (forwarded, contained in {containingAssembly})"),
+                // /0/Test0.cs(2,12): warning RS0016: Symbol 'System.Collections.Generic.IEnumerable<string>.GetEnumerator() -> System.Collections.Generic.IEnumerator<string> (forwarded, contained in System.Runtime)' is not part of the declared API
+                GetCSharpResultAt(2, 12, DeclareNewApiRule, $"System.Collections.Generic.IEnumerable<string>.GetEnumerator() -> System.Collections.Generic.IEnumerator<string> (forwarded, contained in {containingAssembly})")
 #if NETCOREAPP
                 // /0/Test0.cs(2,12): warning RS0037: PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.
-                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.ShouldAnnotatePublicApiFilesRule),
+                , GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.ShouldAnnotatePublicApiFilesRule)
 #endif
-                // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
-                GetCSharpResultAt(2, 12, DeclareNewApiRule, "GetEnumerator"),
-                // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
-                GetCSharpResultAt(2, 12, DeclareNewApiRule, "IEnumerable<String>"));
+                );
         }
 
         [Fact, WorkItem(851, "https://github.com/dotnet/roslyn-analyzers/issues/851")]
@@ -1250,16 +1296,16 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
             var result = IsInternalTest
                 ? new DiagnosticResult[]
                 {
-                    // Test0.cs(5,17): warning RS0016: Symbol 'Method1' is not part of the declared API.
-                    GetCSharpResultAt(5, 19, DeclareNewApiRule, "Method1"),
-                    // Test0.cs(8,17): warning RS0016: Symbol 'Method1' is not part of the declared API.
-                    GetCSharpResultAt(8, 19, DeclareNewApiRule, "Method1"),
+                    // Test0.cs(5,17): warning RS0016: Symbol 'C.Method1(int p1, int p2, int p3 = 0) -> void' is not part of the declared API.
+                    GetCSharpResultAt(5, 19, DeclareNewApiRule, "C.Method1(int p1, int p2, int p3 = 0) -> void"),
+                    // Test0.cs(8,17): warning RS0016: Symbol 'C.Method1(char p1, params int[] p2) -> void' is not part of the declared API.
+                    GetCSharpResultAt(8, 19, DeclareNewApiRule, "C.Method1(char p1, params int[] p2) -> void"),
                     // /0/Test0.cs(11,19): warning RS0059: Symbol 'Method2' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                     GetCSharpResultAt(11, 19, AvoidMultipleOverloadsWithOptionalParameters, "Method2", AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
                     // Test0.cs(20,17): warning RS0026: Symbol 'Method4' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                     GetCSharpResultAt(20, 19, AvoidMultipleOverloadsWithOptionalParameters, "Method4", AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
-                    // Test0.cs(25,17): warning RS0016: Symbol 'Method5' is not part of the declared API.
-                    GetCSharpResultAt(25, 19, DeclareNewApiRule, "Method5"),
+                    // Test0.cs(25,17): warning RS0016: Symbol 'C.Method5(int p1 = 0) -> void' is not part of the declared API.
+                    GetCSharpResultAt(25, 19, DeclareNewApiRule, "C.Method5(int p1 = 0) -> void"),
                     // Test0.cs(25,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                     GetCSharpResultAt(25, 19, AvoidMultipleOverloadsWithOptionalParameters, "Method5", AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
                     // Test0.cs(26,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
@@ -1268,14 +1314,14 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
                     GetCSharpResultAt(27, 19, AvoidMultipleOverloadsWithOptionalParameters, "Method5", AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri)
                 }
                 : new[] {
-                    // Test0.cs(5,17): warning RS0016: Symbol 'Method1' is not part of the declared API.
-                    GetCSharpResultAt(5, 17, DeclareNewApiRule, "Method1"),
-                    // Test0.cs(8,17): warning RS0016: Symbol 'Method1' is not part of the declared API.
-                    GetCSharpResultAt(8, 17, DeclareNewApiRule, "Method1"),
+                    // Test0.cs(5,17): warning RS0016: Symbol 'C.Method1(int p1, int p2, int p3 = 0) -> void' is not part of the declared API.
+                    GetCSharpResultAt(5, 17, DeclareNewApiRule, "C.Method1(int p1, int p2, int p3 = 0) -> void"),
+                    // Test0.cs(8,17): warning RS0016: Symbol 'C.Method1(char p1, params int[] p2) -> void' is not part of the declared API.
+                    GetCSharpResultAt(8, 17, DeclareNewApiRule, "C.Method1(char p1, params int[] p2) -> void"),
                     // Test0.cs(20,17): warning RS0026: Symbol 'Method4' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                     GetCSharpResultAt(20, 17, AvoidMultipleOverloadsWithOptionalParameters, "Method4", AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
-                    // Test0.cs(25,17): warning RS0016: Symbol 'Method5' is not part of the declared API.
-                    GetCSharpResultAt(25, 17, DeclareNewApiRule, "Method5"),
+                    // Test0.cs(25,17): warning RS0016: Symbol 'C.Method5(int p1 = 0) -> void' is not part of the declared API.
+                    GetCSharpResultAt(25, 17, DeclareNewApiRule, "C.Method5(int p1 = 0) -> void"),
                     // Test0.cs(25,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                     GetCSharpResultAt(25, 17, AvoidMultipleOverloadsWithOptionalParameters, "Method5", AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
                     // Test0.cs(26,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
@@ -1451,17 +1497,53 @@ C.Property.set -> void";
             var unshippedText = @"";
 
             await VerifyCSharpAsync(source, shippedText, unshippedText,
-                GetCSharpResultAt(4, 13 + EnabledModifierCSharp.Length, AnnotateApiRule, "Field"),
+                GetCSharpResultAt(4, 13 + EnabledModifierCSharp.Length, AnnotateApiRule, "C.Field -> string"),
                 GetCSharpResultAt(4, 13 + EnabledModifierCSharp.Length, ObliviousApiRule, "Field"),
-                GetCSharpResultAt(5, 24 + EnabledModifierCSharp.Length, AnnotateApiRule, "Property.get"),
+                GetCSharpResultAt(5, 24 + EnabledModifierCSharp.Length, AnnotateApiRule, "C.Property.get -> string"),
                 GetCSharpResultAt(5, 24 + EnabledModifierCSharp.Length, ObliviousApiRule, "Property.get"),
-                GetCSharpResultAt(5, 29 + EnabledModifierCSharp.Length, AnnotateApiRule, "Property.set"),
+                GetCSharpResultAt(5, 29 + EnabledModifierCSharp.Length, AnnotateApiRule, "C.Property.set -> void"),
                 GetCSharpResultAt(5, 29 + EnabledModifierCSharp.Length, ObliviousApiRule, "Property.set"),
-                GetCSharpResultAt(6, 13 + EnabledModifierCSharp.Length, AnnotateApiRule, "Method"),
+                GetCSharpResultAt(6, 13 + EnabledModifierCSharp.Length, AnnotateApiRule, "C.Method(string x) -> string"),
                 GetCSharpResultAt(6, 13 + EnabledModifierCSharp.Length, ObliviousApiRule, "Method"),
-                GetCSharpResultAt(7, 40 + EnabledModifierCSharp.Length, AnnotateApiRule, "ArrowExpressionProperty.get"),
+                GetCSharpResultAt(7, 40 + EnabledModifierCSharp.Length, AnnotateApiRule, "C.ArrowExpressionProperty.get -> string"),
                 GetCSharpResultAt(7, 40 + EnabledModifierCSharp.Length, ObliviousApiRule, "ArrowExpressionProperty.get")
                 );
+        }
+
+        [Theory]
+        [InlineData("string ", "string", "string!")]
+        [InlineData("string?", "string", "string?")]
+        public async Task ObliviousMember_Simple_NullableTypes(string csharp, string unannotated, string annotated)
+        {
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifierCSharp}} class C
+                {
+                    {{EnabledModifierCSharp}} {{csharp}} Field;
+                    {{EnabledModifierCSharp}} {{csharp}} Property { get; set; }
+                    {{EnabledModifierCSharp}} {{csharp}} Method({{csharp}} x) => throw null!;
+                    {{EnabledModifierCSharp}} {{csharp}} ArrowExpressionProperty => throw null!;
+                }
+                """;
+
+            var shippedText = $"""
+                #nullable enable
+                C
+                C.ArrowExpressionProperty.get -> {unannotated}
+                C.C() -> void
+                C.Field -> {unannotated}
+                C.Method({unannotated} x) -> {unannotated}
+                C.Property.get -> {unannotated}
+                C.Property.set -> void
+                """;
+
+            var unshippedText = "";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                GetCSharpResultAt(4, 14 + EnabledModifierCSharp.Length, AnnotateApiRule, $"C.Field -> {annotated}"),
+                GetCSharpResultAt(5, 25 + EnabledModifierCSharp.Length, AnnotateApiRule, $"C.Property.get -> {annotated}"),
+                GetCSharpResultAt(6, 14 + EnabledModifierCSharp.Length, AnnotateApiRule, $"C.Method({annotated} x) -> {annotated}"),
+                GetCSharpResultAt(7, 41 + EnabledModifierCSharp.Length, AnnotateApiRule, $"C.ArrowExpressionProperty.get -> {annotated}"));
         }
 
         [Fact]
@@ -1848,10 +1930,10 @@ C<T>.field2 -> C<T>.Nested";
             string? unshippedText = null;
 
             await VerifyCSharpAsync(source, shippedText, unshippedText, $"[*]\r\ndotnet_public_api_analyzer.skip_namespaces = My.Namespace",
-                // /0/Test0.cs(10,18): warning RS0016: Symbol 'D' is not part of the declared public API
-                GetCSharpResultAt(10, 12 + EnabledModifierCSharp.Length, DeclareNewApiRule, "D"),
-                // /0/Test0.cs(12,16): warning RS0016: Symbol 'D' is not part of the declared public API
-                GetCSharpResultAt(12, 10 + EnabledModifierCSharp.Length, DeclareNewApiRule, "D"));
+                // /0/Test0.cs(10,18): warning RS0016: Symbol 'Other.Namespace.D' is not part of the declared public API
+                GetCSharpResultAt(10, 12 + EnabledModifierCSharp.Length, DeclareNewApiRule, "Other.Namespace.D"),
+                // /0/Test0.cs(12,16): warning RS0016: Symbol 'Other.Namespace.D.D() -> void' is not part of the declared public API
+                GetCSharpResultAt(12, 10 + EnabledModifierCSharp.Length, DeclareNewApiRule, "Other.Namespace.D.D() -> void"));
         }
 
         [Fact]
@@ -1890,10 +1972,10 @@ C<T>.field2 -> C<T>.Nested";
             string? unshippedText = null;
 
             await VerifyCSharpAsync(source, shippedText, unshippedText, $"[*]\r\ndotnet_public_api_analyzer.skip_namespaces = My.Namespace.Longer",
-                // /0/Test0.cs(3,18): warning RS0016: Symbol 'C' is not part of the declared public API
-                GetCSharpResultAt(line: 3, 12 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C"),
-                // /0/Test0.cs(5,16): warning RS0016: Symbol 'C' is not part of the declared public API
-                GetCSharpResultAt(5, 10 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C"));
+                // /0/Test0.cs(3,18): warning RS0016: Symbol 'My.Namespace.C' is not part of the declared public API
+                GetCSharpResultAt(line: 3, 12 + EnabledModifierCSharp.Length, DeclareNewApiRule, "My.Namespace.C"),
+                // /0/Test0.cs(5,16): warning RS0016: Symbol 'My.Namespace.C.C() -> void' is not part of the declared public API
+                GetCSharpResultAt(5, 10 + EnabledModifierCSharp.Length, DeclareNewApiRule, "My.Namespace.C.C() -> void"));
         }
 
         [Fact]
@@ -2249,8 +2331,8 @@ C.C() -> void
 C.C() -> void
 C.ObliviousField -> string";
             await VerifyCSharpAsync(source, shippedText, unshippedText,
-                // /0/Test0.cs(5,19): warning RS0036: Symbol 'ObliviousField' is missing nullability annotations in the declared API.
-                GetCSharpResultAt(5, 13 + EnabledModifierCSharp.Length, AnnotateApiRule, "ObliviousField"),
+                // /0/Test0.cs(5,19): warning RS0036: Symbol 'C.ObliviousField -> string' is missing nullability annotations in the declared API.
+                GetCSharpResultAt(5, 13 + EnabledModifierCSharp.Length, AnnotateApiRule, "C.ObliviousField -> string"),
                 // /0/Test0.cs(5,19): warning RS0041: Symbol 'ObliviousField' uses some oblivious reference types.
                 GetCSharpResultAt(5, 13 + EnabledModifierCSharp.Length, ObliviousApiRule, "ObliviousField")
                 );
@@ -2275,8 +2357,8 @@ C.ObliviousField -> string";
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                 // /0/Test0.cs(3,21): warning RS0016: Symbol 'C' is not part of the declared API.
                 GetCSharpResultAt(3, 15 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C"),
-                // /0/Test0.cs(5,24): warning RS0016: Symbol 'M<T>' is not part of the declared API.
-                GetCSharpResultAt(5, 18 + EnabledModifierCSharp.Length, DeclareNewApiRule, "M<T>")
+                // /0/Test0.cs(5,24): warning RS0016: Symbol 'static C.M<T>() -> void' is not part of the declared API.
+                GetCSharpResultAt(5, 18 + EnabledModifierCSharp.Length, DeclareNewApiRule, "static C.M<T>() -> void")
                 );
         }
 
@@ -2318,8 +2400,8 @@ C.ObliviousField -> string";
             var shippedText = "#nullable enable";
             var unshippedText = @"";
             await VerifyCSharpAsync(source, shippedText, unshippedText,
-                // /0/Test0.cs(3,21): warning RS0016: Symbol 'C<T1, T2>' is not part of the declared API.
-                GetCSharpResultAt(3, 15 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C<T1, T2>"),
+                // /0/Test0.cs(3,21): warning RS0016: Symbol '~C<T1, T2>' is not part of the declared API.
+                GetCSharpResultAt(3, 15 + EnabledModifierCSharp.Length, DeclareNewApiRule, "~C<T1, T2>"),
                 // /0/Test0.cs(3,21): warning RS0041: Symbol 'C<T1, T2>' uses some oblivious reference types.
                 GetCSharpResultAt(3, 15 + EnabledModifierCSharp.Length, ObliviousApiRule, "C<T1, T2>")
                 );
@@ -2344,8 +2426,8 @@ C.ObliviousField -> string";
             var shippedText = "#nullable enable";
             var unshippedText = @"";
             await VerifyCSharpAsync(source, shippedText, unshippedText,
-                // /0/Test0.cs(3,21): warning RS0016: Symbol 'C<T>' is not part of the declared API.
-                GetCSharpResultAt(3, 15 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C<T>"),
+                // /0/Test0.cs(3,21): warning RS0016: Symbol '~C<T>' is not part of the declared API.
+                GetCSharpResultAt(3, 15 + EnabledModifierCSharp.Length, DeclareNewApiRule, "~C<T>"),
                 // /0/Test0.cs(3,21): warning RS0041: Symbol 'C<T>' uses some oblivious reference types.
                 GetCSharpResultAt(3, 15 + EnabledModifierCSharp.Length, ObliviousApiRule, "C<T>")
                 );

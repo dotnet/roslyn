@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         {
             if (diagnostic.Properties != null &&
                 diagnostic.Properties.TryGetValue(DiagnosticDescriptorCreationAnalyzer.EntryToAddPropertyName, out entryToAdd) &&
-                !string.IsNullOrEmpty(entryToAdd))
+                !RoslynString.IsNullOrEmpty(entryToAdd))
             {
                 return true;
             }
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         {
             if (diagnostic.Properties != null &&
                 diagnostic.Properties.TryGetValue(DiagnosticDescriptorCreationAnalyzer.EntryToUpdatePropertyName, out entryToUpdate) &&
-                !string.IsNullOrEmpty(entryToUpdate) &&
+                !RoslynString.IsNullOrEmpty(entryToUpdate) &&
                 TryGetRuleIdForEntry(entryToUpdate, out ruleId))
             {
                 return true;
@@ -341,13 +342,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 {
                     builder.Append(originalLineText);
 
-                    if (lineText.StartsWith(ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1, StringComparison.OrdinalIgnoreCase) ||
-                        lineText.StartsWith(ReleaseTrackingHelper.TableHeaderChangedRulesLine1, StringComparison.OrdinalIgnoreCase))
+                    if (Regex.IsMatch(lineText, ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1RegexPattern, RegexOptions.IgnoreCase) ||
+                        Regex.IsMatch(lineText, ReleaseTrackingHelper.TableHeaderChangedRulesLine1RegexPattern, RegexOptions.IgnoreCase))
                     {
                         continue;
                     }
-                    else if (lineText.StartsWith(ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2, StringComparison.OrdinalIgnoreCase) ||
-                        lineText.StartsWith(ReleaseTrackingHelper.TableHeaderChangedRulesLine2, StringComparison.OrdinalIgnoreCase))
+                    else if (Regex.IsMatch(lineText, ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2RegexPattern, RegexOptions.IgnoreCase) ||
+                        Regex.IsMatch(lineText, ReleaseTrackingHelper.TableHeaderChangedRulesLine2RegexPattern, RegexOptions.IgnoreCase))
                     {
                         parsingHeaderLines = false;
                     }

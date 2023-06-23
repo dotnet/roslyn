@@ -18,26 +18,26 @@ namespace Analyzer.Utilities
         /// </summary>
         /// <param name="other">An object to compare to the current <see cref="Unit"/> value.</param>
         /// <returns>Because <see cref="Unit"/> has a single value, this always returns <c>true</c>.</returns>
-        public bool Equals(Unit other) => true;
+        public readonly bool Equals(Unit other) => true;
 
         /// <summary>
         /// Determines whether the specified System.Object is equal to the current <see cref="Unit"/>.
         /// </summary>
         /// <param name="obj">The System.Object to compare with the current <see cref="Unit"/>.</param>
         /// <returns><c>true</c> if the specified System.Object is a <see cref="Unit"/> value; otherwise, <c>false</c>.</returns>
-        public override bool Equals(object? obj) => obj is Unit;
+        public override readonly bool Equals(object? obj) => obj is Unit;
 
         /// <summary>
         /// Returns the hash code for the current <see cref="Unit"/> value.
         /// </summary>
         /// <returns>A hash code for the current <see cref="Unit"/> value.</returns>
-        public override int GetHashCode() => 0;
+        public override readonly int GetHashCode() => 0;
 
         /// <summary>
         /// Returns a string representation of the current <see cref="Unit"/> value.
         /// </summary>
         /// <returns>String representation of the current <see cref="Unit"/> value.</returns>
-        public override string ToString() => "()";
+        public override readonly string ToString() => "()";
 
         /// <summary>
         /// Determines whether the two specified <see cref="Unit"/> values are equal. Because <see cref="Unit"/> has a single value, this always returns <c>true</c>.

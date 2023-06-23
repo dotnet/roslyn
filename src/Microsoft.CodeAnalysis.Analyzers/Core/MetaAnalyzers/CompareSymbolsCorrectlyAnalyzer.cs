@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static bool IsSymbolType(ITypeSymbol typeSymbol, INamedTypeSymbol? symbolType)
             => typeSymbol != null
                 && (SymbolEqualityComparer.Default.Equals(typeSymbol, symbolType)
-                    || typeSymbol.AllInterfaces.Contains(symbolType));
+                    || typeSymbol.AllInterfaces.Any(SymbolEqualityComparer.Default.Equals, symbolType));
 
         private static bool IsSymbolClassType(IOperation operation)
         {
@@ -344,12 +344,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             void AddOrUpdate(string methodName, INamedTypeSymbol typeSymbol)
             {
-                if (!builder.ContainsKey(methodName))
+                if (!builder.TryGetValue(methodName, out var methodTypeSymbols))
                 {
-                    builder.Add(methodName, ImmutableHashSet.CreateBuilder<INamedTypeSymbol>(SymbolEqualityComparer.Default));
+                    methodTypeSymbols = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+                    builder.Add(methodName, methodTypeSymbols);
                 }
 
-                builder[methodName].Add(typeSymbol);
+                methodTypeSymbols.Add(typeSymbol);
             }
         }
 

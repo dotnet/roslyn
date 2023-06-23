@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #nullable disable warnings
 
@@ -94,7 +94,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsConstructor([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
-            return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
+            return symbol is IMethodSymbol { MethodKind: MethodKind.Constructor };
         }
 
         public static bool IsDestructor([NotNullWhen(returnValue: true)] this ISymbol? symbol)
@@ -104,7 +104,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsIndexer([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
-            return (symbol as IPropertySymbol)?.IsIndexer == true;
+            return symbol is IPropertySymbol { IsIndexer: true };
         }
 
         public static bool IsPropertyWithBackingField([NotNullWhen(returnValue: true)] this ISymbol? symbol, [NotNullWhen(true)] out IFieldSymbol? backingField)
@@ -153,12 +153,12 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsUserDefinedOperator([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
-            return (symbol as IMethodSymbol)?.MethodKind == MethodKind.UserDefinedOperator;
+            return symbol is IMethodSymbol { MethodKind: MethodKind.UserDefinedOperator };
         }
 
         public static bool IsConversionOperator([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
-            return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Conversion;
+            return symbol is IMethodSymbol { MethodKind: MethodKind.Conversion };
         }
 
         public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol? symbol)
@@ -641,7 +641,7 @@ namespace Analyzer.Utilities.Extensions
         /// </remarks>
         public static bool HasAttribute(this ISymbol symbol, [NotNullWhen(returnValue: true)] INamedTypeSymbol? attribute)
         {
-            return attribute != null && symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute));
+            return attribute != null && symbol.GetAttributes().Any(static (attr, attribute) => attr.AttributeClass.Equals(attribute), attribute);
         }
 
         /// <summary>
@@ -776,12 +776,12 @@ namespace Analyzer.Utilities.Extensions
 
         /// <summary>
         /// Returns true for symbols whose name starts with an underscore and
-        /// are optionally followed by an integer, such as '_', '_1', '_2', etc.
+        /// are optionally followed by an integer or other underscores, such as '_', '_1', '_2', '__', '___', etc.
         /// These symbols can be treated as special discard symbol names.
         /// </summary>
         public static bool IsSymbolWithSpecialDiscardName([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol?.Name.StartsWith("_", StringComparison.Ordinal) == true &&
-               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name[1..], out _));
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name[1..], out _) || symbol.Name.All(n => n.Equals('_')));
 
         public static bool IsConst([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {

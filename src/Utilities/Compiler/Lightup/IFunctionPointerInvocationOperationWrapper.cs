@@ -39,7 +39,7 @@ namespace Analyzer.Utilities.Lightup
 
             var operation = Expression.Variable(typeof(IOperation));
 
-            return Expression.Lambda<Func<IOperation, IMethodSymbol>>(Expression.Call(targetMethod, Expression.Convert(operation, WrappedType)), operation).Compile();
+            return Expression.Lambda<Func<IOperation, IMethodSymbol>>(Expression.Call(targetMethod, Expression.Convert(operation, wrappedType)), operation).Compile();
         }
 
         private IFunctionPointerInvocationOperationWrapper(IOperation operation)

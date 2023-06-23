@@ -535,6 +535,159 @@ T:N.Banned";
         }
 
         [Fact]
+        public async Task CSharp_BannedNamespace_ConstructorAsync()
+        {
+            var source = @"
+namespace N
+{
+    class C
+    {
+        void M()
+        {
+            var c = {|#0:new N.C()|};
+        }
+    }
+}
+";
+
+            var bannedText = @"
+N:N";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedNamespace_Parent_ConstructorAsync()
+        {
+            var source = @"
+namespace N.NN
+{
+    class C
+    {
+        void M()
+        {
+            var a = {|#0:new N.NN.C()|};
+        }
+    }
+}
+";
+
+            var bannedText = @"
+N:N";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedNamespace_MethodGroupAsync()
+        {
+            var source = @"
+namespace N
+{
+    delegate void D();
+    class C
+    {
+        void M()
+        {
+            D d = {|#0:M|};
+        }
+    }
+}
+";
+
+            var bannedText = @"
+N:N";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedNamespace_PropertyAsync()
+        {
+            var source = @"
+namespace N
+{
+    class C
+    {
+        public int P { get; set; }
+        void M()
+        {
+            {|#0:P|} = {|#1:P|};
+        }
+    }
+}
+";
+
+            var bannedText = @"
+N:N";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText,
+                GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""),
+                GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedNamespace_MethodAsync()
+        {
+            var source = @"
+namespace N
+{
+    interface I
+    {
+        void M();
+    }
+}
+
+class C
+{
+    void M()
+    {
+        N.I i = null;
+        {|#0:i.M()|};
+    }
+}";
+            var bannedText = @"N:N";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedNamespace_TypeOfArgument()
+        {
+            var source = @"
+namespace N
+{
+    class Banned {  }
+}
+class C
+{
+    void M()
+    {
+        var type = {|#0:typeof(N.Banned)|};
+    }
+}
+";
+            var bannedText = @"N:N";
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedNamespace_Constituent()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var thread = {|#0:new System.Threading.Thread((System.Threading.ThreadStart)null)|};
+    }
+}
+";
+            var bannedText = @"N:System.Threading";
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "System.Threading", ""));
+        }
+
+        [Fact]
         public async Task CSharp_BannedGenericType_ConstructorAsync()
         {
             var source = @"

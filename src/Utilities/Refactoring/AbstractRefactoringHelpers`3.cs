@@ -479,12 +479,8 @@ namespace Analyzer.Utilities
         {
             // If we're deep inside we don't have to deal with being on edges (that gets dealt by TryGetSelectedNodeAsync)
             // -> can simply FindToken -> proceed testing its ancestors
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (root is null)
-            {
-                throw new NotSupportedException("Document does not support syntax trees");
-            }
-
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)
+                ?? throw new NotSupportedException("Document does not support syntax trees");
             var token = root.FindTokenOnRightOfPosition(position, true);
 
             // traverse upwards and add all parents if of correct type

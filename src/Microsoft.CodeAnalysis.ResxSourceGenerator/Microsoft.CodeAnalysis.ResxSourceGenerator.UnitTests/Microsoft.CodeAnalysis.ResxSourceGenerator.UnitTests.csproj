@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>$(NetCurrent)</TargetFramework>
 
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
-    <MicrosoftCodeAnalysisVersion>3.9.0</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForResxSourceGenerators)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +25,12 @@
     <ProjectReference Include="..\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.csproj" />
     <ProjectReference Include="..\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.csproj" />
     <ProjectReference Include="..\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Resources\**\*.cs" />
+    <EmbeddedResource Include="Resources\**\*.cs" />
+    <EmbeddedResource Include="Resources\**\*.vb" />
   </ItemGroup>
 
 </Project>

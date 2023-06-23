@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             DiagnosticSeverity.Warning,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         internal static readonly DiagnosticDescriptor OverrideCodeActionEquivalenceKeyRule = new(
             DiagnosticIds.OverrideCodeActionEquivalenceKeyRuleId,
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             DiagnosticSeverity.Warning,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         internal static readonly DiagnosticDescriptor OverrideGetFixAllProviderRule = new(
             DiagnosticIds.OverrideGetFixAllProviderRuleId,
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             DiagnosticSeverity.Warning,
             description: CreateLocalizableResourceString(nameof(OverrideGetFixAllProviderDescription)),
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
             ImmutableArray.Create(CreateCodeActionEquivalenceKeyRule, OverrideCodeActionEquivalenceKeyRule, OverrideGetFixAllProviderRule);
@@ -73,10 +73,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             // We need to analyze generated code, but don't intend to report diagnostics on generated code.
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
 
-            context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
+            context.RegisterCompilationStartAction(AnalyzeCompilation);
         }
 
-        private void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
+        private static void AnalyzeCompilation(CompilationStartAnalysisContext context)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
@@ -106,29 +106,38 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
             var createMethods = codeActionSymbol.GetMembers(CreateMethodName).OfType<IMethodSymbol>().ToImmutableHashSet();
 
-            CompilationAnalyzer compilationAnalyzer = new CompilationAnalyzer(codeFixProviderSymbol, codeActionSymbol, context.Compilation.Assembly, createMethods);
+            var analysisTypes = new AnalysisTypes(
+                CodeFixProviderType: codeFixProviderSymbol,
+                CodeActionType: codeActionSymbol,
+                GetFixAllProviderMethod: getFixAllProviderMethod,
+                EquivalenceKeyProperty: equivalenceKeyProperty,
+                CreateMethods: createMethods);
 
-            context.RegisterSymbolAction(compilationAnalyzer.AnalyzeNamedTypeSymbol, SymbolKind.NamedType);
-            context.RegisterOperationBlockStartAction(compilationAnalyzer.OperationBlockStart);
-            context.RegisterCompilationEndAction(compilationAnalyzer.CompilationEnd);
+            context.RegisterSymbolStartAction(context => AnalyzeNamedType(context, analysisTypes), SymbolKind.NamedType);
         }
 
-        private sealed class CompilationAnalyzer
+        private static void AnalyzeNamedType(SymbolStartAnalysisContext context, AnalysisTypes analysisTypes)
         {
-            private readonly INamedTypeSymbol _codeFixProviderSymbol;
-            private readonly INamedTypeSymbol _codeActionSymbol;
-            private readonly ImmutableHashSet<IMethodSymbol> _createMethods;
-            private readonly IAssemblySymbol _sourceAssembly;
+            var symbol = (INamedTypeSymbol)context.Symbol;
+            if (!symbol.DerivesFrom(analysisTypes.CodeFixProviderType))
+                return;
 
-            /// <summary>
-            /// Set of all non-abstract sub-types of <see cref="CodeFixProvider"/> in this compilation.
-            /// </summary>
-            private readonly HashSet<INamedTypeSymbol> _codeFixProviders = new();
+            var namedTypeAnalyzer = new NamedTypeAnalyzer(analysisTypes);
 
-            /// <summary>
-            /// Set of all non-abstract sub-types of <see cref="CodeAction"/> which override <see cref="CodeAction.EquivalenceKey"/> in this compilation.
-            /// </summary>
-            private readonly HashSet<INamedTypeSymbol> _codeActionsWithEquivalenceKey = new();
+            context.RegisterOperationBlockStartAction(namedTypeAnalyzer.OperationBlockStart);
+            context.RegisterSymbolEndAction(namedTypeAnalyzer.SymbolEnd);
+        }
+
+        private record AnalysisTypes(
+            INamedTypeSymbol CodeFixProviderType,
+            INamedTypeSymbol CodeActionType,
+            IMethodSymbol GetFixAllProviderMethod,
+            IPropertySymbol EquivalenceKeyProperty,
+            ImmutableHashSet<IMethodSymbol> CreateMethods);
+
+        private sealed class NamedTypeAnalyzer
+        {
+            private readonly AnalysisTypes _analysisTypes;
 
             /// <summary>
             /// Map of invocations from code fix providers to invocations that create a code action using the static "Create" methods on <see cref="CodeAction"/>.
@@ -140,35 +149,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             /// </summary>
             private readonly Dictionary<INamedTypeSymbol, HashSet<IObjectCreationOperation>> _codeActionObjectCreations = new();
 
-            public CompilationAnalyzer(
-                INamedTypeSymbol codeFixProviderSymbol,
-                INamedTypeSymbol codeActionSymbol,
-                IAssemblySymbol sourceAssembly,
-                ImmutableHashSet<IMethodSymbol> createMethods)
+            public NamedTypeAnalyzer(AnalysisTypes analysisTypes)
             {
-                _codeFixProviderSymbol = codeFixProviderSymbol;
-                _codeActionSymbol = codeActionSymbol;
-                _sourceAssembly = sourceAssembly;
-                _createMethods = createMethods;
-            }
-
-            internal void AnalyzeNamedTypeSymbol(SymbolAnalysisContext context)
-            {
-                var namedType = (INamedTypeSymbol)context.Symbol;
-                if (namedType.DerivesFrom(_codeFixProviderSymbol))
-                {
-                    lock (_codeFixProviders)
-                    {
-                        _codeFixProviders.Add(namedType);
-                    }
-                }
-                else if (IsCodeActionWithOverriddenEquivlanceKeyCore(namedType))
-                {
-                    lock (_codeActionsWithEquivalenceKey)
-                    {
-                        _codeActionsWithEquivalenceKey.Add(namedType);
-                    }
-                }
+                _analysisTypes = analysisTypes;
             }
 
             internal void OperationBlockStart(OperationBlockStartAnalysisContext context)
@@ -179,26 +162,26 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 }
 
                 INamedTypeSymbol namedType = method.ContainingType;
-                if (!namedType.DerivesFrom(_codeFixProviderSymbol))
+                if (!namedType.DerivesFrom(_analysisTypes.CodeFixProviderType))
                 {
                     return;
                 }
 
-                context.RegisterOperationAction(operationContext =>
+                context.RegisterOperationAction(context =>
                 {
-                    var invocation = (IInvocationOperation)operationContext.Operation;
-                    if (invocation.TargetMethod is IMethodSymbol invocationSym && _createMethods.Contains(invocationSym))
+                    var invocation = (IInvocationOperation)context.Operation;
+                    if (invocation.TargetMethod is IMethodSymbol invocationSym && _analysisTypes.CreateMethods.Contains(invocationSym))
                     {
                         AddOperation(namedType, invocation, _codeActionCreateInvocations);
                     }
                 },
                 OperationKind.Invocation);
 
-                context.RegisterOperationAction(operationContext =>
+                context.RegisterOperationAction(context =>
                 {
-                    var objectCreation = (IObjectCreationOperation)operationContext.Operation;
+                    var objectCreation = (IObjectCreationOperation)context.Operation;
                     IMethodSymbol constructor = objectCreation.Constructor;
-                    if (constructor != null && constructor.ContainingType.DerivesFrom(_codeActionSymbol))
+                    if (constructor != null && constructor.ContainingType.DerivesFrom(_analysisTypes.CodeActionType))
                     {
                         AddOperation(namedType, objectCreation, _codeActionObjectCreations);
                     }
@@ -221,33 +204,25 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 }
             }
 
-            internal void CompilationEnd(CompilationAnalysisContext context)
+            internal void SymbolEnd(SymbolAnalysisContext context)
             {
-                if (_codeFixProviders == null)
-                {
-                    // No fixers.
-                    return;
-                }
-
-                if (_codeActionCreateInvocations == null && _codeActionObjectCreations == null)
+                if (_codeActionCreateInvocations.Count == 0 && _codeActionObjectCreations.Count == 0)
                 {
                     // No registered fixes.
                     return;
                 }
 
-                // Analyze all fixers that have FixAll support.
+                // Analyze the fixer if it has FixAll support.
                 // Otherwise, report RS1016 (OverrideGetFixAllProviderRule) to recommend adding FixAll support.
-                foreach (INamedTypeSymbol fixer in _codeFixProviders)
+                var fixer = (INamedTypeSymbol)context.Symbol;
+                if (OverridesGetFixAllProvider(fixer))
                 {
-                    if (OverridesGetFixAllProvider(fixer))
-                    {
-                        AnalyzeFixerWithFixAll(fixer, context);
-                    }
-                    else if (SymbolEqualityComparer.Default.Equals(fixer.BaseType, _codeFixProviderSymbol))
-                    {
-                        Diagnostic diagnostic = fixer.CreateDiagnostic(OverrideGetFixAllProviderRule, fixer.Name);
-                        context.ReportDiagnostic(diagnostic);
-                    }
+                    AnalyzeFixerWithFixAll(fixer, context);
+                }
+                else if (SymbolEqualityComparer.Default.Equals(fixer.BaseType, _analysisTypes.CodeFixProviderType))
+                {
+                    Diagnostic diagnostic = fixer.CreateDiagnostic(OverrideGetFixAllProviderRule, fixer.Name);
+                    context.ReportDiagnostic(diagnostic);
                 }
 
                 return;
@@ -257,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 {
                     foreach (INamedTypeSymbol type in fixer.GetBaseTypesAndThis())
                     {
-                        if (!SymbolEqualityComparer.Default.Equals(type, _codeFixProviderSymbol))
+                        if (!SymbolEqualityComparer.Default.Equals(type, _analysisTypes.CodeFixProviderType))
                         {
                             IMethodSymbol getFixAllProviderMethod = type.GetMembers(GetFixAllProviderMethodName).OfType<IMethodSymbol>().FirstOrDefault();
                             if (getFixAllProviderMethod != null && getFixAllProviderMethod.IsOverride)
@@ -290,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     return true;
                 }
 
-                void AnalyzeFixerWithFixAll(INamedTypeSymbol fixer, CompilationAnalysisContext context)
+                void AnalyzeFixerWithFixAll(INamedTypeSymbol fixer, SymbolAnalysisContext context)
                 {
                     if (_codeActionCreateInvocations != null
                         && _codeActionCreateInvocations.TryGetValue(fixer, out HashSet<IInvocationOperation> invocations))
@@ -326,15 +301,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     // Local functions
                     bool IsCodeActionWithOverriddenEquivalenceKey(INamedTypeSymbol namedType)
                     {
-                        if (SymbolEqualityComparer.Default.Equals(namedType, _codeActionSymbol))
+                        if (SymbolEqualityComparer.Default.Equals(namedType, _analysisTypes.CodeActionType))
                         {
                             return false;
-                        }
-
-                        // We are already tracking CodeActions with equivalence key in this compilation.
-                        if (SymbolEqualityComparer.Default.Equals(namedType.ContainingAssembly, _sourceAssembly))
-                        {
-                            return _codeActionsWithEquivalenceKey != null && _codeActionsWithEquivalenceKey.Contains(namedType);
                         }
 
                         // For types in different compilation, perform the check.
@@ -345,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
             private bool IsCodeActionWithOverriddenEquivlanceKeyCore(INamedTypeSymbol namedType)
             {
-                if (!namedType.DerivesFrom(_codeActionSymbol))
+                if (!namedType.DerivesFrom(_analysisTypes.CodeActionType))
                 {
                     // Not a CodeAction.
                     return false;

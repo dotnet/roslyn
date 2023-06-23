@@ -20,69 +20,45 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 {
     public partial class DeclarePublicApiAnalyzer : DiagnosticAnalyzer
     {
-        private sealed class ApiLine
+        private sealed record AdditionalFileInfo(SourceText SourceText, bool IsShippedApi)
         {
-            public string Text { get; }
-            public TextSpan Span { get; }
-            public SourceText SourceText { get; }
-            public string Path { get; }
-            public bool IsShippedApi { get; }
-
-            internal ApiLine(string text, TextSpan span, SourceText sourceText, string path, bool isShippedApi)
+            public string GetPath(ImmutableDictionary<AdditionalText, SourceText> additionalFiles)
             {
-                Text = text;
-                Span = span;
-                SourceText = sourceText;
-                Path = path;
-                IsShippedApi = isShippedApi;
+                foreach (var (additionalText, sourceText) in additionalFiles)
+                {
+                    if (SourceText == sourceText)
+                        return additionalText.Path;
+                }
+
+                throw new InvalidOperationException();
             }
         }
 
-#pragma warning disable CA1815 // Override equals and operator equals on value types
-        private readonly struct RemovedApiLine
-#pragma warning restore CA1815 // Override equals and operator equals on value types
+        private readonly record struct ApiLine(string Text, TextSpan Span, AdditionalFileInfo FileInfo)
         {
-            public string Text { get; }
-            public ApiLine ApiLine { get; }
+            public bool IsDefault => FileInfo == null;
 
-            internal RemovedApiLine(string text, ApiLine apiLine)
+            public SourceText SourceText => FileInfo.SourceText;
+            public bool IsShippedApi => FileInfo.IsShippedApi;
+
+            public string GetPath(ImmutableDictionary<AdditionalText, SourceText> additionalFiles)
+                => FileInfo.GetPath(additionalFiles);
+
+            public Location GetLocation(ImmutableDictionary<AdditionalText, SourceText> additionalFiles)
             {
-                Text = text;
-                ApiLine = apiLine;
+                LinePositionSpan linePositionSpan = SourceText.Lines.GetLinePositionSpan(Span);
+                return Location.Create(GetPath(additionalFiles), Span, linePositionSpan);
             }
         }
 
-#pragma warning disable CA1815 // Override equals and operator equals on value types
-        private readonly struct ApiName
-#pragma warning restore CA1815 // Override equals and operator equals on value types
+        private readonly record struct RemovedApiLine(string Text, ApiLine ApiLine);
+
+        private readonly record struct ApiName(string Name, string NameWithNullability);
+
+        /// <param name="NullableLineNumber">Number for the max line where #nullable enable was found (-1 otherwise)</param>
+        private sealed record ApiData(ImmutableArray<ApiLine> ApiList, ImmutableArray<RemovedApiLine> RemovedApiList, int NullableLineNumber)
         {
-            public string Name { get; }
-            public string NameWithNullability { get; }
-
-            public ApiName(string name, string nameWithNullability)
-            {
-                Name = name;
-                NameWithNullability = nameWithNullability;
-            }
-        }
-
-#pragma warning disable CA1815 // Override equals and operator equals on value types
-        private readonly struct ApiData
-#pragma warning restore CA1815 // Override equals and operator equals on value types
-        {
-            public static readonly ApiData Empty = new(ImmutableArray<ApiLine>.Empty, ImmutableArray<RemovedApiLine>.Empty, nullableRank: -1);
-
-            public ImmutableArray<ApiLine> ApiList { get; }
-            public ImmutableArray<RemovedApiLine> RemovedApiList { get; }
-            // Number for the max line where #nullable enable was found (-1 otherwise)
-            public int NullableRank { get; }
-
-            internal ApiData(ImmutableArray<ApiLine> apiList, ImmutableArray<RemovedApiLine> removedApiList, int nullableRank)
-            {
-                ApiList = apiList;
-                RemovedApiList = removedApiList;
-                NullableRank = nullableRank;
-            }
+            public static readonly ApiData Empty = new(ImmutableArray<ApiLine>.Empty, ImmutableArray<RemovedApiLine>.Empty, NullableLineNumber: -1);
         }
 
         private sealed class Impl
@@ -95,6 +71,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
             private readonly Compilation _compilation;
+            private readonly ImmutableDictionary<AdditionalText, SourceText> _additionalFiles;
             private readonly ApiData _unshippedData;
             private readonly bool _useNullability;
             private readonly bool _isPublic;
@@ -104,10 +81,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             private readonly IReadOnlyDictionary<string, ApiLine> _apiMap;
             private readonly AnalyzerOptions _analyzerOptions;
 
-            internal Impl(Compilation compilation, ApiData shippedData, ApiData unshippedData, bool isPublic, AnalyzerOptions analyzerOptions)
+            internal Impl(Compilation compilation, ImmutableDictionary<AdditionalText, SourceText> additionalFiles, ApiData shippedData, ApiData unshippedData, bool isPublic, AnalyzerOptions analyzerOptions)
             {
                 _compilation = compilation;
-                _useNullability = shippedData.NullableRank >= 0 || unshippedData.NullableRank >= 0;
+                _additionalFiles = additionalFiles;
+                _useNullability = shippedData.NullableLineNumber >= 0 || unshippedData.NullableLineNumber >= 0;
                 _unshippedData = unshippedData;
 
                 var publicApiMap = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
@@ -267,12 +245,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         }
                         else
                         {
-                            reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi, foundApiLine.Path);
+                            reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi, foundApiLine.GetPath(_additionalFiles));
                         }
                     }
                     else if (hasApiEntryWithNullability && symbolUsesOblivious)
                     {
-                        reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi, foundApiLine.Path);
+                        reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi, foundApiLine.GetPath(_additionalFiles));
                     }
                 }
                 else
@@ -293,7 +271,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 if (symbol.Kind == SymbolKind.Method)
                 {
                     var method = (IMethodSymbol)symbol;
-                    var isMethodShippedApi = foundApiLine?.IsShippedApi == true;
+                    var isMethodShippedApi = !foundApiLine.IsDefault && foundApiLine.IsShippedApi;
 
                     // Check if a public API is a constructor that makes this class instantiable, even though the base class
                     // is not instantiable. That API pattern is not allowed, because it causes protected members of
@@ -407,7 +385,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         .Add(MinimalNamePropertyBagKey, errorMessageName)
                         .Add(ApiNamesOfSiblingsToRemovePropertyBagKey, siblingPublicApiNamesToRemove);
 
-                    reportDiagnosticAtLocations(GetDiagnostic(DeclareNewPublicApiRule, DeclareNewInternalApiRule), propertyBag, errorMessageName);
+                    reportDiagnosticAtLocations(GetDiagnostic(DeclareNewPublicApiRule, DeclareNewInternalApiRule), propertyBag, publicApiName);
                 }
 
                 void reportAnnotateApi(ISymbol symbol, bool isImplicitlyDeclaredConstructor, ApiName publicApiName, bool isShipped, string filename)
@@ -421,7 +399,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         .Add(ApiIsShippedPropertyBagKey, isShipped ? "true" : "false")
                         .Add(FileName, filename);
 
-                    reportDiagnosticAtLocations(GetDiagnostic(AnnotatePublicApiRule, AnnotateInternalApiRule), propertyBag, errorMessageName);
+                    reportDiagnosticAtLocations(GetDiagnostic(AnnotatePublicApiRule, AnnotateInternalApiRule), propertyBag, publicApiName.NameWithNullability);
                 }
 
                 string withObliviousIfNeeded(string name)
@@ -630,7 +608,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             private static bool ContainsPublicApiName(string apiLineText, string publicApiNameToSearch)
             {
-                apiLineText = apiLineText.Trim(ObliviousMarker);
+                apiLineText = apiLineText.TrimStart(ObliviousMarkerArray);
 
                 // Ensure we don't search in parameter list/return type.
                 var indexOfParamsList = apiLineText.IndexOf('(');
@@ -723,7 +701,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         continue;
                     }
 
-                    Location location = GetLocationFromApiLine(pair.Value);
+                    Location location = pair.Value.GetLocation(_additionalFiles);
                     ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty.Add(ApiNamePropertyBagKey, pair.Value.Text);
                     reportDiagnostic(Diagnostic.Create(GetDiagnostic(RemoveDeletedPublicApiRule, RemoveDeletedInternalApiRule), location, propertyBag, pair.Value.Text));
                 }
@@ -738,16 +716,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 {
                     if (_visitedApiList.ContainsKey(markedAsRemoved.Text))
                     {
-                        Location location = GetLocationFromApiLine(markedAsRemoved.ApiLine);
+                        Location location = markedAsRemoved.ApiLine.GetLocation(_additionalFiles);
                         reportDiagnostic(Diagnostic.Create(RemovedApiIsNotActuallyRemovedRule, location, messageArgs: markedAsRemoved.Text));
                     }
                 }
-            }
-
-            private static Location GetLocationFromApiLine(ApiLine apiLine)
-            {
-                LinePositionSpan linePositionSpan = apiLine.SourceText.Lines.GetLinePositionSpan(apiLine.Span);
-                return Location.Create(apiLine.Path, apiLine.Span, linePositionSpan);
             }
 
             private bool IsTrackedAPI(ISymbol symbol, CancellationToken cancellationToken)

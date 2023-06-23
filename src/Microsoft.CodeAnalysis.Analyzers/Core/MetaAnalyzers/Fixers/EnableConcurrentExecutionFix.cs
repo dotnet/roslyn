@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
         private async Task<Document> EnableConcurrentExecutionAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var analysisContextParameter = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
 
             var generator = SyntaxGenerator.GetGenerator(document);

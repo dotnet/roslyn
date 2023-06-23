@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -10,25 +9,14 @@ using System.Xml.Linq;
 namespace Text.Analyzers
 {
     /// <summary>
-    /// Source for "recognized" misspellings and "unrecognized" spellings obtained by parsing either
-    /// XML or DIC code analysis dictionaries.
+    /// Source for "recognized" misspellings and "unrecognized" spellings obtained by parsing either XML or DIC code
+    /// analysis dictionaries.
     /// </summary>
     /// <Remarks>
     /// <seealso href="https://learn.microsoft.com/visualstudio/code-quality/how-to-customize-the-code-analysis-dictionary"/>
     /// </Remarks>
     internal sealed class CodeAnalysisDictionary
     {
-        /// <summary>
-        /// Initialize a new instance of <see cref="CodeAnalysisDictionary"/>.
-        /// </summary>
-        /// <param name="recognizedWords">Misspelled words that the spell checker will now ignore.</param>
-        /// <param name="unrecognizedWords">Correctly spelled words that the spell checker will now report.</param>
-        private CodeAnalysisDictionary(IEnumerable<string> recognizedWords, IEnumerable<string> unrecognizedWords)
-        {
-            RecognizedWords = ImmutableHashSet.Create(StringComparer.OrdinalIgnoreCase, recognizedWords.ToArray());
-            UnrecognizedWords = ImmutableHashSet.Create(StringComparer.OrdinalIgnoreCase, unrecognizedWords.ToArray());
-        }
-
         /// <summary>
         /// A list of misspelled words that the spell checker will now ignore.
         /// </summary>
@@ -39,7 +27,7 @@ namespace Text.Analyzers
         /// </Recognized>
         /// </code>
         /// </example>
-        public ImmutableHashSet<string> RecognizedWords { get; }
+        private readonly HashSet<string> _recognizedWords;
 
         /// <summary>
         /// A list of correctly spelled words that the spell checker will now report.
@@ -51,7 +39,18 @@ namespace Text.Analyzers
         /// </Unrecognized>
         /// </code>
         /// </example>
-        public ImmutableHashSet<string> UnrecognizedWords { get; }
+        private readonly HashSet<string> _unrecognizedWords;
+
+        /// <summary>
+        /// Initialize a new instance of <see cref="CodeAnalysisDictionary"/>.
+        /// </summary>
+        /// <param name="recognizedWords">Misspelled words that the spell checker will now ignore.</param>
+        /// <param name="unrecognizedWords">Correctly spelled words that the spell checker will now report.</param>
+        private CodeAnalysisDictionary(IEnumerable<string> recognizedWords, IEnumerable<string> unrecognizedWords)
+        {
+            _recognizedWords = new HashSet<string>(recognizedWords, StringComparer.OrdinalIgnoreCase);
+            _unrecognizedWords = new HashSet<string>(unrecognizedWords, StringComparer.OrdinalIgnoreCase);
+        }
 
         /// <summary>
         /// Creates a new instance of this class with recognized and unrecognized words (if specified) loaded
@@ -97,14 +96,13 @@ namespace Text.Analyzers
             return new CodeAnalysisDictionary(recognizedWords, Enumerable.Empty<string>());
         }
 
-        public static CodeAnalysisDictionary CreateFromDictionaries(IEnumerable<CodeAnalysisDictionary> dictionaries)
-        {
-            var recognizedWords = dictionaries.Select(x => x.RecognizedWords).Aggregate((x, y) => x.Union(y));
-            var unrecognizedWords = dictionaries.Select(x => x.UnrecognizedWords).Aggregate((x, y) => x.Union(y));
-            return new CodeAnalysisDictionary(recognizedWords, unrecognizedWords);
-        }
-
         private static IEnumerable<string> GetSectionWords(XDocument document, string section, string property)
             => document.Descendants(section).SelectMany(section => section.Elements(property)).Select(element => element.Value.Trim());
+
+        public bool ContainsUnrecognizedWord(string word)
+            => _unrecognizedWords.Contains(word);
+
+        public bool ContainsRecognizedWord(string word)
+            => _recognizedWords.Contains(word);
     }
 }

@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             predicatedData.Remove(key);
         }
 
-        [return: NotNullIfNotNull(parameterName: "fromData")]
+        [return: NotNullIfNotNull(parameterName: nameof(fromData))]
         private static DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>? Clone(DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>? fromData)
         {
             if (fromData == null)

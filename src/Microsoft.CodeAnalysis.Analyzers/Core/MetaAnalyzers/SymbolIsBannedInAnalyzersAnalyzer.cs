@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -78,6 +78,9 @@ namespace Microsoft.CodeAnalysis.Analyzers
 
                     bool shouldReportNotSpecifiedEnforceAnalyzerBannedApisSetting(AttributeData attributeData)
                     {
+                        if (attributeData.AttributeClass is null)
+                            return false;
+
                         return attributeData.AttributeClass.Equals(diagnosticAnalyzerAttributeType, SymbolEqualityComparer.Default)
                             || attributeData.AttributeClass.Equals(generatorAttributeType, SymbolEqualityComparer.Default);
                     }
@@ -86,38 +89,39 @@ namespace Microsoft.CodeAnalysis.Analyzers
         }
 
 #pragma warning disable RS1012 // 'compilationContext' does not register any analyzer actions. Consider moving actions registered in 'Initialize' that depend on this start action to 'compilationContext'.
-        protected sealed override Dictionary<ISymbol, BanFileEntry>? ReadBannedApis(CompilationStartAnalysisContext compilationContext)
+        protected sealed override Dictionary<(string ContainerName, string SymbolName), ImmutableArray<BanFileEntry>>? ReadBannedApis(CompilationStartAnalysisContext compilationContext)
         {
-            var propertyValue = compilationContext.Options.GetMSBuildPropertyValue(MSBuildPropertyOptionNames.EnforceExtendedAnalyzerRules, compilationContext.Compilation);
+            var compilation = compilationContext.Compilation;
+            var propertyValue = compilationContext.Options.GetMSBuildPropertyValue(MSBuildPropertyOptionNames.EnforceExtendedAnalyzerRules, compilation);
             if (propertyValue != "true")
-            {
                 return null;
-            }
 
             const string fileName = "Microsoft.CodeAnalysis.Analyzers.AnalyzerBannedSymbols.txt";
             using var stream = typeof(SymbolIsBannedInAnalyzersAnalyzer<>).Assembly.GetManifestResourceStream(fileName);
             var source = SourceText.From(stream);
-            var result = new Dictionary<ISymbol, BanFileEntry>(SymbolEqualityComparer.Default);
+
+            var result = new Dictionary<(string ContainerName, string SymbolName), List<BanFileEntry>>();
             foreach (var line in source.Lines)
             {
                 var text = line.ToString();
                 if (string.IsNullOrWhiteSpace(text))
-                {
                     continue;
-                }
 
-                var entry = new BanFileEntry(text, line.Span, source, fileName);
-                var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(entry.DeclarationId, compilationContext.Compilation);
-                if (!symbols.IsDefaultOrEmpty)
+                var entry = new BanFileEntry(compilation, text, line.Span, source, fileName);
+                var parsed = DocumentationCommentIdParser.ParseDeclaredSymbolId(entry.DeclarationId);
+                if (parsed != null)
                 {
-                    foreach (var symbol in symbols)
+                    if (!result.TryGetValue(parsed.Value, out var existing))
                     {
-                        result.Add(symbol, entry);
+                        existing = new();
+                        result.Add(parsed.Value, existing);
                     }
+
+                    existing.Add(entry);
                 }
             }
 
-            return result;
+            return result.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray());
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -31,6 +32,33 @@ namespace Analyzer.Utilities.Extensions
             var containingType = property.ContainingType?.OriginalDefinition;
             return containingType.DerivesFrom(inotifyCompletionType)
                 || containingType.DerivesFrom(icriticalNotifyCompletionType);
+        }
+
+        public static ImmutableArray<IPropertySymbol> GetOriginalDefinitions(this IPropertySymbol propertySymbol)
+        {
+            ImmutableArray<IPropertySymbol>.Builder originalDefinitionsBuilder = ImmutableArray.CreateBuilder<IPropertySymbol>();
+
+            if (propertySymbol.IsOverride && (propertySymbol.OverriddenProperty != null))
+            {
+                originalDefinitionsBuilder.Add(propertySymbol.OverriddenProperty);
+            }
+
+            if (!propertySymbol.ExplicitInterfaceImplementations.IsEmpty)
+            {
+                originalDefinitionsBuilder.AddRange(propertySymbol.ExplicitInterfaceImplementations);
+            }
+
+            var typeSymbol = propertySymbol.ContainingType;
+            var methodSymbolName = propertySymbol.Name;
+
+            originalDefinitionsBuilder.AddRange(typeSymbol.AllInterfaces
+                .SelectMany(m => m.GetMembers(methodSymbolName))
+                .OfType<IPropertySymbol>()
+                .Where(m => propertySymbol.Parameters.Length == m.Parameters.Length
+                            && propertySymbol.IsIndexer == m.IsIndexer
+                            && typeSymbol.FindImplementationForInterfaceMember(m) != null));
+
+            return originalDefinitionsBuilder.ToImmutable();
         }
     }
 }

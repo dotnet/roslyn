@@ -138,12 +138,13 @@ namespace Analyzer.Utilities
 
                 if (parts.SymbolName[1] != ':')
                 {
-                    if (!wildcardNamesBuilder.ContainsKey(AllKinds))
+                    if (!wildcardNamesBuilder.TryGetValue(AllKinds, out var associatedValues))
                     {
-                        wildcardNamesBuilder.Add(AllKinds, PooledDictionary<string, TValue>.GetInstance());
+                        associatedValues = PooledDictionary<string, TValue>.GetInstance();
+                        wildcardNamesBuilder.Add(AllKinds, associatedValues);
                     }
 
-                    wildcardNamesBuilder[AllKinds].Add(parts.SymbolName[0..^1], parts.AssociatedValue);
+                    associatedValues.Add(parts.SymbolName[0..^1], parts.AssociatedValue);
                     return;
                 }
 
@@ -160,12 +161,13 @@ namespace Analyzer.Utilities
 
                 if (symbolKind != null)
                 {
-                    if (!wildcardNamesBuilder.ContainsKey(symbolKind.Value))
+                    if (!wildcardNamesBuilder.TryGetValue(symbolKind.Value, out var associatedValues))
                     {
-                        wildcardNamesBuilder.Add(symbolKind.Value, PooledDictionary<string, TValue>.GetInstance());
+                        associatedValues = PooledDictionary<string, TValue>.GetInstance();
+                        wildcardNamesBuilder.Add(symbolKind.Value, associatedValues);
                     }
 
-                    wildcardNamesBuilder[symbolKind.Value].Add(parts.SymbolName[2..^1], parts.AssociatedValue);
+                    associatedValues.Add(parts.SymbolName[2..^1], parts.AssociatedValue);
                 }
             }
 
