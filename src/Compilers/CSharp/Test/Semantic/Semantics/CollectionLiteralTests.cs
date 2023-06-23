@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     var builder = new StringBuilder();
                     Append(builder, isFirst: true, o);
-                    if (includeType) Console.Write(GetTypeName(o.GetType()));
+                    if (includeType) Console.Write("({0}) ", GetTypeName(o.GetType()));
                     Console.Write(builder.ToString());
                     Console.Write(", ");
                 }
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             CompileAndVerify(
                 new[] { source, s_collectionExtensions },
-                expectedOutput: "System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[], ");
+                expectedOutput: "(System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [], ");
         }
 
         [Fact]
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             CompileAndVerify(
                 new[] { source, s_collectionExtensions },
-                expectedOutput: "System.Collections.Generic.List<System.Int32>[1], System.Collections.Generic.List<System.Int32>[2], System.Collections.Generic.List<System.Int32>[3], System.Collections.Generic.List<System.Int32>[4], System.Collections.Generic.List<System.Int32>[5], ");
+                expectedOutput: "(System.Collections.Generic.List<System.Int32>) [1], (System.Collections.Generic.List<System.Int32>) [2], (System.Collections.Generic.List<System.Int32>) [3], (System.Collections.Generic.List<System.Int32>) [4], (System.Collections.Generic.List<System.Int32>) [5], ");
         }
 
         [Fact]
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Int32[][], System.Int32[][1, 2], ");
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int32[]) [], (System.Int32[]) [1, 2], ");
         }
 
         // Overload resolution should choose collection initializer type over interface.
@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Collections.Generic.List<System.Int32>[], System.Collections.Generic.List<System.Int32>[1, 2], ");
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [1, 2], ");
         }
 
         [Fact]
@@ -896,17 +896,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         var x = F1([1]);
                         var y = F2([2]);
+                        x.Report(includeType: true);
+                        y.Report(includeType: true);
                     }
                 }
                 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (10,17): error CS0411: The type arguments for method 'Program.F1<T>(IEnumerable<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         var x = F1([1]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Collections.Generic.IEnumerable<T>)").WithLocation(10, 17),
-                // (11,17): error CS0411: The type arguments for method 'Program.F2<T>(T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         var y = F2([2]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T[])").WithLocation(11, 17));
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int32[]) [1], (System.Int32[]) [2], ");
         }
 
         [Fact]
@@ -974,13 +969,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        int[] a = new int[0];
-                        var b = new[] { a, [1, 2, 3] };
-                        b.Report(includeType: true);
+                        var x = new[] { new int[0], [1, 2, 3] };
+                        x.Report(includeType: true);
+                        var y = new[] { new[] { new int[0] }, [[1, 2, 3]] };
+                        y.Report(includeType: true);
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Int32[][][[], [1, 2, 3]], ");
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int32[][]) [[], [1, 2, 3]], (System.Int32[][][]) [[[]], [[1, 2, 3]]], ");
         }
 
         [Fact]
@@ -991,24 +987,83 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        byte[] a = new byte[0];
-                        var b = new[] { a, [1, 2, 3] };
-                        b.Report(includeType: true);
+                        var x = new[] { new byte[0], [1, 2, 3] };
+                        x.Report(includeType: true);
+                        var y = new[] { new[] { new byte[0] }, [[1, 2, 3]] };
+                        y.Report(includeType: true);
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "System.Byte[][][[], [1, 2, 3]], ");
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Byte[][]) [[], [1, 2, 3]], (System.Byte[][][]) [[[]], [[1, 2, 3]]], ");
+        }
+
+        [Fact]
+        public void BestCommonType_03()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var x = new[] { [""], new object[0] };
+                        var y = new[] { [[""]], [new object[0]] };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,17): error CS0826: No best type found for implicitly-typed array
+                //         var y = new[] { [[""]], [new object[0]] };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, @"new[] { [[""""]], [new object[0]] }").WithLocation(6, 17));
+        }
+
+        [Fact]
+        public void BestCommonType_04()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var x = args.Length > 0 ? new int[0] : [1, 2, 3];
+                        x.Report(includeType: true);
+                        var y = args.Length == 0 ? [[4, 5]] : new[] { new byte[0] };
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int32[]) [1, 2, 3], (System.Byte[][]) [[4, 5]], ");
+        }
+
+        [Fact]
+        public void BestCommonType_05()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        bool b = args.Length > 0;
+                        var y = b ? [new int[0]] : [[1, 2, 3]];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection literals' and 'collection literals'
+                //         var y = b ? [new int[0]] : [[1, 2, 3]];
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [new int[0]] : [[1, 2, 3]]").WithArguments("collection literals", "collection literals").WithLocation(6, 17));
         }
 
         [Fact]
         public void TypeInference_01()
         {
             string source = """
-                class Program
+                static class Program
                 {
-                    static T F<T>(T t)
+                    static T F<T>(T a, T b)
                     {
-                        return t;
+                        return b;
                     }
                     static void Main()
                     {
@@ -1019,16 +1074,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (9,17): error CS0411: The type arguments for method 'Program.F<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // (9,17): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'Program.F<T>(T, T)'
                 //         var x = F(["str"]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T)").WithLocation(9, 17),
-                // (10,17): error CS0411: The type arguments for method 'Program.F<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "F").WithArguments("b", "Program.F<T>(T, T)").WithLocation(9, 17),
+                // (10,17): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'Program.F<T>(T, T)'
                 //         var y = F([[], [1, 2]]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T)").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "F").WithArguments("b", "Program.F<T>(T, T)").WithLocation(10, 17));
         }
 
         [Fact]
         public void TypeInference_02()
+        {
+            string source = """
+                static class Program
+                {
+                    static T F<T>(T a, T b)
+                    {
+                        return b;
+                    }
+                    static void Main()
+                    {
+                        _ = F([new int[0]], new[] { [1, 2, 3] });
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,29): error CS0826: No best type found for implicitly-typed array
+                //         _ = F([new int[0]], new[] { [1, 2, 3] });
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { [1, 2, 3] }").WithLocation(9, 29));
+        }
+
+        [Fact]
+        public void TypeInference_03()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] AsArray1<T>(T[] args) => args;
+                    static T[] AsArray2<T>(params T[] args) => args;
+                    static void Main()
+                    {
+                        var a = AsArray1([1, 2, 3]);
+                        a.Report();
+                        var b = AsArray2(["4", null]);
+                        b.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3], [4, null], ");
+        }
+
+        [Fact]
+        public void TypeInference_04()
         {
             string source = """
                 class Program
@@ -1039,51 +1137,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     static void Main()
                     {
-                        var a = AsArray([1, 2, 3]);
-                        a.Report();
+                        AsArray([]);
+                        AsArray([1, null]);
                     }
                 }
                 """;
-            // PROTOTYPE: Should compile and run successfully: expectedOutput: "[1, 2, 3], ")
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(9,17): error CS0411: The type arguments for method 'Program.AsArray<T>(T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         var a = AsArray([1, 2, 3]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsArray").WithArguments("Program.AsArray<T>(T[])").WithLocation(9, 17));
+                // (9,9): error CS0411: The type arguments for method 'Program.AsArray<T>(T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         AsArray([]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsArray").WithArguments("Program.AsArray<T>(T[])").WithLocation(9, 9),
+                // (10,21): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         AsArray([1, null]);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(10, 21));
         }
 
         [Fact]
-        public void TypeInference_03()
+        public void TypeInference_06()
         {
             string source = """
                 class Program
                 {
-                    static T[] AsArray<T>(params T[] args)
-                    {
-                        return args;
-                    }
-                    static void Main()
-                    {
-                        var a = AsArray([1, 2, 3]);
-                        a.Report();
-                    }
-                }
-                """;
-            // PROTOTYPE: Should compile and run successfully: expectedOutput: "[1, 2, 3], ")
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(9,17): error CS0411: The type arguments for method 'Program.AsArray<T>(params T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         var a = AsArray([1, 2, 3]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsArray").WithArguments("Program.AsArray<T>(params T[])").WithLocation(9, 17));
-        }
-
-        [Fact]
-        public void TypeInference_04()
-        {
-            string source = """
-                class Program
-                {
-                    static T[] AsArray<T>(params T[] args)
+                    static T[] AsArray<T>(T[] args)
                     {
                         return args;
                     }
@@ -1098,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should compile and run successfully: expectedOutput: "[2], ")
+            // PROTOTYPE: Should compile and run successfully: expectedOutput: "[1, 2, 3], "
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
             comp.VerifyEmitDiagnostics(
                 // 0.cs(9,29): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection literals' and 'collection literals'
@@ -1107,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TypeInference_05()
+        public void TypeInference_07()
         {
             string source = """
                 static class Program
@@ -1123,12 +1198,742 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should compile and run successfully: expectedOutput: "[1, 2, 3], "
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
             comp.VerifyEmitDiagnostics(
                 // 0.cs(9,17): error CS9503: There is no target type for the collection literal.
                 //         var a = [1, 2, 3].AsArray();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[1, 2, 3]").WithLocation(9, 17));
+        }
+
+        [Fact]
+        public void TypeInference_08()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                struct S<T> : IEnumerable<T>
+                {
+                    private List<T> _list;
+                    public void Add(T t)
+                    {
+                        _list ??= new List<T>();
+                        _list.Add(t);
+                    }
+                    public IEnumerator<T> GetEnumerator()
+                    {
+                        _list ??= new List<T>();
+                        return _list.GetEnumerator();
+                    }
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                static class Program
+                {
+                    static S<T> AsCollection<T>(this S<T> args)
+                    {
+                        return args;
+                    }
+                    static void Main()
+                    {
+                        var a = AsCollection([1, 2, 3]);
+                        var b = [4].AsCollection();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (27,17): error CS9503: There is no target type for the collection literal.
+                //         var b = [4].AsCollection();
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[4]").WithLocation(27, 17));
+        }
+
+        [Fact]
+        public void TypeInference_09()
+        {
+            string source = """
+                using System.Collections;
+                struct S<T> : IEnumerable
+                {
+                    public void Add(T t) { }
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                static class Program
+                {
+                    static S<T> AsCollection<T>(this S<T> args)
+                    {
+                        return args;
+                    }
+                    static void Main()
+                    {
+                        _ = AsCollection([1, 2, 3]);
+                        _ = [4].AsCollection();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,13): error CS0411: The type arguments for method 'Program.AsCollection<T>(S<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         _ = AsCollection([1, 2, 3]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsCollection").WithArguments("Program.AsCollection<T>(S<T>)").WithLocation(15, 13),
+                // (16,13): error CS9503: There is no target type for the collection literal.
+                //         _ = [4].AsCollection();
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[4]").WithLocation(16, 13));
+        }
+
+        [Fact]
+        public void TypeInference_10()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static T[] F<T>(T[] arg) => arg;
+                    static List<T> F<T>(List<T> arg) => arg;
+                    static void Main()
+                    {
+                        _ = F([1, 2, 3]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,13): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F<T>(T[])' and 'Program.F<T>(List<T>)'
+                //         _ = F([1, 2, 3]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F<T>(T[])", "Program.F<T>(System.Collections.Generic.List<T>)").WithLocation(8, 13));
+        }
+
+        [Fact]
+        public void TypeInference_11()
+        {
+            string source = """
+                using System.Collections;
+                struct S<T> : IEnumerable
+                {
+                    public void Add(T t) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class Program
+                {
+                    static T[] F<T>(T[] arg) => arg;
+                    static S<T> F<T>(S<T> arg) => arg;
+                    static void Main()
+                    {
+                        var x = F([1, 2, 3]);
+                        x.Report(true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int32[]) [1, 2, 3], ");
+        }
+
+        // PROTOTYPE: Test other variance cases.
+        [Fact]
+        public void TypeInference_12()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F<T>(T[] x, T[] y) => x;
+                    static void Main()
+                    {
+                        var x = F(["1"], [(object)"2"]);
+                        x.Report(includeType: true);
+                        var y = F([(object)"3"], ["4"]);
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Object[]) [1], (System.Object[]) [3], ");
+        }
+
+        // PROTOTYPE: Test other variance cases. And these are just for array inferences.
+        // What about constructed collection type inferences?
+        [Fact]
+        public void TypeInference_13()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F<T>(T[] x, T[] y) => x;
+                    static void Main()
+                    {
+                        var x = F([1], [(long)2]);
+                        x.Report(includeType: true);
+                        var y = F([(long)3], [4]);
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int64[]) [1], (System.Int64[]) [3], ");
+        }
+
+        [Fact]
+        public void TypeInference_14()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F<T>(T[][] x) => x[0];
+                    static void Main()
+                    {
+                        var x = F([[1, 2, 3]]);
+                        x.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int32[]) [1, 2, 3], ");
+        }
+
+        [Fact]
+        public void TypeInference_15()
+        {
+            string source = """
+                class Program
+                {
+                    static T F0<T>(T[] x, T y) => y;
+                    static T[] F1<T>(T[] x, T[] y) => y;
+                    static T[] F2<T>(T[][] x, T[][] y) => y[0];
+                    static void Main()
+                    {
+                        var x = F0(new byte[0], 1);
+                        var y = F1(new byte[0], [1, 2]);
+                        var z = F2(new[] { new byte[0] }, [[3, 4]]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,17): error CS0411: The type arguments for method 'Program.F0<T>(T[], T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x = F0(new byte[0], 1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T[], T)").WithLocation(8, 17),
+                // (9,17): error CS0411: The type arguments for method 'Program.F1<T>(T[], T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var y = F1(new byte[0], [1, 2]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(T[], T[])").WithLocation(9, 17),
+                // (10,17): error CS0411: The type arguments for method 'Program.F2<T>(T[][], T[][])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var z = F2(new[] { new byte[0] }, [[3, 4]]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T[][], T[][])").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void TypeInference_16()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F1<T>(T[] x, T[] y) => y;
+                    static T[] F2<T>(T[][] x, T[][] y) => y[0];
+                    static void Main()
+                    {
+                        var x = F1([1], [(byte)2]);
+                        x.Report(true);
+                        var y = F2([[3]], [[(byte)4]]);
+                        y.Report(true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int32[]) [2], (System.Int32[]) [4], ");
+        }
+
+        [Fact]
+        public void TypeInference_17()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F1<T>(T[] x, T[] y) => y;
+                    static T[] F2<T>(T[][] x, T[][] y) => y[0];
+                    static void Main()
+                    {
+                        var x = F1([(long)1], [(int?)2]);
+                        var y = F2([[(int?)3]], [[(long)4]]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,17): error CS0411: The type arguments for method 'Program.F1<T>(T[], T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x = F1([(long)1], [(int?)2]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(T[], T[])").WithLocation(7, 17),
+                // (8,17): error CS0411: The type arguments for method 'Program.F2<T>(T[][], T[][])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var y = F2([[(int?)3]], [[(long)4]]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T[][], T[][])").WithLocation(8, 17));
+        }
+
+        [Fact]
+        public void TypeInference_18()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static List<T[]> AsListOfArray<T>(List<T[]> arg) => arg;
+                    static void Main()
+                    {
+                        var x = AsListOfArray([[4, 5], []]);
+                        x.Report(true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Collections.Generic.List<System.Int32[]>) [[4, 5], []], ");
+        }
+
+        [Fact]
+        public void TypeInference_19()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F<T>(T[][] x) => x[1];
+                    static void Main()
+                    {
+                        var y = F([new byte[0], [1, 2, 3]]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,17): error CS0411: The type arguments for method 'Program.F<T>(T[][])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var y = F([new byte[0], [1, 2, 3]]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T[][])").WithLocation(6, 17));
+        }
+
+        [Fact]
+        public void TypeInference_20()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F<T>(in T[] x, T[] y) => x;
+                    static void Main()
+                    {
+                        var x = F([1], [2]);
+                        x.Report(true);
+                        var y = F([3], [(object)4]);
+                        y.Report(true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int32[]) [1], (System.Object[]) [3], ");
+        }
+
+        [Fact]
+        public void TypeInference_21()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F<T>(in T[] x, T[] y) => x;
+                    static void Main()
+                    {
+                        var y = F(in [3], [(object)4]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         var y = F(in [3], [(object)4]);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "[3]").WithLocation(6, 22));
+        }
+
+        [Fact]
+        public void TypeInference_22()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F1<T>(T[] x, T[] y) => y;
+                    static T[] F2<T>(T[][] x, T[][] y) => y[0];
+                    static void Main()
+                    {
+                        var x = F1([], [default, 2]);
+                        x.Report(true);
+                        var y = F2([[null]], [[default, (int?)4]]);
+                        y.Report(true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int32[]) [0, 2], (System.Nullable<System.Int32>[]) [null, 4], ");
+        }
+
+        [Fact]
+        public void TypeInference_23()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F1<T>(T[] x, T[] y) => y;
+                    static T[] F2<T>(T[][] x, T[][] y) => y[0];
+                    static void Main()
+                    {
+                        var x = F1([], [default]);
+                        var y = F2([[null]], [[default]]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,17): error CS0411: The type arguments for method 'Program.F1<T>(T[], T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x = F1([], [default]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(T[], T[])").WithLocation(7, 17),
+                // (8,17): error CS0411: The type arguments for method 'Program.F2<T>(T[][], T[][])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var y = F2([[null]], [[default]]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T[][], T[][])").WithLocation(8, 17));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TypeInference_24()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static ReadOnlySpan<T> F1<T>(Span<T> x, ReadOnlySpan<T> y) => y;
+                    static List<T> F2<T>(Span<T[]> x, ReadOnlySpan<List<T>> y) => y[0];
+                    static void Main()
+                    {
+                        var x = F1([], [default, 2]);
+                        x.Report();
+                        var y = F2([[null]], [[default, (int?)4]]);
+                        y.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(
+                new[] { source, s_collectionExtensionsWithSpan },
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Skipped,
+                expectedOutput: "[0, 2], [null, 4], ");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TypeInference_25()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static ReadOnlySpan<T> F1<T>(Span<T> x, ReadOnlySpan<T> y) => y;
+                    static List<T> F2<T>(Span<T[]> x, ReadOnlySpan<List<T>> y) => y[0];
+                    static void Main()
+                    {
+                        var x = F1([], [default]);
+                        var y = F2([[null]], [[default]]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS0411: The type arguments for method 'Program.F1<T>(Span<T>, ReadOnlySpan<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x = F1([], [default]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Span<T>, System.ReadOnlySpan<T>)").WithLocation(9, 17),
+                // (10,17): error CS0411: The type arguments for method 'Program.F2<T>(Span<T[]>, ReadOnlySpan<List<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var y = F2([[null]], [[default]]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(System.Span<T[]>, System.ReadOnlySpan<System.Collections.Generic.List<T>>)").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void TypeInference_26()
+        {
+            string source = """
+                class Program
+                {
+                    static void F<T>(T x) { }
+                    static void Main()
+                    {
+                        F([]);
+                        F([null, default, 0]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS0411: The type arguments for method 'Program.F<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F([]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T)").WithLocation(6, 9),
+                // (7,9): error CS0411: The type arguments for method 'Program.F<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F([null, default, 0]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T)").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void TypeInference_27()
+        {
+            string source = """
+                class Program
+                {
+                    static void F<T>(T[,] x) { }
+                    static void Main()
+                    {
+                        F([]);
+                        F([null, default, 0]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS0411: The type arguments for method 'Program.F<T>(T[*,*])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F([]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T[*,*])").WithLocation(6, 9),
+                // (7,11): error CS1503: Argument 1: cannot convert from 'collection literals' to 'int[*,*]'
+                //         F([null, default, 0]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "[null, default, 0]").WithArguments("1", "collection literals", "int[*,*]").WithLocation(7, 11));
+        }
+
+        [Fact]
+        public void TypeInference_28()
+        {
+            string source = """
+                class Program
+                {
+                    static void F<T>(string x, T[] y) { }
+                    static void Main()
+                    {
+                        F([], ['B']);
+                        F([default], ['B']);
+                        F(['A'], ['B']);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //         F([], ['B']);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[]").WithArguments("string", "0").WithLocation(6, 11),
+                // (7,11): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //         F([default], ['B']);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[default]").WithArguments("string", "0").WithLocation(7, 11),
+                // (7,12): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         F([default], ['B']);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "default").WithArguments("string", "Add").WithLocation(7, 12),
+                // (8,11): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //         F(['A'], ['B']);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "['A']").WithArguments("string", "0").WithLocation(8, 11),
+                // (8,12): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         F(['A'], ['B']);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'A'").WithArguments("string", "Add").WithLocation(8, 12));
+        }
+
+        [Fact]
+        public void TypeInference_29()
+        {
+            string source = """
+                delegate void D();
+                enum E { }
+                class Program
+                {
+                    static void F1<T>(dynamic x, T[] y) { }
+                    static void F2<T>(D x, T[] y) { }
+                    static void F3<T>(E x, T[] y) { }
+                    static void Main()
+                    {
+                        F1([1], [2]);
+                        F2([3], [4]);
+                        F3([5], [6]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,12): error CS1503: Argument 1: cannot convert from 'collection literals' to 'dynamic'
+                //         F1([1], [2]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "collection literals", "dynamic").WithLocation(10, 12),
+                // (11,12): error CS1503: Argument 1: cannot convert from 'collection literals' to 'D'
+                //         F2([3], [4]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "[3]").WithArguments("1", "collection literals", "D").WithLocation(11, 12),
+                // (12,12): error CS1503: Argument 1: cannot convert from 'collection literals' to 'E'
+                //         F3([5], [6]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "[5]").WithArguments("1", "collection literals", "E").WithLocation(12, 12));
+        }
+
+        [Fact]
+        public void TypeInference_30()
+        {
+            string source = """
+                delegate void D();
+                enum E { }
+                class Program
+                {
+                    static void F1<T>(dynamic[] x, T[] y) { }
+                    static void F2<T>(D[] x, T[] y) { }
+                    static void F3<T>(E[] x, T[] y) { }
+                    static void Main()
+                    {
+                        F1([1], [2]);
+                        F2([null], [4]);
+                        F3([default], [6]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TypeInference_31()
+        {
+            string source = """
+                class Program
+                {
+                    static void F<T>(T[] x) { }
+                    static void Main()
+                    {
+                        F([null]);
+                        F([Unknown]);
+                        F([Main()]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS0411: The type arguments for method 'Program.F<T>(T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F([null]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T[])").WithLocation(6, 9),
+                // (7,12): error CS0103: The name 'Unknown' does not exist in the current context
+                //         F([Unknown]);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Unknown").WithArguments("Unknown").WithLocation(7, 12),
+                // (8,9): error CS0411: The type arguments for method 'Program.F<T>(T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F([Main()]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T[])").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void TypeInference_32()
+        {
+            string source = """
+                delegate void D();
+                class Program
+                {
+                    static T[] F<T>(T[] x) => x;
+                    static void Main()
+                    {
+                        var x = F([null, Main]);
+                        x.Report(includeType: true);
+                        var y = F([Main, (D)Main]);
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Action[]) [null, System.Action], (D[]) [D, D], ");
+        }
+
+        [Fact]
+        public void TypeInference_33()
+        {
+            string source = """
+                delegate byte D();
+                class Program
+                {
+                    static T[] F<T>(T[] x) => x;
+                    static void Main()
+                    {
+                        var x = F([null, () => 1]);
+                        x.Report(includeType: true);
+                        var y = F([() => 2, (D)(() => 3)]);
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Func<System.Int32>[]) [null, System.Func`1[System.Int32]], (D[]) [D, D], ");
+        }
+
+        [Fact]
+        public void TypeInference_34()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static List<Func<T>> F1<T>(List<Func<T>> x) => x;
+                    static string F2() => null;
+                    static void Main()
+                    {
+                        var x = F1([F2]);
+                        x.Report();
+                        var y = F1([null, () => 1]);
+                        y.Report();
+                        var z = F1([F2, () => default]);
+                        z.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: "[System.Func`1[System.String]], [null, System.Func`1[System.Int32]], [System.Func`1[System.String], System.Func`1[System.String]], ");
+        }
+
+        [Fact]
+        public void TypeInference_35()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static List<Action<T>> F1<T>(List<Action<T>> x) => x;
+                    static void F2(string s) { }
+                    static void Main()
+                    {
+                        var x = F1([F2, (string s) => { }]);
+                        x.Report();
+                        var y = F1([null, (int a) => { }]);
+                        y.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: "[System.Action`1[System.String], System.Action`1[System.String]], [null, System.Action`1[System.Int32]], ");
+        }
+
+        [Fact]
+        public void TypeInference_36()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static List<Func<T>> F1<T>(List<Func<T>> x) => x;
+                    static string F2() => null;
+                    static void Main()
+                    {
+                        var x = F1([() => default]);
+                        var y = F1([() => 2, F2]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS0411: The type arguments for method 'Program.F1<T>(List<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x = F1([() => default]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Collections.Generic.List<System.Func<T>>)").WithLocation(9, 17),
+                // (10,17): error CS0411: The type arguments for method 'Program.F1<T>(List<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var y = F1([null, () => 1]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Collections.Generic.List<System.Func<T>>)").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void TypeInference_37()
+        {
+            string source = """
+                class Program
+                {
+                    static (T, U)[] F<T, U>((T, U)[] x) => x;
+                    static void Main()
+                    {
+                        var x = F([(1, "2")]);
+                        x.Report(includeType: true);
+                        var y = F([default, (3, (byte)4)]);
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: "(System.ValueTuple<System.Int32, System.String>[]) [(1, 2)], (System.ValueTuple<System.Int32, System.Byte>[]) [(0, 0), (3, 4)], ");
         }
 
         [Fact]
