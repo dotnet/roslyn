@@ -298,6 +298,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, access);
                         }
 
+                    case BoundDagElementEvaluation e:
+                        {
+                            var method = e.IsFromEnd
+                                ? e.BufferInfo.GetElementFromEndMethod
+                                : e.BufferInfo.GetElementFromStartMethod;
+                            var elementTemp = _tempAllocator.GetTemp(e.ElementTemp());
+                            var callExpr = _factory.Call(input, method, _factory.Literal(Math.Abs(e.Index)));
+                            return _factory.AssignmentExpression(elementTemp, callExpr);
+                        }
+
+                    case BoundDagEnumeratorEvaluation:
                     case BoundDagAssignmentEvaluation:
                     default:
                         throw ExceptionUtilities.UnexpectedValue(evaluation);
@@ -358,6 +369,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!input.Type.IsNullableType());
                         Debug.Assert(input.Type.IsValueType);
                         return MakeRelationalTest(d.Syntax, input, d.OperatorKind, d.Value);
+
+                    case BoundDagElementTest d:
+                        Debug.Assert(d.Index >= 0);
+                        return _factory.Call(input, d.BufferInfo.HasElementAtMethod, _factory.Literal(d.Index));
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(test);
@@ -496,6 +511,47 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 sideEffect = testExpression = null;
                 return false;
+            }
+
+            protected void LowerEnumeratorEvaluation(
+                BoundDagEnumeratorEvaluation enumeratorEvaluation,
+                int indexOfNode,
+                ImmutableArray<BoundDecisionDagNode> nodesToLower,
+                out BoundAssignmentOperator sideEffect)
+            {
+                BoundDagTemp bufferTemp = enumeratorEvaluation.BufferTemp();
+                int fromStartCount = 0;
+                int fromEndCount = 0;
+                for (int i = indexOfNode + 1; i < nodesToLower.Length; i++)
+                {
+                    if (nodesToLower[i] is not BoundEvaluationDecisionDagNode { Evaluation: BoundDagElementEvaluation element } ||
+                        !element.Input.Equals(bufferTemp))
+                    {
+                        continue;
+                    }
+
+                    if (!element.IsFromEnd)
+                    {
+                        fromStartCount = Math.Max(fromStartCount, element.Index + 1);
+                    }
+                    else
+                    {
+                        fromEndCount = Math.Max(fromEndCount, -element.Index);
+                    }
+                }
+
+                BoundExpression input = _tempAllocator.GetTemp(enumeratorEvaluation.Input);
+                var getEnumeratorMethod = enumeratorEvaluation.EnumeratorInfo.GetEnumeratorInfo.Method;
+                var callExpr = _factory.Call(input, getEnumeratorMethod);
+                var enumeratorTemp = _tempAllocator.GetTemp(enumeratorEvaluation.EnumeratorTemp());
+                sideEffect = _factory.AssignmentExpression(
+                    _tempAllocator.GetTemp(bufferTemp),
+                    _factory.New(
+                        enumeratorEvaluation.BufferInfo.Constructor,
+                        ImmutableArray.Create<BoundExpression>(
+                            _factory.AssignmentExpression(enumeratorTemp, callExpr),
+                            _factory.Literal(fromStartCount),
+                            _factory.Literal(fromEndCount))));
             }
 
             /// <summary>

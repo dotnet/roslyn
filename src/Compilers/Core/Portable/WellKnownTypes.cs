@@ -330,6 +330,8 @@ namespace Microsoft.CodeAnalysis
         System_MissingMethodException,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
 
+        System_Runtime_CompilerServices_Buffer_T,
+
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
@@ -347,7 +349,7 @@ namespace Microsoft.CodeAnalysis
         /// that we could use ids to index into the array
         /// </summary>
         /// <remarks></remarks>
-        private static readonly string[] s_metadataNames = new string[]
+        private static readonly string[] s_metadataNames = new string[Count]
         {
             "System.Math",
             "System.Array",
@@ -649,6 +651,7 @@ namespace Microsoft.CodeAnalysis
             "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute",
             "System.MissingMethodException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
+            "System.Runtime.CompilerServices.Buffer`1"
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

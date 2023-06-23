@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
         internal new string GetDebuggerDisplay()
         {
+            // PROTOTYPE: Handle new evaluation nodes
+
             var name = Source?.Id switch
             {
                 -1 => "<uninitialized>",

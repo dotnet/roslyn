@@ -295,8 +295,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundSlicePattern:
                     output = input;
                     return Tests.True.Instance;
-                case BoundListPattern list:
-                    return MakeTestsAndBindingsForListPattern(input, list, out output, bindings);
+                case BoundIndexableListPattern list:
+                    return MakeTestsAndBindingsForIndexableListPattern(input, list, out output, bindings);
+                case BoundEnumerableListPattern list:
+                    return MakeTestsAndBindingsForEnumerableListPattern(input, list, out output, bindings);
                 case BoundRecursivePattern recursive:
                     return MakeTestsAndBindingsForRecursivePattern(input, recursive, out output, bindings);
                 case BoundITuplePattern iTuple:
@@ -1110,6 +1112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundDagNonNullTest _:
                 case BoundDagTypeTest _:
                     return (values, values, true, true);
+                case BoundDagElementTest t:
+                    return resultForRelation(BinaryOperatorKind.GreaterThan, ConstantValue.Create(t.Index));
                 case BoundDagValueTest t:
                     return resultForRelation(BinaryOperatorKind.Equal, t.Value);
                 case BoundDagRelationalTest t:
@@ -1305,6 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case BoundDagValueTest _:
                 case BoundDagRelationalTest _:
+                case BoundDagElementTest:
                     switch (other)
                     {
                         case BoundDagNonNullTest n2:
@@ -1317,6 +1322,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             foundExplicitNullTest = true;
                             // v == K --> !(v == null)
                             trueTestPermitsTrueOther = false;
+                            break;
+                        case BoundDagElementTest e:
+                            handleRelationWithValue(BinaryOperatorKind.GreaterThan, ConstantValue.Create(e.Index), 
+                                out trueTestPermitsTrueOther, out falseTestPermitsTrueOther, out trueTestImpliesTrueOther, out falseTestImpliesTrueOther);
                             break;
                         case BoundDagRelationalTest r2:
                             handleRelationWithValue(r2.Relation, r2.Value,
@@ -1427,7 +1436,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             relationCondition = Tests.AndSequence.Create(conditions);
                             // At this point, we have determined that two non-identical inputs refer to the same element.
                             // We represent this correspondence with an assignment node in order to merge the remaining values.
-                            // If tests are related unconditionally, we won't need to do so as the remaining values are updated right away.
                             relationEffect = new Tests.One(new BoundDagAssignmentEvaluation(syntax, target: other.Input, input: test.Input));
                         }
                         return true;
@@ -1436,48 +1444,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // it is possible that they are in fact related under certain conditions.
                     // For instance, the inputs [0] and [^1] point to the same element when length is 1.
                     case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
-                        // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
-                        // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
-                        (s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
-                        (s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
-                        Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
-                        Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
-                        // Ignore input source as it will be matched in the subsequent iterations.
-                        if (s1Input.Index == s2Input.Index &&
-                            // We don't want to pair two indices within the same pattern.
-                            s1LengthTemp.Syntax != s2LengthTemp.Syntax)
                         {
+                            // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
+                            // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
+                            (s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
+                            (s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
+                            Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
+                            Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
+                            // Ignore input source as it will be matched in the subsequent iterations.
+                            if (s1Input.Index != s2Input.Index ||
+                                // We don't want to pair two indices within the same pattern.
+                                s1LengthTemp.Equals(s2LengthTemp))
+                            {
+                                break;
+                            }
+
                             Debug.Assert(s1LengthTemp.IsEquivalentTo(s2LengthTemp));
-                            if (s1Index == s2Index)
+                            if (!checkIndexRelation(s1Index, s2Index, s1LengthTemp))
                             {
-                                continue;
+                                break;
                             }
 
-                            if (s1Index < 0 != s2Index < 0)
-                            {
-                                Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
-                                var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
-                                // We do not expect an empty set here because an indexer evaluation is always preceded by
-                                // a length test of which an impossible match would have made the rest of the tests unreachable.
-                                Debug.Assert(!lengthValues.IsEmpty);
-
-                                // Compute the length value that would make these two indices point to the same element.
-                                int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
-                                if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
-                                {
-                                    // If the length is known to be exact, the two are considered to point to the same element.
-                                    continue;
-                                }
-
-                                if (!_forLowering && lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
-                                {
-                                    // Otherwise, we add a test to make the result conditional on the length value.
-                                    (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp)));
-                                    continue;
-                                }
-                            }
+                            continue;
                         }
-                        break;
+
+                    case (BoundDagElementEvaluation s1, BoundDagElementEvaluation s2):
+                        {
+                            // PROTOTYPE Walk up slice evaluations
+                            s1Input = OriginalInput(s1.Input);
+                            s2Input = OriginalInput(s2.Input);
+                            var s1Index = s1.Index;
+                            var s2Index = s2.Index;
+                            if (!checkIndexRelation(s1Index, s2Index, s1.Input))
+                            {
+                                break;
+                            }
+
+                            continue;
+                        }
 
                     // If the sources are equivalent (ignoring their input), it's still possible to find a pair of indexers that could relate.
                     // For example, the subpatterns in `[.., { E: subpat }] or [{ E: subpat }]` are being applied to the same element in the list.
@@ -1493,6 +1497,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             // tests are unrelated
             conditions?.Free();
             return false;
+
+            bool checkIndexRelation(int s1Index, int s2Index, BoundDagTemp lengthTemp)
+            {
+                if (s1Index == s2Index)
+                {
+                    return true;
+                }
+
+                if (_forLowering)
+                {
+                    return false;
+                }
+
+                if (s1Index < 0 == s2Index < 0)
+                {
+                    return false;
+                }
+
+                if (!state.RemainingValues.TryGetValue(lengthTemp, out IValueSet? v) || v is not IValueSet<int> lengthValues)
+                    throw ExceptionUtilities.Unreachable();
+
+                // We do not expect an empty set here because an indexer evaluation is always preceded by
+                // a length test of which an impossible match would have made the rest of the tests unreachable.
+                Debug.Assert(!lengthValues.IsEmpty);
+
+                // Compute the length value that would make these two indices point to the same element.
+                int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
+                if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
+                {
+                    // If the length is known to be exact, the two are considered to point to the same element.
+                    (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(Tests.True.Instance); // Triggers merging of values unconditionally
+                    return true;
+                }
+
+                if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
+                {
+                    // Otherwise, we add a test to make the result conditional on the length value.
+                    (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), lengthTemp)));
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         /// <summary>
@@ -2234,6 +2281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Negation is pushed to the level of a single test by demorgan's laws
                 public readonly Tests Negated;
                 private Not(Tests negated) => Negated = negated;
+                public Not(BoundDagTest negated) => Negated = new One(negated);
                 public static Tests Create(Tests negated) => negated switch
                 {
                     Tests.True _ => Tests.False.Instance,

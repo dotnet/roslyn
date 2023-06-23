@@ -1565,6 +1565,10 @@
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="Value" Type="ConstantValue" Null="disallow"/>
   </Node>
+  <Node Name="BoundDagElementTest" Base="BoundDagTest">
+    <Field Name="Index" Type="int"/>
+    <Field Name="BufferInfo" Type="ListPatternBufferInfo"/>
+  </Node>
   <!-- As a decision, an evaluation is considered to always succeed. -->
   <AbstractNode Name="BoundDagEvaluation" Base="BoundDagTest">
   </AbstractNode>
@@ -1585,6 +1589,14 @@
   <Node Name="BoundDagIndexEvaluation" Base="BoundDagEvaluation">
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
     <Field Name="Index" Type="int"/>
+  </Node>
+  <Node Name="BoundDagElementEvaluation" Base="BoundDagEvaluation">
+    <Field Name="Index" Type="int"/>
+    <Field Name="BufferInfo" Type="ListPatternBufferInfo"/>
+  </Node>
+  <Node Name="BoundDagEnumeratorEvaluation" Base="BoundDagEvaluation">
+    <Field Name="EnumeratorInfo" Type="ForEachEnumeratorInfo"/>
+    <Field Name="BufferInfo" Type="ListPatternBufferInfo"/>
   </Node>
 
   <Node Name="BoundDagIndexerEvaluation" Base="BoundDagEvaluation" HasValidate="true">
@@ -2313,9 +2325,15 @@
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
-  <Node Name="BoundListPattern" Base="BoundObjectPattern" HasValidate="true">
+  <AbstractNode Name="BoundListPattern" Base="BoundObjectPattern">
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
     <Field Name="HasSlice" Type="bool"/>
+  </AbstractNode>
+  <Node Name="BoundEnumerableListPattern" Base="BoundListPattern">
+    <Field Name="EnumeratorInfo" Type="ForEachEnumeratorInfo"/>
+    <Field Name="BufferInfo" Type="ListPatternBufferInfo"/>
+  </Node>
+  <Node Name="BoundIndexableListPattern" Base="BoundListPattern" HasValidate="true">
     <Field Name="LengthAccess" Type="BoundExpression?" SkipInVisitor="true"/>
 
     <!--

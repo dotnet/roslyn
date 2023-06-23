@@ -84,7 +84,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitListPattern(BoundListPattern node)
+        public override BoundNode VisitIndexableListPattern(BoundIndexableListPattern node)
+        {
+            return VisitListPattern(node);
+        }
+
+        public override BoundNode VisitEnumerableListPattern(BoundEnumerableListPattern node)
+        {
+            return VisitListPattern(node);
+        }
+
+        private BoundNode VisitListPattern(BoundListPattern node)
         {
             VisitAndUnsplitAll(node.Subpatterns);
             Visit(node.VariableAccess);
@@ -513,6 +523,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagIndexEvaluation e:
                                     addTemp(e, e.Property.Type);
                                     break;
+                                case BoundDagElementEvaluation e:
+                                    // PROTOTYPE: Nullability
+                                    addTemp(e, e.BufferInfo.ElementType, index: 0);
+                                    break;
+                                case BoundDagEnumeratorEvaluation e:
+                                    addTemp(e, e.EnumeratorInfo.GetEnumeratorInfo.Method.ReturnType, index: 0);
+                                    addTemp(e, e.BufferInfo.BufferType, index: 1);
+                                    break;
                                 case BoundDagIndexerEvaluation e:
                                     {
                                         // tDest = tSource[index]
@@ -613,6 +631,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
                                     }
+                                    gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
+                                    gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable);
+                                    break;
+                                case BoundDagElementTest:
                                     gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
                                     gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable);
                                     break;

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IValueSetFactory? ForInput(BoundDagTemp input)
         {
-            if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true })
+            if (input.Source is BoundDagEnumeratorEvaluation or BoundDagPropertyEvaluation { IsLengthOrCount: true })
                 return ForLength;
             return ForType(input.Type);
         }

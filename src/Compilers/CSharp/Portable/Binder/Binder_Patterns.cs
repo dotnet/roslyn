@@ -317,6 +317,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // PROTOTYPE: Should check after indexer lookup
+                // which diagnostics should we report? Maybe just "unsupported type"?
+
+                BoundExpression collectionExpr = new BoundImplicitReceiver(node, inputType.StrippedType());
+                var builder = new ForEachEnumeratorInfo.Builder();
+                if (GetEnumeratorInfoAndInferCollectionElementType(node, node, ref builder, ref collectionExpr, isAsync: false, BindingDiagnosticBag.Discarded, out TypeWithAnnotations inferredElementType))
+                {
+                    return bindEnumerableListPattern();
+                    BoundEnumerableListPattern bindEnumerableListPattern()
+                    {
+                        elementType = inferredElementType.Type;
+
+                        // PROTOTYPE: Construct and embed a buffer type based on ForEachEnumeratorInfo
+                        var bufferType = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_Buffer_T).Construct(elementType);
+                        var bufferInfo = new ListPatternBufferInfo(bufferType,
+                            (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__ctor).SymbolAsMember(bufferType),
+                            (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__HasElementAt).SymbolAsMember(bufferType),
+                            (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__GetElementFromStart).SymbolAsMember(bufferType),
+                            (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__GetElementFromEnd).SymbolAsMember(bufferType));
+
+                        ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(
+                            node.Patterns, inputType: narrowedType, elementType: elementType,
+                            permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
+                        BindPatternDesignation(
+                            node.Designation,
+                            declType: TypeWithAnnotations.Create(narrowedType, NullableAnnotation.NotAnnotated),
+                            permitDesignations, typeSyntax: null, diagnostics, ref hasErrors,
+                            out Symbol? variableSymbol, out BoundExpression? variableAccess);
+                        return new BoundEnumerableListPattern(node, builder.Build(this.Flags), bufferInfo,
+                            subpatterns, hasSlice: sawSlice, variableSymbol, variableAccess, inputType, narrowedType, hasErrors);
+                    }
+                }
+
                 hasErrors |= !BindLengthAndIndexerForListPattern(node, narrowedType, diagnostics, out indexerAccess, out lengthAccess, out receiverPlaceholder, out argumentPlaceholder);
 
                 Debug.Assert(indexerAccess!.Type is not null);
@@ -333,9 +366,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 permitDesignations, typeSyntax: null, diagnostics, ref hasErrors,
                 out Symbol? variableSymbol, out BoundExpression? variableAccess);
 
-            return new BoundListPattern(
-                syntax: node, subpatterns: subpatterns, hasSlice: sawSlice, lengthAccess: lengthAccess,
-                indexerAccess: indexerAccess, receiverPlaceholder, argumentPlaceholder, variable: variableSymbol,
+            return new BoundIndexableListPattern(
+                syntax: node, lengthAccess: lengthAccess,
+                indexerAccess: indexerAccess, receiverPlaceholder, argumentPlaceholder,
+                subpatterns: subpatterns, hasSlice: sawSlice, variable: variableSymbol,
                 variableAccess: variableAccess, inputType: inputType, narrowedType: narrowedType, hasErrors);
         }
 

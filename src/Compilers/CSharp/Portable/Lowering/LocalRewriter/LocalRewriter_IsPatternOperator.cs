@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -69,6 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundLeafDecisionDagNode n:
                             return n.Label == whenTrueLabel;
                         case BoundEvaluationDecisionDagNode e:
+                            if (e.Evaluation is BoundDagEnumeratorEvaluation enumerator &&
+                                enumerator.EnumeratorInfo.NeedsDisposal)
+                            {
+                                return false;
+                            }
                             node = e.Next;
                             break;
                         case BoundTestDecisionDagNode t:
@@ -247,7 +253,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundEvaluationDecisionDagNode evalNode:
                             {
-                                LowerOneTest(evalNode.Evaluation);
+                                if (evalNode.Evaluation is BoundDagEnumeratorEvaluation enumeratorEvaluation)
+                                {
+                                    throw new NotImplementedException();
+                                    //PROTOTYPE: LowerEnumeratorEvaluation(enumeratorEvaluation, indexOfNode, nodesToLower, out BoundAssignmentOperator sideEffect);
+                                    Debug.Assert(!enumeratorEvaluation.EnumeratorInfo.NeedsDisposal);
+                                }
+                                else
+                                {
+                                    LowerOneTest(evalNode.Evaluation);
+                                }
                                 node = evalNode.Next;
                             }
                             break;

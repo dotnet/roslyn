@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundListPattern
+    internal partial class BoundIndexableListPattern
     {
         private partial void Validate()
         {

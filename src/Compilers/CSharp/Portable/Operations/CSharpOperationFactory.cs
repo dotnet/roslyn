@@ -237,8 +237,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundTypePatternOperation((BoundTypePattern)boundNode);
                 case BoundKind.SlicePattern:
                     return CreateBoundSlicePatternOperation((BoundSlicePattern)boundNode);
-                case BoundKind.ListPattern:
-                    return CreateBoundListPatternOperation((BoundListPattern)boundNode);
+                case BoundKind.IndexableListPattern:
+                    return CreateBoundListPatternOperation((BoundIndexableListPattern)boundNode);
                 case BoundKind.SwitchStatement:
                     return CreateBoundSwitchStatementOperation((BoundSwitchStatement)boundNode);
                 case BoundKind.SwitchLabel:
@@ -2498,7 +2498,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 isImplicit: boundNode.WasCompilerGenerated);
         }
 
-        private IOperation CreateBoundListPatternOperation(BoundListPattern boundNode)
+        private IOperation CreateBoundListPatternOperation(BoundIndexableListPattern boundNode)
         {
             return new ListPatternOperation(
                 lengthSymbol: Binder.GetPropertySymbol(boundNode.LengthAccess, out _, out _).GetPublicSymbol(),

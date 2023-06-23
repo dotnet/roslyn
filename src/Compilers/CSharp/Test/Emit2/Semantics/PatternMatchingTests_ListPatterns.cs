@@ -17,6 +17,402 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public class PatternMatchingTests_ListPatterns : PatternMatchingTestBase
 {
+    private static readonly string s_bufferSource = """
+namespace System.Runtime.CompilerServices
+{
+    public class Buffer<T>
+    {
+        public Buffer(System.Collections.Generic.IEnumerator<T> enumerator, int bufferFromStart, int bufferFromEnd)
+        {
+        }
+        public bool HasElementAt(int index)
+        {
+            throw null;
+        }
+        public T GetElementFromStart(int index)
+        {
+            throw null;
+        }
+        public T GetElementFromEnd(int index)
+        {
+            throw null;
+        }
+    }
+}
+""";
+
+    [Fact]
+    public void EnumerableListPattern_Subsumption()
+    {
+        var source = """
+using System.Collections.Generic;
+class C
+{
+    public int X { get; }
+    public int Y { get; }
+    public C F { get; }
+
+    static void Test(
+        IEnumerable<int> a,
+        IEnumerable<int> b,
+        IEnumerable<object> o,
+        IEnumerable<C> c)
+    {
+        switch (a)
+        {
+            case [.., 0]:
+            case [<0, ..]:
+            case [.., >0]:
+            case [_]: // 1
+                break;
+        };
+        switch (a, b)
+        {
+            case ([.., 42], [.., 43]):
+            case ([42], [43]): // 2
+                break;
+        }
+        switch (a)
+        {
+            case [_] and [.., 1]:
+            case [_] and [1, ..]: // 3
+                break;
+        }
+        switch (a)
+        {
+            case [_] and [1, ..]:
+            case [_] and [.., 1]: // 4
+                break;
+        }
+        switch (a)
+        {
+            case [1, .., 3]:
+            case [1, 2, 3]: // 5
+                break;
+        }
+        switch (a)
+        {
+            case [1, 2, 3]:
+            case [1, .., 3]: // ok
+                break;
+        }
+        switch (a)
+        {
+            case [42]:
+            case [..,42]: // ok
+                break;
+        }
+        switch (a)
+        {
+            case [..,42]:
+            case [42]: // 6
+                break;
+        }
+        switch (a)
+        {
+            case [>0, ..]:
+            case [.., <=0]:
+            case [var unreachable]: // 7
+                    break;
+        }
+        switch (o)
+        {
+            case [null, ..]:
+            case [.., not null]:
+            case [var unreachable]: // 8
+                    break;
+        }
+        switch (o)
+        {
+            case [string, ..]:
+            case [.., not string]:
+            case [var unreachable]: // 9
+                    break;
+        }
+        switch (a)
+        {
+            case [_, > 0, ..]:
+            case [.., <= 0, _]: // ok
+                break;
+        }
+        switch (c)
+        {
+            case [.., {X:> 0, Y:0}]:
+            case [{Y:0, X:> 0}]: // 10
+                break;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(new[] { source, s_bufferSource });
+        comp.VerifyDiagnostics(
+                // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [_]: // 1
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[_]").WithLocation(19, 18),
+                // (25,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case ([42], [43]): // 2
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "([42], [43])").WithLocation(25, 18),
+                // (31,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [_] and [1, ..]: // 3
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[_] and [1, ..]").WithLocation(31, 18),
+                // (37,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [_] and [.., 1]: // 4
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[_] and [.., 1]").WithLocation(37, 18),
+                // (43,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [1, 2, 3]: // 5
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[1, 2, 3]").WithLocation(43, 18),
+                // (61,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [42]: // 6
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[42]").WithLocation(61, 18),
+                // (68,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [var unreachable]: // 7
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(68, 18),
+                // (75,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [var unreachable]: // 8
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(75, 18),
+                // (82,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [var unreachable]: // 9
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(82, 18),
+                // (94,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [{Y:0, X:> 0}]: // 10
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[{Y:0, X:> 0}]").WithLocation(94, 18));
+    }
+
+    [Fact]
+    public void EnumerableListPattern()
+    {
+        var source = """
+using System.Collections.Generic;
+class C
+{
+    public bool Test1(IEnumerable<int> seq) => seq is [10, 20];
+    public bool Test2(IEnumerable<int> seq) => seq is [..,20];
+    public bool Test3(IEnumerable<int> seq) => seq is [10,..];
+    public bool Test4(IEnumerable<int> seq) => seq is [10,..,20];
+}
+""";
+        var comp = CreateCompilation(new[] { source, s_bufferSource });
+        comp.VerifyDiagnostics();
+
+        var verifier = CompileAndVerify(comp);
+        AssertEx.Multiple(
+            () => verifier.VerifyIL("C.Test1", """
+{
+  // Code size       90 (0x5a)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                System.Runtime.CompilerServices.Buffer<int> V_1,
+                bool V_2)
+  .try
+  {
+    IL_0000:  ldarg.1
+    IL_0001:  brfalse.s  IL_0046
+    IL_0003:  ldarg.1
+    IL_0004:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+    IL_0009:  dup
+    IL_000a:  stloc.0
+    IL_000b:  ldc.i4.2
+    IL_000c:  ldc.i4.0
+    IL_000d:  newobj     "System.Runtime.CompilerServices.Buffer<int>..ctor(System.Collections.Generic.IEnumerator<int>, int, int)"
+    IL_0012:  stloc.1
+    IL_0013:  ldloc.1
+    IL_0014:  ldc.i4.0
+    IL_0015:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.HasElementAt(int)"
+    IL_001a:  brfalse.s  IL_0046
+    IL_001c:  ldloc.1
+    IL_001d:  ldc.i4.0
+    IL_001e:  callvirt   "int System.Runtime.CompilerServices.Buffer<int>.GetElementFromStart(int)"
+    IL_0023:  ldc.i4.s   10
+    IL_0025:  bne.un.s   IL_0046
+    IL_0027:  ldloc.1
+    IL_0028:  ldc.i4.1
+    IL_0029:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.HasElementAt(int)"
+    IL_002e:  brfalse.s  IL_0046
+    IL_0030:  ldloc.1
+    IL_0031:  ldc.i4.1
+    IL_0032:  callvirt   "int System.Runtime.CompilerServices.Buffer<int>.GetElementFromStart(int)"
+    IL_0037:  ldc.i4.s   20
+    IL_0039:  bne.un.s   IL_0046
+    IL_003b:  ldloc.1
+    IL_003c:  ldc.i4.2
+    IL_003d:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.HasElementAt(int)"
+    IL_0042:  brtrue.s   IL_0046
+    IL_0044:  leave.s    IL_0052
+    IL_0046:  leave.s    IL_0056
+  }
+  finally
+  {
+    IL_0048:  ldloc.0
+    IL_0049:  brfalse.s  IL_0051
+    IL_004b:  ldloc.0
+    IL_004c:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0051:  endfinally
+  }
+  IL_0052:  ldc.i4.1
+  IL_0053:  stloc.2
+  IL_0054:  br.s       IL_0058
+  IL_0056:  ldc.i4.0
+  IL_0057:  stloc.2
+  IL_0058:  ldloc.2
+  IL_0059:  ret
+}
+"""),
+            () => verifier.VerifyIL("C.Test2", """
+{
+  // Code size       61 (0x3d)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                System.Runtime.CompilerServices.Buffer<int> V_1,
+                bool V_2)
+  .try
+  {
+    IL_0000:  ldarg.1
+    IL_0001:  brfalse.s  IL_0027
+    IL_0003:  ldarg.1
+    IL_0004:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+    IL_0009:  dup
+    IL_000a:  stloc.0
+    IL_000b:  ldc.i4.0
+    IL_000c:  ldc.i4.1
+    IL_000d:  newobj     "System.Runtime.CompilerServices.Buffer<int>..ctor(System.Collections.Generic.IEnumerator<int>, int, int)"
+    IL_0012:  stloc.1
+    IL_0013:  ldloc.1
+    IL_0014:  ldc.i4.0
+    IL_0015:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.HasElementAt(int)"
+    IL_001a:  brfalse.s  IL_0027
+    IL_001c:  ldloc.1
+    IL_001d:  ldc.i4.1
+    IL_001e:  callvirt   "int System.Runtime.CompilerServices.Buffer<int>.GetElementFromEnd(int)"
+    IL_0023:  ldc.i4.s   20
+    IL_0025:  beq.s      IL_0029
+    IL_0027:  leave.s    IL_0039
+    IL_0029:  leave.s    IL_0035
+  }
+  finally
+  {
+    IL_002b:  ldloc.0
+    IL_002c:  brfalse.s  IL_0034
+    IL_002e:  ldloc.0
+    IL_002f:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0034:  endfinally
+  }
+  IL_0035:  ldc.i4.1
+  IL_0036:  stloc.2
+  IL_0037:  br.s       IL_003b
+  IL_0039:  ldc.i4.0
+  IL_003a:  stloc.2
+  IL_003b:  ldloc.2
+  IL_003c:  ret
+}
+"""),
+            () => verifier.VerifyIL("C.Test3", """
+{
+  // Code size       61 (0x3d)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                System.Runtime.CompilerServices.Buffer<int> V_1,
+                bool V_2)
+  .try
+  {
+    IL_0000:  ldarg.1
+    IL_0001:  brfalse.s  IL_0027
+    IL_0003:  ldarg.1
+    IL_0004:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+    IL_0009:  dup
+    IL_000a:  stloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  ldc.i4.0
+    IL_000d:  newobj     "System.Runtime.CompilerServices.Buffer<int>..ctor(System.Collections.Generic.IEnumerator<int>, int, int)"
+    IL_0012:  stloc.1
+    IL_0013:  ldloc.1
+    IL_0014:  ldc.i4.0
+    IL_0015:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.HasElementAt(int)"
+    IL_001a:  brfalse.s  IL_0027
+    IL_001c:  ldloc.1
+    IL_001d:  ldc.i4.0
+    IL_001e:  callvirt   "int System.Runtime.CompilerServices.Buffer<int>.GetElementFromStart(int)"
+    IL_0023:  ldc.i4.s   10
+    IL_0025:  beq.s      IL_0029
+    IL_0027:  leave.s    IL_0039
+    IL_0029:  leave.s    IL_0035
+  }
+  finally
+  {
+    IL_002b:  ldloc.0
+    IL_002c:  brfalse.s  IL_0034
+    IL_002e:  ldloc.0
+    IL_002f:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0034:  endfinally
+  }
+  IL_0035:  ldc.i4.1
+  IL_0036:  stloc.2
+  IL_0037:  br.s       IL_003b
+  IL_0039:  ldc.i4.0
+  IL_003a:  stloc.2
+  IL_003b:  ldloc.2
+  IL_003c:  ret
+}
+"""),
+            () => verifier.VerifyIL("C.Test4", """
+{
+  // Code size       81 (0x51)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                System.Runtime.CompilerServices.Buffer<int> V_1,
+                bool V_2)
+  .try
+  {
+    IL_0000:  ldarg.1
+    IL_0001:  brfalse.s  IL_003b
+    IL_0003:  ldarg.1
+    IL_0004:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+    IL_0009:  dup
+    IL_000a:  stloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  ldc.i4.1
+    IL_000d:  newobj     "System.Runtime.CompilerServices.Buffer<int>..ctor(System.Collections.Generic.IEnumerator<int>, int, int)"
+    IL_0012:  stloc.1
+    IL_0013:  ldloc.1
+    IL_0014:  ldc.i4.0
+    IL_0015:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.HasElementAt(int)"
+    IL_001a:  brfalse.s  IL_003b
+    IL_001c:  ldloc.1
+    IL_001d:  ldc.i4.0
+    IL_001e:  callvirt   "int System.Runtime.CompilerServices.Buffer<int>.GetElementFromStart(int)"
+    IL_0023:  ldc.i4.s   10
+    IL_0025:  bne.un.s   IL_003b
+    IL_0027:  ldloc.1
+    IL_0028:  ldc.i4.1
+    IL_0029:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.HasElementAt(int)"
+    IL_002e:  brfalse.s  IL_003b
+    IL_0030:  ldloc.1
+    IL_0031:  ldc.i4.1
+    IL_0032:  callvirt   "int System.Runtime.CompilerServices.Buffer<int>.GetElementFromEnd(int)"
+    IL_0037:  ldc.i4.s   20
+    IL_0039:  beq.s      IL_003d
+    IL_003b:  leave.s    IL_004d
+    IL_003d:  leave.s    IL_0049
+  }
+  finally
+  {
+    IL_003f:  ldloc.0
+    IL_0040:  brfalse.s  IL_0048
+    IL_0042:  ldloc.0
+    IL_0043:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0048:  endfinally
+  }
+  IL_0049:  ldc.i4.1
+  IL_004a:  stloc.2
+  IL_004b:  br.s       IL_004f
+  IL_004d:  ldc.i4.0
+  IL_004e:  stloc.2
+  IL_004f:  ldloc.2
+  IL_0050:  ret
+}
+""")
+        );
+    }
+
     [Fact]
     public void ListPattern()
     {
@@ -6400,23 +6796,25 @@ class C
         CompileAndVerify(comp, expectedOutput: expectedOutput);
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [16]
+@"[0]: t0 != null ? [1] : [18]
 [1]: t1 = t0.Length; [2]
-[2]: t1 == 3 ? [3] : [10]
+[2]: t1 == 3 ? [3] : [12]
 [3]: t2 = t0[0]; [4]
-[4]: t2 == 1 ? [5] : [16]
+[4]: t2 == 1 ? [5] : [18]
 [5]: t3 = t0[1]; [6]
-[6]: t3 == 2 ? [7] : [13]
+[6]: t3 == 2 ? [7] : [15]
 [7]: t4 = t0[2]; [8]
-[8]: t4 == 3 ? [9] : [16]
+[8]: t4 == 3 ? [9] : [10]
 [9]: leaf `case [1, 2, 3]:`
-[10]: t1 >= 2 ? [11] : [16]
-[11]: t2 = t0[0]; [12]
-[12]: t2 == 1 ? [13] : [16]
-[13]: t5 = t0[-1]; [14]
-[14]: t5 == 3 ? [15] : [16]
-[15]: leaf `case [1, .., 3]:`
-[16]: leaf `default`
+[10]: t5 = t0[-1]; [11]
+[11]: t5 <-- t4; [18]
+[12]: t1 >= 2 ? [13] : [18]
+[13]: t2 = t0[0]; [14]
+[14]: t2 == 1 ? [15] : [18]
+[15]: t5 = t0[-1]; [16]
+[16]: t5 == 3 ? [17] : [18]
+[17]: leaf `case [1, .., 3]:`
+[18]: leaf `default`
 ");
     }
 
@@ -6453,17 +6851,19 @@ class C
         CompileAndVerify(comp, expectedOutput: expectedOutput);
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [10]
+@"[0]: t0 != null ? [1] : [12]
 [1]: t1 = t0.Length; [2]
-[2]: t1 == 1 ? [3] : [6]
+[2]: t1 == 1 ? [3] : [8]
 [3]: t2 = t0[0]; [4]
-[4]: t2 == 42 ? [5] : [10]
+[4]: t2 == 42 ? [5] : [6]
 [5]: leaf `case [42]:`
-[6]: t1 >= 1 ? [7] : [10]
-[7]: t3 = t0[-1]; [8]
-[8]: t3 == 42 ? [9] : [10]
-[9]: leaf `case [..,42]:`
-[10]: leaf `default`
+[6]: t3 = t0[-1]; [7]
+[7]: t3 <-- t2; [12]
+[8]: t1 >= 1 ? [9] : [12]
+[9]: t3 = t0[-1]; [10]
+[10]: t3 == 42 ? [11] : [12]
+[11]: leaf `case [..,42]:`
+[12]: leaf `default`
 ");
     }
 
@@ -6843,33 +7243,34 @@ class C
             Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[[42]]").WithLocation(9, 18));
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [26]
+@"[0]: t0 != null ? [1] : [27]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [26]
+[2]: t1 >= 1 ? [3] : [27]
 [3]: t2 = t0[-1]; [4]
-[4]: t2 != null ? [5] : [23]
+[4]: t2 != null ? [5] : [24]
 [5]: t3 = t2.Length; [6]
-[6]: t3 >= 1 ? [7] : [18]
+[6]: t3 >= 1 ? [7] : [19]
 [7]: t4 = t2[-1]; [8]
 [8]: t4 == 42 ? [9] : [10]
 [9]: leaf `case [.., [.., 42]]:`
-[10]: t1 == 1 ? [11] : [26]
+[10]: t1 == 1 ? [11] : [27]
 [11]: t5 = t0[0]; [12]
 [12]: t5 <-- t2; [13]
 [13]: t7 = t5.Length; [14]
 [14]: t7 <-- t3; [15]
-[15]: t7 == 1 ? [16] : [26]
+[15]: t7 == 1 ? [16] : [27]
 [16]: t9 = t5[0]; [17]
-[17]: t9 <-- t4; [26]
-[18]: t1 == 1 ? [19] : [26]
-[19]: t5 = t0[0]; [20]
-[20]: t5 <-- t2; [21]
-[21]: t7 = t5.Length; [22]
-[22]: t7 <-- t3; [26]
-[23]: t1 == 1 ? [24] : [26]
-[24]: t5 = t0[0]; [25]
-[25]: t5 <-- t2; [26]
-[26]: leaf <break> `switch (a)
+[17]: t3 <-- t7; [18]
+[18]: t9 <-- t4; [27]
+[19]: t1 == 1 ? [20] : [27]
+[20]: t5 = t0[0]; [21]
+[21]: t5 <-- t2; [22]
+[22]: t7 = t5.Length; [23]
+[23]: t7 <-- t3; [27]
+[24]: t1 == 1 ? [25] : [27]
+[25]: t5 = t0[0]; [26]
+[26]: t5 <-- t2; [27]
+[27]: leaf <break> `switch (a)
         {
             case [.., [.., 42]]:
             case [[42]]:
@@ -7159,21 +7560,22 @@ class C
                 //             case [_]:         
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[_]").WithLocation(11, 18));
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [14]
+@"[0]: t0 != null ? [1] : [15]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [14]
+[2]: t1 >= 1 ? [3] : [15]
 [3]: t2 = t0[-1]; [4]
 [4]: t2 == 0 ? [5] : [6]
 [5]: leaf `case [.., 0]:`
 [6]: t3 = t0[0]; [7]
-[7]: t1 == 1 ? [8] : [10]
+[7]: t1 == 1 ? [8] : [11]
 [8]: t3 <-- t2; [9]
-[9]: t3 < 0 ? [11] : [13]
-[10]: t3 < 0 ? [11] : [12]
-[11]: leaf `case [<0, ..]:`
-[12]: t2 > 0 ? [13] : [14]
-[13]: leaf `case [.., >0]:`
-[14]: leaf <break> `switch (a)
+[9]: t3 < 0 ? [12] : [10]
+[10]: t2 <-- t3; [14]
+[11]: t3 < 0 ? [12] : [13]
+[12]: leaf `case [<0, ..]:`
+[13]: t2 > 0 ? [14] : [15]
+[14]: leaf `case [.., >0]:`
+[15]: leaf <break> `switch (a)
         {
             case [.., 0]:
             case [<0, ..]:
@@ -7182,6 +7584,31 @@ class C
                 break;
         }`
 ");
+    }
+
+    [Fact]
+    public void Subsumption_19()
+    {
+        var src = @"
+class C
+{
+    void Test(int[] a)
+    {
+        switch (a)
+        {
+            case [_] and [.., 0]:
+            case [_] and [<0, ..]:
+            case [_] and [.., >0]:
+            case [_]:
+                break;
+        };
+    }
+}";
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
+        comp.VerifyEmitDiagnostics(
+            // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+            //             case [_]:
+            Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[_]").WithLocation(11, 18));
     }
 
     [Fact]

@@ -231,7 +231,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitListPattern(BoundListPattern node)
+            public override BoundNode? VisitIndexableListPattern(BoundIndexableListPattern node)
+            {
+                return VisitListPattern(node);
+            }
+
+            public override BoundNode? VisitEnumerableListPattern(BoundEnumerableListPattern node)
+            {
+                return VisitListPattern(node);
+            }
+
+            private BoundNode? VisitListPattern(BoundListPattern node)
             {
                 VisitList(node.Subpatterns);
                 Visit(node.VariableAccess);

@@ -42,6 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagSliceEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
                     BoundDagIndexerEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
                     BoundDagAssignmentEvaluation => null,
+                    BoundDagEnumeratorEvaluation e => e.EnumeratorInfo.GetEnumeratorInfo.Method,
+                    BoundDagElementEvaluation e => e.BufferInfo.BufferType, // PROTOTYPE: null? (also consider making this abstract)
+                                                                            // if input and index are the same, buffer is identical
+                                                                            // this might apply to the indexer and slice evaluations
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
 
@@ -132,6 +136,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    partial class BoundDagElementEvaluation
+    {
+        public override int GetHashCode() => base.GetHashCode() ^ this.Index;
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
+        {
+            return base.IsEquivalentTo(obj) &&
+                this.Index == ((BoundDagElementEvaluation)obj).Index;
+        }
+
+        public bool IsFromEnd => Index < 0;
+    }
+
     partial class BoundDagSliceEvaluation
     {
         public override int GetHashCode() => base.GetHashCode() ^ this.StartIndex ^ this.EndIndex;
@@ -155,6 +171,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return base.IsEquivalentTo(obj) &&
                 this.Target.Equals(((BoundDagAssignmentEvaluation)obj).Target);
+        }
+    }
+
+    partial class BoundDagEnumeratorEvaluation
+    {
+        public BoundDagTemp EnumeratorTemp()
+        {
+            return new BoundDagTemp(Syntax, EnumeratorInfo.GetEnumeratorInfo.Method.ReturnType, this, index: 0);
+        }
+
+        public BoundDagTemp BufferTemp()
+        {
+            return new BoundDagTemp(Syntax, BufferInfo.BufferType, this, index: 1);
+        }
+    }
+
+    partial class BoundDagElementEvaluation
+    {
+        public BoundDagTemp ElementTemp()
+        {
+            return new BoundDagTemp(Syntax, BufferInfo.ElementType, this, index: 0);
         }
     }
 }
