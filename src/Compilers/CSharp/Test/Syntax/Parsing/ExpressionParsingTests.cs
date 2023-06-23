@@ -6094,7 +6094,7 @@ select t";
                     N(SyntaxKind.RefExpression);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.CollectionCreationExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.CloseBracketToken);
@@ -6409,7 +6409,7 @@ select t";
                 N(SyntaxKind.ArrayInitializerExpression);
                 {
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CollectionCreationExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
                         N(SyntaxKind.OpenBracketToken);
                         N(SyntaxKind.CloseBracketToken);
@@ -6436,7 +6436,7 @@ select t";
                 N(SyntaxKind.ArrayInitializerExpression);
                 {
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CollectionCreationExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
                         N(SyntaxKind.OpenBracketToken);
                         N(SyntaxKind.CloseBracketToken);

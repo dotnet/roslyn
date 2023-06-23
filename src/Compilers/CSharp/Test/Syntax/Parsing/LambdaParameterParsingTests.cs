@@ -5240,7 +5240,7 @@ class C {
                     N(SyntaxKind.IdentifierToken, "f");
                 }
                 N(SyntaxKind.EqualsToken);
-                N(SyntaxKind.CollectionCreationExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
                     N(SyntaxKind.OpenBracketToken);
                     N(SyntaxKind.ExpressionElement);

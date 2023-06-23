@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // https://github.com/dotnet/roslyn/issues/44682 Add to all in one
             missingSyntaxKinds.Add(SyntaxKind.WithExpression);
             missingSyntaxKinds.Add(SyntaxKind.RecordDeclaration);
-            missingSyntaxKinds.Add(SyntaxKind.CollectionCreationExpression);
+            missingSyntaxKinds.Add(SyntaxKind.CollectionExpression);
             missingSyntaxKinds.Add(SyntaxKind.ExpressionElement);
             missingSyntaxKinds.Add(SyntaxKind.SpreadElement);
 

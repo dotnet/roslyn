@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // [A] ref x => x
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("ref").WithLocation(1, 1));
 
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // [A] in x => x
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("in").WithLocation(1, 1));
 
-            N(SyntaxKind.CollectionCreationExpression);
+            N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
                 N(SyntaxKind.ExpressionElement);
@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.MinusMinusToken);
                 N(SyntaxKind.InvocationExpression);
                 {
-                    N(SyntaxKind.CollectionCreationExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
                         N(SyntaxKind.OpenBracketToken);
                         N(SyntaxKind.ExpressionElement);
@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.ExclamationToken);
                 N(SyntaxKind.InvocationExpression);
                 {
-                    N(SyntaxKind.CollectionCreationExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
                         N(SyntaxKind.OpenBracketToken);
                         N(SyntaxKind.ExpressionElement);
@@ -1356,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.AsteriskToken);
                 N(SyntaxKind.InvocationExpression);
                 {
-                    N(SyntaxKind.CollectionCreationExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
                         N(SyntaxKind.OpenBracketToken);
                         N(SyntaxKind.ExpressionElement);
@@ -1913,7 +1913,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.DotDotToken);
                             N(SyntaxKind.InvocationExpression);
                             {
-                                N(SyntaxKind.CollectionCreationExpression);
+                                N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.ExpressionElement);
@@ -3504,7 +3504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // [A] delegate () { }
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("delegate").WithLocation(1, 1));
 
-                N(SyntaxKind.CollectionCreationExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
                     N(SyntaxKind.OpenBracketToken);
                     N(SyntaxKind.ExpressionElement);
@@ -3537,7 +3537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // [return: A] delegate () { return null; }
                     Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "return").WithArguments("", "return").WithLocation(1, 2));
 
-                N(SyntaxKind.CollectionCreationExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
                     N(SyntaxKind.OpenBracketToken);
                     N(SyntaxKind.ExpressionElement);
@@ -3579,7 +3579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.IdentifierToken, "d");
                         }
                         N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.CollectionCreationExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.ExpressionElement);
