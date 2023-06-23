@@ -3231,7 +3231,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kind = result.ConversionForArg(arg);
                 BoundExpression argument = arguments[arg];
 
-                if (argument is not BoundArgListOperator && !argument.HasAnyErrors)
+                if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters) &&
+                    argument is not BoundArgListOperator && !argument.HasAnyErrors)
                 {
                     // Warn for `ref`/`in` or None/`ref readonly` mismatch.
                     var argRefKind = analyzedArguments.RefKind(arg);
