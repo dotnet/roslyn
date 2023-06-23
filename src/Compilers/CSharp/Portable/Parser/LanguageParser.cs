@@ -2207,8 +2207,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var saveTermState = _termState;
 
-            var attributes = this.ParseAttributeDeclarations(inExpressionContext: true);
-            bool haveAttributes = (attributes.Count > 0);
+            var attributes = this.ParseStatementAttributeDeclarations();
+            bool haveAttributes = attributes.Count > 0;
 
             var afterAttributesPoint = this.GetResetPoint();
 
@@ -7420,7 +7420,38 @@ done:;
         }
 
         private StatementSyntax ParsePossiblyAttributedStatement()
-            => ParseStatementCore(ParseAttributeDeclarations(inExpressionContext: true), isGlobal: false);
+            => ParseStatementCore(ParseStatementAttributeDeclarations(), isGlobal: false);
+
+        private SyntaxList<AttributeListSyntax> ParseStatementAttributeDeclarations()
+        {
+            if (this.CurrentToken.Kind != SyntaxKind.OpenBracketToken)
+                return default;
+
+            // See if we should treat this as a collection expression.  At the top-level or statement-level, this should
+            // only be considered a collection if followed by a `.`, `?` or `!` (indicating it's a value, not an
+            // attribute).
+            var resetPoint = GetResetPoint();
+
+            // Grab the first part as a collection expression.
+            ParseCollectionExpression();
+
+            // Continue consuming element access expressions for `[x][y]...`.  We have to determine if this is a
+            // collection expression being indexed into, or if it's a sequence of attributes.
+            while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+                ParseBracketedArgumentList();
+
+            // Check the next token to see if it indicates the `[...]` sequence we have is a term or not. 
+            var isCollectionExpression = this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken or SyntaxKind.ExclamationToken;
+
+            // If this was a collection expression, not an attribute declaration, return no attributes so that the
+            // caller will parse this out as a collection expression. Otherwise re-parse the code as the actual
+            // attribute declarations.
+            this.Reset(ref resetPoint);
+            var attributes = isCollectionExpression ? default : ParseAttributeDeclarations(inExpressionContext: true);
+            this.Release(ref resetPoint);
+
+            return attributes;
+        }
 
         /// <param name="isGlobal">If we're being called while parsing a C# top-level statements (Script or Simple Program).
         /// At the top level in Script, we allow most statements *except* for local-decls/local-funcs.
