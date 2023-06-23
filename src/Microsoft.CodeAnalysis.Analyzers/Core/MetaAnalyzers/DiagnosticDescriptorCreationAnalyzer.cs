@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             filePath = null;
             fileSpan = null;
             if (!diagnostic.Properties.TryGetValue(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo, out var locationInfo)
-                || locationInfo == null)
+                || locationInfo is null)
             {
                 return false;
             }
@@ -1303,7 +1303,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return false;
             }
 
-            return !isCARule || assemblyName != null && !CADiagnosticIdAllowedAssemblies.Contains(assemblyName);
+            if (!isCARule)
+            {
+                // This is a reserved compiler diagnostic ID (CS or BC prefix)
+                return true;
+            }
+
+            if (assemblyName is null)
+            {
+                // This is a reserved code analysis ID (CA prefix) being reported from an unspecified assembly
+                return true;
+            }
+
+            return !CADiagnosticIdAllowedAssemblies.Contains(assemblyName);
         }
     }
 }

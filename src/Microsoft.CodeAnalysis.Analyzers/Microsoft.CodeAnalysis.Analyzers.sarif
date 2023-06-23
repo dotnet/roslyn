@@ -475,6 +475,25 @@
             ]
           }
         },
+        "RS1038": {
+          "id": "RS1038",
+          "shortDescription": "Compiler extensions should be implemented in assemblies with compiler-provided references",
+          "fullDescription": "Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1038.md",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "CompilerExtensionStrictApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
         "RS2000": {
           "id": "RS2000",
           "shortDescription": "Add analyzer diagnostic IDs to analyzer release",
@@ -784,6 +803,7 @@
           "shortDescription": "Do not use types from Workspaces assembly in an analyzer",
           "fullDescription": "Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.",
           "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1022.md",
           "properties": {
             "category": "MicrosoftCodeAnalysisCorrectness",
             "isEnabledByDefault": true,
@@ -982,6 +1002,7 @@
           "shortDescription": "Do not use types from Workspaces assembly in an analyzer",
           "fullDescription": "Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.",
           "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1022.md",
           "properties": {
             "category": "MicrosoftCodeAnalysisCorrectness",
             "isEnabledByDefault": true,

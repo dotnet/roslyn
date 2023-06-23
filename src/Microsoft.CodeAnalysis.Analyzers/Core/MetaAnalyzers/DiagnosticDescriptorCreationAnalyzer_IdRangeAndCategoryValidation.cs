@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             invalidFileDiagnostics = null;
 
             var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<(string? prefix, int start, int end)>>();
-            var lines = additionalText.GetText(cancellationToken)!.Lines;
+            var lines = additionalText.GetTextOrEmpty(cancellationToken).Lines;
             foreach (var line in lines)
             {
                 var contents = line.ToString();
