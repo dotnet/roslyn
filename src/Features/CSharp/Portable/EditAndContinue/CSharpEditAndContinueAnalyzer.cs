@@ -1717,10 +1717,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     var startNode = parameter.Type ?? (SyntaxNode)parameter;
                     return GetDiagnosticSpan(parameter.Modifiers, startNode, parameter);
 
+                case SyntaxKind.PrimaryConstructorBaseType:
                 case SyntaxKind.AttributeList:
-                    var attributeList = (AttributeListSyntax)node;
-                    return attributeList.Span;
-
                 case SyntaxKind.Attribute:
                     return node.Span;
 

@@ -15054,7 +15054,7 @@ namespace N
         [Fact]
         public void Records_AddPrimaryConstructorParameter()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetLatest)
                 .AddBaseline(
                     source: IsExternalInitTypeDefinition + "record R(int P, int U) {}",
                     validator: g =>
