@@ -39,14 +39,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
         private async Task<Document> ConfigureGeneratedCodeAnalysisAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generatedCodeAnalysisFlags = semanticModel.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsGeneratedCodeAnalysisFlags);
             if (generatedCodeAnalysisFlags is null)
             {
                 return document;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var analysisContextParameter = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
 
             var generator = SyntaxGenerator.GetGenerator(document);

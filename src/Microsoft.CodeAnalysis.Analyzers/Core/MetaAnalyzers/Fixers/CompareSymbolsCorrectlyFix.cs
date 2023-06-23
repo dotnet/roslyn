@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
         private async Task<Document> ConvertToEqualsAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var expression = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
             var rawOperation = semanticModel.GetOperation(expression, cancellationToken);
 
@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
         private async Task<Document> CallOverloadWithEqualityComparerAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var expression = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
             var rawOperation = semanticModel.GetOperation(expression, cancellationToken);
 

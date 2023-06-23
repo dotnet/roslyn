@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static bool IsSymbolType(ITypeSymbol typeSymbol, INamedTypeSymbol? symbolType)
             => typeSymbol != null
                 && (SymbolEqualityComparer.Default.Equals(typeSymbol, symbolType)
-                    || typeSymbol.AllInterfaces.Contains(symbolType));
+                    || typeSymbol.AllInterfaces.Any(SymbolEqualityComparer.Default.Equals, symbolType));
 
         private static bool IsSymbolClassType(IOperation operation)
         {

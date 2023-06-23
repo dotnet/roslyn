@@ -23,7 +23,7 @@ RS1018 |  | DiagnosticId for analyzers must be in specified format |
 RS1019 |  | DiagnosticId must be unique across analyzers |
 RS1020 |  | Category for analyzers must be from the specified values |
 RS1021 |  | Invalid entry in analyzer category and diagnostic ID range specification file |
-RS1022 |  | Do not use types from Workspaces assembly in an analyzer |
+RS1022 | <https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1022.md> | Do not use types from Workspaces assembly in an analyzer |
 RS1024 |  | Symbols should be compared for equality |
 RS1025 |  | Configure generated code analysis |
 RS1026 |  | Enable concurrent execution |
@@ -38,3 +38,4 @@ RS1034 |  | Prefer 'IsKind' for checking syntax kinds |
 RS1035 |  | Do not use APIs banned for analyzers |
 RS1036 |  | Specify analyzer banned API enforcement setting |
 RS1037 |  | Add "CompilationEnd" custom tag to compilation end diagnostic descriptor |
+RS1038 | <https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1038.md> | Compiler extensions should be implemented in assemblies with compiler-provided references |

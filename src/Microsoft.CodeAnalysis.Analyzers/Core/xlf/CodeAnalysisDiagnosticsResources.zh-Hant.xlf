@@ -117,6 +117,31 @@
         <target state="translated">正確定義診斷標題</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotDeclareCSharpCompilerFeatureInAssemblyWithVisualBasicReferenceMessage">
+        <source>This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
+        <target state="new">This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage">
+        <source>This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
+        <target state="new">This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareVisualBasicCompilerFeatureInAssemblyWithCSharpReferenceMessage">
+        <source>This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
+        <target state="new">This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleDescription">
+        <source>Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</source>
+        <target state="new">Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleTitle">
+        <source>Compiler extensions should be implemented in assemblies with compiler-provided references</source>
+        <target state="new">Compiler extensions should be implemented in assemblies with compiler-provided references</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
         <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
         <target state="translated">在診斷分析器內叫用方法時，'GetSemanticModel' 是成本較高的方法，原因是其會建立全新的語意模型，而不會與編譯器或其他分析器共用編譯資料，此舉會在分析語意期間產生額外的效能成本。請改為考慮註冊不同的分析器動作，以允許使用共用的 'SemanticModel'，例如 'RegisterOperationAction'、'RegisterSyntaxNodeAction' 或 'RegisterSemanticModelAction'。</target>

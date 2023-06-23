@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 const string valueTagPrefix = @"<value>";
                 const string valueTagSuffix = @"</value>";
                 var builder = ImmutableDictionary.CreateBuilder<string, (string value, Location location)>();
-                var sourceText = file.GetText(cancellationToken);
+                var sourceText = file.GetTextOrEmpty(cancellationToken);
                 var sourceTextStr = sourceText.ToString();
                 var parsedDocument = XDocument.Parse(sourceTextStr, LoadOptions.PreserveWhitespace);
                 foreach (var dataElement in parsedDocument.Descendants("data"))
