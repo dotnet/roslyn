@@ -13393,7 +13393,6 @@ tryAgain:
                 base.GetResetPoint(),
                 _termState,
                 _syntaxFactoryContext.IsInAsync,
-                _syntaxFactoryContext.ForceConditionalAccessExpression,
                 _syntaxFactoryContext.QueryDepth);
         }
 
@@ -13401,7 +13400,6 @@ tryAgain:
         {
             _termState = state.TerminatorState;
             _syntaxFactoryContext.IsInAsync = state.IsInAsync;
-            _syntaxFactoryContext.ForceConditionalAccessExpression = state.ForceConditionalAccessExpression;
             _syntaxFactoryContext.QueryDepth = state.QueryDepth;
             base.Reset(ref state.BaseResetPoint);
         }
@@ -13441,20 +13439,17 @@ tryAgain:
             internal SyntaxParser.ResetPoint BaseResetPoint;
             internal readonly TerminatorState TerminatorState;
             internal readonly bool IsInAsync;
-            internal readonly bool ForceConditionalAccessExpression;
             internal readonly int QueryDepth;
 
             internal ResetPoint(
                 SyntaxParser.ResetPoint resetPoint,
                 TerminatorState terminatorState,
                 bool isInAsync,
-                bool forceConditionalAccessExpression,
                 int queryDepth)
             {
                 this.BaseResetPoint = resetPoint;
                 this.TerminatorState = terminatorState;
                 this.IsInAsync = isInAsync;
-                this.ForceConditionalAccessExpression = forceConditionalAccessExpression;
                 this.QueryDepth = queryDepth;
             }
         }
