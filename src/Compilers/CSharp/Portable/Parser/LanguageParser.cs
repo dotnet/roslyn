@@ -11177,12 +11177,12 @@ done:;
                         continue;
 
                     case SyntaxKind.QuestionToken:
-                        return CanStartConsequenceExpression()
-                            ? _syntaxFactory.ConditionalAccessExpression(
+                        return !CanStartConsequenceExpression()
+                            ? expr
+                            : _syntaxFactory.ConditionalAccessExpression(
                                 expr,
                                 operatorToken: this.EatToken(),
-                                ParseConsequenceSyntax())
-                            : expr;
+                                ParseConsequenceSyntax());
 
                     default:
                         return expr;
