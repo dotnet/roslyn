@@ -10665,66 +10665,69 @@ done:;
             //  null-coalescing-expression   ?   expression   :   expression
             //
             // Only take the conditional if we're at or below its precedence.
-            if (CurrentToken.Kind == SyntaxKind.QuestionToken && precedence <= Precedence.Conditional)
+            if (CurrentToken.Kind != SyntaxKind.QuestionToken || precedence > Precedence.Conditional)
+                return leftOperand;
+
+            // Complex ambiguity with `?` and collection-expressions.  Specifically: b?[c]:d
+            //
+            // On its own, we want that to be a conditional expression with a collection expression in it.  However, for
+            // back compat, we need to make sure that `a ? b?[c] : d` sees the inner `b?[c]` as a
+            // conditional-access-expression.  So, if after consuming the portion after the initial `?` if we do not
+            // have the `:` we need, and we can see a `?[` in that portion of the parse, then we retry consuming the
+            // when-true portion, but this time forcing the prior way of handling `?[`.
+            var questionToken = this.EatToken();
+
+            using var afterQuestionToken = this.GetDisposableResetPoint(resetOnDispose: false);
+            var whenTrue = this.ParsePossibleRefExpression(forceConditionalAccessExpression);
+
+            if (this.CurrentToken.Kind != SyntaxKind.ColonToken &&
+                !forceConditionalAccessExpression &&
+                containsTernaryCollectionToReinterpret(whenTrue))
             {
-                var questionToken = this.EatToken();
+                // Keep track of where we are right now in case the new parse doesn't make things better.
+                using var originalAfterWhenTrue = this.GetDisposableResetPoint(resetOnDispose: false);
 
-                var afterQuestionToken = this.GetResetPoint();
-                var colonLeft = this.ParsePossibleRefExpression(forceConditionalAccessExpression);
+                // Go back to right after the `?`
+                afterQuestionToken.Reset();
 
-                // We want a `:` here but don't have one.  If the portion we parsed so far contains a `?[` sequence then
-                // it's possible that we interpreted a conditional-access expression as a ternary with a collection-literal
-                // which then consumed the colon we want ourselves.
-                //
-                // We want to retry parsing this again as a conditional-access expression to see if that helps us
-                // proceed. If so, then we'll prefer that original interpretation.
-                if (this.CurrentToken.Kind != SyntaxKind.ColonToken &&
-                    !forceConditionalAccessExpression &&
-                    containsTernaryCollectionToReinterpret(colonLeft))
+                // try reparsing with `?[` as a conditional access, not a ternary+collection
+                var newWhenTrue = this.ParsePossibleRefExpression(forceConditionalAccessExpression: true);
+
+                if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
                 {
-                    // Keep track of where we are right now in case the new parse doesn't make things better.
-                    using var originalEndPoint = this.GetDisposableResetPoint(resetOnDispose: false);
-
-                    // Go back to right after the `?`
-                    this.Reset(ref afterQuestionToken);
-
-                    // try reparsing with `?[` as a conditional access, not a ternary+collection
-                    var newColonLeft = this.ParsePossibleRefExpression(forceConditionalAccessExpression: true);
-
-                    if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
-                    {
-                        // if we now are at a colon, this was preferred parse.  
-                        colonLeft = newColonLeft;
-                    }
-                    else
-                    {
-                        // retrying teh parse didn't help.  Use the original interpretation.
-                        originalEndPoint.Reset();
-                    }
-                }
-
-                this.Release(ref afterQuestionToken);
-
-                if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken && this.lexer.InterpolationFollowedByColon)
-                {
-                    // We have an interpolated string with an interpolation that contains a conditional expression.
-                    // Unfortunately, the precedence demands that the colon is considered to signal the start of the
-                    // format string. Without this code, the compiler would complain about a missing colon, and point
-                    // to the colon that is present, which would be confusing. We aim to give a better error message.
-                    var colon = SyntaxFactory.MissingToken(SyntaxKind.ColonToken);
-                    var colonRight = _syntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
-                    leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
-                    leftOperand = this.AddError(leftOperand, ErrorCode.ERR_ConditionalInInterpolation);
+                    // if we now are at a colon, this was preferred parse.  
+                    whenTrue = newWhenTrue;
                 }
                 else
                 {
-                    var colon = this.EatToken(SyntaxKind.ColonToken);
-                    var colonRight = this.ParsePossibleRefExpression(forceConditionalAccessExpression);
-                    leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
+                    // retrying the parse didn't help.  Use the original interpretation.
+                    originalAfterWhenTrue.Reset();
                 }
             }
 
-            return leftOperand;
+            if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken && this.lexer.InterpolationFollowedByColon)
+            {
+                // We have an interpolated string with an interpolation that contains a conditional expression.
+                // Unfortunately, the precedence demands that the colon is considered to signal the start of the
+                // format string. Without this code, the compiler would complain about a missing colon, and point
+                // to the colon that is present, which would be confusing. We aim to give a better error message.
+                leftOperand = _syntaxFactory.ConditionalExpression(
+                    leftOperand,
+                    questionToken,
+                    whenTrue,
+                    SyntaxFactory.MissingToken(SyntaxKind.ColonToken),
+                    _syntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken)));
+                return this.AddError(leftOperand, ErrorCode.ERR_ConditionalInInterpolation);
+            }
+            else
+            {
+                return _syntaxFactory.ConditionalExpression(
+                    leftOperand,
+                    questionToken,
+                    whenTrue,
+                    this.EatToken(SyntaxKind.ColonToken),
+                    this.ParsePossibleRefExpression(forceConditionalAccessExpression));
+            }
 
             static bool containsTernaryCollectionToReinterpret(ExpressionSyntax expression)
             {
