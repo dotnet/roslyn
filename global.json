@@ -14,6 +14,6 @@
   "msbuild-sdks": {
     "Microsoft.DotNet.Arcade.Sdk": "8.0.0-beta.23052.2",
     "Microsoft.DotNet.Helix.Sdk": "8.0.0-beta.23052.2",
-    "PostSharp.Engineering.Sdk": "2023.0.149"
+    "PostSharp.Engineering.Sdk": "2023.2.21"
   }
 }
