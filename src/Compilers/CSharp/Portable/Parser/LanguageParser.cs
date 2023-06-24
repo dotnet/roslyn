@@ -7433,7 +7433,7 @@ done:;
             var resetPoint = GetResetPoint();
 
             // Grab the first part as a collection expression.
-            ParseCollectionCreationExpression();
+            ParseCollectionExpression();
 
             // Continue consuming element access expressions for `[x][y]...`.  We have to determine if this is a
             // collection expression being indexed into, or if it's a sequence of attributes.
@@ -10254,7 +10254,7 @@ done:;
                 case SyntaxKind.ArrayCreationExpression:
                 case SyntaxKind.BaseExpression:
                 case SyntaxKind.CharacterLiteralExpression:
-                case SyntaxKind.CollectionCreationExpression:
+                case SyntaxKind.CollectionExpression:
                 case SyntaxKind.ConditionalAccessExpression:
                 case SyntaxKind.DeclarationExpression:
                 case SyntaxKind.DefaultExpression:
@@ -10683,7 +10683,7 @@ done:;
                     containsTernaryCollectionToReinterpret(colonLeft))
                 {
                     // Keep track of where we are right now in case the new parse doesn't make things better.
-                    var originalEndPoint = this.GetResetPoint();
+                    using var originalEndPoint = this.GetDisposableResetPoint(resetOnDispose: false);
 
                     // Go back to right after the `?`
                     this.Reset(ref afterQuestionToken);
@@ -10699,10 +10699,8 @@ done:;
                     else
                     {
                         // retrying teh parse didn't help.  Use the original interpretation.
-                        this.Reset(ref originalEndPoint);
+                        originalEndPoint.Reset();
                     }
-
-                    this.Release(ref originalEndPoint);
                 }
 
                 this.Release(ref afterQuestionToken);
@@ -10854,7 +10852,7 @@ done:;
                 case SyntaxKind.OpenBracketToken:
                     return this.IsPossibleLambdaExpression(precedence)
                         ? this.ParseLambdaExpression()
-                        : this.ParseCollectionCreationExpression();
+                        : this.ParseCollectionExpression();
                 case SyntaxKind.ThisKeyword:
                     return _syntaxFactory.ThisExpression(this.EatToken());
                 case SyntaxKind.BaseKeyword:
@@ -11119,15 +11117,20 @@ done:;
 
             if (nextTokenKind == SyntaxKind.OpenBracketToken)
             {
+                // could simply be `x?[0]`, or could be `x ? [0] : [1]`.
+
+                // Caller only wants us to parse ?[ how it was originally parsed before collection expressions.
                 if (forceConditionalAccessExpression)
                     return true;
 
-                // could simply be `x?[0]`, or could be `x ? [0] : [1]`.
                 using var _ = GetDisposableResetPoint(resetOnDispose: true);
 
+                // Move past the '?'. Parse what comes next the same way that conditional expressions are parsed.
                 this.EatToken();
                 this.ParsePossibleRefExpression();
 
+                // If we see a colon, then do not parse this as a conditional-access-expression, pop up to the caller
+                // and have it reparse this as a conditional-expression instead.
                 return this.CurrentToken.Kind != SyntaxKind.ColonToken;
             }
 
@@ -12066,7 +12069,7 @@ done:;
             }
         }
 
-        private CollectionCreationExpressionSyntax ParseCollectionCreationExpression()
+        private CollectionExpressionSyntax ParseCollectionExpression()
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenBracketToken);
             var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
@@ -12080,7 +12083,7 @@ done:;
                 requireOneElement: false,
                 allowSemicolonAsSeparator: false);
 
-            return _syntaxFactory.CollectionCreationExpression(
+            return _syntaxFactory.CollectionExpression(
                 openBracket,
                 list,
                 this.EatToken(SyntaxKind.CloseBracketToken));

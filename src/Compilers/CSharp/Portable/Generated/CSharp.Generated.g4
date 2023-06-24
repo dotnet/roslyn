@@ -727,7 +727,7 @@ expression
   | binary_expression
   | cast_expression
   | checked_expression
-  | collection_creation_expression
+  | collection_expression
   | conditional_access_expression
   | conditional_expression
   | declaration_expression
@@ -837,7 +837,7 @@ checked_expression
   | 'unchecked' '(' expression ')'
   ;
 
-collection_creation_expression
+collection_expression
   : '[' (collection_element (',' collection_element)* ','?)? ']'
   ;
 

@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.CollectionCreationExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.ExpressionElement);

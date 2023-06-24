@@ -489,7 +489,7 @@ class C
             var tree = SyntaxFactory.ParseSyntaxTree(source);
 
             Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
-            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionCreationExpressionSyntax));
+            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionExpressionSyntax));
 
             var text = tree.GetText();
             var span = new TextSpan(source.IndexOf("]") + 1, length: 1);
@@ -499,7 +499,7 @@ class C
             var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
 
             Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
-            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionCreationExpressionSyntax));
+            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionExpressionSyntax));
 
             WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
@@ -521,7 +521,7 @@ class C
             var tree = SyntaxFactory.ParseSyntaxTree(source);
 
             Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
-            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionCreationExpressionSyntax));
+            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionExpressionSyntax));
 
             var text = tree.GetText();
             var span = new TextSpan(source.IndexOf("."), length: 1);
@@ -531,7 +531,7 @@ class C
             var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
 
             Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
-            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionCreationExpressionSyntax));
+            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionExpressionSyntax));
 
             WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
