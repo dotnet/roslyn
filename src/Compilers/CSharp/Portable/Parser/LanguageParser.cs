@@ -10467,8 +10467,7 @@ done:;
             return ParseExpressionContinued(leftOperand, precedence);
         }
 
-        private ExpressionSyntax ParseExpressionContinued(
-            ExpressionSyntax leftOperand, Precedence precedence)
+        private ExpressionSyntax ParseExpressionContinued(ExpressionSyntax leftOperand, Precedence precedence)
         {
             while (true)
             {
