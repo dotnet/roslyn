@@ -3819,14 +3819,14 @@ parse_member_name:;
                 ParsePossibleRefExpression());
         }
 
-        private ExpressionSyntax ParsePossibleRefExpression(bool forceConditionalAccessExpression = false)
+        private ExpressionSyntax ParsePossibleRefExpression()
         {
             // check for lambda expression with explicit ref return type: `ref int () => { ... }`
             var refKeyword = this.CurrentToken.Kind == SyntaxKind.RefKeyword && !this.IsPossibleLambdaExpression(Precedence.Expression)
                 ? this.EatToken()
                 : null;
 
-            var expression = this.ParseExpressionCore(forceConditionalAccessExpression);
+            var expression = this.ParseExpressionCore();
             return refKeyword == null ? expression : _syntaxFactory.RefExpression(refKeyword, expression);
         }
 
@@ -10005,9 +10005,9 @@ done:;
                 static @this => @this.CreateMissingIdentifierName());
         }
 
-        private ExpressionSyntax ParseExpressionCore(bool forceConditionalAccessExpression = false)
+        private ExpressionSyntax ParseExpressionCore()
         {
-            return this.ParseSubExpression(Precedence.Expression, forceConditionalAccessExpression);
+            return this.ParseSubExpression(Precedence.Expression);
         }
 
         /// <summary>
@@ -10367,13 +10367,13 @@ done:;
         /// <summary>
         /// Parse a subexpression of the enclosing operator of the given precedence.
         /// </summary>
-        private ExpressionSyntax ParseSubExpression(Precedence precedence, bool forceConditionalAccessExpression = false)
+        private ExpressionSyntax ParseSubExpression(Precedence precedence)
         {
             _recursionDepth++;
 
             StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
 
-            var result = ParseSubExpressionCore(precedence, forceConditionalAccessExpression);
+            var result = ParseSubExpressionCore(precedence);
 #if DEBUG
             // Ensure every expression kind is handled in GetPrecedence
             _ = GetPrecedence(result.Kind);
@@ -10382,7 +10382,7 @@ done:;
             return result;
         }
 
-        private ExpressionSyntax ParseSubExpressionCore(Precedence precedence, bool forceConditionalAccessExpression)
+        private ExpressionSyntax ParseSubExpressionCore(Precedence precedence)
         {
             ExpressionSyntax leftOperand;
             Precedence newPrecedence = 0;
@@ -10461,14 +10461,14 @@ done:;
             else
             {
                 // Not a unary operator - get a primary expression.
-                leftOperand = this.ParseTerm(precedence, forceConditionalAccessExpression);
+                leftOperand = this.ParseTerm(precedence);
             }
 
-            return ParseExpressionContinued(leftOperand, precedence, forceConditionalAccessExpression);
+            return ParseExpressionContinued(leftOperand, precedence);
         }
 
         private ExpressionSyntax ParseExpressionContinued(
-            ExpressionSyntax leftOperand, Precedence precedence, bool forceConditionalAccessExpression = false)
+            ExpressionSyntax leftOperand, Precedence precedence)
         {
             while (true)
             {
@@ -10678,10 +10678,10 @@ done:;
             var questionToken = this.EatToken();
 
             using var afterQuestionToken = this.GetDisposableResetPoint(resetOnDispose: false);
-            var whenTrue = this.ParsePossibleRefExpression(forceConditionalAccessExpression);
+            var whenTrue = this.ParsePossibleRefExpression();
 
             if (this.CurrentToken.Kind != SyntaxKind.ColonToken &&
-                !forceConditionalAccessExpression &&
+                !this.ForceConditionalAccessExpression &&
                 containsTernaryCollectionToReinterpret(whenTrue))
             {
                 // Keep track of where we are right now in case the new parse doesn't make things better.
@@ -10691,7 +10691,9 @@ done:;
                 afterQuestionToken.Reset();
 
                 // try reparsing with `?[` as a conditional access, not a ternary+collection
-                var newWhenTrue = this.ParsePossibleRefExpression(forceConditionalAccessExpression: true);
+                this.ForceConditionalAccessExpression = true;
+                var newWhenTrue = this.ParsePossibleRefExpression();
+                this.ForceConditionalAccessExpression = false;
 
                 if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
                 {
@@ -10726,7 +10728,7 @@ done:;
                     questionToken,
                     whenTrue,
                     this.EatToken(SyntaxKind.ColonToken),
-                    this.ParsePossibleRefExpression(forceConditionalAccessExpression));
+                    this.ParsePossibleRefExpression());
             }
 
             static bool containsTernaryCollectionToReinterpret(ExpressionSyntax expression)
@@ -10783,8 +10785,8 @@ done:;
             };
         }
 
-        private ExpressionSyntax ParseTerm(Precedence precedence, bool forceConditionalAccessExpression)
-            => this.ParsePostFixExpression(ParseTermWithoutPostfix(precedence), forceConditionalAccessExpression);
+        private ExpressionSyntax ParseTerm(Precedence precedence)
+            => this.ParsePostFixExpression(ParseTermWithoutPostfix(precedence));
 
         private ExpressionSyntax ParseTermWithoutPostfix(Precedence precedence)
         {
@@ -11021,8 +11023,7 @@ done:;
                 this.PeekToken(tokenIndex + 1).Kind != SyntaxKind.AsteriskToken;
         }
 
-        private ExpressionSyntax ParsePostFixExpression(
-            ExpressionSyntax expr, bool forceConditionalAccessExpression)
+        private ExpressionSyntax ParsePostFixExpression(ExpressionSyntax expr)
         {
             Debug.Assert(expr != null);
 
@@ -11088,12 +11089,12 @@ done:;
                         continue;
 
                     case SyntaxKind.QuestionToken:
-                        if (CanStartConsequenceExpression(forceConditionalAccessExpression))
+                        if (CanStartConsequenceExpression())
                         {
                             expr = _syntaxFactory.ConditionalAccessExpression(
                                 expr,
                                 this.EatToken(),
-                                ParseConsequenceSyntax(forceConditionalAccessExpression));
+                                ParseConsequenceSyntax());
                             continue;
                         }
 
@@ -11109,7 +11110,7 @@ done:;
             }
         }
 
-        private bool CanStartConsequenceExpression(bool forceConditionalAccessExpression)
+        private bool CanStartConsequenceExpression()
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
             var nextTokenKind = this.PeekToken(1).Kind;
@@ -11123,7 +11124,7 @@ done:;
                 // could simply be `x?[0]`, or could be `x ? [0] : [1]`.
 
                 // Caller only wants us to parse ?[ how it was originally parsed before collection expressions.
-                if (forceConditionalAccessExpression)
+                if (this.ForceConditionalAccessExpression)
                     return true;
 
                 using var _ = GetDisposableResetPoint(resetOnDispose: true);
@@ -11141,7 +11142,7 @@ done:;
             return false;
         }
 
-        internal ExpressionSyntax ParseConsequenceSyntax(bool forceConditionalAccessExpression)
+        internal ExpressionSyntax ParseConsequenceSyntax()
         {
             Debug.Assert(this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.OpenBracketToken);
             ExpressionSyntax expr = this.CurrentToken.Kind switch
@@ -11176,11 +11177,11 @@ done:;
                         continue;
 
                     case SyntaxKind.QuestionToken:
-                        return CanStartConsequenceExpression(forceConditionalAccessExpression)
+                        return CanStartConsequenceExpression()
                             ? _syntaxFactory.ConditionalAccessExpression(
                                 expr,
                                 operatorToken: this.EatToken(),
-                                ParseConsequenceSyntax(forceConditionalAccessExpression))
+                                ParseConsequenceSyntax())
                             : expr;
 
                     default:
@@ -13239,6 +13240,12 @@ done:;
             }
         }
 
+        private bool ForceConditionalAccessExpression
+        {
+            get => _syntaxFactoryContext.ForceConditionalAccessExpression;
+            set => _syntaxFactoryContext.ForceConditionalAccessExpression = value;
+        }
+
         private bool IsInQuery
         {
             get { return _syntaxFactoryContext.IsInQuery; }
@@ -13387,6 +13394,7 @@ tryAgain:
                 base.GetResetPoint(),
                 _termState,
                 _syntaxFactoryContext.IsInAsync,
+                _syntaxFactoryContext.ForceConditionalAccessExpression,
                 _syntaxFactoryContext.QueryDepth);
         }
 
@@ -13394,6 +13402,7 @@ tryAgain:
         {
             _termState = state.TerminatorState;
             _syntaxFactoryContext.IsInAsync = state.IsInAsync;
+            _syntaxFactoryContext.ForceConditionalAccessExpression = state.ForceConditionalAccessExpression;
             _syntaxFactoryContext.QueryDepth = state.QueryDepth;
             base.Reset(ref state.BaseResetPoint);
         }
@@ -13433,17 +13442,20 @@ tryAgain:
             internal SyntaxParser.ResetPoint BaseResetPoint;
             internal readonly TerminatorState TerminatorState;
             internal readonly bool IsInAsync;
+            internal readonly bool ForceConditionalAccessExpression;
             internal readonly int QueryDepth;
 
             internal ResetPoint(
                 SyntaxParser.ResetPoint resetPoint,
                 TerminatorState terminatorState,
                 bool isInAsync,
+                bool forceConditionalAccessExpression,
                 int queryDepth)
             {
                 this.BaseResetPoint = resetPoint;
                 this.TerminatorState = terminatorState;
                 this.IsInAsync = isInAsync;
+                this.ForceConditionalAccessExpression = forceConditionalAccessExpression;
                 this.QueryDepth = queryDepth;
             }
         }
