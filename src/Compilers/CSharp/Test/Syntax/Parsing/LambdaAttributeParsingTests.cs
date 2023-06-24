@@ -1467,40 +1467,80 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConditionalExpression_01()
         {
-            UsingExpression("x ? [A] () => { } : z", TestOptions.RegularPreview,
-                // (1,1): error CS1073: Unexpected token '=>'
-                // x ? [A] () => { } : z
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "x ? [A] ()").WithArguments("=>").WithLocation(1, 1));
+            UsingExpression("x ? [A] () => { } : z", TestOptions.RegularPreview);
 
-            N(SyntaxKind.ConditionalAccessExpression);
+            N(SyntaxKind.ConditionalExpression);
             {
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "x");
                 }
                 N(SyntaxKind.QuestionToken);
-                N(SyntaxKind.InvocationExpression);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
                 {
-                    N(SyntaxKind.ElementBindingExpression);
+                    N(SyntaxKind.AttributeList);
                     {
-                        N(SyntaxKind.BracketedArgumentList);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
                         {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            N(SyntaxKind.CloseBracketToken);
                         }
+                        N(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.ArgumentList);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "z");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalExpression_01_A()
+        {
+            UsingExpression("x ? () => { } : z", TestOptions.RegularPreview);
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "z");
                 }
             }
             EOF();
