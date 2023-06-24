@@ -12708,7 +12708,8 @@ done:;
 
         private QueryExpressionSyntax ParseQueryExpression(Precedence precedence)
         {
-            this.EnterQuery();
+            var previousIsInQuery = this.IsInQuery;
+            this.IsInQuery = true;
             var fc = this.ParseFromClause();
             if (precedence > Precedence.Assignment)
             {
@@ -12716,7 +12717,7 @@ done:;
             }
 
             var body = this.ParseQueryBody();
-            this.LeaveQuery();
+            this.IsInQuery = previousIsInQuery;
             return _syntaxFactory.QueryExpression(fc, body);
         }
 
@@ -12959,30 +12960,14 @@ done:;
 
         private bool IsInAsync
         {
-            get
-            {
-                return _syntaxFactoryContext.IsInAsync;
-            }
-            set
-            {
-                _syntaxFactoryContext.IsInAsync = value;
-            }
+            get => _syntaxFactoryContext.IsInAsync;
+            set => _syntaxFactoryContext.IsInAsync = value;
         }
 
         private bool IsInQuery
         {
-            get { return _syntaxFactoryContext.IsInQuery; }
-        }
-
-        private void EnterQuery()
-        {
-            _syntaxFactoryContext.QueryDepth++;
-        }
-
-        private void LeaveQuery()
-        {
-            Debug.Assert(_syntaxFactoryContext.QueryDepth > 0);
-            _syntaxFactoryContext.QueryDepth--;
+            get => _syntaxFactoryContext.IsInQuery;
+            set => _syntaxFactoryContext.IsInQuery = value;
         }
 
         private delegate PostSkipAction SkipBadTokens<TNode>(
@@ -13117,14 +13102,14 @@ tryAgain:
                 base.GetResetPoint(),
                 _termState,
                 _syntaxFactoryContext.IsInAsync,
-                _syntaxFactoryContext.QueryDepth);
+                _syntaxFactoryContext.IsInQuery);
         }
 
         private void Reset(ref ResetPoint state)
         {
             _termState = state.TerminatorState;
             _syntaxFactoryContext.IsInAsync = state.IsInAsync;
-            _syntaxFactoryContext.QueryDepth = state.QueryDepth;
+            _syntaxFactoryContext.IsInQuery = state.IsInQuery;
             base.Reset(ref state.BaseResetPoint);
         }
 
@@ -13163,18 +13148,18 @@ tryAgain:
             internal SyntaxParser.ResetPoint BaseResetPoint;
             internal readonly TerminatorState TerminatorState;
             internal readonly bool IsInAsync;
-            internal readonly int QueryDepth;
+            internal readonly bool IsInQuery;
 
             internal ResetPoint(
                 SyntaxParser.ResetPoint resetPoint,
                 TerminatorState terminatorState,
                 bool isInAsync,
-                int queryDepth)
+                bool isInQuery)
             {
                 this.BaseResetPoint = resetPoint;
                 this.TerminatorState = terminatorState;
                 this.IsInAsync = isInAsync;
-                this.QueryDepth = queryDepth;
+                this.IsInQuery = isInQuery;
             }
         }
 
