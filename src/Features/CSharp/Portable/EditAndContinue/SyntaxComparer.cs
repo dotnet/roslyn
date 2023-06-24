@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
@@ -1593,7 +1594,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Distance is a number within [0, 1], the smaller the more similar the tokens are. 
         /// </remarks>
         public static double ComputeDistance(SyntaxToken oldToken, SyntaxToken newToken)
-            => LongestCommonSubstring.ComputeDistance(oldToken.Text, newToken.Text);
+            => LongestCommonSubstring.ComputePrefixDistance(
+                oldToken.Text, Math.Min(oldToken.Text.Length, LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation),
+                newToken.Text, Math.Min(newToken.Text.Length, LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation));
+
+        private static ImmutableArray<T> CreateArrayForDistanceCalculation<T>(IEnumerable<T>? enumerable)
+            => enumerable is null ? ImmutableArray<T>.Empty : enumerable.Take(LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation).ToImmutableArray();
 
         /// <summary>
         /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
@@ -1602,16 +1608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
         public static double ComputeDistance(IEnumerable<SyntaxToken>? oldTokens, IEnumerable<SyntaxToken>? newTokens)
-            => LcsTokens.Instance.ComputeDistance(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
-
-        /// <summary>
-        /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
-        /// </summary>
-        /// <remarks>
-        /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
-        /// </remarks>
-        public static double ComputeDistance(ImmutableArray<SyntaxToken> oldTokens, ImmutableArray<SyntaxToken> newTokens)
-            => LcsTokens.Instance.ComputeDistance(oldTokens.NullToEmpty(), newTokens.NullToEmpty());
+            => LcsTokens.Instance.ComputeDistance(CreateArrayForDistanceCalculation(oldTokens), CreateArrayForDistanceCalculation(newTokens));
 
         /// <summary>
         /// Calculates the distance between two sequences of syntax nodes, disregarding trivia. 
@@ -1620,16 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
         public static double ComputeDistance(IEnumerable<SyntaxNode>? oldNodes, IEnumerable<SyntaxNode>? newNodes)
-            => LcsNodes.Instance.ComputeDistance(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
-
-        /// <summary>
-        /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
-        /// </summary>
-        /// <remarks>
-        /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
-        /// </remarks>
-        public static double ComputeDistance(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
-            => LcsNodes.Instance.ComputeDistance(oldNodes.NullToEmpty(), newNodes.NullToEmpty());
+            => LcsNodes.Instance.ComputeDistance(CreateArrayForDistanceCalculation(oldNodes), CreateArrayForDistanceCalculation(newNodes));
 
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax nodes to another, disregarding trivia.

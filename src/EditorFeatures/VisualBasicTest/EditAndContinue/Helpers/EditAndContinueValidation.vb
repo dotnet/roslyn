@@ -6,7 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
-Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
+Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 

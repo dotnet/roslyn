@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .SelectMany(section => section.TaggedParts.Add(new TaggedText(TextTags.LineBreak, Environment.NewLine)))
                 .ToImmutableArray();
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var language = document.Project.Language;
 
             return new Hover

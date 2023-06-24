@@ -700,6 +700,27 @@ static " + keyword + @" C(int x, string y);
 
         [Theory]
         [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68345")]
+        public void ConstructorOverloading_03([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            var comp = CreateCompilation(@"
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
+" + keyword + @" C(int x, string y)
+{
+    internal C(C other) // overload
+    {
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (5,14): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
+                //     internal C(C other) // overload
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 14)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void Members_01([CombinatorialValues("class", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
@@ -3426,6 +3447,121 @@ class C(int someParam)
 
             var c = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C");
             Assert.Equal(@"A(""someParam"")", c.PrimaryConstructor.GetAttributes().Single().ToString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68349")]
+        public void AttributesOnPrimaryConstructor_11([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+_ = new C();
+
+[method: System.Obsolete(""Obsolete!!!"", error: true)]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,5): error CS0619: 'C.C()' is obsolete: 'Obsolete!!!'
+                // _ = new C();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.C()", "Obsolete!!!").WithLocation(2, 5)
+                );
+
+            var c = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.True(c.AnyMemberHasAttributes);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_12([CombinatorialValues("class", "struct", "record", "record class", "record struct")] string declaration)
+        {
+            string source = @"
+_ = new C1();
+
+partial " + declaration + @" C1();
+
+#line 100
+[method: System.Obsolete(""Obsolete!!!"", error: true)]
+partial " + declaration + @" C1
+#line 200
+    ;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (100,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: System.Obsolete("Obsolete!!!", error: true)]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(100, 2)
+                );
+
+            var c1 = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C1");
+            Assert.False(c1.AnyMemberHasAttributes);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_13([CombinatorialValues("class", "struct", "record", "record class", "record struct")] string declaration)
+        {
+            string source = @"
+_ = new C1();
+
+[method: System.Obsolete(""Obsolete!!!"", error: true)]
+partial " + declaration + @" C1();
+
+partial " + declaration + @" C1;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,5): error CS0619: 'C1.C1()' is obsolete: 'Obsolete!!!'
+                // _ = new C1();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C1()").WithArguments("C1.C1()", "Obsolete!!!").WithLocation(2, 5)
+                );
+
+            var c1 = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C1");
+            Assert.True(c1.AnyMemberHasAttributes);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68349")]
+        public void AttributesOnPrimaryConstructor_14([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+_ = new C();
+
+[System.Obsolete(""Obsolete!!!"", error: true)]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,9): error CS0619: 'C' is obsolete: 'Obsolete!!!'
+                // _ = new C();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "Obsolete!!!").WithLocation(2, 9)
+                );
+
+            var c = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.False(c.AnyMemberHasAttributes);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68349")]
+        public void AttributesOnPrimaryConstructor_15([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+_ = new C();
+
+[type: System.Obsolete(""Obsolete!!!"", error: true)]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,9): error CS0619: 'C' is obsolete: 'Obsolete!!!'
+                // _ = new C();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "Obsolete!!!").WithLocation(2, 9)
+                );
+
+            var c = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.False(c.AnyMemberHasAttributes);
         }
 
         [Fact]
@@ -11742,7 +11878,11 @@ class Program
 ";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: @"123123124-1-2-3", verify: Verification.Passes).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123123124-1-2-3", verify: Verification.Passes).VerifyDiagnostics(
+                // (4,21): warning CS9124: Parameter 'int p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     public int F1 = p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("int p1").WithLocation(4, 21)
+                );
 
             verifier.VerifyIL("C1..ctor(int, int)",
 @"
@@ -15387,6 +15527,304 @@ class Program
 	}
 } // end of class C1
 ".Replace("[mscorlib]", ExecutionConditionUtil.IsDesktop ? "[mscorlib]" : "[netstandard]"));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68384")]
+        public void ParameterCapturing_152_NullableAnalysis()
+        {
+            var source = @"
+#nullable enable
+
+class B(string s)
+{
+    public string S { get; } = s;
+}
+
+class C(B b)
+    : B(b.S)
+{
+    string T() => b.S;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68384")]
+        public void ParameterCapturing_153_NullableAnalysis()
+        {
+            var source = @"
+#nullable enable
+
+class B(System.Func<string> s)
+{
+    public string S { get; } = s();
+}
+
+class C(B b)
+    : B(() => b.S)
+{
+    string T() => b.S;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68384")]
+        public void ParameterCapturing_154_NullableAnalysis()
+        {
+            var source = @"
+#nullable enable
+
+class B(System.Func<string> s)
+{
+    public string S { get; } = s();
+}
+
+class C(B b)
+    : B(() =>
+        {
+            string local() => b.S;
+            return local();
+        })
+{
+    string T() => b.S;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_155_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    int F = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,13): warning CS9124: Parameter 'int p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     int F = p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("int p1").WithLocation(4, 13)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_156_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    int F = (int)p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,18): warning CS9124: Parameter 'int p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     int F = (int)p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("int p1").WithLocation(4, 18)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_157_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    long F = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_158_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    long F = (long)p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_159_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    static int F = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,20): error CS9105: Cannot use primary constructor parameter 'int p1' in this context.
+                //     static int F = p1;
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p1").WithArguments("int p1").WithLocation(4, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_160_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+ref struct C1([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int p1)
+{
+    ref int F = ref p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+
+            var expected = new[] {
+                // (8,13): error CS9109: Cannot use ref, out, or in primary constructor parameter 'p1' inside an instance member
+                //         _ = p1; 
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "p1").WithArguments("p1").WithLocation(8, 13)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_161_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+ref struct C1([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int p1)
+{
+    ref readonly int F = ref p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+
+            var expected = new[] {
+                // (8,13): error CS9109: Cannot use ref, out, or in primary constructor parameter 'p1' inside an instance member
+                //         _ = p1; 
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "p1").WithArguments("p1").WithLocation(8, 13)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_162_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    int F { get; } = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,22): warning CS9124: Parameter 'int p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     int F { get; } = p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("int p1").WithLocation(4, 22)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_163_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(System.Action p1)
+{
+    event System.Action F = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,29): warning CS9124: Parameter 'Action p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     event System.Action F = p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("System.Action p1").WithLocation(4, 29)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_164_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    int F = p1;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]

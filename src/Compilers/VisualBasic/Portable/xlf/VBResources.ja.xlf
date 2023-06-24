@@ -17,6 +17,11 @@
         <target state="translated">コマンドライン構文エラー: '{0}' は、'{1}' オプションの有効な値ではありません。値は '{2}' の形式にする必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
+        <source>Cannot inherit from '{0}' because it has required members.</source>
+        <target state="translated">必要なメンバーがあるため、'{0}' から継承できません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
         <target state="translated">行連結文字の後のコメントを使用するには、言語バージョン {0} 以上をご使用ください。</target>
@@ -32,9 +37,19 @@
         <target state="translated">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' は、コンパイラのみで使用するために予約されています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoNotUseRequiredMember">
+        <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute' は、コンパイラでのみ使用するために予約されています。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">複数のアナライザー構成ファイルを同じディレクトリに入れることはできません ('{0}')。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="translated">'{2}' は、ジェネリック型またはメソッド '{0}' のパラメーター '{1}' の 'New' 制約を満たすことはできません。これは、'{2}' に必要なメンバーが含まれているためです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
@@ -52,6 +67,16 @@
         <target state="translated">型 '{0}' には基底インターフェイスからのメンバーの再抽象化があるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することをご検討ください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSet">
+        <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
+        <target state="translated">必要なメンバー '{0}' は、オブジェクト初期化子または属性引数に設定する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersInvalid">
+        <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
+        <target state="translated">'{0}' に必要なメンバーの一覧の形式が正しくないため、解釈できません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">ターゲット ランタイムは、既定のインターフェイスの実装をサポートしていません。</target>
@@ -67,6 +92,11 @@
         <target state="translated">共有された WithEvents 変数のイベントを、別の種類のメソッドで処理することはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="new">'{0}' is defined in assembly '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
         <target state="translated">{0} '{1}' には、共有された抽象または仮想 '{2}' が含まれているため、インターフェイス '{3}' を実装できません。</target>
@@ -80,6 +110,11 @@
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
         <target state="translated">'{0}' にはコンパイラ機能 '{1}' が必要ですが、このバージョンのVisual Basic コンパイラではサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="translated">参照によって返されるメソッドまたはプロパティの呼び出しは、非同期メソッドまたは反復子メソッドで 'With' ステートメント式として、またはラムダで暗黙的に参照される場合は使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -257,6 +292,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -269,7 +307,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic コンパイラ オプション
+        <target state="needs-review-translation">                  Visual Basic コンパイラ オプション
 
                                  - 出力ファイル -
 -out:&lt;file&gt;                       出力ファイル名を指定します。

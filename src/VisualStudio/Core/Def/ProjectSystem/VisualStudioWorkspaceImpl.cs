@@ -823,7 +823,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static bool IsWebsite(EnvDTE.Project project)
             => project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
 
-        private IEnumerable<string> FilterFolderForProjectType(EnvDTE.Project project, IEnumerable<string> folders)
+        private static IEnumerable<string> FilterFolderForProjectType(EnvDTE.Project project, IEnumerable<string> folders)
         {
             foreach (var folder in folders)
             {
@@ -836,7 +836,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private IEnumerable<ProjectItem> GetAllItems(ProjectItems projectItems)
+        private static IEnumerable<ProjectItem> GetAllItems(ProjectItems projectItems)
         {
             if (projectItems == null)
             {

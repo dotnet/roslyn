@@ -195,17 +195,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OriginalDefinition.GetTypeMembers().SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
-        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             return OriginalDefinition.GetTypeMembers(name).SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
-        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return OriginalDefinition.GetTypeMembers(name, arity).SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
-        internal sealed override bool HasDeclaredRequiredMembers => OriginalDefinition.HasDeclaredRequiredMembers;
+        internal sealed override bool HasDeclaredRequiredMembers => !_unbound && OriginalDefinition.HasDeclaredRequiredMembers;
 
         public sealed override ImmutableArray<Symbol> GetMembers()
         {
@@ -429,6 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable();
         }
 
+        internal sealed override bool IsFileLocal => _underlyingType.IsFileLocal;
         internal sealed override FileIdentifier? AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
 
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();

@@ -382,8 +382,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     DiagnosticDataLocation UpdateLocation(DiagnosticDataLocation location)
                     {
                         var diagnosticSpan = location.UnmappedFileSpan.GetClampedTextSpan(text);
-                        var start = Math.Min(Math.Max(diagnosticSpan.Start + delta, 0), tree.Length);
-                        var newSpan = new TextSpan(start, start >= tree.Length ? 0 : diagnosticSpan.Length);
+                        var start = Math.Max(diagnosticSpan.Start + delta, 0);
+                        var end = start + diagnosticSpan.Length;
+                        if (start >= tree.Length)
+                            start = tree.Length - 1;
+                        if (end >= tree.Length)
+                            end = tree.Length - 1;
+                        var newSpan = new TextSpan(start, end - start);
                         return location.WithSpan(newSpan, tree);
                     }
                 }

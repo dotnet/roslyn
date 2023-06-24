@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// <summary>
             /// Cached mapping of localizable strings in this descriptor to any exceptions thrown while obtaining them.
             /// </summary>
-            private static ImmutableSegmentedDictionary<LocalizableString, Exception?> s_localizableStringToException = ImmutableSegmentedDictionary<LocalizableString, Exception?>.Empty.WithComparer(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+            private static ImmutableDictionary<LocalizableString, Exception?> s_localizableStringToException = ImmutableDictionary<LocalizableString, Exception?>.Empty.WithComparers(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
 
             private readonly DiagnosticAnalyzer _analyzer;
             private readonly object _gate;
@@ -137,6 +138,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeAsync(
                 ISymbol symbol,
                 bool isGeneratedCodeSymbol,
+                SyntaxTree? filterTree,
+                TextSpan? filterSpan,
                 ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
                 AnalyzerExecutor analyzerExecutor,
                 CancellationToken cancellationToken)
@@ -155,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     HostSymbolStartAnalysisScope getSymbolAnalysisScopeCore()
                     {
                         var symbolAnalysisScope = new HostSymbolStartAnalysisScope();
-                        analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope, isGeneratedCodeSymbol, cancellationToken);
+                        analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope, isGeneratedCodeSymbol, filterTree, filterSpan, cancellationToken);
 
                         var symbolEndActions = symbolAnalysisScope.GetAnalyzerActions(_analyzer);
                         if (symbolEndActions.SymbolEndActionsCount > 0)
@@ -345,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (!localizableString.CanThrowExceptions)
                         return null;
 
-                    return RoslynImmutableInterlocked.GetOrAdd(ref s_localizableStringToException, localizableString, computeException);
+                    return ImmutableInterlocked.GetOrAdd(ref s_localizableStringToException, localizableString, computeException);
 
                     static Exception? computeException(LocalizableString localizableString)
                     {

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.GetFirstLocation());
                 }
-                else if (parameter.Type.IsUnsafe())
+                else if (parameter.Type.IsPointerOrFunctionPointer())
                 {
                     diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.GetFirstLocation());
                 }

@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
                     var existingData = state.GetAnalysisData(kind);
-                    var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                     // we only care about local diagnostics
                     return new DocumentAnalysisData(version, text.Lines.Count, existingData.Items, diagnostics.ToImmutableArrayOrEmpty());

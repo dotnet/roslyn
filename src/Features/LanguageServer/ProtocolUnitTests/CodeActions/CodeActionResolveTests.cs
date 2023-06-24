@@ -6,10 +6,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -294,6 +296,127 @@ class {|caret:ABC|}
                 applicableRange: new LSP.Range { Start = new Position { Line = 2, Character = 33 }, End = new Position { Line = 39, Character = 2 } },
                 diagnostics: null,
                 edit: GenerateWorkspaceEdit(testLspServer.GetLocations("caret"), edits));
+            AssertJsonEquals(expectedCodeAction, actualResolvedAction);
+        }
+
+        [WpfTheory, CombinatorialData]
+        public async Task TestMoveTypeToDifferentFile(bool mutatingLspWorkspace)
+        {
+            var markUp = @"
+class {|caret:ABC|}
+{
+}
+class BCD 
+{
+}";
+
+            await using var testLspServer = await CreateTestLspServerAsync(markUp, mutatingLspWorkspace, new InitializationOptions
+            {
+                ClientCapabilities = new ClientCapabilities()
+                {
+                    Workspace = new WorkspaceClientCapabilities
+                    {
+                        WorkspaceEdit = new WorkspaceEditSetting
+                        {
+                            ResourceOperations = new ResourceOperationKind[] { ResourceOperationKind.Create }
+                        }
+                    }
+                }
+            });
+
+            var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
+                title: string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
+                kind: CodeActionKind.Refactor,
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                data: CreateCodeActionResolveData(
+                    string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
+                    testLspServer.GetLocations("caret").Single()),
+                priority: VSInternalPriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 0, Character = 6 }, End = new Position { Line = 0, Character = 9 } },
+                diagnostics: null);
+
+            var testWorkspace = testLspServer.TestWorkspace;
+            var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
+
+            var project = testWorkspace.CurrentSolution.Projects.Single();
+            var newDocumentUri = ProtocolConversions.GetUriFromFilePath(Path.Combine(Path.GetDirectoryName(project.FilePath), "ABC.cs"));
+            var existingDocumentUri = testWorkspace.CurrentSolution.GetRequiredDocument(testWorkspace.Documents.Single().Id).GetURI();
+            var workspaceEdit = new WorkspaceEdit()
+            {
+                DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
+                {
+                    // Create file
+                    new CreateFile() { Uri = newDocumentUri },
+                    // Add content to file
+                    new TextDocumentEdit()
+                    {
+                        TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newDocumentUri },
+                        Edits = new TextEdit[]
+                        {
+                            new TextEdit()
+                            {
+                                Range = new LSP.Range
+                                {
+                                    Start = new Position()
+                                    {
+                                        Line = 0,
+                                        Character = 0,
+                                    },
+                                    End = new Position()
+                                    {
+                                        Line = 0,
+                                        Character = 0
+                                    }
+                                },
+                                NewText = @"class ABC
+{
+}
+"
+                            }
+                        }
+                    },
+                    // Remove the declaration from existing file
+                    new TextDocumentEdit()
+                    {
+                        TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = existingDocumentUri },
+                        Edits = new TextEdit[]
+                        {
+                            new TextEdit()
+                            {
+                                Range = new LSP.Range
+                                {
+                                    Start = new Position()
+                                    {
+                                        Line = 0,
+                                        Character = 0,
+                                    },
+                                    End = new Position()
+                                    {
+                                        Line = 4,
+                                        Character = 0
+                                    }
+                                },
+                                NewText = ""
+                            }
+                        }
+                    }
+                }
+            };
+
+            var expectedCodeAction = CodeActionsTests.CreateCodeAction(
+                title: string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
+                kind: CodeActionKind.Refactor,
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                data: CreateCodeActionResolveData(
+                    string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
+                    testLspServer.GetLocations("caret").Single()),
+                priority: VSInternalPriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 0, Character = 6 }, End = new Position { Line = 0, Character = 9 } },
+                diagnostics: null,
+                edit: workspaceEdit);
+
             AssertJsonEquals(expectedCodeAction, actualResolvedAction);
         }
 

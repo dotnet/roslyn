@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -16,14 +17,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
 {
     internal sealed class VisualStudioNavigateToPreviewService : INavigateToPreviewService
     {
-        public int GetProvisionalViewingStatus(Document document)
+        public __VSPROVISIONALVIEWINGSTATUS GetProvisionalViewingStatus(INavigableItem.NavigableDocument document)
         {
             if (document.FilePath == null)
             {
-                return (int)__VSPROVISIONALVIEWINGSTATUS.PVS_Disabled;
+                return __VSPROVISIONALVIEWINGSTATUS.PVS_Disabled;
             }
 
-            return (int)VsShellUtilities.GetProvisionalViewingStatus(document.FilePath);
+            return (__VSPROVISIONALVIEWINGSTATUS)VsShellUtilities.GetProvisionalViewingStatus(document.FilePath);
         }
 
         public bool CanPreview(Document document)

@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 CompletionOptions options,
                 CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var defaultItemSpan = _completionServiceWithProviders.GetDefaultCompletionListSpan(text, position);
 
                 return await CompletionService.GetContextAsync(

@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote
             using var _2 = Classifier.GetPooledList(out var classifiedSpans);
 
             // Compute classifications for the full span.
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             await classificationService.AddSemanticClassificationsAsync(document, new TextSpan(0, text.Length), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
 
             using var stream = SerializableBytes.CreateWritableStream();

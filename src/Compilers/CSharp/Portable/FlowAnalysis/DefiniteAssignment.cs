@@ -1170,7 +1170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (skipIfUseBeforeDeclaration &&
                 symbol.Kind == SymbolKind.Local &&
-                (symbol.Locations.Length == 0 || node.Span.End < symbol.GetFirstLocationOrNone().SourceSpan.Start))
+                (symbol.TryGetFirstLocation() is var location && (location is null || node.Span.End < location.SourceSpan.Start)))
             {
                 // We've already reported the use of a local before its declaration.  No need to emit
                 // another diagnostic for the same issue.
@@ -1558,7 +1558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
-                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, isRef: isRef), this);
+                    ((BoundTupleExpression)node).VisitAllElements(static (x, arg) => arg.self.Assign(x, value: null, isRef: arg.isRef), (self: this, isRef));
                     break;
 
                 default:

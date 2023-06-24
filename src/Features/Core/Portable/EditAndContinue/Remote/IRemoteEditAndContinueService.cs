@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -48,9 +48,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ValueTask<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
         ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
         ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, DocumentId documentId, CancellationToken cancellationToken);
-
-        ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken);
-        ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken);
 
         ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken);
     }

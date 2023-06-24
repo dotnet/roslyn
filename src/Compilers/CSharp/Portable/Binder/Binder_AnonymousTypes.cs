@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         errorArg = expressionType;
                         expressionType = CreateErrorType(SyntaxFacts.GetText(SyntaxKind.VoidKeyword));
                     }
-                    else if (expressionType.IsUnsafe())
+                    else if (expressionType.IsPointerOrFunctionPointer())
                     {
                         errorArg = expressionType;
                         // CONSIDER: we could use an explicit error type instead of the unsafe type.

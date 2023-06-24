@@ -883,6 +883,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case PropertySymbol:
                                     // skip any manually implemented non-required properties.
                                     continue;
+                                case FieldSymbol { OriginalDefinition: SynthesizedPrimaryConstructorParameterBackingFieldSymbol }:
+                                    // Skip primary constructor capture fields, compiler initializes them with parameters' values
+                                    continue;
                                 case FieldSymbol { IsConst: true }:
                                     continue;
                                 case FieldSymbol { AssociatedSymbol: PropertySymbol prop }:
@@ -2642,6 +2645,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(targetSlot > 0);
 
+#if DEBUG
+            var actualType = _variables[targetSlot].Symbol.GetTypeOrReturnType().Type;
+            Debug.Assert(actualType is { });
+
+            if (!actualType.ContainsErrorType() &&
+                !targetType.ContainsErrorType())
+            {
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                var conversionsWithoutNullability = _conversions.WithNullability(false);
+                var conversion = conversionsWithoutNullability.ClassifyImplicitConversionFromType(actualType, targetType, ref discardedUseSiteInfo);
+                Debug.Assert(conversion.Kind is ConversionKind.Identity or ConversionKind.ImplicitReference);
+            }
+#endif
+
             // Reset the state of any members of the target.
             var members = ArrayBuilder<(VariableIdentifier, int)>.GetInstance();
             _variables.GetMembers(members, targetSlot);
@@ -3329,6 +3346,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             SetInvalidResult();
             _ = base.VisitExpressionWithoutStackGuard(node);
+            VisitExpressionWithoutStackGuardEpilogue(node);
+            return null;
+        }
+
+        private void VisitExpressionWithoutStackGuardEpilogue(BoundExpression node)
+        {
             TypeWithState resultType = ResultType;
 
 #if DEBUG
@@ -3342,7 +3365,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = resultType.WithNotNullState();
                 SetResult(node, result, LvalueResultType);
             }
-            return null;
         }
 
 #if DEBUG
@@ -5105,12 +5127,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftState = this.State.Clone();
             LearnFromNonNullTest(leftOperand, ref leftState);
             LearnFromNullTest(leftOperand, ref this.State);
+
+            // If we are assigning to a nullable value type variable, set the top-level state of
+            // the LHS first, then change the slot to the Value property of the LHS to simulate
+            // assignment of the RHS and update the nullable state of the underlying value type.
             if (node.IsNullableValueTypeAssignment)
             {
+                Debug.Assert(targetType.Type.ContainsErrorType() ||
+                    node.Type?.ContainsErrorType() == true ||
+                    TypeSymbol.Equals(targetType.Type.GetNullableUnderlyingType(), node.Type, TypeCompareKind.AllIgnoreOptions));
+                if (leftSlot > 0)
+                {
+                    SetState(ref this.State, leftSlot, NullableFlowState.NotNull);
+                    leftSlot = GetNullableOfTValueSlot(targetType.Type, leftSlot, out _);
+                }
                 targetType = TypeWithAnnotations.Create(node.Type, NullableAnnotation.NotAnnotated);
             }
+
             TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand), trackMembers: false, AssignmentKind.Assignment);
+            Debug.Assert(TypeSymbol.Equals(targetType.Type, rightResult.Type, TypeCompareKind.AllIgnoreOptions));
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
+
             Join(ref this.State, ref leftState);
             TypeWithState resultType = TypeWithState.Create(targetType.Type, rightResult.State);
             SetResultType(node, resultType);
@@ -5491,11 +5528,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!wasTargetTyped)
                 {
-                    // This can happen when we're inferring the return type of a lambda. For this case, we don't need to do any work,
+                    // This can happen when we're inferring the return type of a lambda or visiting a node without diagnostics like
+                    // BoundConvertedTupleLiteral.SourceTuple. For these cases, we don't need to do any work,
                     // the unconverted conditional operator can't contribute info. The conversion that should be on top of this
                     // can add or remove nullability, and nested nodes aren't being publicly exposed by the semantic model.
                     Debug.Assert(node is BoundUnconvertedConditionalOperator);
-                    Debug.Assert(_returnTypesOpt is not null);
+                    Debug.Assert(_returnTypesOpt is not null || _disableDiagnostics);
                     SetResultType(node, TypeWithState.Create(resultType, default));
                     return null;
                 }
@@ -5678,9 +5716,67 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitCall(BoundCall node)
         {
             // Note: we analyze even omitted calls
-            TypeWithState receiverType = VisitCallReceiver(node);
-            ReinferMethodAndVisitArguments(node, receiverType);
+            if (node.ReceiverOpt is BoundCall receiver)
+            {
+                var calls = ArrayBuilder<BoundCall>.GetInstance();
+
+                calls.Push(node);
+                node = receiver;
+
+                bool originalExpressionIsRead = _expressionIsRead;
+                _expressionIsRead = true;
+
+                while (node.ReceiverOpt is BoundCall receiver2)
+                {
+                    TakeIncrementalSnapshot(node); // Visit does this before visiting each node
+                    calls.Push(node);
+                    node = receiver2;
+                }
+
+                TakeIncrementalSnapshot(node); // Visit does this before visiting each node
+                TypeWithState receiverType = visitAndCheckReceiver(node);
+
+                while (true)
+                {
+                    ReinferMethodAndVisitArguments(node, receiverType);
+
+                    receiver = node;
+                    if (!calls.TryPop(out node!))
+                    {
+                        break;
+                    }
+
+                    VisitExpressionWithoutStackGuardEpilogue(receiver); // VisitExpressionWithoutStackGuard does this after visiting each node
+                    VisitRvalueEpilogue(receiver); // VisitRvalue does this after visiting each node
+
+                    receiverType = ResultType;
+                    CheckCallReceiver(receiver, receiverType, node.Method);
+                }
+
+                _expressionIsRead = originalExpressionIsRead;
+
+                calls.Free();
+            }
+            else
+            {
+                TypeWithState receiverType = visitAndCheckReceiver(node);
+                ReinferMethodAndVisitArguments(node, receiverType);
+            }
+
             return null;
+
+            TypeWithState visitAndCheckReceiver(BoundCall node)
+            {
+                TypeWithState receiverType = default;
+
+                if (node.ReceiverOpt is { } receiver)
+                {
+                    receiverType = VisitRvalueWithState(receiver);
+                    CheckCallReceiver(receiver, receiverType, node.Method);
+                }
+
+                return receiverType;
+            }
         }
 
         private void ReinferMethodAndVisitArguments(BoundCall node, TypeWithState receiverType)
@@ -5949,43 +6045,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return valueFlowState;
         }
 
-        private TypeWithState VisitCallReceiver(BoundCall node)
+        private void CheckCallReceiver(BoundExpression? receiverOpt, TypeWithState receiverType, MethodSymbol method)
         {
-            var receiverOpt = node.ReceiverOpt;
-            TypeWithState receiverType = default;
+            // methods which are members of Nullable<T> (ex: ToString, GetHashCode) can be invoked on null receiver.
+            // However, inherited methods (ex: GetType) are invoked on a boxed value (since base types are reference types)
+            // and therefore in those cases nullable receivers should be checked for nullness.
+            bool checkNullableValueType = false;
 
-            if (receiverOpt != null)
+            var type = receiverType.Type;
+            if (method.RequiresInstanceReceiver &&
+                type?.IsNullableType() == true &&
+                method.ContainingType.IsReferenceType)
             {
-                receiverType = VisitRvalueWithState(receiverOpt);
-
-                // methods which are members of Nullable<T> (ex: ToString, GetHashCode) can be invoked on null receiver.
-                // However, inherited methods (ex: GetType) are invoked on a boxed value (since base types are reference types)
-                // and therefore in those cases nullable receivers should be checked for nullness.
-                bool checkNullableValueType = false;
-
-                var type = receiverType.Type;
-                var method = node.Method;
-                if (method.RequiresInstanceReceiver &&
-                    type?.IsNullableType() == true &&
-                    method.ContainingType.IsReferenceType)
-                {
-                    checkNullableValueType = true;
-                }
-                else if (method.OriginalDefinition == compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value))
-                {
-                    // call to get_Value may not occur directly in source, but may be inserted as a result of premature lowering.
-                    // One example where we do it is foreach with nullables.
-                    // The reason is Dev10 compatibility (see: UnwrapCollectionExpressionIfNullable in ForEachLoopBinder.cs)
-                    // Regardless of the reasons, we know that the method does not tolerate nulls.
-                    checkNullableValueType = true;
-                }
-
-                // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
-                // after arguments have been visited, and only if the receiver has not changed.
-                _ = CheckPossibleNullReceiver(receiverOpt, checkNullableValueType);
+                checkNullableValueType = true;
+            }
+            else if (method.OriginalDefinition == compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value))
+            {
+                // call to get_Value may not occur directly in source, but may be inserted as a result of premature lowering.
+                // One example where we do it is foreach with nullables.
+                // The reason is Dev10 compatibility (see: UnwrapCollectionExpressionIfNullable in ForEachLoopBinder.cs)
+                // Regardless of the reasons, we know that the method does not tolerate nulls.
+                checkNullableValueType = true;
             }
 
-            return receiverType;
+            // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
+            // after arguments have been visited, and only if the receiver has not changed.
+            _ = CheckPossibleNullReceiver(receiverOpt, receiverType, checkNullableValueType);
         }
 
         private TypeWithState GetReturnTypeWithState(MethodSymbol method)
@@ -6484,8 +6569,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!parametersOpt.IsDefault)
             {
                 parameterAnnotationsOpt = arguments.SelectAsArray(
-                    (argument, i, arg) => GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, arg.expanded).Annotations,
-                    (parametersOpt, argsToParamsOpt, expanded));
+                    static (argument, i, arg) => arg.self.GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, arg.expanded).Annotations,
+                    (self: this, parametersOpt, argsToParamsOpt, expanded));
             }
 
             return parameterAnnotationsOpt;
@@ -7589,8 +7674,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!_disableDiagnostics)
                 {
                     var locations = tupleOpt.TupleElements.SelectAsArray((element, location) => element.TryGetFirstLocation() ?? location, node.Syntax.Location);
+                    var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+                    Debug.Assert(diagnostics.DiagnosticBag is { });
+
                     tupleOpt.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: true, node.Syntax.Location, diagnostics: null),
-                                              typeSyntax: node.Syntax, locations, nullabilityDiagnosticsOpt: new BindingDiagnosticBag(Diagnostics));
+                                              typeSyntax: node.Syntax, locations, nullabilityDiagnosticsOpt: diagnostics);
+
+                    Diagnostics.AddRange(diagnostics.DiagnosticBag);
+                    diagnostics.Free();
                 }
 
                 SetResultType(node, TypeWithState.Create(tupleOpt, NullableFlowState.NotNull));
@@ -7778,15 +7869,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportNullabilityMismatchWithTargetDelegate(Location location, TypeSymbol targetType, MethodSymbol targetInvokeMethod, MethodSymbol sourceInvokeMethod, bool invokedAsExtensionMethod)
         {
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            Debug.Assert(diagnostics.DiagnosticBag is { });
+
             SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 compilation,
                 targetInvokeMethod,
                 sourceInvokeMethod,
-                new BindingDiagnosticBag(Diagnostics),
+                diagnostics,
                 reportBadDelegateReturn,
                 reportBadDelegateParameter,
                 extraArgument: (targetType, location),
                 invokedAsExtensionMethod: invokedAsExtensionMethod);
+
+            Diagnostics.AddRange(diagnostics.DiagnosticBag);
+            diagnostics.Free();
 
             void reportBadDelegateReturn(BindingDiagnosticBag bag, MethodSymbol targetInvokeMethod, MethodSymbol sourceInvokeMethod, bool topLevel, (TypeSymbol targetType, Location location) arg)
             {
@@ -7828,7 +7925,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 location = Location.Create(lambdaSyntax.SyntaxTree, new Text.TextSpan(start, lambdaSyntax.ArrowToken.Span.End - start));
             }
 
-            var diagnostics = new BindingDiagnosticBag(Diagnostics);
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            Debug.Assert(diagnostics.DiagnosticBag is { });
+
             if (SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 compilation,
                 targetInvokeMethod,
@@ -7839,6 +7938,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 extraArgument: location,
                 invokedAsExtensionMethod: false))
             {
+                Diagnostics.AddRange(diagnostics.DiagnosticBag);
+                diagnostics.Free();
                 return;
             }
 
@@ -7851,6 +7952,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportBadDelegateParameter,
                 extraArgument: location,
                 invokedAsExtensionMethod: false);
+
+            Diagnostics.AddRange(diagnostics.DiagnosticBag);
+            diagnostics.Free();
 
             void reportBadDelegateReturn(BindingDiagnosticBag bag, MethodSymbol targetInvokeMethod, MethodSymbol sourceInvokeMethod, bool topLevel, Location location)
             {

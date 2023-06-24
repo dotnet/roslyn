@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => solution.GetDocument(documentId) ?? throw CreateDocumentNotFoundException();
 
 #if !CODE_STYLE
-        public static async Task<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
+        public static async ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
             => (await solution.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException();
 
-        public static async Task<TextDocument> GetRequiredTextDocumentAsync(this Solution solution, DocumentId documentId, CancellationToken cancellationToken = default)
+        public static async ValueTask<TextDocument> GetRequiredTextDocumentAsync(this Solution solution, DocumentId documentId, CancellationToken cancellationToken = default)
             => (await solution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException();
 #endif
 

@@ -5964,7 +5964,8 @@ oneMoreTime:
                         // special handling in the context of a collection or object initializer before just assuming that it's fine.
 #if DEBUG
                         var validKinds = ImmutableArray.Create(OperationKind.Invocation, OperationKind.DynamicInvocation, OperationKind.Increment, OperationKind.Literal,
-                                                               OperationKind.LocalReference, OperationKind.Binary, OperationKind.FieldReference, OperationKind.Invalid);
+                                                               OperationKind.LocalReference, OperationKind.Binary, OperationKind.FieldReference, OperationKind.Invalid,
+                                                               OperationKind.InterpolatedString);
                         Debug.Assert(validKinds.Contains(innerInitializer.Kind));
 #endif
                         EvalStackFrame frame = PushStackFrame();

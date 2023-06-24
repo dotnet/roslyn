@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeWithAnnotations _lazyReturnType;
 
-        protected SourceOrdinaryMethodOrUserDefinedOperatorSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, Location location, bool isIterator)
-            : base(containingType, syntaxReferenceOpt, location, isIterator)
+        protected SourceOrdinaryMethodOrUserDefinedOperatorSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, Location location, bool isIterator, (DeclarationModifiers declarationModifiers, Flags flags) modifiersAndFlags)
+            : base(containingType, syntaxReferenceOpt, location, isIterator, modifiersAndFlags)
         {
         }
 
@@ -48,11 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
             this.CheckFileTypeUsage(_lazyReturnType, _lazyParameters, diagnostics);
 
-            var location = locations[0];
             // Checks taken from MemberDefiner::defineMethod
             if (this.Name == WellKnownMemberNames.DestructorName && this.ParameterCount == 0 && this.Arity == 0 && this.ReturnsVoid)
             {
-                diagnostics.Add(ErrorCode.WRN_FinalizeMethod, location);
+                diagnostics.Add(ErrorCode.WRN_FinalizeMethod, _location);
             }
 
             ExtensionMethodChecks(diagnostics);
@@ -61,12 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (MethodKind == MethodKind.ExplicitInterfaceImplementation)
                 {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodNotExplicit, location);
+                    diagnostics.Add(ErrorCode.ERR_PartialMethodNotExplicit, _location);
                 }
 
                 if (!ContainingType.IsPartial())
                 {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyInPartialClass, location);
+                    diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyInPartialClass, _location);
                 }
             }
 

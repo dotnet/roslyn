@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CheckAccessibility(_location, diagnostics, isExplicitInterfaceImplementation);
         }
 
+        public Location Location
+            => _location;
+
         internal sealed override bool RequiresCompletion
         {
             get { return true; }
@@ -113,6 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray.Create(_location);
             }
         }
+
+        public override Location TryGetFirstLocation()
+            => _location;
 
         public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

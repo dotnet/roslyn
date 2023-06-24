@@ -8,35 +8,24 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
-    internal readonly struct RenameLocation : IEquatable<RenameLocation>
+    internal readonly struct RenameLocation(
+        Location location,
+        DocumentId documentId,
+        CandidateReason candidateReason = CandidateReason.None,
+        bool isRenamableAliasUsage = false,
+        bool isRenamableAccessor = false,
+        bool isWrittenTo = false,
+        TextSpan containingLocationForStringOrComment = default) : IEquatable<RenameLocation>
     {
-        public readonly Location Location;
-        public readonly DocumentId DocumentId;
-        public readonly CandidateReason CandidateReason;
-        public readonly bool IsRenamableAliasUsage;
-        public readonly bool IsRenamableAccessor;
-        public readonly TextSpan ContainingLocationForStringOrComment;
-        public readonly bool IsWrittenTo;
+        public readonly Location Location = location;
+        public readonly DocumentId DocumentId = documentId;
+        public readonly CandidateReason CandidateReason = candidateReason;
+        public readonly bool IsRenamableAliasUsage = isRenamableAliasUsage;
+        public readonly bool IsRenamableAccessor = isRenamableAccessor;
+        public readonly TextSpan ContainingLocationForStringOrComment = containingLocationForStringOrComment;
+        public readonly bool IsWrittenTo = isWrittenTo;
 
         public bool IsRenameInStringOrComment => ContainingLocationForStringOrComment != default;
-
-        public RenameLocation(
-            Location location,
-            DocumentId documentId,
-            CandidateReason candidateReason = CandidateReason.None,
-            bool isRenamableAliasUsage = false,
-            bool isRenamableAccessor = false,
-            bool isWrittenTo = false,
-            TextSpan containingLocationForStringOrComment = default)
-        {
-            Location = location;
-            DocumentId = documentId;
-            CandidateReason = candidateReason;
-            IsRenamableAliasUsage = isRenamableAliasUsage;
-            IsRenamableAccessor = isRenamableAccessor;
-            IsWrittenTo = isWrittenTo;
-            ContainingLocationForStringOrComment = containingLocationForStringOrComment;
-        }
 
         public RenameLocation(ReferenceLocation referenceLocation, DocumentId documentId)
             : this(referenceLocation.Location, documentId,

@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)
             => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
 
-        internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
+        internal override async Task<CodeRefactoring> GetCodeRefactoringAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out _);

@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         foreach (var error in args.Errors)
                         {
                             var writer = (error.Severity == DiagnosticSeverity.Error) ? Console.Error : Console.Out;
-                            writer.WriteLine(error.GetMessage(CultureInfo.CurrentCulture));
+                            writer.WriteLine(error.GetMessage(CultureInfo.CurrentUICulture));
                         }
 
                         if (args.Errors.Length == 0)

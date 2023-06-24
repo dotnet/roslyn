@@ -1444,10 +1444,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.Method is object);
             MethodSymbol selectedMethod = conversion.Method;
 
-            var location = syntax.Location;
             if (!Conversions.IsAssignableFromMulticastDelegate(delegateOrFuncPtrType, ref discardedUseSiteInfo))
             {
-                if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, location, diagnostics) ||
+                if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, syntax.Location, diagnostics) ||
                     MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))
                 {
                     return true;
@@ -1457,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (selectedMethod.IsConditional)
             {
                 // CS1618: Cannot create delegate with '{0}' because it has a Conditional attribute
-                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, location, selectedMethod);
+                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, syntax.Location, selectedMethod);
                 return true;
             }
 
@@ -1465,11 +1464,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (sourceMethod is object && sourceMethod.IsPartialWithoutImplementation)
             {
                 // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration
-                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, location, selectedMethod);
+                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, syntax.Location, selectedMethod);
                 return true;
             }
 
-            if ((selectedMethod.HasUnsafeParameter() || selectedMethod.ReturnType.IsUnsafe()) && ReportUnsafeIfNotAllowed(syntax, diagnostics))
+            if ((selectedMethod.HasParameterContainingPointerType() || selectedMethod.ReturnType.ContainsPointer())
+                && ReportUnsafeIfNotAllowed(syntax, diagnostics))
             {
                 return true;
             }

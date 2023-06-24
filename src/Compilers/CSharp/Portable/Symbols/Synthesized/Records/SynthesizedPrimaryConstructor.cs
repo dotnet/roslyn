@@ -19,19 +19,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedPrimaryConstructor(
              SourceMemberContainerTypeSymbol containingType,
              TypeDeclarationSyntax syntax) :
-             base(containingType, syntax.Identifier.GetLocation(), syntax, isIterator: false)
+             base(containingType, syntax.Identifier.GetLocation(), syntax, isIterator: false, MakeModifiersAndFlags(containingType, syntax))
         {
             Debug.Assert(syntax.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration);
             Debug.Assert(containingType.HasPrimaryConstructor);
             Debug.Assert(containingType is SourceNamedTypeSymbol);
             Debug.Assert(containingType is IAttributeTargetSymbol);
+        }
 
-            this.MakeFlags(
-                MethodKind.Constructor,
-                containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public,
-                returnsVoid: true,
-                isExtensionMethod: false,
-                isNullableAnalysisEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
+        private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(SourceMemberContainerTypeSymbol containingType, TypeDeclarationSyntax syntax)
+        {
+            Debug.Assert(syntax.ParameterList != null);
+
+            DeclarationModifiers declarationModifiers = containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public;
+            Flags flags = MakeFlags(
+                                    MethodKind.Constructor,
+                                    RefKind.None,
+                                    declarationModifiers,
+                                    returnsVoid: true,
+                                    isExpressionBodied: false,
+                                    isExtensionMethod: false,
+                                    isVarArg: syntax.ParameterList.IsVarArg(),
+                                    isNullableAnalysisEnabled: false, // IsNullableAnalysisEnabled uses containing type instead.
+                                    isExplicitInterfaceImplementation: false);
+
+            return (declarationModifiers, flags);
         }
 
         internal TypeDeclarationSyntax GetSyntax()
@@ -68,8 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public new SourceMemberContainerTypeSymbol ContainingType => (SourceMemberContainerTypeSymbol)base.ContainingType;
 
         protected override bool AllowRefOrOut => !(ContainingType is { IsRecord: true } or { IsRecordStruct: true });
-
-        internal override bool IsExpressionBodied => false;
 
         internal override bool IsNullableAnalysisEnabled()
         {

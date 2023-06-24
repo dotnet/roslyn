@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             var (document, _, cancellationToken) = context;
             // Currently this refactoring requires the SourceTextContainer to have a pasted text span.
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (!_pasteTrackingService.TryGetPastedTextSpan(sourceText.Container, out var textSpan))
             {
                 return;

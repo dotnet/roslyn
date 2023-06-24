@@ -51,10 +51,15 @@
     <PublishWindowsPdb>false</PublishWindowsPdb>
     <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <EnforceExtendedAnalyzerRules Condition="'$(IsAnalyzer)' == 'true'">true</EnforceExtendedAnalyzerRules>
+
+    <!-- NPM packaging settings -->
+    <NpmPackageOutputPath>$(ArtifactsDir)\packages\$(Configuration)\NPM\</NpmPackageOutputPath>
+    <!-- By default don't attempt to do npm packaging during pack since it requires NPM to be installed -->
+    <IsNpmPackable Condition="'$(IsNpmPackable)'==''">false</IsNpmPackable>
   </PropertyGroup>
 
   <!-- 
-    There are effectively four modes that are needed for our source build TFMs and this is where
+    There are effectively three modes that are needed for our source build TFMs and this is where
     we calculate them
   -->
   <Choose>
@@ -87,20 +92,9 @@
     </When>
 
     <!--
-      3. CI normal leg: this needs to build the union of all TFMs we support. That ensures we handle all 
-         diagnostics and analyzers for all the TFMs that we support.
-    -->
-    <When Condition="'$(ContinuousIntegrationBuild)' == 'true'">
-      <PropertyGroup>
-        <SourceBuildToolsetTargetFramework>net6.0</SourceBuildToolsetTargetFramework>
-        <SourceBuildToolsetTargetFrameworks>$(NetCurrent);$(NetPrevious);$(SourceBuildToolsetTargetFramework)</SourceBuildToolsetTargetFrameworks>
-        <SourceBuildTargetFrameworks>$(SourceBuildToolsetTargetFrameworks)</SourceBuildTargetFrameworks>
-      </PropertyGroup>
-    </When>
-
-    <!-- 
-      4. Developer build: we do not want to build TFMs that are necessary only for source build as
-         it increases build time.
+      3. Everything else including normal CI, developer machines and official builds. This brings in enough
+         TFM that source build will go smoothly but doesn't bring in all source build TFMs to avoid adding
+         too many extra compiles to our builds
     -->
     <Otherwise>
       <PropertyGroup>

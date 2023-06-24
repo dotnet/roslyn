@@ -35,16 +35,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsStaticKeywordInUsingDirective(this SyntaxToken token)
+        public static bool IsStaticKeywordContextInUsingDirective(this SyntaxToken token)
         {
-            if (token.IsKind(SyntaxKind.StaticKeyword))
+            // using static |
+            if (token is { RawKind: (int)SyntaxKind.StaticKeyword, Parent: UsingDirectiveSyntax })
             {
-                var usingDirective = token.GetAncestor<UsingDirectiveSyntax>();
-                if (usingDirective != null &&
-                    usingDirective.StaticKeyword == token)
-                {
-                    return true;
-                }
+                return true;
+            }
+
+            // using static unsafe |
+            if (token.IsKind(SyntaxKind.UnsafeKeyword) &&
+                token.GetPreviousToken() is { RawKind: (int)SyntaxKind.StaticKeyword, Parent: UsingDirectiveSyntax })
+            {
+                return true;
             }
 
             return false;

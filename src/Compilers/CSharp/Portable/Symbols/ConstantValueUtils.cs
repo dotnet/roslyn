@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics)
         {
             var compilation = symbol.DeclaringCompilation;
-            var binderFactory = compilation.GetBinderFactory((SyntaxTree)symbol.GetFirstLocation().SourceTree);
+            var binderFactory = compilation.GetBinderFactory(equalsValueNode.SyntaxTree);
             var binder = binderFactory.GetBinder(equalsValueNode);
 
             binder = new WithPrimaryConstructorParametersBinder(symbol.ContainingType, binder);

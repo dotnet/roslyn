@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -22,6 +23,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class NamedTypeSymbol
         Inherits TypeSymbol
         Implements INamedTypeSymbol, INamedTypeSymbolInternal
+
+        Protected Shared ReadOnly s_requiredMembersErrorSentinel As ImmutableSegmentedDictionary(Of String, Symbol) = ImmutableSegmentedDictionary(Of String, Symbol).Empty.Add("<error sentinel>", Nothing)
+
+        ''' <summary>
+        ''' <see langword="Nothing" /> if uninitialized. <see cref="s_requiredMembersErrorSentinel"/> if there are errors.
+        ''' <see cref="ImmutableSegmentedDictionary(Of String, Symbol).Empty"/> if there are no required members. Otherwise,
+        ''' the required members.
+        ''' </summary>
+        Private _lazyRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol) = Nothing
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version.
@@ -1088,6 +1098,104 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Get synthesized WithEvents overrides that aren't returned by <see cref="GetMembers"/>
         ''' </summary>
         Friend MustOverride Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+
+        ''' <summary>
+        ''' Gets all of the required members from this type and all base types. This will be a set of the most derived overrides. If <see cref="HasRequiredMembersError"/> is true,
+        ''' this will be <see cref="ImmutableSegmentedDictionary(Of String, Symbol).Empty"/>.
+        ''' </summary>
+        Friend ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
+            Get
+                EnsureRequiredMembersCalculated()
+                Debug.Assert(Not _lazyRequiredMembers.IsDefault)
+                Return If(_lazyRequiredMembers = s_requiredMembersErrorSentinel, ImmutableSegmentedDictionary(Of String, Symbol).Empty, _lazyRequiredMembers)
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' True if this or any base type has a required members error, and constructors should be blocked unless attributed with SetsRequiredMembersAttribute. When this is
+        ''' true, <see cref="AllRequiredMembers"/> will be <see cref="ImmutableSegmentedDictionary(Of String, Symbol).Empty"/>
+        ''' </summary>
+        Friend ReadOnly Property HasRequiredMembersError As Boolean
+            Get
+                EnsureRequiredMembersCalculated()
+                Debug.Assert(Not _lazyRequiredMembers.IsDefault)
+                Return _lazyRequiredMembers = s_requiredMembersErrorSentinel
+            End Get
+        End Property
+
+        Friend MustOverride ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+
+        Private Sub EnsureRequiredMembersCalculated()
+            Dim lazyRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol) = _lazyRequiredMembers
+
+            If Not lazyRequiredMembers.IsDefault Then
+                Return
+            End If
+
+            Dim requiredMembersBuilder As ImmutableSegmentedDictionary(Of String, Symbol).Builder = Nothing
+            Dim success = TryCalculateRequiredMembers(requiredMembersBuilder)
+
+            Dim requiredMembers = If(success,
+                If(requiredMembersBuilder?.ToImmutable(), If(BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers, ImmutableSegmentedDictionary(Of String, Symbol).Empty)),
+                s_requiredMembersErrorSentinel)
+
+            RoslynImmutableInterlocked.InterlockedInitialize(_lazyRequiredMembers, requiredMembers)
+        End Sub
+
+        Private Function TryCalculateRequiredMembers(<Out> ByRef requiredMembersBuilder As ImmutableSegmentedDictionary(Of String, Symbol).Builder) As Boolean
+            If BaseTypeNoUseSiteDiagnostics?.HasRequiredMembersError = True Then
+                Return False
+            End If
+
+            Dim baseAllRequiredMembers = If(BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers, ImmutableSegmentedDictionary(Of String, Symbol).Empty)
+            Dim typeHasDeclaredRequiredMembers = HasAnyDeclaredRequiredMembers
+
+            If (Not typeHasDeclaredRequiredMembers) AndAlso baseAllRequiredMembers.IsEmpty Then
+                Return True
+            End If
+
+            For Each member In GetMembersUnordered()
+                ' Indexed properties cannot be required.
+                Dim [property] = TryCast(member, PropertySymbol)
+                If [property] IsNot Nothing AndAlso [property].ParameterCount > 0 Then
+                    If [property].IsRequired Then
+                        Return False
+                    Else
+                        Continue For
+                    End If
+                End If
+
+                Dim existingMember As Symbol = Nothing
+                ' Need to make sure that members from a base type weren't hidden by members from the current type. That is an error scenario
+                If baseAllRequiredMembers.TryGetValue(member.Name, existingMember) Then
+                    ' This is only permitted if the member is an override of a required member from a base type, and is required itself
+                    Dim overriddenMember = TryCast(member, PropertySymbol)?.OverriddenProperty
+
+                    If (Not member.IsRequired()) OrElse
+                       overriddenMember Is Nothing OrElse
+                       (Not overriddenMember.Equals(existingMember, TypeCompareKind.IgnoreTupleNames)) Then
+                        Return False
+                    End If
+                End If
+
+                If Not member.IsRequired() Then
+                    Continue For
+                End If
+
+                If Not typeHasDeclaredRequiredMembers Then
+                    ' Bad metadata. Type claimed it didn't declare any required members, but we found one.
+                    Return False
+                End If
+
+                If requiredMembersBuilder Is Nothing Then
+                    requiredMembersBuilder = baseAllRequiredMembers.ToBuilder()
+                End If
+
+                requiredMembersBuilder(member.Name) = member
+            Next
+
+            Return True
+        End Function
 
 #Region "INamedTypeSymbol"
 

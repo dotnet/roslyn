@@ -155,8 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.GetFirstLocation());
                 }
 
-                _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, explicitlyImplementedEvent, aliasQualifierOpt);
-                _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, explicitlyImplementedEvent, aliasQualifierOpt);
+                _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, isExpressionBodied: false, explicitlyImplementedEvent, aliasQualifierOpt);
+                _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, isExpressionBodied: false, explicitlyImplementedEvent, aliasQualifierOpt);
             }
             else
             {

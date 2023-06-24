@@ -150,7 +150,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Binder binder = factory.GetBinder(cref);
 
                     // Do this for the diagnostics, even if it won't be written.
-                    string docCommentId = GetDocumentationCommentId(cref, binder, diagnose ? _diagnostics : new BindingDiagnosticBag(diagnosticBag: null, _diagnostics.DependenciesBag));
+                    BindingDiagnosticBag diagnostics = diagnose ? _diagnostics : BindingDiagnosticBag.GetInstance(withDiagnostics: false, withDependencies: _diagnostics.AccumulatesDependencies);
+                    string docCommentId = GetDocumentationCommentId(cref, binder, diagnostics);
+
+                    if (!diagnose)
+                    {
+                        _diagnostics.AddRangeAndFree(diagnostics);
+                    }
 
                     if (_writer != null)
                     {

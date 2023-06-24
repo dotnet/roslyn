@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
         protected abstract string GetTextWithoutQuotes(string text, bool isVerbatimStringLiteral, bool isCharacterLiteral);
 
-        private void CollectPiecesDown(
+        private static void CollectPiecesDown(
             ISyntaxFactsService syntaxFacts,
             ArrayBuilder<SyntaxNode> pieces,
             SyntaxNode node,

@@ -287,6 +287,11 @@
         <target state="translated">Seul un 'using static' ou 'using alias' peut être 'unsafe'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadUsingStaticType">
+        <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
+        <target state="new">'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">L'attribut AsyncMethodBuilder n'est pas autorisé pour les méthodes anonymes sans type de retour explicite.</target>
@@ -485,6 +490,11 @@
       <trans-unit id="ERR_DuplicateExplicitImpl">
         <source>'{0}' is explicitly implemented more than once.</source>
         <target state="translated">'{0}' est implémenté explicitement plusieurs fois.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DuplicateInterceptor">
+        <source>The indicated call is intercepted multiple times.</source>
+        <target state="new">The indicated call is intercepted multiple times.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
@@ -840,6 +850,111 @@
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">Les propriétés d'instance dans les interfaces ne peuvent pas avoir d'initialiseurs.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotBeGeneric">
+        <source>Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</source>
+        <target state="new">Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotInterceptNameof">
+        <source>A nameof operator cannot be intercepted.</source>
+        <target state="new">A nameof operator cannot be intercepted.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotUseUnmanagedCallersOnly">
+        <source>An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</source>
+        <target state="new">An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCharacterOutOfRange">
+        <source>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</source>
+        <target state="new">The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
+        <source>Interceptor cannot have a 'null' file path.</source>
+        <target state="new">Interceptor cannot have a 'null' file path.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
+        <source>Line and character numbers provided to InterceptsLocationAttribute must be positive.</source>
+        <target state="new">Line and character numbers provided to InterceptsLocationAttribute must be positive.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorLineOutOfRange">
+        <source>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</source>
+        <target state="new">The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMethodMustBeOrdinary">
+        <source>An interceptor method must be an ordinary member method.</source>
+        <target state="new">An interceptor method must be an ordinary member method.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustHaveMatchingThisParameter">
+        <source>Interceptor must have a 'this' parameter matching parameter '{0}' on '{1}'.</source>
+        <target state="new">Interceptor must have a 'this' parameter matching parameter '{0}' on '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustNotHaveThisParameter">
+        <source>Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</source>
+        <target state="new">Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustReferToStartOfTokenPosition">
+        <source>The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</source>
+        <target state="new">The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNameNotInvoked">
+        <source>Possible method name '{0}' cannot be intercepted because it is not being invoked.</source>
+        <target state="new">Possible method name '{0}' cannot be intercepted because it is not being invoked.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNonUniquePath">
+        <source>Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</source>
+        <target state="new">Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNotAccessible">
+        <source>Cannot intercept call with '{0}' because it is not accessible within '{1}'.</source>
+        <target state="new">Cannot intercept call with '{0}' because it is not accessible within '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilation">
+        <source>Cannot intercept: compilation does not contain a file with path '{0}'.</source>
+        <target state="new">Cannot intercept: compilation does not contain a file with path '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilationWithCandidate">
+        <source>Cannot intercept: compilation does not contain a file with path '{0}'. Did you mean to use path '{1}'?</source>
+        <target state="new">Cannot intercept: compilation does not contain a file with path '{0}'. Did you mean to use path '{1}'?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
+        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
+        <target state="new">Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPositionBadToken">
+        <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
+        <target state="new">The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorScopedMismatch">
+        <source>Cannot intercept call to '{0}' with '{1}' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.</source>
+        <target state="new">Cannot intercept call to '{0}' with '{1}' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorSignatureMismatch">
+        <source>Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</source>
+        <target state="new">Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
+        <source>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</source>
+        <target state="new">The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -1667,6 +1782,11 @@
         <target state="translated">Des parenthèses sont obligatoires autour de l'expression régissant switch.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="new">'{0}' is defined in assembly '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TooManyCloseBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
         <target state="translated">Le littéral de chaîne brute interpolée ne commence pas par suffisamment de caractères '$' pour autoriser autant d’accolades fermante consécutives comme contenu.</target>
@@ -1779,7 +1899,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
         <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
-        <target state="new">Cannot use primary constructor parameter of type '{0}' inside an instance member</target>
+        <target state="translated">Impossible d'utiliser le paramètre de constructeur principal de type '{0}' dans un membre d'instance</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
@@ -1909,7 +2029,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
-        <target state="new">instance member in 'nameof'</target>
+        <target state="translated">membre d'instance dans 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -2037,6 +2157,26 @@
         <target state="translated">accès à l’élément de pointeur</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_SK_ARRAY">
+        <source>array</source>
+        <target state="new">array</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_DYNAMIC">
+        <source>dynamic</source>
+        <target state="new">dynamic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_FUNCTION_POINTER">
+        <source>function pointer</source>
+        <target state="new">function pointer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_POINTER">
+        <source>pointer</source>
+        <target state="new">pointer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">L’opérateur '&amp;' ne doit pas être utilisé sur les paramètres ou les variables locales dans les méthodes asynchrones.</target>
@@ -2147,6 +2287,16 @@
         <target state="translated">CallerArgumentExpressionAttribute n'aura pas d'effet ; il est remplacé par CallerMemberNameAttribute</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterInFieldInitializer">
+        <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</source>
+        <target state="new">Parameter '{0}' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterInFieldInitializer_Title">
+        <source>Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</source>
+        <target state="new">Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase">
         <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
         <target state="translated">Paramètre '{0}' est capturé dans l’état du type englobant et sa valeur est également passée au constructeur de base. La valeur peut également être capturée par la classe de base.</target>
@@ -2227,6 +2377,16 @@
         <target state="translated">Utiliser la variable dans ce contexte peut exposer des variables de référence en dehors de leur étendue de déclaration</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch">
+        <source>Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</source>
+        <target state="new">Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch_Title">
+        <source>Signatures of interceptable and interceptor methods do not match.</source>
+        <target state="new">Signatures of interceptable and interceptor methods do not match.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
         <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
         <target state="translated">InterpolatedStringHandlerArgument n’a aucun effet lorsqu’il est appliqué aux paramètres lambda et qu’il est ignoré sur le site d’appel.</target>
@@ -2275,6 +2435,26 @@
       <trans-unit id="WRN_MismatchedRefEscapeInTernary_Title">
         <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
         <target state="translated">Les branches d'un opérateur conditionnel ref font référence à des variables ayant des étendues de déclaration incompatibles</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor_Title">
+        <source>Nullability of reference types in type of parameter doesn't match interceptable method.</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match interceptable method.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor">
+        <source>Nullability of reference types in return type doesn't match interceptable method '{0}'.</source>
+        <target state="new">Nullability of reference types in return type doesn't match interceptable method '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor_Title">
+        <source>Nullability of reference types in return type doesn't match interceptable method.</source>
+        <target state="new">Nullability of reference types in return type doesn't match interceptable method.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
@@ -2788,8 +2968,11 @@
 -modulename:&lt;string&gt;          Specify the name of the source module
 -generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
                               specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Options du compilateur Visual C#
 
                        - FICHIERS DE SORTIE -
@@ -8535,8 +8718,8 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
-        <source>Iterators cannot have unsafe parameters or yield types</source>
-        <target state="translated">Les itérateurs ne peuvent pas avoir de paramètres unsafe ou de types yield</target>
+        <source>Iterators cannot have pointer type parameters</source>
+        <target state="translated">Les itérateurs ne peuvent pas avoir de paramètres de type pointeur</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9878,8 +10061,8 @@ Permettez au compilateur de différencier les méthodes. Par exemple, vous pouve
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
-        <source>Async methods cannot have unsafe parameters or return types</source>
-        <target state="translated">Les méthodes ne peuvent pas avoir de paramètres unsafe ou de types de retour</target>
+        <source>Async methods cannot have pointer type parameters</source>
+        <target state="translated">Les méthodes asynchrones ne peuvent pas avoir de paramètres de type pointeur</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">

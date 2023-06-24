@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 int position,
                 CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var startLineNumber = text.Lines.IndexOf(position);

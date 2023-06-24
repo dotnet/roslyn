@@ -8,6 +8,7 @@ docs/compilers @dotnet/roslyn-compiler
 docs/ide @dotnet/roslyn-ide
 
 eng/ @dotnet/roslyn-infrastructure
+eng/SourceBuild* @dotnet/source-build-internal
 scripts/ @dotnet/roslyn-infrastructure
 
 src/Analyzers/ @dotnet/roslyn-ide

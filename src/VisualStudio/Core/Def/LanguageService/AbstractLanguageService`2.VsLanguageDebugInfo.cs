@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 var document = breakpoint.Document;
                 var filePath = _languageService.Workspace.GetFilePath(document.Id);
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var span = text.GetVsTextSpanForSpan(breakpoint.TextSpan);
                 // If we're inside an Venus code nugget, we need to map the span to the surface buffer.
                 // Otherwise, we'll just use the original span.

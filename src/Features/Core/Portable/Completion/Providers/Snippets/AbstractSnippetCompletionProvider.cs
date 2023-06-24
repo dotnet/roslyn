@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
             // This retrieves the generated Snippet
             var snippet = await snippetProvider.GetSnippetAsync(strippedDocument, position, cancellationToken).ConfigureAwait(false);
-            var strippedText = await strippedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var strippedText = await strippedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // This introduces the text changes of the snippet into the document with the completion invoking text
             var allChangesText = strippedText.WithChanges(snippet.TextChanges);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
         /// }
         private static async Task<(Document, int)> GetDocumentWithoutInvokingTextAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var originalText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var originalText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Uses the existing CompletionService logic to find the TextSpan we want to use for the document sans invoking text
             var completionService = document.GetRequiredLanguageService<CompletionService>();

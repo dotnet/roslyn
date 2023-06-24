@@ -133,45 +133,208 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void InterceptCallAndAdjustArguments(
+            ref MethodSymbol method,
+            ref BoundExpression? receiverOpt,
+            ref ImmutableArray<BoundExpression> arguments,
+            ref ImmutableArray<RefKind> argumentRefKindsOpt,
+            bool invokedAsExtensionMethod,
+            Location? interceptableLocation)
+        {
+            if (this._compilation.TryGetInterceptor(interceptableLocation) is not var (attributeLocation, interceptor))
+            {
+                // The call was not intercepted.
+                return;
+            }
+
+            Debug.Assert(interceptableLocation != null);
+            Debug.Assert(interceptor.Arity == 0);
+
+            var containingMethod = this._factory.CurrentFunction;
+            Debug.Assert(containingMethod is not null);
+
+            var useSiteInfo = this.GetNewCompoundUseSiteInfo();
+            var isAccessible = AccessCheck.IsSymbolAccessible(interceptor, containingMethod.ContainingType, ref useSiteInfo);
+            this._diagnostics.Add(attributeLocation, useSiteInfo);
+            if (!isAccessible)
+            {
+                this._diagnostics.Add(ErrorCode.ERR_InterceptorNotAccessible, attributeLocation, interceptor, containingMethod);
+                return;
+            }
+
+            // When the original call is to an instance method, and the interceptor is an extension method,
+            // we need to take special care to intercept with the extension method as though it is being called in reduced form.
+            Debug.Assert(receiverOpt is not BoundTypeExpression || method.IsStatic);
+            var needToReduce = receiverOpt is not (null or BoundTypeExpression) && interceptor.IsExtensionMethod;
+            var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation) : interceptor;
+
+            if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare))
+            {
+                this._diagnostics.Add(ErrorCode.ERR_InterceptorSignatureMismatch, attributeLocation, method, interceptor);
+                return;
+            }
+
+            _ = SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
+                _compilation,
+                method,
+                symbolForCompare,
+                _diagnostics,
+                static (diagnostics, method, interceptor, topLevel, attributeLocation) =>
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor, attributeLocation, method);
+                },
+                static (diagnostics, method, interceptor, implementingParameter, blameAttributes, attributeLocation) =>
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor, attributeLocation, new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat), method);
+                },
+                extraArgument: attributeLocation);
+
+            if (!MemberSignatureComparer.InterceptorsStrictComparer.Equals(method, symbolForCompare))
+            {
+                this._diagnostics.Add(ErrorCode.WRN_InterceptorSignatureMismatch, attributeLocation, method, interceptor);
+            }
+
+            method.TryGetThisParameter(out var methodThisParameter);
+            symbolForCompare.TryGetThisParameter(out var interceptorThisParameterForCompare);
+            switch (methodThisParameter, interceptorThisParameterForCompare)
+            {
+                case (not null, null):
+                case (not null, not null) when !methodThisParameter.Type.Equals(interceptorThisParameterForCompare.Type, TypeCompareKind.ObliviousNullableModifierMatchesAny)
+                        || methodThisParameter.RefKind != interceptorThisParameterForCompare.RefKind:
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, methodThisParameter, method);
+                    return;
+                case (null, not null):
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorMustNotHaveThisParameter, attributeLocation, method);
+                    return;
+                default:
+                    break;
+            }
+
+            if (invokedAsExtensionMethod && interceptor.IsStatic && !interceptor.IsExtensionMethod)
+            {
+                // Special case when intercepting an extension method call in reduced form with a non-extension.
+                this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, method.Parameters[0], method);
+                return;
+            }
+
+            if (SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
+                method,
+                symbolForCompare,
+                this._diagnostics,
+                static (diagnostics, method, symbolForCompare, implementingParameter, blameAttributes, attributeLocation) =>
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorScopedMismatch, attributeLocation, method, symbolForCompare);
+                },
+                extraArgument: attributeLocation,
+                allowVariance: true,
+                // Since we've already reduced 'symbolForCompare', we compare as though it is not an extension.
+                invokedAsExtensionMethod: false))
+            {
+                return;
+            }
+
+            if (needToReduce)
+            {
+                Debug.Assert(methodThisParameter is not null);
+                arguments = arguments.Insert(0, receiverOpt!);
+                receiverOpt = null;
+
+                // CodeGenerator.EmitArguments requires that we have a fully-filled-out argumentRefKindsOpt for any ref/in/out arguments.
+                var thisRefKind = methodThisParameter.RefKind;
+                if (argumentRefKindsOpt.IsDefault && thisRefKind != RefKind.None)
+                {
+                    argumentRefKindsOpt = method.Parameters.SelectAsArray(static param => param.RefKind);
+                }
+
+                if (!argumentRefKindsOpt.IsDefault)
+                {
+                    argumentRefKindsOpt = argumentRefKindsOpt.Insert(0, thisRefKind);
+                }
+            }
+
+            method = interceptor;
+
+            return;
+        }
+
         public override BoundNode VisitCall(BoundCall node)
         {
             Debug.Assert(node != null);
 
-            // Rewrite the receiver
-            BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
-            var argRefKindsOpt = node.ArgumentRefKindsOpt;
+            BoundExpression rewrittenCall;
 
-            ArrayBuilder<LocalSymbol>? temps = null;
-            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
-                ref rewrittenReceiver,
-                captureReceiverMode: ReceiverCaptureMode.Default,
-                node.Arguments,
-                node.Method,
-                node.ArgsToParamsOpt,
-                argRefKindsOpt,
-                storesOpt: null,
-                ref temps);
-
-            var rewrittenCall = MakeArgumentsAndCall(
-                syntax: node.Syntax,
-                rewrittenReceiver: rewrittenReceiver,
-                method: node.Method,
-                arguments: rewrittenArguments,
-                argumentRefKindsOpt: argRefKindsOpt,
-                expanded: node.Expanded,
-                invokedAsExtensionMethod: node.InvokedAsExtensionMethod,
-                argsToParamsOpt: node.ArgsToParamsOpt,
-                resultKind: node.ResultKind,
-                type: node.Type,
-                temps,
-                nodeOpt: node);
-
-            if (Instrument)
+            if (node.ReceiverOpt is BoundCall receiver1)
             {
-                rewrittenCall = Instrumenter.InstrumentCall(node, rewrittenCall);
+                var calls = ArrayBuilder<BoundCall>.GetInstance();
+
+                calls.Push(node);
+                node = receiver1;
+
+                while (node.ReceiverOpt is BoundCall receiver2)
+                {
+                    calls.Push(node);
+                    node = receiver2;
+                }
+
+                // Rewrite the receiver
+                BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+
+                do
+                {
+                    rewrittenCall = visitArgumentsAndFinishRewrite(node, rewrittenReceiver);
+                    rewrittenReceiver = rewrittenCall;
+                }
+                while (calls.TryPop(out node!));
+
+                calls.Free();
+            }
+            else
+            {
+                // Rewrite the receiver
+                BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+                rewrittenCall = visitArgumentsAndFinishRewrite(node, rewrittenReceiver);
             }
 
             return rewrittenCall;
+
+            BoundExpression visitArgumentsAndFinishRewrite(BoundCall node, BoundExpression? rewrittenReceiver)
+            {
+                MethodSymbol method = node.Method;
+                ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
+                ImmutableArray<RefKind> argRefKindsOpt = node.ArgumentRefKindsOpt;
+                bool invokedAsExtensionMethod = node.InvokedAsExtensionMethod;
+
+                ArrayBuilder<LocalSymbol>? temps = null;
+                var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                    ref rewrittenReceiver,
+                    captureReceiverMode: ReceiverCaptureMode.Default,
+                    node.Arguments,
+                    method,
+                    argsToParamsOpt,
+                    argRefKindsOpt,
+                    storesOpt: null,
+                    ref temps);
+
+                rewrittenArguments = MakeArguments(
+                    node.Syntax,
+                    rewrittenArguments,
+                    method,
+                    node.Expanded,
+                    argsToParamsOpt,
+                    ref argRefKindsOpt,
+                    ref temps,
+                    invokedAsExtensionMethod);
+
+                InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableLocation);
+                var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
+
+                if (Instrument)
+                {
+                    rewrittenCall = Instrumenter.InstrumentCall(node, rewrittenCall);
+                }
+
+                return rewrittenCall;
+            }
         }
 
         private BoundExpression MakeArgumentsAndCall(
@@ -198,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref temps,
                 invokedAsExtensionMethod);
 
-            return MakeCall(nodeOpt, syntax, rewrittenReceiver, method, arguments, argumentRefKindsOpt, invokedAsExtensionMethod, resultKind, type, temps.ToImmutableAndFree());
+            return MakeCall(nodeOpt, syntax, rewrittenReceiver, method, arguments, argumentRefKindsOpt, resultKind, type, temps.ToImmutableAndFree());
         }
 
         private BoundExpression MakeCall(
@@ -208,7 +371,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             ImmutableArray<BoundExpression> rewrittenArguments,
             ImmutableArray<RefKind> argumentRefKinds,
-            bool invokedAsExtensionMethod,
             LookupResultKind resultKind,
             TypeSymbol type,
             ImmutableArray<LocalSymbol> temps)
@@ -244,11 +406,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenReceiver,
                     method,
                     rewrittenArguments,
-                    default(ImmutableArray<string>),
+                    argumentNamesOpt: default(ImmutableArray<string>),
                     argumentRefKinds,
                     isDelegateCall: false,
                     expanded: false,
-                    invokedAsExtensionMethod: invokedAsExtensionMethod,
+                    invokedAsExtensionMethod: false,
                     argsToParamsOpt: default(ImmutableArray<int>),
                     defaultArguments: default(BitVector),
                     resultKind: resultKind,
@@ -260,13 +422,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenReceiver,
                     method,
                     rewrittenArguments,
-                    default(ImmutableArray<string>),
+                    argumentNamesOpt: default(ImmutableArray<string>),
                     argumentRefKinds,
                     node.IsDelegateCall,
-                    false,
-                    node.InvokedAsExtensionMethod,
-                    default(ImmutableArray<int>),
-                    default(BitVector),
+                    expanded: false,
+                    invokedAsExtensionMethod: false,
+                    argsToParamsOpt: default(ImmutableArray<int>),
+                    defaultArguments: default(BitVector),
                     node.ResultKind,
                     node.Type);
             }
@@ -293,7 +455,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method: method,
                 rewrittenArguments: rewrittenArguments,
                 argumentRefKinds: default(ImmutableArray<RefKind>),
-                invokedAsExtensionMethod: false,
                 resultKind: LookupResultKind.Viable,
                 type: type,
                 temps: default);

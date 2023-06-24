@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  bool isExplicit,
                  CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var stateSets = owner._stateManager
                                      .GetOrCreateStateSets(document.Project).Where(s => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(s.Analyzer, document.Project, owner.GlobalOptions));
 
@@ -216,6 +217,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     using var _2 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var semanticSpanBasedAnalyzers);
                     using var _3 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var semanticDocumentBasedAnalyzers);
 
+                    using var _4 = TelemetryLogging.LogBlockTimeAggregated(FunctionId.RequestDiagnostics_Summary, $"Pri{(int)_priorityProvider.Priority}");
+
                     foreach (var stateSet in _stateSets)
                     {
                         var analyzer = stateSet.Analyzer;
@@ -297,6 +300,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // based on 'shouldIncludeDiagnostic' predicate. More specifically, TS has special document
                     // analyzer which report 0 supported diagnostics, but we always want to execute it.
                     if (analyzer is DocumentDiagnosticAnalyzer)
+                        return true;
+
+                    // Special case GeneratorDiagnosticsPlaceholderAnalyzer to never skip it based on
+                    // 'shouldIncludeDiagnostic' predicate. More specifically, this is a placeholder analyzer
+                    // for threading through all source generator reported diagnostics, but this special analyzer
+                    // reports 0 supported diagnostics, and we always want to execute it.
+                    if (analyzer is GeneratorDiagnosticsPlaceholderAnalyzer)
                         return true;
 
                     // Skip analyzer if none of its reported diagnostics should be included.
@@ -413,6 +423,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnosticsMap;
                 if (incrementalAnalysis)
                 {
+                    using var _2 = TelemetryLogging.LogBlockTimeAggregated(FunctionId.RequestDiagnostics_Summary, $"Pri{(int)_priorityProvider.Priority}.Incremental");
+
                     diagnosticsMap = await _owner._incrementalMemberEditAnalyzer.ComputeDiagnosticsAsync(
                         executor,
                         analyzersWithState,
@@ -423,6 +435,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
                 else
                 {
+                    using var _2 = TelemetryLogging.LogBlockTimeAggregated(FunctionId.RequestDiagnostics_Summary, $"Pri{(int)_priorityProvider.Priority}.Document");
+
                     diagnosticsMap = await ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken).ConfigureAwait(false);
                 }
 

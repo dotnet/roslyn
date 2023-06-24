@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var organizedFixes = await OrganizeFixesAsync(workspace, originalSolution, text, filteredFixes, cancellationToken).ConfigureAwait(false);
 
             return organizedFixes;

@@ -31,8 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int? MultiLineCommentTrivia => (int)SyntaxKind.MultiLineCommentTrivia;
         public int SingleLineDocCommentTrivia => (int)SyntaxKind.SingleLineDocumentationCommentTrivia;
         public int? MultiLineDocCommentTrivia => (int)SyntaxKind.MultiLineDocumentationCommentTrivia;
-        public int? ShebangDirectiveTrivia => (int)SyntaxKind.ShebangDirectiveTrivia;
+
         public int IfDirectiveTrivia => (int)SyntaxKind.IfDirectiveTrivia;
+        public int ElifDirectiveTrivia => (int)SyntaxKind.ElifDirectiveTrivia;
+        public int ElseDirectiveTrivia => (int)SyntaxKind.ElseDirectiveTrivia;
+        public int EndIfDirectiveTrivia => (int)SyntaxKind.EndIfDirectiveTrivia;
+        public int RegionDirectiveTrivia => (int)SyntaxKind.RegionDirectiveTrivia;
+        public int EndRegionDirectiveTrivia => (int)SyntaxKind.EndRegionDirectiveTrivia;
+        public int? ShebangDirectiveTrivia => (int)SyntaxKind.ShebangDirectiveTrivia;
 
         public int CloseBraceToken => (int)SyntaxKind.CloseBraceToken;
         public int? CloseBracketToken => (int)SyntaxKind.CloseBracketToken;
@@ -129,6 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public int ExpressionStatement => (int)SyntaxKind.ExpressionStatement;
         public int ForEachStatement => (int)SyntaxKind.ForEachStatement;
+        public int ForStatement => (int)SyntaxKind.ForStatement;
         public int IfStatement => (int)SyntaxKind.IfStatement;
         public int LocalDeclarationStatement => (int)SyntaxKind.LocalDeclarationStatement;
         public int? LocalFunctionStatement => (int)SyntaxKind.LocalFunctionStatement;

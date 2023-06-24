@@ -29,11 +29,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
 
                 var compilationState = new TypeCompilationState(sourceSymbol.ContainingType, compilation, null);
-                var boundBody = MethodCompiler.BindSynthesizedMethodBody(sourceSymbol, compilationState, new BindingDiagnosticBag(new DiagnosticBag()));
+                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+
+                var boundBody = MethodCompiler.BindSynthesizedMethodBody(sourceSymbol, compilationState, diagnostics);
                 if (boundBody != null)
                 {
                     FlowAnalysisPass.Rewrite(sourceSymbol, boundBody, compilationState, flowDiagnostics, hasTrailingExpression: false, originalBodyNested: false);
                 }
+
+                diagnostics.Free();
             }
 
             return flowDiagnostics.ToReadOnlyAndFree().Diagnostics;

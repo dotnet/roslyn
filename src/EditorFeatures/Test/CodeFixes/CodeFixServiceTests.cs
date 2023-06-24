@@ -28,6 +28,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 {
@@ -190,6 +191,40 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Normal), CodeActionOptions.DefaultProvider,
                 addOperationScope: _ => null, cancellationToken: CancellationToken.None);
             Assert.True(documentDiagnosticAnalyzer.ReceivedCallback);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67354")]
+        public async Task TestGetFixesAsyncForGeneratorDiagnosticAsync()
+        {
+            // We have a special GeneratorDiagnosticsPlaceholderAnalyzer that report 0 SupportedDiagnostics.
+            // We need to ensure that we don't skip this special analyzer
+            // when computing the diagnostics/code fixes for "Normal" priority bucket, which
+            // normally only execute those analyzers which report at least one fixable supported diagnostic.
+            // Note that this special placeholder analyzer instance is always included for the project,
+            // we do not need to include it in the passed in analyzers.
+            Assert.Empty(GeneratorDiagnosticsPlaceholderAnalyzer.Instance.SupportedDiagnostics);
+
+            var analyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
+            var generator = new MockAnalyzerReference.MockGenerator();
+            var generators = ImmutableArray.Create<ISourceGenerator>(generator);
+            var fixTitle = "Fix Title";
+            var codeFix = new MockFixer(fixTitle);
+            var codeFixes = ImmutableArray.Create<CodeFixProvider>(codeFix);
+            var analyzerReference = new MockAnalyzerReference(codeFixes, analyzers, generators);
+
+            var tuple = ServiceSetup(codeFix, includeConfigurationFixProviders: false);
+            using var workspace = tuple.workspace;
+            GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager, analyzerReference);
+
+            Assert.False(codeFix.Called);
+            var fixCollectionSet = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
+                priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Normal), CodeActionOptions.DefaultProvider,
+                addOperationScope: _ => null, cancellationToken: CancellationToken.None);
+            Assert.True(codeFix.Called);
+            var fixCollection = Assert.Single(fixCollectionSet);
+            Assert.Equal(MockFixer.Id, fixCollection.FirstDiagnostic.Id);
+            var fix = Assert.Single(fixCollection.Fixes);
+            Assert.Equal(fixTitle, fix.Action.Title);
         }
 
         [Fact]
@@ -395,8 +430,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         internal class MockFixer : CodeFixProvider
         {
             public const string Id = "MyDiagnostic";
+            private readonly string? _registerFixWithTitle;
             public bool Called;
             public int ContextDiagnosticsCount;
+
+            public MockFixer(string? registerFixWithTitle = null)
+            {
+                _registerFixWithTitle = registerFixWithTitle;
+            }
 
             public sealed override ImmutableArray<string> FixableDiagnosticIds
             {
@@ -407,6 +448,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             {
                 Called = true;
                 ContextDiagnosticsCount = context.Diagnostics.Length;
+                if (_registerFixWithTitle != null)
+                {
+                    context.RegisterCodeFix(
+                        CodeAction.Create(
+                            _registerFixWithTitle,
+                            createChangedDocument: _ => Task.FromResult(context.Document)),
+                        context.Diagnostics);
+                }
+
                 return Task.CompletedTask;
             }
         }
@@ -415,14 +465,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         {
             public readonly ImmutableArray<CodeFixProvider> Fixers;
             public readonly ImmutableArray<DiagnosticAnalyzer> Analyzers;
+            public readonly ImmutableArray<ISourceGenerator> Generators;
 
             private static readonly ImmutableArray<CodeFixProvider> s_defaultFixers = ImmutableArray.Create<CodeFixProvider>(new MockFixer());
             private static readonly ImmutableArray<DiagnosticAnalyzer> s_defaultAnalyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new MockDiagnosticAnalyzer());
 
-            public MockAnalyzerReference(ImmutableArray<CodeFixProvider> fixers, ImmutableArray<DiagnosticAnalyzer> analyzers)
+            public MockAnalyzerReference(ImmutableArray<CodeFixProvider> fixers, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<ISourceGenerator> generators)
             {
                 Fixers = fixers;
                 Analyzers = analyzers;
+                Generators = generators;
+            }
+
+            public MockAnalyzerReference(ImmutableArray<CodeFixProvider> fixers, ImmutableArray<DiagnosticAnalyzer> analyzers)
+                : this(fixers, analyzers, ImmutableArray<ISourceGenerator>.Empty)
+            {
             }
 
             public MockAnalyzerReference(CodeFixProvider? fixer, ImmutableArray<DiagnosticAnalyzer> analyzers)
@@ -470,6 +527,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
                 => ImmutableArray<DiagnosticAnalyzer>.Empty;
+
+            public override ImmutableArray<ISourceGenerator> GetGenerators(string language)
+                => Generators;
 
             public ImmutableArray<CodeFixProvider> GetFixers()
                 => Fixers;
@@ -553,6 +613,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 {
                     ReceivedCallback = true;
                     return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+                }
+            }
+
+            public class MockGenerator : ISourceGenerator
+            {
+                private readonly DiagnosticDescriptor s_descriptor = new(MockFixer.Id, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+                public void Initialize(GeneratorInitializationContext context)
+                {
+                }
+
+                public void Execute(GeneratorExecutionContext context)
+                {
+                    foreach (var tree in context.Compilation.SyntaxTrees)
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(s_descriptor, tree.GetLocation(new TextSpan(0, 1))));
+                    }
                 }
             }
         }

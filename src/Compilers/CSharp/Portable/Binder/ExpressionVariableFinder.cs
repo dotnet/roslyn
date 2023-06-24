@@ -65,15 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variablesBuilder = save;
         }
 
-        public override void Visit(SyntaxNode node)
-        {
-            if (node != null)
-            {
-                // no stackguard
-                ((CSharpSyntaxNode)node).Accept(this);
-            }
-        }
-
         public override void VisitSwitchExpression(SwitchExpressionSyntax node)
         {
             Visit(node.GoverningExpression);
@@ -346,6 +337,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             operands.Free();
+        }
+
+        public override void VisitInvocationExpression(InvocationExpressionSyntax node)
+        {
+            if (receiverIsInvocation(node, out InvocationExpressionSyntax nested))
+            {
+                var invocations = ArrayBuilder<InvocationExpressionSyntax>.GetInstance();
+
+                invocations.Push(node);
+
+                node = nested;
+                while (receiverIsInvocation(node, out nested))
+                {
+                    invocations.Push(node);
+                    node = nested;
+                }
+
+                Visit(node.Expression);
+
+                do
+                {
+                    Visit(node.ArgumentList);
+                }
+                while (invocations.TryPop(out node));
+
+                invocations.Free();
+            }
+            else
+            {
+                Visit(node.Expression);
+                Visit(node.ArgumentList);
+            }
+
+            static bool receiverIsInvocation(InvocationExpressionSyntax node, out InvocationExpressionSyntax nested)
+            {
+                if (node.Expression is MemberAccessExpressionSyntax { Expression: InvocationExpressionSyntax receiver })
+                {
+                    nested = receiver;
+                    return true;
+                }
+
+                nested = null;
+                return false;
+            }
         }
 
         public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)

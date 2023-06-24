@@ -318,6 +318,18 @@
   <data name="IDS_SK_TYVAR" xml:space="preserve">
     <value>type parameter</value>
   </data>
+  <data name="IDS_SK_ARRAY" xml:space="preserve">
+    <value>array</value>
+  </data>
+  <data name="IDS_SK_POINTER" xml:space="preserve">
+    <value>pointer</value>
+  </data>
+  <data name="IDS_SK_FUNCTION_POINTER" xml:space="preserve">
+    <value>function pointer</value>
+  </data>
+  <data name="IDS_SK_DYNAMIC" xml:space="preserve">
+    <value>dynamic</value>
+  </data>
   <data name="IDS_SK_ALIAS" xml:space="preserve">
     <value>using alias</value>
   </data>
@@ -2942,7 +2954,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>__arglist is not allowed in the parameter list of iterators</value>
   </data>
   <data name="ERR_UnsafeIteratorArgType" xml:space="preserve">
-    <value>Iterators cannot have unsafe parameters or yield types</value>
+    <value>Iterators cannot have pointer type parameters</value>
   </data>
   <data name="ERR_BadCoClassSig" xml:space="preserve">
     <value>The managed coclass wrapper class signature '{0}' for interface '{1}' is not a valid class name signature</value>
@@ -3771,7 +3783,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>'await' cannot be used in an expression containing the type '{0}'</value>
   </data>
   <data name="ERR_UnsafeAsyncArgType" xml:space="preserve">
-    <value>Async methods cannot have unsafe parameters or return types</value>
+    <value>Async methods cannot have pointer type parameters</value>
   </data>
   <data name="ERR_BadAsyncArgType" xml:space="preserve">
     <value>Async methods cannot have ref, in or out parameters</value>
@@ -4794,6 +4806,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -modulename:&lt;string&gt;          Specify the name of the source module
 -generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
                               specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </value>
     <comment>Visual C# Compiler Options</comment>
   </data>
@@ -7505,10 +7520,106 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadCaseInSwitchArm" xml:space="preserve">
     <value>A switch expression arm does not begin with a 'case' keyword.</value>
   </data>
+  <data name="ERR_InterceptorsFeatureNotEnabled" xml:space="preserve">
+    <value>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</value>
+  </data>
+  <data name="ERR_InterceptorCannotBeGeneric" xml:space="preserve">
+    <value>Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</value>
+  </data>
+  <data name="ERR_InterceptorPathNotInCompilation" xml:space="preserve">
+    <value>Cannot intercept: compilation does not contain a file with path '{0}'.</value>
+  </data>
+  <data name="ERR_InterceptorPathNotInCompilationWithCandidate" xml:space="preserve">
+    <value>Cannot intercept: compilation does not contain a file with path '{0}'. Did you mean to use path '{1}'?</value>
+  </data>
+  <data name="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate" xml:space="preserve">
+    <value>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorLineOutOfRange" xml:space="preserve">
+    <value>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorCharacterOutOfRange" xml:space="preserve">
+    <value>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorLineCharacterMustBePositive" xml:space="preserve">
+    <value>Line and character numbers provided to InterceptsLocationAttribute must be positive.</value>
+  </data>
+  <data name="ERR_InterceptorPositionBadToken" xml:space="preserve">
+    <value>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</value>
+  </data>
+  <data name="ERR_InterceptorMustReferToStartOfTokenPosition" xml:space="preserve">
+    <value>The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</value>
+  </data>
+  <data name="ERR_InterceptorSignatureMismatch" xml:space="preserve">
+    <value>Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</value>
+  </data>
+  <data name="WRN_InterceptorSignatureMismatch" xml:space="preserve">
+    <value>Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</value>
+  </data>
+  <data name="WRN_InterceptorSignatureMismatch_Title" xml:space="preserve">
+    <value>Signatures of interceptable and interceptor methods do not match.</value>
+  </data>
+  <data name="ERR_InterceptorMethodMustBeOrdinary" xml:space="preserve">
+    <value>An interceptor method must be an ordinary member method.</value>
+  </data>
+  <data name="ERR_InterceptorMustHaveMatchingThisParameter" xml:space="preserve">
+    <value>Interceptor must have a 'this' parameter matching parameter '{0}' on '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorMustNotHaveThisParameter" xml:space="preserve">
+    <value>Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</value>
+  </data>
+  <data name="ERR_InterceptorFilePathCannotBeNull" xml:space="preserve">
+    <value>Interceptor cannot have a 'null' file path.</value>
+  </data>
+  <data name="ERR_InterceptorNameNotInvoked" xml:space="preserve">
+    <value>Possible method name '{0}' cannot be intercepted because it is not being invoked.</value>
+  </data>
+  <data name="ERR_InterceptorNonUniquePath" xml:space="preserve">
+    <value>Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</value>
+  </data>
+  <data name="ERR_DuplicateInterceptor" xml:space="preserve">
+    <value>The indicated call is intercepted multiple times.</value>
+  </data>
+  <data name="ERR_InterceptorNotAccessible" xml:space="preserve">
+    <value>Cannot intercept call with '{0}' because it is not accessible within '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorScopedMismatch" xml:space="preserve">
+    <value>Cannot intercept call to '{0}' with '{1}' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.</value>
+  </data>
   <data name="ERR_ConstantValueOfTypeExpected" xml:space="preserve">
     <value>A constant value of type '{0}' is expected</value>
   </data>
   <data name="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny" xml:space="preserve">
     <value>Cannot use primary constructor parameter of type '{0}' inside an instance member</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnInterceptor" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnInterceptor_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match interceptable method.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnInterceptor" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match interceptable method '{0}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnInterceptor_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match interceptable method.</value>
+  </data>
+  <data name="ERR_InterceptorCannotInterceptNameof" xml:space="preserve">
+    <value>A nameof operator cannot be intercepted.</value>
+  </data>
+  <data name="ERR_InterceptorCannotUseUnmanagedCallersOnly" xml:space="preserve">
+    <value>An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</value>
+  </data>
+  <data name="ERR_BadUsingStaticType" xml:space="preserve">
+    <value>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</value>
+  </data>
+  <data name="ERR_SymbolDefinedInAssembly" xml:space="preserve">
+    <value>'{0}' is defined in assembly '{1}'.</value>
+  </data>
+  <data name="WRN_CapturedPrimaryConstructorParameterInFieldInitializer" xml:space="preserve">
+    <value>Parameter '{0}' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</value>
+  </data>
+  <data name="WRN_CapturedPrimaryConstructorParameterInFieldInitializer_Title" xml:space="preserve">
+    <value>Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</value>
   </data>
 </root>

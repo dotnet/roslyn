@@ -17,6 +17,11 @@
         <target state="translated">Błąd składni wiersza polecenia: „{0}” nie jest prawidłową wartością dla opcji „{1}”. Wartość musi mieć postać „{2}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
+        <source>Cannot inherit from '{0}' because it has required members.</source>
+        <target state="translated">Nie można dziedziczyć z elementu „{0}”, ponieważ zawiera wymagane elementy członkowskie.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
         <target state="translated">Użyj wersji języka {0} lub nowszej, aby stosować komentarze po znaku kontynuacji wiersza.</target>
@@ -32,9 +37,19 @@
         <target state="translated">Element „System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute” jest zarezerwowany tylko do użycia przez kompilator.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoNotUseRequiredMember">
+        <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">Element „System.Runtime.CompilerServices.RequiredMemberAttribute” jest zarezerwowany tylko do użycia przez kompilator.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">Wiele plików konfiguracji analizatora nie może znajdować się w tym samym katalogu („{0}”).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="translated">„{2}” nie może spełnić ograniczenia „New” dla parametru „{1}” w typie ogólnym lub metodzie „{0}”, ponieważ „{2}” ma wymagane elementy członkowskie.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
@@ -52,6 +67,16 @@
         <target state="translated">Nie można osadzić typu „{0}”, ponieważ zawiera ponowną abstrakcję składowej z interfejsu podstawowego. Rozważ ustawienie właściwości „Osadź typy międzyoperacyjne” na wartość false.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSet">
+        <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
+        <target state="translated">Wymagana składowa „{0}” musi być ustawiona w inicjatorze obiektu lub argumentach atrybutów.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersInvalid">
+        <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
+        <target state="translated">Lista wymaganych składowych dla „{0}” jest źle sformułowana i nie można jej zinterpretować.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje domyślnej implementacji interfejsu.</target>
@@ -67,6 +92,11 @@
         <target state="translated">Zdarzenia udostępnionych zmiennych WithEvents nie mogą zostać obsłużone przez metody w innym typie.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="new">'{0}' is defined in assembly '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
         <target state="translated">{0}„{1}” nie może zaimplementować interfejsu „{3}”, ponieważ zawiera udostępnioną abstrakcyjną lub wirtualną „{2}”.</target>
@@ -80,6 +110,11 @@
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
         <target state="translated">„{0}” wymaga funkcji kompilatora „{1}”, która nie jest obsługiwana przez tę wersję kompilatora języka Visual Basic.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="translated">Wywołanie metody lub właściwości zwracanej przez odwołanie nie może być używane jako wyrażenie instrukcji „With” w metodzie asynchronicznej lub iteratora albo w przypadku niejawnego odwołania w wyrażeniu lambda.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -257,6 +292,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -269,7 +307,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Opcje kompilatora Visual Basic
+        <target state="needs-review-translation">                  Opcje kompilatora Visual Basic
 
                                   - PLIK WYJŚCIOWY -
 -out:&lt;file&gt;                       Określa nazwę pliku wyjściowego.

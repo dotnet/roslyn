@@ -76,10 +76,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var addNullChecksOption = result.Options.FirstOrDefault(o => o.Id == AddNullChecksId);
                 if (addNullChecksOption != null)
                 {
+                    // ILegacyGlobalOptionsWorkspaceService is guaranteed to be not null here because we have checked it before the code action is provided.
+                    var globalOptions = _document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+
                     // If we presented the 'Add null check' option, then persist whatever value
                     // the user chose.  That way we'll keep that as the default for the next time
                     // the user opens the dialog.
-                    var globalOptions = _document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
                     globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(_document.Project.Language, addNullChecksOption.Value);
                 }
 

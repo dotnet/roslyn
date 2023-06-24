@@ -35,8 +35,10 @@
     <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="MonoDevelop.CSharpBinding.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
     <!-- END MONODEVELOP -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures2.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />

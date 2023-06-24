@@ -657,6 +657,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return SyntaxComparer.TopLevel.ComputeMatch(oldCompilationUnit, newCompilationUnit)
         End Function
 
+        Protected Overrides Function ComputeParameterMap(oldDeclaration As SyntaxNode, newDeclaration As SyntaxNode) As BidirectionalMap(Of SyntaxNode)?
+            Dim oldParameterLists = GetDeclarationParameterLists(oldDeclaration)
+            Dim newParameterLists = GetDeclarationParameterLists(newDeclaration)
+
+            Dim primaryMatch = GetTopLevelMatch(oldParameterLists.Primary, newParameterLists.Primary)
+            Dim secondaryMatch = GetTopLevelMatch(oldParameterLists.Secondary, newParameterLists.Secondary)
+
+            If primaryMatch Is Nothing AndAlso secondaryMatch Is Nothing Then
+                Return Nothing
+            End If
+
+            If primaryMatch Is Nothing Then
+                Return BidirectionalMap(Of SyntaxNode).FromMatch(secondaryMatch)
+            End If
+
+            If secondaryMatch Is Nothing Then
+                Return BidirectionalMap(Of SyntaxNode).FromMatch(primaryMatch)
+            End If
+
+            Return New BidirectionalMap(Of SyntaxNode)(primaryMatch.Matches.Concat(secondaryMatch.Matches))
+        End Function
+
+        Private Shared Function GetTopLevelMatch(oldNode As SyntaxNode, newNode As SyntaxNode) As Match(Of SyntaxNode)
+            Return If(oldNode IsNot Nothing AndAlso newNode IsNot Nothing, SyntaxComparer.TopLevel.ComputeMatch(oldNode, newNode), Nothing)
+        End Function
+
+        Private Shared Function GetDeclarationParameterLists(declaration As SyntaxNode) As (Primary As SyntaxNode, Secondary As SyntaxNode)
+            Select Case declaration.Kind
+                ' Indexer accessor may have two parameter lists: one on the property and ther other on the accessor
+                Case SyntaxKind.GetAccessorBlock,
+                     SyntaxKind.SetAccessorBlock
+                    Return (DirectCast(declaration.Parent, PropertyBlockSyntax).PropertyStatement.ParameterList,
+                            DirectCast(declaration, AccessorBlockSyntax).AccessorStatement.ParameterList)
+
+                Case SyntaxKind.AddHandlerAccessorBlock,
+                     SyntaxKind.RemoveHandlerAccessorBlock,
+                     SyntaxKind.RaiseEventAccessorBlock
+                    Return (DirectCast(declaration, AccessorBlockSyntax).AccessorStatement.ParameterList, Nothing)
+            End Select
+
+            Return (declaration.GetParameterList(), Nothing)
+        End Function
+
         Protected Overrides Function ComputeTopLevelDeclarationMatch(oldDeclaration As SyntaxNode, newDeclaration As SyntaxNode) As Match(Of SyntaxNode)
             Contract.ThrowIfNull(oldDeclaration.Parent)
             Contract.ThrowIfNull(newDeclaration.Parent)
@@ -815,7 +858,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return False
         End Function
 
-        Protected Overrides Function GetGlobalStatementDiagnosticSpan(node As SyntaxNode) As TextSpan
+        Protected Overrides Function GetGlobalStatementDiagnosticSpan(node As SyntaxNode, editKind As EditKind) As TextSpan
             Return Nothing
         End Function
 

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 /// <summary>
 /// Datatype storing the information needed to resolve a particular code lens item.
 /// </summary>
-/// <param name="ResultId">the resultId associated with the code lens list created on original request.</param>
+/// <param name="SyntaxVersion">the syntax version of the text document.</param>
 /// <param name="ListIndex">the index of the specific code lens item in the original list.</param>
 /// <param name="TextDocument">the text document associated with the code lens to resolve.</param>
-internal sealed record CodeLensResolveData(long ResultId, int ListIndex, TextDocumentIdentifier TextDocument);
+internal sealed record CodeLensResolveData(string SyntaxVersion, int ListIndex, TextDocumentIdentifier TextDocument);
