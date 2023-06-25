@@ -13101,15 +13101,15 @@ tryAgain:
             return new ResetPoint(
                 base.GetResetPoint(),
                 _termState,
-                _syntaxFactoryContext.IsInAsync,
-                _syntaxFactoryContext.IsInQuery);
+                IsInAsync,
+                IsInQuery);
         }
 
         private void Reset(ref ResetPoint state)
         {
             _termState = state.TerminatorState;
-            _syntaxFactoryContext.IsInAsync = state.IsInAsync;
-            _syntaxFactoryContext.IsInQuery = state.IsInQuery;
+            IsInAsync = state.IsInAsync;
+            IsInQuery = state.IsInQuery;
             base.Reset(ref state.BaseResetPoint);
         }
 
