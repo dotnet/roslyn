@@ -1912,7 +1912,7 @@ class Test
         }
 
         [Fact]
-        public void Record_1()
+        public void LiftedPrimaryParameter_Record()
         {
             var source = WithWindowsLineBreaks(@"
 using System;
@@ -1949,7 +1949,7 @@ record D(int X)
             <entry offset=""0x0"" hidden=""true"" document=""1"" />
             <entry offset=""0xd"" startLine=""3"" startColumn=""10"" endLine=""3"" endColumn=""15"" document=""1"" />
             <entry offset=""0x19"" startLine=""5"" startColumn=""34"" endLine=""5"" endColumn=""74"" document=""1"" />
-            <entry offset=""0x31"" startLine=""3"" startColumn=""1"" endLine=""6"" endColumn=""2"" document=""1"" />
+            <entry offset=""0x31"" startLine=""3"" startColumn=""8"" endLine=""3"" endColumn=""16"" document=""1"" />
           </sequencePoints>
           <scope startOffset=""0x0"" endOffset=""0x39"">
             <namespace name=""System"" />
@@ -1989,7 +1989,7 @@ record D(int X)
         }
 
         [Fact]
-        public void Record_2()
+        public void PrimaryBaseInitializer()
         {
             var source = WithWindowsLineBreaks(@"
 using System;
@@ -2029,7 +2029,7 @@ record D(int X) : C(F(X, out int z), () => z)
           </customDebugInfo>
           <sequencePoints>
             <entry offset=""0x0"" startLine=""3"" startColumn=""10"" endLine=""3"" endColumn=""15"" document=""1"" />
-            <entry offset=""0x7"" startLine=""3"" startColumn=""1"" endLine=""9"" endColumn=""2"" document=""1"" />
+            <entry offset=""0x7"" startLine=""3"" startColumn=""8"" endLine=""3"" endColumn=""16"" document=""1"" />
           </sequencePoints>
           <scope startOffset=""0x0"" endOffset=""0xf"">
             <namespace name=""System"" />

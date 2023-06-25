@@ -153,6 +153,86 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ConstructorDeclaration:
                     return CreateSpanForConstructorDeclaration((ConstructorDeclarationSyntax)node, position);
 
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.ClassDeclaration:
+                    var typeDeclaration = (TypeDeclarationSyntax)node;
+                    if (typeDeclaration.ParameterList != null)
+                    {
+                        // after brace or semicolon
+                        // class C<T>(...) {$$ ... }
+                        // class C<T>(...) ;$$
+                        if (position > LastNotMissing(typeDeclaration.SemicolonToken, typeDeclaration.OpenBraceToken).SpanStart)
+                        {
+                            return null;
+                        }
+
+                        // on or after explicit base initializer:
+                        //   C<T>(...) :$$ [|B(...)|], I
+                        //   C<T>(...) : [|B(...)|], I where ... $$
+                        var baseInitializer = typeDeclaration.BaseList?.Types.FirstOrDefault(t => t.IsKind(SyntaxKind.PrimaryConstructorBaseType));
+                        if (baseInitializer != null && position > typeDeclaration.BaseList!.ColonToken.SpanStart)
+                        {
+                            return baseInitializer.Span;
+                        }
+
+                        // record properties and copy constructor
+                        if (position >= typeDeclaration.Identifier.SpanStart && node is RecordDeclarationSyntax)
+                        {
+                            // on identifier:
+                            // record $$C<T>(...) : B(...);
+                            // record C<T>$$(...) : B(...);
+                            if (position <= typeDeclaration.ParameterList.SpanStart)
+                            {
+                                // copy-constructor: [|C<T>|]
+                                return CreateSpan(
+                                    typeDeclaration.Identifier,
+                                    LastNotMissing(typeDeclaration.Identifier, typeDeclaration.TypeParameterList?.GreaterThanToken ?? default));
+                            }
+
+                            // on parameter:
+                            // record C<T>(..., $$ int p, ...) : B(...);
+                            if (position < typeDeclaration.ParameterList.CloseParenToken.Span.End)
+                            {
+                                var parameter = GetParameter(position, typeDeclaration.ParameterList.Parameters);
+                                if (parameter != null)
+                                {
+                                    // [A][|int p|] = default
+                                    return CreateSpan(parameter.Modifiers, parameter.Type, parameter.Identifier);
+                                }
+
+                                static ParameterSyntax? GetParameter(int position, SeparatedSyntaxList<ParameterSyntax> parameters)
+                                {
+                                    if (parameters.Count == 0)
+                                    {
+                                        return null;
+                                    }
+
+                                    for (var i = 0; i < parameters.SeparatorCount; i++)
+                                    {
+                                        var separator = parameters.GetSeparator(i);
+                                        if (position <= separator.SpanStart)
+                                        {
+                                            return parameters[i];
+                                        }
+                                    }
+
+                                    return parameters.Last();
+                                }
+                            }
+                        }
+
+                        // explicit base initializer
+                        //   C<T>(...) : [|B(...)|]
+                        // implicit base initializer
+                        //   [|C<T>(...)|]
+                        return (baseInitializer != null) ? baseInitializer.Span :
+                            TextSpan.FromBounds(typeDeclaration.Identifier.SpanStart, typeDeclaration.ParameterList.Span.End);
+                    }
+
+                    return null;
+
                 case SyntaxKind.VariableDeclarator:
                     // handled by the parent node
                     return null;
@@ -586,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private static SyntaxToken LastNotMissing(SyntaxToken token1, SyntaxToken token2)
-            => token2.IsMissing ? token1 : token2;
+            => token2.IsKind(SyntaxKind.None) || token2.IsMissing ? token1 : token2;
 
         private static TextSpan? TryCreateSpanForVariableDeclaration(VariableDeclarationSyntax declaration, int position)
             => declaration.Parent!.Kind() switch

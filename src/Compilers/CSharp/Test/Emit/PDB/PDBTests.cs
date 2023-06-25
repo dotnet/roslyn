@@ -12267,6 +12267,258 @@ class C
 ");
         }
 
+        [Fact]
+        public void SyntaxOffset_OutVarInPrimaryConstructorInitializer()
+        {
+            var source = @"
+class B(int x, int y)
+{
+}
+
+class C(int x) : B(F(out var y), y)
+{
+    int Z = F(out var z);
+    static int F(out int a) => a = 1;
+}";
+
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""B"" name="".ctor"" parameterNames=""x, y"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""2"" startColumn=""7"" endLine=""2"" endColumn=""22"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C"" name="".ctor"" parameterNames=""x"">
+      <customDebugInfo>
+        <forward declaringType=""B"" methodName="".ctor"" parameterNames=""x, y"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""-6"" />
+          <slot kind=""0"" offset=""-20"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""26"" document=""1"" />
+        <entry offset=""0xd"" startLine=""6"" startColumn=""18"" endLine=""6"" endColumn=""36"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x1d"">
+        <local name=""y"" il_index=""0"" il_start=""0x0"" il_end=""0x1d"" attributes=""0"" />
+        <scope startOffset=""0x0"" endOffset=""0xd"">
+          <local name=""z"" il_index=""1"" il_start=""0x0"" il_end=""0xd"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+    <method containingType=""C"" name=""F"" parameterNames=""a"">
+      <customDebugInfo>
+        <forward declaringType=""B"" methodName="".ctor"" parameterNames=""x, y"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""32"" endLine=""9"" endColumn=""37"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        #endregion
+
+        #region Primary Constructors
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63299")]
+        public void SequencePoints_PrimaryConstructor_ExplicitBaseInitializer()
+        {
+            var source = @"
+class B() : object()
+{
+}
+
+class C(int x) : B()
+{
+    int y = 1;
+}";
+
+            var c = CompileAndVerify(source);
+            c.VerifyMethodBody("B..ctor", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  // sequence point: object()
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}
+");
+            c.VerifyMethodBody("C..ctor", @"
+ {
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: int y = 1;
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int C.y""
+  // sequence point: B()
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""B..ctor()""
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63299")]
+        public void SequencePoints_PrimaryConstructor_ImplicitBaseInitializer()
+        {
+            var source = @"
+class B()
+{
+}
+
+class C(int x) : B
+{
+}";
+
+            var c = CompileAndVerify(source);
+            c.VerifyMethodBody("B..ctor", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  // sequence point: B()
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}
+");
+            c.VerifyMethodBody("C..ctor", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  // sequence point: C(int x)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""B..ctor()""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63299")]
+        public void SequencePoints_RecordConstructors_ModiifersAndDefault()
+        {
+            var source = @"
+record C<T>([A]in T P = default) where T : struct;
+
+class A : System.Attribute {}
+" + IsExternalInitTypeDefinition;
+
+            var c = CompileAndVerify(source);
+
+            // primary constructor
+            c.VerifyMethodBody("C<T>..ctor(in T)", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldobj      ""T""
+  IL_0007:  stfld      ""T C<T>.<P>k__BackingField""
+  // sequence point: C<T>([A]in T P = default)
+  IL_000c:  ldarg.0
+  IL_000d:  call       ""object..ctor()""
+  IL_0012:  ret
+}
+");
+            // copy constructor
+            c.VerifyMethodBody("C<T>..ctor(C<T>)", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  ldfld      ""T C<T>.<P>k__BackingField""
+  IL_000d:  stfld      ""T C<T>.<P>k__BackingField""
+  // sequence point: C<T>
+  IL_0012:  ret
+}
+");
+            // primary auto-property getter
+            c.VerifyMethodBody("C<T>.P.get", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  // sequence point: in T P
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""T C<T>.<P>k__BackingField""
+  IL_0006:  ret
+}
+");
+            // primary auto-property setter
+            c.VerifyMethodBody("C<T>.P.init", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  // sequence point: in T P
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""T C<T>.<P>k__BackingField""
+  IL_0007:  ret
+}
+");
+        }
+        
+        [Theory]
+        [InlineData("int[] P = default", "int[] P")]
+        [InlineData("[A]int[] P", "int[] P")]
+        [InlineData("params int[] P", "params int[] P")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63299")]
+        public void SequencePoints_RecordPropertyAccessors(string parameterSyntax, string expectedSpan)
+        {
+            var source =
+                "record C(" + parameterSyntax + ");" +
+                "class A : System.Attribute { }" +
+                IsExternalInitTypeDefinition;
+
+            var c = CompileAndVerify(source);
+
+            // primary auto-property getter
+            c.VerifyMethodBody("C.P.get", $@"
+{{
+  // Code size        7 (0x7)
+  .maxstack  1
+  // sequence point: {expectedSpan}
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int[] C.<P>k__BackingField""
+  IL_0006:  ret
+}}
+");
+            // primary auto-property setter
+            c.VerifyMethodBody("C.P.init", $@"
+{{
+  // Code size        8 (0x8)
+  .maxstack  2
+  // sequence point: {expectedSpan}
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int[] C.<P>k__BackingField""
+  IL_0007:  ret
+}}
+");
+        }
+
         #endregion
 
         [WorkItem(4370, "https://github.com/dotnet/roslyn/issues/4370")]

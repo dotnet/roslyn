@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(accessor.MethodKind == MethodKind.PropertySet);
+
                 var parameter = accessor.Parameters[0];
                 statement = new BoundExpressionStatement(
                     accessor.SyntaxNode,

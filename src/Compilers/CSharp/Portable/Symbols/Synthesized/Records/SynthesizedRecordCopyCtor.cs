@@ -5,7 +5,9 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -53,6 +55,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     statements.Add(F.Assignment(F.Field(F.This(), field), F.Field(param, field)));
                 }
             }
+
+            // Add a sequence point at the end of the copy-constructor, so that a breakpoint placed on the record constructor
+            // can be hit whenever a new instance of the record is created (either via a primary constructor or vie a copy constructor).
+            // 
+            // If the record doesn't have base initializer the span overlaps the span of the sequence point generated for primary
+            // constructor implicit base initializer:
+            //
+            // record [|C<T>(int P, int Q)|]               // implicit base constructor initializer span
+            // record C<T>(int P, int Q) : [|B(...)|]      // explicit base constructor initializer span
+            // record [|C<T>|](int P, int Q)               // copy-constructor span
+            //
+            // The copy-constructor span does not include the parameter list since the parameters are not in scope.
+            var recordDeclaration = (RecordDeclarationSyntax)F.Syntax;
+            statements.Add(new BoundSequencePointWithSpan(recordDeclaration, statementOpt: null,
+                (recordDeclaration.TypeParameterList == null) ? recordDeclaration.Identifier.Span :
+                TextSpan.FromBounds(recordDeclaration.Identifier.Span.Start, recordDeclaration.TypeParameterList.Span.End)));
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
