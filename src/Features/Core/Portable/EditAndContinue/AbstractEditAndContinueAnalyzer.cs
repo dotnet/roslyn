@@ -329,14 +329,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             displayName ??= GetDisplayName(symbol);
             var format = fullyQualify ? s_fullyQualifiedMemberDisplayFormat : s_unqualifiedMemberDisplayFormat;
 
-            return (symbol is IParameterSymbol { ContainingType: not { TypeKind: TypeKind.Delegate } }) ?
-                string.Format(
+            return (symbol is IParameterSymbol { ContainingType: not { TypeKind: TypeKind.Delegate } })
+                ? string.Format(
                     FeaturesResources.symbol_kind_and_name_of_member_kind_and_name,
                     displayName,
                     symbol.Name,
                     GetDisplayName(symbol.ContainingSymbol),
-                    symbol.ContainingSymbol.ToDisplayString(format)) :
-                string.Format(
+                    symbol.ContainingSymbol.ToDisplayString(format))
+                : string.Format(
                     FeaturesResources.member_kind_and_name,
                     displayName,
                     symbol.ToDisplayString(format));
@@ -4981,9 +4981,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     // Include member name if it is implicitly declared, otherwise it might not be obvious which member is being referred to.
                     // TODO: newSymbol.ContainingSymbol.IsImplicitlyDeclared should not be needed https://github.com/dotnet/roslyn/issues/68510
-                    newSymbol.IsImplicitlyDeclared || newSymbol.ContainingSymbol is { IsImplicitlyDeclared: true, Kind: not SymbolKind.Namespace } ?
-                        GetDisplayKindAndName(newSymbol, fullyQualify: false) :
-                        GetDisplayName(newSymbol)
+                    newSymbol.IsImplicitlyDeclared || newSymbol.ContainingSymbol is { IsImplicitlyDeclared: true, Kind: not SymbolKind.Namespace }
+                        ? GetDisplayKindAndName(newSymbol, fullyQualify: false)
+                        : GetDisplayName(newSymbol)
                 }
             };
 

@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal readonly struct BidirectionalMap<T>
-        where T: notnull
+        where T : notnull
     {
         public readonly IReadOnlyDictionary<T, T> Forward;
         public readonly IReadOnlyDictionary<T, T> Reverse;
