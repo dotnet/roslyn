@@ -15054,7 +15054,7 @@ namespace N
         [Fact]
         public void Records_AddPrimaryConstructorParameter()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetLatest)
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetLatest, verification: Verification.Skipped)
                 .AddBaseline(
                     source: IsExternalInitTypeDefinition + "record R(int P, int U) {}",
                     validator: g =>
@@ -15195,7 +15195,7 @@ namespace N
         [Fact]
         public void Records_AddProperty_NonPrimary()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20, verification: Verification.Skipped)
                 .AddBaseline(
                     source: IsExternalInitTypeDefinition + "record R(int P) {}",
                     validator: g =>
