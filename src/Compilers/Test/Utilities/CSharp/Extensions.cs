@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var primaryConstructor = compilation.GetPrimaryConstructor(qualifiedTypeName);
             return primaryConstructor.ContainingType.GetMembers("Deconstruct").OfType<IMethodSymbol>().Single(
-                m => m.Parameters.Length == primaryConstructor.Parameters.Length && 
+                m => m.Parameters.Length == primaryConstructor.Parameters.Length &&
                      m.Parameters.All(p => p.RefKind == RefKind.Out && p.Type.Equals(primaryConstructor.Parameters[p.Ordinal].Type, SymbolEqualityComparer.Default)));
         }
 

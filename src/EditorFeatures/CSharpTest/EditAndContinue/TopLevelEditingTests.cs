@@ -3466,7 +3466,7 @@ record C(int X)
             {
                 expectedEdits.Add(SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")));
             }
-            
+
             expectedEdits.Add(SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.X").GetMethod));
             expectedEdits.Add(SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.X").SetMethod));
             expectedEdits.Add(SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true));
