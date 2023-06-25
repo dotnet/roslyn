@@ -83,6 +83,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, c.SemicolonToken.Kind());
         }
 
+        [Fact]
+        public void IndexerDeclarationUpdateRetainsSemicolonToken()
+        {
+            var comment = SyntaxFactory.Comment("//original");
+            SyntaxToken originalSemicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithLeadingTrivia(comment);
+            var initialDeclaration = SyntaxFactory.IndexerDeclaration(SyntaxFactory.ParseName("System.String"))
+                .WithSemicolonToken(originalSemicolonToken);
+
+            var mutatedDeclaration = initialDeclaration.Update(initialDeclaration.AttributeLists,
+                initialDeclaration.Modifiers,
+                initialDeclaration.Type,
+                initialDeclaration.ExplicitInterfaceSpecifier,
+                initialDeclaration.ThisKeyword,
+                initialDeclaration.ParameterList,
+                initialDeclaration.AccessorList);
+
+            Assert.Contains(comment.ToString(), mutatedDeclaration.SemicolonToken.GetLeadingTrivia().ToFullString());
+        }
+
         [WorkItem(528399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528399")]
         [Fact()]
         public void PassExpressionToSyntaxToken()

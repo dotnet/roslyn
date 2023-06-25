@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterList,
                 accessorList,
                 expressionBody: null,
-                semicolonToken: default);
+                semicolonToken: syntax.SemicolonToken);
         }
 
         public static OperatorDeclarationSyntax Update(
