@@ -3193,6 +3193,262 @@ class C
     }
 
     [Fact]
+    public void ConditionalAmbiguity11()
+    {
+        UsingExpression("a ? b?[c] : d ? e?[f] : g");
+
+        N(SyntaxKind.ConditionalExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "a");
+            }
+            N(SyntaxKind.QuestionToken);
+            N(SyntaxKind.ConditionalAccessExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ElementBindingExpression);
+                {
+                    N(SyntaxKind.BracketedArgumentList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            N(SyntaxKind.ColonToken);
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ConditionalAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.ElementBindingExpression);
+                    {
+                        N(SyntaxKind.BracketedArgumentList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "f");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "g");
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ConditionalAmbiguity12()
+    {
+        UsingExpression("a ? b?[c] : d ? e ? f?[g] : h : i");
+
+        N(SyntaxKind.ConditionalExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "a");
+            }
+            N(SyntaxKind.QuestionToken);
+            N(SyntaxKind.ConditionalAccessExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ElementBindingExpression);
+                {
+                    N(SyntaxKind.BracketedArgumentList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            N(SyntaxKind.ColonToken);
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ConditionalExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.ConditionalAccessExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "f");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.ElementBindingExpression);
+                        {
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "g");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "h");
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "i");
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ConditionalAmbiguity13()
+    {
+        UsingExpression("a ? b?[c] : d ? e ? f?[g] : h : i : j");
+
+        N(SyntaxKind.ConditionalExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "a");
+            }
+            N(SyntaxKind.QuestionToken);
+            N(SyntaxKind.ConditionalAccessExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ElementBindingExpression);
+                {
+                    N(SyntaxKind.BracketedArgumentList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            N(SyntaxKind.ColonToken);
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ConditionalExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.ConditionalExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "f");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.CollectionExpression);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.ExpressionElement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "g");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "h");
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "i");
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "j");
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
     public void CastVersusIndexAmbiguity1()
     {
         // As a non-generic expression, we assume that `(type)` is an expression, and we are indexing into it.
