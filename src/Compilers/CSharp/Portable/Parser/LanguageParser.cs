@@ -12547,8 +12547,15 @@ done:;
         private AnonymousMethodExpressionSyntax ParseAnonymousMethodExpression()
         {
             var parentScopeIsInAsync = this.IsInAsync;
+
+            var parentScopeForceConditionalAccess = this.ForceConditionalAccessExpression;
+            this.ForceConditionalAccessExpression = false;
+
             var result = parseAnonymousMethodExpressionWorker();
+
+            this.ForceConditionalAccessExpression = parentScopeForceConditionalAccess;
             this.IsInAsync = parentScopeIsInAsync;
+
             return result;
 
             AnonymousMethodExpressionSyntax parseAnonymousMethodExpressionWorker()
@@ -12666,8 +12673,15 @@ done:;
         {
             var attributes = ParseAttributeDeclarations(inExpressionContext: true);
             var parentScopeIsInAsync = this.IsInAsync;
+
+            var parentScopeForceConditionalAccess = this.ForceConditionalAccessExpression;
+            this.ForceConditionalAccessExpression = false;
+
             var result = parseLambdaExpressionWorker();
+
+            this.ForceConditionalAccessExpression = parentScopeForceConditionalAccess;
             this.IsInAsync = parentScopeIsInAsync;
+
             return result;
 
             LambdaExpressionSyntax parseLambdaExpressionWorker()
