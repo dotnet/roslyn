@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var someValidName = SyntaxFactory.ParseName(name);
             var usingDirective = SyntaxFactory.UsingDirective(SyntaxFactory.Token(SyntaxKind.StaticKeyword), null, someValidName);
             Assert.NotNull(usingDirective);
-            Assert.Equal(usingDirective.StaticKeyword.Kind(), SyntaxKind.StaticKeyword);
+            Assert.Equal(SyntaxKind.StaticKeyword, usingDirective.StaticKeyword.Kind());
             Assert.Null(usingDirective.Alias);
-            Assert.Equal(usingDirective.Name.ToFullString(), name);
+            Assert.Equal(name, usingDirective.Name.ToFullString());
         }
 
         [Fact]
