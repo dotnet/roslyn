@@ -2709,6 +2709,10 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>{0} '{1}'</value>
     <comment>e.g. "method 'M'"</comment>
   </data>
+  <data name="symbol_kind_and_name_of_member_kind_and_name" xml:space="preserve">
+    <value>{0} '{1}' of {2} '{3}'</value>
+    <comment>e.g. "parameter 'T param' of method 'M'"</comment>
+  </data>
   <data name="code" xml:space="preserve">
     <value>code</value>
   </data>
@@ -2729,15 +2733,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="and_update_call_sites_directly" xml:space="preserve">
     <value>and update call sites directly</value>
-  </data>
-  <data name="Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application" xml:space="preserve">
-    <value>Implementing a record positional parameter '{0}' as read only requires restarting the application,</value>
-  </data>
-  <data name="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application" xml:space="preserve">
-    <value>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</value>
-  </data>
-  <data name="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0" xml:space="preserve">
-    <value>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</value>
   </data>
   <data name="Convert_to_record_struct" xml:space="preserve">
     <value>Convert to record struct</value>

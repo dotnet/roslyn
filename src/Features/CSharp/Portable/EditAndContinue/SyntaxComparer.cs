@@ -43,12 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Labels
 
-        // Assumptions:
-        // - Each listed label corresponds to one or more syntax kinds.
-        // - Nodes with same labels might produce Update edits, nodes with different labels don't. 
-        // - If IsTiedToParent(label) is true for a label then all its possible parent labels must precede the label.
-        //   (i.e. both MethodDeclaration and TypeDeclaration must precede TypeParameter label).
-        // - All descendants of a node whose kind is listed here will be ignored regardless of their labels
+        /// <summary>
+        /// Assumptions:
+        /// - Each listed label corresponds to one or more syntax kinds.
+        /// - Nodes with same labels might produce Update edits, nodes with different labels don't. 
+        /// - If <see cref="TiedToAncestor(Label)"/> is true for a label then all its possible parent labels must precede the label.
+        ///   (i.e. both MethodDeclaration and TypeDeclaration must precede TypeParameter label).
+        /// - All descendants of a node whose kind is listed here will be ignored regardless of their labels
+        /// </summary>
         internal enum Label
         {
             // Top level syntax kinds
@@ -62,6 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             TypeDeclaration,
             EnumDeclaration,
+            BaseList,                          // tied to parent
+            PrimaryConstructorBase,            // tied to parent
             DelegateDeclaration,
 
             FieldDeclaration,                  // tied to parent
@@ -185,6 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.IndexerDeclaration:
                 case Label.EventDeclaration:
                 case Label.EnumMemberDeclaration:
+                case Label.BaseList:
                 case Label.AccessorDeclaration:
                 case Label.AccessorList:
                 case Label.TypeParameterList:
@@ -591,6 +596,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
                     return Label.TypeDeclaration;
+
+                case SyntaxKind.BaseList:
+                    return Label.BaseList;
+
+                case SyntaxKind.PrimaryConstructorBaseType:
+                    // For top syntax, primary constructor base initializer is a leaf node
+                    isLeaf = true;
+                    return Label.PrimaryConstructorBase;
 
                 case SyntaxKind.MethodDeclaration:
                     return Label.MethodDeclaration;
