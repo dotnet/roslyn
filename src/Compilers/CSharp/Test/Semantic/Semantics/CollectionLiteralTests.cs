@@ -4145,9 +4145,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (8,14): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'Dictionary<int, int>.Add(int, int)'
                 //         d = [new KeyValuePair<int, int>(1, 2)];
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new KeyValuePair<int, int>(1, 2)").WithArguments("value", "System.Collections.Generic.Dictionary<int, int>.Add(int, int)").WithLocation(8, 14),
-                // (9,14): error CS9502: Support for collection literal dictionary and spread elements has not been implemented.
+                // (9,15): error CS1003: Syntax error, ',' expected
                 //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralElementNotImplemented, "3:4").WithLocation(9, 14));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(9, 15),
+                // (9,16): error CS1003: Syntax error, ',' expected
+                //         d = [3:4];
+                Diagnostic(ErrorCode.ERR_SyntaxError, "4").WithArguments(",").WithLocation(9, 16));
         }
 
         [ConditionalTheory(typeof(CoreClrOnly))]

@@ -225,9 +225,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a SpreadElementSyntax node.</summary>
         public virtual TResult? VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
 
-        /// <summary>Called when the visitor visits a DictionaryElementSyntax node.</summary>
-        public virtual TResult? VisitDictionaryElement(DictionaryElementSyntax node) => this.DefaultVisit(node);
-
         /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
         public virtual TResult? VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -954,9 +951,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a SpreadElementSyntax node.</summary>
         public virtual void VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
 
-        /// <summary>Called when the visitor visits a DictionaryElementSyntax node.</summary>
-        public virtual void VisitDictionaryElement(DictionaryElementSyntax node) => this.DefaultVisit(node);
-
         /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
         public virtual void VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -1682,9 +1676,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode? VisitSpreadElement(SpreadElementSyntax node)
             => node.Update(VisitToken(node.OperatorToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
-
-        public override SyntaxNode? VisitDictionaryElement(DictionaryElementSyntax node)
-            => node.Update((ExpressionSyntax?)Visit(node.KeyExpression) ?? throw new ArgumentNullException("keyExpression"), VisitToken(node.ColonToken), (ExpressionSyntax?)Visit(node.ValueExpression) ?? throw new ArgumentNullException("valueExpression"));
 
         public override SyntaxNode? VisitQueryExpression(QueryExpressionSyntax node)
             => node.Update((FromClauseSyntax?)Visit(node.FromClause) ?? throw new ArgumentNullException("fromClause"), (QueryBodySyntax?)Visit(node.Body) ?? throw new ArgumentNullException("body"));
@@ -3387,19 +3378,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new SpreadElementSyntax instance.</summary>
         public static SpreadElementSyntax SpreadElement(ExpressionSyntax expression)
             => SyntaxFactory.SpreadElement(SyntaxFactory.Token(SyntaxKind.DotDotToken), expression);
-
-        /// <summary>Creates a new DictionaryElementSyntax instance.</summary>
-        public static DictionaryElementSyntax DictionaryElement(ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression)
-        {
-            if (keyExpression == null) throw new ArgumentNullException(nameof(keyExpression));
-            if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
-            if (valueExpression == null) throw new ArgumentNullException(nameof(valueExpression));
-            return (DictionaryElementSyntax)Syntax.InternalSyntax.SyntaxFactory.DictionaryElement((Syntax.InternalSyntax.ExpressionSyntax)keyExpression.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)valueExpression.Green).CreateRed();
-        }
-
-        /// <summary>Creates a new DictionaryElementSyntax instance.</summary>
-        public static DictionaryElementSyntax DictionaryElement(ExpressionSyntax keyExpression, ExpressionSyntax valueExpression)
-            => SyntaxFactory.DictionaryElement(keyExpression, SyntaxFactory.Token(SyntaxKind.ColonToken), valueExpression);
 
         /// <summary>Creates a new QueryExpressionSyntax instance.</summary>
         public static QueryExpressionSyntax QueryExpression(FromClauseSyntax fromClause, QueryBodySyntax body)

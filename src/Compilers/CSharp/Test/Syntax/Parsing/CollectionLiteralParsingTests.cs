@@ -163,7 +163,13 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void TopLevelDotAccess_GlobalAttributeAmbiguity1()
     {
-        UsingTree("[assembly: A, B].C();");
+        UsingTree("[assembly: A, B].C();",
+            // (1,10): error CS1003: Syntax error, ',' expected
+            // [assembly: A, B].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 10),
+            // (1,12): error CS1003: Syntax error, ',' expected
+            // [assembly: A, B].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "A").WithArguments(",").WithLocation(1, 12));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -178,13 +184,16 @@ public class CollectionLiteralParsingTests : ParsingTests
                             N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.DictionaryElement);
+                                N(SyntaxKind.ExpressionElement);
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "assembly");
                                     }
-                                    N(SyntaxKind.ColonToken);
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.ExpressionElement);
+                                {
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "A");
@@ -224,9 +233,33 @@ public class CollectionLiteralParsingTests : ParsingTests
     public void TopLevelDotAccess_AttributeAmbiguity2A()
     {
         UsingTree("[return: A, B].C();",
-            // (1,2): error CS1041: Identifier expected; 'return' is a keyword
+            // (1,2): error CS1003: Syntax error, ']' expected
             // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "return").WithArguments("", "return").WithLocation(1, 2));
+            Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments("]").WithLocation(1, 2),
+            // (1,2): error CS1002: ; expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "return").WithLocation(1, 2),
+            // (1,8): error CS1525: Invalid expression term ':'
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 8),
+            // (1,8): error CS1002: ; expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 8),
+            // (1,8): error CS1022: Type or namespace definition, or end-of-file expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 8),
+            // (1,11): error CS1001: Identifier expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 11),
+            // (1,14): error CS1003: Syntax error, ',' expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 14),
+            // (1,18): error CS1002: ; expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 18),
+            // (1,18): error CS1022: Type or namespace definition, or end-of-file expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 18));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -234,47 +267,53 @@ public class CollectionLiteralParsingTests : ParsingTests
             {
                 N(SyntaxKind.ExpressionStatement);
                 {
-                    N(SyntaxKind.InvocationExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
-                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        N(SyntaxKind.OpenBracketToken);
+                        M(SyntaxKind.CloseBracketToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ReturnStatement);
+                {
+                    N(SyntaxKind.ReturnKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.CollectionExpression);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.DictionaryElement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "return");
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "A");
-                                    }
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.ExpressionElement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "B");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "C");
-                            }
+                            N(SyntaxKind.IdentifierToken, "A");
                         }
-                        N(SyntaxKind.ArgumentList);
+                        M(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "B");
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.EmptyStatement);
+                {
                     N(SyntaxKind.SemicolonToken);
                 }
             }
@@ -344,7 +383,13 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void TopLevelDotAccess_AttributeAmbiguity3A()
     {
-        UsingTree("[method: A, B].C();");
+        UsingTree("[method: A, B].C();",
+            // (1,8): error CS1003: Syntax error, ',' expected
+            // [method: A, B].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 8),
+            // (1,10): error CS1003: Syntax error, ',' expected
+            // [method: A, B].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "A").WithArguments(",").WithLocation(1, 10));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -359,13 +404,16 @@ public class CollectionLiteralParsingTests : ParsingTests
                             N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.DictionaryElement);
+                                N(SyntaxKind.ExpressionElement);
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "method");
                                     }
-                                    N(SyntaxKind.ColonToken);
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.ExpressionElement);
+                                {
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "A");
@@ -463,9 +511,33 @@ public class CollectionLiteralParsingTests : ParsingTests
     public void TopLevelDotAccess_AttributeAmbiguity4A()
     {
         UsingTree("[return: A].C();",
-            // (1,2): error CS1041: Identifier expected; 'return' is a keyword
-            // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "return").WithArguments("", "return").WithLocation(1, 2));
+            // (1,2): error CS1003: Syntax error, ']' expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments("]").WithLocation(1, 2),
+            // (1,2): error CS1002: ; expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "return").WithLocation(1, 2),
+            // (1,8): error CS1525: Invalid expression term ':'
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 8),
+            // (1,8): error CS1002: ; expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 8),
+            // (1,8): error CS1022: Type or namespace definition, or end-of-file expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 8),
+            // (1,11): error CS1001: Identifier expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 11),
+            // (1,11): error CS1003: Syntax error, ',' expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 11),
+            // (1,15): error CS1002: ; expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 15),
+            // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 15));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -473,39 +545,48 @@ public class CollectionLiteralParsingTests : ParsingTests
             {
                 N(SyntaxKind.ExpressionStatement);
                 {
-                    N(SyntaxKind.InvocationExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
-                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        N(SyntaxKind.OpenBracketToken);
+                        M(SyntaxKind.CloseBracketToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ReturnStatement);
+                {
+                    N(SyntaxKind.ReturnKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.CollectionExpression);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.DictionaryElement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "return");
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "A");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "C");
-                            }
+                            N(SyntaxKind.IdentifierToken, "A");
                         }
-                        N(SyntaxKind.ArgumentList);
+                        M(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.EmptyStatement);
+                {
                     N(SyntaxKind.SemicolonToken);
                 }
             }
@@ -567,7 +648,13 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void TopLevelDotAccess_GlobalAttributeAmbiguity2()
     {
-        UsingTree("[module: A, B].C();");
+        UsingTree("[module: A, B].C();",
+            // (1,8): error CS1003: Syntax error, ',' expected
+            // [module: A, B].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 8),
+            // (1,10): error CS1003: Syntax error, ',' expected
+            // [module: A, B].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "A").WithArguments(",").WithLocation(1, 10));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -582,13 +669,16 @@ public class CollectionLiteralParsingTests : ParsingTests
                             N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.DictionaryElement);
+                                N(SyntaxKind.ExpressionElement);
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "module");
                                     }
-                                    N(SyntaxKind.ColonToken);
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.ExpressionElement);
+                                {
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "A");
@@ -1548,7 +1638,13 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void DictionaryOfEmptyCollections()
     {
-        UsingTree("_ = [[]: []];");
+        UsingTree("_ = [[]: []];",
+            // (1,8): error CS1003: Syntax error, ',' expected
+            // _ = [[]: []];
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 8),
+            // (1,10): error CS1003: Syntax error, ',' expected
+            // _ = [[]: []];
+            Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",").WithLocation(1, 10));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1566,14 +1662,17 @@ public class CollectionLiteralParsingTests : ParsingTests
                         N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.DictionaryElement);
+                            N(SyntaxKind.ExpressionElement);
                             {
                                 N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.CloseBracketToken);
                                 }
-                                N(SyntaxKind.ColonToken);
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.ExpressionElement);
+                            {
                                 N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
@@ -1596,9 +1695,9 @@ public class CollectionLiteralParsingTests : ParsingTests
     {
         UsingTree(
             "_ = [:B];",
-            // (1,6): error CS1525: Invalid expression term ':'
+            // (1,6): error CS1001: Identifier expected
             // _ = [:B];
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 6));
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 6));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1616,13 +1715,8 @@ public class CollectionLiteralParsingTests : ParsingTests
                         N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.DictionaryElement);
+                            N(SyntaxKind.ExpressionElement);
                             {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                                N(SyntaxKind.ColonToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "B");
@@ -1644,9 +1738,9 @@ public class CollectionLiteralParsingTests : ParsingTests
     {
         UsingTree(
             "_ = [A:];",
-            // (1,8): error CS1525: Invalid expression term ']'
+            // (1,7): error CS1003: Syntax error, ',' expected
             // _ = [A:];
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 8));
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 7));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1664,16 +1758,11 @@ public class CollectionLiteralParsingTests : ParsingTests
                         N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.DictionaryElement);
+                            N(SyntaxKind.ExpressionElement);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "A");
-                                }
-                                N(SyntaxKind.ColonToken);
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
                             N(SyntaxKind.CloseBracketToken);
@@ -1692,12 +1781,9 @@ public class CollectionLiteralParsingTests : ParsingTests
     {
         UsingTree(
             "_ = [:];",
-            // (1,6): error CS1525: Invalid expression term ':'
+            // (1,6): error CS1001: Identifier expected
             // _ = [:];
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 6),
-            // (1,7): error CS1525: Invalid expression term ']'
-            // _ = [:];
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 7));
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 6));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1715,18 +1801,6 @@ public class CollectionLiteralParsingTests : ParsingTests
                         N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.DictionaryElement);
-                            {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                                N(SyntaxKind.ColonToken);
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                            }
                             N(SyntaxKind.CloseBracketToken);
                         }
                     }
@@ -1741,7 +1815,13 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void DictionaryWithTypeExpressions()
     {
-        UsingTree("_ = [A::B: C::D];");
+        UsingTree("_ = [A::B: C::D];",
+            // (1,10): error CS1003: Syntax error, ',' expected
+            // _ = [A::B: C::D];
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 10),
+            // (1,12): error CS1003: Syntax error, ',' expected
+            // _ = [A::B: C::D];
+            Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments(",").WithLocation(1, 12));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1759,7 +1839,7 @@ public class CollectionLiteralParsingTests : ParsingTests
                         N(SyntaxKind.CollectionExpression);
                         {
                             N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.DictionaryElement);
+                            N(SyntaxKind.ExpressionElement);
                             {
                                 N(SyntaxKind.AliasQualifiedName);
                                 {
@@ -1773,7 +1853,10 @@ public class CollectionLiteralParsingTests : ParsingTests
                                         N(SyntaxKind.IdentifierToken, "B");
                                     }
                                 }
-                                N(SyntaxKind.ColonToken);
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.ExpressionElement);
+                            {
                                 N(SyntaxKind.AliasQualifiedName);
                                 {
                                     N(SyntaxKind.IdentifierName);
@@ -1801,12 +1884,18 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void DictionaryWithConditional1()
     {
-        UsingExpression("[a ? b : c : d]");
+        UsingExpression("[a ? b : c : d]",
+            // (1,12): error CS1003: Syntax error, ',' expected
+            // [a ? b : c : d]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 12),
+            // (1,14): error CS1003: Syntax error, ',' expected
+            // [a ? b : c : d]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(",").WithLocation(1, 14));
 
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            N(SyntaxKind.DictionaryElement);
+            N(SyntaxKind.ExpressionElement);
             {
                 N(SyntaxKind.ConditionalExpression);
                 {
@@ -1825,7 +1914,10 @@ public class CollectionLiteralParsingTests : ParsingTests
                         N(SyntaxKind.IdentifierToken, "c");
                     }
                 }
-                N(SyntaxKind.ColonToken);
+            }
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
+            {
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "d");
@@ -1839,18 +1931,27 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void DictionaryWithConditional2()
     {
-        UsingExpression("[a : b ? c : d]");
+        UsingExpression("[a : b ? c : d]",
+            // (1,4): error CS1003: Syntax error, ',' expected
+            // [a : b ? c : d]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 4),
+            // (1,6): error CS1003: Syntax error, ',' expected
+            // [a : b ? c : d]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(1, 6));
 
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            N(SyntaxKind.DictionaryElement);
+            N(SyntaxKind.ExpressionElement);
             {
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "a");
                 }
-                N(SyntaxKind.ColonToken);
+            }
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
+            {
                 N(SyntaxKind.ConditionalExpression);
                 {
                     N(SyntaxKind.IdentifierName);
@@ -1877,12 +1978,18 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void DictionaryWithConditional3()
     {
-        UsingExpression("[a ? b : c : d ? e : f]");
+        UsingExpression("[a ? b : c : d ? e : f]",
+            // (1,12): error CS1003: Syntax error, ',' expected
+            // [a ? b : c : d ? e : f]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 12),
+            // (1,14): error CS1003: Syntax error, ',' expected
+            // [a ? b : c : d ? e : f]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(",").WithLocation(1, 14));
 
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            N(SyntaxKind.DictionaryElement);
+            N(SyntaxKind.ExpressionElement);
             {
                 N(SyntaxKind.ConditionalExpression);
                 {
@@ -1901,7 +2008,10 @@ public class CollectionLiteralParsingTests : ParsingTests
                         N(SyntaxKind.IdentifierToken, "c");
                     }
                 }
-                N(SyntaxKind.ColonToken);
+            }
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
+            {
                 N(SyntaxKind.ConditionalExpression);
                 {
                     N(SyntaxKind.IdentifierName);
@@ -1928,12 +2038,18 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void DictionaryWithNullCoalesce1()
     {
-        UsingExpression("[a ?? b : c]");
+        UsingExpression("[a ?? b : c]",
+            // (1,9): error CS1003: Syntax error, ',' expected
+            // [a ?? b : c]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 9),
+            // (1,11): error CS1003: Syntax error, ',' expected
+            // [a ?? b : c]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(1, 11));
 
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            N(SyntaxKind.DictionaryElement);
+            N(SyntaxKind.ExpressionElement);
             {
                 N(SyntaxKind.CoalesceExpression);
                 {
@@ -1947,7 +2063,10 @@ public class CollectionLiteralParsingTests : ParsingTests
                         N(SyntaxKind.IdentifierToken, "b");
                     }
                 }
-                N(SyntaxKind.ColonToken);
+            }
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
+            {
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "c");
@@ -1961,18 +2080,27 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void DictionaryWithNullCoalesce2()
     {
-        UsingExpression("[a : b ?? c]");
+        UsingExpression("[a : b ?? c]",
+            // (1,4): error CS1003: Syntax error, ',' expected
+            // [a : b ?? c]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 4),
+            // (1,6): error CS1003: Syntax error, ',' expected
+            // [a : b ?? c]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(1, 6));
 
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            N(SyntaxKind.DictionaryElement);
+            N(SyntaxKind.ExpressionElement);
             {
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "a");
                 }
-                N(SyntaxKind.ColonToken);
+            }
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
+            {
                 N(SyntaxKind.CoalesceExpression);
                 {
                     N(SyntaxKind.IdentifierName);
@@ -1994,12 +2122,18 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void DictionaryWithNullCoalesce3()
     {
-        UsingExpression("[a ?? b : c ?? d]");
+        UsingExpression("[a ?? b : c ?? d]",
+            // (1,9): error CS1003: Syntax error, ',' expected
+            // [a ?? b : c ?? d]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 9),
+            // (1,11): error CS1003: Syntax error, ',' expected
+            // [a ?? b : c ?? d]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(1, 11));
 
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            N(SyntaxKind.DictionaryElement);
+            N(SyntaxKind.ExpressionElement);
             {
                 N(SyntaxKind.CoalesceExpression);
                 {
@@ -2013,7 +2147,10 @@ public class CollectionLiteralParsingTests : ParsingTests
                         N(SyntaxKind.IdentifierToken, "b");
                     }
                 }
-                N(SyntaxKind.ColonToken);
+            }
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
+            {
                 N(SyntaxKind.CoalesceExpression);
                 {
                     N(SyntaxKind.IdentifierName);
@@ -2035,12 +2172,18 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void DictionaryWithQuery1()
     {
-        UsingExpression("[from x in y select x : c]");
+        UsingExpression("[from x in y select x : c]",
+            // (1,23): error CS1003: Syntax error, ',' expected
+            // [from x in y select x : c]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 23),
+            // (1,25): error CS1003: Syntax error, ',' expected
+            // [from x in y select x : c]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(1, 25));
 
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            N(SyntaxKind.DictionaryElement);
+            N(SyntaxKind.ExpressionElement);
             {
                 N(SyntaxKind.QueryExpression);
                 {
@@ -2066,7 +2209,10 @@ public class CollectionLiteralParsingTests : ParsingTests
                         }
                     }
                 }
-                N(SyntaxKind.ColonToken);
+            }
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
+            {
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "c");
@@ -2080,18 +2226,27 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void DictionaryWithQuery2()
     {
-        UsingExpression("[a : from x in y select x]");
+        UsingExpression("[a : from x in y select x]",
+            // (1,4): error CS1003: Syntax error, ',' expected
+            // [a : from x in y select x]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 4),
+            // (1,6): error CS1003: Syntax error, ',' expected
+            // [a : from x in y select x]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "from").WithArguments(",").WithLocation(1, 6));
 
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            N(SyntaxKind.DictionaryElement);
+            N(SyntaxKind.ExpressionElement);
             {
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "a");
                 }
-                N(SyntaxKind.ColonToken);
+            }
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
+            {
                 N(SyntaxKind.QueryExpression);
                 {
                     N(SyntaxKind.FromClause);
@@ -2125,12 +2280,18 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void DictionaryWithQuery3()
     {
-        UsingExpression("[from a in b select a : from x in y select x]");
+        UsingExpression("[from a in b select a : from x in y select x]",
+            // (1,23): error CS1003: Syntax error, ',' expected
+            // [from a in b select a : from x in y select x]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 23),
+            // (1,25): error CS1003: Syntax error, ',' expected
+            // [from a in b select a : from x in y select x]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "from").WithArguments(",").WithLocation(1, 25));
 
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            N(SyntaxKind.DictionaryElement);
+            N(SyntaxKind.ExpressionElement);
             {
                 N(SyntaxKind.QueryExpression);
                 {
@@ -2156,7 +2317,10 @@ public class CollectionLiteralParsingTests : ParsingTests
                         }
                     }
                 }
-                N(SyntaxKind.ColonToken);
+            }
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
+            {
                 N(SyntaxKind.QueryExpression);
                 {
                     N(SyntaxKind.FromClause);
@@ -2319,12 +2483,18 @@ public class CollectionLiteralParsingTests : ParsingTests
     [Fact]
     public void ConditionalAmbiguity2()
     {
-        UsingExpression("[(a ? [b]) : c]");
+        UsingExpression("[(a ? [b]) : c]",
+            // (1,12): error CS1003: Syntax error, ',' expected
+            // [(a ? [b]) : c]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 12),
+            // (1,14): error CS1003: Syntax error, ',' expected
+            // [(a ? [b]) : c]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(1, 14));
 
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
-            N(SyntaxKind.DictionaryElement);
+            N(SyntaxKind.ExpressionElement);
             {
                 N(SyntaxKind.ParenthesizedExpression);
                 {
@@ -2354,7 +2524,10 @@ public class CollectionLiteralParsingTests : ParsingTests
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
-                N(SyntaxKind.ColonToken);
+            }
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
+            {
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "c");
@@ -5798,7 +5971,13 @@ class C
     [Fact]
     public void Interpolation1()
     {
-        UsingExpression(""" $"{[A:B]}" """);
+        UsingExpression(""" $"{[A:B]}" """,
+            // (1,7): error CS1003: Syntax error, ',' expected
+            //  $"{[A:B]}" 
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 7),
+            // (1,8): error CS1003: Syntax error, ',' expected
+            //  $"{[A:B]}" 
+            Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",").WithLocation(1, 8));
 
         N(SyntaxKind.InterpolatedStringExpression);
         {
@@ -5809,13 +5988,16 @@ class C
                 N(SyntaxKind.CollectionExpression);
                 {
                     N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.DictionaryElement);
+                    N(SyntaxKind.ExpressionElement);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "A");
                         }
-                        N(SyntaxKind.ColonToken);
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.ExpressionElement);
+                    {
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "B");
@@ -5834,12 +6016,9 @@ class C
     public void Interpolation2()
     {
         UsingExpression(""" $"{[:]}" """,
-            // (1,6): error CS1525: Invalid expression term ':'
+            // (1,6): error CS1001: Identifier expected
             //  $"{[:]}" 
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 6),
-            // (1,7): error CS1525: Invalid expression term ']'
-            //  $"{[:]}" 
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 7));
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 6));
 
         N(SyntaxKind.InterpolatedStringExpression);
         {
@@ -5850,18 +6029,6 @@ class C
                 N(SyntaxKind.CollectionExpression);
                 {
                     N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.DictionaryElement);
-                    {
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.ColonToken);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
                     N(SyntaxKind.CloseBracketToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
@@ -5977,7 +6144,13 @@ class C
     [Fact]
     public void Addressof4()
     {
-        UsingExpression("&[A:B]");
+        UsingExpression("&[A:B]",
+            // (1,4): error CS1003: Syntax error, ',' expected
+            // &[A:B]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 4),
+            // (1,5): error CS1003: Syntax error, ',' expected
+            // &[A:B]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",").WithLocation(1, 5));
 
         N(SyntaxKind.AddressOfExpression);
         {
@@ -5985,13 +6158,16 @@ class C
             N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.DictionaryElement);
+                N(SyntaxKind.ExpressionElement);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "A");
                     }
-                    N(SyntaxKind.ColonToken);
+                }
+                M(SyntaxKind.CommaToken);
+                N(SyntaxKind.ExpressionElement);
+                {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "B");
@@ -6126,7 +6302,13 @@ class C
     [Fact]
     public void Deref5()
     {
-        UsingExpression("*[A:B]");
+        UsingExpression("*[A:B]",
+            // (1,4): error CS1003: Syntax error, ',' expected
+            // *[A:B]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 4),
+            // (1,5): error CS1003: Syntax error, ',' expected
+            // *[A:B]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",").WithLocation(1, 5));
 
         N(SyntaxKind.PointerIndirectionExpression);
         {
@@ -6134,13 +6316,16 @@ class C
             N(SyntaxKind.CollectionExpression);
             {
                 N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.DictionaryElement);
+                N(SyntaxKind.ExpressionElement);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "A");
                     }
-                    N(SyntaxKind.ColonToken);
+                }
+                M(SyntaxKind.CommaToken);
+                N(SyntaxKind.ExpressionElement);
+                {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "B");
@@ -9110,7 +9295,13 @@ class C
                     [A:B]!.GetHashCode();
                 }
             }
-            """);
+            """,
+            // (5,11): error CS1003: Syntax error, ',' expected
+            //         [A:B]!.GetHashCode();
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(5, 11),
+            // (5,12): error CS1003: Syntax error, ',' expected
+            //         [A:B]!.GetHashCode();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",").WithLocation(5, 12));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -9146,13 +9337,16 @@ class C
                                         N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
-                                            N(SyntaxKind.DictionaryElement);
+                                            N(SyntaxKind.ExpressionElement);
                                             {
                                                 N(SyntaxKind.IdentifierName);
                                                 {
                                                     N(SyntaxKind.IdentifierToken, "A");
                                                 }
-                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            M(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.ExpressionElement);
+                                            {
                                                 N(SyntaxKind.IdentifierName);
                                                 {
                                                     N(SyntaxKind.IdentifierToken, "B");
@@ -9191,7 +9385,13 @@ class C
     {
         UsingTree("""
             [A:B]!.GetHashCode();
-            """);
+            """,
+            // (1,3): error CS1003: Syntax error, ',' expected
+            // [A:B]!.GetHashCode();
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 3),
+            // (1,4): error CS1003: Syntax error, ',' expected
+            // [A:B]!.GetHashCode();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",").WithLocation(1, 4));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -9208,13 +9408,16 @@ class C
                                 N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.DictionaryElement);
+                                    N(SyntaxKind.ExpressionElement);
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "A");
                                         }
-                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    M(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.ExpressionElement);
+                                    {
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "B");
@@ -9738,7 +9941,13 @@ class C
                     [A:B][C:D].GetHashCode();
                 }
             }
-            """);
+            """,
+            // (5,11): error CS1003: Syntax error, ',' expected
+            //         [A:B][C:D].GetHashCode();
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(5, 11),
+            // (5,12): error CS1003: Syntax error, ',' expected
+            //         [A:B][C:D].GetHashCode();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",").WithLocation(5, 12));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -9774,13 +9983,16 @@ class C
                                         N(SyntaxKind.CollectionExpression);
                                         {
                                             N(SyntaxKind.OpenBracketToken);
-                                            N(SyntaxKind.DictionaryElement);
+                                            N(SyntaxKind.ExpressionElement);
                                             {
                                                 N(SyntaxKind.IdentifierName);
                                                 {
                                                     N(SyntaxKind.IdentifierToken, "A");
                                                 }
-                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            M(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.ExpressionElement);
+                                            {
                                                 N(SyntaxKind.IdentifierName);
                                                 {
                                                     N(SyntaxKind.IdentifierToken, "B");
@@ -9838,7 +10050,13 @@ class C
     {
         UsingTree("""
             [A:B][C:D].GetHashCode();
-            """);
+            """,
+            // (1,3): error CS1003: Syntax error, ',' expected
+            // [A:B][C:D].GetHashCode();
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 3),
+            // (1,4): error CS1003: Syntax error, ',' expected
+            // [A:B][C:D].GetHashCode();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",").WithLocation(1, 4));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -9855,13 +10073,16 @@ class C
                                 N(SyntaxKind.CollectionExpression);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.DictionaryElement);
+                                    N(SyntaxKind.ExpressionElement);
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "A");
                                         }
-                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    M(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.ExpressionElement);
+                                    {
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "B");
