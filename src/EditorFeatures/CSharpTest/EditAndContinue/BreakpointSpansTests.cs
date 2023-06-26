@@ -55,7 +55,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             else
             {
                 Assert.True(hasBreakpoint);
-                Assert.Equal(expectedSpan.Value, breakpointSpan);
+                AssertEx.AreEqual(
+                    expectedSpan.Value,
+                    breakpointSpan,
+                    message: $"Expected: [|{source.Substring(expectedSpan.Value.Start, expectedSpan.Value.Length)}|], Actual: [|{source.Substring(breakpointSpan.Start, breakpointSpan.Length)}|]");
             }
         }
 
@@ -4424,6 +4427,8 @@ $$    using ([|var vv = goo()|])
                 "class [|C(int a, int b)|]$$;",
                 "class [|C(int a, int b)|]$$ { }",
                 "class [|C(int a, int b)|]$$ : B { }",
+                "class [|C(int a, int b)|] : B$$ { }",
+                "class [|C(int a, int b)|] : B, $$I { }",
                 "class [|C<T>(int a, int b)|]$$ where T : notnull;",
                 "class [|C<T>(int a, int b)|] where $$T : notnull;",
                 "class [|C<T>(int a, int b)|] where T : notnull$$;",
@@ -4480,10 +4485,10 @@ $$    using ([|var vv = goo()|])
                 "$$[A]class C;",
                 "$$class C;",
                 "class C$$;",
-                "class C(int a, int b) : B$$ { }",
-                "class C(int a, int b) : B {$$ }",
-                "class C(int a, int b) : B { }$$",
-                "class C(int a, int b) : B, $$I { }")] string source)
+                "class C;$$",
+                "class C(int a, int b);$$",
+                "class C(int a, int b) : B;$$",
+                "class C(int a, int b) : B { }$$")] string source)
         {
             TestMissing(source.Replace("class", keyword));
         }
@@ -4525,9 +4530,9 @@ $$    using ([|var vv = goo()|])
                 "class C$$(int a, int b) : [|B()|];",
                 "class C<$$[A]T>(int a, int b) : [|B()|];",
                 "class C<T>$$(int a, int b) : [|B()|];",
-                "record C<T>($$int a, int b) : [|B()|];",
-                "record C<T>(int a, $$int b) : [|B()|];",
-                "record C<T>(int a, int b =$$ 1) : [|B()|];")] string source)
+                "class C<T>($$int a, int b) : [|B()|];",
+                "class C<T>(int a, $$int b) : [|B()|];",
+                "class C<T>(int a, int b =$$ 1) : [|B()|];")] string source)
         {
             TestSpan(source.Replace("class", keyword));
         }
@@ -4543,7 +4548,7 @@ $$    using ([|var vv = goo()|])
                 "record [|C<T>$$|](int a, int b) : B();",     // copy-constructor
                 "record C<T>([|$$int a|], int b) : B();",     // property getter and setter
                 "record C<T>(int a, [|$$int b|]) : B();",     // property getter and setter
-                "record C<T>(int a, [|$$int b = 1|]) : B();")] string source) // property getter and setter
+                "record C<T>(int a, [|$$int b|] = 1) : B();")] string source) // property getter and setter
         {
             TestSpan(source.Replace("record", keyword));
         }
@@ -4556,6 +4561,7 @@ $$    using ([|var vv = goo()|])
                 "class C(int a, int b) : B() {$$ }",
                 "class C(int a, int b) : B();$$",
                 "class C(int a, int b) : B() { }$$",
+                "class C(int a, int b) : B {$$ }",
                 "class C(int a, int b) : B(), I { }$$")] string source)
         {
             TestMissing(source.Replace("class", keyword));

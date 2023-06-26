@@ -12413,7 +12413,7 @@ class C(int x) : B
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/63299")]
-        public void SequencePoints_RecordConstructors_ModiifersAndDefault()
+        public void SequencePoints_RecordConstructors_ModifiersAndDefault()
         {
             var source = @"
 record C<T>([A]in T P = default) where T : struct;
@@ -12421,7 +12421,7 @@ record C<T>([A]in T P = default) where T : struct;
 class A : System.Attribute {}
 " + IsExternalInitTypeDefinition;
 
-            var c = CompileAndVerify(source);
+            var c = CompileAndVerify(source, verify: Verification.Skipped);
 
             // primary constructor
             c.VerifyMethodBody("C<T>..ctor(in T)", @"
@@ -12492,7 +12492,7 @@ class A : System.Attribute {}
                 "class A : System.Attribute { }" +
                 IsExternalInitTypeDefinition;
 
-            var c = CompileAndVerify(source);
+            var c = CompileAndVerify(source, verify: Verification.Skipped);
 
             // primary auto-property getter
             c.VerifyMethodBody("C.P.get", $@"
