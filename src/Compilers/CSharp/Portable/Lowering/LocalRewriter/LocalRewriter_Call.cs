@@ -1061,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var argRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
                     fillRefKindsBuilder(argumentRefKindsOpt, parameters, ref refKindsBuilder);
-                    refKindsBuilder[i] = argRefKind == RefKind.None ? paramRefKind : RefKindExtensions.StrictIn;
+                    refKindsBuilder[i] = RefKind.In;
                 }
                 else if (paramRefKind == RefKind.Ref)
                 {
@@ -1286,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (paramRefKind == RefKind.In)
                 {
                     Debug.Assert(argRefKind == RefKind.None || argRefKind == RefKind.In);
-                    argRefKind = argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
+                    argRefKind = RefKind.In;
                 }
 
                 refKinds[p] = argRefKind;
