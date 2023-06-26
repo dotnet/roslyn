@@ -1447,6 +1447,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(boundExpression, node.Cases, node.DefaultLabel, node.LengthBasedStringSwitchDataOpt);
         }
 
+        public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
+        {
+            EnsureOnlyEvalStack();
+            DeclareLocals(node.Locals, stack: 0);
+            var result = base.VisitLoweredIsPatternExpression(node);
+            RecordBranch(node.WhenTrueLabel);
+            RecordBranch(node.WhenFalseLabel);
+            return result;
+        }
+
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
             var origStack = StackDepth();

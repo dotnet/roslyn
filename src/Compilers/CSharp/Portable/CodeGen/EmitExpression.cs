@@ -315,6 +315,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitRefValueOperator((BoundRefValueOperator)expression, used);
                     break;
 
+                case BoundKind.LoweredIsPatternExpression:
+                    EmitLoweredIsPatternExpression((BoundLoweredIsPatternExpression)expression, used);
+                    break;
+
                 case BoundKind.LoweredConditionalAccess:
                     EmitLoweredConditionalAccessExpression((BoundLoweredConditionalAccess)expression, used);
                     break;
@@ -350,6 +354,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // node should have been lowered:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
             }
+        }
+
+        private void EmitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node, bool used)
+        {
+            _builder.AssertStackEmpty();
+
+            DefineLocals(node.Syntax, node.Locals);
+            EmitStatements(node.Statements);
+
+            if (!used)
+            {
+                _builder.MarkLabel(node.WhenTrueLabel);
+                _builder.MarkLabel(node.WhenFalseLabel);
+            }
+            else
+            {
+                var doneLabel = new object();
+                _builder.MarkLabel(node.WhenTrueLabel);
+                _builder.EmitBoolConstant(true);
+                _builder.EmitBranch(ILOpCode.Br, doneLabel);
+                _builder.AdjustStack(-1);
+                _builder.MarkLabel(node.WhenFalseLabel);
+                _builder.EmitBoolConstant(false);
+                _builder.MarkLabel(doneLabel);
+            }
+
+            FreeLocals(node.Locals);
         }
 
         private void EmitThrowExpression(BoundThrowExpression node, bool used)
@@ -852,29 +883,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void DefineLocals(BoundSequence sequence)
         {
-            if (sequence.Locals.IsEmpty)
+            DefineLocals(sequence.Syntax, sequence.Locals);
+        }
+
+        private void DefineLocals(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals)
+        {
+            if (locals.IsEmpty)
             {
                 return;
             }
 
             _builder.OpenLocalScope();
 
-            foreach (var local in sequence.Locals)
+            foreach (var local in locals)
             {
-                DefineLocal(local, sequence.Syntax);
+                DefineLocal(local, syntax);
             }
         }
 
         private void FreeLocals(BoundSequence sequence)
         {
-            if (sequence.Locals.IsEmpty)
+            FreeLocals(sequence.Locals);
+        }
+
+        private void FreeLocals(ImmutableArray<LocalSymbol> locals)
+        {
+            if (locals.IsEmpty)
             {
                 return;
             }
 
             _builder.CloseLocalScope();
 
-            foreach (var local in sequence.Locals)
+            foreach (var local in locals)
             {
                 FreeLocal(local);
             }

@@ -3178,21 +3178,17 @@ class C
             var compilation = CompileAndVerify(source, expectedOutput: "True");
             compilation.VerifyIL("C.Test", """
 {
-  // Code size       14 (0xe)
+  // Code size       10 (0xa)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.1
   IL_0002:  sub
   IL_0003:  ldc.i4.7
-  IL_0004:  bgt.un.s   IL_000a
+  IL_0004:  bgt.un.s   IL_0008
   IL_0006:  ldc.i4.1
-  IL_0007:  stloc.0
-  IL_0008:  br.s       IL_000c
-  IL_000a:  ldc.i4.0
-  IL_000b:  stloc.0
-  IL_000c:  ldloc.0
-  IL_000d:  ret
+  IL_0007:  ret
+  IL_0008:  ldc.i4.0
+  IL_0009:  ret
 }
 """);
         }
@@ -3227,9 +3223,8 @@ class C
             var compilation = CompileAndVerify(source, expectedOutput: "True");
             compilation.VerifyIL("C.Test", """
 {
-  // Code size       72 (0x48)
+  // Code size       68 (0x44)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.1
   IL_0002:  sub
@@ -3238,29 +3233,26 @@ class C
         IL_0024,
         IL_002e,
         IL_0038)
-  IL_0018:  br.s       IL_0044
+  IL_0018:  br.s       IL_0042
   IL_001a:  ldarg.1
   IL_001b:  isinst     "int"
   IL_0020:  brtrue.s   IL_0040
-  IL_0022:  br.s       IL_0044
+  IL_0022:  br.s       IL_0042
   IL_0024:  ldarg.1
   IL_0025:  isinst     "bool"
   IL_002a:  brtrue.s   IL_0040
-  IL_002c:  br.s       IL_0044
+  IL_002c:  br.s       IL_0042
   IL_002e:  ldarg.1
   IL_002f:  isinst     "double"
   IL_0034:  brtrue.s   IL_0040
-  IL_0036:  br.s       IL_0044
+  IL_0036:  br.s       IL_0042
   IL_0038:  ldarg.1
   IL_0039:  isinst     "long"
-  IL_003e:  brfalse.s  IL_0044
+  IL_003e:  brfalse.s  IL_0042
   IL_0040:  ldc.i4.1
-  IL_0041:  stloc.0
-  IL_0042:  br.s       IL_0046
-  IL_0044:  ldc.i4.0
-  IL_0045:  stloc.0
-  IL_0046:  ldloc.0
-  IL_0047:  ret
+  IL_0041:  ret
+  IL_0042:  ldc.i4.0
+  IL_0043:  ret
 }
 """);
         }
@@ -3294,24 +3286,23 @@ class C
             var compilation = CompileAndVerify(source, expectedOutput: "True");
             compilation.VerifyIL("C.Test", """
 {
-  // Code size       73 (0x49)
+  // Code size       69 (0x45)
   .maxstack  2
-  .locals init (bool V_0,
-                int V_1,
-                char V_2)
+  .locals init (int V_0,
+                char V_1)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0045
+  IL_0001:  brfalse.s  IL_0043
   IL_0003:  ldarg.0
   IL_0004:  call       "int string.Length.get"
-  IL_0009:  stloc.1
-  IL_000a:  ldloc.1
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
   IL_000b:  ldc.i4.1
-  IL_000c:  bne.un.s   IL_0045
+  IL_000c:  bne.un.s   IL_0043
   IL_000e:  ldarg.0
   IL_000f:  ldc.i4.0
   IL_0010:  call       "char string.this[int].get"
-  IL_0015:  stloc.2
-  IL_0016:  ldloc.2
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
   IL_0017:  ldc.i4.s   49
   IL_0019:  sub
   IL_001a:  switch    (
@@ -3323,14 +3314,11 @@ class C
         IL_0041,
         IL_0041,
         IL_0041)
-  IL_003f:  br.s       IL_0045
+  IL_003f:  br.s       IL_0043
   IL_0041:  ldc.i4.1
-  IL_0042:  stloc.0
-  IL_0043:  br.s       IL_0047
-  IL_0045:  ldc.i4.0
-  IL_0046:  stloc.0
-  IL_0047:  ldloc.0
-  IL_0048:  ret
+  IL_0042:  ret
+  IL_0043:  ldc.i4.0
+  IL_0044:  ret
 }
 """);
         }
