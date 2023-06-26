@@ -175,14 +175,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Synthesized(syntax, receiverOpt, method, ImmutableArray.Create(arg0, arg1));
         }
 
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
+        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt = default)
         {
             return new BoundCall(syntax,
                     receiverOpt,
                     method,
                     arguments,
                     argumentNamesOpt: default(ImmutableArray<string>),
-                    argumentRefKindsOpt: method.ParameterRefKinds,
+                    argumentRefKindsOpt: argumentRefKindsOpt.IsDefault ? method.ParameterRefKinds : argumentRefKindsOpt,
                     isDelegateCall: false,
                     expanded: false,
                     invokedAsExtensionMethod: false,
