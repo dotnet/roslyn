@@ -2979,7 +2979,7 @@ public abstract record C<T>
             edits.VerifySemantics(
                 new[]
                 {
-                    SemanticEdit(SemanticEditKind.Update, c => methodName switch { ".ctor" => c.GetCopyConstructor("C"), "Equals" => c.GetIEquatableEquals("C"), _ => c.GetMember("C." + methodName) }),
+                    SemanticEdit(SemanticEditKind.Update, c => methodName switch { ".ctor" => c.GetCopyConstructor("C"), "Equals" => c.GetSpecializedEqualsOverload("C"), _ => c.GetMember("C." + methodName) }),
                 },
                 capabilities: EditAndContinueCapabilities.UpdateParameters);
         }
@@ -3027,7 +3027,7 @@ protected virtual bool PrintMembers(System.Text.StringBuilder sb) => false;
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Update, c => methodName switch { ".ctor" => c.GetCopyConstructor("C"), "Equals" => c.GetIEquatableEquals("C"), _ => c.GetMember("C." + methodName) }));
+                SemanticEdit(SemanticEditKind.Update, c => methodName switch { ".ctor" => c.GetCopyConstructor("C"), "Equals" => c.GetSpecializedEqualsOverload("C"), _ => c.GetMember("C." + methodName) }));
         }
 
         [Theory]
@@ -3045,7 +3045,7 @@ protected virtual bool PrintMembers(System.Text.StringBuilder sb) => false;
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Update, c => methodName switch { ".ctor" => c.GetCopyConstructor("C"), "Equals" => c.GetIEquatableEquals("C"), _ => c.GetMember("C." + methodName) }));
+                SemanticEdit(SemanticEditKind.Update, c => methodName switch { ".ctor" => c.GetCopyConstructor("C"), "Equals" => c.GetSpecializedEqualsOverload("C"), _ => c.GetMember("C." + methodName) }));
 
             edits.VerifySemanticDiagnostics();
         }
@@ -3075,7 +3075,7 @@ protected virtual bool PrintMembers(System.Text.StringBuilder sb) => false;
             edits.VerifySemantics(
                 new[]
                 {
-                    SemanticEdit(SemanticEditKind.Update, c => methodName switch { ".ctor" => c.GetCopyConstructor("C"), "Equals" => c.GetIEquatableEquals("C"), _ => c.GetMember("C." + methodName) }),
+                    SemanticEdit(SemanticEditKind.Update, c => methodName switch { ".ctor" => c.GetCopyConstructor("C"), "Equals" => c.GetSpecializedEqualsOverload("C"), _ => c.GetMember("C." + methodName) }),
                 },
                 capabilities: EditAndContinueCapabilities.UpdateParameters);
         }
@@ -3092,7 +3092,7 @@ protected virtual bool PrintMembers(System.Text.StringBuilder sb) => false;
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
@@ -3126,7 +3126,7 @@ record C(int X)
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
                 },
@@ -3146,7 +3146,7 @@ record C(int X)
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
@@ -3168,7 +3168,7 @@ record C(int X)
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._z")),
@@ -3189,7 +3189,7 @@ record C(int X)
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._z")),
@@ -3247,7 +3247,7 @@ record C(int X)
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -3270,7 +3270,7 @@ record C(int X)
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -3347,7 +3347,7 @@ record C(int X)
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -3370,7 +3370,7 @@ record C(int X)
 
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_X")),
@@ -3399,7 +3399,7 @@ record C(int X)
                         semanticEdits: new[]
                         {
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                            SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_X")),
@@ -3424,7 +3424,7 @@ record C(int X)
 
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.X").GetMethod),
@@ -3455,7 +3455,7 @@ record C(int X)
                 expectedEdits.Add(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")));
             }
 
-            expectedEdits.Add(SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")));
+            expectedEdits.Add(SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")));
 
             if (methodName != "GetHashCode")
             {
@@ -3497,7 +3497,7 @@ record C(int X)
                         semanticEdits: new[]
                         {
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                            SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.X").GetMethod),
@@ -3520,7 +3520,7 @@ record C(int X)
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P")),
@@ -3548,7 +3548,7 @@ record C(int X)
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
@@ -3578,7 +3578,7 @@ record C(int X)
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
@@ -3641,7 +3641,7 @@ record C(int X)
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
@@ -3675,7 +3675,7 @@ record C(int X)
                 {
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_X"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_X")),
@@ -3756,7 +3756,7 @@ record C(int X)
 
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_X")),
@@ -3787,7 +3787,7 @@ record C(int X)
                         semanticEdits: new[]
                         {
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                            SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_X")),
@@ -3809,7 +3809,7 @@ record C(int X)
 
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.X").GetMethod),
@@ -3839,7 +3839,7 @@ record C(int X)
                         semanticEdits: new[]
                         {
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                            SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.X").GetMethod),
@@ -3862,7 +3862,7 @@ record C(int X)
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P")),
@@ -3890,7 +3890,7 @@ record C(int X)
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
@@ -10215,7 +10215,7 @@ class C
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C")),
@@ -10240,7 +10240,7 @@ class C
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P")),
@@ -10336,7 +10336,7 @@ class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                 },
@@ -10412,7 +10412,7 @@ class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10433,7 +10433,7 @@ class C
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Y")),
@@ -10462,7 +10462,7 @@ class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10487,7 +10487,7 @@ class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10511,7 +10511,7 @@ class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10534,7 +10534,7 @@ class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10560,7 +10560,7 @@ class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10585,7 +10585,7 @@ class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10610,7 +10610,7 @@ class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10634,7 +10634,7 @@ class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10707,7 +10707,7 @@ class C
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10756,7 +10756,7 @@ class C
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10779,7 +10779,7 @@ class C
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10803,7 +10803,7 @@ class C
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10827,7 +10827,7 @@ class C
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10850,7 +10850,7 @@ class C
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10946,7 +10946,7 @@ class C
                         semanticEdits: new[]
                         {
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                            SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Deconstruct")),
@@ -10978,7 +10978,7 @@ class C
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "P" }]), partialType: "C", preserveLocalVariables: true),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Deconstruct")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                            SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                         }),
@@ -11008,7 +11008,7 @@ class C
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "P" }]), partialType: "C", preserveLocalVariables: true),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Deconstruct")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                            SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                         }),
@@ -11038,7 +11038,7 @@ class C
                         semanticEdits: new[]
                         {
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                            SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                             SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.P")),
@@ -11070,7 +11070,7 @@ class C
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [{ Name: "P" }])),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is []), partialType: "C", preserveLocalVariables: true),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                            SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C"))
                         }),
@@ -11101,7 +11101,7 @@ class C
                         semanticEdits: new[]
                         {
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                            SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                             SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.P")),
@@ -11558,7 +11558,7 @@ partial class C
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                 },
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
@@ -11614,7 +11614,7 @@ partial class C
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetParameterlessConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C"))
@@ -11820,7 +11820,7 @@ partial class C
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")));
         }
@@ -11873,7 +11873,7 @@ partial class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                 },
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
@@ -11930,7 +11930,7 @@ partial class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                 },
@@ -12058,7 +12058,7 @@ class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                 },
@@ -12175,7 +12175,7 @@ class C
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetIEquatableEquals("C")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")));
         }

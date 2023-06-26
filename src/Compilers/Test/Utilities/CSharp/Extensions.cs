@@ -177,6 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static IMethodSymbol GetCopyConstructor(this Compilation compilation, string qualifiedTypeName)
         {
             var type = compilation.GetMember<INamedTypeSymbol>(qualifiedTypeName);
+            if (!type.IsRecord)
+            {
+                throw new InvalidOperationException("Only records have copy-constructor");
+            }
+
             return type.InstanceConstructors.Single(c => c.Parameters is [{ Type: var parameterType }] && parameterType.Equals(type, SymbolEqualityComparer.Default));
         }
 
@@ -192,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return type.InstanceConstructors.Single(c => c.Parameters is []);
         }
 
-        public static IMethodSymbol GetIEquatableEquals(this Compilation compilation, string qualifiedTypeName)
+        public static IMethodSymbol GetSpecializedEqualsOverload(this Compilation compilation, string qualifiedTypeName)
         {
             var type = compilation.GetMember<INamedTypeSymbol>(qualifiedTypeName);
             return type.GetMembers("Equals").OfType<IMethodSymbol>().Single(m => m.Parameters is [{ Type: var parameterType }] && parameterType.Equals(type, SymbolEqualityComparer.Default));
@@ -201,6 +206,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static IMethodSymbol GetPrimaryDeconstructor(this Compilation compilation, string qualifiedTypeName)
         {
             var primaryConstructor = compilation.GetPrimaryConstructor(qualifiedTypeName);
+            if (!primaryConstructor.ContainingType.IsRecord)
+            {
+                throw new InvalidOperationException("Only records have primary deconstructor");
+            }
+
             return primaryConstructor.ContainingType.GetMembers("Deconstruct").OfType<IMethodSymbol>().Single(
                 m => m.Parameters.Length == primaryConstructor.Parameters.Length &&
                      m.Parameters.All(p => p.RefKind == RefKind.Out && p.Type.Equals(primaryConstructor.Parameters[p.Ordinal].Type, SymbolEqualityComparer.Default)));

@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return ImmutableArray.CreateRange(edits.Select(e =>
             {
                 var oldSymbol = e.Kind is SemanticEditKind.Update or SemanticEditKind.Delete ? e.SymbolProvider(oldCompilation) : null;
-                
+
                 // for delete the new symbol is the new containing type
                 var newSymbol = e.NewSymbolProvider(newCompilation);
 
