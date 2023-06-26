@@ -8707,119 +8707,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal sealed partial class DictionaryElementSyntax : CollectionElementSyntax
-    {
-        internal readonly ExpressionSyntax keyExpression;
-        internal readonly SyntaxToken colonToken;
-        internal readonly ExpressionSyntax valueExpression;
-
-        internal DictionaryElementSyntax(SyntaxKind kind, ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
-          : base(kind, diagnostics, annotations)
-        {
-            this.SlotCount = 3;
-            this.AdjustFlagsAndWidth(keyExpression);
-            this.keyExpression = keyExpression;
-            this.AdjustFlagsAndWidth(colonToken);
-            this.colonToken = colonToken;
-            this.AdjustFlagsAndWidth(valueExpression);
-            this.valueExpression = valueExpression;
-        }
-
-        internal DictionaryElementSyntax(SyntaxKind kind, ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression, SyntaxFactoryContext context)
-          : base(kind)
-        {
-            this.SetFactoryContext(context);
-            this.SlotCount = 3;
-            this.AdjustFlagsAndWidth(keyExpression);
-            this.keyExpression = keyExpression;
-            this.AdjustFlagsAndWidth(colonToken);
-            this.colonToken = colonToken;
-            this.AdjustFlagsAndWidth(valueExpression);
-            this.valueExpression = valueExpression;
-        }
-
-        internal DictionaryElementSyntax(SyntaxKind kind, ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression)
-          : base(kind)
-        {
-            this.SlotCount = 3;
-            this.AdjustFlagsAndWidth(keyExpression);
-            this.keyExpression = keyExpression;
-            this.AdjustFlagsAndWidth(colonToken);
-            this.colonToken = colonToken;
-            this.AdjustFlagsAndWidth(valueExpression);
-            this.valueExpression = valueExpression;
-        }
-
-        public ExpressionSyntax KeyExpression => this.keyExpression;
-        public SyntaxToken ColonToken => this.colonToken;
-        public ExpressionSyntax ValueExpression => this.valueExpression;
-
-        internal override GreenNode? GetSlot(int index)
-            => index switch
-            {
-                0 => this.keyExpression,
-                1 => this.colonToken,
-                2 => this.valueExpression,
-                _ => null,
-            };
-
-        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DictionaryElementSyntax(this, parent, position);
-
-        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDictionaryElement(this);
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDictionaryElement(this);
-
-        public DictionaryElementSyntax Update(ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression)
-        {
-            if (keyExpression != this.KeyExpression || colonToken != this.ColonToken || valueExpression != this.ValueExpression)
-            {
-                var newNode = SyntaxFactory.DictionaryElement(keyExpression, colonToken, valueExpression);
-                var diags = GetDiagnostics();
-                if (diags?.Length > 0)
-                    newNode = newNode.WithDiagnosticsGreen(diags);
-                var annotations = GetAnnotations();
-                if (annotations?.Length > 0)
-                    newNode = newNode.WithAnnotationsGreen(annotations);
-                return newNode;
-            }
-
-            return this;
-        }
-
-        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new DictionaryElementSyntax(this.Kind, this.keyExpression, this.colonToken, this.valueExpression, diagnostics, GetAnnotations());
-
-        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new DictionaryElementSyntax(this.Kind, this.keyExpression, this.colonToken, this.valueExpression, GetDiagnostics(), annotations);
-
-        internal DictionaryElementSyntax(ObjectReader reader)
-          : base(reader)
-        {
-            this.SlotCount = 3;
-            var keyExpression = (ExpressionSyntax)reader.ReadValue();
-            AdjustFlagsAndWidth(keyExpression);
-            this.keyExpression = keyExpression;
-            var colonToken = (SyntaxToken)reader.ReadValue();
-            AdjustFlagsAndWidth(colonToken);
-            this.colonToken = colonToken;
-            var valueExpression = (ExpressionSyntax)reader.ReadValue();
-            AdjustFlagsAndWidth(valueExpression);
-            this.valueExpression = valueExpression;
-        }
-
-        internal override void WriteTo(ObjectWriter writer)
-        {
-            base.WriteTo(writer);
-            writer.WriteValue(this.keyExpression);
-            writer.WriteValue(this.colonToken);
-            writer.WriteValue(this.valueExpression);
-        }
-
-        static DictionaryElementSyntax()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(DictionaryElementSyntax), r => new DictionaryElementSyntax(r));
-        }
-    }
-
     internal abstract partial class QueryClauseSyntax : CSharpSyntaxNode
     {
         internal QueryClauseSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
@@ -35056,7 +34943,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitCollectionExpression(CollectionExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitExpressionElement(ExpressionElementSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
-        public virtual TResult VisitDictionaryElement(DictionaryElementSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitFromClause(FromClauseSyntax node) => this.DefaultVisit(node);
@@ -35302,7 +35188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitCollectionExpression(CollectionExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitExpressionElement(ExpressionElementSyntax node) => this.DefaultVisit(node);
         public virtual void VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
-        public virtual void VisitDictionaryElement(DictionaryElementSyntax node) => this.DefaultVisit(node);
         public virtual void VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
         public virtual void VisitFromClause(FromClauseSyntax node) => this.DefaultVisit(node);
@@ -35687,9 +35572,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override CSharpSyntaxNode VisitSpreadElement(SpreadElementSyntax node)
             => node.Update((SyntaxToken)Visit(node.OperatorToken), (ExpressionSyntax)Visit(node.Expression));
-
-        public override CSharpSyntaxNode VisitDictionaryElement(DictionaryElementSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.KeyExpression), (SyntaxToken)Visit(node.ColonToken), (ExpressionSyntax)Visit(node.ValueExpression));
 
         public override CSharpSyntaxNode VisitQueryExpression(QueryExpressionSyntax node)
             => node.Update((FromClauseSyntax)Visit(node.FromClause), (QueryBodySyntax)Visit(node.Body));
@@ -37787,28 +37669,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (cached != null) return (SpreadElementSyntax)cached;
 
             var result = new SpreadElementSyntax(SyntaxKind.SpreadElement, operatorToken, expression, this.context);
-            if (hash >= 0)
-            {
-                SyntaxNodeCache.AddNode(result, hash);
-            }
-
-            return result;
-        }
-
-        public DictionaryElementSyntax DictionaryElement(ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression)
-        {
-#if DEBUG
-            if (keyExpression == null) throw new ArgumentNullException(nameof(keyExpression));
-            if (colonToken == null) throw new ArgumentNullException(nameof(colonToken));
-            if (colonToken.Kind != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
-            if (valueExpression == null) throw new ArgumentNullException(nameof(valueExpression));
-#endif
-
-            int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.DictionaryElement, keyExpression, colonToken, valueExpression, this.context, out hash);
-            if (cached != null) return (DictionaryElementSyntax)cached;
-
-            var result = new DictionaryElementSyntax(SyntaxKind.DictionaryElement, keyExpression, colonToken, valueExpression, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -43016,28 +42876,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (cached != null) return (SpreadElementSyntax)cached;
 
             var result = new SpreadElementSyntax(SyntaxKind.SpreadElement, operatorToken, expression);
-            if (hash >= 0)
-            {
-                SyntaxNodeCache.AddNode(result, hash);
-            }
-
-            return result;
-        }
-
-        public static DictionaryElementSyntax DictionaryElement(ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression)
-        {
-#if DEBUG
-            if (keyExpression == null) throw new ArgumentNullException(nameof(keyExpression));
-            if (colonToken == null) throw new ArgumentNullException(nameof(colonToken));
-            if (colonToken.Kind != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
-            if (valueExpression == null) throw new ArgumentNullException(nameof(valueExpression));
-#endif
-
-            int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DictionaryElement, keyExpression, colonToken, valueExpression, out hash);
-            if (cached != null) return (DictionaryElementSyntax)cached;
-
-            var result = new DictionaryElementSyntax(SyntaxKind.DictionaryElement, keyExpression, colonToken, valueExpression);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);

@@ -842,13 +842,8 @@ collection_expression
   ;
 
 collection_element
-  : dictionary_element
-  | expression_element
+  : expression_element
   | spread_element
-  ;
-
-dictionary_element
-  : expression ':' expression
   ;
 
 expression_element

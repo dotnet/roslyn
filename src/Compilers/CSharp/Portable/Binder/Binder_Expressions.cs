@@ -4576,18 +4576,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return syntax switch
                 {
                     ExpressionElementSyntax expressionElementSyntax => BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
-                    DictionaryElementSyntax dictionaryElementSyntax => bindDictionaryElement(dictionaryElementSyntax, diagnostics),
                     SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics),
                     _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
                 };
-            }
-
-            BoundExpression bindDictionaryElement(DictionaryElementSyntax syntax, BindingDiagnosticBag diagnostics)
-            {
-                _ = BindValue(syntax.KeyExpression, diagnostics, BindValueKind.RValue);
-                _ = BindValue(syntax.ValueExpression, diagnostics, BindValueKind.RValue);
-                Error(diagnostics, ErrorCode.ERR_CollectionLiteralElementNotImplemented, syntax);
-                return BadExpression(syntax);
             }
 
             BoundExpression bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics)

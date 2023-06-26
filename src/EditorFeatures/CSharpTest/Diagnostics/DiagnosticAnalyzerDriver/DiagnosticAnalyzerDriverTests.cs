@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             missingSyntaxNodes.Add(SyntaxKind.CollectionExpression);
             missingSyntaxNodes.Add(SyntaxKind.ExpressionElement);
             missingSyntaxNodes.Add(SyntaxKind.SpreadElement);
-            missingSyntaxNodes.Add(SyntaxKind.DictionaryElement);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
