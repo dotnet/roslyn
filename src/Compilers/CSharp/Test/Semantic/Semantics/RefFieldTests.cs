@@ -9572,12 +9572,12 @@ ref struct R
                 // (6,17): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 // ref var l = ref c[0]; //CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(6, 17),
-                // (8,11): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // (8,11): error CS1510: A ref or out value must be an assignable variable
                 // _ = M(ref c.N);       //CS0206
-                Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(8, 11),
-                // (10,11): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "c.N").WithLocation(8, 11),
+                // (10,11): error CS1510: A ref or out value must be an assignable variable
                 // _ = M(ref c[0]);      //CS0206
-                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(10, 11),
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "c[0]").WithLocation(10, 11),
                 // (12,12): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 // _ = M2(out c.N);      //CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(12, 12),

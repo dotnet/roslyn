@@ -2417,6 +2417,16 @@
         <target state="translated">此參考指派的值比目標的逸出範圍更寬，允許透過目標的值指派，其逸出範圍更窄。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RefReadonlyNotVariable">
+        <source>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</source>
+        <target state="new">Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReadonlyNotVariable_Title">
+        <source>Argument should be a variable because it is passed to a 'ref readonly' parameter</source>
+        <target state="new">Argument should be a variable because it is passed to a 'ref readonly' parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
         <source>This returns local '{0}' by reference but it is not a ref local</source>
         <target state="translated">這會藉傳址方式傳回本機 '{0}'，但其非參考本機</target>

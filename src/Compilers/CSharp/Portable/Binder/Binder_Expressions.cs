@@ -232,10 +232,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// did not meet the requirements, the return value will be a <see cref="BoundBadExpression"/> that
         /// (typically) wraps the subexpression.
         /// </summary>
-        internal BoundExpression BindValue(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind)
+        internal BoundExpression BindValue(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind, bool errorsOnly = false)
         {
             var result = this.BindExpression(node, diagnostics: diagnostics, invoked: false, indexed: false);
-            return CheckValue(result, valueKind, diagnostics);
+            return errorsOnly ? CheckValueErrorsOnly(result, valueKind, diagnostics) : CheckValue(result, valueKind, diagnostics);
         }
 
         internal BoundExpression BindRValueWithoutTargetType(ExpressionSyntax node, BindingDiagnosticBag diagnostics, bool reportNoTargetType = true)
@@ -417,10 +417,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GenerateConversionForAssignment(delegateType, expr, diagnostics);
         }
 
-        internal BoundExpression BindValueAllowArgList(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind)
+        internal BoundExpression BindValueAllowArgList(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind, bool errorsOnly = false)
         {
             var result = this.BindExpressionAllowArgList(node, diagnostics: diagnostics);
-            return CheckValue(result, valueKind, diagnostics);
+            return errorsOnly ? CheckValueErrorsOnly(result, valueKind, diagnostics) : CheckValue(result, valueKind, diagnostics);
         }
 
         internal BoundFieldEqualsValue BindFieldInitializer(
@@ -3192,21 +3192,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression BindArgumentExpression(BindingDiagnosticBag diagnostics, ExpressionSyntax argumentExpression, RefKind refKind, bool allowArglist)
         {
-            BindValueKind valueKind =
-                refKind == RefKind.None ?
-                        BindValueKind.RValue :
-                        refKind == RefKind.In ?
-                            BindValueKind.ReadonlyRef :
-                            BindValueKind.RefOrOut;
+            BindValueKind valueKind = refKind switch
+            {
+                RefKind.None => BindValueKind.RValue,
+                RefKind.Out => BindValueKind.RefOrOut,
+                // Ref kind will be checked more precisely when the corresponding parameter is known.
+                // We also ignore all warnings from CheckValue now to avoid duplication when the value is checked again.
+                RefKind.Ref or RefKind.In => BindValueKind.RefersToLocation,
+                _ => throw ExceptionUtilities.UnexpectedValue(refKind),
+            };
+            var errorsOnly = valueKind == BindValueKind.RefersToLocation;
 
             BoundExpression argument;
             if (allowArglist)
             {
-                argument = this.BindValueAllowArgList(argumentExpression, diagnostics, valueKind);
+                argument = this.BindValueAllowArgList(argumentExpression, diagnostics, valueKind, errorsOnly: errorsOnly);
             }
             else
             {
-                argument = this.BindValue(argumentExpression, diagnostics, valueKind);
+                argument = this.BindValue(argumentExpression, diagnostics, valueKind, errorsOnly: errorsOnly);
             }
 
             return argument;
@@ -3234,9 +3238,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters) &&
                     argument is not BoundArgListOperator && !argument.HasAnyErrors)
                 {
-                    // Warn for `ref`/`in` or None/`ref readonly` mismatch.
                     var argRefKind = analyzedArguments.RefKind(arg);
-                    if (argRefKind == RefKind.Ref)
+                    var parameterRefKind = GetCorrespondingParameter(ref result, parameters, arg).RefKind;
+
+                    // Check value kind. Note that this cannot affect overload resolution, because
+                    // - for other than `ref readonly` parameters, this depends solely on callsite modifiers (not resolved members),
+                    // - for `ref readonly` parameters with no callsite modifier, this fails only if the argument is not an rvalue
+                    //   (i.e., it's a type or a namespace) which could not possibly resolve another member,
+                    // - for `ref readonly` parameters with other modifiers, this would fail if the argument is not a variable,
+                    //   except it already failed earlier (ref/in callsite modifier on an rvalue is an error).
+                    // Hence it's fine to perform the check here (after overload resolution already selected the best member).
+                    if (getValueKind(argRefKind: argRefKind, parameterRefKind: parameterRefKind) is { } valueKind)
+                    {
+                        analyzedArguments.Arguments[arg] = argument = this.CheckValue(argument, valueKind, diagnostics);
+                    }
+
+                    if (argument.HasAnyErrors)
+                    {
+                        // Don't emit other warnings.
+                    }
+                    // Warn for rvalues passed to `ref readonly` parameters without callsite modifiers.
+                    else if (parameterRefKind == RefKind.RefReadOnlyParameter && argRefKind == RefKind.None &&
+                        !this.CheckValueKind(argument.Syntax, argument, BindValueKind.RefersToLocation, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                    {
+                        // Argument {0} should be a variable because it is passed to a 'ref readonly' parameter
+                        diagnostics.Add(ErrorCode.WRN_RefReadonlyNotVariable, argument.Syntax, arg + 1);
+                    }
+                    // Warn for `ref`/`in` or None/`ref readonly` mismatch.
+                    else if (argRefKind == RefKind.Ref)
                     {
                         if (GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.In)
                         {
@@ -3314,6 +3343,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics);
                     //CONSIDER: Return a bad expression so that HasErrors is true?
                 }
+            }
+
+            // Returns null if already checked in BindArgumentExpression.
+            static BindValueKind? getValueKind(RefKind argRefKind, RefKind parameterRefKind)
+            {
+                if (argRefKind is RefKind.None)
+                {
+                    // Note: None/`ref` is allowed for COM interop.
+                    Debug.Assert(parameterRefKind is RefKind.None or RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter);
+                    return null;
+                }
+
+                if (argRefKind is RefKind.Out)
+                {
+                    Debug.Assert(parameterRefKind is RefKind.Out);
+                    return null;
+                }
+
+                if (parameterRefKind is RefKind.RefReadOnlyParameter)
+                {
+                    Debug.Assert(argRefKind is RefKind.Ref or RefKind.In);
+                    return BindValueKind.ReadonlyRef;
+                }
+
+                if (argRefKind is RefKind.In)
+                {
+                    Debug.Assert(parameterRefKind is RefKind.Ref or RefKind.In);
+                    return BindValueKind.ReadonlyRef;
+                }
+
+                Debug.Assert(argRefKind is RefKind.Ref);
+                if (parameterRefKind is RefKind.In)
+                {
+                    return BindValueKind.ReadonlyRef;
+                }
+
+                Debug.Assert(parameterRefKind is RefKind.Ref);
+                return BindValueKind.RefOrOut;
             }
         }
 

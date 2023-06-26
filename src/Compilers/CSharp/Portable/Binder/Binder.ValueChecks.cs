@@ -374,6 +374,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable disable
 
         /// <summary>
+        /// Like <see cref="CheckValue"/> but puts only errors into <paramref name="diagnostics"/>.
+        /// </summary>
+        private BoundExpression CheckValueErrorsOnly(BoundExpression expr, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
+        {
+            if (diagnostics.DiagnosticBag is null)
+            {
+                return CheckValue(expr, valueKind, diagnostics);
+            }
+
+            var tempDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            var result = CheckValue(expr, valueKind, tempDiagnostics);
+
+            foreach (var diagnostic in tempDiagnostics.DiagnosticBag.AsEnumerable())
+            {
+                if (diagnostic.Severity == DiagnosticSeverity.Error)
+                {
+                    diagnostics.Add(diagnostic);
+                }
+            }
+
+            tempDiagnostics.Free();
+            return result;
+        }
+
+        /// <summary>
         /// Check the expression is of the required lvalue and rvalue specified by valueKind.
         /// The method returns the original expression if the expression is of the required
         /// type. Otherwise, an appropriate error is added to the diagnostics bag and the
@@ -732,6 +757,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeconstructValuePlaceholder:
                     break;
 
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
+                    Debug.Assert(RequiresReferenceToLocation(valueKind));
+                    return true;
+
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
@@ -919,8 +948,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
 
             // all parameters can be passed by ref/out or assigned to
-            // except "in" parameters, which are readonly
-            if (parameterSymbol.RefKind == RefKind.In && RequiresAssignableVariable(valueKind))
+            // except "in" and "ref readonly" parameters, which are readonly
+            if (parameterSymbol.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && RequiresAssignableVariable(valueKind))
             {
                 ReportReadOnlyError(parameterSymbol, node, valueKind, checkingReceiver, diagnostics);
                 return false;
@@ -1376,7 +1405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Error(diagnostics, GetStandardLvalueError(valueKind), eventSyntax, eventSymbol);
+                            Error(diagnostics, GetStandardLvalueError(valueKind), eventSyntax);
                         }
                         return false;
                     }

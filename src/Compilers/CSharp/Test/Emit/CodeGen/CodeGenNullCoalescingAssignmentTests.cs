@@ -1355,9 +1355,9 @@ class C
 }";
 
             CreateCompilation(source2).VerifyDiagnostics(
-                // (7,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                // (7,15): error CS1510: A ref or out value must be an assignable variable
                 //         M(in (o ??= "Test String"));
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, @"o ??= ""Test String""").WithLocation(7, 15)
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, @"o ??= ""Test String""").WithLocation(7, 15)
             );
         }
 

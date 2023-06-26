@@ -8059,9 +8059,9 @@ public class Derived : Base2
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (14,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // (14,15): error CS1510: A ref or out value must be an assignable variable
                 //         M(ref P); // CS0206
-                Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(14, 15),
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "P").WithLocation(14, 15),
                 // (15,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         M(out this.Q); // CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "this.Q").WithLocation(15, 15));
@@ -8089,9 +8089,9 @@ public class Derived : Base2
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (13,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // (13,15): error CS1510: A ref or out value must be an assignable variable
                 //         R(ref this[0]); // CS0206
-                Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(13, 15),
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "this[0]").WithLocation(13, 15),
                 // (14,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         O(out this[0]); // CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(14, 15));
@@ -14872,10 +14872,12 @@ class C
     }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS1605: Cannot pass 'this' as a ref or out argument because it is read-only
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this"),
-                // (7,17): error CS1605: Cannot pass 'this' as a ref or out argument because it is read-only
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this"));
+                // (6,17): error CS1510: A ref or out value must be an assignable variable
+                //         Ref(ref this); //CS1605
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "this").WithLocation(6, 17),
+                // (7,17): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                //         Out(out this); //CS1605
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(7, 17));
         }
 
         [Fact]
@@ -22898,25 +22900,25 @@ public class Program
                 // (15,47): error CS0149: Method name expected
                 //         var z3 = new Func<string, string>(ref k); // compat
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "k").WithLocation(15, 47),
-                // (16,47): error CS1510: A ref or out argument must be an assignable variable
+                // (16,47): error CS1510: A ref or out value must be an assignable variable
                 //         var z4 = new Func<string, string>(ref x => x);
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x").WithLocation(16, 47),
-                // (17,47): error CS1510: A ref or out argument must be an assignable variable
+                // (17,47): error CS1510: A ref or out value must be an assignable variable
                 //         var z5 = new Func<string, string>(ref Goo<string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Goo<string>(x => x)").WithLocation(17, 47),
-                // (18,47): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // (18,47): error CS1510: A ref or out value must be an assignable variable
                 //         var z6 = new Func<string, string>(ref BarP); 
-                Diagnostic(ErrorCode.ERR_RefProperty, "BarP").WithLocation(18, 47),
-                // (19,47): error CS1510: A ref or out argument must be an assignable variable
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "BarP").WithLocation(18, 47),
+                // (19,47): error CS1510: A ref or out value must be an assignable variable
                 //         var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Func<string, string>(x => x)").WithLocation(19, 47),
-                // (20,47): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // (20,47): error CS1510: A ref or out value must be an assignable variable
                 //         var z8 = new Func<string, string>(ref Program.BarP); 
-                Diagnostic(ErrorCode.ERR_RefProperty, "Program.BarP").WithLocation(20, 47),
-                // (21,47): error CS1510: A ref or out argument must be an assignable variable
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.BarP").WithLocation(20, 47),
+                // (21,47): error CS1510: A ref or out value must be an assignable variable
                 //         var z9 = new Func<string, string>(ref Program.Goo<string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Goo<string>(x => x)").WithLocation(21, 47),
-                // (22,48): error CS1657: Cannot pass 'Id' as a ref or out argument because it is a 'method group'
+                // (22,48): error CS1657: Cannot use 'Id' as a ref or out value because it is a 'method group'
                 //         var z10 = new Func<string, string>(ref Id); // compat
                 Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(22, 48),
                 // (23,48): error CS1510: A ref or out value must be an assignable variable

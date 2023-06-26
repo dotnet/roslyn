@@ -1450,9 +1450,9 @@ class C
                 // (10,26): warning CS9502: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                 //             L(ref x, ref x);
                 Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("2").WithLocation(10, 26),
-                // (14,26): error CS1510: A ref or out value must be an assignable variable
+                // (14,26): warning CS9502: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                 //             L(ref x, ref xr);
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "xr").WithLocation(14, 26),
+                Diagnostic(ErrorCode.WRN_BadArgRef, "xr").WithArguments("2").WithLocation(14, 26),
                 // (15,19): error CS1510: A ref or out value must be an assignable variable
                 //             L(ref xr, y);
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "xr").WithLocation(15, 19));

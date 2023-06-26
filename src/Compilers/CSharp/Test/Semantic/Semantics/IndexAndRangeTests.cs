@@ -652,9 +652,9 @@ public class C {
                 // (32,27): error CS1510: A ref or out value must be an assignable variable
                 //         ref int[] x = ref arr[0..2];
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "arr[0..2]").WithLocation(32, 27),
-                // (33,14): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                // (33,14): error CS1510: A ref or out value must be an assignable variable
                 //         M(in arr[0..2]);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "arr[0..2]").WithLocation(33, 14),
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "arr[0..2]").WithLocation(33, 14),
                 // (35,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         return ref arr[0..2];
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "arr[0..2]").WithLocation(35, 20));
@@ -769,9 +769,9 @@ public class C {
                 // (5,27): error CS1510: A ref or out value must be an assignable variable
                 //         ref Index x = ref ^0;
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "^0").WithLocation(5, 27),
-                // (6,14): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                // (6,14): error CS1510: A ref or out value must be an assignable variable
                 //         M(in ^0);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "^0").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "^0").WithLocation(6, 14),
                 // (7,11): error CS1503: Argument 1: cannot convert from 'System.Index' to 'in int[]'
                 //         M(^0);
                 Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "in int[]").WithLocation(7, 11),

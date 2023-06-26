@@ -1738,18 +1738,18 @@ struct Program
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (15,17): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         Goo(out x1);
                 Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithLocation(15, 17),
-                // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (16,17): error CS1510: A ref or out value must be an assignable variable
                 //         Goo(ref x1);
-                Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithLocation(16, 17),
-                // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x1").WithLocation(16, 17),
+                // (17,17): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         Goo(out x2);
                 Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithLocation(17, 17),
-                // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (18,17): error CS1510: A ref or out value must be an assignable variable
                 //         Goo(ref x2);
-                Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithLocation(18, 17),
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x2").WithLocation(18, 17),
                 // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
                 //         Goo(ref x3);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
@@ -1769,18 +1769,18 @@ struct Program
 
             comp = CreateCompilation(text, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (15,17): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         Goo(out x1);
                 Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithLocation(15, 17),
-                // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (16,17): error CS1510: A ref or out value must be an assignable variable
                 //         Goo(ref x1);
-                Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithLocation(16, 17),
-                // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x1").WithLocation(16, 17),
+                // (17,17): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         Goo(out x2);
                 Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithLocation(17, 17),
-                // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (18,17): error CS1510: A ref or out value must be an assignable variable
                 //         Goo(ref x2);
-                Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithLocation(18, 17),
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x2").WithLocation(18, 17),
                 // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
                 //         Goo(ref x3);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),

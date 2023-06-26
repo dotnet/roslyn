@@ -3377,15 +3377,15 @@ class C
 }
 ";
             CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD).VerifyDiagnostics(
-                // (9,17): error CS7084: A Windows Runtime event may not be passed as an out or ref parameter.
+                // (9,17): error CS1510: A ref or out value must be an assignable variable
                 //         Ref(ref Instance);
-                Diagnostic(ErrorCode.ERR_WinRtEventPassedByRef, "Instance").WithLocation(9, 17),
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Instance").WithLocation(9, 17),
                 // (10,17): error CS7084: A Windows Runtime event may not be passed as an out or ref parameter.
                 //         Out(out Instance);
                 Diagnostic(ErrorCode.ERR_WinRtEventPassedByRef, "Instance").WithLocation(10, 17),
-                // (11,17): error CS7084: A Windows Runtime event may not be passed as an out or ref parameter.
+                // (11,17): error CS1510: A ref or out value must be an assignable variable
                 //         Ref(ref Static);
-                Diagnostic(ErrorCode.ERR_WinRtEventPassedByRef, "Static").WithLocation(11, 17),
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Static").WithLocation(11, 17),
                 // (12,17): error CS7084: A Windows Runtime event may not be passed as an out or ref parameter.
                 //         Out(out Static);
                 Diagnostic(ErrorCode.ERR_WinRtEventPassedByRef, "Static").WithLocation(12, 17));

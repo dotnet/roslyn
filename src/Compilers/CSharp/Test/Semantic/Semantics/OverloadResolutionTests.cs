@@ -9518,16 +9518,31 @@ public static class Program
                 }
                 """;
 
-            var expectedDiagnostics = new[]
-            {
-                // (10,20): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
+            CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (10,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
                 //         Method(ref x);
-                Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "x").WithLocation(10, 20)
-            };
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(10, 20));
 
-            CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code).VerifyDiagnostics(expectedDiagnostics);
+            verify(TestOptions.RegularNext);
+            verify();
+
+            void verify(CSharpParseOptions parseOptions = null)
+            {
+                var verifier = CompileAndVerify(code, expectedOutput: "5", parseOptions: parseOptions, verify: Verification.Fails);
+                verifier.VerifyDiagnostics(
+                    // (10,20): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                    //         Method(ref x);
+                    Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(10, 20));
+                verifier.VerifyIL("Program.Main", """
+                    {
+                      // Code size       11 (0xb)
+                      .maxstack  1
+                      IL_0000:  ldsflda    "int Program.x"
+                      IL_0005:  call       "void Program.Method(in int)"
+                      IL_000a:  ret
+                    }
+                    """);
+            }
         }
 
         [Fact]
@@ -10788,9 +10803,9 @@ public static class Program
                     // (20,26): error CS1510: A ref or out value must be an assignable variable
                     //         Method(valP: out 2);
                     Diagnostic(ErrorCode.ERR_RefLvalueExpected, "2").WithLocation(20, 26),
-                    // (21,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    // (21,25): error CS1510: A ref or out value must be an assignable variable
                     //         Method(valP: in 2);
-                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(21, 25)
+                    Diagnostic(ErrorCode.ERR_RefLvalueExpected, "2").WithLocation(21, 25)
                 );
         }
 
@@ -10885,9 +10900,9 @@ public class Program
                 // (30,25): error CS1510: A ref or out value must be an assignable variable
                 //         _ = p[valP: out 2];
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "2").WithLocation(30, 25),
-                // (31,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                // (31,23): error CS1510: A ref or out value must be an assignable variable
                 //         _ = p[inP: in 2];
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(31, 23));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "2").WithLocation(31, 23));
         }
 
         [Fact]
@@ -11385,12 +11400,12 @@ class Program
                 // (20,24): error CS0306: The type 'Program.RefLike' may not be used as a type argument
                 //         Method(in (rl, rl));
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(20, 24),
-                // (20,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                // (20,19): error CS1510: A ref or out value must be an assignable variable
                 //         Method(in (rl, rl));
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(rl, rl)").WithLocation(20, 19),
-                // (22,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(rl, rl)").WithLocation(20, 19),
+                // (22,19): error CS1510: A ref or out value must be an assignable variable
                 //         Method(in (y, x));  
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(y, x)").WithLocation(22, 19));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(y, x)").WithLocation(22, 19));
         }
 
         [Fact]
