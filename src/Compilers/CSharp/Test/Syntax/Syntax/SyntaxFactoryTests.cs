@@ -30,13 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UsingDirective()
         {
-            string name = "System.String";
-            var someValidName = SyntaxFactory.ParseName(name);
+            var someValidName = SyntaxFactory.ParseName("System.String");
             var usingDirective = SyntaxFactory.UsingDirective(SyntaxFactory.Token(SyntaxKind.StaticKeyword), null, someValidName);
             Assert.NotNull(usingDirective);
             Assert.Equal(SyntaxKind.StaticKeyword, usingDirective.StaticKeyword.Kind());
             Assert.Null(usingDirective.Alias);
-            Assert.Equal(name, usingDirective.Name.ToFullString());
+            Assert.Equal("System.String", usingDirective.Name.ToFullString());
         }
 
         [Fact]
