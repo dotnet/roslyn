@@ -12479,7 +12479,7 @@ class A : System.Attribute {}
 }
 ");
         }
-        
+
         [Theory]
         [InlineData("int[] P = default", "int[] P")]
         [InlineData("[A]int[] P", "int[] P")]
