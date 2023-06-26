@@ -8469,7 +8469,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"))
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a As Integer", "a"))
         End Sub
 #End Region
 

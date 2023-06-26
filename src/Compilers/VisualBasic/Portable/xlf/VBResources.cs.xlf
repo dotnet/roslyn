@@ -92,6 +92,11 @@
         <target state="translated">Události sdílených proměnných WithEvents se nedají zpracovat metodami v jiném typu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="new">'{0}' is defined in assembly '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
         <target state="translated">{0} {1} nemůže implementovat rozhraní {3}, protože obsahuje sdílené abstraktní nebo virtuální {2}.</target>
@@ -287,6 +292,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -299,7 +307,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Možnosti kompilátoru jazyka Visual Basic
+        <target state="needs-review-translation">                  Možnosti kompilátoru jazyka Visual Basic
 
                                   - VÝSTUPNÍ SOUBOR -
 -out:&lt;file&gt;                       Určuje název výstupního souboru.

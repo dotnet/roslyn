@@ -14,6 +14,7 @@
       "Microsoft.CodeAnalysis.Workspaces.Common": "vssdk",
       "Microsoft.CodeAnalysis.Workspaces.MSBuild": "arcade",
       "Microsoft.CodeAnalysis.Workspaces.Desktop": "arcade",
+      "Microsoft.CodeAnalysis.Compiler.Test.Resources": "vs-impl",
       "Microsoft.CodeAnalysis.CSharp": "vssdk",
       "Microsoft.CodeAnalysis.CSharp.CodeStyle": "arcade",
       "Microsoft.CodeAnalysis.CSharp.Features": "arcade",

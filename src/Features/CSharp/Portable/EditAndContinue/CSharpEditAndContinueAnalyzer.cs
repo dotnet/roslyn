@@ -564,6 +564,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         protected override Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)
             => SyntaxComparer.TopLevel.ComputeMatch(oldCompilationUnit, newCompilationUnit);
 
+        protected override BidirectionalMap<SyntaxNode>? ComputeParameterMap(SyntaxNode oldDeclaration, SyntaxNode newDeclaration)
+            => GetDeclarationParameterList(oldDeclaration) is { } oldParameterList && GetDeclarationParameterList(newDeclaration) is { } newParameterList ?
+                BidirectionalMap<SyntaxNode>.FromMatch(SyntaxComparer.TopLevel.ComputeMatch(oldParameterList, newParameterList)) : null;
+
+        private static SyntaxNode? GetDeclarationParameterList(SyntaxNode declaration)
+            => declaration switch
+            {
+                AccessorDeclarationSyntax { Parent.Parent: IndexerDeclarationSyntax { ParameterList: var list } } => list,
+                ArrowExpressionClauseSyntax { Parent: { } memberDecl } => GetDeclarationParameterList(memberDecl),
+                _ => declaration.GetParameterList()
+            };
+
         protected override Match<SyntaxNode> ComputeTopLevelDeclarationMatch(SyntaxNode oldDeclaration, SyntaxNode newDeclaration)
         {
             Contract.ThrowIfNull(oldDeclaration.Parent);
@@ -786,15 +798,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         protected override bool IsGlobalStatement(SyntaxNode node)
             => node.IsKind(SyntaxKind.GlobalStatement);
 
-        protected override TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node)
+        protected override TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node, EditKind editKind)
         {
             if (node is CompilationUnitSyntax unit)
             {
                 // When deleting something from a compilation unit we just report diagnostics for the last global statement
-                return unit.Members.OfType<GlobalStatementSyntax>().LastOrDefault()?.Span ?? default;
+                if (editKind == EditKind.Delete)
+                {
+                    return unit.Members.OfType<GlobalStatementSyntax>().LastOrDefault()?.Span ?? default;
+                }
+
+                return unit.Members.OfType<GlobalStatementSyntax>().FirstOrDefault()?.Span ?? default;
             }
 
-            return GetDiagnosticSpan(node, EditKind.Delete);
+            return GetDiagnosticSpan(node, editKind);
         }
 
         protected override IEnumerable<SyntaxNode> GetTopLevelTypeDeclarations(SyntaxNode compilationUnit)

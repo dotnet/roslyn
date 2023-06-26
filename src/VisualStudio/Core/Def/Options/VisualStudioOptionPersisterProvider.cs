@@ -29,7 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
         // maps config name to a read fallback:
         private readonly ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> _readFallbacks;
 
-        private VisualStudioOptionPersister? _lazyPersister;
+        // Use vs-threading's JTF-aware AsyncLazy<T>. Ensure only one persister instance is created (even in the face of
+        // parallel requests for the value) because the constructor registers global event handler callbacks.
+        private readonly Threading.AsyncLazy<IOptionPersister> _lazyPersister;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -46,29 +48,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
             _featureFlagsService = featureFlagsService;
             _legacyGlobalOptions = legacyGlobalOptions;
             _readFallbacks = readFallbacks.ToImmutableDictionary(item => item.Metadata.ConfigName, item => item);
+            _lazyPersister = new Threading.AsyncLazy<IOptionPersister>(() => CreatePersisterAsync(threadingContext.DisposalToken), threadingContext.JoinableTaskFactory);
         }
 
-        public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
+        public ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
+            => new(_lazyPersister.GetValueAsync(cancellationToken));
+
+        private async Task<IOptionPersister> CreatePersisterAsync(CancellationToken cancellationToken)
         {
-            return _lazyPersister ??= await CreatePersisterAsync(cancellationToken).ConfigureAwait(true);
+            // Obtain services before creating instances. This avoids state corruption in the event cancellation is
+            // requested (some of the constructors register event handlers that could leak if cancellation occurred
+            // in the middle of construction).
+            var settingsManager = await _settingsManagerService.GetValueAsync(cancellationToken).ConfigureAwait(true);
+            var localRegistry = await _localRegistryService.GetValueAsync(cancellationToken).ConfigureAwait(true);
+            var featureFlags = await _featureFlagsService.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
 
-            async Task<VisualStudioOptionPersister> CreatePersisterAsync(CancellationToken cancellationToken)
-            {
-                // Obtain services before creating instances. This avoids state corruption in the event cancellation is
-                // requested (some of the constructors register event handlers that could leak if cancellation occurred
-                // in the middle of construction).
-                var settingsManager = await _settingsManagerService.GetValueAsync(cancellationToken).ConfigureAwait(true);
-                var localRegistry = await _localRegistryService.GetValueAsync(cancellationToken).ConfigureAwait(true);
-                var featureFlags = await _featureFlagsService.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
+            // Cancellation is not allowed after this point
+            cancellationToken = CancellationToken.None;
 
-                // Cancellation is not allowed after this point
-                cancellationToken = CancellationToken.None;
-
-                return new VisualStudioOptionPersister(
-                    new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, settingsManager),
-                    LocalUserRegistryOptionPersister.Create(localRegistry),
-                    new FeatureFlagPersister(featureFlags));
-            }
+            return new VisualStudioOptionPersister(
+                new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, settingsManager),
+                LocalUserRegistryOptionPersister.Create(localRegistry),
+                new FeatureFlagPersister(featureFlags));
         }
 
         private void RefreshOption(OptionKey2 optionKey, object? newValue)

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = true,
                 Legend = new SemanticTokensLegend
                 {
-                    TokenTypes = SemanticTokensSchema.GetSchema(clientCapabilities).AllTokenTypes.ToArray(),
+                    TokenTypes = SemanticTokensSchema.GetSchema(clientCapabilities.HasVisualStudioLspCapability()).AllTokenTypes.ToArray(),
                     TokenModifiers = new string[] { SemanticTokenModifiers.Static }
                 }
             };

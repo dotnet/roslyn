@@ -2220,6 +2220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorCannotUseUnmanagedCallersOnly = 9161,
 
         ERR_BadUsingStaticType = 9162,
+        ERR_SymbolDefinedInAssembly = 9163,
 
         ERR_InlineArrayConversionToSpanNotSupported = 9501, // PROTOTYPE(InlineArrays): Pack numbers
         ERR_InlineArrayConversionToReadOnlySpanNotSupported = 9502,
