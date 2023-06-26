@@ -272,6 +272,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUsingTypeAlias = MessageBase + 12834,
 
         IDS_FeatureInstanceMemberInNameof = MessageBase + 12835,
+
+        IDS_FeatureInlineArrays = MessageBase + 12836,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -457,6 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeaturePrimaryConstructors: // declaration table check
                 case MessageID.IDS_FeatureUsingTypeAlias: // semantic check
                 case MessageID.IDS_FeatureInstanceMemberInNameof: // semantic check
+                case MessageID.IDS_FeatureInlineArrays: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 11.0 features.

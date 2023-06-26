@@ -5261,7 +5261,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Async methods cannot have by-reference locals</value>
   </data>
   <data name="ERR_RefReturningCallAndAwait" xml:space="preserve">
-    <value>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</value>
+    <value>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</value>
   </data>
   <data name="ERR_RefConditionalAndAwait" xml:space="preserve">
     <value>'await' cannot be used in an expression containing a ref conditional operator</value>
@@ -7621,5 +7621,38 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_CapturedPrimaryConstructorParameterInFieldInitializer_Title" xml:space="preserve">
     <value>Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</value>
+  </data>
+  <data name="ERR_InlineArrayConversionToSpanNotSupported" xml:space="preserve">
+    <value>Cannot convert expression to '{0}' because it is not an assignable variable</value>
+  </data>
+  <data name="ERR_InlineArrayConversionToReadOnlySpanNotSupported" xml:space="preserve">
+    <value>Cannot convert expression to '{0}' because it may not be passed or returned by reference</value>
+  </data>
+  <data name="IDS_FeatureInlineArrays" xml:space="preserve">
+    <value>inline arrays</value>
+  </data>
+  <data name="ERR_InlineArrayIndexOutOfRange" xml:space="preserve">
+    <value>Index is outside the bounds of the inline array</value>
+  </data>
+  <data name="ERR_InvalidInlineArrayLength" xml:space="preserve">
+    <value>Inline array length must be greater than 0.</value>
+  </data>
+  <data name="ERR_InvalidInlineArrayLayout" xml:space="preserve">
+    <value>Inline array struct must not have explicit layout.</value>
+  </data>
+  <data name="ERR_InvalidInlineArrayFields" xml:space="preserve">
+    <value>Inline array struct must declare one and only one instance field which must not be a ref field.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsInlineArrayOperation" xml:space="preserve">
+    <value>An expression tree may not contain an inline array access or conversion</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportInlineArrayTypes" xml:space="preserve">
+    <value>Target runtime doesn't support inline array types.</value>
+  </data>
+  <data name="ERR_InlineArrayBadIndex" xml:space="preserve">
+    <value>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</value>
+  </data>
+  <data name="ERR_NamedArgumentForInlineArray" xml:space="preserve">
+    <value>An inline array access may not have a named argument specifier</value>
   </data>
 </root>

@@ -277,15 +277,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(CreatePart(SymbolDisplayPartKind.NumericLiteral, symbol, "lambda expression"));
                 return;
             }
-            else if ((symbol as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol is SynthesizedGlobalMethodSymbol) // It would be nice to handle VB symbols too, but it's not worth the effort.
-            {
-                // Represents a compiler generated synthesized method symbol with a null containing
-                // type.
-
-                // TODO(cyrusn); Why is this a literal?
-                builder.Add(CreatePart(SymbolDisplayPartKind.NumericLiteral, symbol, symbol.Name));
-                return;
-            }
             else if (symbol.MethodKind == MethodKind.FunctionPointerSignature)
             {
                 visitFunctionPointerSignature(symbol);

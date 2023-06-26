@@ -958,6 +958,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
+        public override void VisitInlineArrayAccess(IInlineArrayAccessOperation operation)
+        {
+            LogString(nameof(IInlineArrayAccessOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Instance, "Instance");
+            Visit(operation.Argument, "Argument");
+        }
+
         internal override void VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation)
         {
             LogString(nameof(IPointerIndirectionReferenceOperation));

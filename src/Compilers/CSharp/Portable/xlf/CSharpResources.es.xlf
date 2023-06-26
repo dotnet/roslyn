@@ -587,6 +587,11 @@
         <target state="translated">Un árbol de expresión no puede contener una expresión de índice del otro extremo ("^").</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsInlineArrayOperation">
+        <source>An expression tree may not contain an inline array access or conversion</source>
+        <target state="new">An expression tree may not contain an inline array access or conversion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
         <source>An expression tree may not contain an interpolated string handler conversion.</source>
         <target state="translated">Un árbol de (la) expresión no puede contener una conversión de controlador de cadena interpolada.</target>
@@ -847,6 +852,26 @@
         <target state="translated">Los descriptores de acceso "init" no se pueden marcar como "readonly". Marque en su lugar "{0}" como readOnly.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayBadIndex">
+        <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
+        <target state="new">Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToReadOnlySpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it may not be passed or returned by reference</source>
+        <target state="new">Cannot convert expression to '{0}' because it may not be passed or returned by reference</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToSpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it is not an assignable variable</source>
+        <target state="new">Cannot convert expression to '{0}' because it is not an assignable variable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayIndexOutOfRange">
+        <source>Index is outside the bounds of the inline array</source>
+        <target state="new">Index is outside the bounds of the inline array</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">Las propiedades de la instancia en las interfaces no pueden tener inicializadores.</target>
@@ -1020,6 +1045,21 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Nombre de algoritmo hash no válido: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayFields">
+        <source>Inline array struct must declare one and only one instance field which must not be a ref field.</source>
+        <target state="new">Inline array struct must declare one and only one instance field which must not be a ref field.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLayout">
+        <source>Inline array struct must not have explicit layout.</source>
+        <target state="new">Inline array struct must not have explicit layout.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLength">
+        <source>Inline array length must be greater than 0.</source>
+        <target state="new">Inline array length must be greater than 0.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidInterpolatedStringHandlerArgumentName">
@@ -1200,6 +1240,11 @@
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single partial type declaration may have a parameter list</source>
         <target state="translated">Solo una declaración de tipo parcial puede tener una lista de parámetros</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NamedArgumentForInlineArray">
+        <source>An inline array access may not have a named argument specifier</source>
+        <target state="new">An inline array access may not have a named argument specifier</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1610,6 +1655,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
         <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
         <target state="translated">"{0}": el entorno de ejecución de destino no admite los tipos de valores devueltos de covariante en las invalidaciones. El tipo de valor devuelto debe ser "{2}" para que coincida con el miembro "{1}" invalidado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportInlineArrayTypes">
+        <source>Target runtime doesn't support inline array types.</source>
+        <target state="new">Target runtime doesn't support inline array types.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
@@ -2025,6 +2075,11 @@
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
         <target state="translated">tipo de delegado inferido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInlineArrays">
+        <source>inline arrays</source>
+        <target state="new">inline arrays</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
@@ -11976,8 +12031,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
-        <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'No se puede usar 'await' en una expresión que contiene una llamada a '{0}' porque devuelve datos por referencia.</target>
+        <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="needs-review-translation">'No se puede usar 'await' en una expresión que contiene una llamada a '{0}' porque devuelve datos por referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">

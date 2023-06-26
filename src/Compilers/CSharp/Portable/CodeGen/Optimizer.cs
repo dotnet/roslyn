@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // If the LHS is a readonly ref and the result is used later we cannot stack
                 // schedule since we may be converting a writeable value on the RHS to a readonly
                 // one on the LHS.
-                if (localSymbol.RefKind == RefKind.RefReadOnly &&
+                if (localSymbol.RefKind is RefKind.RefReadOnly or RefKindExtensions.StrictIn &&
                     (_context == ExprContext.Address || _context == ExprContext.Value))
                 {
                     ShouldNotSchedule(localSymbol);
