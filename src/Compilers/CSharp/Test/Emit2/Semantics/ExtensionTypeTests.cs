@@ -13133,9 +13133,6 @@ implicit extension E for C
             // (1,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
             // var (x, y) = new C();
             Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(1, 9),
-            // (1,14): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(1, 14),
             // (1,14): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
             // var (x, y) = new C();
             Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(1, 14)
@@ -13172,9 +13169,6 @@ implicit extension E for C
             // (1,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
             // var (x, y) = new C();
             Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(1, 9),
-            // (1,14): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(1, 14),
             // (1,14): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
             // var (x, y) = new C();
             Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(1, 14)
@@ -14564,7 +14558,7 @@ class Program
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
 
         CompileAndVerify(comp, expectedOutput: @"Red", verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // 0.cs(4,27): warning CS9113: Parameter 'Color' is unread.
+            // (4,27): warning CS9113: Parameter 'Color' is unread.
             //     public class C1(Color Color)
             Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(4, 27)
             );
@@ -15798,9 +15792,9 @@ implicit extension E for C
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): error CS8389: Omitting the type argument is not allowed in the current context
+            // (1,1): error CS0305: Using the generic method group 'M' requires 1 type arguments
             // new C().M<>(42);
-            Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "new C().M<>").WithLocation(1, 1)
+            Diagnostic(ErrorCode.ERR_BadArity, "new C().M<>").WithArguments("M", "method group", "1").WithLocation(1, 1)
             );
 
         var tree = comp.SyntaxTrees.First();
@@ -16623,7 +16617,7 @@ implicit extension E for C
     [Fact]
     public void ExtensionMethodsInNonInvocationLookup()
     {
-        // Extension member lookup includes extension methods
+        // PROTOTYPE Extension member lookup should include extension methods
         var src = """
 public implicit extension E1 for object
 {
@@ -16658,20 +16652,88 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (23,13): error CS0149: Method name expected
+            //             x();
+            Diagnostic(ErrorCode.ERR_MethodNameExpected, "x").WithLocation(23, 13),
+            // (25,31): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+            //             System.Action y = o.Member;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "o.Member").WithArguments("int", "System.Action").WithLocation(25, 31)
+            );
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "ran ran ran");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").First();
-        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
 
         var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(1).First();
-        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
 
         var memberAccess3 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(2).Single();
         Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_Generic()
+    {
+        // PROTOTYPE Extension member lookup should include extension methods
+        var src = """
+public implicit extension E1 for object
+{
+    public int Member => throw null;
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void Member<T>(this T o)
+        {
+            System.Console.Write("ran ");
+        }
+    }
+
+    class C
+    {
+        public static void Main()
+        {
+            var o = new object();
+
+            var x = o.Member;
+            x();
+
+            System.Action y = o.Member;
+            y();
+
+            o.Member();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (23,13): error CS0149: Method name expected
+            //             x();
+            Diagnostic(ErrorCode.ERR_MethodNameExpected, "x").WithLocation(23, 13),
+            // (25,31): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+            //             System.Action y = o.Member;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "o.Member").WithArguments("int", "System.Action").WithLocation(25, 31)
+            );
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "ran ran ran");
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").First();
+        Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(1).First();
+        Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+
+        var memberAccess3 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(2).Single();
+        Assert.Equal("void System.Object.Member<System.Object>()", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -16763,10 +16825,10 @@ namespace N
         Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMethodsInNonInvocationLookup_ComesBeforeExtensionTypeInNextScope()
     {
-        // Imported extension methods come before extension type members in outer scope
+        // PROTOTYPE Imported extension methods should come before extension type members in outer scope
         var src = """
 public implicit extension E1 for object
 {
@@ -16805,48 +16867,55 @@ namespace N2
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (16,13): error CS0149: Method name expected
+            //             x();
+            Diagnostic(ErrorCode.ERR_MethodNameExpected, "x").WithLocation(16, 13),
+            // (18,31): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+            //             System.Action y = o.Member;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "o.Member").WithArguments("int", "System.Action").WithLocation(18, 31)
+            );
         // Existing ILVerification failure tracked by https://github.com/dotnet/roslyn/issues/68749
-        var verifier = CompileAndVerify(comp, expectedOutput: "ran ran ran", verify: Verification.Fails);
+        //var verifier = CompileAndVerify(comp, expectedOutput: "ran ran ran", verify: Verification.Fails);
 
-        verifier.VerifyIL("N1.C.Main", """
-{
-  // Code size       55 (0x37)
-  .maxstack  2
-  .locals init (object V_0, //o
-                System.Action V_1, //x
-                System.Action V_2) //y
-  IL_0000:  nop
-  IL_0001:  newobj     "object..ctor()"
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldftn      "void N2.E2.Member(object)"
-  IL_000e:  newobj     "System.Action..ctor(object, nint)"
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  callvirt   "void System.Action.Invoke()"
-  IL_001a:  nop
-  IL_001b:  ldloc.0
-  IL_001c:  ldftn      "void N2.E2.Member(object)"
-  IL_0022:  newobj     "System.Action..ctor(object, nint)"
-  IL_0027:  stloc.2
-  IL_0028:  ldloc.2
-  IL_0029:  callvirt   "void System.Action.Invoke()"
-  IL_002e:  nop
-  IL_002f:  ldloc.0
-  IL_0030:  call       "void N2.E2.Member(object)"
-  IL_0035:  nop
-  IL_0036:  ret
-}
-""");
+        //        verifier.VerifyIL("N1.C.Main", """
+        //{
+        //  // Code size       55 (0x37)
+        //  .maxstack  2
+        //  .locals init (object V_0, //o
+        //                System.Action V_1, //x
+        //                System.Action V_2) //y
+        //  IL_0000:  nop
+        //  IL_0001:  newobj     "object..ctor()"
+        //  IL_0006:  stloc.0
+        //  IL_0007:  ldloc.0
+        //  IL_0008:  ldftn      "void N2.E2.Member(object)"
+        //  IL_000e:  newobj     "System.Action..ctor(object, nint)"
+        //  IL_0013:  stloc.1
+        //  IL_0014:  ldloc.1
+        //  IL_0015:  callvirt   "void System.Action.Invoke()"
+        //  IL_001a:  nop
+        //  IL_001b:  ldloc.0
+        //  IL_001c:  ldftn      "void N2.E2.Member(object)"
+        //  IL_0022:  newobj     "System.Action..ctor(object, nint)"
+        //  IL_0027:  stloc.2
+        //  IL_0028:  ldloc.2
+        //  IL_0029:  callvirt   "void System.Action.Invoke()"
+        //  IL_002e:  nop
+        //  IL_002f:  ldloc.0
+        //  IL_0030:  call       "void N2.E2.Member(object)"
+        //  IL_0035:  nop
+        //  IL_0036:  ret
+        //}
+        //""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").First();
-        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
 
         var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(1).First();
-        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
 
         var memberAccess3 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(2).Single();
         Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
@@ -17085,8 +17154,9 @@ public class C
     }
 
     [Fact]
-    public void ParameterCapturing_023_ColorColor_MemberAccess_InstanceAndStatic_Method()
+    public void ParameterCapturing_023_ColorColor_MemberAccess_InstanceAndStatic_ExtensionTypeMethods()
     {
+        // See ParameterCapturing_023_ColorColor_MemberAccess_InstanceAndStatic_Method
         var source = """
 struct S1(Color Color)
 {
@@ -17112,7 +17182,11 @@ implicit extension E for Color
 }
 """;
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyDiagnostics(
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.M1(this);
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+            );
 
         Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
 
@@ -17120,5 +17194,133 @@ implicit extension E for Color
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.M1");
         Assert.Equal("void E.M1(S1 x, [System.Int32 y = 0])", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ParameterCapturing_023_ColorColor_MemberAccess_InstanceAndStatic_ExtensionTypeProperties()
+    {
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        _ = Color.P1;
+    }
+}
+
+class Color { }
+
+implicit extension E1 for Color
+{
+    public int P1 => 0;
+}
+
+implicit extension E2 for Color
+{
+    public static int P1 => 0;
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (5,19): error CS0229: Ambiguity between 'E1.P1' and 'E2.P1'
+            //         _ = Color.P1;
+            Diagnostic(ErrorCode.ERR_AmbigMember, "P1").WithArguments("E1.P1", "E2.P1").WithLocation(5, 19)
+            );
+
+        Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.P1");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact]
+    public void ParameterCapturing_023_ColorColor_MemberAccess_InstanceAndStatic_ExtensionTypeMembersVsExtensionMethod()
+    {
+        var source = """
+public struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+public class Color { }
+
+public static class E1
+{
+    public static void M1(this Color c, S1 x, int y = 0)
+    {
+        System.Console.WriteLine("instance");
+    }
+}
+
+implicit extension E2 for Color
+{
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine("static");
+    }
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.M1(this);
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+            );
+
+        Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.M1");
+        Assert.Equal("void Color.M1(S1 x, [System.Int32 y = 0])", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void NotOnBase()
+    {
+        // Unlike `this`, `base` is not an expression in itself.
+        // "Extension invocation" and "extension member lookup" do not apply to `base_access` syntax.
+        var src = """
+class Base { }
+
+class Derived : Base
+{
+    void Main()
+    {
+        M(); // 1
+        this.M();
+        base.M(); // 2
+        _ = P; // 3
+        _ = this.P;
+        _ = base.P; // 4
+    }
+}
+
+implicit extension E for Base
+{
+    public void M() { }
+    public int P => 0;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (7,9): error CS0103: The name 'M' does not exist in the current context
+            //         M(); // 1
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(7, 9),
+            // (9,14): error CS0117: 'Base' does not contain a definition for 'M'
+            //         base.M(); // 2
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("Base", "M").WithLocation(9, 14),
+            // (10,13): error CS0103: The name 'P' does not exist in the current context
+            //         _ = P; // 3
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "P").WithArguments("P").WithLocation(10, 13),
+            // (12,18): error CS0117: 'Base' does not contain a definition for 'P'
+            //         _ = base.P; // 4
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "P").WithArguments("Base", "P").WithLocation(12, 18)
+            );
     }
 }

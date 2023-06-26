@@ -873,6 +873,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
+
+            if (qualifierOpt is TypeSymbol leftType)
+            {
+                this.LookupExtensionMembersIfNeeded(result, leftType, identifierValueText, arity: 0, basesBeingResolved, options, ref useSiteInfo);
+            }
+
             diagnostics.Add(node, useSiteInfo);
 
             Symbol bindingResult = null;
@@ -1081,13 +1087,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = LookupOptions.NamespacesOrTypesOnly;
             }
 
-            if (qualifierOpt is not null)
-            {
-                // Extension member lookup comes into play for member access (ie. with a qualifier),
-                // but not for simple names (ie. without a qualifier).
-                result |= LookupOptions.SearchInExtensionTypes;
-            }
-
             return result;
         }
 
@@ -1284,6 +1283,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsSimpleName(lookupResult, qualifierOpt, plainName, arity, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
+            if (qualifierOpt is TypeSymbol leftType)
+            {
+                this.LookupExtensionMembersIfNeeded(lookupResult, leftType, plainName, arity, basesBeingResolved, options, ref useSiteInfo);
+            }
             diagnostics.Add(node, useSiteInfo);
 
             bool wasError;
@@ -1528,6 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // See if there could be extension methods in scope
                 foreach (var scope in new ExtensionScopes(this))
                 {
+                    // PROTOTYPE We'll probably want to check for extension type members here
                     lookupResult ??= LookupResult.GetInstance();
                     LookupExtensionMethods(lookupResult, scope, plainName, arity, ref useSiteInfo);
 

@@ -888,6 +888,7 @@ internal static class Extensions
     {
         CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
         binder.LookupSymbolsSimpleName(result, qualifierOpt, plainName, arity, basesBeingResolved, options, diagnose, ref useSiteInfo);
+        // PROTOTYPE implement Lookup APIs for extension types
         AddDiagnosticInfos(ref useSiteDiagnostics, useSiteInfo);
     }
 

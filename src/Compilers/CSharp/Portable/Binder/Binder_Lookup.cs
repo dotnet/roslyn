@@ -299,9 +299,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // TODO: Diagnose ambiguity problems here, and conflicts between non-method and method? Or is that
             // done in the caller?
+        }
 
-            if ((options & LookupOptions.SearchInExtensionTypes) != 0 && !result.IsMultiViable &&
-                !type.IsTypeParameter())
+        private void LookupExtensionMembersIfNeeded(LookupResult result, TypeSymbol type, string name, int arity,
+            ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (!result.IsMultiViable && !type.IsTypeParameter())
             {
                 var extensionResult = LookupResult.GetInstance();
                 LookupMembersInExtensions(extensionResult, name, arity, basesBeingResolved, ref useSiteInfo, options, type);
@@ -317,7 +320,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void LookupMembersInExtensions(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, LookupOptions options, TypeSymbol type)
         {
-            Debug.Assert((options & LookupOptions.SearchInExtensionTypes) != 0);
             Debug.Assert(!type.IsTypeParameter());
 
             foreach (ExtensionScope scope in new ExtensionScopes(this))
@@ -333,40 +335,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (result.IsMultiViable)
                     break;
 
-                if (!result.IsClear)
-                {
-                    result.Clear();
-                }
-
-                // PROTOTYPE test use-site diagnostics
-                lookupEligibleExtensionMethodsInSingleBinder(scope, result, type, name, arity, options, ref useSiteInfo);
-
-                if (result.IsMultiViable)
-                    break;
-            }
-
-            return;
-
-            void lookupEligibleExtensionMethodsInSingleBinder(ExtensionScope scope, LookupResult result, TypeSymbol type,
-                string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                var conversions = Conversions;
-                var methods = ArrayBuilder<MethodSymbol>.GetInstance();
-                scope.Binder.GetCandidateExtensionMethods(methods, name, arity, options, this);
-
-                foreach (var method in methods)
-                {
-                    SingleLookupResult resultOfThisMember = this.CheckViability(method, arity,
-                        options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
-
-                    var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, type, ref useSiteInfo);
-                    if (conversion.Exists)
-                    {
-                        result.MergeEqual(resultOfThisMember);
-                    }
-                }
-
-                methods.Free();
+                // PROTOTYPE we'd like extension member lookup to also find extension methods
+                //   but that requires having arguments at hand (for applicability, which factors into eligility)
             }
         }
 #nullable disable

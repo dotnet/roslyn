@@ -1745,6 +1745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options: options & ~LookupOptions.IncludeExtensionMethods,
                 diagnose: false,
                 useSiteInfo: ref discardedUseSiteInfo);
+            // PROTOTYPE test Lookup APIs and add support for extension types
 
             if (lookupResult.IsMultiViable)
             {

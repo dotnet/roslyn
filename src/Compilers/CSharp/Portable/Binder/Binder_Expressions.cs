@@ -6658,10 +6658,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     options |= LookupOptions.MustBeInvocableIfMember;
                 }
-                else
-                {
-                    options |= LookupOptions.SearchInExtensionTypes;
-                }
 
                 var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName ? ((GenericNameSyntax)right).TypeArgumentList.Arguments : default(SeparatedSyntaxList<TypeSyntax>);
                 var typeArguments = typeArgumentsSyntax.Count > 0 ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default(ImmutableArray<TypeWithAnnotations>);
@@ -6769,6 +6765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 this.LookupMembersWithFallback(lookupResult, ns, rightName, rightArity, ref useSiteInfo, options: options);
+
                 diagnostics.Add(right, useSiteInfo);
 
                 ArrayBuilder<Symbol> symbols = lookupResult.Symbols;
@@ -6864,7 +6861,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo2 = GetNewCompoundUseSiteInfo(diagnostics);
                 this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo2, basesBeingResolved: null, options: options);
+
+                if (!invoked)
+                {
+                    this.LookupExtensionMembersIfNeeded(lookupResult, leftType, rightName, rightArity, basesBeingResolved: null, options, ref useSiteInfo2);
+                }
+
                 diagnostics.Add(right, useSiteInfo2);
+
                 if (lookupResult.IsMultiViable)
                 {
                     return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.SearchExtensionMethods, diagnostics: diagnostics);
@@ -6954,14 +6958,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // UNDONE: Classify E as prop access, indexer access, variable or value
 
                 bool leftIsBaseReference = boundLeft.Kind == BoundKind.BaseReference;
+                searchExtensionMethodsIfNecessary = searchExtensionMethodsIfNecessary && !leftIsBaseReference;
+
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 this.LookupInstanceMember(lookupResult, leftType, leftIsBaseReference, rightName, rightArity, invoked, ref useSiteInfo);
+
+                if (!lookupResult.IsMultiViable && searchExtensionMethodsIfNecessary)
+                {
+                    LookupOptions options = LookupOptions.AllMethodsOnArityZero;
+                    if (invoked)
+                    {
+                        options |= LookupOptions.MustBeInvocableIfMember;
+                    }
+                    this.LookupExtensionMembersIfNeeded(lookupResult, leftType, rightName, rightArity, basesBeingResolved: null, options, ref useSiteInfo);
+                }
+
                 diagnostics.Add(right, useSiteInfo);
 
                 // SPEC: Otherwise, an attempt is made to process E.I as an extension method invocation.
                 // SPEC: If this fails, E.I is an invalid member reference, and a binding-time error occurs.
-                searchExtensionMethodsIfNecessary = searchExtensionMethodsIfNecessary && !leftIsBaseReference;
-
                 BoundMethodGroupFlags flags = BoundMethodGroupFlags.None;
                 if (searchExtensionMethodsIfNecessary)
                 {
@@ -7023,10 +7038,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (invoked)
             {
                 options |= LookupOptions.MustBeInvocableIfMember;
-            }
-            else
-            {
-                options |= LookupOptions.SearchInExtensionTypes;
             }
 
             if (leftIsBaseReference)
