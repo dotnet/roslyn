@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.StaticKeyword, usingDirective.StaticKeyword.Kind());
             Assert.Null(usingDirective.Alias);
             Assert.Equal("System.String", usingDirective.Name.ToFullString());
+            Assert.Equal(SyntaxKind.SemicolonToken, usingDirective.SemicolonToken.Kind());
         }
 
         [Fact]
