@@ -11339,10 +11339,10 @@ IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'I
                 // [assembly: /*<bind>*/Inexistent(SomeProperty = 1, F = null, G = 0 switch { _ => 1 })/*</bind>*/]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Inexistent").WithArguments("Inexistent").WithLocation(1, 22)
             };
-
-            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-
+            
             var comp = CreateCompilation(source);
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
