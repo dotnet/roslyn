@@ -7454,11 +7454,11 @@ done:;
             // expression misplaced in an invalid top level expression-statement. (like `[] + b`).  These are
             // technically invalid. But checking for this allows us to parse effectively to then give a good semantic
             // error later on. These cases came from: ParseExpressionContinued
-            isCollectionExpression = isCollectionExpression ||
-                IsExpectedBinaryOperator(this.CurrentToken.Kind) ||
-                IsExpectedAssignmentOperator(this.CurrentToken.Kind) ||
-                this.CurrentToken.Kind is SyntaxKind.DotDotToken ||
-                this.CurrentToken.ContextualKind is SyntaxKind.SwitchKeyword or SyntaxKind.WithKeyword && this.PeekToken(1).Kind is SyntaxKind.OpenBraceToken;
+            isCollectionExpression = isCollectionExpression
+                || IsExpectedBinaryOperator(this.CurrentToken.Kind)
+                || IsExpectedAssignmentOperator(this.CurrentToken.Kind)
+                || this.CurrentToken.Kind is SyntaxKind.DotDotToken
+                || this.CurrentToken.ContextualKind is SyntaxKind.SwitchKeyword or SyntaxKind.WithKeyword && this.PeekToken(1).Kind is SyntaxKind.OpenBraceToken;
 
             // If this was a collection expression, not an attribute declaration, return no attributes so that the
             // caller will parse this out as a collection expression. Otherwise re-parse the code as the actual
