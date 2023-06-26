@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void IndexerDeclarationUpdateRetainsSemicolonToken()
         {
-            string originalTextAttachedToSemicolon = $"//{nameof(originalTextAttachedToSemicolon)}";
-            var comment = SyntaxFactory.Comment(originalTextAttachedToSemicolon);
+            var comment = SyntaxFactory.Comment("//originalLeadingComment");
             SyntaxToken originalSemicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithLeadingTrivia(comment);
             var initialDeclaration = SyntaxFactory.IndexerDeclaration(SyntaxFactory.ParseName("System.String"))
                 .WithSemicolonToken(originalSemicolonToken);
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 initialDeclaration.ParameterList,
                 initialDeclaration.AccessorList);
 
-            Assert.Equal(originalTextAttachedToSemicolon, mutatedDeclaration.SemicolonToken.GetLeadingTrivia().ToFullString());
+            Assert.Equal("//originalLeadingComment", mutatedDeclaration.SemicolonToken.GetLeadingTrivia().ToFullString());
         }
 
         [WorkItem(528399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528399")]
