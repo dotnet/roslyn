@@ -2222,16 +2222,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadUsingStaticType = 9162,
         ERR_SymbolDefinedInAssembly = 9163,
 
-        ERR_InlineArrayConversionToSpanNotSupported = 9501, // PROTOTYPE(InlineArrays): Pack numbers
-        ERR_InlineArrayConversionToReadOnlySpanNotSupported = 9502,
-        ERR_InlineArrayIndexOutOfRange = 9503,
-        ERR_InvalidInlineArrayLength = 9504,
-        ERR_InvalidInlineArrayLayout = 9505,
-        ERR_InvalidInlineArrayFields = 9506,
-        ERR_ExpressionTreeContainsInlineArrayOperation = 9507,
-        ERR_RuntimeDoesNotSupportInlineArrayTypes = 9508,
-        ERR_InlineArrayBadIndex = 9509,
-        ERR_NamedArgumentForInlineArray = 9510,
+        ERR_InlineArrayConversionToSpanNotSupported = 9164,
+        ERR_InlineArrayConversionToReadOnlySpanNotSupported = 9165,
+        ERR_InlineArrayIndexOutOfRange = 9166,
+        ERR_InvalidInlineArrayLength = 9167,
+        ERR_InvalidInlineArrayLayout = 9168,
+        ERR_InvalidInlineArrayFields = 9169,
+        ERR_ExpressionTreeContainsInlineArrayOperation = 9170,
+        ERR_RuntimeDoesNotSupportInlineArrayTypes = 9171,
+        ERR_InlineArrayBadIndex = 9172,
+        ERR_NamedArgumentForInlineArray = 9173,
 
         #endregion
 

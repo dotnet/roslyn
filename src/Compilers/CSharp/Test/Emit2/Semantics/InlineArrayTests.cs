@@ -250,7 +250,7 @@ struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (4,46): error CS9504: Inline array length must be greater than 0.
+                // (4,46): error CS9167: Inline array length must be greater than 0.
                 // [System.Runtime.CompilerServices.InlineArray(0)]
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayLength, "0").WithLocation(4, 46)
                 );
@@ -316,7 +316,7 @@ struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (4,46): error CS9504: Inline array length must be greater than 0.
+                // (4,46): error CS9167: Inline array length must be greater than 0.
                 // [System.Runtime.CompilerServices.InlineArray(-1)]
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayLength, "-1").WithLocation(4, 46)
                 );
@@ -382,7 +382,7 @@ struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (4,46): error CS9504: Inline array length must be greater than 0.
+                // (4,46): error CS9167: Inline array length must be greater than 0.
                 // [System.Runtime.CompilerServices.InlineArray(-2)]
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayLength, "-2").WithLocation(4, 46)
                 );
@@ -447,7 +447,7 @@ struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,8): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
                 );
@@ -512,7 +512,7 @@ struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,8): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
                 );
@@ -602,7 +602,7 @@ struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,8): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
                 );
@@ -985,7 +985,7 @@ ref struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,12): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,12): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // ref struct Buffer
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 12)
                 );
@@ -1053,7 +1053,7 @@ ref struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,12): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,12): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // ref struct Buffer
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 12)
                 );
@@ -1346,7 +1346,7 @@ struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,8): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
                 );
@@ -1371,7 +1371,7 @@ struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,8): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
                 );
@@ -1395,7 +1395,7 @@ record struct Buffer(int p)
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,15): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,15): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // record struct Buffer(int p)
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 15)
                 );
@@ -1693,7 +1693,7 @@ struct Buffer(int p)
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9506: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,8): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
                 // struct Buffer(int p)
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
                 );
@@ -1767,7 +1767,7 @@ struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (6,8): error CS9505: Inline array struct must not have explicit layout.
+                // (6,8): error CS9168: Inline array struct must not have explicit layout.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayLayout, "Buffer").WithLocation(6, 8)
                 );
@@ -4534,13 +4534,13 @@ class Program
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (7,15): error CS9507: An expression tree may not contain an inline array access or conversion
+                // (7,15): error CS9170: An expression tree may not contain an inline array access or conversion
                 //         () => x[0];
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation, "x[0]").WithLocation(7, 15),
                 // (10,15): error CS0832: An expression tree may not contain an assignment operator
                 //         () => x[0] = 111;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "x[0] = 111").WithLocation(10, 15),
-                // (10,15): error CS9507: An expression tree may not contain an inline array access or conversion
+                // (10,15): error CS9170: An expression tree may not contain an inline array access or conversion
                 //         () => x[0] = 111;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation, "x[0]").WithLocation(10, 15)
                 );
@@ -11069,7 +11069,7 @@ class Program
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (12,13): error CS9509: Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.
+                // (12,13): error CS9172: Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.
                 //         _ = x.F[0, 1];
                 Diagnostic(ErrorCode.ERR_InlineArrayBadIndex, "x.F[0, 1]").WithLocation(12, 13)
                 );
@@ -11096,7 +11096,7 @@ class Program
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (12,13): error CS9509: Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.
+                // (12,13): error CS9172: Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.
                 //         _ = x.F["a"];
                 Diagnostic(ErrorCode.ERR_InlineArrayBadIndex, @"x.F[""a""]").WithLocation(12, 13)
                 );
@@ -11122,7 +11122,7 @@ class Program
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (11,13): error CS9510: An inline array access may not have a named argument specifier
+                // (11,13): error CS9173: An inline array access may not have a named argument specifier
                 //         _ = x.F[x: 1];
                 Diagnostic(ErrorCode.ERR_NamedArgumentForInlineArray, "x.F[x: 1]").WithLocation(11, 13)
                 );
@@ -15591,7 +15591,7 @@ class Program
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (24,19): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                // (24,19): error CS9164: Cannot convert expression to 'Span<int>' because it is not an assignable variable
                 //         return M4(c.F);
                 Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "c.F").WithArguments("System.Span<int>").WithLocation(24, 19)
                 );
@@ -15665,7 +15665,7 @@ class Program
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80);
 
             comp.VerifyDiagnostics(
-                // (11,19): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                // (11,19): error CS9164: Cannot convert expression to 'Span<int>' because it is not an assignable variable
                 //         return M4(c.F);
                 Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "c.F").WithArguments("System.Span<int>").WithLocation(11, 19)
                 );
@@ -15700,7 +15700,7 @@ struct C
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80);
 
             comp.VerifyDiagnostics(
-                // (15,19): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                // (15,19): error CS9164: Cannot convert expression to 'Span<int>' because it is not an assignable variable
                 //         return M4(F);
                 Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "F").WithArguments("System.Span<int>").WithLocation(15, 19)
                 );
@@ -15790,10 +15790,10 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (9,27): error CS9502: Cannot convert expression to 'ReadOnlySpan<int>' because it may not be passed or returned by reference
+                // (9,27): error CS9165: Cannot convert expression to 'ReadOnlySpan<int>' because it may not be passed or returned by reference
                 //     static int M2() => M4(M3(), default);
                 Diagnostic(ErrorCode.ERR_InlineArrayConversionToReadOnlySpanNotSupported, "M3()").WithArguments("System.ReadOnlySpan<int>").WithLocation(9, 27),
-                // (23,27): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                // (23,27): error CS9164: Cannot convert expression to 'Span<int>' because it is not an assignable variable
                 //     static int M5() => M6(M3(), default);
                 Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "M3()").WithArguments("System.Span<int>").WithLocation(23, 27)
                 );
@@ -16185,10 +16185,10 @@ class Program
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (7,16): error CS9507: An expression tree may not contain an inline array access or conversion
+                // (7,16): error CS9170: An expression tree may not contain an inline array access or conversion
                 //         () => ((System.Span<int>)x).Length;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation, "(System.Span<int>)x").WithLocation(7, 16),
-                // (10,16): error CS9507: An expression tree may not contain an inline array access or conversion
+                // (10,16): error CS9170: An expression tree may not contain an inline array access or conversion
                 //         () => ((System.ReadOnlySpan<int>)x).Length;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation, "(System.ReadOnlySpan<int>)x").WithLocation(10, 16)
                 );
@@ -16407,7 +16407,7 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (20,34): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                // (20,34): error CS9164: Cannot convert expression to 'Span<int>' because it is not an assignable variable
                 //         System.Console.Write(((C)b).F);
                 Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "b").WithArguments("System.Span<int>").WithLocation(20, 34)
                 );
@@ -16464,7 +16464,7 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (13,34): error CS9502: Cannot convert expression to 'ReadOnlySpan<int>' because it may not be passed or returned by reference
+                // (13,34): error CS9165: Cannot convert expression to 'ReadOnlySpan<int>' because it may not be passed or returned by reference
                 //         System.Console.Write(((C)new Buffer10<int>()).F);
                 Diagnostic(ErrorCode.ERR_InlineArrayConversionToReadOnlySpanNotSupported, "new Buffer10<int>()").WithArguments("System.ReadOnlySpan<int>").WithLocation(13, 34)
                 );
@@ -16491,7 +16491,7 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (13,34): error CS9501: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                // (13,34): error CS9164: Cannot convert expression to 'Span<int>' because it is not an assignable variable
                 //         System.Console.Write(((C)new Buffer10<int>()).F);
                 Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "new Buffer10<int>()").WithArguments("System.Span<int>").WithLocation(13, 34)
                 );
@@ -16995,16 +16995,16 @@ class Program
 
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,15): error CS9503: Index is outside the bounds of the inline array
+                // (6,15): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[-2];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-2").WithLocation(6, 15),
-                // (7,15): error CS9503: Index is outside the bounds of the inline array
+                // (7,15): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[-1];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(7, 15),
-                // (10,15): error CS9503: Index is outside the bounds of the inline array
+                // (10,15): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[10];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "10").WithLocation(10, 15),
-                // (11,15): error CS9503: Index is outside the bounds of the inline array
+                // (11,15): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[11];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(11, 15)
                 );
@@ -17030,16 +17030,16 @@ class Program
 
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,30): error CS9503: Index is outside the bounds of the inline array
+                // (6,30): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[(System.Index)(-2)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-2").WithLocation(6, 30),
-                // (7,30): error CS9503: Index is outside the bounds of the inline array
+                // (7,30): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[(System.Index)(-1)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(7, 30),
-                // (10,29): error CS9503: Index is outside the bounds of the inline array
+                // (10,29): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[(System.Index)10];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "10").WithLocation(10, 29),
-                // (11,29): error CS9503: Index is outside the bounds of the inline array
+                // (11,29): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[(System.Index)11];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(11, 29)
                 );
@@ -17066,19 +17066,19 @@ class Program
 
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,15): error CS9503: Index is outside the bounds of the inline array
+                // (6,15): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[^12];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^12").WithLocation(6, 15),
-                // (7,15): error CS9503: Index is outside the bounds of the inline array
+                // (7,15): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[^11];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^11").WithLocation(7, 15),
-                // (10,15): error CS9503: Index is outside the bounds of the inline array
+                // (10,15): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[^0];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^0").WithLocation(10, 15),
-                // (11,15): error CS9503: Index is outside the bounds of the inline array
+                // (11,15): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[^-1];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^-1").WithLocation(11, 15),
-                // (12,15): error CS9503: Index is outside the bounds of the inline array
+                // (12,15): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[^int.MinValue];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^int.MinValue").WithLocation(12, 15)
                 );
@@ -17124,49 +17124,49 @@ class Program
 
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,32): error CS9503: Index is outside the bounds of the inline array
+                // (6,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(-2, false)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-2").WithLocation(6, 32),
-                // (7,32): error CS9503: Index is outside the bounds of the inline array
+                // (7,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(-1, false)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(7, 32),
-                // (10,32): error CS9503: Index is outside the bounds of the inline array
+                // (10,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(10, false)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "10").WithLocation(10, 32),
-                // (11,32): error CS9503: Index is outside the bounds of the inline array
+                // (11,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(11, false)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(11, 32),
-                // (13,32): error CS9503: Index is outside the bounds of the inline array
+                // (13,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(-2)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-2").WithLocation(13, 32),
-                // (14,32): error CS9503: Index is outside the bounds of the inline array
+                // (14,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(-1)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(14, 32),
-                // (17,32): error CS9503: Index is outside the bounds of the inline array
+                // (17,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(10)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "10").WithLocation(17, 32),
-                // (18,32): error CS9503: Index is outside the bounds of the inline array
+                // (18,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(11)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(18, 32),
-                // (20,32): error CS9503: Index is outside the bounds of the inline array
+                // (20,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(12, true)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "12").WithLocation(20, 32),
-                // (21,32): error CS9503: Index is outside the bounds of the inline array
+                // (21,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(11, true)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(21, 32),
-                // (24,32): error CS9503: Index is outside the bounds of the inline array
+                // (24,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(0, true)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "0").WithLocation(24, 32),
-                // (25,32): error CS9503: Index is outside the bounds of the inline array
+                // (25,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(-1, true)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(25, 32),
-                // (26,32): error CS9503: Index is outside the bounds of the inline array
+                // (26,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(int.MinValue, true)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "int.MinValue").WithLocation(26, 32),
-                // (29,39): error CS9503: Index is outside the bounds of the inline array
+                // (29,39): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(value: -1)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(29, 39),
-                // (30,39): error CS9503: Index is outside the bounds of the inline array
+                // (30,39): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(value: -1, fromEnd: false)];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(30, 39)
                 );
@@ -17230,16 +17230,16 @@ class Program
 
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,15): error CS9503: Index is outside the bounds of the inline array
+                // (6,15): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[-2..];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-2").WithLocation(6, 15),
-                // (7,15): error CS9503: Index is outside the bounds of the inline array
+                // (7,15): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[-1..];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(7, 15),
-                // (11,15): error CS9503: Index is outside the bounds of the inline array
+                // (11,15): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[11..];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(11, 15),
-                // (12,15): error CS9503: Index is outside the bounds of the inline array
+                // (12,15): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[12..];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "12").WithLocation(12, 15)
                 );
@@ -17266,16 +17266,16 @@ class Program
 
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,17): error CS9503: Index is outside the bounds of the inline array
+                // (6,17): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[..-2];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-2").WithLocation(6, 17),
-                // (7,17): error CS9503: Index is outside the bounds of the inline array
+                // (7,17): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[..-1];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(7, 17),
-                // (11,17): error CS9503: Index is outside the bounds of the inline array
+                // (11,17): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[..11];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(11, 17),
-                // (12,17): error CS9503: Index is outside the bounds of the inline array
+                // (12,17): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[..12];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "12").WithLocation(12, 17)
                 );
@@ -17302,16 +17302,16 @@ class Program
 
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,32): error CS9503: Index is outside the bounds of the inline array
+                // (6,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(-2)..];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-2").WithLocation(6, 32),
-                // (7,32): error CS9503: Index is outside the bounds of the inline array
+                // (7,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(-1)..];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "-1").WithLocation(7, 32),
-                // (11,32): error CS9503: Index is outside the bounds of the inline array
+                // (11,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(11)..];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "11").WithLocation(11, 32),
-                // (12,32): error CS9503: Index is outside the bounds of the inline array
+                // (12,32): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[new System.Index(12)..];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "12").WithLocation(12, 32)
                 );
@@ -17338,16 +17338,16 @@ class Program
 
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,17): error CS9503: Index is outside the bounds of the inline array
+                // (6,17): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[..^12];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^12").WithLocation(6, 17),
-                // (7,17): error CS9503: Index is outside the bounds of the inline array
+                // (7,17): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[..^11];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^11").WithLocation(7, 17),
-                // (11,17): error CS9503: Index is outside the bounds of the inline array
+                // (11,17): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[..^-1];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^-1").WithLocation(11, 17),
-                // (12,17): error CS9503: Index is outside the bounds of the inline array
+                // (12,17): error CS9166: Index is outside the bounds of the inline array
                 //         _ = f[..^int.MinValue];
                 Diagnostic(ErrorCode.ERR_InlineArrayIndexOutOfRange, "^int.MinValue").WithLocation(12, 17)
                 );
@@ -17406,10 +17406,10 @@ struct Buffer
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (3,5): error CS9508: Target runtime doesn't support inline array types.
+                // (3,5): error CS9171: Target runtime doesn't support inline array types.
                 // _ = b[2];
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, "b[2]").WithLocation(3, 5),
-                // (7,8): error CS9508: Target runtime doesn't support inline array types.
+                // (7,8): error CS9171: Target runtime doesn't support inline array types.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, "Buffer").WithLocation(7, 8)
                 );
@@ -17437,10 +17437,10 @@ struct Buffer
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (3,5): error CS9508: Target runtime doesn't support inline array types.
+                // (3,5): error CS9171: Target runtime doesn't support inline array types.
                 // _ = b[2..];
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, "b[2..]").WithLocation(3, 5),
-                // (7,8): error CS9508: Target runtime doesn't support inline array types.
+                // (7,8): error CS9171: Target runtime doesn't support inline array types.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, "Buffer").WithLocation(7, 8)
                 );
@@ -17463,10 +17463,10 @@ struct Buffer
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (3,5): error CS9508: Target runtime doesn't support inline array types.
+                // (3,5): error CS9171: Target runtime doesn't support inline array types.
                 // _ = (System.Span<int>)b;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, "(System.Span<int>)b").WithLocation(3, 5),
-                // (7,8): error CS9508: Target runtime doesn't support inline array types.
+                // (7,8): error CS9171: Target runtime doesn't support inline array types.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, "Buffer").WithLocation(7, 8)
                 );
