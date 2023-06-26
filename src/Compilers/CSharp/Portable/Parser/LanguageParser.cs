@@ -7440,8 +7440,15 @@ done:;
             while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
                 ParseBracketedArgumentList();
 
-            // Check the next token to see if it indicates the `[...]` sequence we have is a term or not. 
-            var isCollectionExpression = this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.QuestionToken or SyntaxKind.ExclamationToken;
+            // Check the next token to see if it indicates the `[...]` sequence we have is a term or not. This is the
+            // same set of tokens that ParsePostFixExpression looks for.
+            var isCollectionExpression = this.CurrentToken.Kind
+                is SyntaxKind.DotToken
+                or SyntaxKind.QuestionToken
+                or SyntaxKind.ExclamationToken
+                or SyntaxKind.PlusPlusToken
+                or SyntaxKind.MinusMinusToken
+                or SyntaxKind.MinusGreaterThanToken;
 
             // If this was a collection expression, not an attribute declaration, return no attributes so that the
             // caller will parse this out as a collection expression. Otherwise re-parse the code as the actual
