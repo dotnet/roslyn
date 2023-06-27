@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_inExpressionLambda && rewrittenArguments.IsEmpty)
             {
-                Debug.Assert(argumentRefKindsOpt.IsDefault);
+                Debug.Assert(argumentRefKindsOpt.IsDefaultOrEmpty);
                 return oldNodeOpt != null ?
                     oldNodeOpt.Update(rewrittenReceiver, property, LookupResultKind.Viable, property.Type) :
                     new BoundPropertyAccess(syntax, rewrittenReceiver, property, LookupResultKind.Viable, property.Type);
