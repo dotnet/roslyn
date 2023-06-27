@@ -76,30 +76,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         public Enumerator GetEnumerator() => new(this);
 
-        public struct Enumerator
+        public struct Enumerator(EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TDerivedNode> list)
         {
-            private readonly EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TDerivedNode> _list;
-            private int _currentIndex;
+            private int _currentIndex = -1;
 
-            public Enumerator(EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TDerivedNode> list)
-            {
-                _list = list;
-                _currentIndex = -1;
-                Current = null!;
-            }
-
-            public TDerivedNode Current { get; private set; }
+            public TDerivedNode Current { get; private set; } = null!;
 
             public bool MoveNext()
             {
                 _currentIndex++;
-                if (_currentIndex >= _list.Length)
+                if (_currentIndex >= list.Length)
                 {
                     Current = null!;
                     return false;
                 }
 
-                Current = _list[_currentIndex];
+                Current = list[_currentIndex];
                 return true;
             }
         }

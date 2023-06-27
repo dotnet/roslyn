@@ -11,12 +11,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal sealed partial class TopLevelSyntaxTreeIndex
     {
-        private readonly struct DeclarationInfo
+        private readonly struct DeclarationInfo(ImmutableArray<DeclaredSymbolInfo> declaredSymbolInfos)
         {
-            public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
-
-            public DeclarationInfo(ImmutableArray<DeclaredSymbolInfo> declaredSymbolInfos)
-                => DeclaredSymbolInfos = declaredSymbolInfos;
+            public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; } = declaredSymbolInfos;
 
             public void WriteTo(ObjectWriter writer)
             {

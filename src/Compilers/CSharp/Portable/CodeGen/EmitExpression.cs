@@ -930,9 +930,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> argRefKindsOpt)
         {
             // We might have an extra argument for the __arglist() of a varargs method.
-            Debug.Assert(arguments.Length == parameters.Length || arguments.Length == parameters.Length + 1, "argument count must match parameter count");
+            Debug.Assert(arguments.Length == parameters.Length ||
+                (arguments.Length == parameters.Length + 1 && arguments is [.., BoundArgListOperator]), "argument count must match parameter count");
             Debug.Assert(parameters.All(p => p.RefKind == RefKind.None) || !argRefKindsOpt.IsDefault, "there are nontrivial parameters, so we must have argRefKinds");
-            Debug.Assert(argRefKindsOpt.IsDefault || argRefKindsOpt.Length == arguments.Length, "if we have argRefKinds, we should have one for each argument");
+            // We might have a missing ref kind for the __arglist() of a varargs method.
+            Debug.Assert(argRefKindsOpt.IsDefault || argRefKindsOpt.Length == arguments.Length ||
+                (argRefKindsOpt.Length == arguments.Length - 1 && arguments is [.., BoundArgListOperator]), "if we have argRefKinds, we should have one for each argument");
 
             for (int i = 0; i < arguments.Length; i++)
             {
@@ -2949,7 +2952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // NOTE: passing "ReadOnlyStrict" here. 
                 //       we should not get an address of a copy if at all possible
-                LocalDefinition temp = EmitAddress(assignmentOperator.Right, lhs.GetRefKind() == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
+                LocalDefinition temp = EmitAddress(assignmentOperator.Right, lhs.GetRefKind() is RefKind.RefReadOnly or RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
 
                 // Generally taking a ref for the purpose of ref assignment should not be done on homeless values
                 // however, there are very rare cases when we need to get a ref off a temp in synthetic code.

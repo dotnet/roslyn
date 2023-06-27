@@ -1253,7 +1253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Private Function GetNameAsIdentifier(type As SyntaxNode) As String
+        Private Shared Function GetNameAsIdentifier(type As SyntaxNode) As String
             Dim name = TryCast(type, IdentifierNameSyntax)
             If name IsNot Nothing Then
                 Return name.Identifier.ValueText
@@ -1695,7 +1695,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return compilationUnit.Attributes(0).AttributeLists
                 End If
             End If
-            Return Me.Flatten(declaration.GetAttributeLists())
+            Return Flatten(declaration.GetAttributeLists())
         End Function
 
         Public Overrides Function InsertAttributes(declaration As SyntaxNode, index As Integer, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -1744,7 +1744,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function GetReturnAttributes(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
-            Return Me.Flatten(GetReturnAttributeLists(declaration))
+            Return Flatten(GetReturnAttributeLists(declaration))
         End Function
 
         Public Overrides Function InsertReturnAttributes(declaration As SyntaxNode, index As Integer, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -1769,7 +1769,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Else
                 Dim lists = GetReturnAttributeLists(declaration)
                 Dim newLists = lists.AddRange(newAttributes)
-                Return Me.WithReturnAttributeLists(declaration, newLists)
+                Return WithReturnAttributeLists(declaration, newLists)
             End If
         End Function
 
@@ -1787,7 +1787,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return Nothing
         End Function
 
-        Private Function WithReturnAttributeLists(declaration As SyntaxNode, lists As IEnumerable(Of AttributeListSyntax)) As SyntaxNode
+        Private Shared Function WithReturnAttributeLists(declaration As SyntaxNode, lists As IEnumerable(Of AttributeListSyntax)) As SyntaxNode
             If declaration Is Nothing Then
                 Return Nothing
             End If
@@ -2013,13 +2013,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return VisualBasicSyntaxFacts.IsChildOfVariableDeclaration(node)
         End Function
 
-        Private Function Isolate(declaration As SyntaxNode, editor As Func(Of SyntaxNode, SyntaxNode)) As SyntaxNode
+        Private Shared Function Isolate(declaration As SyntaxNode, editor As Func(Of SyntaxNode, SyntaxNode)) As SyntaxNode
             Dim isolated = AsIsolatedDeclaration(declaration)
 
             Return PreserveTrivia(isolated, editor)
         End Function
 
-        Private Function GetFullDeclaration(declaration As SyntaxNode) As SyntaxNode
+        Private Shared Function GetFullDeclaration(declaration As SyntaxNode) As SyntaxNode
             Select Case declaration.Kind
                 Case SyntaxKind.ModifiedIdentifier
                     If IsChildOf(declaration, SyntaxKind.VariableDeclarator) Then
@@ -2043,7 +2043,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declaration
         End Function
 
-        Private Function AsIsolatedDeclaration(declaration As SyntaxNode) As SyntaxNode
+        Private Shared Function AsIsolatedDeclaration(declaration As SyntaxNode) As SyntaxNode
             Select Case declaration.Kind
                 Case SyntaxKind.ModifiedIdentifier
                     Dim full = GetFullDeclaration(declaration)
@@ -2570,7 +2570,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Function WithModifierTokens(declaration As SyntaxNode, tokens As SyntaxTokenList) As SyntaxNode
+        Private Shared Function WithModifierTokens(declaration As SyntaxNode, tokens As SyntaxTokenList) As SyntaxNode
             Select Case declaration.Kind
                 Case SyntaxKind.ClassBlock
                     Return DirectCast(declaration, ClassBlockSyntax).WithClassStatement(DirectCast(declaration, ClassBlockSyntax).ClassStatement.WithModifiers(tokens))
@@ -2625,7 +2625,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                      SyntaxKind.RemoveHandlerAccessorBlock,
                     SyntaxKind.RaiseEventAccessorBlock
                     Return DirectCast(declaration, AccessorBlockSyntax).WithAccessorStatement(
-                        DirectCast(Me.WithModifierTokens(DirectCast(declaration, AccessorBlockSyntax).AccessorStatement, tokens), AccessorStatementSyntax))
+                        DirectCast(WithModifierTokens(DirectCast(declaration, AccessorBlockSyntax).AccessorStatement, tokens), AccessorStatementSyntax))
                 Case SyntaxKind.GetAccessorStatement,
                      SyntaxKind.SetAccessorStatement,
                      SyntaxKind.AddHandlerAccessorStatement,
@@ -3109,7 +3109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function GetNamespaceImports(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
-            Return Me.Flatten(GetUnflattenedNamespaceImports(declaration))
+            Return Flatten(GetUnflattenedNamespaceImports(declaration))
         End Function
 
         Private Shared Function GetUnflattenedNamespaceImports(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
@@ -3648,8 +3648,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             If root.Span.Contains(declaration.Span) Then
-                Dim newFullDecl = Me.AsIsolatedDeclaration(newDeclaration)
-                Dim fullDecl = Me.GetFullDeclaration(declaration)
+                Dim newFullDecl = AsIsolatedDeclaration(newDeclaration)
+                Dim fullDecl = GetFullDeclaration(declaration)
 
                 ' special handling for replacing at location of a sub-declaration
                 If fullDecl IsNot declaration AndAlso fullDecl.IsKind(newFullDecl.Kind) Then
@@ -3675,7 +3675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         ' return true if one sub-declaration can be replaced in-line with another sub-declaration
-        Private Function AreInlineReplaceableSubDeclarations(decl1 As SyntaxNode, decl2 As SyntaxNode) As Boolean
+        Private Shared Function AreInlineReplaceableSubDeclarations(decl1 As SyntaxNode, decl2 As SyntaxNode) As Boolean
             Dim kind = decl1.Kind
             If Not decl2.IsKind(kind) Then
                 Return False
@@ -3692,7 +3692,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return False
         End Function
 
-        Private Function AreSimilarExceptForSubDeclarations(decl1 As SyntaxNode, decl2 As SyntaxNode) As Boolean
+        Private Shared Function AreSimilarExceptForSubDeclarations(decl1 As SyntaxNode, decl2 As SyntaxNode) As Boolean
             If decl1 Is Nothing OrElse decl2 Is Nothing Then
                 Return False
             End If
@@ -3735,7 +3735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function InsertDeclarationsBeforeInternal(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Dim fullDecl = Me.GetFullDeclaration(declaration)
+            Dim fullDecl = GetFullDeclaration(declaration)
             If fullDecl Is declaration OrElse GetDeclarationCount(fullDecl) = 1 Then
                 Return MyBase.InsertNodesBefore(root, declaration, newDeclarations)
             End If
@@ -3761,7 +3761,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function InsertNodesAfterInternal(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Dim fullDecl = Me.GetFullDeclaration(declaration)
+            Dim fullDecl = GetFullDeclaration(declaration)
             If fullDecl Is declaration OrElse GetDeclarationCount(fullDecl) = 1 Then
                 Return MyBase.InsertNodesAfter(root, declaration, newDeclarations)
             End If
@@ -3831,13 +3831,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Private Function Flatten(members As IReadOnlyList(Of SyntaxNode)) As IReadOnlyList(Of SyntaxNode)
+        Private Shared Function Flatten(members As IReadOnlyList(Of SyntaxNode)) As IReadOnlyList(Of SyntaxNode)
             Dim builder = ArrayBuilder(Of SyntaxNode).GetInstance()
             Flatten(builder, members)
             Return builder.ToImmutableAndFree()
         End Function
 
-        Private Sub Flatten(builder As ArrayBuilder(Of SyntaxNode), members As IReadOnlyList(Of SyntaxNode))
+        Private Shared Sub Flatten(builder As ArrayBuilder(Of SyntaxNode), members As IReadOnlyList(Of SyntaxNode))
             For Each member In members
                 If GetDeclarationCount(member) > 1 Then
                     Select Case member.Kind
@@ -3868,13 +3868,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function RemoveNode(root As SyntaxNode, declaration As SyntaxNode, options As SyntaxRemoveOptions) As SyntaxNode
             If root.Span.Contains(declaration.Span) Then
-                Return Isolate(root.TrackNodes(declaration), Function(r) Me.RemoveNodeInternal(r, r.GetCurrentNode(declaration), options))
+                Return Isolate(root.TrackNodes(declaration), Function(r) RemoveNodeInternal(r, r.GetCurrentNode(declaration), options))
             Else
                 Return MyBase.RemoveNode(root, declaration, options)
             End If
         End Function
 
-        Private Function RemoveNodeInternal(root As SyntaxNode, node As SyntaxNode, options As SyntaxRemoveOptions) As SyntaxNode
+        Private Shared Function RemoveNodeInternal(root As SyntaxNode, node As SyntaxNode, options As SyntaxRemoveOptions) As SyntaxNode
 
             ' special case handling for nodes that remove their parents too
             Select Case node.Kind

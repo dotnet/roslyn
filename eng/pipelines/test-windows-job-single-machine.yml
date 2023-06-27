@@ -15,6 +15,9 @@ parameters:
 - name: testArguments
   type: string
   default: ''
+- name: poolName
+  type: string
+  default: ''
 - name: queueName
   type: string
   default: 'windows.vs2022.amd64.open'
@@ -22,7 +25,7 @@ parameters:
 jobs:
 - job: ${{ parameters.jobName }}
   pool:
-    name: NetCore-Public
+    name: ${{ parameters.poolName }}
     demands: ImageOverride -equals ${{ parameters.queueName }}
   timeoutInMinutes: 120
   variables:

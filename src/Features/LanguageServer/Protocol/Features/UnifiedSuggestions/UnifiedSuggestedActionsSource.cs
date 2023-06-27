@@ -181,13 +181,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ArrayBuilder<CodeFixGroupKey> order)
         {
             var groupKey = GetGroupKey(fix);
-            if (!map.ContainsKey(groupKey))
+            if (!map.TryGetValue(groupKey, out var suggestedActions))
             {
                 order.Add(groupKey);
-                map[groupKey] = ImmutableArray.CreateBuilder<IUnifiedSuggestedAction>();
+                suggestedActions = ImmutableArray.CreateBuilder<IUnifiedSuggestedAction>();
+                map[groupKey] = suggestedActions;
             }
 
-            map[groupKey].Add(suggestedAction);
+            suggestedActions.Add(suggestedAction);
             return;
 
             static CodeFixGroupKey GetGroupKey(CodeFix fix)

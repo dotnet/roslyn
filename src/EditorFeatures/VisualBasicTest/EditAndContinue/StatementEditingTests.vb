@@ -1247,35 +1247,6 @@ End Class"
                 Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", VBFeaturesResources.Lambda, "Me", "x3"))
         End Sub
 
-        <Fact>
-        Public Sub Lambdas_Update_CeaseCapture_This()
-            Dim src1 = "
-Imports System
-
-Class C
-    Dim x As Integer = 1
-
-    Sub F()
-        Dim f = New Func(Of Integer, Integer)(Function(a) a + x)
-    End Sub
-End Class
-"
-            Dim src2 = "
-Imports System
-
-Class C
-    Dim x As Integer
-
-    Sub F()
-        Dim f = New Func(Of Integer, Integer)(Function(a) a)
-    End Sub
-End Class
-"
-            Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "Me"))
-        End Sub
-
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
         Public Sub Lambdas_Update_Signature1()
             Dim src1 = "
@@ -2000,6 +1971,35 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_This()
+            Dim src1 = "
+Imports System
+
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim f = New Func(Of Integer, Integer)(Function(a) a + x)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Dim x As Integer
+
+    Sub F()
+        Dim f = New Func(Of Integer, Integer)(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "Me"))
+        End Sub
+
+        <Fact>
         Public Sub Lambdas_Update_CeaseCapture_Closure1()
             Dim src1 = "
 Imports System
@@ -2059,11 +2059,142 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"))
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a1 As Integer", "a1"))
         End Sub
 
         <Fact>
-        Public Sub Lambdas_Update_CeaseCapture_MethodParameter1()
+        Public Sub Lambdas_Update_CeaseCapture_IndexerParameter_Delete()
+            Dim src1 = "
+Imports System
+Class C
+    Readonly Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+        End Get
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Readonly Property Item(a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return New Func(Of Integer, Integer)(Function(a3) a2)
+        End Get
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "Get", "a1"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_IndexerParameter_Setter_WithExplicitValue()
+            Dim src1 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set(Value As Integer)
+            Dim f = Function() a1 + a2 + Value
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set(Value As Integer)
+            Dim f = Function() a1
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2 As Integer", "a2"),
+                Diagnostic(RudeEditKind.NotCapturingVariable, "Value As Integer", "Value"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_IndexerParameter_Setter_WithImplicitValue()
+            Dim src1 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set
+            Dim f = Function() a1 + a2 + Value
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set
+            Dim f = Function() a1
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2 As Integer", "a2"),
+                Diagnostic(RudeEditKind.NotCapturingVariable, "Set", "Value"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_IndexerParameter_Setter_WithImplicitToExplicitValue()
+            Dim src1 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set
+            Dim f = Function() a1 + a2 + Value
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set(Value As Integer)
+            Dim f = Function() a1
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2 As Integer", "a2"),
+                Diagnostic(RudeEditKind.NotCapturingVariable, "Set", "Value"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_IndexerParameter_Setter_WithExplicitToImplicitValue()
+            Dim src1 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set(Value As Integer)
+            Dim f = Function() a1 + a2 + Value
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Class C
+    WriteOnly Property Item(a1 As Integer, a2 As Integer) As Integer
+        Set
+            Dim f = Function() a1
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2 As Integer", "a2"),
+                Diagnostic(RudeEditKind.NotCapturingVariable, "Set", "Value"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_MethodParameter()
             Dim src1 = "
 Imports System
 Class C
@@ -2082,7 +2213,104 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a2", "a2"))
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2 As Integer", "a2"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_MethodParameter_ParameterDelete()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F(a1 As Integer, a2 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F(a1 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "a2"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_MethodParameter_ParameterTypeChange()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F(a1 As Integer, a2 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F(a1 As Byte)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingCapturedVariableType, "a1", "a1", "Integer"),
+                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "a2"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_MethodParameter_LocalToParameter()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F(a1 As Integer)
+        Dim a2 As Integer
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F(a1 As Integer, a2 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"),
+                Diagnostic(RudeEditKind.DeletingCapturedVariable, "Sub F(a1 As Integer, a2 As Integer)", "a2"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_MethodParameter_ParameterToLocal()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F(a1 As Integer, a2 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F(a1 As Integer)
+        Dim a2 As Integer
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"),
+                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "a2"))
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
@@ -2219,7 +2447,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value", "Value"))
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value As Integer", "Value"))
         End Sub
 
         <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
@@ -2258,7 +2486,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value", "Value"))
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value As Action", "Value"))
         End Sub
 
         <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
@@ -2297,7 +2525,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value", "Value"))
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value As Action", "Value"))
         End Sub
 
         <Fact>
@@ -2357,6 +2585,34 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_IndexerGetterParameter_ParameterInsert()
+            Dim src1 = "
+Imports System
+Class C
+    Readonly Property Item(a1 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return New Func(Of Integer, Integer)(Function(a3) a1)
+        End Get
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Readonly Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+        End Get
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"))
         End Sub
 
         <Fact>
@@ -2590,6 +2846,64 @@ Imports System
 Class C
     Sub F(a1 As Integer, a2 As Integer)
         Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_MethodParameter_ParameterInsert()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F(a1 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F(a1 As Integer, a2 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_MethodParameter_ParameterInsert_Partial()
+            Dim src1 = "
+Imports System
+
+Partial Public Class C
+    Partial Private Sub F(a1 As Integer)
+    End Sub    
+End Class
+
+Partial Public Class C
+    Private Sub F(a1 As Integer)
+        Dim x = New Func(Of Integer, Integer)(Function(a3) a1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Partial Public Class C
+    Partial Private Sub F(a1 As Integer, a2 As Integer)
+    End Sub    
+End Class
+
+Partial Public Class C
+    Private Sub F(a1 As Integer, a2 As Integer)
+        Dim x = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
     End Sub
 End Class
 "
@@ -3056,13 +3370,11 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Lambdas_RenameCapturedLocal1()
+        Public Sub Lambdas_CapturedLocal_Rename_CaseChange()
             Dim src1 = "
 Imports System
-Imports System.Diagnostics
 
 Class Program
-
     Shared Sub Main()
         Dim x As Integer = 1
         Dim f As Func(Of Integer) = Function() x
@@ -3071,10 +3383,8 @@ End Class
 "
             Dim src2 = "
 Imports System
-Imports System.Diagnostics
 
 Class Program
-
     Shared Sub Main()
         Dim X As Integer = 1
         Dim f As Func(Of Integer) = Function() X
@@ -3089,13 +3399,11 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Lambdas_RenameCapturedLocal2()
+        Public Sub Lambdas_CapturedLocal_Rename()
             Dim src1 = "
 Imports System
-Imports System.Diagnostics
 
 Class Program
-
     Shared Sub Main()
         Dim x As Integer = 1
         Dim f As Func(Of Integer) = Function() x
@@ -3104,10 +3412,8 @@ End Class
 "
             Dim src2 = "
 Imports System
-Imports System.Diagnostics
 
 Class Program
-
     Shared Sub Main()
         Dim y As Integer = 1
         Dim f As Func(Of Integer) = Function() y
@@ -3118,6 +3424,87 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.RenamingCapturedVariable, "y", "x", "y"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_CapturedLocal_ChangeType()
+            Dim src1 = "
+Imports System
+
+Class Program
+    Shared Sub Main()
+        Dim x As Integer = 1
+        Dim f As Func(Of Integer) = Function() x
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class Program
+    Shared Sub Main()
+        Dim x As Byte = 1
+        Dim f As Func(Of Integer) = Function() x
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingCapturedVariableType, "x", "x", "Integer"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_CapturedParameter_Rename()
+            Dim src1 = "
+Imports System
+
+Class Program
+    Shared Sub Main(x As Integer)
+        Dim f As Func(Of Integer) = Function() x
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class Program
+    Shared Sub Main(y As Integer)
+        Dim f As Func(Of Integer) = Function() y
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.RenamingCapturedVariable, "y", "x", "y"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/68708")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/68708")>
+        Public Sub Lambdas_CapturedParameter_ChangeType()
+            Dim src1 = "
+Imports System
+
+Class Program
+    Shared Sub Main(x As Integer)
+        Dim f As Func(Of Integer) = Function() x
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class Program
+    Shared Sub Main(x As Byte)
+        Dim f As Func(Of Integer) = Function() x
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingCapturedVariableType, "x", "x", "Integer"))
         End Sub
 
         <Fact>
