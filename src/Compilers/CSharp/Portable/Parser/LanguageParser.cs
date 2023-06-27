@@ -10745,6 +10745,10 @@ done:;
                         return true;
                     }
 
+                    // Note: we could consider not recursing into anonymous-methods/lambdas (since we reset the 
+                    // ForceConditionalAccessExpression flag when we go into that).  However, that adds a bit of
+                    // fragile coupling between these different code blocks that i'd prefer to avoid.  In practice
+                    // the extra cost here will almost never occur, so the simplicity is worth it.
                     foreach (var child in current.ChildNodesAndTokens())
                         stack.Push(child);
                 }
