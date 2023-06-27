@@ -2033,7 +2033,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F4").WithArguments("Program.F4<T>(T[], out T)").WithLocation(11, 18));
         }
 
-        // PROTOTYPE: Should this compile successfully?
         [Fact]
         public void TypeInference_40()
         {
@@ -2042,10 +2041,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class Program
                 {
                     static Func<T[]> F<T>(Func<T[]> arg) => arg;
-                    static void Main()
+                    static void Main(string[] args)
                     {
                         var x = F(() => [1, 2, 3]);
                         x.Report(includeType: true);
+                        var y = F(() => { if (args.Length == 0) return []; return [1, 2, 3]; });
+                        y.Report(includeType: true);
                     }
                 }
                 """;
@@ -2053,7 +2054,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // 0.cs(7,17): error CS0411: The type arguments for method 'Program.F<T>(Func<T[]>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         var x = F(() => [1, 2, 3]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Func<T[]>)").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Func<T[]>)").WithLocation(7, 17),
+                // 0.cs(9,17): error CS0411: The type arguments for method 'Program.F<T>(Func<T[]>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var y = F(() => { if (args.Length == 0) return []; return [1, 2, 3]; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Func<T[]>)").WithLocation(9, 17));
         }
 
         [Fact]
