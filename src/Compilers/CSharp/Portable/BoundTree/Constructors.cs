@@ -180,32 +180,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             argumentRefKindsOpt = argumentRefKindsOpt.IsDefault ? method.ParameterRefKinds : argumentRefKindsOpt;
 
-            Debug.Assert(argumentRefKindsOpt.IsDefaultOrEmpty || Enumerable.Range(0, arguments.Length).All(i =>
+#if DEBUG
+            for (int i = 0; i < arguments.Length; i++)
             {
                 if (i < method.ParameterCount)
                 {
-                    var parameterRefKind = method.ParameterRefKinds[i];
-
-                    if (!argumentRefKindsOpt.IsDefault && i < argumentRefKindsOpt.Length)
-                    {
-                        var argumentRefKind = argumentRefKindsOpt[i];
-
-                        return argumentRefKind is RefKind.None or RefKind.Ref or RefKind.In or RefKind.Out or RefKindExtensions.StrictIn &&
-                            (argumentRefKind == parameterRefKind ||
-                            parameterRefKind switch
-                            {
-                                RefKind.In => argumentRefKind == RefKindExtensions.StrictIn,
-                                RefKind.RefReadOnlyParameter => argumentRefKind is RefKind.In or RefKindExtensions.StrictIn,
-                                _ => false,
-                            });
-                    }
-
-                    // 'ref readonly' parameters need an entry in 'argRefKindsOpt'
-                    return parameterRefKind != RefKind.RefReadOnlyParameter;
+                    var parameterRefKind = method.ParameterRefKinds.IsDefault ? RefKind.None : method.ParameterRefKinds[i];
+                    var argumentRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
+                    Debug.Assert(argumentRefKind is RefKind.None or RefKind.Ref or RefKind.In or RefKind.Out or RefKindExtensions.StrictIn &&
+                        (argumentRefKind == parameterRefKind ||
+                        parameterRefKind switch
+                        {
+                            RefKind.In => argumentRefKind == RefKindExtensions.StrictIn,
+                            RefKind.RefReadOnlyParameter => argumentRefKind is RefKind.In or RefKindExtensions.StrictIn,
+                            _ => false,
+                        }),
+                        $"argument ref kind {argumentRefKind} should be compatible with the corresponding parameter ref kind {parameterRefKind}");
                 }
-
-                return arguments[i].Kind == BoundKind.ArgListOperator;
-            }));
+                else
+                {
+                    Debug.Assert(arguments[i].Kind == BoundKind.ArgListOperator);
+                }
+            }
+#endif
 
             return new BoundCall(syntax,
                     receiverOpt,
