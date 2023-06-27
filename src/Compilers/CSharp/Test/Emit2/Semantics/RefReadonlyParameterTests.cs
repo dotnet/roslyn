@@ -1777,6 +1777,148 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "p").WithArguments("variable", "p").WithLocation(13, 17));
     }
 
+    [Fact]
+    public void RefReturn_ReadonlyToMutable()
+    {
+        var source = """
+            class C
+            {
+                ref int M(ref readonly int x)
+                {
+                    return ref x;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,20): error CS8333: Cannot return variable 'x' by writable reference because it is a readonly variable
+            //         return ref x;
+            Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "x").WithArguments("variable", "x").WithLocation(5, 20));
+    }
+
+    [Fact]
+    public void RefReturn_ReadonlyToReadonly()
+    {
+        var source = """
+            class C
+            {
+                ref readonly int M(ref readonly int x)
+                {
+                    return ref x;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RefReturn_ReadonlyFromMutable()
+    {
+        var source = """
+            class C
+            {
+                ref int M1() => throw null;
+                void M2(ref readonly int x) { }
+                void M3()
+                {
+                    M2(M1());
+                    M2(in M1());
+                    M2(ref M1());
+                    M2(out M1());
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,12): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         M2(M1());
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "M1()").WithArguments("1").WithLocation(7, 12),
+            // (10,16): error CS1615: Argument 1 may not be passed with the 'out' keyword
+            //         M2(out M1());
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "M1()").WithArguments("1", "out").WithLocation(10, 16));
+    }
+
+    [Fact]
+    public void RefReturn_ReadonlyFromReadonly()
+    {
+        var source = """
+            class C
+            {
+                ref readonly int M1() => throw null;
+                void M2(ref readonly int x) { }
+                void M3()
+                {
+                    M2(M1());
+                    M2(in M1());
+                    M2(ref M1());
+                    M2(out M1());
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,12): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         M2(M1());
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "M1()").WithArguments("1").WithLocation(7, 12),
+            // (9,16): error CS8329: Cannot use method 'M1' as a ref or out value because it is a readonly variable
+            //         M2(ref M1());
+            Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "M1()").WithArguments("method", "M1").WithLocation(9, 16),
+            // (10,16): error CS8329: Cannot use method 'M1' as a ref or out value because it is a readonly variable
+            //         M2(out M1());
+            Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "M1()").WithArguments("method", "M1").WithLocation(10, 16));
+    }
+
+    [Fact]
+    public void RefAssignment()
+    {
+        var source = """
+            ref struct C
+            {
+                public C(ref readonly int p)
+                {
+                    r = ref p; // 1
+                    rro = ref p;
+                    ror = ref p; // 2
+                    rorro = ref p;
+                }
+
+                ref int r;
+                ref readonly int rro;
+                readonly ref int ror;
+                readonly ref readonly int rorro;
+
+                void M(ref readonly int p)
+                {
+                    ref int a = ref p; // 3
+                    ref readonly int b = ref p;
+                    r = ref p; // 4
+                    rro = ref p; // 5
+                    ror = ref p; // 6
+                    rorro = ref p; // 7
+                }
+            }
+            """;
+        CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+            // (5,17): error CS8331: Cannot assign to variable 'p' or use it as the right hand side of a ref assignment because it is a readonly variable
+            //         r = ref p; // 1
+            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "p").WithArguments("variable", "p").WithLocation(5, 17),
+            // (7,19): error CS8331: Cannot assign to variable 'p' or use it as the right hand side of a ref assignment because it is a readonly variable
+            //         ror = ref p; // 2
+            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "p").WithArguments("variable", "p").WithLocation(7, 19),
+            // (18,25): error CS8329: Cannot use variable 'p' as a ref or out value because it is a readonly variable
+            //         ref int a = ref p; // 3
+            Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "p").WithArguments("variable", "p").WithLocation(18, 25),
+            // (20,17): error CS8331: Cannot assign to variable 'p' or use it as the right hand side of a ref assignment because it is a readonly variable
+            //         r = ref p; // 4
+            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "p").WithArguments("variable", "p").WithLocation(20, 17),
+            // (21,9): error CS9079: Cannot ref-assign 'p' to 'rro' because 'p' can only escape the current method through a return statement.
+            //         rro = ref p; // 5
+            Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "rro = ref p").WithArguments("rro", "p").WithLocation(21, 9),
+            // (22,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+            //         ror = ref p; // 6
+            Diagnostic(ErrorCode.ERR_AssgReadonly, "ror").WithLocation(22, 9),
+            // (23,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+            //         rorro = ref p; // 7
+            Diagnostic(ErrorCode.ERR_AssgReadonly, "rorro").WithLocation(23, 9));
+    }
+
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68714")]
     public void RefReadonlyParameter_Arglist()
     {
