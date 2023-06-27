@@ -204,6 +204,7 @@ namespace Analyzer.Utilities
         public const string SystemDiagnosticsCodeAnalysisConstantExpectedAttribute = "System.Diagnostics.CodeAnalysis.ConstantExpectedAttribute";
         public const string SystemDiagnosticsCodeAnalysisNotNullAttribute = "System.Diagnostics.CodeAnalysis.NotNullAttribute";
         public const string SystemDiagnosticsCodeAnalysisNotNullIfNotNullAttribute = "System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute";
+        public const string SystemDiagnosticsCodeAnalysisStringSyntaxAttributeName = "System.Diagnostics.CodeAnalysis.StringSyntaxAttribute";
         public const string SystemDiagnosticsConditionalAttribute = "System.Diagnostics.ConditionalAttribute";
         public const string SystemDiagnosticsContractsPureAttribute = "System.Diagnostics.Contracts.PureAttribute";
         public const string SystemDiagnosticsDebug = "System.Diagnostics.Debug";
