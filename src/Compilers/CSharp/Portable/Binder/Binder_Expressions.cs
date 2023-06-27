@@ -3230,12 +3230,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var kind = result.ConversionForArg(arg);
                 BoundExpression argument = arguments[arg];
+                var argRefKind = analyzedArguments.RefKind(arg);
 
-                if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters) &&
-                    argument is not BoundArgListOperator && !argument.HasAnyErrors)
+                if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters))
+                {
+                    // Disallow using `ref readonly` parameters with no or `in` argument modifier,
+                    // same as older versions of the compiler would (since they would see the parameter as `ref`).
+                    if (argRefKind is RefKind.None or RefKind.In &&
+                        GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.RefReadOnlyParameter)
+                    {
+                        var available = CheckFeatureAvailability(argument.Syntax, MessageID.IDS_FeatureRefReadonlyParameters, diagnostics);
+                        Debug.Assert(!available);
+                    }
+                }
+                else if (argument is not BoundArgListOperator && !argument.HasAnyErrors)
                 {
                     // Warn for `ref`/`in` or None/`ref readonly` mismatch.
-                    var argRefKind = analyzedArguments.RefKind(arg);
                     if (argRefKind == RefKind.Ref)
                     {
                         if (GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.In)

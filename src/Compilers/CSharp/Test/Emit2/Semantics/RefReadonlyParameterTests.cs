@@ -1868,7 +1868,13 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (6,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         c.M(x);
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref readonly parameters").WithLocation(6, 13),
+            // (8,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         c.M(in x);
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref readonly parameters").WithLocation(8, 16));
     }
 
     [Fact]
