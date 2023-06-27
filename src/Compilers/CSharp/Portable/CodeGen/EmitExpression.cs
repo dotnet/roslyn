@@ -960,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             parameters[i].RefKind switch
                             {
                                 RefKind.In => argRefKind == RefKindExtensions.StrictIn,
-                                RefKind.RefReadOnlyParameter => argRefKind is RefKind.None or RefKind.In or RefKind.Ref or RefKindExtensions.StrictIn,
+                                RefKind.RefReadOnlyParameter => argRefKind is RefKind.In or RefKindExtensions.StrictIn,
                                 _ => false,
                             },
                             "in Emit the argument RefKind must be compatible with the corresponding parameter");
