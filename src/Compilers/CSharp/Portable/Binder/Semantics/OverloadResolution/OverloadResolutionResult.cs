@@ -1218,7 +1218,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !(refArg == RefKind.Ref && refParameter == RefKind.In && binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters)) &&
                 !(refParameter == RefKind.RefReadOnlyParameter && refArg is RefKind.None or RefKind.Ref or RefKind.In))
             {
-                if (refParameter is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter)
+                if (refArg == RefKind.Ref && refParameter == RefKind.In && !binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters))
+                {
+                    //  Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.
+                    diagnostics.Add(
+                        ErrorCode.ERR_BadArgExtraRefLangVersion,
+                        sourceLocation,
+                        symbols,
+                        arg + 1,
+                        binder.Compilation.LanguageVersion.ToDisplayString(),
+                        MessageID.IDS_FeatureRefReadonlyParameters.RequiredVersion().ToDisplayString());
+                }
+                else if (refParameter is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter)
                 {
                     //  Argument {0} may not be passed with the '{1}' keyword
                     diagnostics.Add(

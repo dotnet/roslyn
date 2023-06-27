@@ -1224,9 +1224,9 @@ unsafe class C
                 // (17,15): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         p4(in s);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(17, 15),
-                // (18,16): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                // (18,16): error CS9505: Argument 1 may not be passed with the 'ref' keyword in language version 9.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
                 //         p5(ref s);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(18, 16));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "s").WithArguments("1", "9.0", "preview").WithLocation(18, 16));
         }
 
         [Fact]

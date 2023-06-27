@@ -2317,6 +2317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_BadArgRef:
                 case ErrorCode.WRN_ArgExpectedRefOrIn:
                 case ErrorCode.WRN_RefReadonlyNotVariable:
+                case ErrorCode.ERR_BadArgExtraRefLangVersion:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

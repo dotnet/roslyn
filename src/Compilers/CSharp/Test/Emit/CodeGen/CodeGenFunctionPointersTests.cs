@@ -7355,9 +7355,9 @@ unsafe class Test
                 // (14,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         param2(out var l);
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var l").WithArguments("1", "out").WithLocation(14, 20),
-                // (17,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                // (17,20): error CS9505: Argument 1 may not be passed with the 'ref' keyword in language version 9.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
                 //         param2(ref s);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(17, 20),
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "s").WithArguments("1", "9.0", "preview").WithLocation(17, 20),
                 // (23,16): error CS1620: Argument 1 must be passed with the 'out' keyword
                 //         param3(s);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(23, 16),

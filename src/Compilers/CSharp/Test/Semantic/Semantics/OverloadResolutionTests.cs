@@ -9472,9 +9472,9 @@ public static class Program
 }";
 
             CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (11,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                // (11,20): error CS9505: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
                 //         Method(ref x);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(11, 20));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(11, 20));
 
             var expectedDiagnostics = new[]
             {
@@ -9593,9 +9593,9 @@ public static class Program
                 }
                 """;
             CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (7,17): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                // (7,17): error CS9505: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
                 //         c.M(ref x);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(7, 17));
         }
 
         [Fact]
@@ -9615,9 +9615,9 @@ public static class Program
                 }
                 """;
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (8,19): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                // (8,19): error CS9505: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
                 //         new C(ref x);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(8, 19));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(8, 19));
 
             var expectedDiagnostics = new[]
             {
@@ -9654,9 +9654,9 @@ public static class Program
                 }
                 """;
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (15,25): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                // (15,25): error CS9505: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
                 //         _ = new C()[ref x];
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(15, 25));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(15, 25));
 
             var expectedDiagnostics = new[]
             {
@@ -9687,9 +9687,9 @@ public static class Program
                 }
                 """;
             CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (9,15): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                // (9,15): error CS9505: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
                 //         f(ref x);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(9, 15));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(9, 15));
 
             var expectedDiagnostics = new[]
             {
@@ -9937,9 +9937,9 @@ public static class Program
                 // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'in int'
                 //         Method(x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16),
-                // (12,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                // (12,20): error CS9505: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
                 //         Method(ref x);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(12, 20),
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(12, 20),
                 // (13,19): error CS1503: Argument 1: cannot convert from 'in System.Exception' to 'in int'
                 //         Method(in x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in System.Exception", "in int").WithLocation(13, 19),
