@@ -532,6 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                 case ErrorCode.WRN_BadArgRef:
                 case ErrorCode.WRN_ArgExpectedRefOrIn:
+                case ErrorCode.WRN_RefReadonlyNotVariable:
                     return 1;
                 default:
                     return 0;
@@ -2315,6 +2316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RefReadOnlyWrongOrdering:
                 case ErrorCode.WRN_BadArgRef:
                 case ErrorCode.WRN_ArgExpectedRefOrIn:
+                case ErrorCode.WRN_RefReadonlyNotVariable:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

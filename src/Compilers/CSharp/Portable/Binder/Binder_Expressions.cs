@@ -3260,11 +3260,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (argRefKind == RefKind.None &&
                         GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.RefReadOnlyParameter)
                     {
-                        // Argument {0} should be passed with 'ref' or 'in' keyword
-                        diagnostics.Add(
-                            ErrorCode.WRN_ArgExpectedRefOrIn,
-                            argument.Syntax,
-                            arg + 1);
+                        if (!this.CheckValueKind(argument.Syntax, argument, BindValueKind.RefersToLocation, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                        {
+                            // Argument {0} should be a variable because it is passed to a 'ref readonly' parameter
+                            diagnostics.Add(
+                                ErrorCode.WRN_RefReadonlyNotVariable,
+                                argument.Syntax,
+                                arg + 1);
+                        }
+                        else
+                        {
+                            // Argument {0} should be passed with 'ref' or 'in' keyword
+                            diagnostics.Add(
+                                ErrorCode.WRN_ArgExpectedRefOrIn,
+                                argument.Syntax,
+                                arg + 1);
+                        }
                     }
                 }
 

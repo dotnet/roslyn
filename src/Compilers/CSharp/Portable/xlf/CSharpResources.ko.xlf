@@ -2417,6 +2417,16 @@
         <target state="translated">이는 대상보다 더 넓은 값 이스케이프 범위를 가지는 값을 ref-assign하며 더 좁은 이스케이프 범위가 있는 값의 대상을 통한 할당을 허용합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RefReadonlyNotVariable">
+        <source>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</source>
+        <target state="new">Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReadonlyNotVariable_Title">
+        <source>Argument should be a variable because it is passed to a 'ref readonly' parameter</source>
+        <target state="new">Argument should be a variable because it is passed to a 'ref readonly' parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
         <source>This returns local '{0}' by reference but it is not a ref local</source>
         <target state="translated">참조로 로컬 '{0}'을(를) 반환하지만 참조 로컬이 아닙니다.</target>

@@ -306,6 +306,7 @@ class X
                         case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                         case ErrorCode.WRN_BadArgRef:
                         case ErrorCode.WRN_ArgExpectedRefOrIn:
+                        case ErrorCode.WRN_RefReadonlyNotVariable:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:

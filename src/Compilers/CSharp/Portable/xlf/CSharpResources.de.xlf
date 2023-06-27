@@ -2417,6 +2417,16 @@
         <target state="translated">Dies weist einen Wert zu, der über einen breiteren Werte-Escapebereich als das Ziel verfügt, wodurch die Zuweisung durch das Ziel von Werten mit engeren Escapebereichen ermöglicht wird.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RefReadonlyNotVariable">
+        <source>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</source>
+        <target state="new">Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReadonlyNotVariable_Title">
+        <source>Argument should be a variable because it is passed to a 'ref readonly' parameter</source>
+        <target state="new">Argument should be a variable because it is passed to a 'ref readonly' parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
         <source>This returns local '{0}' by reference but it is not a ref local</source>
         <target state="translated">Gibt die lokale Variable "{0}" als Verweis zurück, es handelt sich jedoch nicht um eine lokale ref-Variable.</target>

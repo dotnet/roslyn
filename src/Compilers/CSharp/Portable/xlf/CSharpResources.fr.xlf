@@ -2417,6 +2417,16 @@
         <target state="translated">Cette référence affecte une valeur, mais a une étendue d’échappement de valeur plus large que la cible, ce qui permet l’affectation via la cible de valeurs avec des étendues d’échappement plus restreintes.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RefReadonlyNotVariable">
+        <source>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</source>
+        <target state="new">Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReadonlyNotVariable_Title">
+        <source>Argument should be a variable because it is passed to a 'ref readonly' parameter</source>
+        <target state="new">Argument should be a variable because it is passed to a 'ref readonly' parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
         <source>This returns local '{0}' by reference but it is not a ref local</source>
         <target state="translated">Retourne une variable locale '{0}' par référence, mais il ne s'agit pas d'une variable locale de référence</target>

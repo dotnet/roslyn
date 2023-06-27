@@ -317,6 +317,7 @@
                 case ErrorCode.WRN_AddressOfInAsync:
                 case ErrorCode.WRN_BadArgRef:
                 case ErrorCode.WRN_ArgExpectedRefOrIn:
+                case ErrorCode.WRN_RefReadonlyNotVariable:
                     return true;
                 default:
                     return false;

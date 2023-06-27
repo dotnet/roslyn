@@ -1407,10 +1407,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "5");
         verifier.VerifyDiagnostics(
-            // PROTOTYPE: Improve wording when value checks are implemented.
-            // (6,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (6,11): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
             //         M(5);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "5").WithArguments("1").WithLocation(6, 11));
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("1").WithLocation(6, 11));
         verifier.VerifyIL("C.Main", """
             {
               // Code size       10 (0xa)
