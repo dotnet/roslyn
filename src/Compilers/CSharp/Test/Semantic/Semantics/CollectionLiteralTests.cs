@@ -6487,5 +6487,51 @@ Block[B4] - Exit
                 //         [] with { Count = 1, };
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "[] with { Count = 1, }").WithLocation(7, 9));
         }
+
+        [Fact]
+        public void TopLevelIsExpressions()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main(List<int> list)
+                    {
+                        [] is object;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (7,9): error CS9503: There is no target type for the collection literal.
+                //         [] is object;
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(7, 9),
+                // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         [] is object;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "[] is object").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void TopLevelAsExpressions()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main(List<int> list)
+                    {
+                        [] as List<int>;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (7,9): error CS9503: There is no target type for the collection literal.
+                //         [] as List<int>;
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(7, 9),
+                // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         [] as List<int>;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "[] as List<int>").WithLocation(7, 9));
+        }
     }
 }
