@@ -4611,6 +4611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = binder.WithAdditionalFlags(BinderFlags.SemanticModel);
                 foreach (var scope in new ExtensionScopes(binder))
                 {
+                    // PROTOTYPE need to search extension type members for GetMemberGroup and other semantic model APIs
                     var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
                     var otherBinder = scope.Binder;
                     otherBinder.GetCandidateExtensionMethods(extensionMethods,

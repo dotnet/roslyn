@@ -262,13 +262,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 enclosingBinder.LookupInstanceMember(lookupResult, type, leftIsBaseReference: false, memberName, targetMemberArity, invoked, ref useSiteInfo);
 
-                LookupOptions options = LookupOptions.AllMethodsOnArityZero;
-                if (invoked)
-                {
-                    options |= LookupOptions.MustBeInvocableIfMember;
-                }
-                enclosingBinder.LookupExtensionMembersIfNeeded(lookupResult, type, memberName, targetMemberArity, basesBeingResolved: null, options, ref useSiteInfo);
-
                 bool treatAsInstanceMemberAccess;
                 if (lookupResult.IsMultiViable)
                 {

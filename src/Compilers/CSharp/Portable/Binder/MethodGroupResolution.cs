@@ -4,16 +4,16 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// Packages up the various parts returned when resolving a method group. 
+    /// Packages up the various parts returned when resolving a method group.
+    ///
+    /// A resolution may find a non-method group result (an extension member).
+    /// That is represented as a viable ResultKind with an OtherSymbol, but no MethodGroup.
     /// </summary>
     internal readonly struct MethodGroupResolution
     {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MethodGroupResolution(Symbol otherSymbol, LookupResultKind resultKind, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
             : this(methodGroup: null, otherSymbol, overloadResolutionResult: null, analyzedArguments: null, resultKind, diagnostics)
         {
-            Debug.Assert(resultKind != LookupResultKind.Viable);
+            Debug.Assert(resultKind != LookupResultKind.Viable || otherSymbol.ContainingType.IsExtension);
         }
 
         public MethodGroupResolution(
@@ -83,6 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsExtensionMethodGroup
         {
             get { return (this.MethodGroup != null) && this.MethodGroup.IsExtensionMethodGroup; }
+        }
+
+        public bool IsExtensionMember(out Symbol extensionMember)
+        {
+            extensionMember = OtherSymbol;
+            return ResultKind == LookupResultKind.Viable && MethodGroup is null;
         }
 
         public bool IsLocalFunctionInvocation =>

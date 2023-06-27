@@ -873,13 +873,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
-
-            if (qualifierOpt is TypeSymbol leftType)
-            {
-                this.LookupExtensionMembersIfNeeded(result, leftType, identifierValueText, arity: 0, basesBeingResolved, options, ref useSiteInfo);
-            }
-
             diagnostics.Add(node, useSiteInfo);
+
+            if (result.Kind == LookupResultKind.Empty && qualifierOpt is TypeSymbol typeSymbol)
+            {
+                this.LookupExtensionTypeMembersIfNeeded(result, typeSymbol, identifierValueText, arity: 0, basesBeingResolved, options, ref useSiteInfo);
+            }
 
             Symbol bindingResult = null;
 
@@ -1283,11 +1282,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsSimpleName(lookupResult, qualifierOpt, plainName, arity, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
-            if (qualifierOpt is TypeSymbol leftType)
-            {
-                this.LookupExtensionMembersIfNeeded(lookupResult, leftType, plainName, arity, basesBeingResolved, options, ref useSiteInfo);
-            }
             diagnostics.Add(node, useSiteInfo);
+
+            if (lookupResult.Kind == LookupResultKind.Empty && qualifierOpt is TypeSymbol typeSymbol)
+            {
+                this.LookupExtensionTypeMembersIfNeeded(lookupResult, typeSymbol, plainName, arity, basesBeingResolved, options, ref useSiteInfo);
+            }
 
             bool wasError;
             Symbol lookupResultSymbol = ResultSymbol(lookupResult, plainName, arity, node, diagnostics, (basesBeingResolved != null), out wasError, qualifierOpt, options);

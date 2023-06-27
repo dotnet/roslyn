@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
 
                                 var value = BindValue(interpolation.Expression, diagnostics, BindValueKind.RValue);
+                                value = ResolveToExtensionMemberIfPossible(value, diagnostics);
 
                                 // We need to ensure the argument is not a lambda, method group, etc. It isn't nice to wait until lowering,
                                 // when we perform overload resolution, to report a problem. So we do that check by calling

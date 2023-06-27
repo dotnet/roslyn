@@ -182,6 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options,
             Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(!type.IsTypeParameter());
+
             var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             getCompatibleExtensions(binder, type, compatibleExtensions);
             // PROTOTYPE test use-site diagnostics
@@ -301,42 +303,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             // done in the caller?
         }
 
-        private void LookupExtensionMembersIfNeeded(LookupResult result, TypeSymbol type, string name, int arity,
+#nullable enable
+        private void LookupExtensionTypeMembersIfNeeded(LookupResult result, TypeSymbol type, string name, int arity,
             ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert((options & LookupOptions.NamespacesOrTypesOnly) != 0);
             if (!result.IsMultiViable && !type.IsTypeParameter())
             {
                 var extensionResult = LookupResult.GetInstance();
-                LookupMembersInExtensions(extensionResult, name, arity, basesBeingResolved, ref useSiteInfo, options, type);
+                lookupMembersInExtensions(extensionResult, name, arity, basesBeingResolved, ref useSiteInfo, options, type);
                 if (extensionResult.IsMultiViable)
                 {
                     result.SetFrom(extensionResult);
                 }
                 extensionResult.Free();
             }
-        }
 
-#nullable enable
-        private void LookupMembersInExtensions(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, LookupOptions options, TypeSymbol type)
-        {
-            Debug.Assert(!type.IsTypeParameter());
+            return;
 
-            foreach (ExtensionScope scope in new ExtensionScopes(this))
+            void lookupMembersInExtensions(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, LookupOptions options, TypeSymbol type)
             {
-                if (!result.IsClear)
+                Debug.Assert(!type.IsTypeParameter());
+
+                foreach (ExtensionScope scope in new ExtensionScopes(this))
                 {
-                    result.Clear();
+                    if (!result.IsClear)
+                    {
+                        result.Clear();
+                    }
+
+                    LookupImplicitExtensionMembersInSingleBinder(result, scope.Binder, type, name, arity,
+                        basesBeingResolved, options, originalBinder: this, ref useSiteInfo);
+
+                    if (result.IsMultiViable)
+                        break;
                 }
-
-                LookupImplicitExtensionMembersInSingleBinder(result, scope.Binder, type, name, arity,
-                    basesBeingResolved, options, originalBinder: this, ref useSiteInfo);
-
-                if (result.IsMultiViable)
-                    break;
-
-                // PROTOTYPE we'd like extension member lookup to also find extension methods
-                //   but that requires having arguments at hand (for applicability, which factors into eligility)
             }
         }
 #nullable disable

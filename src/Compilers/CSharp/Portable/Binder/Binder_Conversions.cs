@@ -62,7 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = createConversion(syntax, source, conversion, isCast, conversionGroupOpt, wasCompilerGenerated, destination, diagnostics, hasErrors);
 
-            Debug.Assert(result is BoundConversion || (conversion.IsIdentity && ((object)result == source) || source.NeedsToBeConverted()) || hasErrors);
+            Debug.Assert(result is BoundConversion
+                || (conversion.IsIdentity && ((object)result == source)
+                || (conversion.IsExtensionMemberConversion(out _, out var nestedConversion) && nestedConversion.IsIdentity)
+                || source.NeedsToBeConverted())
+                || hasErrors);
 
 #if DEBUG
             if (source is BoundValuePlaceholder placeholder1)
@@ -127,6 +131,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (conversion.IsMethodGroup)
                 {
                     return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
+                }
+
+                if (conversion.IsExtensionMemberConversion(out var extensionMember, out var nestedConversion))
+                {
+                    source = GetExtensionMemberAccess(syntax, ((BoundMethodGroup)source).ReceiverOpt, extensionMember, diagnostics);
+                    return CreateConversion(syntax, source, nestedConversion, isCast, conversionGroupOpt, destination, diagnostics);
                 }
 
                 // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
@@ -306,6 +316,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         reportUseSiteDiagnosticsForUnderlyingConversions(conversion);
                     }
                 }
+            }
+        }
+
+        private BoundExpression GetExtensionMemberAccess(SyntaxNode syntax, BoundExpression? receiver, Symbol extensionMember, BindingDiagnosticBag diagnostics)
+        {
+            switch (extensionMember)
+            {
+                case PropertySymbol propertySymbol:
+                    return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
+
+                case FieldSymbol fieldSymbol:
+                    return BindFieldAccess(syntax, receiver, fieldSymbol, diagnostics, LookupResultKind.Viable, indexed: false, hasErrors: false);
+
+                case NamedTypeSymbol namedTypeSymbol:
+                    bool wasError = false;
+
+                    return BindTypeMemberOfType(receiver, namedTypeSymbol.Name, namedTypeSymbol,
+                        syntax, right: syntax, diagnostics, ref wasError);
+
+                case EventSymbol eventSymbol:
+                    return BindEventAccess(syntax, receiver, eventSymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(extensionMember.Kind);
             }
         }
 
