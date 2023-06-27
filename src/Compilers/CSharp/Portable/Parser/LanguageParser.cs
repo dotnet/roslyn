@@ -7437,8 +7437,12 @@ done:;
 
             // Continue consuming element access expressions for `[x][y]...`.  We have to determine if this is a
             // collection expression being indexed into, or if it's a sequence of attributes.
+            var bracketArgumentListCount = 0;
             while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+            {
                 ParseBracketedArgumentList();
+                bracketArgumentListCount++;
+            }
 
             // Check the next token to see if it indicates the `[...]` sequence we have is a term or not. This is the
             // same set of tokens that ParsePostFixExpression looks for.
@@ -7460,7 +7464,9 @@ done:;
                 || this.CurrentToken.Kind is SyntaxKind.DotDotToken
                 || this.CurrentToken.ContextualKind is SyntaxKind.SwitchKeyword or SyntaxKind.WithKeyword && this.PeekToken(1).Kind is SyntaxKind.OpenBraceToken;
 
-            if (!isCollectionExpression && this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            if (!isCollectionExpression &&
+                bracketArgumentListCount > 0 &&
+                this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 // There are a few things that could be happening here:
                 //
@@ -7472,7 +7478,7 @@ done:;
                 //
                 //      `[Attr] (A, B) LocalFunc() { }
                 //
-                // Have to figure out what the parenthesized thing is in order to parse this.  By pasing out a type
+                // Have to figure out what the parenthesized thing is in order to parse this.  By parsing out a type
                 // and looking for an identifier next, we handle the cases of:
                 //
                 //      `[Attr] (A, B) LocalFunc() { }
@@ -7481,6 +7487,10 @@ done:;
                 //      `[Attr] (A, B)? LocalFunc() { }
                 //
                 // etc.
+                //
+                // Note: we do not accept the naked `[...](...)` as an invocation of a collection literal.  Collection
+                // literals never have a type that itself could possibly be invoked, so this ensures a more natural parse
+                // with what users may be expecting here.
                 var returnType = this.ParseReturnType();
                 isCollectionExpression = ContainsErrorDiagnostic(returnType) || !IsTrueIdentifier();
             }
