@@ -10495,7 +10495,7 @@ done:;
                 SyntaxKind opKind;
 
                 // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
-                // to see if it may need a similar lookhead check to determine if something is a collection expression versus
+                // to see if it may need a similar look-head check to determine if something is a collection expression versus
                 // an attribute.
 
                 if (IsExpectedBinaryOperator(tk))
@@ -10986,6 +10986,10 @@ done:;
 
             while (true)
             {
+                // If the set of postfix expressions is updated here, please review ParseStatementAttributeDeclarations
+                // to see if it may need a similar lookhead check to determine if something is a collection expression
+                // versus an attribute.
+
                 switch (this.CurrentToken.Kind)
                 {
                     case SyntaxKind.OpenParenToken:
