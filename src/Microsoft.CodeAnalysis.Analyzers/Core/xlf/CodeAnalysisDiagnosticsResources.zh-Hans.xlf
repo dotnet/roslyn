@@ -119,27 +119,27 @@
       </trans-unit>
       <trans-unit id="DoNotDeclareCSharpCompilerFeatureInAssemblyWithVisualBasicReferenceMessage">
         <source>This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">不应在包含对 Microsoft.CodeAnalysis.VisualBasic 的引用的程序集中实现此 C# 编译器扩展。在 C# 编译方案期间，不会始终提供 Microsoft.CodeAnalysis.VisualBasic 程序集，因此对它的引用可能导致编译器扩展的行为不可预测。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage">
         <source>This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">不应在包含对 Microsoft.CodeAnalysis.Workspaces 的引用的程序集中实现此编译器扩展。在命令行编译方案期间未提供 Microsoft.CodeAnalysis.Workspaces 程序集，因此对它的引用可能导致编译器扩展的行为不可预测。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareVisualBasicCompilerFeatureInAssemblyWithCSharpReferenceMessage">
         <source>This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">不应在包含对 Microsoft.CodeAnalysis.CSharp 的引用的程序集中实现此 Visual Basic 编译器扩展。Microsoft.CodeAnalysis.CSharp 程序集并非始终在 Visual Basic 编译方案中提供，因此对它的引用可能导致编译器扩展的行为不可预测。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleDescription">
         <source>Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</source>
-        <target state="new">Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</target>
+        <target state="translated">在包含对并非由所有编译方案提供的程序集的引用的程序集中，不应声明实现编译器扩展点的类型。这样做可能会导致该功能的行为不可预测。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleTitle">
         <source>Compiler extensions should be implemented in assemblies with compiler-provided references</source>
-        <target state="new">Compiler extensions should be implemented in assemblies with compiler-provided references</target>
+        <target state="translated">应在具有编译器提供的引用的程序集中实现编译器扩展</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
