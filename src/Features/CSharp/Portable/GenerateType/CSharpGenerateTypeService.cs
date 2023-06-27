@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return true;
         }
 
-        private void GetNamespaceContainers(NameSyntax name, List<string> namespaceContainers)
+        private static void GetNamespaceContainers(NameSyntax name, List<string> namespaceContainers)
         {
             if (name is QualifiedNameSyntax qualifiedName)
             {

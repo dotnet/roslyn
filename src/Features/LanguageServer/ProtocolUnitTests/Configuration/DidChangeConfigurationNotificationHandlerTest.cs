@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Configuration
     {
         // A regex help to check the message we send to client.
         // It should look like "feature_group.feature_name"
-        private static readonly string s_clientSideSectionPattern = @"^((csharp|visual_basic)\|)?([\w_]+)\.([\w_]+)$";
+        private static readonly string s_clientSideSectionPattern = @"^((csharp|visual_basic)\|)?([\w_|\.]+)([\w_]+)$";
 
         public DidChangeConfigurationNotificationHandlerTest(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
         {
@@ -206,6 +206,11 @@ public class A { }";
 
             private static object? GetNonDefaultValue(IOption2 option)
             {
+                if (TryGetValueNonDefaultValueBasedOnName(option, out var nonDefaultValue))
+                {
+                    return nonDefaultValue;
+                }
+
                 var type = option.Type;
                 if (type == typeof(bool))
                 {
@@ -242,7 +247,7 @@ public class A { }";
                 }
                 else
                 {
-                    throw new Exception("Please return a non-default value based on the config name.");
+                    throw new Exception($"Please return a non-default value based on the config name, config name: {option.Name}.");
                 }
 
                 object GetDifferentEnumValue(Type enumType, object enumValue)
@@ -256,6 +261,18 @@ public class A { }";
                     }
 
                     throw new ArgumentException($"{enumType.Name} has only one value.");
+                }
+
+                static bool TryGetValueNonDefaultValueBasedOnName(IOption option, out object? nonDefaultValue)
+                {
+                    if (option.Name is "end_of_line")
+                    {
+                        nonDefaultValue = "\n";
+                        return true;
+                    }
+
+                    nonDefaultValue = null;
+                    return false;
                 }
             }
 

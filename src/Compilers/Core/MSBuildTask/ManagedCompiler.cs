@@ -469,6 +469,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string?)_store[nameof(LangVersion)]; }
         }
 
+        public bool ReportIVTs
+        {
+            set { _store[nameof(ReportIVTs)] = value; }
+            get { return _store.GetOrDefault(nameof(ReportIVTs), false); }
+        }
+
         #endregion
 
         // ToolExe delegates back to ToolName if the override is not
@@ -904,6 +910,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/debug:", DebugType);
 
             commandLine.AppendPlusOrMinusSwitch("/delaysign", _store, nameof(DelaySign));
+
+            commandLine.AppendWhenTrue("/reportivts", _store, nameof(ReportIVTs));
 
             commandLine.AppendSwitchWithInteger("/filealign:", _store, nameof(FileAlignment));
             commandLine.AppendSwitchIfNotNull("/generatedfilesout:", GeneratedFilesOutputPath);

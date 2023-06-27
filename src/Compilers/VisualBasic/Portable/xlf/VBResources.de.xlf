@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
         <source>Cannot inherit from '{0}' because it has required members.</source>
-        <target state="new">Cannot inherit from '{0}' because it has required members.</target>
+        <target state="translated">Von "{0}" kann nicht geerbt werden, da er über erforderliche Member verfügt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="ERR_DoNotUseRequiredMember">
         <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
-        <target state="new">'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</target>
+        <target state="translated">"System.Runtime.CompilerServices.RequiredMemberAttribute" ist nur für die Compilerverwendung reserviert.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
         <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
-        <target state="new">'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</target>
+        <target state="translated">"{2}" kann die "New"-Einschränkung für Parameter "{1}" im generischen Typ oder in der generischen Methode "{0}" nicht erfüllen, da "{2}" erforderliche Member aufweist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="ERR_RequiredMemberMustBeSet">
         <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
-        <target state="new">Required member '{0}' must be set in the object initializer or attribute arguments.</target>
+        <target state="translated">Das erforderliche Mitglied "{0}" muss im Objektinitialisierer oder in den Attributargumenten festgelegt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMembersInvalid">
         <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
-        <target state="new">The required members list for '{0}' is malformed and cannot be interpreted.</target>
+        <target state="translated">Die erforderliche Mitgliederliste für '{0}' ist falsch formatiert und kann nicht interpretiert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -90,6 +90,11 @@
       <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
         <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
         <target state="translated">Ereignisse freigegebener WithEvents-Variablen können nicht von Methoden in einem anderen Typ behandelt werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="new">'{0}' is defined in assembly '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
@@ -109,7 +114,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
         <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
-        <target state="new">A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</target>
+        <target state="translated">Ein Aufruf einer Methode oder Eigenschaft, die als Verweis zurückgegeben wird, kann nicht als With-Anweisungsausdruck in einer Async- oder Iteratormethode verwendet werden oder wenn implizit in einem Lambda-Ausdruck darauf verwiesen wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -287,6 +292,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -299,7 +307,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic Compiler-Optionen
+        <target state="needs-review-translation">                  Visual Basic Compiler-Optionen
 
                                   – AUSGABEDATEI –
 -out:&lt;file&gt;                       Gibt den Namen der Ausgabedatei an.

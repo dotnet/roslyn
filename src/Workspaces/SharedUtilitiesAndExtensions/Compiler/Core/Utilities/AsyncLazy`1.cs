@@ -130,16 +130,11 @@ namespace Roslyn.Utilities
             return new WaitThatValidatesInvariants(this);
         }
 
-        private readonly struct WaitThatValidatesInvariants : IDisposable
+        private readonly struct WaitThatValidatesInvariants(AsyncLazy<T> asyncLazy) : IDisposable
         {
-            private readonly AsyncLazy<T> _asyncLazy;
-
-            public WaitThatValidatesInvariants(AsyncLazy<T> asyncLazy)
-                => _asyncLazy = asyncLazy;
-
             public void Dispose()
             {
-                _asyncLazy.AssertInvariants_NoLock();
+                asyncLazy.AssertInvariants_NoLock();
                 s_gate.Release();
             }
         }
@@ -367,16 +362,10 @@ namespace Roslyn.Utilities
             return new AsynchronousComputationToStart(_asynchronousComputeFunction, _asynchronousComputationCancellationSource);
         }
 
-        private readonly struct AsynchronousComputationToStart
+        private readonly struct AsynchronousComputationToStart(Func<CancellationToken, Task<T>> asynchronousComputeFunction, CancellationTokenSource cancellationTokenSource)
         {
-            public readonly Func<CancellationToken, Task<T>> AsynchronousComputeFunction;
-            public readonly CancellationTokenSource CancellationTokenSource;
-
-            public AsynchronousComputationToStart(Func<CancellationToken, Task<T>> asynchronousComputeFunction, CancellationTokenSource cancellationTokenSource)
-            {
-                AsynchronousComputeFunction = asynchronousComputeFunction;
-                CancellationTokenSource = cancellationTokenSource;
-            }
+            public readonly Func<CancellationToken, Task<T>> AsynchronousComputeFunction = asynchronousComputeFunction;
+            public readonly CancellationTokenSource CancellationTokenSource = cancellationTokenSource;
         }
 
         private void StartAsynchronousComputation(AsynchronousComputationToStart computationToStart, Request? requestToCompleteSynchronously, CancellationToken callerCancellationToken)

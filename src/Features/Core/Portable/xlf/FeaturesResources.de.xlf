@@ -700,11 +700,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Beispiele:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
-      <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
-        <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
-        <target state="translated">Explizit implementierte Methoden von Datensätzen müssen Parameternamen aufweisen, die mit dem vom Compiler generierten Äquivalent "{0}" übereinstimmen.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
         <target state="translated">Basisklasse extrahieren...</target>
@@ -918,16 +913,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Implement_through_0">
         <source>Implement through '{0}'</source>
         <target state="translated">Über "{0}" implementieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application">
-        <source>Implementing a record positional parameter '{0}' as read only requires restarting the application,</source>
-        <target state="translated">Das Implementieren eines Positionsparameters „{0}“ als schreibgeschützt erfordert einen Neustart der Anwendung,</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application">
-        <source>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</source>
-        <target state="translated">Das Implementieren eines Datensatz-Positionsparameters „{0}“ mit einer festgelegten Zugriffsmethode erfordert einen Neustart der Anwendung.</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -2807,7 +2792,7 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       </trans-unit>
       <trans-unit id="Updating_0_within_generic_type_or_method_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Updating {0} within generic type or method requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Updating {0} within generic type or method requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">Das Aktualisieren {0} innerhalb des generischen Typs oder der generischen Methode erfordert einen Neustart der Anwendung, da es von der Laufzeit nicht unterstützt wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_requires_restarting_the_application">
@@ -2832,7 +2817,7 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Updating async or iterator requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Updating async or iterator requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">Das Aktualisieren asynchron oder als Iterator erfordert einen Neustart der Anwendung, da es von der Laufzeit nicht unterstützt wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
@@ -4334,6 +4319,11 @@ Bei Verwendung dieses Standardformatbezeichners wird zur Formatierung oder Analy
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'"symbol" kann kein Namespace sein.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="symbol_kind_and_name_of_member_kind_and_name">
+        <source>{0} '{1}' of {2} '{3}'</source>
+        <target state="new">{0} '{1}' of {2} '{3}'</target>
+        <note>e.g. "parameter 'T param' of method 'M'"</note>
       </trans-unit>
       <trans-unit id="time_separator">
         <source>time separator</source>

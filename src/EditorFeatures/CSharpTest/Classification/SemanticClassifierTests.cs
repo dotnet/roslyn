@@ -4023,6 +4023,7 @@ Regex.Comment("(?#comment)"));
         }
 
         [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68534")]
         public async Task TestJson1(TestHost testHost)
         {
             await TestAsync(
@@ -4043,10 +4044,12 @@ Json.Object("{"),
 Json.PropertyName("'goo'"),
 Json.Punctuation(":"),
 Json.Number("0"),
+Json.Punctuation(","),
 Json.PropertyName("bar"),
 Json.Punctuation(":"),
 Json.Operator("-"),
 Json.Keyword("Infinity"),
+Json.Punctuation(","),
 Json.PropertyName(@"""""baz"""""),
 Json.Punctuation(":"),
 Json.Keyword("true"),
@@ -4090,6 +4093,7 @@ Json.Array("]"));
         }
 
         [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68534")]
         public async Task TestMultiLineJson1(TestHost testHost)
         {
             await TestAsync(
@@ -4120,13 +4124,16 @@ Json.Object("{"),
 Json.PropertyName("'goo'"),
 Json.Punctuation(":"),
 Json.Number("0"),
+Json.Punctuation(","),
 Json.PropertyName("bar"),
 Json.Punctuation(":"),
 Json.Operator("-"),
 Json.Keyword("Infinity"),
+Json.Punctuation(","),
 Json.PropertyName(@"""""baz"""""),
 Json.Punctuation(":"),
 Json.Keyword("true"),
+Json.Punctuation(","),
 Json.PropertyName("0"),
 Json.Punctuation(":"),
 Json.Keyword("null"),

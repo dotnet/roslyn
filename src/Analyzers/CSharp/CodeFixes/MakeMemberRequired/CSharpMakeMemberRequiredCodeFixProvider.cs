@@ -58,6 +58,12 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider : SyntaxEditorBase
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
+        if (semanticModel.Compilation.GetBestTypeByMetadataName("System.Runtime.CompilerServices.RequiredMemberAttribute") is null)
+        {
+            // The attribute necessary to support required members is not present
+            return;
+        }
+
         var fieldOrPropertySymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
         if (fieldOrPropertySymbol is IPropertySymbol propertySymbol)
         {
