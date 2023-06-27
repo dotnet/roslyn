@@ -9928,14 +9928,43 @@ public static class Program
     {
         System.Exception x = null;
         Method(x);
+        Method(ref x);
+        Method(in x);
+        Method(out x);
     }
 }";
-
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'in int'
                 //         Method(x);
-                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16)
-            );
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16),
+                // (12,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                //         Method(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(12, 20),
+                // (13,19): error CS1503: Argument 1: cannot convert from 'in System.Exception' to 'in int'
+                //         Method(in x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in System.Exception", "in int").WithLocation(13, 19),
+                // (14,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         Method(out x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(14, 20));
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'in int'
+                //         Method(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16),
+                // (12,20): error CS1503: Argument 1: cannot convert from 'ref System.Exception' to 'in int'
+                //         Method(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "ref System.Exception", "in int").WithLocation(12, 20),
+                // (13,19): error CS1503: Argument 1: cannot convert from 'in System.Exception' to 'in int'
+                //         Method(in x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in System.Exception", "in int").WithLocation(13, 19),
+                // (14,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         Method(out x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(14, 20)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [WorkItem(20799, "https://github.com/dotnet/roslyn/issues/20799")]

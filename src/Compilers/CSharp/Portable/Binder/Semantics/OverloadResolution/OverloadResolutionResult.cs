@@ -1215,6 +1215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (refArg != refParameter &&
                 !(refArg == RefKind.None && refParameter == RefKind.In) &&
+                !(refArg == RefKind.Ref && refParameter == RefKind.In && binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters)) &&
                 !(refParameter == RefKind.RefReadOnlyParameter && refArg is RefKind.None or RefKind.Ref or RefKind.In))
             {
                 if (refParameter is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter)
