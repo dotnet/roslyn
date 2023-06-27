@@ -7460,6 +7460,31 @@ done:;
                 || this.CurrentToken.Kind is SyntaxKind.DotDotToken
                 || this.CurrentToken.ContextualKind is SyntaxKind.SwitchKeyword or SyntaxKind.WithKeyword && this.PeekToken(1).Kind is SyntaxKind.OpenBraceToken;
 
+            if (!isCollectionExpression && this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            {
+                // There are a few things that could be happening here:
+                //
+                // First is that we have an actual collection literal that we're invoking.  For example:
+                //
+                //      `[() => {}][rand.NextInt() % x]();`
+                //
+                // Second would be the start of a local function that returns a tuple.  For example:
+                //
+                //      `[Attr] (A, B) LocalFunc() { }
+                //
+                // Have to figure out what the parenthesized thing is in order to parse this.  By pasing out a type
+                // and looking for an identifier next, we handle the cases of:
+                //
+                //      `[Attr] (A, B) LocalFunc() { }
+                //      `[Attr] (A, B)[] LocalFunc() { }
+                //      `[Attr] (A, B)[,] LocalFunc() { }
+                //      `[Attr] (A, B)? LocalFunc() { }
+                //
+                // etc.
+                var returnType = this.ParseReturnType();
+                isCollectionExpression = ContainsErrorDiagnostic(returnType) || !IsTrueIdentifier();
+            }
+
             // If this was a collection expression, not an attribute declaration, return no attributes so that the
             // caller will parse this out as a collection expression. Otherwise re-parse the code as the actual
             // attribute declarations.
