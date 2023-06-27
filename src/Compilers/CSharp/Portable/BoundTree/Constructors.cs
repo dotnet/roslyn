@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -177,12 +178,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt = default)
         {
+            argumentRefKindsOpt = argumentRefKindsOpt.IsDefault ? method.ParameterRefKinds : argumentRefKindsOpt;
+
+            Debug.Assert(argumentRefKindsOpt.IsDefaultOrEmpty || Enumerable.Range(0, arguments.Length).All(i =>
+            {
+                if (i < method.ParameterCount)
+                {
+                    var parameterRefKind = method.ParameterRefKinds[i];
+
+                    if (!argumentRefKindsOpt.IsDefault && i < argumentRefKindsOpt.Length)
+                    {
+                        var argumentRefKind = argumentRefKindsOpt[i];
+
+                        return argumentRefKind is RefKind.None or RefKind.Ref or RefKind.In or RefKind.Out or RefKindExtensions.StrictIn &&
+                            (argumentRefKind == parameterRefKind ||
+                            parameterRefKind switch
+                            {
+                                RefKind.In => argumentRefKind == RefKindExtensions.StrictIn,
+                                RefKind.RefReadOnlyParameter => argumentRefKind is RefKind.In or RefKindExtensions.StrictIn,
+                                _ => false,
+                            });
+                    }
+
+                    // 'ref readonly' parameters need an entry in 'argRefKindsOpt'
+                    return parameterRefKind != RefKind.RefReadOnlyParameter;
+                }
+
+                return arguments[i].Kind == BoundKind.ArgListOperator;
+            }));
+
             return new BoundCall(syntax,
                     receiverOpt,
                     method,
                     arguments,
                     argumentNamesOpt: default(ImmutableArray<string>),
-                    argumentRefKindsOpt: argumentRefKindsOpt.IsDefault ? method.ParameterRefKinds : argumentRefKindsOpt,
+                    argumentRefKindsOpt: argumentRefKindsOpt,
                     isDelegateCall: false,
                     expanded: false,
                     invokedAsExtensionMethod: false,
