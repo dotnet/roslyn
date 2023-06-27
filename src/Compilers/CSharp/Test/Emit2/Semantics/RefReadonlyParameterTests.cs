@@ -1408,6 +1408,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "5");
         verifier.VerifyDiagnostics(
+            // PROTOTYPE: Improve wording when value checks are implemented.
             // (6,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
             //         M(5);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "5").WithArguments("1").WithLocation(6, 11));
