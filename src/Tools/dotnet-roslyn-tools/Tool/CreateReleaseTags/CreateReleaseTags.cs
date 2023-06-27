@@ -75,7 +75,14 @@ internal static class CreateReleaseTags
 
                             string message = $"Build Branch: {build.SourceBranch}\r\nInternal ID: {build.BuildId}\r\nInternal VS ID: {visualStudioRelease.BuildId}";
 
-                            repository.ApplyTag(tagName, build.CommitSha, new Signature(product.GitUserName, product.GitEmail, when: visualStudioRelease.CreationTime), message);
+                            try
+                            {
+                                repository.ApplyTag(tagName, build.CommitSha, new Signature(product.GitUserName, product.GitEmail, when: visualStudioRelease.CreationTime), message);
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.LogWarning(ex, $"Unable to tag the commit '{build.CommitSha}' with '{tagName}'.");
+                            }
                         }
                         else
                         {
