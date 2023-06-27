@@ -10495,7 +10495,7 @@ done:;
                 SyntaxKind opKind;
 
                 // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
-                // to see if it may need a similar look-head check to determine if something is a collection expression versus
+                // to see if it may need a similar look-ahead check to determine if something is a collection expression versus
                 // an attribute.
 
                 if (IsExpectedBinaryOperator(tk))
