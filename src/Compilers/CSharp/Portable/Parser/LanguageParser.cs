@@ -7485,6 +7485,7 @@ done:;
                 //      `[Attr] (A, B)[] LocalFunc() { }
                 //      `[Attr] (A, B)[,] LocalFunc() { }
                 //      `[Attr] (A, B)? LocalFunc() { }
+                //      `[Attr] (A, B)* LocalFunc() { }
                 //
                 // etc.
                 //
