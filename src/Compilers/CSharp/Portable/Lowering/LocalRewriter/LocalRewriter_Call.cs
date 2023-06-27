@@ -1148,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var temp = _factory.StoreToTemp(
                         argument,
                         out BoundAssignmentOperator assignment,
-                        refKind: paramRefKind == RefKind.In ? RefKind.In : argRefKind);
+                        refKind: paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter ? RefKind.In : argRefKind);
                     storesToTemps.Add(assignment);
                     arguments[p] = temp;
                 }
