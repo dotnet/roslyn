@@ -1,0 +1,49 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
+{
+    [EditorConfigGenerator(LanguageNames.CSharp), Shared]
+    internal class CSharpEditorConfigFileGenerator : IEditorConfigGeneratorCollection
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpEditorConfigFileGenerator()
+        {
+        }
+
+        public string? GenerateEditorConfig(IOptionsReader options)
+        {
+            return EditorConfigFileGenerator.Generate(GetEditorConfigOptions(), options, LanguageNames.CSharp);
+        }
+
+        public ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetEditorConfigOptions()
+        {
+            var builder = ArrayBuilder<(string, ImmutableArray<IOption2>)>.GetInstance();
+            builder.AddRange(CSharpEditorConfigFileGenerator.GetLanguageAgnosticEditorConfigOptions());
+            builder.Add((WorkspacesResources.CSharp_Coding_Conventions, CSharpCodeStyleOptions.AllOptions));
+            builder.Add((WorkspacesResources.CSharp_Formatting_Rules, CSharpFormattingOptions2.AllOptions));
+            return builder.ToImmutableAndFree();
+        }
+
+        internal static IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageAgnosticEditorConfigOptions()
+        {
+            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.Options);
+            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions));
+        }
+    }
+}

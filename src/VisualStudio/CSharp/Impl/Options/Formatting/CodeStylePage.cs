@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.ExternalAccess.EditorConfig;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
@@ -22,27 +23,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
+            var editorService = (EditorConfigGeneratorService)serviceProvider.GetService(typeof(EditorConfigGeneratorService));
             return new GridOptionPreviewControl(
                 serviceProvider,
                 optionStore,
                 (o, s) => new StyleViewModel(o, s),
-                GetEditorConfigOptions(),
+                editorService.GetOptions(LanguageNames.CSharp),
                 LanguageNames.CSharp);
-        }
-
-        private static ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetEditorConfigOptions()
-        {
-            var builder = ArrayBuilder<(string, ImmutableArray<IOption2>)>.GetInstance();
-            builder.AddRange(GridOptionPreviewControl.GetLanguageAgnosticEditorConfigOptions());
-            builder.Add((CSharpVSResources.CSharp_Coding_Conventions, CSharpCodeStyleOptions.AllOptions));
-            builder.Add((CSharpVSResources.CSharp_Formatting_Rules, CSharpFormattingOptions2.AllOptions));
-            return builder.ToImmutableAndFree();
         }
 
         internal readonly struct TestAccessor
         {
             internal static ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetEditorConfigOptions()
-                => CodeStylePage.GetEditorConfigOptions();
+                => default;//new CSharpEditorConfigFileGenerator().GetEditorConfigOptions();
         }
     }
 }
