@@ -5149,13 +5149,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.GetDeclaredSymbols(field, cancellationToken);
             }
 
-            var symbol = GetDeclaredSymbolCore(declaration, cancellationToken);
-            if (symbol != null)
+            // If the type decl has a primary constructor, return that symbol as well.  This is needed so that if the
+            // 'suppression' or 'generated code' attribute is on the primary constructor (i.e. by using `[method:
+            // SuppressMessage(...)]`, it will be found when walking up to the type declaration.
+            if (declaration is TypeDeclarationSyntax typeDeclaration)
             {
-                return ImmutableArray.Create(symbol);
+                var namedType = GetDeclaredSymbol(typeDeclaration, cancellationToken);
+                var primaryConstructor = TryGetSynthesizedPrimaryConstructor(
+                    typeDeclaration, namedType.GetSymbol<NamedTypeSymbol>());
+
+                return primaryConstructor is null
+                    ? ImmutableArray.Create<ISymbol>(namedType)
+                    : ImmutableArray.Create<ISymbol>(namedType, primaryConstructor.GetPublicSymbol());
             }
 
-            return ImmutableArray.Create<ISymbol>();
+            var symbol = GetDeclaredSymbolCore(declaration, cancellationToken);
+            return symbol != null
+                ? ImmutableArray.Create(symbol)
+                : ImmutableArray<ISymbol>.Empty;
+        }
+
+        protected static SynthesizedPrimaryConstructor TryGetSynthesizedPrimaryConstructor(TypeDeclarationSyntax node, NamedTypeSymbol type)
+        {
+            if (type is SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor }
+                && primaryConstructor.SyntaxRef.SyntaxTree == node.SyntaxTree
+                && primaryConstructor.GetSyntax() == node)
+            {
+                return primaryConstructor;
+            }
+
+            return null;
         }
 
         internal override void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken)
