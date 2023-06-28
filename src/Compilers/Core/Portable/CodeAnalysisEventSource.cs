@@ -37,5 +37,8 @@ namespace Microsoft.CodeAnalysis
 
         [Event(4, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.SingleGeneratorRunTime)]
         internal void StopSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks, string id) => WriteEvent(4, generatorName, assemblyPath, elapsedTicks, id);
+
+        [Event(5, Message = "Generator '{0}' failed with exception: {1}", Level = EventLevel.Error)]
+        internal void GeneratorException(string generatorName, string exception) => WriteEvent(5, generatorName, exception);
     }
 }
