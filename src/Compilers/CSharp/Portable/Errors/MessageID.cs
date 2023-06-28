@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUsingTypeAlias = MessageBase + 12834,
 
         IDS_FeatureInstanceMemberInNameof = MessageBase + 12835,
-        IDS_FeatureCollectionLiterals = MessageBase + 12900, // PROTOTYPE: Update message number.
+        IDS_FeatureCollectionLiterals = MessageBase + 12837,
     }
 
     // Message IDs may refer to strings that need to be localized.
