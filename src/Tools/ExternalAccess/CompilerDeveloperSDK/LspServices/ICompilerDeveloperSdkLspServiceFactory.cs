@@ -9,7 +9,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk;
 internal interface ICompilerDeveloperSdkLspServiceFactory : ILspServiceFactory
 {
     ILspService ILspServiceFactory.CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => CreateILspService();
+        => CreateILspService(new(lspServices));
 
-    ICompilerDeveloperSdkLspService CreateILspService();
+    ICompilerDeveloperSdkLspService CreateILspService(CompilerDeveloperSdkLspServices lspServices);
+}
+
+internal readonly struct CompilerDeveloperSdkLspServices(LspServices lspServices)
+{
+    public T GetRequiredService<T>() where T : notnull
+        => lspServices.GetRequiredService<T>();
+
+    public T? GetService<T>()
+        => lspServices.GetService<T>();
 }
