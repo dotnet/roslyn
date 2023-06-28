@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -968,6 +969,99 @@ class C
                     }
                 }
                 """).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68546")]
+        public void AliasToArrayReferencedInUsingStatic()
+        {
+            CreateCompilation("""
+                using A = int[];
+
+                namespace N
+                {
+                    using static A;
+                }
+                """).VerifyDiagnostics(
+                    // (5,5): hidden CS8019: Unnecessary using directive.
+                    //     using static A;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5),
+                    // (5,18): error CS9137: 'array' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate or namespace can be used.
+                    //     using static A;
+                    Diagnostic(ErrorCode.ERR_BadUsingStaticType, "A").WithArguments("array").WithLocation(5, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68546")]
+        public void AliasToPointerReferencedInUsingStatic()
+        {
+            CreateCompilation("""
+                using unsafe A = int*;
+
+                namespace N
+                {
+                    using static A;
+                }
+                """, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                    // (5,5): hidden CS8019: Unnecessary using directive.
+                    //     using static A;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5),
+                    // (5,18): error CS9137: 'pointer' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate or namespace can be used.
+                    //     using static A;
+                    Diagnostic(ErrorCode.ERR_BadUsingStaticType, "A").WithArguments("pointer").WithLocation(5, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68546")]
+        public void AliasToFunctionPointerReferencedInUsingStatic()
+        {
+            CreateCompilation("""
+                using unsafe A = delegate*<int,int>;
+
+                namespace N
+                {
+                    using static A;
+                }
+                """, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                    // (5,5): hidden CS8019: Unnecessary using directive.
+                    //     using static A;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5),
+                    // (5,18): error CS9137: 'function pointer' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate or namespace can be used.
+                    //     using static A;
+                    Diagnostic(ErrorCode.ERR_BadUsingStaticType, "A").WithArguments("function pointer").WithLocation(5, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68546")]
+        public void AliasToDynamicReferencedInUsingStatic()
+        {
+            CreateCompilation("""
+                using A = dynamic;
+
+                namespace N
+                {
+                    using static A;
+                }
+                """).VerifyDiagnostics(
+                    // (5,5): hidden CS8019: Unnecessary using directive.
+                    //     using static A;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5),
+                    // (5,18): error CS9137: 'dynamic' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate or namespace can be used.
+                    //     using static A;
+                    Diagnostic(ErrorCode.ERR_BadUsingStaticType, "A").WithArguments("dynamic").WithLocation(5, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68546")]
+        public void AliasToTupleReferencedInUsingStatic()
+        {
+            // Allowed, as it's the same as `using A = System.ValueTuple<int, int>;`
+            CreateCompilation("""
+                using A = (int, int);
+
+                namespace N
+                {
+                    using static A;
+                }
+                """).VerifyDiagnostics(
+                    // (5,5): hidden CS8019: Unnecessary using directive.
+                    //     using static A;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5));
         }
     }
 }

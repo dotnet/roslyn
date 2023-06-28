@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,11 +43,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.GetRequiredDocument();
-            var clientCapabilities = context.GetRequiredClientCapabilities();
-
-            var completionService = document.Project.Services.GetRequiredService<CompletionService>();
-
             var cacheEntry = GetCompletionListCacheEntry(completionItem);
             if (cacheEntry == null)
             {
@@ -56,6 +50,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 context.TraceInformation("No cache entry found for the provided completion item at resolve time.");
                 return completionItem;
             }
+
+            var document = context.GetRequiredDocument();
+            var completionService = document.Project.Services.GetRequiredService<CompletionService>();
 
             // Find the matching completion item in the completion list
             var selectedItem = cacheEntry.CompletionList.ItemsList.FirstOrDefault(cachedCompletionItem => MatchesLSPCompletionItem(completionItem, cachedCompletionItem));
@@ -69,8 +66,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 await creationService.ResolveAsync(
                     completionItem,
                     selectedItem,
+                    cacheEntry.TextDocument,
                     document,
-                    clientCapabilities,
+                    new CompletionCapabilityHelper(context.GetRequiredClientCapabilities()),
                     completionService,
                     completionOptions,
                     symbolDescriptionOptions,
@@ -82,24 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private static bool MatchesLSPCompletionItem(LSP.CompletionItem lspCompletionItem, CompletionItem completionItem)
         {
-            if (!lspCompletionItem.Label.StartsWith(completionItem.DisplayTextPrefix, StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            // The prefix matches, consume the matching prefix from the lsp completion item label.
-            var displayTextWithSuffix = lspCompletionItem.Label[completionItem.DisplayTextPrefix.Length..];
-            if (!displayTextWithSuffix.EndsWith(completionItem.DisplayTextSuffix, StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            // The suffix matches, consume the matching suffix from the lsp completion item label.
-            var originalDisplayText = displayTextWithSuffix[..^completionItem.DisplayTextSuffix.Length];
-
-            // Now we're left with what should be the original display text for the lsp completion item.
-            // Check to make sure it matches the cached completion item label.
-            return string.Equals(originalDisplayText, completionItem.DisplayText);
+            return lspCompletionItem.Label == completionItem.GetEntireDisplayText();
         }
 
         private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)

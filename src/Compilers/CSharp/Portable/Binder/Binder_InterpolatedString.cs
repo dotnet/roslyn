@@ -323,6 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This is case 1. Let the standard machinery handle it
                 return false;
             }
+
             var partsArrayBuilder = ArrayBuilder<ImmutableArray<BoundExpression>>.GetInstance();
 
             if (!binaryOperator.VisitBinaryOperatorInterpolatedString(
@@ -344,26 +345,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(partsArrayBuilder.Count >= 2);
 
-            if (partsArrayBuilder.Count <= 4 && partsArrayBuilder.All(static parts => AllInterpolatedStringPartsAreStrings(parts)))
+            int count = 0;
+
+            foreach (var parts in partsArrayBuilder)
             {
-                // This is case 2. Let the standard machinery handle it
-                partsArrayBuilder.Free();
-                return false;
+                count += parts.Length;
+                if (count > 4 || !AllInterpolatedStringPartsAreStrings(parts))
+                {
+                    // Case 3. Bind as handler.
+                    var (appendCalls, data) = BindUnconvertedInterpolatedPartsToHandlerType(
+                        binaryOperator.Syntax,
+                        partsArrayBuilder.ToImmutableAndFree(),
+                        interpolatedStringHandlerType,
+                        diagnostics,
+                        isHandlerConversion: false,
+                        additionalConstructorArguments: default,
+                        additionalConstructorRefKinds: default);
+
+                    // Now that the parts have been bound, reconstruct the binary operators.
+                    convertedBinaryOperator = UpdateBinaryOperatorWithInterpolatedContents(binaryOperator, appendCalls, data, binaryOperator.Syntax, diagnostics);
+                    return true;
+                }
             }
 
-            // Case 3. Bind as handler.
-            var (appendCalls, data) = BindUnconvertedInterpolatedPartsToHandlerType(
-                binaryOperator.Syntax,
-                partsArrayBuilder.ToImmutableAndFree(),
-                interpolatedStringHandlerType,
-                diagnostics,
-                isHandlerConversion: false,
-                additionalConstructorArguments: default,
-                additionalConstructorRefKinds: default);
-
-            // Now that the parts have been bound, reconstruct the binary operators.
-            convertedBinaryOperator = UpdateBinaryOperatorWithInterpolatedContents(binaryOperator, appendCalls, data, binaryOperator.Syntax, diagnostics);
-            return true;
+            // Case 2. Let the standard machinery handle it.
+            Debug.Assert(count <= 4);
+            partsArrayBuilder.Free();
+            return false;
         }
 
         private BoundBinaryOperator UpdateBinaryOperatorWithInterpolatedContents(BoundBinaryOperator originalOperator, ImmutableArray<ImmutableArray<BoundExpression>> appendCalls, InterpolatedStringHandlerData data, SyntaxNode rootSyntax, BindingDiagnosticBag diagnostics)

@@ -113,6 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
+            // Bail out if the potential diagnostic location is outside the analysis span.
+            if (!syntaxContext.ShouldAnalyzeSpan(localStatement.Span))
+                return;
+
             // Don't convert if the as is part of a using statement
             // eg using (var x = y as MyObject) { }
             if (localStatement is UsingStatementSyntax)

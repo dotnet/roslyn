@@ -267,13 +267,14 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             HashSet<DocumentId> linkedDocuments,
             Dictionary<DocumentId, bool> canEdit)
         {
-            if (!canEdit.ContainsKey(documentId))
+            if (!canEdit.TryGetValue(documentId, out var canEditDocument))
             {
                 var document = solution.GetDocument(documentId);
-                canEdit[documentId] = document != null && !linkedDocuments.Contains(document.Id);
+                canEditDocument = document != null && !linkedDocuments.Contains(document.Id);
+                canEdit[documentId] = canEditDocument;
             }
 
-            return canEdit[documentId];
+            return canEditDocument;
         }
 
         private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)

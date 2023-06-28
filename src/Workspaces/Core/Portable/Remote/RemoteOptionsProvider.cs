@@ -14,17 +14,8 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// Can be used when the remote API does not have an existing callback. If it does it can implement 
 /// <see cref="GetOptionsAsync(string, CancellationToken)"/> itself.
 /// </summary>
-internal sealed class RemoteOptionsProvider<TOptions>
+internal sealed class RemoteOptionsProvider<TOptions>(SolutionServices services, OptionsProvider<TOptions> optionsProvider)
 {
-    private readonly SolutionServices _services;
-    private readonly OptionsProvider<TOptions> _optionsProvider;
-
-    public RemoteOptionsProvider(SolutionServices services, OptionsProvider<TOptions> optionsProvider)
-    {
-        _services = services;
-        _optionsProvider = optionsProvider;
-    }
-
     internal ValueTask<TOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-        => _optionsProvider.GetOptionsAsync(_services.GetLanguageServices(language), cancellationToken);
+        => optionsProvider.GetOptionsAsync(services.GetLanguageServices(language), cancellationToken);
 }

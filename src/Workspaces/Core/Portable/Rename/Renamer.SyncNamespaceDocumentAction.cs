@@ -87,14 +87,9 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
 
-            private readonly struct AnalysisResult
+            private readonly struct AnalysisResult(string targetNamespace)
             {
-                public string TargetNamespace { get; }
-
-                public AnalysisResult(string targetNamespace)
-                {
-                    TargetNamespace = targetNamespace;
-                }
+                public string TargetNamespace { get; } = targetNamespace;
             }
         }
     }

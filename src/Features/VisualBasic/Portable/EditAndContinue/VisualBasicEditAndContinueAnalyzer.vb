@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Differencing
@@ -657,6 +656,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return SyntaxComparer.TopLevel.ComputeMatch(oldCompilationUnit, newCompilationUnit)
         End Function
 
+        Protected Overrides Function ComputeParameterMap(oldDeclaration As SyntaxNode, newDeclaration As SyntaxNode) As BidirectionalMap(Of SyntaxNode)?
+            Dim oldParameterLists = GetDeclarationParameterLists(oldDeclaration)
+            Dim newParameterLists = GetDeclarationParameterLists(newDeclaration)
+
+            Dim primaryMatch = GetTopLevelMatch(oldParameterLists.Primary, newParameterLists.Primary)
+            Dim secondaryMatch = GetTopLevelMatch(oldParameterLists.Secondary, newParameterLists.Secondary)
+
+            If primaryMatch Is Nothing AndAlso secondaryMatch Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim map = BidirectionalMap(Of SyntaxNode).FromMatch(If(primaryMatch, secondaryMatch))
+
+            If primaryMatch IsNot Nothing AndAlso secondaryMatch IsNot Nothing Then
+                map = map.WithMatch(secondaryMatch)
+            End If
+
+            Return map
+        End Function
+
+        Private Shared Function GetTopLevelMatch(oldNode As SyntaxNode, newNode As SyntaxNode) As Match(Of SyntaxNode)
+            Return If(oldNode IsNot Nothing AndAlso newNode IsNot Nothing, SyntaxComparer.TopLevel.ComputeMatch(oldNode, newNode), Nothing)
+        End Function
+
+        Private Shared Function GetDeclarationParameterLists(declaration As SyntaxNode) As (Primary As SyntaxNode, Secondary As SyntaxNode)
+            Select Case declaration.Kind
+                ' Indexer accessor may have two parameter lists: one on the property and ther other on the accessor
+                Case SyntaxKind.GetAccessorBlock,
+                     SyntaxKind.SetAccessorBlock
+                    Return (DirectCast(declaration.Parent, PropertyBlockSyntax).PropertyStatement.ParameterList,
+                            DirectCast(declaration, AccessorBlockSyntax).AccessorStatement.ParameterList)
+
+                Case SyntaxKind.AddHandlerAccessorBlock,
+                     SyntaxKind.RemoveHandlerAccessorBlock,
+                     SyntaxKind.RaiseEventAccessorBlock
+                    Return (DirectCast(declaration, AccessorBlockSyntax).AccessorStatement.ParameterList, Nothing)
+            End Select
+
+            Return (declaration.GetParameterList(), Nothing)
+        End Function
+
         Protected Overrides Function ComputeTopLevelDeclarationMatch(oldDeclaration As SyntaxNode, newDeclaration As SyntaxNode) As Match(Of SyntaxNode)
             Contract.ThrowIfNull(oldDeclaration.Parent)
             Contract.ThrowIfNull(newDeclaration.Parent)
@@ -815,7 +855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return False
         End Function
 
-        Protected Overrides Function GetGlobalStatementDiagnosticSpan(node As SyntaxNode) As TextSpan
+        Protected Overrides Function GetGlobalStatementDiagnosticSpan(node As SyntaxNode, editKind As EditKind) As TextSpan
             Return Nothing
         End Function
 
@@ -1097,11 +1137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Friend Overrides Function IsRecordPrimaryConstructorParameter(declaration As SyntaxNode) As Boolean
-            Return False
-        End Function
-
-        Friend Overrides Function IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(declaration As SyntaxNode, newContainingType As INamedTypeSymbol, ByRef isFirstAccessor As Boolean) As Boolean
+        Friend Overrides Function IsPrimaryConstructorDeclaration(declaration As SyntaxNode) As Boolean
             Return False
         End Function
 
@@ -1123,8 +1159,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' For example, a method with a body is represented by a SubBlock/FunctionBlock while a method without a body
         ''' is represented by its declaration statement.
         ''' </summary>
-        Protected Overrides Function GetSymbolDeclarationSyntax(reference As SyntaxReference, cancellationToken As CancellationToken) As SyntaxNode
-            Dim syntax = reference.GetSyntax(cancellationToken)
+        Protected Overrides Function GetSymbolDeclarationSyntax(symbol As ISymbol, selector As Func(Of ImmutableArray(Of SyntaxReference), SyntaxReference), cancellationToken As CancellationToken) As SyntaxNode
+            Dim syntax = selector(symbol.DeclaringSyntaxReferences).GetSyntax(cancellationToken)
             Dim parent = syntax.Parent
 
             Select Case syntax.Kind
@@ -1199,7 +1235,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ' declarations that never have a block
 
                 Case SyntaxKind.ModifiedIdentifier
-                    Contract.ThrowIfFalse(parent.Parent.IsKind(SyntaxKind.FieldDeclaration))
+                    Contract.ThrowIfFalse(
+                        parent.Parent.IsKind(SyntaxKind.FieldDeclaration) OrElse parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement))
                     Dim variableDeclaration = CType(parent, VariableDeclaratorSyntax)
                     Return If(variableDeclaration.Names.Count = 1, parent, syntax)
 
@@ -1212,8 +1249,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Friend Overrides Function IsConstructorWithMemberInitializers(declaration As SyntaxNode) As Boolean
-            Dim ctor = TryCast(declaration, ConstructorBlockSyntax)
+        Protected Overrides Function GetDeclaredSymbol(model As SemanticModel, declaration As SyntaxNode, cancellationToken As CancellationToken) As ISymbol
+            Return model.GetDeclaredSymbol(declaration, cancellationToken)
+        End Function
+
+        Friend Overrides Function IsConstructorWithMemberInitializers(symbol As ISymbol, cancellationToken As CancellationToken) As Boolean
+            Dim method = TryCast(symbol, IMethodSymbol)
+            If method Is Nothing OrElse (method.MethodKind <> MethodKind.Constructor AndAlso method.MethodKind <> MethodKind.SharedConstructor) Then
+                Return False
+            End If
+
+            ' static constructor has initializers:
+            If method.IsStatic Then
+                Return True
+            End If
+
+            ' Default constructor has initializers unless the type is a struct.
+            ' Instance member initializers in a struct are not supported in VB.
+            If method.IsImplicitlyDeclared Then
+                Return method.ContainingType.TypeKind <> TypeKind.Struct
+            End If
+
+            Dim ctor = TryCast(symbol.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken).Parent, ConstructorBlockSyntax)
             If ctor Is Nothing Then
                 Return False
             End If
@@ -1339,15 +1396,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
                     End If
 
-                    Dim oldSymbol = oldModel.GetDeclaredSymbol(oldNode, cancellationToken)
-                    Dim newSymbol = newModel.GetDeclaredSymbol(newNode, cancellationToken)
+                    Dim oldSymbol = GetDeclaredSymbol(oldModel, oldNode, cancellationToken)
+                    Dim newSymbol = GetDeclaredSymbol(newModel, newNode, cancellationToken)
                     Return OneOrMany.Create((oldSymbol, newSymbol, editKind))
             End Select
 
             Throw ExceptionUtilities.UnexpectedValue(editKind)
         End Function
 
-        Private Shared Function TryGetSyntaxNodesForEdit(
+        Private Function TryGetSyntaxNodesForEdit(
             editKind As EditKind,
             node As SyntaxNode,
             model As SemanticModel,
@@ -1363,7 +1420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.VariableDeclarator
                     Dim variableDeclarator = CType(node, VariableDeclaratorSyntax)
                     If variableDeclarator.Names.Count > 1 Then
-                        symbols = OneOrMany.Create(variableDeclarator.Names.SelectAsArray(Function(n) model.GetDeclaredSymbol(n, cancellationToken)))
+                        symbols = OneOrMany.Create(variableDeclarator.Names.SelectAsArray(Function(n) GetDeclaredSymbol(model, n, cancellationToken)))
                         Return True
                     End If
 
@@ -1378,7 +1435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                             symbols = OneOrMany.Create(
                                 (From declarator In field.Declarators
                                  From name In declarator.Names
-                                 Select model.GetDeclaredSymbol(name, cancellationToken)).ToImmutableArray())
+                                 Select GetDeclaredSymbol(model, name, cancellationToken)).ToImmutableArray())
 
                             Return True
                         End If
@@ -1386,7 +1443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             End Select
 
-            Dim symbol = model.GetDeclaredSymbol(node, cancellationToken)
+            Dim symbol = GetDeclaredSymbol(model, node, cancellationToken)
             If symbol Is Nothing Then
                 Return False
             End If

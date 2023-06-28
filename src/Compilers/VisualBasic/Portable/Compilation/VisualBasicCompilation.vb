@@ -1326,6 +1326,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
+        Friend Overrides Function GetSymbolInternal(Of TSymbol As {Class, ISymbolInternal})(symbol As ISymbol) As TSymbol
+            Return DirectCast(symbol, TSymbol)
+        End Function
+
         ''' <summary>
         ''' Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol.
         ''' </summary>

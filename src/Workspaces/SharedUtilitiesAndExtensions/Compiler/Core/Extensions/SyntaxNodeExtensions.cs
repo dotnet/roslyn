@@ -796,6 +796,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return token.WithTrailingTrivia(default(SyntaxTriviaList));
         }
 
+        /// <summary>
+        /// Finds the node within the given <paramref name="root"/> corresponding to the given <paramref name="span"/>.
+        /// If the <paramref name="span"/> is <see langword="null"/>, then returns the given <paramref name="root"/> node.
+        /// </summary>
+        public static SyntaxNode FindNode(this SyntaxNode root, TextSpan? span, bool findInTrivia, bool getInnermostNodeForTie)
+        {
+            return span.HasValue
+                ? root.FindNode(span.Value, findInTrivia, getInnermostNodeForTie)
+                : root;
+        }
+
         // Copy of the same function in SyntaxNode.cs
         public static SyntaxNode? GetParent(this SyntaxNode node, bool ascendOutOfTrivia)
         {
@@ -958,37 +969,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ValueAncestorsAndSelfEnumerable ValueAncestorsAndSelf(this SyntaxNode syntaxNode, bool ascendOutOfTrivia = true)
             => new(syntaxNode, ascendOutOfTrivia);
 
-        public readonly struct ValueAncestorsAndSelfEnumerable
+        public readonly struct ValueAncestorsAndSelfEnumerable(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
         {
-            private readonly SyntaxNode _syntaxNode;
-            private readonly bool _ascendOutOfTrivia;
-
-            public ValueAncestorsAndSelfEnumerable(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
-            {
-                _syntaxNode = syntaxNode;
-                _ascendOutOfTrivia = ascendOutOfTrivia;
-            }
-
             public Enumerator GetEnumerator()
-                => new(_syntaxNode, _ascendOutOfTrivia);
+                => new(syntaxNode, ascendOutOfTrivia);
 
-            public struct Enumerator
+            public struct Enumerator(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
             {
-                private readonly SyntaxNode _start;
-                private readonly bool _ascendOutOfTrivia;
-
-                public Enumerator(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
-                {
-                    _start = syntaxNode;
-                    _ascendOutOfTrivia = ascendOutOfTrivia;
-                    Current = null!;
-                }
-
-                public SyntaxNode Current { get; private set; }
+                public SyntaxNode Current { get; private set; } = null!;
 
                 public bool MoveNext()
                 {
-                    Current = Current == null ? _start : GetParent(Current, _ascendOutOfTrivia)!;
+                    Current = Current == null ? syntaxNode : GetParent(Current, ascendOutOfTrivia)!;
                     return Current != null;
                 }
             }

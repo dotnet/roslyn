@@ -8,41 +8,28 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal class CodeGenerationTypeParameterSymbol : CodeGenerationTypeSymbol, ITypeParameterSymbol
+    internal class CodeGenerationTypeParameterSymbol(
+        INamedTypeSymbol containingType,
+        ImmutableArray<AttributeData> attributes,
+        VarianceKind varianceKind,
+        string name,
+        NullableAnnotation nullableAnnotation,
+        ImmutableArray<ITypeSymbol> constraintTypes,
+        bool hasConstructorConstraint,
+        bool hasReferenceConstraint,
+        bool hasValueConstraint,
+        bool hasUnmanagedConstraint,
+        bool hasNotNullConstraint,
+        int ordinal) : CodeGenerationTypeSymbol(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, default, name, SpecialType.None, nullableAnnotation), ITypeParameterSymbol
     {
-        public VarianceKind Variance { get; }
-        public ImmutableArray<ITypeSymbol> ConstraintTypes { get; internal set; }
-        public bool HasConstructorConstraint { get; }
-        public bool HasReferenceTypeConstraint { get; }
-        public bool HasValueTypeConstraint { get; }
-        public bool HasUnmanagedTypeConstraint { get; }
-        public bool HasNotNullConstraint { get; }
-        public int Ordinal { get; }
-
-        public CodeGenerationTypeParameterSymbol(
-            INamedTypeSymbol containingType,
-            ImmutableArray<AttributeData> attributes,
-            VarianceKind varianceKind,
-            string name,
-            NullableAnnotation nullableAnnotation,
-            ImmutableArray<ITypeSymbol> constraintTypes,
-            bool hasConstructorConstraint,
-            bool hasReferenceConstraint,
-            bool hasValueConstraint,
-            bool hasUnmanagedConstraint,
-            bool hasNotNullConstraint,
-            int ordinal)
-            : base(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, default, name, SpecialType.None, nullableAnnotation)
-        {
-            this.Variance = varianceKind;
-            this.ConstraintTypes = constraintTypes;
-            this.Ordinal = ordinal;
-            this.HasConstructorConstraint = hasConstructorConstraint;
-            this.HasReferenceTypeConstraint = hasReferenceConstraint;
-            this.HasValueTypeConstraint = hasValueConstraint;
-            this.HasUnmanagedTypeConstraint = hasUnmanagedConstraint;
-            this.HasNotNullConstraint = hasNotNullConstraint;
-        }
+        public VarianceKind Variance { get; } = varianceKind;
+        public ImmutableArray<ITypeSymbol> ConstraintTypes { get; internal set; } = constraintTypes;
+        public bool HasConstructorConstraint { get; } = hasConstructorConstraint;
+        public bool HasReferenceTypeConstraint { get; } = hasReferenceConstraint;
+        public bool HasValueTypeConstraint { get; } = hasValueConstraint;
+        public bool HasUnmanagedTypeConstraint { get; } = hasUnmanagedConstraint;
+        public bool HasNotNullConstraint { get; } = hasNotNullConstraint;
+        public int Ordinal { get; } = ordinal;
 
         protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
         {
