@@ -307,7 +307,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ref synthesized variables have proxies that are allocated in VisitAssignmentOperator.
                 if (local.RefKind != RefKind.None)
                 {
-                    Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill);
+                    Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill ||
+                                 (local.SynthesizedKind == SynthesizedLocalKind.ForEachArray && local.Type.HasInlineArrayAttribute(out _) && local.Type.TryGetInlineArrayElementField() is object));
                     continue;
                 }
 
@@ -489,9 +490,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression HoistRefInitialization(SynthesizedLocal local, BoundAssignmentOperator node)
         {
-            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill);
+            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill ||
+                         (local.SynthesizedKind == SynthesizedLocalKind.ForEachArray && local.Type.HasInlineArrayAttribute(out _) && local.Type.TryGetInlineArrayElementField() is object));
             Debug.Assert(local.SyntaxOpt != null);
-            Debug.Assert(this.OriginalMethod.IsAsync);
+#pragma warning disable format
+            Debug.Assert(local.SynthesizedKind switch
+                         {
+                             SynthesizedLocalKind.Spill => this.OriginalMethod.IsAsync,
+                             SynthesizedLocalKind.ForEachArray => this.OriginalMethod.IsAsync || this.OriginalMethod.IsIterator,
+                             _ => false
+                         });
+#pragma warning restore format
 
             var right = (BoundExpression)Visit(node.Right);
 
@@ -504,7 +513,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
             {
                 awaitSyntaxOpt = local.GetDeclaratorSyntax();
-                Debug.Assert(awaitSyntaxOpt.IsKind(SyntaxKind.AwaitExpression) || awaitSyntaxOpt.IsKind(SyntaxKind.SwitchExpression));
+#pragma warning disable format
+                Debug.Assert(local.SynthesizedKind switch
+                             {
+                                 SynthesizedLocalKind.Spill => awaitSyntaxOpt.IsKind(SyntaxKind.AwaitExpression) || awaitSyntaxOpt.IsKind(SyntaxKind.SwitchExpression),
+                                 SynthesizedLocalKind.ForEachArray => awaitSyntaxOpt is CommonForEachStatementSyntax,
+                                 _ => false
+                             });
+#pragma warning restore format
                 syntaxOffset = OriginalMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(awaitSyntaxOpt), awaitSyntaxOpt.SyntaxTree);
             }
             else
@@ -814,7 +830,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Here we handle ref temps. Ref synthesized variables are the target of a ref assignment operator before
             // being used in any other way.
 
-            Debug.Assert(leftLocal.SynthesizedKind == SynthesizedLocalKind.Spill);
+            Debug.Assert(leftLocal.SynthesizedKind == SynthesizedLocalKind.Spill ||
+                         (leftLocal.SynthesizedKind == SynthesizedLocalKind.ForEachArray && leftLocal.Type.HasInlineArrayAttribute(out _) && leftLocal.Type.TryGetInlineArrayElementField() is object));
             Debug.Assert(node.IsRef);
 
             // We have an assignment to a variable that has not yet been assigned a proxy.

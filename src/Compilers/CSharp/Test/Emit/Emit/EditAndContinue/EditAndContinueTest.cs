@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         private readonly CSharpCompilationOptions? _options;
         private readonly CSharpParseOptions? _parseOptions;
         private readonly TargetFramework _targetFramework;
+        private readonly Verification _verification;
 
         private readonly List<IDisposable> _disposables = new();
         private readonly List<GenerationInfo> _generations = new();
@@ -33,11 +34,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         private bool _hasVerified;
 
-        public EditAndContinueTest(CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework targetFramework = TargetFramework.Standard)
+        public EditAndContinueTest(
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            TargetFramework targetFramework = TargetFramework.Standard,
+            Verification? verification = null)
         {
             _options = options ?? TestOptions.DebugDll;
             _targetFramework = targetFramework;
             _parseOptions = parseOptions ?? TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            _verification = verification ?? Verification.Passes;
         }
 
         internal EditAndContinueTest AddBaseline(string source, Action<GenerationVerifier> validator)
@@ -60,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 args: null,
                 manifestResources: null,
                 emitOptions: EmitOptions.Default,
-                peVerify: Verification.Passes,
+                peVerify: _verification,
                 expectedSignatures: null);
 
             var md = ModuleMetadata.CreateFromImage(verifier.EmittedAssemblyData);
@@ -104,6 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             {
                 throw new Exception($"Exception during generation #{_generations.Count}. See inner stack trace for details.", ex);
             }
+
+            Assert.Empty(diff.EmitResult.Diagnostics);
 
             // EncVariableSlotAllocator attempted to map from current source to the previous one,
             // but the mapping failed for these nodes. Mark the nodes in sources with node markers <N:x>...</N:x>.
@@ -155,13 +163,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             return ImmutableArray.CreateRange(edits.Select(e =>
             {
-                var oldSymbol = e.SymbolProvider(oldCompilation);
+                var oldSymbol = e.Kind is SemanticEditKind.Update or SemanticEditKind.Delete ? e.SymbolProvider(oldCompilation) : null;
+
+                // for delete the new symbol is the new containing type
                 var newSymbol = e.NewSymbolProvider(newCompilation);
 
                 Func<SyntaxNode, SyntaxNode?>? syntaxMap;
                 if (e.PreserveLocalVariables)
                 {
                     Assert.Equal(SemanticEditKind.Update, e.Kind);
+                    Debug.Assert(oldSymbol != null);
+                    Debug.Assert(newSymbol != null);
+
                     syntaxMap = syntaxMapFromMarkers ?? EditAndContinueTestBase.GetEquivalentNodesMap(
                         ((Public.MethodSymbol)newSymbol).GetSymbol<MethodSymbol>(), ((Public.MethodSymbol)oldSymbol).GetSymbol<MethodSymbol>());
                 }

@@ -9,6 +9,9 @@
     <GenerateDependencyFile>false</GenerateDependencyFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
+    <!-- System.Collections.Immutable 7.0.0 does not support netcoreapp3.1 -->
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <IsSourcePackage>true</IsSourcePackage>

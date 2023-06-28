@@ -14,19 +14,13 @@ namespace Microsoft.CodeAnalysis.Storage
     /// solution load), but querying the data is still desired.
     /// </summary>
     [DataContract]
-    internal readonly struct SolutionKey
+    internal readonly struct SolutionKey(SolutionId id, string? filePath)
     {
         [DataMember(Order = 0)]
-        public readonly SolutionId Id;
+        public readonly SolutionId Id = id;
 
         [DataMember(Order = 1)]
-        public readonly string? FilePath;
-
-        public SolutionKey(SolutionId id, string? filePath)
-        {
-            Id = id;
-            FilePath = filePath;
-        }
+        public readonly string? FilePath = filePath;
 
         public static SolutionKey ToSolutionKey(Solution solution)
             => ToSolutionKey(solution.State);

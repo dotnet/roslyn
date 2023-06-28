@@ -6,6 +6,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>net6.0;net7.0;net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Test.Utilities</PackageId>
+    <PackageDescription>This is an internal package for testing. Not meant for external or production uses. The API can and will break at our discretion.</PackageDescription>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />

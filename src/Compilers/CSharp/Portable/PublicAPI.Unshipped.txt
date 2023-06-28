@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.CSharp.Conversion.IsInlineArray.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsCollectionLiteral.get -> bool
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax.AddElements(params Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax!

@@ -2007,6 +2007,7 @@ endRegion:
                 case OperationKind.ListPattern:
                 case OperationKind.ImplicitIndexerReference:
                 case OperationKind.Attribute:
+                case OperationKind.InlineArrayAccess:
                     return true;
             }
 

@@ -154,6 +154,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly ConcurrentCache<TypeSymbol, NamedTypeSymbol> _typeToNullableVersion = new ConcurrentCache<TypeSymbol, NamedTypeSymbol>(size: 100);
 
+        /// <summary>Lazily caches SyntaxTrees by their mapped path. Used to look up the syntax tree referenced by an interceptor. <see cref="TryGetInterceptor"/></summary>
+        private ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> _mappedPathToSyntaxTree;
+
         public override string Language
         {
             get
@@ -1037,6 +1040,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal OneOrMany<SyntaxTree> GetSyntaxTreesByMappedPath(string mappedPath)
+        {
+            // We could consider storing this on SyntaxAndDeclarationManager instead, and updating it incrementally.
+            // However, this would make it more difficult for it to be "pay-for-play",
+            // i.e. only created in compilations where interceptors are used.
+            var mappedPathToSyntaxTree = _mappedPathToSyntaxTree;
+            if (mappedPathToSyntaxTree.IsDefault)
+            {
+                RoslynImmutableInterlocked.InterlockedInitialize(ref _mappedPathToSyntaxTree, computeMappedPathToSyntaxTree());
+                mappedPathToSyntaxTree = _mappedPathToSyntaxTree;
+            }
+
+            return mappedPathToSyntaxTree.TryGetValue(mappedPath, out var value) ? value : OneOrMany<SyntaxTree>.Empty;
+
+            ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> computeMappedPathToSyntaxTree()
+            {
+                var builder = ImmutableSegmentedDictionary.CreateBuilder<string, OneOrMany<SyntaxTree>>();
+                var resolver = Options.SourceReferenceResolver;
+                foreach (var tree in SyntaxTrees)
+                {
+                    var path = resolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
+                    builder[path] = builder.ContainsKey(path) ? builder[path].Add(tree) : OneOrMany.Create(tree);
+                }
+                return builder.ToImmutable();
+            }
+        }
+
         #endregion
 
         #region References
@@ -1109,6 +1139,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int index = GetBoundReferenceManager().GetReferencedModuleIndex(reference);
                 return index < 0 ? null : this.Assembly.Modules[index];
             }
+        }
+
+        internal override TSymbol? GetSymbolInternal<TSymbol>(ISymbol? symbol) where TSymbol : class
+        {
+            return (TSymbol?)(object?)symbol.GetSymbol<Symbol>();
         }
 
         public override IEnumerable<AssemblyIdentity> ReferencedAssemblyNames
@@ -2307,6 +2342,60 @@ namespace Microsoft.CodeAnalysis.CSharp
             LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
         }
 
+        // NB: the 'Many' case for these dictionary values means there are duplicates. An error is reported for this after binding.
+        private ConcurrentDictionary<(string FilePath, int Line, int Character), OneOrMany<(Location AttributeLocation, MethodSymbol Interceptor)>>? _interceptions;
+
+        internal void AddInterception(string filePath, int line, int character, Location attributeLocation, MethodSymbol interceptor)
+        {
+            Debug.Assert(!_declarationDiagnosticsFrozen);
+
+            var dictionary = LazyInitializer.EnsureInitialized(ref _interceptions);
+            dictionary.AddOrUpdate((filePath, line, character),
+                addValueFactory: static (key, newValue) => OneOrMany.Create(newValue),
+                updateValueFactory: static (key, existingValues, newValue) =>
+                {
+                    // AddInterception can be called when attributes are decoded on a symbol, which can happen for the same symbol concurrently.
+                    // If something else has already added the interceptor denoted by a given `[InterceptsLocation]`, we want to drop it.
+                    // Since the collection is almost always length 1, a simple foreach is adequate for detecting this.
+                    foreach (var (attributeLocation, interceptor) in existingValues)
+                    {
+                        if (attributeLocation == newValue.AttributeLocation && interceptor.Equals(newValue.Interceptor, TypeCompareKind.ConsiderEverything))
+                        {
+                            return existingValues;
+                        }
+                    }
+                    return existingValues.Add(newValue);
+                },
+                // Explicit tuple element names are needed here so that the names unify when this is an extension method call (netstandard2.0).
+                factoryArgument: (AttributeLocation: attributeLocation, Interceptor: interceptor));
+        }
+
+        internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation)
+        {
+            if (_interceptions is null || callLocation is null)
+            {
+                return null;
+            }
+
+            var callLineColumn = callLocation.GetLineSpan().Span.Start;
+            Debug.Assert(callLocation.SourceTree is not null);
+            var key = (callLocation.SourceTree.FilePath, callLineColumn.Line, callLineColumn.Character);
+
+            if (_interceptions.TryGetValue(key, out var interceptionsAtAGivenLocation))
+            {
+                if (interceptionsAtAGivenLocation is [var oneInterception])
+                {
+                    return oneInterception;
+                }
+
+                // Duplicate interceptors is an error in the declaration phase.
+                // This method is only expected to be called if no such errors are present.
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            return null;
+        }
+
         #endregion
 
         #region Binding
@@ -3392,7 +3481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override void VisitNamedType(NamedTypeSymbol symbol)
             {
                 Debug.Assert(symbol.ContainingSymbol.Kind == SymbolKind.Namespace); // avoid unnecessary traversal of nested types
-                if (symbol.AssociatedFileIdentifier is not null)
+                if (symbol.IsFileLocal)
                 {
                     var location = symbol.GetFirstLocation();
                     var filePath = location.SourceTree?.FilePath;
@@ -3405,10 +3494,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <returns><see langword="true"/> if file types are present in files with duplicate file paths. Otherwise, <see langword="false" />.</returns>
         private bool CheckDuplicateFilePaths(DiagnosticBag diagnostics)
         {
             var visitor = new DuplicateFilePathsVisitor(diagnostics);
             return visitor.CheckDuplicateFilePathsAndFree(SyntaxTrees, GlobalNamespace);
+        }
+
+        /// <returns><see langword="true"/> if duplicate interceptions are present in the compilation. Otherwise, <see langword="false" />.</returns>
+        internal bool CheckDuplicateInterceptions(BindingDiagnosticBag diagnostics)
+        {
+            if (_interceptions is null)
+            {
+                return false;
+            }
+
+            bool anyDuplicates = false;
+            foreach ((_, OneOrMany<(Location, MethodSymbol)> interceptionsOfAGivenLocation) in _interceptions)
+            {
+                Debug.Assert(interceptionsOfAGivenLocation.Count != 0);
+                if (interceptionsOfAGivenLocation.Count == 1)
+                {
+                    continue;
+                }
+
+                anyDuplicates = true;
+                foreach (var (attributeLocation, _) in interceptionsOfAGivenLocation)
+                {
+                    diagnostics.Add(ErrorCode.ERR_DuplicateInterceptor, attributeLocation);
+                }
+            }
+
+            return anyDuplicates;
         }
 
         private void GenerateModuleInitializer(PEModuleBuilder moduleBeingBuilt, DiagnosticBag methodBodyDiagnosticBag)

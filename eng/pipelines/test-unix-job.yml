@@ -1,5 +1,7 @@
 # Test on Unix using Helix
 parameters:
+- name: helixQueueName
+  type: string
 - name: testRunName
   type: string
   default: ''
@@ -13,6 +15,9 @@ parameters:
   type: string
   default: 'Debug'
 - name: testArguments
+  type: string
+  default: ''
+- name: helixApiAccessToken
   type: string
   default: ''
 
@@ -43,7 +48,7 @@ jobs:
     - task: ShellScript@2
       inputs:
         scriptPath: ./eng/build.sh
-        args: --ci --helix --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+        args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
       displayName: Test
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)

@@ -465,14 +465,14 @@ End Class"
         Public Sub Constructor_Recompile2()
             Dim src1 =
 "Class C
-    Shared Sub New()
+    Sub New()
         MyBase.New()
     End Sub
 End Class"
 
             Dim src2 =
 "Class C
-    Shared Sub _
+    Sub _
                 New()
         MyBase.New()
     End Sub
@@ -481,7 +481,7 @@ End Class"
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits(
                 Array.Empty(Of SequencePointUpdates),
-                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
         End Sub
 
 #End Region
