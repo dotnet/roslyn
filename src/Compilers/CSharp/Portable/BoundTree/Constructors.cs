@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(arguments[i].Kind == BoundKind.ArgListOperator);
+                    Debug.Assert(method is ErrorMethodSymbol || arguments[i].Kind == BoundKind.ArgListOperator);
                 }
             }
 #endif
