@@ -573,81 +573,76 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidQM, "i == 0 ? null : default").WithArguments("<null>", "default").WithLocation(14, 19));
 
             VerifyOperationTreeForTest<BlockSyntax>(comp,
-@"IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
-  Locals: Local_1: ? x2
-    Local_2: ? y2
-    Local_3: ? z2
-  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var x2 = [( ...  default)];')
-    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var x2 = [( ... , default)]')
-      Declarators:
-          IVariableDeclaratorOperation (Symbol: ? x2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x2 = [(null, default)]')
-            Initializer:
-              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [(null, default)]')
-                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[(null, default)]')
-                  Children(1):
-                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ?, IsInvalid, IsImplicit) (Syntax: '[(null, default)]')
-                        Initializers(1):
-                            ITupleOperation (OperationKind.Tuple, Type: null, IsInvalid) (Syntax: '(null, default)')
-                              NaturalType: null
-                              Elements(2):
-                                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-                                  IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
-      Initializer:
-        null
-  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var y2 = [i ... default }];')
-    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var y2 = [i ...  default }]')
-      Declarators:
-          IVariableDeclaratorOperation (Symbol: ? y2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'y2 = [i swi ...  default }]')
-            Initializer:
-              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [i switch ...  default }]')
-                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[i switch { ...  default }]')
-                  Children(1):
-                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ?, IsInvalid, IsImplicit) (Syntax: '[i switch { ...  default }]')
-                        Initializers(1):
-                            ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'i switch {  ... > default }')
-                              Value:
-                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
-                              Arms(1):
-                                  ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => default')
-                                    Pattern:
-                                      IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
-                                    Value:
-                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'default')
-                                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                        Operand:
-                                          IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
-      Initializer:
-        null
-  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var z2 = [i ... : default];')
-    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var z2 = [i ...  : default]')
-      Declarators:
-          IVariableDeclaratorOperation (Symbol: ? z2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'z2 = [i ==  ...  : default]')
-            Initializer:
-              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [i == 0 ? ...  : default]')
-                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[i == 0 ? n ...  : default]')
-                  Children(1):
-                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ?, IsInvalid, IsImplicit) (Syntax: '[i == 0 ? n ...  : default]')
-                        Initializers(1):
-                            IConditionalOperation (OperationKind.Conditional, Type: ?, IsInvalid) (Syntax: 'i == 0 ? null : default')
-                              Condition:
-                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'i == 0')
-                                  Left:
-                                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
-                                  Right:
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
-                              WhenTrue:
-                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
-                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                  Operand:
-                                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-                              WhenFalse:
-                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'default')
-                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                  Operand:
-                                    IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
-      Initializer:
-        null
-");
+                """
+                IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+                  Locals: Local_1: ? x2
+                    Local_2: ? y2
+                    Local_3: ? z2
+                  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var x2 = [( ...  default)];')
+                    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var x2 = [( ... , default)]')
+                      Declarators:
+                          IVariableDeclaratorOperation (Symbol: ? x2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x2 = [(null, default)]')
+                            Initializer:
+                              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [(null, default)]')
+                                IOperation:  (OperationKind.None, Type: ?, IsInvalid) (Syntax: '[(null, default)]')
+                                  Children(1):
+                                      ITupleOperation (OperationKind.Tuple, Type: null, IsInvalid) (Syntax: '(null, default)')
+                                        NaturalType: null
+                                        Elements(2):
+                                            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+                                            IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
+                      Initializer:
+                        null
+                  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var y2 = [i ... default }];')
+                    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var y2 = [i ...  default }]')
+                      Declarators:
+                          IVariableDeclaratorOperation (Symbol: ? y2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'y2 = [i swi ...  default }]')
+                            Initializer:
+                              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [i switch ...  default }]')
+                                IOperation:  (OperationKind.None, Type: ?, IsInvalid) (Syntax: '[i switch { ...  default }]')
+                                  Children(1):
+                                      ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'i switch {  ... > default }')
+                                        Value:
+                                          IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
+                                        Arms(1):
+                                            ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => default')
+                                              Pattern:
+                                                IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                                              Value:
+                                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'default')
+                                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                  Operand:
+                                                    IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
+                      Initializer:
+                        null
+                  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var z2 = [i ... : default];')
+                    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var z2 = [i ...  : default]')
+                      Declarators:
+                          IVariableDeclaratorOperation (Symbol: ? z2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'z2 = [i ==  ...  : default]')
+                            Initializer:
+                              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [i == 0 ? ...  : default]')
+                                IOperation:  (OperationKind.None, Type: ?, IsInvalid) (Syntax: '[i == 0 ? n ...  : default]')
+                                  Children(1):
+                                      IConditionalOperation (OperationKind.Conditional, Type: ?, IsInvalid) (Syntax: 'i == 0 ? null : default')
+                                        Condition:
+                                          IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'i == 0')
+                                            Left:
+                                              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
+                                            Right:
+                                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+                                        WhenTrue:
+                                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                            Operand:
+                                              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+                                        WhenFalse:
+                                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'default')
+                                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                            Operand:
+                                              IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
+                      Initializer:
+                        null
+                """);
         }
 
         [Fact]
@@ -5675,42 +5670,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-@"IArrayCreationOperation (OperationKind.ArrayCreation, Type: T[]) (Syntax: '[a, b]')
-  Dimension Sizes(1):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[a, b]')
-  Initializer:
-    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[a, b]')
-      Element Values(2):
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-          IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
-");
+                """
+                IOperation:  (OperationKind.None, Type: T[]) (Syntax: '[a, b]')
+                  Children(2):
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
+                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                """);
 
             var tree = comp.SyntaxTrees[0];
             var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
             VerifyFlowGraph(comp, method,
-@"Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (0)
-    Next (Return) Block[B2]
-        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T[], IsImplicit) (Syntax: '[a, b]')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            (CollectionLiteral)
-          Operand:
-            IArrayCreationOperation (OperationKind.ArrayCreation, Type: T[]) (Syntax: '[a, b]')
-              Dimension Sizes(1):
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[a, b]')
-              Initializer:
-                IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[a, b]')
-                  Element Values(2):
-                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
-Block[B2] - Exit
-    Predecessors: [B1]
-    Statements (0)
-");
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T[], IsImplicit) (Syntax: '[a, b]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionLiteral)
+                          Operand:
+                            IOperation:  (OperationKind.None, Type: T[]) (Syntax: '[a, b]')
+                              Children(2):
+                                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
+                                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -5731,56 +5720,36 @@ Block[B2] - Exit
             comp.VerifyEmitDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-@"IObjectCreationOperation (Constructor: System.Span<T>..ctor(T[]? array)) (OperationKind.ObjectCreation, Type: System.Span<T>) (Syntax: '[a, b]')
-  Arguments(1):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[a, b]')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: T[]?, IsImplicit) (Syntax: '[a, b]')
-          Dimension Sizes(1):
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[a, b]')
-          Initializer:
-            IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[a, b]')
-              Element Values(2):
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Initializer:
-    null
-");
+                """
+                IOperation:  (OperationKind.None, Type: System.Span<T>) (Syntax: '[a, b]')
+                  Children(2):
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
+                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                """);
 
             var tree = comp.SyntaxTrees[0];
             var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
             VerifyFlowGraph(comp, method,
-@"Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (0)
-    Next (Return) Block[B2]
-        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Span<T>, IsImplicit) (Syntax: '[a, b]')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            (CollectionLiteral)
-          Operand:
-            IObjectCreationOperation (Constructor: System.Span<T>..ctor(T[]? array)) (OperationKind.ObjectCreation, Type: System.Span<T>) (Syntax: '[a, b]')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[a, b]')
-                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: T[]?, IsImplicit) (Syntax: '[a, b]')
-                      Dimension Sizes(1):
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[a, b]')
-                      Initializer:
-                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[a, b]')
-                          Element Values(2):
-                              IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-                              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer:
-                null
-Block[B2] - Exit
-    Predecessors: [B1]
-    Statements (0)
-");
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Span<T>, IsImplicit) (Syntax: '[a, b]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionLiteral)
+                          Operand:
+                            IOperation:  (OperationKind.None, Type: System.Span<T>) (Syntax: '[a, b]')
+                              Children(2):
+                                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
+                                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
         }
 
         [Fact]
@@ -5812,76 +5781,36 @@ Block[B2] - Exit
             comp.VerifyEmitDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-@"IObjectCreationOperation (Constructor: S<T>..ctor()) (OperationKind.ObjectCreation, Type: S<T>) (Syntax: '[a, b]')
-  Arguments(0)
-  Initializer:
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
-      Initializers(2):
-          IInvocationOperation ( void S<T>.Add(T t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'a')
-            Instance Receiver:
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a')
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IInvocationOperation ( void S<T>.Add(T t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'b')
-            Instance Receiver:
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b')
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-");
+                """
+                IOperation:  (OperationKind.None, Type: S<T>) (Syntax: '[a, b]')
+                  Children(2):
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
+                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
+                """);
 
             var tree = comp.SyntaxTrees[0];
             var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
             VerifyFlowGraph(comp, method,
-@"Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1}
-.locals {R1}
-{
-    CaptureIds: [0]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (3)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[a, b]')
-              Value:
-                IObjectCreationOperation (Constructor: S<T>..ctor()) (OperationKind.ObjectCreation, Type: S<T>) (Syntax: '[a, b]')
-                  Arguments(0)
-                  Initializer:
-                    null
-            IInvocationOperation ( void S<T>.Add(T t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'a')
-              Instance Receiver:
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a')
-                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            IInvocationOperation ( void S<T>.Add(T t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'b')
-              Instance Receiver:
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b')
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Next (Return) Block[B2]
-            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
-              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                (CollectionLiteral)
-              Operand:
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
-            Leaving: {R1}
-}
-Block[B2] - Exit
-    Predecessors: [B1]
-    Statements (0)
-");
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionLiteral)
+                          Operand:
+                            IOperation:  (OperationKind.None, Type: S<T>) (Syntax: '[a, b]')
+                              Children(2):
+                                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
+                                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
         }
 
         [Fact]
@@ -5913,74 +5842,36 @@ Block[B2] - Exit
             comp.VerifyEmitDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-@"ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: '[a, b]')
-  Initializer:
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T, IsImplicit) (Syntax: '[a, b]')
-      Initializers(2):
-          IInvocationOperation (virtual void I<U>.Add(U t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'a')
-            Instance Receiver:
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: T, IsImplicit) (Syntax: '[a, b]')
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a')
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: U) (Syntax: 'a')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IInvocationOperation (virtual void I<U>.Add(U t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'b')
-            Instance Receiver:
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: T, IsImplicit) (Syntax: '[a, b]')
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b')
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: U) (Syntax: 'b')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-");
+                """
+                IOperation:  (OperationKind.None, Type: T) (Syntax: '[a, b]')
+                  Children(2):
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: U) (Syntax: 'a')
+                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: U) (Syntax: 'b')
+                """);
 
             var tree = comp.SyntaxTrees[0];
             var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
             VerifyFlowGraph(comp, method,
-@"Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1}
-.locals {R1}
-{
-    CaptureIds: [0]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (3)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[a, b]')
-              Value:
-                ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: '[a, b]')
-                  Initializer:
-                    null
-            IInvocationOperation (virtual void I<U>.Add(U t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'a')
-              Instance Receiver:
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: T, IsImplicit) (Syntax: '[a, b]')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a')
-                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: U) (Syntax: 'a')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            IInvocationOperation (virtual void I<U>.Add(U t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'b')
-              Instance Receiver:
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: T, IsImplicit) (Syntax: '[a, b]')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b')
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: U) (Syntax: 'b')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Next (Return) Block[B2]
-            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsImplicit) (Syntax: '[a, b]')
-              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                (CollectionLiteral)
-              Operand:
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: T, IsImplicit) (Syntax: '[a, b]')
-            Leaving: {R1}
-}
-Block[B2] - Exit
-    Predecessors: [B1]
-    Statements (0)
-");
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsImplicit) (Syntax: '[a, b]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionLiteral)
+                          Operand:
+                            IOperation:  (OperationKind.None, Type: T) (Syntax: '[a, b]')
+                              Children(2):
+                                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: U) (Syntax: 'a')
+                                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: U) (Syntax: 'b')
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
         }
 
         [Fact]
@@ -6002,129 +5893,71 @@ Block[B2] - Exit
             comp.VerifyEmitDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-@"IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '[[Get(1)]]')
-    Arguments(0)
-    Initializer:
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
-        Initializers(1):
-            IInvocationOperation ( void System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>.Add(System.Collections.Generic.List<System.Int32> item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '[Get(1)]')
-            Instance Receiver:
-                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[Get(1)]')
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
-                        IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[Get(1)]')
-                        Arguments(0)
-                        Initializer:
-                            IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                            Initializers(1):
-                                IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'Get(1)')
-                                    Instance Receiver:
-                                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                                    Arguments(1):
-                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Get(1)')
-                                        IInvocationOperation (System.Int32 Program.Get(System.Int32 value)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get(1)')
-                                            Instance Receiver:
-                                            null
-                                            Arguments(1):
-                                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '1')
-                                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                """
+                IOperation:  (OperationKind.None, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '[[Get(1)]]')
+                  Children(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IOperation:  (OperationKind.None, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[Get(1)]')
+                            Children(1):
+                                IInvocationOperation (System.Int32 Program.Get(System.Int32 value)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get(1)')
+                                  Instance Receiver:
+                                    null
+                                  Arguments(1):
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '1')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-");
+                """);
 
             var tree = comp.SyntaxTrees[0];
             var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Main");
             VerifyFlowGraph(comp, method,
-@"Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1}
-.locals {R1}
-{
-    Locals: [System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>> x]
-    CaptureIds: [0]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[[Get(1)]]')
-                Value:
-                IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '[[Get(1)]]')
-                    Arguments(0)
-                    Initializer:
-                    null
-        Next (Regular) Block[B2]
-            Entering: {R2}
-    .locals {R2}
-    {
-        CaptureIds: [1]
-        Block[B2] - Block
-            Predecessors: [B1]
-            Statements (3)
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[Get(1)]')
-                    Value:
-                    IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[Get(1)]')
-                        Arguments(0)
-                        Initializer:
-                        null
-                IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'Get(1)')
-                    Instance Receiver:
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                    Arguments(1):
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Get(1)')
-                        IInvocationOperation (System.Int32 Program.Get(System.Int32 value)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get(1)')
-                            Instance Receiver:
-                            null
-                            Arguments(1):
-                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '1')
-                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                IInvocationOperation ( void System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>.Add(System.Collections.Generic.List<System.Int32> item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '[Get(1)]')
-                    Instance Receiver:
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
-                    Arguments(1):
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[Get(1)]')
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            (CollectionLiteral)
-                            Operand:
-                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Next (Regular) Block[B3]
-                Leaving: {R2}
-    }
-    Block[B3] - Block
-        Predecessors: [B2]
-        Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'x = /*<bind>*/[[Get(1)]]')
-                Left:
-                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'x = /*<bind>*/[[Get(1)]]')
-                Right:
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (CollectionLiteral)
-                    Operand:
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
-        Next (Regular) Block[B4]
-            Leaving: {R1}
-}
-Block[B4] - Exit
-    Predecessors: [B3]
-    Statements (0)
-");
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1}
+                .locals {R1}
+                {
+                    Locals: [System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>> x]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (1)
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'x = /*<bind>*/[[Get(1)]]')
+                              Left:
+                                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'x = /*<bind>*/[[Get(1)]]')
+                              Right:
+                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
+                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    (CollectionLiteral)
+                                  Operand:
+                                    IOperation:  (OperationKind.None, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '[[Get(1)]]')
+                                      Children(1):
+                                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
+                                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                              (CollectionLiteral)
+                                            Operand:
+                                              IOperation:  (OperationKind.None, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[Get(1)]')
+                                                Children(1):
+                                                    IInvocationOperation (System.Int32 Program.Get(System.Int32 value)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get(1)')
+                                                      Instance Receiver:
+                                                        null
+                                                      Arguments(1):
+                                                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '1')
+                                                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Next (Regular) Block[B2]
+                            Leaving: {R1}
+                }
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
         }
 
-        // PROTOTYPE: Handle intermediate List<T> in IOperation.
         [Fact]
         public void IOperation_SpreadElement_01()
         {
@@ -6143,8 +5976,14 @@ Block[B4] - Exit
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
-                IInvalidOperation (OperationKind.Invalid, Type: System.Int32[]) (Syntax: '[..a]')
-                  Children(0)
+                IOperation:  (OperationKind.None, Type: System.Int32[]) (Syntax: '[..a]')
+                  Children(1):
+                      IOperation:  (OperationKind.None, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                        Children(1):
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
                 """);
 
             var tree = comp.SyntaxTrees[0];
@@ -6162,8 +6001,15 @@ Block[B4] - Exit
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             (CollectionLiteral)
                           Operand:
-                            IInvalidOperation (OperationKind.Invalid, Type: System.Int32[]) (Syntax: '[..a]')
-                              Children(0)
+                            IOperation:  (OperationKind.None, Type: System.Int32[]) (Syntax: '[..a]')
+                              Children(1):
+                                  IOperation:  (OperationKind.None, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                                    Children(1):
+                                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
+                                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                            (ImplicitReference)
+                                          Operand:
+                                            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
                 Block[B2] - Exit
                     Predecessors: [B1]
                     Statements (0)
@@ -6189,17 +6035,14 @@ Block[B4] - Exit
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
-                IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[..a]')
-                  Arguments(0)
-                  Initializer:
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[..a]')
-                      Initializers(1):
-                          IInvalidOperation (OperationKind.Invalid, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
-                            Children(1):
-                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
-                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                  Operand:
-                                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
+                IOperation:  (OperationKind.None, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[..a]')
+                  Children(1):
+                      IOperation:  (OperationKind.None, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                        Children(1):
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
                 """);
 
             var tree = comp.SyntaxTrees[0];
@@ -6209,34 +6052,23 @@ Block[B4] - Exit
                 Block[B0] - Entry
                     Statements (0)
                     Next (Regular) Block[B1]
-                        Entering: {R1}
-                .locals {R1}
-                {
-                    CaptureIds: [0]
-                    Block[B1] - Block
-                        Predecessors: [B0]
-                        Statements (2)
-                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[..a]')
-                              Value:
-                                IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[..a]')
-                                  Arguments(0)
-                                  Initializer:
-                                    null
-                            IInvalidOperation (OperationKind.Invalid, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[..a]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionLiteral)
+                          Operand:
+                            IOperation:  (OperationKind.None, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[..a]')
                               Children(1):
-                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
-                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                      (ImplicitReference)
-                                    Operand:
-                                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
-                        Next (Return) Block[B2]
-                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[..a]')
-                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                (CollectionLiteral)
-                              Operand:
-                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[..a]')
-                            Leaving: {R1}
-                }
+                                  IOperation:  (OperationKind.None, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                                    Children(1):
+                                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
+                                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                            (ImplicitReference)
+                                          Operand:
+                                            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
                 Block[B2] - Exit
                     Predecessors: [B1]
                     Statements (0)
@@ -6274,7 +6106,7 @@ Block[B4] - Exit
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2], [3, 4], ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE: CFG failure.
+        [Fact]
         public void Async_02()
         {
             string source = """
