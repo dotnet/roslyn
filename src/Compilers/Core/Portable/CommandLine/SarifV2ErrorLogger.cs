@@ -201,8 +201,10 @@ namespace Microsoft.CodeAnalysis
             _writer.Write("version", _toolFileVersion);
             _writer.Write("dottedQuadFileVersion", _toolAssemblyVersion.ToString());
             _writer.Write("semanticVersion", _toolAssemblyVersion.ToString(fieldCount: 3));
-            _writer.Write("language", _culture.Name);
 
+            // Emit the 'language' property only if it is a non-empty string to match the SARIF spec.
+            if (_culture.Name.Length > 0)
+                _writer.Write("language", _culture.Name);
             WriteRules();
 
             _writer.WriteObjectEnd(); // driver
