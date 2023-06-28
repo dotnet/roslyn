@@ -7641,7 +7641,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Inline array struct must not have explicit layout.</value>
   </data>
   <data name="ERR_InvalidInlineArrayFields" xml:space="preserve">
-    <value>Inline array struct must declare one and only one instance field which must not be a ref field.</value>
+    <value>Inline array struct must declare one and only one instance field.</value>
   </data>
   <data name="ERR_ExpressionTreeContainsInlineArrayOperation" xml:space="preserve">
     <value>An expression tree may not contain an inline array access or conversion</value>

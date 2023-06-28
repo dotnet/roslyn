@@ -1752,7 +1752,7 @@ next:;
                     diagnostics.Add(ErrorCode.ERR_InvalidInlineArrayLayout, GetFirstLocation());
                 }
 
-                if (TryGetInlineArrayElementField() is null)
+                if (TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is null)
                 {
                     diagnostics.Add(ErrorCode.ERR_InvalidInlineArrayFields, GetFirstLocation());
                 }

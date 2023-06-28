@@ -1048,8 +1048,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidInlineArrayFields">
-        <source>Inline array struct must declare one and only one instance field which must not be a ref field.</source>
-        <target state="new">Inline array struct must declare one and only one instance field which must not be a ref field.</target>
+        <source>Inline array struct must declare one and only one instance field.</source>
+        <target state="new">Inline array struct must declare one and only one instance field.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidInlineArrayLayout">
