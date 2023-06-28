@@ -7231,8 +7231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.UnconvertedCollectionLiteralExpression:
                         return NullableAnnotation.NotAnnotated;
                     default:
-                        // PROTOTYPE: Re-enable
-                        //Debug.Assert(false); // unexpected value
+                        Debug.Assert(false); // unexpected value
                         return NullableAnnotation.Oblivious;
                 }
             }
