@@ -3230,10 +3230,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var kind = result.ConversionForArg(arg);
                 BoundExpression argument = arguments[arg];
-                var argRefKind = analyzedArguments.RefKind(arg);
 
                 if (argument is not BoundArgListOperator && !argument.HasAnyErrors)
                 {
+                    var argRefKind = analyzedArguments.RefKind(arg);
+
                     if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters))
                     {
                         // Disallow using `ref readonly` parameters with no or `in` argument modifier,
