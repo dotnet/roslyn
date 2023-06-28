@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt = default)
         {
-            argumentRefKindsOpt = argumentRefKindsOpt.IsDefault ? method.ParameterRefKinds : argumentRefKindsOpt;
+            argumentRefKindsOpt = argumentRefKindsOpt.IsDefault ? getArgumentRefKinds(method) : argumentRefKindsOpt;
 
 #if DEBUG
             for (int i = 0; i < arguments.Length; i++)
@@ -221,6 +222,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors: method.OriginalDefinition is ErrorMethodSymbol
                 )
             { WasCompilerGenerated = true };
+
+            static ImmutableArray<RefKind> getArgumentRefKinds(MethodSymbol method)
+            {
+                var result = method.ParameterRefKinds;
+
+                if (!result.IsDefaultOrEmpty && result.Any(k => k is RefKind.In or RefKind.RefReadOnlyParameter))
+                {
+                    var builder = ArrayBuilder<RefKind>.GetInstance(result.Length);
+
+                    foreach (var refKind in result)
+                    {
+                        builder.Add(refKind is RefKind.In or RefKind.RefReadOnlyParameter ? RefKindExtensions.StrictIn : refKind);
+                    }
+
+                    return builder.ToImmutableAndFree();
+                }
+
+                return result;
+            }
         }
     }
 
