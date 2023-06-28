@@ -3232,57 +3232,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression argument = arguments[arg];
                 var argRefKind = analyzedArguments.RefKind(arg);
 
-                if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters))
+                if (argument is not BoundArgListOperator && !argument.HasAnyErrors)
                 {
-                    // Disallow using `ref readonly` parameters with no or `in` argument modifier,
-                    // same as older versions of the compiler would (since they would see the parameter as `ref`).
-                    if (argRefKind is RefKind.None or RefKind.In &&
-                        GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.RefReadOnlyParameter)
+                    if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters))
                     {
-                        var available = CheckFeatureAvailability(argument.Syntax, MessageID.IDS_FeatureRefReadonlyParameters, diagnostics);
-                        Debug.Assert(!available);
-                    }
-                }
-                else if (argument is not BoundArgListOperator && !argument.HasAnyErrors)
-                {
-                    // Warn for `ref`/`in` or None/`ref readonly` mismatch.
-                    if (argRefKind == RefKind.Ref)
-                    {
-                        if (GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.In)
+                        // Disallow using `ref readonly` parameters with no or `in` argument modifier,
+                        // same as older versions of the compiler would (since they would see the parameter as `ref`).
+                        if (argRefKind is RefKind.None or RefKind.In &&
+                            GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.RefReadOnlyParameter)
                         {
-                            // The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
-                            diagnostics.Add(
-                                ErrorCode.WRN_BadArgRef,
-                                argument.Syntax,
-                                arg + 1);
+                            var available = CheckFeatureAvailability(argument.Syntax, MessageID.IDS_FeatureRefReadonlyParameters, diagnostics);
+                            Debug.Assert(!available);
                         }
                     }
-                    else if (argRefKind == RefKind.None &&
-                        GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.RefReadOnlyParameter)
+                    else
                     {
-                        if (!this.CheckValueKind(argument.Syntax, argument, BindValueKind.RefersToLocation, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                        // Warn for `ref`/`in` or None/`ref readonly` mismatch.
+                        if (argRefKind == RefKind.Ref)
                         {
-                            // Argument {0} should be a variable because it is passed to a 'ref readonly' parameter
-                            diagnostics.Add(
-                                ErrorCode.WRN_RefReadonlyNotVariable,
-                                argument.Syntax,
-                                arg + 1);
+                            if (GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.In)
+                            {
+                                // The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                                diagnostics.Add(
+                                    ErrorCode.WRN_BadArgRef,
+                                    argument.Syntax,
+                                    arg + 1);
+                            }
                         }
-                        else if (this.CheckValueKind(argument.Syntax, argument, BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                        else if (argRefKind == RefKind.None &&
+                            GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.RefReadOnlyParameter)
                         {
-                            // Argument {0} should be passed with 'ref' or 'in' keyword
-                            diagnostics.Add(
-                                ErrorCode.WRN_ArgExpectedRefOrIn,
-                                argument.Syntax,
-                                arg + 1);
-                        }
-                        else
-                        {
-                            // Argument {0} should be passed with the 'in' keyword
-                            diagnostics.Add(
-                                ErrorCode.WRN_ArgExpectedIn,
-                                argument.Syntax,
-                                arg + 1);
+                            if (!this.CheckValueKind(argument.Syntax, argument, BindValueKind.RefersToLocation, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                            {
+                                // Argument {0} should be a variable because it is passed to a 'ref readonly' parameter
+                                diagnostics.Add(
+                                    ErrorCode.WRN_RefReadonlyNotVariable,
+                                    argument.Syntax,
+                                    arg + 1);
+                            }
+                            else if (this.CheckValueKind(argument.Syntax, argument, BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                            {
+                                // Argument {0} should be passed with 'ref' or 'in' keyword
+                                diagnostics.Add(
+                                    ErrorCode.WRN_ArgExpectedRefOrIn,
+                                    argument.Syntax,
+                                    arg + 1);
+                            }
+                            else
+                            {
+                                // Argument {0} should be passed with the 'in' keyword
+                                diagnostics.Add(
+                                    ErrorCode.WRN_ArgExpectedIn,
+                                    argument.Syntax,
+                                    arg + 1);
+                            }
                         }
                     }
                 }
