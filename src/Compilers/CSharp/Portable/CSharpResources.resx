@@ -2896,6 +2896,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="WRN_ArgExpectedRefOrIn_Title" xml:space="preserve">
     <value>Argument should be passed with 'ref' or 'in' keyword</value>
   </data>
+  <data name="WRN_ArgExpectedIn" xml:space="preserve">
+    <value>Argument {0} should be passed with the 'in' keyword</value>
+  </data>
+  <data name="WRN_ArgExpectedIn_Title" xml:space="preserve">
+    <value>Argument should be passed with the 'in' keyword</value>
+  </data>
   <data name="WRN_RefReadonlyNotVariable" xml:space="preserve">
     <value>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</value>
   </data>

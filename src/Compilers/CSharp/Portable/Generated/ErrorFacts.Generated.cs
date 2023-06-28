@@ -318,6 +318,7 @@
                 case ErrorCode.WRN_BadArgRef:
                 case ErrorCode.WRN_ArgExpectedRefOrIn:
                 case ErrorCode.WRN_RefReadonlyNotVariable:
+                case ErrorCode.WRN_ArgExpectedIn:
                     return true;
                 default:
                     return false;

@@ -1331,9 +1331,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "5", verify: Verification.Fails);
         verifier.VerifyDiagnostics(
-            // (7,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (7,11): warning CS9506: Argument 1 should be passed with the 'in' keyword
             //         M(x);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 11));
+            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(7, 11));
         verifier.VerifyIL("C.Main", """
             {
               // Code size       11 (0xb)
@@ -1492,9 +1492,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "5");
         verifier.VerifyDiagnostics(
-            // (5,12): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (5,12): warning CS9506: Argument 1 should be passed with the 'in' keyword
             //         M2(p);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "p").WithArguments("1").WithLocation(5, 12));
+            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "p").WithArguments("1").WithLocation(5, 12));
         verifier.VerifyIL("C.M1", """
             {
               // Code size        7 (0x7)
@@ -1659,9 +1659,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "5");
         verifier.VerifyDiagnostics(
-            // (5,12): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (5,12): warning CS9506: Argument 1 should be passed with the 'in' keyword
             //         M2(p);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "p").WithArguments("1").WithLocation(5, 12));
+            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "p").WithArguments("1").WithLocation(5, 12));
         verifier.VerifyIL("C.M1", """
             {
               // Code size        7 (0x7)
@@ -1854,9 +1854,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,12): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (7,12): warning CS9506: Argument 1 should be passed with the 'in' keyword
             //         M2(M1());
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "M1()").WithArguments("1").WithLocation(7, 12),
+            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "M1()").WithArguments("1").WithLocation(7, 12),
             // (9,16): error CS8329: Cannot use method 'M1' as a ref or out value because it is a readonly variable
             //         M2(ref M1());
             Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "M1()").WithArguments("method", "M1").WithLocation(9, 16),

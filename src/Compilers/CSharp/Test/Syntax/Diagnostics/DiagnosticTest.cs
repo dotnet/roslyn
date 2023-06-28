@@ -307,6 +307,7 @@ class X
                         case ErrorCode.WRN_BadArgRef:
                         case ErrorCode.WRN_ArgExpectedRefOrIn:
                         case ErrorCode.WRN_RefReadonlyNotVariable:
+                        case ErrorCode.WRN_ArgExpectedIn:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
