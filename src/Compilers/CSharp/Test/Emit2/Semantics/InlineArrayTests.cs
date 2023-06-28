@@ -447,7 +447,7 @@ struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,8): error CS9169: Inline array struct must declare one and only one instance field.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
                 );
@@ -512,7 +512,7 @@ struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,8): error CS9169: Inline array struct must declare one and only one instance field.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
                 );
@@ -602,7 +602,7 @@ struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,8): error CS9169: Inline array struct must declare one and only one instance field.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
                 );
@@ -983,17 +983,28 @@ ref struct Buffer
     private ref int _element0;
 }
 ";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+
+            string consumer = @"
+class C
+{
+    void Test(Buffer b)
+    {
+        _ = b[0];
+    }
+}
+";
+
+            var comp = CreateCompilation(consumer + src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,12): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
-                // ref struct Buffer
-                Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 12)
+                // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer'
+                //         _ = b[0];
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "b[0]").WithArguments("Buffer").WithLocation(6, 13)
                 );
 
             verify(comp);
 
             var ilSource = @"
-.class private sequential ansi sealed beforefieldinit Buffer
+.class public sequential ansi sealed beforefieldinit Buffer
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (
@@ -1028,7 +1039,13 @@ ref struct Buffer
 }
 ";
 
-            comp = CreateCompilationWithIL("", ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp = CreateCompilationWithIL(consumer, ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer'
+                //         _ = b[0];
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "b[0]").WithArguments("Buffer").WithLocation(6, 13)
+                );
+
             verify(comp);
 
             void verify(CSharpCompilation comp)
@@ -1051,17 +1068,27 @@ ref struct Buffer
     private ref readonly int _element0;
 }
 ";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+
+            string consumer = @"
+class C
+{
+    void Test(Buffer b)
+    {
+        _ = b[0];
+    }
+}
+";
+            var comp = CreateCompilation(consumer + src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,12): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
-                // ref struct Buffer
-                Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 12)
+                // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer'
+                //         _ = b[0];
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "b[0]").WithArguments("Buffer").WithLocation(6, 13)
                 );
 
             verify(comp);
 
             var ilSource = @"
-.class private sequential ansi sealed beforefieldinit Buffer
+.class public sequential ansi sealed beforefieldinit Buffer
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (
@@ -1099,7 +1126,13 @@ ref struct Buffer
 }
 ";
 
-            comp = CreateCompilationWithIL("", ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp = CreateCompilationWithIL(consumer, ilSource, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer'
+                //         _ = b[0];
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "b[0]").WithArguments("Buffer").WithLocation(6, 13)
+                );
+
             verify(comp);
 
             void verify(CSharpCompilation comp)
@@ -1346,7 +1379,7 @@ struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,8): error CS9169: Inline array struct must declare one and only one instance field.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
                 );
@@ -1371,7 +1404,7 @@ struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,8): error CS9169: Inline array struct must declare one and only one instance field.
                 // struct Buffer
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
                 );
@@ -1395,7 +1428,7 @@ record struct Buffer(int p)
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,15): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,15): error CS9169: Inline array struct must declare one and only one instance field.
                 // record struct Buffer(int p)
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 15)
                 );
@@ -1693,7 +1726,7 @@ struct Buffer(int p)
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (3,8): error CS9169: Inline array struct must declare one and only one instance field which must not be a ref field.
+                // (3,8): error CS9169: Inline array struct must declare one and only one instance field.
                 // struct Buffer(int p)
                 Diagnostic(ErrorCode.ERR_InvalidInlineArrayFields, "Buffer").WithLocation(3, 8)
                 );

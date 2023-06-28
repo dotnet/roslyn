@@ -2470,7 +2470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasInlineArrayAttribute(out int length);
 
 #nullable enable
-        internal FieldSymbol? TryGetInlineArrayElementField()
+        internal FieldSymbol? TryGetPossiblyUnsupportedByLanguageInlineArrayElementField()
         {
             Debug.Assert(HasInlineArrayAttribute(out var length) && length > 0);
 
@@ -2482,7 +2482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (!field.IsStatic)
                     {
-                        if (field.RefKind != RefKind.None || elementField is not null)
+                        if (elementField is not null)
                         {
                             return null;
                         }
@@ -2500,6 +2500,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return elementField;
+        }
+
+        internal FieldSymbol? TryGetInlineArrayElementField()
+        {
+            return TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is { RefKind: RefKind.None } field ? field : null;
         }
     }
 }
