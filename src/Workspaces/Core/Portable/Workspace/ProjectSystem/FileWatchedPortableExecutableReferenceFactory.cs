@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -19,9 +21,10 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
         private readonly SolutionServices _solutionServices;
 
         /// <summary>
-        /// A file change context used to watch metadata references.
+        /// A file change context used to watch metadata references. This is lazy to avoid creating this immediately during our LSP process startup, when we
+        /// don't yet know the LSP client's capabilities.
         /// </summary>
-        private readonly IFileChangeContext _fileReferenceChangeContext;
+        private readonly Lazy<IFileChangeContext> _fileReferenceChangeContext;
 
         /// <summary>
         /// File watching tokens from <see cref="_fileReferenceChangeContext"/> that are watching metadata references. These are only created once we are actually applying a batch because
@@ -42,21 +45,49 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
         {
             _solutionServices = solutionServices;
 
-            var watchedDirectories = new List<WatchedDirectory>();
-
-            if (PlatformInformation.IsWindows)
+            _fileReferenceChangeContext = new Lazy<IFileChangeContext>(() =>
             {
-                // We will do a single directory watch on the Reference Assemblies folder to avoid having to create separate file
-                // watches on individual .dlls that effectively never change.
-                var referenceAssembliesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework");
-                watchedDirectories.Add(new WatchedDirectory(referenceAssembliesPath, ".dll"));
-            }
+                var referenceDirectories = new HashSet<string>();
 
-            // TODO: set this to watch the NuGet directory as well; there's some concern that watching the entire directory
-            // might make restores take longer because we'll be watching changes that may not impact your project.
+                // On each platform, there is a place that reference assemblies for the framework are installed. These are rarely going to be changed
+                // but are the most common places that we're going to create file watches. Rather than either creating a huge number of file watchers
+                // for every single file, or eventually realizing we should just watch these directories, we just create the single directory watchers now.
+                // We'll collect this from two places: constructing it from known environment variables, and also for the defaults where those environment
+                // variables would usually point, as a fallback.
 
-            _fileReferenceChangeContext = fileChangeWatcher.CreateContext(watchedDirectories.ToArray());
-            _fileReferenceChangeContext.FileChanged += FileReferenceChangeContext_FileChanged;
+                if (Environment.GetEnvironmentVariable("DOTNET_ROOT") is string dotnetRoot && !string.IsNullOrEmpty(dotnetRoot))
+                {
+                    referenceDirectories.Add(Path.Combine(dotnetRoot, "packs"));
+                }
+
+                if (PlatformInformation.IsWindows)
+                {
+                    referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework"));
+                    referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "dotnet", "packs"));
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    referenceDirectories.Add("/usr/lib/dotnet/packs");
+                    referenceDirectories.Add("/usr/share/dotnet/packs");
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    referenceDirectories.Add("/usr/local/share/dotnet/packs");
+                }
+
+                // Also watch the NuGet restore path; we don't do this (yet) on Windows due to potential concerns about whether
+                // this creates additional overhead responding to changes during a restore.
+                // TODO: remove this condition
+                if (!PlatformInformation.IsWindows)
+                {
+                    referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages"));
+                }
+
+                var directoriesToWatch = referenceDirectories.Select(static d => new WatchedDirectory(d, ".dll")).ToArray();
+                var fileReferenceChangeContext = fileChangeWatcher.CreateContext(directoriesToWatch);
+                fileReferenceChangeContext.FileChanged += FileReferenceChangeContext_FileChanged;
+                return fileReferenceChangeContext;
+            });
         }
 
         public event EventHandler<string>? ReferenceChanged;
@@ -66,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
             lock (_gate)
             {
                 var reference = _solutionServices.GetRequiredService<IMetadataService>().GetReference(fullFilePath, properties);
-                var fileWatchingToken = _fileReferenceChangeContext.EnqueueWatchingFile(fullFilePath);
+                var fileWatchingToken = _fileReferenceChangeContext.Value.EnqueueWatchingFile(fullFilePath);
 
                 _metadataReferenceFileWatchingTokens.Add(reference, fileWatchingToken);
 

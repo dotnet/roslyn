@@ -975,9 +975,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     // does not contain the text of it's name (e.g. the getter of "int X { get; }"
                     // does not contain the text "get_X" so conflicting renames to "get_X" will not
                     // have added the getter to reverseMappedLocations).
-                    if (location.IsInSource && reverseMappedLocations.ContainsKey(location))
+                    if (location.IsInSource && reverseMappedLocations.TryGetValue(location, out var conflictingLocation))
                     {
-                        conflicts.Add(reverseMappedLocations[location]);
+                        conflicts.Add(conflictingLocation);
                     }
                 }
             }

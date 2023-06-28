@@ -10,12 +10,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
+internal sealed class LoadableTextAndVersionSource(TextLoader loader, bool cacheResult) : ITextAndVersionSource
 {
-    private sealed class LazyValueWithOptions
+    private sealed class LazyValueWithOptions(LoadableTextAndVersionSource source, LoadTextOptions options)
     {
-        public readonly LoadableTextAndVersionSource Source;
-        public readonly LoadTextOptions Options;
+        public readonly LoadableTextAndVersionSource Source = source;
+        public readonly LoadTextOptions Options = options;
 
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
@@ -33,12 +33,6 @@ internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
         /// cref="_instance"/> are available, the value will be reloaded.  Once non-null, this will always be non-null.
         /// </summary>
         private WeakReference<TextAndVersion>? _weakInstance;
-
-        public LazyValueWithOptions(LoadableTextAndVersionSource source, LoadTextOptions options)
-        {
-            Source = source;
-            Options = options;
-        }
 
         private Task<TextAndVersion> LoadAsync(CancellationToken cancellationToken)
             => Source.Loader.LoadTextAsync(Options, cancellationToken);
@@ -108,16 +102,10 @@ internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
         }
     }
 
-    public readonly TextLoader Loader;
-    public readonly bool CacheResult;
+    public readonly TextLoader Loader = loader;
+    public readonly bool CacheResult = cacheResult;
 
     private LazyValueWithOptions? _lazyValue;
-
-    public LoadableTextAndVersionSource(TextLoader loader, bool cacheResult)
-    {
-        Loader = loader;
-        CacheResult = cacheResult;
-    }
 
     public bool CanReloadText
         => Loader.CanReloadText;

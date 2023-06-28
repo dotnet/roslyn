@@ -29,9 +29,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ConversionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DefaultExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveSyntaxEqualityComparer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveWalker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ForEachStatementSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ILocalSymbolExtensions.cs" />

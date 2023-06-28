@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             => expr.WalkDownParentheses() is IdentifierNameSyntax identifier &&
                identifier.Identifier.ValueText == variable.Identifier.ValueText;
 
-        private async Task<Document> ReverseForStatementAsync(
+        private static async Task<Document> ReverseForStatementAsync(
             Document document, ForStatementSyntax forStatement, CancellationToken cancellationToken)
         {
             var variable = forStatement.Declaration!.Variables[0];
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
-        private ExpressionSyntax Reduce(ExpressionSyntax expr)
+        private static ExpressionSyntax Reduce(ExpressionSyntax expr)
         {
             expr = expr.WalkDownParentheses();
 

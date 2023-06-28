@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalScopeBinder : Binder
     {
+        protected const int DefaultLocalSymbolArrayCapacity = 16;
+
         private ImmutableArray<LocalSymbol> _locals;
         private ImmutableArray<LocalFunctionSymbol> _localFunctions;
         private ImmutableArray<LabelSymbol> _labels;
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 #endif
 
-            ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance();
+            ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance(DefaultLocalSymbolArrayCapacity);
             foreach (var statement in statements)
             {
                 BuildLocals(enclosingBinder, statement, locals);

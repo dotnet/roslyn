@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -254,6 +255,7 @@ namespace Microsoft.CodeAnalysis
 
                     return UnifyLinkedDocumentContents(oldSolution, newSolution);
                 },
+                mayRaiseEvents: true,
                 onBeforeUpdate: static (oldSolution, newSolution, data) =>
                 {
                     data.onBeforeUpdate?.Invoke(oldSolution, newSolution);
@@ -342,6 +344,10 @@ namespace Microsoft.CodeAnalysis
         /// <param name="transformation">Solution transformation. This may be run multiple times.  As such it should be
         /// a purely functional transformation on the solution instance passed to it.  It should not make stateful
         /// changes elsewhere.</param>
+        /// <param name="mayRaiseEvents"><see langword="true"/> if this operation may raise observable events;
+        /// otherwise, <see langword="false"/>. If <see langword="true"/>, the operation will call
+        /// <see cref="EnsureEventListeners"/> to ensure listeners are registered prior to callbacks that may raise
+        /// events.</param>
         /// <param name="onBeforeUpdate">Action to perform immediately prior to updating <see cref="CurrentSolution"/>.
         /// The action will be passed the old <see cref="CurrentSolution"/> that will be replaced and the exact solution
         /// it will be replaced with. The latter may be different than the solution returned by <paramref
@@ -355,6 +361,7 @@ namespace Microsoft.CodeAnalysis
         private protected (Solution oldSolution, Solution newSolution) SetCurrentSolution<TData>(
             TData data,
             Func<Solution, TData, Solution> transformation,
+            bool mayRaiseEvents = true,
             Action<Solution, Solution, TData>? onBeforeUpdate = null,
             Action<Solution, Solution, TData>? onAfterUpdate = null)
         {
@@ -363,6 +370,7 @@ namespace Microsoft.CodeAnalysis
                 useAsync: false,
                 data,
                 transformation,
+                mayRaiseEvents,
                 onBeforeUpdate,
                 onAfterUpdate,
                 CancellationToken.None);
@@ -371,53 +379,66 @@ namespace Microsoft.CodeAnalysis
 #pragma warning restore CA2012 // Use ValueTasks correctly
         }
 
-        /// <inheritdoc cref="SetCurrentSolution{TData}(TData, Func{Solution, TData, Solution}, Action{Solution, Solution, TData}?, Action{Solution, Solution, TData}?)"/>
+        /// <inheritdoc cref="SetCurrentSolution{TData}(TData, Func{Solution, TData, Solution}, bool, Action{Solution, Solution, TData}?, Action{Solution, Solution, TData}?)"/>
         private protected async ValueTask<(Solution oldSolution, Solution newSolution)> SetCurrentSolutionAsync<TData>(
             bool useAsync,
             TData data,
             Func<Solution, TData, Solution> transformation,
+            bool mayRaiseEvents,
             Action<Solution, Solution, TData>? onBeforeUpdate,
             Action<Solution, Solution, TData>? onAfterUpdate,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(transformation);
 
-            var oldSolution = Volatile.Read(ref _latestSolution);
-
-            // Ensure our event handlers are realized prior to taking this lock.  We don't want to deadlock trying
-            // to obtain them when calling one of our callbacks. See https://github.com/dotnet/roslyn/issues/64681
-            EnsureEventListeners();
-
-            while (true)
+            try
             {
-                // Run the transformation outside of the lock as it should not be making any state changes to us.
-                var newSolution = transformation(oldSolution, data);
+                var oldSolution = Volatile.Read(ref _latestSolution);
 
-                // if it did nothing, then no need to proceed.
-                if (oldSolution == newSolution)
-                    return (oldSolution, newSolution);
-
-                // Now, take the lock and try to update our internal state.
-                using (useAsync ? await _serializationLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false) : _serializationLock.DisposableWait(cancellationToken))
+                if (mayRaiseEvents)
                 {
-                    if (_latestSolution != oldSolution)
-                    {
-                        // something else snuck in and wrote to _latestSolution. Restart and try again.
-                        oldSolution = _latestSolution;
-                        continue;
-                    }
-
-                    newSolution = newSolution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
-
-                    // Prior to updating the latest solution, let the caller do any other state updates they want.
-                    onBeforeUpdate?.Invoke(oldSolution, newSolution, data);
-
-                    _latestSolution = newSolution;
-
-                    // Once we've updated _latestSolution, perform any requested callbacks.
-                    onAfterUpdate?.Invoke(oldSolution, newSolution, data);
-                    return (oldSolution, newSolution);
+                    // Ensure our event handlers are realized prior to taking this lock.  We don't want to deadlock trying
+                    // to obtain them when calling one of our callbacks. See https://github.com/dotnet/roslyn/issues/64681
+                    EnsureEventListeners();
                 }
+
+                while (true)
+                {
+                    // Run the transformation outside of the lock as it should not be making any state changes to us.
+                    var newSolution = transformation(oldSolution, data);
+
+                    // if it did nothing, then no need to proceed.
+                    if (oldSolution == newSolution)
+                        return (oldSolution, newSolution);
+
+                    // Now, take the lock and try to update our internal state.
+                    using (useAsync ? await _serializationLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false) : _serializationLock.DisposableWait(cancellationToken))
+                    {
+                        if (_latestSolution != oldSolution)
+                        {
+                            // something else snuck in and wrote to _latestSolution. Restart and try again.
+                            oldSolution = _latestSolution;
+                            continue;
+                        }
+
+                        newSolution = newSolution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
+
+                        // Prior to updating the latest solution, let the caller do any other state updates they want.
+                        onBeforeUpdate?.Invoke(oldSolution, newSolution, data);
+
+                        _latestSolution = newSolution;
+
+                        // Once we've updated _latestSolution, perform any requested callbacks.
+                        onAfterUpdate?.Invoke(oldSolution, newSolution, data);
+                        return (oldSolution, newSolution);
+                    }
+                }
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.Critical))
+            {
+                // We'll rethrow the exception to the caller, since this exception could represent a bug in a third-party workspace, and if at this point our workspace
+                // is corrupted we want the caller to know.
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -499,6 +520,7 @@ namespace Microsoft.CodeAnalysis
             this.SetCurrentSolution(
                 data: /*unused*/ 0,
                 (oldSolution, _) => this.CreateSolution(oldSolution.Id),
+                mayRaiseEvents: reportChangeEvent,
                 onBeforeUpdate: (_, _, _) => this.ClearSolutionData(),
                 onAfterUpdate: (oldSolution, newSolution, _) =>
                 {

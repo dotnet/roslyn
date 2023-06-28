@@ -236,21 +236,14 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
         public TestAccessor GetTestAccessor()
             => new(this);
 
-        public struct TestAccessor
+        public struct TestAccessor(SymbolTreeInfoCacheService service)
         {
-            private readonly SymbolTreeInfoCacheService _services;
-
-            public TestAccessor(SymbolTreeInfoCacheService service)
-            {
-                _services = service;
-            }
-
             public readonly Task AnalyzeSolutionAsync()
             {
-                foreach (var projectId in _services._workspace.CurrentSolution.ProjectIds)
-                    _services._workQueue.AddWork(projectId);
+                foreach (var projectId in service._workspace.CurrentSolution.ProjectIds)
+                    service._workQueue.AddWork(projectId);
 
-                return _services._workQueue.WaitUntilCurrentBatchCompletesAsync();
+                return service._workQueue.WaitUntilCurrentBatchCompletesAsync();
             }
         }
     }
