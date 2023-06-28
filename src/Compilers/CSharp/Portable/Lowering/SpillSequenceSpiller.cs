@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public BoundSpillSequenceBuilder(SyntaxNode syntax, BoundExpression value = null)
                 : base(SpillSequenceBuilderKind, syntax, value?.Type)
             {
-                Debug.Assert(value is null || !IsSpillSequenceProducer(value));
+                Debug.Assert(value is null || !ShouldSpill(value));
                 this.Value = value;
             }
 
@@ -154,6 +155,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            internal BoundBlock GenerateBlockAndFree(BoundNode node)
+            {
+                Debug.Assert(this.Value is null);
+                var block = new BoundBlock(node.Syntax, this.GetLocals(), this.GetStatements()) { WasCompilerGenerated = true };
+                this.Free();
+                return block;
+            }
 #if DEBUG
             internal override string Dump()
             {
@@ -232,43 +240,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (BoundStatement)result;
         }
 
-        private BoundExpression VisitTopLevelExpression(ref BoundSpillSequenceBuilder builder, BoundExpression expression)
-        {
-            Debug.Assert(builder is null);
-            return VisitExpression(ref builder, expression, topLevel: true);
-        }
-
         private BoundExpression VisitExpression(ref BoundSpillSequenceBuilder builder, BoundExpression expression, bool topLevel = false)
         {
-            var e = (BoundExpression)this.Visit(expression);
-            switch (e)
+            if (topLevel)
             {
-                case BoundSpillSequenceBuilder newBuilder:
-                    if (builder == null)
-                    {
-                        builder = newBuilder.Update(null);
-                    }
-                    else
-                    {
-                        builder.Include(newBuilder);
-                    }
-
-                    return newBuilder.Value;
-
-                case BoundLoweredIsPatternExpression loweredIs:
-                    if (!topLevel)
-                    {
-                        builder ??= new BoundSpillSequenceBuilder(expression.Syntax);
-
-                        return Spill(builder, loweredIs, isLongLived: false);
-                    }
-
-                    return loweredIs;
-
-                default:
-                    Debug.Assert(e is null || !IsSpillSequenceProducer(e));
-                    return e;
+                switch (expression)
+                {
+                    // TODO cover more nodes
+                    // TODO actually call spill and pass lifetime? (Spill for SpillSequence, LoweringTemp for IsPattern)
+                    case BoundBinaryOperator binOp when IsLogicalOperator(binOp, sense: true, out bool testBothArgs):
+                    case BoundConditionalOperator condOp:
+                    case BoundUnaryOperator unaryOp:
+                        break;
+                }
             }
+
+            return ConsolidateSpillNode(ref builder, VisitExpression(expression), topLevel);
+        }
+
+        private BoundExpression VisitExpression(BoundExpression expression)
+        {
+            return (BoundExpression)this.Visit(expression);
         }
 
         private static BoundExpression UpdateExpression(BoundSpillSequenceBuilder builder, BoundExpression expression)
@@ -288,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.Update(expression);
         }
 
-        private BoundStatement UpdateStatement(BoundSpillSequenceBuilder builder, BoundStatement statement)
+        private static BoundStatement UpdateStatement(BoundSpillSequenceBuilder builder, BoundStatement statement)
         {
             if (builder == null)
             {
@@ -302,10 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.AddStatement(statement);
             }
 
-            var result = new BoundBlock(statement.Syntax, builder.GetLocals(), builder.GetStatements()) { WasCompilerGenerated = true };
-
-            builder.Free();
-            return result;
+            return builder.GenerateBlockAndFree(statement);
         }
 
         private BoundExpression Spill(
@@ -430,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.LoweredIsPatternExpression:
                         var loweredIs = (BoundLoweredIsPatternExpression)expression;
-                        return Spill(builder, loweredIs, isLongLived: true);
+                        return SpillIsPatternExpression(builder, loweredIs, isLongLived: true);
 
                     case BoundKind.Literal:
                     case BoundKind.TypeExpression:
@@ -464,27 +453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                 }
             }
-        }
-
-        private BoundExpression Spill(BoundSpillSequenceBuilder builder, BoundLoweredIsPatternExpression node, bool isLongLived)
-        {
-            _F.Syntax = node.Syntax;
-
-            var kind = isLongLived ? SynthesizedLocalKind.Spill : SynthesizedLocalKind.LoweringTemp;
-            var resultTemp = _F.SynthesizedLocal(node.Type, kind: kind, syntax: _F.Syntax);
-            var doneLabel = _F.GenerateLabel("afterIsExpression");
-
-            builder.AddLocals(node.Locals);
-            builder.AddLocal(resultTemp);
-            builder.AddStatements(node.Statements);
-            builder.AddStatement(_F.Label(node.WhenTrueLabel));
-            builder.AddStatement(_F.Assignment(_F.Local(resultTemp), _F.Literal(true)));
-            builder.AddStatement(_F.Goto(doneLabel));
-            builder.AddStatement(_F.Label(node.WhenFalseLabel));
-            builder.AddStatement(_F.Assignment(_F.Local(resultTemp), _F.Literal(false)));
-            builder.AddStatement(_F.Label(doneLabel));
-
-            return _F.Local(resultTemp);
         }
 
         internal static bool IsComplexConditionalInitializationOfReceiverRef(
@@ -570,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lastSpill = -1;
                 for (int i = newList.Length - 1; i >= 0; i--)
                 {
-                    if (IsSpillSequenceProducer(newList[i]))
+                    if (ShouldSpill(newList[i]))
                     {
                         lastSpill = i;
                         break;
@@ -605,18 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the value of the last spill and everything that follows is not spilled
             if (lastSpill < newList.Length)
             {
-                switch (lastSpillNode)
-                {
-                    case BoundSpillSequenceBuilder newBuilder:
-                        builder.Include(newBuilder);
-                        result.Add(newBuilder.Value);
-                        break;
-                    case BoundLoweredIsPatternExpression loweredIs:
-                        result.Add(Spill(builder, loweredIs, isLongLived: false));
-                        break;
-                    default:
-                        throw ExceptionUtilities.Unreachable();
-                }
+                result.Add(ConsolidateSpillNode(ref builder, lastSpillNode, topLevel: false));
 
                 for (int i = lastSpill + 1; i < newList.Length; i++)
                 {
@@ -627,9 +584,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result.ToImmutableAndFree();
         }
 
-        private static bool IsSpillSequenceProducer(BoundExpression expression)
+        private static SynthesizedLocalKind SpillSynthesizedLocalKind(BoundExpression expression)
         {
-            return expression.Kind is SpillSequenceBuilderKind or BoundKind.LoweredIsPatternExpression;
+            switch (expression.Kind)
+            {
+                case SpillSequenceBuilderKind:
+                    return SynthesizedLocalKind.Spill;
+                case BoundKind.LoweredIsPatternExpression:
+                    return SynthesizedLocalKind.LoweringTemp;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(expression.Kind);
+            }
+        }
+
+        private static bool ShouldSpill(BoundExpression expression)
+        {
+            switch (expression.Kind)
+            {
+                case SpillSequenceBuilderKind:
+                case BoundKind.LoweredIsPatternExpression:
+                    return true;
+            }
+
+            return false;
         }
 
         #region Statement Visitors
@@ -637,21 +614,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
         {
             BoundSpillSequenceBuilder builder = null;
-            var expression = VisitTopLevelExpression(ref builder, node.Expression);
+            var expression = VisitExpression(ref builder, node.Expression, topLevel: true);
             return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel, node.LengthBasedStringSwitchDataOpt));
         }
 
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
         {
             BoundSpillSequenceBuilder builder = null;
-            BoundExpression expression = VisitTopLevelExpression(ref builder, node.ExpressionOpt);
+            BoundExpression expression = VisitExpression(ref builder, node.ExpressionOpt, topLevel: true);
             return UpdateStatement(builder, node.Update(expression));
         }
 
         public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)
         {
             BoundSpillSequenceBuilder builder = null;
-            BoundExpression expr = VisitTopLevelExpression(ref builder, node.Expression);
+            BoundExpression expr = VisitExpression(ref builder, node.Expression, topLevel: true);
             Debug.Assert(expr != null);
             Debug.Assert(builder == null || builder.Value == null);
             return UpdateStatement(builder, node.Update(expr));
@@ -660,33 +637,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitConditionalGoto(BoundConditionalGoto node)
         {
             BoundSpillSequenceBuilder builder = null;
-            var condition = VisitTopLevelExpression(ref builder, node.Condition);
-            return UpdateStatement(builder, node.Update(condition, node.JumpIfTrue, node.Label));
+            BoundExpression condition = VisitCondBranch(ref builder, node.Condition, node.Label, node.JumpIfTrue);
+            Debug.Assert(condition is not null || builder is not null);
+            return condition is not null
+                ? UpdateStatement(builder, node.Update(condition, node.JumpIfTrue, node.Label))
+                : builder.GenerateBlockAndFree(node);
         }
 
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             BoundSpillSequenceBuilder builder = null;
-            var expression = VisitTopLevelExpression(ref builder, node.ExpressionOpt);
+            var expression = VisitExpression(ref builder, node.ExpressionOpt);
             return UpdateStatement(builder, node.Update(node.RefKind, expression, @checked: node.Checked));
         }
 
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
             BoundSpillSequenceBuilder builder = null;
-            var expression = VisitTopLevelExpression(ref builder, node.Expression);
+            var expression = VisitExpression(ref builder, node.Expression, topLevel: true);
             return UpdateStatement(builder, node.Update(expression));
         }
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
-            BoundExpression exceptionSourceOpt = (BoundExpression)this.Visit(node.ExceptionSourceOpt);
+            BoundExpression exceptionSourceOpt = VisitExpression(node.ExceptionSourceOpt);
             var locals = node.Locals;
 
             var exceptionFilterPrologueOpt = node.ExceptionFilterPrologueOpt;
             Debug.Assert(exceptionFilterPrologueOpt is null); // it is introduced by this pass
             BoundSpillSequenceBuilder builder = null;
-            var exceptionFilterOpt = VisitTopLevelExpression(ref builder, node.ExceptionFilterOpt);
+            var exceptionFilterOpt = VisitExpression(ref builder, node.ExceptionFilterOpt, topLevel: true);
             if (builder is { })
             {
                 Debug.Assert(builder.Value is null);
@@ -1476,5 +1456,208 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         #endregion
+
+#nullable enable
+
+        [return: NotNullIfNotNull(nameof(expression))]
+        private BoundExpression? ConsolidateSpillNode(
+            [NotNullIfNotNull(nameof(builder))]
+            ref BoundSpillSequenceBuilder? builder,
+            BoundExpression? expression, bool topLevel)
+        {
+            switch (expression)
+            {
+                case BoundSpillSequenceBuilder newBuilder:
+                    if (builder == null)
+                    {
+                        builder = newBuilder.Update(null);
+                    }
+                    else
+                    {
+                        builder.Include(newBuilder);
+                    }
+
+                    return newBuilder.Value;
+
+                case BoundLoweredIsPatternExpression loweredIs:
+                    if (!topLevel)
+                    {
+                        builder ??= new BoundSpillSequenceBuilder(expression.Syntax);
+
+                        return SpillIsPatternExpression(builder, loweredIs, isLongLived: false);
+                    }
+
+                    return loweredIs;
+
+                default:
+                    Debug.Assert(expression is null || !ShouldSpill(expression));
+                    return expression;
+            }
+        }
+
+        private BoundExpression? VisitCondBranch(
+            ref BoundSpillSequenceBuilder? builder,
+            BoundExpression condition,
+            LabelSymbol dest, bool sense)
+        {
+            const bool topLevel = true;
+
+            CodeGenerator.RemoveNegation(ref condition, ref sense);
+
+            switch (condition)
+            {
+                case BoundBinaryOperator binOp when IsLogicalOperator(binOp, sense, out bool testBothArgs):
+                    return VisitBinaryCondOperator(ref builder, binOp, ref dest, sense, testBothArgs, topLevel);
+
+                case BoundLoweredIsPatternExpression loweredIs:
+                    builder ??= new BoundSpillSequenceBuilder(loweredIs.Syntax);
+                    SpillIsPatternCondExpression(builder, loweredIs, dest, sense);
+                    return null;
+
+                default:
+                    return VisitExpression(ref builder, condition, topLevel);
+            }
+        }
+
+        private void SpillCondBranch(BoundSpillSequenceBuilder builder, BoundExpression condition, ref LabelSymbol? dest, bool sense)
+        {
+            const bool topLevel = true;
+
+            CodeGenerator.RemoveNegation(ref condition, ref sense);
+
+            switch (condition)
+            {
+                case BoundBinaryOperator binOp when IsLogicalOperator(binOp, sense, out bool testBothArgs):
+                    BoundExpression? value = VisitBinaryCondOperator(ref builder, binOp, ref dest, sense, testBothArgs, topLevel, forceSpill: true);
+                    Debug.Assert(value is null);
+                    return;
+            }
+
+            dest ??= _F.GenerateLabel("dest");
+            condition = ConsolidateSpillNode(ref builder, condition, topLevel);
+            builder.AddStatement(_F.ConditionalGoto(condition, dest, sense));
+        }
+
+        private static bool IsLogicalOperator(BoundBinaryOperator binOp, bool sense, out bool testBothArgs)
+        {
+            switch (binOp.OperatorKind.OperatorWithLogical())
+            {
+                case BinaryOperatorKind.LogicalOr:
+                    testBothArgs = !sense;
+                    return true;
+                case BinaryOperatorKind.LogicalAnd:
+                    testBothArgs = sense;
+                    return true;
+                default:
+                    testBothArgs = default;
+                    return false;
+            }
+        }
+
+        private BoundExpression? VisitBinaryCondOperator(
+            [NotNullIfNotNull(nameof(builder))]
+            ref BoundSpillSequenceBuilder? builder,
+            BoundBinaryOperator binOp,
+            [NotNullIfNotNull(nameof(dest))]
+            ref LabelSymbol? dest,
+            bool sense, bool testBothArgs,
+            bool topLevel, bool forceSpill = false)
+        {
+            Debug.Assert(IsLogicalOperator(binOp, sense, out bool testBothArgs0));
+            Debug.Assert(testBothArgs == testBothArgs0);
+
+            var right = VisitExpression(binOp.Right);
+            if (forceSpill || ShouldSpill(right))
+            {
+                var left = VisitExpression(binOp.Left);
+                dest ??= _F.GenerateLabel("dest");
+                builder ??= new BoundSpillSequenceBuilder(binOp.Syntax);
+                if (testBothArgs)
+                {
+                    LabelSymbol? fallThrough = null;
+                    SpillCondBranch(builder, left, ref fallThrough, !sense);
+                    SpillCondBranch(builder, right, ref dest, sense);
+                    if (fallThrough is not null)
+                    {
+                        builder.AddStatement(_F.Label(fallThrough));
+                    }
+                }
+                else
+                {
+                    SpillCondBranch(builder, left, ref dest, sense);
+                    SpillCondBranch(builder, right, ref dest, sense);
+                }
+
+                return null;
+            }
+            else
+            {
+                right = ConsolidateSpillNode(ref builder, right, topLevel: false);
+
+                BoundExpression left;
+                if (builder is null)
+                {
+                    left = VisitExpression(ref builder, binOp.Left, topLevel);
+                }
+                else
+                {
+                    var leftBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
+                    left = VisitExpression(ref leftBuilder, binOp.Left, topLevel);
+                    leftBuilder.Include(builder);
+                    builder = leftBuilder;
+                }
+
+                return UpdateExpression(builder, binOp.Update(
+                    binOp.OperatorKind, binOp.ConstantValueOpt,
+                    binOp.Method, binOp.ConstrainedToType, binOp.ResultKind,
+                    left: left, right: right, binOp.Type));
+            }
+        }
+
+        private void SpillIsPatternCondExpression(BoundSpillSequenceBuilder builder, BoundLoweredIsPatternExpression node, LabelSymbol dest, bool sense)
+        {
+            _F.Syntax = node.Syntax;
+
+            builder.AddLocals(node.Locals);
+            builder.AddStatements(node.Statements);
+            if (sense)
+            {
+                builder.AddStatement(_F.Label(node.WhenTrueLabel));
+                builder.AddStatement(_F.Goto(dest));
+                builder.AddStatement(_F.Label(node.WhenFalseLabel));
+            }
+            else
+            {
+                var doneLabel = _F.GenerateLabel("doneLabel");
+                builder.AddStatement(_F.Label(node.WhenTrueLabel));
+                builder.AddStatement(_F.Goto(doneLabel));
+                builder.AddStatement(_F.Label(node.WhenFalseLabel));
+                builder.AddStatement(_F.Goto(dest));
+                builder.AddStatement(_F.Label(doneLabel));
+            }
+        }
+
+        private BoundLocal SpillIsPatternExpression(BoundSpillSequenceBuilder builder, BoundLoweredIsPatternExpression node, bool isLongLived)
+        {
+            _F.Syntax = node.Syntax;
+
+            var kind = isLongLived ? SynthesizedLocalKind.Spill : SynthesizedLocalKind.LoweringTemp;
+            var resultTemp = _F.SynthesizedLocal(node.Type, kind: kind, syntax: _F.Syntax);
+            var doneLabel = _F.GenerateLabel("doneLabel");
+
+            builder.AddLocals(node.Locals);
+            builder.AddLocal(resultTemp);
+            builder.AddStatements(node.Statements);
+            builder.AddStatement(_F.Label(node.WhenTrueLabel));
+            builder.AddStatement(_F.Assignment(_F.Local(resultTemp), _F.Literal(true)));
+            builder.AddStatement(_F.Goto(doneLabel));
+            builder.AddStatement(_F.Label(node.WhenFalseLabel));
+            builder.AddStatement(_F.Assignment(_F.Local(resultTemp), _F.Literal(false)));
+            builder.AddStatement(_F.Label(doneLabel));
+
+            return _F.Local(resultTemp);
+        }
+#nullable disable
+
     }
 }

@@ -604,6 +604,11 @@ oneMoreTime:
                     EmitSequenceCondBranch(seq, ref dest, sense);
                     return;
 
+                case BoundKind.LoweredIsPatternExpression:
+                    var loweredIs = (BoundLoweredIsPatternExpression)condition;
+                    EmitIsPatternExpressionCondBranch(loweredIs, ref dest, sense);
+                    return;
+
                 default:
                     EmitExpression(condition, true);
 
@@ -618,6 +623,34 @@ oneMoreTime:
                     _builder.EmitBranch(ilcode, dest);
                     return;
             }
+        }
+
+        private void EmitIsPatternExpressionCondBranch(BoundLoweredIsPatternExpression node, ref object dest, bool sense)
+        {
+            _builder.AssertStackEmpty();
+
+            dest ??= new object();
+
+            DefineLocals(node.Syntax, node.Locals);
+            EmitStatements(node.Statements);
+
+            if (sense)
+            {
+                _builder.MarkLabel(node.WhenTrueLabel);
+                _builder.EmitBranch(ILOpCode.Br, dest);
+                _builder.MarkLabel(node.WhenFalseLabel);
+            }
+            else
+            {
+                var doneLabel = new object();
+                _builder.MarkLabel(node.WhenTrueLabel);
+                _builder.EmitBranch(ILOpCode.Br, doneLabel);
+                _builder.MarkLabel(node.WhenFalseLabel);
+                _builder.EmitBranch(ILOpCode.Br, dest);
+                _builder.MarkLabel(doneLabel);
+            }
+
+            FreeLocals(node.Locals);
         }
 
         private void EmitSequenceCondBranch(BoundSequence sequence, ref object dest, bool sense)
