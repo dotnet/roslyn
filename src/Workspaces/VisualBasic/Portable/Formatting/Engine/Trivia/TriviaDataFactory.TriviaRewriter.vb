@@ -139,17 +139,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Dim leadingTrivia = token.LeadingTrivia
                 Dim trailingTrivia = token.TrailingTrivia
 
-                If _trailingTriviaMap.ContainsKey(token) Then
+                Dim triviaList As SyntaxTriviaList = Nothing
+                If _trailingTriviaMap.TryGetValue(token, triviaList) Then
                     ' okay, we have this situation
                     ' token|trivia
-                    trailingTrivia = _trailingTriviaMap(token)
+                    trailingTrivia = triviaList
                     hasChanges = True
                 End If
 
-                If _leadingTriviaMap.ContainsKey(token) Then
+                If _leadingTriviaMap.TryGetValue(token, triviaList) Then
                     ' okay, we have this situation
                     ' trivia|token
-                    leadingTrivia = _leadingTriviaMap(token)
+                    leadingTrivia = triviaList
                     hasChanges = True
                 End If
 

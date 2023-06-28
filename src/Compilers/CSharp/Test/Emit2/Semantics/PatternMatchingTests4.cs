@@ -2135,7 +2135,7 @@ public class C
     // sequence point: switch { (3, 4) => 1 }
     IL_002e:  nop
     // sequence point: <hidden>
-    IL_002f:  call       ""ThrowInvalidOperationException""
+    IL_002f:  call       ""ThrowInvalidOperationException()""
     IL_0034:  nop
     // sequence point: <hidden>
     IL_0035:  ldc.i4.1
@@ -2277,7 +2277,7 @@ namespace System.Runtime.CompilerServices
     // sequence point: switch { (3, 4) => 1 }
     IL_002e:  nop
     // sequence point: <hidden>
-    IL_002f:  call       ""ThrowSwitchExpressionExceptionParameterless""
+    IL_002f:  call       ""ThrowSwitchExpressionExceptionParameterless()""
     IL_0034:  nop
     // sequence point: <hidden>
     IL_0035:  ldc.i4.1
@@ -2471,7 +2471,7 @@ namespace System.Runtime.CompilerServices
     IL_001d:  ldloc.1
     IL_001e:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
     IL_0023:  box        ""System.ValueTuple<int, int>""
-    IL_0028:  call       ""ThrowSwitchExpressionException""
+    IL_0028:  call       ""ThrowSwitchExpressionException(object)""
     IL_002d:  nop
     // sequence point: <hidden>
     IL_002e:  ldc.i4.1

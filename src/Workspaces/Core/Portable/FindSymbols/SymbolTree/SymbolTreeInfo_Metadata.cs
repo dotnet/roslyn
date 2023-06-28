@@ -256,17 +256,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken);
         }
 
-        private struct MetadataInfoCreator : IDisposable
+        private struct MetadataInfoCreator(
+            Checksum checksum, Metadata? metadata) : IDisposable
         {
             private static readonly Predicate<string> s_isNotNullOrEmpty = s => !string.IsNullOrEmpty(s);
             private static readonly ObjectPool<List<string>> s_stringListPool = SharedPools.Default<List<string>>();
-
-            private readonly Checksum _checksum;
-            private readonly Metadata? _metadata;
-
-            private readonly OrderPreservingMultiDictionary<string, string> _inheritanceMap;
-            private readonly OrderPreservingMultiDictionary<MetadataNode, MetadataNode> _parentToChildren;
-            private readonly MetadataNode _rootNode;
+            private readonly OrderPreservingMultiDictionary<string, string> _inheritanceMap = OrderPreservingMultiDictionary<string, string>.GetInstance();
+            private readonly OrderPreservingMultiDictionary<MetadataNode, MetadataNode> _parentToChildren = OrderPreservingMultiDictionary<MetadataNode, MetadataNode>.GetInstance();
+            private readonly MetadataNode _rootNode = MetadataNode.Allocate(name: "");
 
             // The set of type definitions we've read out of the current metadata reader.
             private readonly List<MetadataDefinition> _allTypeDefinitions = new();
@@ -279,19 +276,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //      public static bool AnotherExtensionMethod1(this bool x);
             //
             private readonly MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo = new();
-            private bool _containsExtensionsMethod;
-
-            public MetadataInfoCreator(
-                Checksum checksum, Metadata? metadata)
-            {
-                _checksum = checksum;
-                _metadata = metadata;
-                _containsExtensionsMethod = false;
-
-                _inheritanceMap = OrderPreservingMultiDictionary<string, string>.GetInstance();
-                _parentToChildren = OrderPreservingMultiDictionary<MetadataNode, MetadataNode>.GetInstance();
-                _rootNode = MetadataNode.Allocate(name: "");
-            }
+            private bool _containsExtensionsMethod = false;
 
             private static ImmutableArray<ModuleMetadata> GetModuleMetadata(Metadata? metadata)
             {
@@ -318,7 +303,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             internal SymbolTreeInfo Create()
             {
-                foreach (var moduleMetadata in GetModuleMetadata(_metadata))
+                foreach (var moduleMetadata in GetModuleMetadata(metadata))
                 {
                     try
                     {
@@ -348,7 +333,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var unsortedNodes = GenerateUnsortedNodes(receiverTypeNameToExtensionMethodMap);
 
                 return CreateSymbolTreeInfo(
-                    _checksum, unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
+                    checksum, unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
             }
 
             public readonly void Dispose()
@@ -605,7 +590,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private readonly void AddBaseTypeNameParts(
+            private static void AddBaseTypeNameParts(
                 MetadataReader metadataReader,
                 EntityHandle baseTypeOrInterfaceHandle,
                 List<string> simpleNames)
@@ -621,7 +606,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private readonly void AddTypeDefinitionNameParts(
+            private static void AddTypeDefinitionNameParts(
                 MetadataReader metadataReader,
                 TypeDefinitionHandle handle,
                 List<string> simpleNames)
@@ -678,7 +663,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private readonly void AddNamespaceParts(
+            private static void AddNamespaceParts(
                 MetadataReader metadataReader,
                 NamespaceDefinitionHandle namespaceHandle,
                 List<string> simpleNames)
@@ -842,32 +827,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Member,
         }
 
-        private readonly struct MetadataDefinition
+        private readonly struct MetadataDefinition(
+            MetadataDefinitionKind kind,
+            string name,
+            ParameterTypeInfo receiverTypeInfo = default,
+            NamespaceDefinition @namespace = default,
+            TypeDefinition type = default)
         {
-            public string Name { get; }
-            public MetadataDefinitionKind Kind { get; }
+            public string Name { get; } = name;
+            public MetadataDefinitionKind Kind { get; } = kind;
 
             /// <summary>
             /// Only applies to member kind. Represents the type info of the first parameter.
             /// </summary>
-            public ParameterTypeInfo ReceiverTypeInfo { get; }
+            public ParameterTypeInfo ReceiverTypeInfo { get; } = receiverTypeInfo;
 
-            public NamespaceDefinition Namespace { get; }
-            public TypeDefinition Type { get; }
-
-            public MetadataDefinition(
-                MetadataDefinitionKind kind,
-                string name,
-                ParameterTypeInfo receiverTypeInfo = default,
-                NamespaceDefinition @namespace = default,
-                TypeDefinition type = default)
-            {
-                Kind = kind;
-                Name = name;
-                ReceiverTypeInfo = receiverTypeInfo;
-                Namespace = @namespace;
-                Type = type;
-            }
+            public NamespaceDefinition Namespace { get; } = @namespace;
+            public TypeDefinition Type { get; } = type;
 
             public static MetadataDefinition Create(
                 MetadataReader reader, NamespaceDefinitionHandle namespaceHandle)

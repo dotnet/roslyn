@@ -100,6 +100,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             if (localDeclaration.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 return;
 
+            // Bail out if none of possible diagnostic locations are within the analysis span
+            var anonymousFunctionStatement = anonymousFunction.GetAncestor<StatementSyntax>();
+            var shouldReportOnAnonymousFunctionStatement = anonymousFunctionStatement != null
+                && localDeclaration != anonymousFunctionStatement;
+            if (!IsInAnalysisSpan(syntaxContext, localDeclaration, anonymousFunctionStatement, shouldReportOnAnonymousFunctionStatement))
+                return;
+
             var cancellationToken = syntaxContext.CancellationToken;
             var local = semanticModel.GetDeclaredSymbol(localDeclaration.Declaration.Variables[0], cancellationToken);
             if (local == null)
@@ -151,16 +158,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     additionalLocations,
                     properties: null));
 
-                var anonymousFunctionStatement = anonymousFunction.GetAncestor<StatementSyntax>();
-                if (anonymousFunctionStatement != null && localDeclaration != anonymousFunctionStatement)
+                if (shouldReportOnAnonymousFunctionStatement)
                 {
                     syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                         Descriptor,
-                        anonymousFunctionStatement.GetLocation(),
+                        anonymousFunctionStatement!.GetLocation(),
                         severity,
                         additionalLocations,
                         properties: null));
                 }
+            }
+
+            static bool IsInAnalysisSpan(
+                SyntaxNodeAnalysisContext context,
+                LocalDeclarationStatementSyntax localDeclaration,
+                StatementSyntax? anonymousFunctionStatement,
+                bool shouldReportOnAnonymousFunctionStatement)
+            {
+                if (context.ShouldAnalyzeSpan(localDeclaration.Span))
+                    return true;
+
+                if (shouldReportOnAnonymousFunctionStatement
+                    && context.ShouldAnalyzeSpan(anonymousFunctionStatement!.Span))
+                {
+                    return true;
+                }
+
+                return false;
             }
         }
 

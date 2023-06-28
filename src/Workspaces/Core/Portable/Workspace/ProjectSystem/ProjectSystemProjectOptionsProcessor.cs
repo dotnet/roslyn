@@ -178,8 +178,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
                 if (effectiveRuleSetPath != null)
                 {
-                    _ruleSetFile = _workspaceServices.GetRequiredService<IRuleSetManager>().GetOrCreateRuleSet(effectiveRuleSetPath);
-                    _ruleSetFile.Target.Value.UpdatedOnDisk += RuleSetFile_UpdatedOnDisk;
+                    // Ruleset service is not required across all our platforms
+                    _ruleSetFile = _workspaceServices.GetService<IRuleSetManager>()?.GetOrCreateRuleSet(effectiveRuleSetPath);
+
+                    if (_ruleSetFile != null)
+                    {
+                        _ruleSetFile.Target.Value.UpdatedOnDisk += RuleSetFile_UpdatedOnDisk;
+                    }
                 }
             }
 

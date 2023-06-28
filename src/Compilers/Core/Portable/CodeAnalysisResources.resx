@@ -759,4 +759,22 @@
   <data name="LineCannotBeGreaterThanEnd" xml:space="preserve">
     <value>The requested line number {0} must be less than the number of lines {1}.</value>
   </data>
+  <data name="InternalsVisibleToHeaderSummary" xml:space="preserve">
+    <value>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</value>
+  </data>
+  <data name="InternalsVisibleToCurrentAssembly" xml:space="preserve">
+    <value>Current assembly: '{0}'</value>
+  </data>
+  <data name="InternalsVisibleToReferencedAssembly" xml:space="preserve">
+    <value>Assembly reference: '{0}'
+  Grants IVT to current assembly: {1}
+  Grants IVTs to:</value>
+  </data>
+  <data name="InternalsVisibleToReferencedAssemblyDetails" xml:space="preserve">
+    <value>    Assembly name: '{0}'
+    Public Keys:</value>
+  </data>
+  <data name="Nothing" xml:space="preserve">
+    <value>Nothing</value>
+  </data>
 </root>

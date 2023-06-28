@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return false;
             }
 
-            private bool IsTypeArgumentDefinedRecursive(ISymbol symbol, IList<ISymbol> typeArgumentSymbols, bool enterContainingSymbol)
+            private static bool IsTypeArgumentDefinedRecursive(ISymbol symbol, IList<ISymbol> typeArgumentSymbols, bool enterContainingSymbol)
             {
                 if (Equals(symbol, symbol.OriginalDefinition))
                 {
@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return false;
             }
 
-            private void TypeArgumentsInAllContainingSymbol(ISymbol symbol, IList<ISymbol> typeArgumentSymbols, bool enterContainingSymbol, bool isRecursive)
+            private static void TypeArgumentsInAllContainingSymbol(ISymbol symbol, IList<ISymbol> typeArgumentSymbols, bool enterContainingSymbol, bool isRecursive)
             {
                 if (symbol == null || symbol.IsNamespace())
                 {
