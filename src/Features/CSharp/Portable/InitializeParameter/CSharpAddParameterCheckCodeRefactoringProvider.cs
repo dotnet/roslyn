@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         protected override StatementSyntax CreateParameterCheckIfStatement(ExpressionSyntax condition, StatementSyntax ifTrueStatement, CSharpSimplifierStyleOptions options)
         {
-            var withBlock = options.PreferBraces.Value == CodeAnalysis.CodeStyle.PreferBracesPreference.Always;
+            var withBlock = options.PreferBraces.Value == PreferBracesPreference.Always;
             var singleLine = options.AllowEmbeddedStatementsOnSameLine.Value;
             var closeParenToken = Token(SyntaxKind.CloseParenToken);
             if (withBlock)
