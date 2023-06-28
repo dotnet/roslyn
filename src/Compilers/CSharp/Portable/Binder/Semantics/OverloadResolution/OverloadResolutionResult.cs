@@ -1227,7 +1227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbols,
                         arg + 1,
                         binder.Compilation.LanguageVersion.ToDisplayString(),
-                        MessageID.IDS_FeatureRefReadonlyParameters.RequiredVersion().ToDisplayString());
+                        new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureRefReadonlyParameters.RequiredVersion()));
                 }
                 else if (refParameter is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter)
                 {
