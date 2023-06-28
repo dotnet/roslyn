@@ -1221,13 +1221,27 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundCollectionLiteralExpression(BoundCollectionLiteralExpression boundCollectionLiteralExpression)
         {
-            ImmutableArray<IOperation> elements = boundCollectionLiteralExpression.Elements.SelectAsArray(e => createChild(e));
+            ImmutableArray<IOperation> elements = createChildren(boundCollectionLiteralExpression.Elements);
             SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
             ITypeSymbol? type = boundCollectionLiteralExpression.GetPublicTypeSymbol();
             bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
             return new NoneOperation(elements, _semanticModel, syntax, type: type, constantValue: null, isImplicit);
 
-            IOperation createChild(BoundExpression expression)
+            ImmutableArray<IOperation> createChildren(ImmutableArray<BoundExpression> elements)
+            {
+                var builder = ArrayBuilder<IOperation>.GetInstance(elements.Length);
+                foreach (var element in elements)
+                {
+                    var child = createChild(element);
+                    if (child is { })
+                    {
+                        builder.Add(child);
+                    }
+                }
+                return builder.ToImmutableAndFree();
+            }
+
+            IOperation? createChild(BoundExpression expression)
             {
                 var element = expression switch
                 {
