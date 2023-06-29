@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
     ///      external non-source suppression from editorconfig, ruleset, command line options, etc.,
     ///      which disables the descriptor for either part of the compilation or the entire compilation.
     ///      Note that this flag doesn't account for source suppressions from pragma directives,
-    ///      SuppressMessageAttributes, DiagnosticSuppressors, etc. which suppresses individual instances
+    ///      SuppressMessageAttributes, DiagnosticSuppressors, etc. which suppress individual instances
     ///      of reported diagnostics.
     /// </summary>
     internal readonly record struct DiagnosticDescriptorErrorLoggerInfo(
