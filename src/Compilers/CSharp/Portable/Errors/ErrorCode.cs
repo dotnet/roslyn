@@ -2233,9 +2233,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InlineArrayBadIndex = 9172,
         ERR_NamedArgumentForInlineArray = 9173,
 
-        ERR_CollectionLiteralTargetTypeNotConstructible = 9500, // PROTOTYPE: Update error numbers.
-        ERR_ExpressionTreeContainsCollectionLiteral = 9501,
-        ERR_CollectionLiteralNoTargetType = 9503,
+        ERR_CollectionLiteralTargetTypeNotConstructible = 9174,
+        ERR_ExpressionTreeContainsCollectionLiteral = 9175,
+        ERR_CollectionLiteralNoTargetType = 9176,
 
         #endregion
 

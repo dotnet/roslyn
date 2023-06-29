@@ -575,7 +575,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
-        // PROTOTYPE: Ensure collection literal conversions are not considered standard implicit conversions.
         private static bool IsStandardImplicitConversionFromExpression(ConversionKind kind)
         {
             if (IsStandardImplicitConversionFromType(kind))
@@ -1662,10 +1661,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
-                // That method checks for an implicit conversion from IEnumerable to the collection type,
-                // but that would allow: Nullable<StructCollection> s = [];
-                // PROTOTYPE: Perhaps adjust the behavior of Binder.CollectionInitializerTypeImplementsIEnumerable()
-                // and use that method instead.
+                // That method checks for an implicit conversion from IEnumerable to the collection type, to
+                // match earlier implementation, even though it states that walking the implemented interfaces
+                // would be better. If we use CollectionInitializerTypeImplementsIEnumerable() here, we'd need
+                // to check for nullable to disallow: Nullable<StructCollection> s = [];
+                // Instead, we just walk the implemented interfaces.
                 var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
                 return allInterfaces.Any(static (a, b) => areEqual(a, b), ienumerableType);
             }

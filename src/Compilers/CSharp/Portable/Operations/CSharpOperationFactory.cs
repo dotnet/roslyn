@@ -1247,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 var element = expression switch
                 {
-                    BoundCollectionElementInitializer initializer => initializer.Arguments.FirstOrDefault(),
+                    BoundCollectionElementInitializer initializer => initializer.Arguments.First(),
                     _ => expression,
                 };
                 return Create(element);
