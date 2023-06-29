@@ -93,7 +93,7 @@ function Publish-Nuget($publishData, [string]$packageDir) {
       }
 
       if ($feedName.equals("npm")) {
-        Write-Host "Skipping publishing for $nupkg as it is published as an NPM package"
+        Write-Host "Skipping publishing for $nupkg as it is published in a separate step as an NPM package"
         continue
       }
 
@@ -116,30 +116,6 @@ function Publish-Nuget($publishData, [string]$packageDir) {
   }
 }
 
-function Publish-Npm([string]$npmPackagesDir) {
-  Write-Host ""
-  Write-Host "Publishing NPM packages in $npmPackagesDir..."
-
-  $npmrcPath = [IO.Path]::Combine($RepoRoot, "src", "VisualStudio", "DevKit", "Impl", ".npmrc")
-  if (-not (Test-Path $npmrcPath)) {
-    throw "Missing .npmrc at $npmrcPath"
-  }
-
-  foreach ($npmPackage in Get-ChildItem -Path (Join-Path $npmPackagesDir "*") -Include *.tgz) {
-    Write-Host ""
-
-    $publishCommandArgs = "npm publish --userconfig ""$npmrcPath"" ""$npmPackage"""
-    Write-Host "Publishing $npmPackage"
-    $publishOutput = & cmd /c "$publishCommandArgs"
-    if ($LastExitCode -ne 0)
-    {
-      Write-Host "##vso[task.logissue type=error]An error occurred while publishing '$npmPackage'."
-      Write-Host $publishOutput
-      throw
-    }
-  }
-}
-
 # Do basic verification on the values provided in the publish configuration
 function Test-Entry($publishData, [switch]$isBranch) {
   if ($isBranch) {
@@ -159,9 +135,6 @@ function Publish-Entry($publishData, [switch]$isBranch) {
   foreach ($nugetKind in $publishData.nugetKind) {
     Publish-NuGet $publishData (Join-Path $PackagesDir $nugetKind)
   }
-
-  # Publish any NPM packages to the specified feed
-  Publish-NPM (Join-Path $PackagesDir "NPM")
 
   exit 0
 }

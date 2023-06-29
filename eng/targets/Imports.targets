@@ -154,6 +154,14 @@
                  Condition="$(_VersionComparisonResult) &lt; 0"/>
   </Target> 
 
+  <Target Name="_CheckLongPathSupport" BeforeTargets="BeforeBuild" Condition="'$(MSBuildRuntimeType)' == 'Full'">
+    <PropertyGroup>
+      <_RoslynLongPathsEnabled>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\FileSystem', 'LongPathsEnabled', null, RegistryView.Registry64, RegistryView.Registry32))</_RoslynLongPathsEnabled>
+    </PropertyGroup>
+    
+    <Warning Condition="'$(_RoslynLongPathsEnabled)' != '1'" Text="Long paths are required for this project. Please run eng\enable-long-paths.reg" />
+  </Target> 
+
   <!-- 
     This target is used to copy referenced projects to a sub-directory vs. the direct output 
     directory of the build. Useful when the referenced project is an EXE and the referencing 

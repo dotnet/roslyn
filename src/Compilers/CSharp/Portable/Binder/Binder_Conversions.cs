@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
-                reportUseSiteDiagnostics(conversion);
+                reportUseSiteDiagnostics(syntax, conversion, source, destination, diagnostics);
 
                 if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
                 {
@@ -253,7 +253,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         .WithSuppression(source.IsSuppressed);
                 }
 
-                reportUseSiteDiagnosticsForUnderlyingConversions(conversion);
+                if (!hasErrors && conversion.Exists)
+                {
+                    ensureAllUnderlyingConversionsChecked(syntax, source, conversion, wasCompilerGenerated, destination, diagnostics);
+                }
 
                 return new BoundConversion(
                     syntax,
@@ -267,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors: hasErrors)
                 { WasCompilerGenerated = wasCompilerGenerated };
 
-                void reportUseSiteDiagnostics(Conversion conversion)
+                void reportUseSiteDiagnostics(SyntaxNode syntax, Conversion conversion, BoundExpression source, TypeSymbol destination, BindingDiagnosticBag diagnostics)
                 {
                     // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
                     Debug.Assert(!conversion.IsMethodGroup);
@@ -276,64 +279,172 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         ReportUseSite(conversion.Method, diagnostics, syntax.Location);
                     }
-                    CheckConstraintLanguageVersionAndRuntimeSupportForConversion(syntax, conversion, diagnostics);
+
+                    checkConstraintLanguageVersionAndRuntimeSupportForConversion(syntax, conversion, source, destination, diagnostics);
                 }
+            }
 
-                void reportUseSiteDiagnosticsForUnderlyingConversions(Conversion conversion)
+            void ensureAllUnderlyingConversionsChecked(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool wasCompilerGenerated, TypeSymbol destination, BindingDiagnosticBag diagnostics)
+            {
+                if (conversion.IsNullable)
                 {
-                    var underlyingConversions = conversion.UnderlyingConversions;
+                    Debug.Assert(conversion.UnderlyingConversions.Length == 1);
 
-                    if (!underlyingConversions.IsDefaultOrEmpty)
+                    if (destination.IsNullableType())
                     {
-                        foreach (var underlying in underlyingConversions)
+                        switch (source.Type?.IsNullableType())
                         {
-                            reportUseSiteDiagnosticsForSelfAndUnderlyingConversions(underlying);
+                            case true:
+                                _ = CreateConversion(
+                                        syntax,
+                                        new BoundValuePlaceholder(source.Syntax, source.Type.GetNullableUnderlyingType()),
+                                        conversion.UnderlyingConversions[0],
+                                        isCast: false,
+                                        conversionGroupOpt: null,
+                                        wasCompilerGenerated,
+                                        destination.GetNullableUnderlyingType(),
+                                        diagnostics);
+                                break;
 
-                            if (underlying.IsUserDefined)
-                            {
-                                reportUseSiteDiagnosticsForSelfAndUnderlyingConversions(underlying.UserDefinedFromConversion);
-                                reportUseSiteDiagnosticsForSelfAndUnderlyingConversions(underlying.UserDefinedToConversion);
-                                underlying.MarkUnderlyingConversionsChecked();
-                            }
+                            case false:
+                                _ = CreateConversion(
+                                        syntax,
+                                        source,
+                                        conversion.UnderlyingConversions[0],
+                                        isCast: false,
+                                        conversionGroupOpt: null,
+                                        wasCompilerGenerated,
+                                        destination.GetNullableUnderlyingType(),
+                                        diagnostics);
+                                break;
+                        }
+
+                        conversion.UnderlyingConversions[0].AssertUnderlyingConversionsChecked();
+                        conversion.MarkUnderlyingConversionsChecked();
+                    }
+                    else if (source.Type?.IsNullableType() == true)
+                    {
+
+                        _ = CreateConversion(
+                                syntax,
+                                new BoundValuePlaceholder(source.Syntax, source.Type.GetNullableUnderlyingType()),
+                                conversion.UnderlyingConversions[0],
+                                isCast: false,
+                                conversionGroupOpt: null,
+                                wasCompilerGenerated,
+                                destination,
+                                diagnostics);
+
+                        conversion.UnderlyingConversions[0].AssertUnderlyingConversionsChecked();
+                        conversion.MarkUnderlyingConversionsChecked();
+                    }
+                }
+                else if (conversion.IsTupleConversion)
+                {
+                    ImmutableArray<TypeWithAnnotations> sourceTypes;
+                    ImmutableArray<TypeWithAnnotations> destTypes;
+
+                    if (source.Type?.TryGetElementTypesWithAnnotationsIfTupleType(out sourceTypes) == true &&
+                        destination.TryGetElementTypesWithAnnotationsIfTupleType(out destTypes) &&
+                        sourceTypes.Length == destTypes.Length)
+                    {
+                        var elementConversions = conversion.UnderlyingConversions;
+                        Debug.Assert(elementConversions.Length == sourceTypes.Length);
+
+                        for (int i = 0; i < sourceTypes.Length; i++)
+                        {
+                            _ = CreateConversion(
+                                    syntax,
+                                    new BoundValuePlaceholder(source.Syntax, sourceTypes[i].Type),
+                                    elementConversions[i],
+                                    isCast: false,
+                                    conversionGroupOpt: null,
+                                    wasCompilerGenerated,
+                                    destTypes[i].Type,
+                                    diagnostics);
+
+                            elementConversions[i].AssertUnderlyingConversionsChecked();
                         }
 
                         conversion.MarkUnderlyingConversionsChecked();
                     }
-
-                    void reportUseSiteDiagnosticsForSelfAndUnderlyingConversions(Conversion conversion)
-                    {
-                        reportUseSiteDiagnostics(conversion);
-                        reportUseSiteDiagnosticsForUnderlyingConversions(conversion);
-                    }
                 }
-            }
-        }
-
-        internal void CheckConstraintLanguageVersionAndRuntimeSupportForConversion(SyntaxNodeOrToken syntax, Conversion conversion, BindingDiagnosticBag diagnostics)
-        {
-            Debug.Assert(syntax.SyntaxTree is object);
-
-            if (conversion.IsUserDefined && conversion.Method is MethodSymbol method && method.IsStatic)
-            {
-                if (method.IsAbstract || method.IsVirtual)
+                else if (conversion.IsDynamic)
                 {
-                    Debug.Assert(conversion.ConstrainedToTypeOpt is TypeParameterSymbol);
+                    Debug.Assert(conversion.UnderlyingConversions.IsDefault);
+                    conversion.MarkUnderlyingConversionsChecked();
+                }
 
-                    if (Compilation.SourceModule != method.ContainingModule)
+                conversion.AssertUnderlyingConversionsCheckedRecursive();
+            }
+
+            void checkConstraintLanguageVersionAndRuntimeSupportForConversion(SyntaxNode syntax, Conversion conversion, BoundExpression source, TypeSymbol destination, BindingDiagnosticBag diagnostics)
+            {
+                Debug.Assert(syntax.SyntaxTree is object);
+
+                if (conversion.IsUserDefined)
+                {
+                    if (conversion.Method is MethodSymbol method && method.IsStatic)
                     {
-                        CheckFeatureAvailability(syntax, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
-
-                        if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                        if (method.IsAbstract || method.IsVirtual)
                         {
-                            Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, syntax);
+                            Debug.Assert(conversion.ConstrainedToTypeOpt is TypeParameterSymbol);
+
+                            if (Compilation.SourceModule != method.ContainingModule)
+                            {
+                                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
+
+                                if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                                {
+                                    Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, syntax);
+                                }
+                            }
+                        }
+
+                        if (SyntaxFacts.IsCheckedOperator(method.Name) &&
+                            Compilation.SourceModule != method.ContainingModule)
+                        {
+                            CheckFeatureAvailability(syntax, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics);
                         }
                     }
                 }
-
-                if (SyntaxFacts.IsCheckedOperator(method.Name) &&
-                    Compilation.SourceModule != method.ContainingModule)
+                else if (conversion.IsInlineArray)
                 {
-                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics);
+                    if (!Compilation.Assembly.RuntimeSupportsInlineArrayTypes)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, syntax);
+                    }
+
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInlineArrays, diagnostics);
+                    diagnostics.ReportUseSite(source.Type!.TryGetInlineArrayElementField(), syntax);
+
+                    if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
+                    {
+                        if (CheckValueKind(syntax, source, BindValueKind.RefersToLocation, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                        {
+                            _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan, diagnostics, syntax: syntax); // This also takes care of an 'int' type
+                            _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T, diagnostics, syntax: syntax);
+                            _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: syntax);
+                        }
+                        else
+                        {
+                            Error(diagnostics, ErrorCode.ERR_InlineArrayConversionToReadOnlySpanNotSupported, syntax, destination);
+                        }
+                    }
+                    else
+                    {
+                        Debug.Assert(destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions));
+
+                        if (CheckValueKind(syntax, source, BindValueKind.RefersToLocation | BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                        {
+                            _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan, diagnostics, syntax: syntax); // This also takes care of an 'int' type
+                            _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: syntax);
+                        }
+                        else
+                        {
+                            Error(diagnostics, ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, syntax, destination);
+                        }
+                    }
                 }
             }
         }
@@ -591,6 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Skip introducing the conversion from C to C?.  The "to" conversion is now wrong though,
                     // because it will still assume converting C? to D?. 
 
+                    toConversion.MarkUnderlyingConversionsCheckedRecursive();
                     toConversion = Conversions.ClassifyConversionFromType(conversionReturnType, destination, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                     Debug.Assert(toConversion.Exists);
                 }
@@ -636,6 +748,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 wasCompilerGenerated: true, // NOTE: doesn't necessarily set flag on resulting bound expression.
                 destination: destination,
                 diagnostics: diagnostics);
+
+            conversion.AssertUnderlyingConversionsCheckedRecursive();
 
             finalConversion.ResetCompilerGenerated(source.WasCompilerGenerated);
 
@@ -732,6 +846,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 hasErrors = true;
             }
+
+            Debug.Assert(conversion.UnderlyingConversions.IsDefault);
+            conversion.MarkUnderlyingConversionsChecked();
 
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = group.WasCompilerGenerated };
         }

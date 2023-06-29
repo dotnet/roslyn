@@ -277,6 +277,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
                 if (IsIgnoredCodeBlock(context.CodeBlock))
                     return;
 
+                var root = context.GetAnalysisRoot(findInTrivia: true);
+
+                // Bail out if the root contains no nullable directives.
+                if (!root.ContainsDirective(SyntaxKind.NullableDirectiveTrivia))
+                    return;
+
                 var syntaxTreeState = GetOrCreateSyntaxTreeState(context.CodeBlock.SyntaxTree, defaultCompleted: false, context.SemanticModel, context.CancellationToken);
                 if (!syntaxTreeState.TryProceedWithInterval(context.CodeBlock.FullSpan))
                     return;

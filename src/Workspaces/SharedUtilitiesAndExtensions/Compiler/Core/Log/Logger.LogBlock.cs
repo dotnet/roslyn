@@ -29,9 +29,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// This tracks the logged message. On instantiation, it logs 'Started block' with other event data.
         /// On dispose, it logs 'Ended block' with the same event data so we can track which block started and ended when looking at logs.
         /// </summary>
-        private class RoslynLogBlock : IDisposable
+        private class RoslynLogBlock(ObjectPool<RoslynLogBlock> pool) : IDisposable
         {
-            private readonly ObjectPool<RoslynLogBlock> _pool;
 
             // these need to be cleared before putting back to pool
             private ILogger? _logger;
@@ -41,9 +40,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             private FunctionId _functionId;
             private int _tick;
             private int _blockId;
-
-            public RoslynLogBlock(ObjectPool<RoslynLogBlock> pool)
-                => _pool = pool;
 
             public void Construct(ILogger logger, FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
             {
@@ -77,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 _logger = null;
                 _cancellationToken = default;
 
-                _pool.Free(this);
+                pool.Free(this);
             }
         }
     }

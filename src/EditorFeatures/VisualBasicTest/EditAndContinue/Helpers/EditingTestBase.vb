@@ -49,6 +49,25 @@ End Namespace
             Return String.Format(FeaturesResources.member_kind_and_name, resource, symbolDisplayName)
         End Function
 
+        Public Shared Function GetResource(keyword As String, symbolDisplayName As String, containerKeyword As String, containerDisplayName As String) As String
+            Dim keywordResource = TryGetResource(keyword)
+            If keywordResource Is Nothing Then
+                Throw ExceptionUtilities.UnexpectedValue(keyword)
+            End If
+
+            Dim containerResource = TryGetResource(containerKeyword)
+            If containerResource Is Nothing Then
+                Throw ExceptionUtilities.UnexpectedValue(containerKeyword)
+            End If
+
+            Return String.Format(
+                FeaturesResources.symbol_kind_and_name_of_member_kind_and_name,
+                keywordResource,
+                symbolDisplayName,
+                containerResource,
+                containerDisplayName)
+        End Function
+
         Public Shared Function GetResource(keyword As String) As String
             Dim result = TryGetResource(keyword)
             If result Is Nothing Then

@@ -801,7 +801,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         ///     thing for csc.exe, the IDE compiler cannot support it.  In this situation
         ///     the return value will also be false.
         /// </summary>
-        /// <owner>RGoel</owner>
         private bool InitializeHostCompiler(IVbcHostObject vbcHostObject)
         {
             this.HostCompilerSupportsAllParameters = this.UseHostCompilerIfAvailable;
@@ -1012,7 +1011,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         ///     NoActionReturnSuccess           Host compiler was already up-to-date, and we're done.
         ///     NoActionReturnFailure           Bad parameters were passed into the task.
         /// </summary>
-        /// <owner>RGoel</owner>
         protected override HostObjectInitializationStatus InitializeHostObject()
         {
             if (this.HostObject != null)
@@ -1099,7 +1097,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// task.  Returns true if an appropriate host object was found, it was called to do the compile,
         /// and the compile succeeded.  Otherwise, we return false.
         /// </summary>
-        /// <owner>RGoel</owner>
         protected override bool CallHostObjectToExecute()
         {
             Debug.Assert(this.HostObject != null, "We should not be here if the host object has not been set.");
