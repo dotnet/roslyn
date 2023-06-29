@@ -24,7 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
     internal partial class CodeGenerator
     {
+#if DEBUG
+        private void EmitStatement(BoundStatement statement, int stack = 0)
+#else
         private void EmitStatement(BoundStatement statement)
+#endif
         {
             switch (statement.Kind)
             {
@@ -108,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 #if DEBUG
             if (_stackLocals == null || _stackLocals.Count == 0)
             {
-                //_builder.AssertStackEmpty();
+                _builder.AssertStackDepth(stack);
             }
 #endif
 
