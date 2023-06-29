@@ -420,25 +420,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var receiver = Spill(builder, field.ReceiverOpt, fieldSymbol.ContainingType.IsValueType ? refKind : RefKind.None);
                         return field.Update(receiver, fieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
 
-                    case BoundKind.LoweredIsPatternExpression:
-                        var loweredIs = (BoundLoweredIsPatternExpression)expression;
-                        _F.Syntax = loweredIs.Syntax;
-
-                        var resultTemp = _F.SynthesizedLocal(loweredIs.Type, kind: SynthesizedLocalKind.Spill , syntax: _F.Syntax);
-                        var doneLabel = _F.GenerateLabel("doneLabel");
-
-                        builder.AddLocals(loweredIs.Locals);
-                        builder.AddLocal(resultTemp);
-                        builder.AddStatements(loweredIs.Statements);
-                        builder.AddStatement(_F.Label(loweredIs.WhenTrueLabel));
-                        builder.AddStatement(_F.Assignment(_F.Local(resultTemp), _F.Literal(true)));
-                        builder.AddStatement(_F.Goto(doneLabel));
-                        builder.AddStatement(_F.Label(loweredIs.WhenFalseLabel));
-                        builder.AddStatement(_F.Assignment(_F.Local(resultTemp), _F.Literal(false)));
-                        builder.AddStatement(_F.Label(doneLabel));
-
-                        return _F.Local(resultTemp);
-
                     case BoundKind.Literal:
                     case BoundKind.TypeExpression:
                         return expression;

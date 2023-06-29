@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return false;
         }
 
-        internal static void RemoveNegation(ref BoundExpression condition, ref bool sense)
+        private static void RemoveNegation(ref BoundExpression condition, ref bool sense)
         {
             while (condition is BoundUnaryOperator unOp)
             {
