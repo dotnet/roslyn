@@ -119,7 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<BoundStatement> loweredDag = LowerDecisionDagCore(decisionDag);
                 resultBuilder.AddRange(loweredDag);
                 resultBuilder.AddRange(_statements);
-                _localRewriter._needsSpilling = true;
                 return new BoundLoweredIsPatternExpression(node.Syntax, _tempAllocator.AllTemps(),
                     resultBuilder.ToImmutableAndFree(), node.WhenTrueLabel, node.WhenFalseLabel, node.Type);
             }

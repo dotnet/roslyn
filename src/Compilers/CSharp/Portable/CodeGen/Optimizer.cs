@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public BoundNode VisitStatement(BoundNode node)
         {
-            Debug.Assert(node == null || EvalStackIsEmpty());
+            //Debug.Assert(node == null || EvalStackIsEmpty());
             return VisitSideEffect(node);
         }
 
@@ -1416,7 +1416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
         {
-            Debug.Assert(EvalStackIsEmpty());
+            //Debug.Assert(EvalStackIsEmpty());
 
             // switch dispatch needs a byval local or a parameter as a key.
             // if this is already a fitting local, let's keep it that way

@@ -606,7 +606,26 @@ oneMoreTime:
 
                 case BoundKind.LoweredIsPatternExpression:
                     var loweredIs = (BoundLoweredIsPatternExpression)condition;
-                    EmitIsPatternExpressionCondBranch(loweredIs, ref dest, sense);
+                    dest ??= new object();
+
+                    DefineLocals(loweredIs.Syntax, loweredIs.Locals);
+                    EmitStatements(loweredIs.Statements);
+
+                    if (sense)
+                    {
+                        _builder.MarkLabel(loweredIs.WhenTrueLabel);
+                        _builder.EmitBranch(ILOpCode.Br, dest);
+                        _builder.MarkLabel(loweredIs.WhenFalseLabel);
+                    }
+                    else
+                    {
+                        _builder.EmitBranch(ILOpCode.Br, loweredIs.WhenTrueLabel);
+                        _builder.MarkLabel(loweredIs.WhenFalseLabel);
+                        _builder.EmitBranch(ILOpCode.Br, dest);
+                        _builder.MarkLabel(loweredIs.WhenTrueLabel);
+                    }
+
+                    FreeLocals(loweredIs.Locals);
                     return;
 
                 default:
@@ -623,34 +642,6 @@ oneMoreTime:
                     _builder.EmitBranch(ilcode, dest);
                     return;
             }
-        }
-
-        private void EmitIsPatternExpressionCondBranch(BoundLoweredIsPatternExpression node, ref object dest, bool sense)
-        {
-            _builder.AssertStackEmpty();
-
-            dest ??= new object();
-
-            DefineLocals(node.Syntax, node.Locals);
-            EmitStatements(node.Statements);
-
-            if (sense)
-            {
-                _builder.MarkLabel(node.WhenTrueLabel);
-                _builder.EmitBranch(ILOpCode.Br, dest);
-                _builder.MarkLabel(node.WhenFalseLabel);
-            }
-            else
-            {
-                var doneLabel = new object();
-                _builder.MarkLabel(node.WhenTrueLabel);
-                _builder.EmitBranch(ILOpCode.Br, doneLabel);
-                _builder.MarkLabel(node.WhenFalseLabel);
-                _builder.EmitBranch(ILOpCode.Br, dest);
-                _builder.MarkLabel(doneLabel);
-            }
-
-            FreeLocals(node.Locals);
         }
 
         private void EmitSequenceCondBranch(BoundSequence sequence, ref object dest, bool sense)

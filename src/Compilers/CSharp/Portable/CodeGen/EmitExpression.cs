@@ -358,8 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node, bool used)
         {
-            _builder.AssertStackEmpty();
-
             DefineLocals(node.Syntax, node.Locals);
             EmitStatements(node.Statements);
 
