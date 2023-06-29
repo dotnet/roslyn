@@ -519,15 +519,13 @@ class C
 ";
 
             string expectedOperationTree = @"
-IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[0]')
+IOperation:  (OperationKind.None, Type: ?, IsInvalid) (Syntax: '[0]')
   Children(1):
-      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ?, IsInvalid, IsImplicit) (Syntax: '[0]')
-        Initializers(1):
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
-                // (6,27): error CS9503: There is no target type for the collection literal.
+                // (6,27): error CS9176: There is no target type for the collection literal.
                 //         var a = /*<bind>*/[0]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[0]").WithLocation(6, 27)
             };

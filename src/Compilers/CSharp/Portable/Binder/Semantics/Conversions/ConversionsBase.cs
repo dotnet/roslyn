@@ -73,6 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
 
+        protected abstract bool IsAttributeArgumentBinding { get; }
+
+        protected abstract bool IsParameterDefaultValueBinding { get; }
+
         internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 
 #nullable enable
@@ -571,7 +575,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
-        // PROTOTYPE: Ensure collection literal conversions are not considered standard implicit conversions.
         private static bool IsStandardImplicitConversionFromExpression(ConversionKind kind)
         {
             if (IsStandardImplicitConversionFromType(kind))
@@ -592,6 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:
+                case ConversionKind.InlineArray:
                     return true;
                 default:
                     return false;
@@ -1103,6 +1107,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return Conversion.CollectionLiteral;
                     }
                     break;
+            }
+
+            // Neither Span<T>, nor ReadOnlySpan<T> can be wrapped into a Nullable<T>, therefore, there is no point to check for an attempt to convert to Nullable types here. 
+            if (!IsAttributeArgumentBinding && !IsParameterDefaultValueBinding && // These checks prevent cycles caused by attribute binding when HasInlineArrayAttribute check triggers that.
+                source?.HasInlineArrayAttribute(out _) == true &&
+                source.TryGetInlineArrayElementField() is { TypeWithAnnotations: var elementType } &&
+                (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions) ||
+                 destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions)) &&
+                HasIdentityConversionInternal(((NamedTypeSymbol)destination.OriginalDefinition).Construct(ImmutableArray.Create(elementType)), destination))
+            {
+                return Conversion.InlineArray;
             }
 
             return Conversion.NoConversion;
@@ -1646,10 +1661,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
-                // That method checks for an implicit conversion from IEnumerable to the collection type,
-                // but that would allow: Nullable<StructCollection> s = [];
-                // PROTOTYPE: Perhaps adjust the behavior of Binder.CollectionInitializerTypeImplementsIEnumerable()
-                // and use that method instead.
+                // That method checks for an implicit conversion from IEnumerable to the collection type, to
+                // match earlier implementation, even though it states that walking the implemented interfaces
+                // would be better. If we use CollectionInitializerTypeImplementsIEnumerable() here, we'd need
+                // to check for nullable to disallow: Nullable<StructCollection> s = [];
+                // Instead, we just walk the implemented interfaces.
                 var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
                 return allInterfaces.Any(static (a, b) => areEqual(a, b), ienumerableType);
             }

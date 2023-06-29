@@ -70,17 +70,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
         {
-            if (e.Option == NamingStyleOptions.NamingPreferences ||
-                e.Option.Definition.Group.Parent == CodeStyleOptionGroups.CodeStyle ||
-                e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
-                e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
-                e.Option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption)
+            if (DiagnosticAnalyzerService.IsGlobalOptionAffectingDiagnostics(e.Option) &&
+                GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
             {
-                if (GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-                {
-                    var service = Workspace.Services.GetService<ISolutionCrawlerService>();
-                    service?.Reanalyze(Workspace, this, projectIds: null, documentIds: null, highPriority: false);
-                }
+                var service = Workspace.Services.GetService<ISolutionCrawlerService>();
+                service?.Reanalyze(Workspace, this, projectIds: null, documentIds: null, highPriority: false);
             }
         }
 

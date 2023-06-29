@@ -3,6 +3,9 @@ parameters:
 - name: jobName
   type: string
   default: ''
+- name: poolName
+  type: string
+  default: ''
 - name: queueName
   type: string
   default: ''
@@ -17,7 +20,7 @@ jobs:
 - job: ${{ parameters.jobName }}
   pool:
     ${{ if ne(parameters.queueName, '') }}:
-      name: NetCore-Public
+      name: ${{ parameters.poolName }}
       demands: ImageOverride -equals ${{ parameters.queueName }}
 
     ${{ if ne(parameters.vmImageName, '') }}:
@@ -25,17 +28,9 @@ jobs:
   timeoutInMinutes: 10
 
   steps:
-  - checkout: none
-
-  - script: |
-      set -x
-      git init
-      git config --local checkout.workers 0
-      git config --local fetch.parallel 0
-      git remote add origin "$(Build.Repository.Uri)"
-      git fetch --no-tags --no-auto-maintenance --depth=2 origin "$(Build.SourceVersion)"
-      git checkout "$(Build.SourceVersion)"
-    displayName: Shallow Checkout
+  - template: checkout-unix-task.yml
+    parameters:
+      depth: 2
   
   - ${{ if ne(parameters.paths[0], '') }}:
     - ${{ each path in parameters.paths }}:

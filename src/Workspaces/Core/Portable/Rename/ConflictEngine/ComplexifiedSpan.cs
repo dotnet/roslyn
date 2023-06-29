@@ -9,22 +9,15 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
     [DataContract]
-    internal readonly struct ComplexifiedSpan
+    internal readonly struct ComplexifiedSpan(TextSpan originalSpan, TextSpan newSpan, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)> modifiedSubSpans)
     {
         [DataMember(Order = 0)]
-        public readonly TextSpan OriginalSpan;
+        public readonly TextSpan OriginalSpan = originalSpan;
 
         [DataMember(Order = 1)]
-        public readonly TextSpan NewSpan;
+        public readonly TextSpan NewSpan = newSpan;
 
         [DataMember(Order = 2)]
-        public readonly ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)> ModifiedSubSpans;
-
-        public ComplexifiedSpan(TextSpan originalSpan, TextSpan newSpan, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)> modifiedSubSpans)
-        {
-            OriginalSpan = originalSpan;
-            NewSpan = newSpan;
-            ModifiedSubSpans = modifiedSubSpans;
-        }
+        public readonly ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)> ModifiedSubSpans = modifiedSubSpans;
     }
 }

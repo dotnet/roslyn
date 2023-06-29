@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
         <source>Cannot inherit from '{0}' because it has required members.</source>
-        <target state="new">Cannot inherit from '{0}' because it has required members.</target>
+        <target state="translated">无法从 "{0}" 继承，因为它具有必需的成员。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="ERR_DoNotUseRequiredMember">
         <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
-        <target state="new">'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</target>
+        <target state="translated">"System.Runtime.CompilerServices.RequiredMemberAttribute" 仅供编译器使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
         <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
-        <target state="new">'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</target>
+        <target state="translated">"{2}" 无法满足泛型类型或方法 "{1}" 中参数 "{0}" 的 "New" 约束，因为 "{2}" 具有必需的成员。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="ERR_RequiredMemberMustBeSet">
         <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
-        <target state="new">Required member '{0}' must be set in the object initializer or attribute arguments.</target>
+        <target state="translated">必须在对象初始值设定项或属性构参数中设置所需的成员 "{0}"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMembersInvalid">
         <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
-        <target state="new">The required members list for '{0}' is malformed and cannot be interpreted.</target>
+        <target state="translated">'{0}' 所需的成员列表格式不正确，无法解释。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -90,6 +90,11 @@
       <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
         <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
         <target state="translated">共享 WithEvents 变量的事件不能由其他类型的方法处理。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="new">'{0}' is defined in assembly '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
@@ -109,7 +114,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
         <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
-        <target state="new">A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</target>
+        <target state="translated">对通过引用返回的方法或属性的调用不能用作异步或迭代器方法中的 "With" 语句表达式，或者在 lambda 中隐式引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -287,6 +292,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -299,7 +307,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic 编译器选项
+        <target state="needs-review-translation">                  Visual Basic 编译器选项
 
                                  - 输出文件 -
 -out:&lt;file&gt;                       指定输出文件名。

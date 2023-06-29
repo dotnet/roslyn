@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
         <source>Cannot inherit from '{0}' because it has required members.</source>
-        <target state="new">Cannot inherit from '{0}' because it has required members.</target>
+        <target state="translated">필요한 멤버가 있어 '{0}'에서 상속할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="ERR_DoNotUseRequiredMember">
         <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
-        <target state="new">'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</target>
+        <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute'는 컴파일러 용도로만 예약되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
         <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
-        <target state="new">'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</target>
+        <target state="translated">'{2}'에 필수 멤버가 있으므로 '{2}'은(는) 제네릭 형식 또는 메서드 '{0}'의 '{1}' 매개 변수에 대한 'New' 제약 조건을 충족할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="ERR_RequiredMemberMustBeSet">
         <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
-        <target state="new">Required member '{0}' must be set in the object initializer or attribute arguments.</target>
+        <target state="translated">필수 멤버 '{0}'은(는) 개체 이니셜라이저 또는 특성 인수에서 설정해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMembersInvalid">
         <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
-        <target state="new">The required members list for '{0}' is malformed and cannot be interpreted.</target>
+        <target state="translated">'{0}'에 대한 필수 구성원 목록 형식이 잘못되어 해석할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -90,6 +90,11 @@
       <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
         <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
         <target state="translated">공유 WithEvents 변수의 이벤트는 다른 형식의 메서드에서 처리할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="new">'{0}' is defined in assembly '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
@@ -109,7 +114,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
         <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
-        <target state="new">A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</target>
+        <target state="translated">참조로 반환하는 메서드 또는 속성에 대한 호출은 비동기 메서드나 반복기 메서드에서 또는 람다에서 암시적으로 참조되는 경우 'With' 문 식으로 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -287,6 +292,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -299,7 +307,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic 컴파일러 옵션
+        <target state="needs-review-translation">                  Visual Basic 컴파일러 옵션
 
                                   - 출력 파일 -
 -out:&lt;file&gt; 출력 파일 이름을 지정합니다.

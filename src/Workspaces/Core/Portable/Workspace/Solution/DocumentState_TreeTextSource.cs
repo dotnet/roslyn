@@ -15,35 +15,28 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A source for <see cref="TextAndVersion"/> constructed from an syntax tree.
         /// </summary>
-        private sealed class TreeTextSource : ITextAndVersionSource
+        private sealed class TreeTextSource(AsyncLazy<SourceText> textSource, VersionStamp version) : ITextAndVersionSource
         {
-            private readonly AsyncLazy<SourceText> _textSource;
-            private readonly VersionStamp _version;
+            private readonly VersionStamp _version = version;
 
             public bool CanReloadText
                 => false;
 
-            public TreeTextSource(AsyncLazy<SourceText> textSource, VersionStamp version)
-            {
-                _textSource = textSource;
-                _version = version;
-            }
-
             public async Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
             {
-                var text = await _textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var text = await textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 return TextAndVersion.Create(text, _version);
             }
 
             public TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken)
             {
-                var text = _textSource.GetValue(cancellationToken);
+                var text = textSource.GetValue(cancellationToken);
                 return TextAndVersion.Create(text, _version);
             }
 
             public bool TryGetValue(LoadTextOptions options, [NotNullWhen(true)] out TextAndVersion? value)
             {
-                if (_textSource.TryGetValue(out var text))
+                if (textSource.TryGetValue(out var text))
                 {
                     value = TextAndVersion.Create(text, _version);
                     return true;

@@ -8,13 +8,10 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.Remote
 {
     [DataContract]
-    internal readonly struct RemoteServiceCallbackId : IEquatable<RemoteServiceCallbackId>
+    internal readonly struct RemoteServiceCallbackId(int id) : IEquatable<RemoteServiceCallbackId>
     {
         [DataMember(Order = 0)]
-        public readonly int Id;
-
-        public RemoteServiceCallbackId(int id)
-            => Id = id;
+        public readonly int Id = id;
 
         public override bool Equals(object? obj)
             => obj is RemoteServiceCallbackId id && Equals(id);
