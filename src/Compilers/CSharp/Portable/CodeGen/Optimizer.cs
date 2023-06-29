@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public BoundNode VisitStatement(BoundNode node)
         {
-            //Debug.Assert(node == null || EvalStackIsEmpty());
+            Debug.Assert(node == null || EvalStackIsEmpty());
             return VisitSideEffect(node);
         }
 
@@ -1416,8 +1416,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
         {
-            //Debug.Assert(EvalStackIsEmpty());
-
             // switch dispatch needs a byval local or a parameter as a key.
             // if this is already a fitting local, let's keep it that way
             BoundExpression boundExpression = node.Expression;
@@ -1449,12 +1447,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
         {
-            EnsureOnlyEvalStack();
-            DeclareLocals(node.Locals, stack: 0);
-            var result = base.VisitLoweredIsPatternExpression(node);
+            DeclareLocals(node.Locals, StackDepth());
+            var statements = ArrayBuilder<BoundStatement>.GetInstance(node.Statements.Length);
+            foreach (BoundStatement statement in node.Statements)
+            {
+                statements.Add((BoundStatement)VisitSideEffect(statement));
+            }
             RecordBranch(node.WhenTrueLabel);
             RecordBranch(node.WhenFalseLabel);
-            return result;
+            return node.Update(node.Locals, statements.ToImmutableAndFree(), node.WhenTrueLabel, node.WhenFalseLabel, VisitType(node.Type));
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)

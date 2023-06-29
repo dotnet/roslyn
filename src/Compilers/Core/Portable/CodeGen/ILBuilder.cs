@@ -1080,7 +1080,7 @@ tryAgain:
         [Conditional("DEBUG")]
         internal void AssertStackEmpty()
         {
-            //Debug.Assert(_emitState.CurStack == 0);
+            Debug.Assert(_emitState.CurStack == 0);
         }
 
         // true if there may have been a label generated with no subsequent code

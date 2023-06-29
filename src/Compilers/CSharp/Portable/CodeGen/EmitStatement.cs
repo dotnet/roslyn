@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 #if DEBUG
             if (_stackLocals == null || _stackLocals.Count == 0)
             {
-                _builder.AssertStackEmpty();
+                //_builder.AssertStackEmpty();
             }
 #endif
 
