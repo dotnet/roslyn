@@ -204,6 +204,7 @@ namespace Analyzer.Utilities
         public const string SystemDiagnosticsCodeAnalysisConstantExpectedAttribute = "System.Diagnostics.CodeAnalysis.ConstantExpectedAttribute";
         public const string SystemDiagnosticsCodeAnalysisNotNullAttribute = "System.Diagnostics.CodeAnalysis.NotNullAttribute";
         public const string SystemDiagnosticsCodeAnalysisNotNullIfNotNullAttribute = "System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute";
+        public const string SystemDiagnosticsCodeAnalysisStringSyntaxAttributeName = "System.Diagnostics.CodeAnalysis.StringSyntaxAttribute";
         public const string SystemDiagnosticsConditionalAttribute = "System.Diagnostics.ConditionalAttribute";
         public const string SystemDiagnosticsContractsPureAttribute = "System.Diagnostics.Contracts.PureAttribute";
         public const string SystemDiagnosticsDebug = "System.Diagnostics.Debug";
@@ -397,6 +398,7 @@ namespace Analyzer.Utilities
         public const string SystemStringComparer = "System.StringComparer";
         public const string SystemStringComparison = "System.StringComparison";
         public const string SystemSystemException = "System.SystemException";
+        public const string SystemTextCompositeFormat = "System.Text.CompositeFormat";
         public const string SystemTextEncoding = "System.Text.Encoding";
         public const string SystemTextRegularExpressionsRegex = "System.Text.RegularExpressions.Regex";
         public const string SystemTextStringBuilder = "System.Text.StringBuilder";
@@ -405,6 +407,7 @@ namespace Analyzer.Utilities
         public const string SystemThreadingInterlocked = "System.Threading.Interlocked";
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
         public const string SystemThreadingSpinLock = "System.Threading.SpinLock";
+        public const string SystemThreadingTasksConfigureAwaitOptions = "System.Threading.Tasks.ConfigureAwaitOptions";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
         public const string SystemThreadingTasksTask1 = "System.Threading.Tasks.Task`1";
         public const string SystemThreadingTasksTaskCompletionSource = "System.Threading.Tasks.TaskCompletionSource";

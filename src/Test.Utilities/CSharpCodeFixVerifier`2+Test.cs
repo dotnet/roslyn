@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Net;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -57,6 +59,20 @@ namespace Test.Utilities
                 var compilationOptions = base.CreateCompilationOptions();
                 return compilationOptions.WithSpecificDiagnosticOptions(
                     compilationOptions.SpecificDiagnosticOptions.SetItems(NullableWarnings));
+            }
+
+            protected override ImmutableArray<(Project project, Diagnostic diagnostic)> SortDistinctDiagnostics(IEnumerable<(Project project, Diagnostic diagnostic)> diagnostics)
+            {
+                var baseResult = base.SortDistinctDiagnostics(diagnostics);
+                if (typeof(DiagnosticSuppressor).IsAssignableFrom(typeof(TAnalyzer)))
+                {
+                    // Include suppressed diagnostics when testing diagnostic suppressors
+                    return baseResult;
+                }
+
+                // Treat suppressed diagnostics as non-existent. Normally this wouldn't be necessary, but some of the
+                // tests include diagnostics reported in code wrapped in '#pragma warning disable'.
+                return baseResult.WhereAsArray(diagnostic => !diagnostic.diagnostic.IsSuppressed);
             }
 
             protected override ParseOptions CreateParseOptions()

@@ -74,7 +74,7 @@ namespace Analyzer.Utilities
             _root = Remove(_root, GetHashCode(key));
         }
 
-        private AvlNode? Remove(AvlNode? currentNode, int hashCode)
+        private static AvlNode? Remove(AvlNode? currentNode, int hashCode)
         {
             if (currentNode == null)
             {
